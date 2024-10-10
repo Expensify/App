@@ -79,11 +79,11 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
             const dataSetIndex = listOffsets.findIndex((listOffset) => occurrenceIndex < listOffset);
 
             if (dataSetIndex === -1) {
-                throw new Error('Programmatic error, this should never ever happen');
+                throw new Error(`[FastSearch] The occurrence index ${occurrenceIndex} is not in any dataset`);
             }
             const item = dataSets[dataSetIndex].data[itemIndexInDataSet];
             if (!item) {
-                throw new Error('Programmatic error, this should never ever happen');
+                throw new Error(`[FastSearch] The item with index ${itemIndexInDataSet} in dataset ${dataSetIndex} is not defined`);
             }
             resultsByDataSet[dataSetIndex].add(item);
         }
