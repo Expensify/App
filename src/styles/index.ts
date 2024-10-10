@@ -4537,6 +4537,10 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
+        onboardingSmallIcon: {
+            padding: 10,
+        },
+
         sidebarStatusAvatarContainer: {
             height: 40,
             width: 40,
