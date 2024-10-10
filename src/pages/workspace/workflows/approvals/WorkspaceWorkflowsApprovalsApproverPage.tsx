@@ -54,6 +54,8 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
+    const [allApprovers, setAllApprovers] = useState<SelectionListApprover[]>([]);
+    const shouldShowTextInput = allApprovers?.length >= 8;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
@@ -114,6 +116,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 .filter((approver): approver is SelectionListApprover => !!approver);
 
             approvers.push(...availableApprovers);
+            setAllApprovers(approvers);
         }
 
         const filteredApprovers =
@@ -249,6 +252,8 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                         footerContent={button}
                         listEmptyContent={listEmptyContent}
                         shouldShowListEmptyContent={shouldShowListEmptyContent}
+                        shouldHighlightSelectedItem
+                        shouldShowTextInput={shouldShowTextInput}
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>
