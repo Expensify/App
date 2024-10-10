@@ -31,9 +31,10 @@ function InitialURLContextProvider({children, url}: InitialURLContextProviderPro
 
     useEffect(() => {
         if (url) {
-            const route = signInAfterTransitionFromOldDot(url);
-            setInitialURL(route);
-            setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+            signInAfterTransitionFromOldDot(url).then((route) => {
+                setInitialURL(route);
+                setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+            });
             return;
         }
         Linking.getInitialURL().then((initURL) => {

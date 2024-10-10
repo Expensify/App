@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import type {Dispatch, SetStateAction} from 'react';
+import {NativeModules} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -13,6 +14,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import * as Link from './actions/Link';
+import Log from './Log';
 import Navigation from './Navigation/Navigation';
 import * as PolicyUtils from './PolicyUtils';
 
@@ -37,6 +39,14 @@ Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     callback: (val) => {
         primaryLogin = val?.primaryLogin ?? '';
+    },
+});
+
+let isSingleNewDotEntry: boolean | undefined;
+Onyx.connect({
+    key: ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY,
+    callback: (val) => {
+        isSingleNewDotEntry = val;
     },
 });
 
@@ -91,8 +101,17 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     if (ctaErrorMessage) {
         setCtaErrorMessage('');
     }
-    Link.openTravelDotLink(activePolicyID)?.catch(() => {
-        setCtaErrorMessage(translate('travel.errorMessage'));
-    });
+    Link.openTravelDotLink(activePolicyID)
+        ?.then(() => {
+            if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
+                return;
+            }
+
+            Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
+            NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+        })
+        ?.catch(() => {
+            setCtaErrorMessage(translate('travel.errorMessage'));
+        });
 }
 export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon, bookATrip};
