@@ -191,13 +191,15 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
     const canModifyTask = Task.canModifyTask(report, session?.accountID ?? -1);
+    const canActionTask = Task.canActionTask(report, session?.accountID ?? -1);
     const shouldShowTaskDeleteButton =
         isTaskReport &&
         !isCanceledTaskReport &&
         ReportUtils.canWriteInReport(report) &&
         report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
         !ReportUtils.isClosedReport(report) &&
-        canModifyTask;
+        canModifyTask &&
+        canActionTask;
     const canDeleteRequest = isActionOwner && (ReportUtils.canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
@@ -365,7 +367,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
         // Show actions related to Task Reports
         if (isTaskReport && !isCanceledTaskReport) {
-            if (ReportUtils.isCompletedTaskReport(report) && canModifyTask) {
+            if (ReportUtils.isCompletedTaskReport(report) && canModifyTask && canActionTask) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.MARK_AS_INCOMPLETE,
                     icon: Expensicons.Checkmark,
@@ -474,6 +476,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         unapproveExpenseReportOrShowModal,
         isExpenseReport,
         backTo,
+        canActionTask,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
