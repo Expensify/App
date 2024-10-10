@@ -29,7 +29,7 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
     const sections: QBDSectionType[] = [
         {
             description: translate('workspace.accounting.accounts'),
-            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49703
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS.getRoute(policyID)),
             title: translate('workspace.accounting.importAsCategory'),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES],
         },
