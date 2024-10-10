@@ -2085,11 +2085,6 @@ function getOptions(
                     }
                 }
             }
-
-            // Add this login to the exclude list so it won't appear when we process the personal details
-            if (reportOption.login) {
-                optionsToExclude.push({login: reportOption.login});
-            }
         }
     }
 
@@ -2504,8 +2499,18 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         preferPolicyExpenseChat = false,
         preferRecentExpenseReports = false,
     } = config ?? {};
+    function filteredPersonalDetailsOfRecentReports(recentReports: ReportUtils.OptionData[], personalDetails: ReportUtils.OptionData[]) {
+        const excludedLogins = new Set(recentReports.map((report) => report.login));
+        return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
+    }
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
-        return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
+        const recentReports = options.recentReports.slice(0, maxRecentReportsToShow);
+        const personalDetails = filteredPersonalDetailsOfRecentReports(recentReports, options.personalDetails);
+        return {
+            ...options,
+            recentReports,
+            personalDetails,
+        };
     }
 
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
@@ -2547,7 +2552,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         const currentUserOptionSearchText = items.currentUserOption ? uniqFast(getCurrentUserSearchTerms(items.currentUserOption)).join(' ') : '';
 
         const currentUserOption = isSearchStringMatch(term, currentUserOptionSearchText) ? items.currentUserOption : null;
-
         return {
             recentReports: recentReports ?? [],
             personalDetails: personalDetails ?? [],
@@ -2562,6 +2566,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     let {recentReports, personalDetails} = matchResults;
 
     if (sortByReportTypeInSearch) {
+        personalDetails = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
         recentReports = recentReports.concat(personalDetails);
         personalDetails = [];
         recentReports = orderOptions(recentReports, searchValue);
@@ -2581,9 +2586,10 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     if (maxRecentReportsToShow > 0 && recentReports.length > maxRecentReportsToShow) {
         recentReports.splice(maxRecentReportsToShow);
     }
+    const filteredPersonalDetails = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
 
     return {
-        personalDetails,
+        personalDetails: filteredPersonalDetails,
         recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat, preferRecentExpenseReports}),
         userToInvite,
         currentUserOption: matchResults.currentUserOption,
