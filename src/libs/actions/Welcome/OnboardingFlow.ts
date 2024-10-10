@@ -10,6 +10,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type Onboarding from '@src/types/onyx/Onboarding';
 
 let selectedPurpose: string | undefined = '';
 Onyx.connect({
@@ -28,6 +29,17 @@ const onboardingLastVisitedPathConnection = Onyx.connect({
         }
         onboardingInitialPath = value;
         Onyx.disconnect(onboardingLastVisitedPathConnection);
+    },
+});
+
+let onboardingValues: Onboarding;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (value) => {
+        if (value === undefined) {
+            return;
+        }
+        onboardingValues = value as Onboarding;
     },
 });
 
@@ -103,6 +115,16 @@ function startOnboardingFlow() {
 
 function getOnboardingInitialPath(): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
+    const isVsb = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+
+    if (isVsb) {
+        Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
+        return `/${ROUTES.ONBOARDING_WORK.route}`;
+    }
+    const isIndividual = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
+    if (isIndividual) {
+        Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
+    }
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }
