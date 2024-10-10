@@ -288,7 +288,6 @@ function SecuritySettingsPage() {
                                 }}
                                 onClose={() => {
                                     setShouldShowDelegatePopoverMenu(false);
-                                    setSelectedDelegate(undefined);
                                 }}
                             >
                                 <View style={[styles.mv5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}>
