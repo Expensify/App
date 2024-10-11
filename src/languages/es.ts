@@ -5445,8 +5445,7 @@ const translations = {
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto.`,
         notAllowed: 'No tan rápido...',
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `No tienes permiso para realizar esta acción para ${accountOwnerEmail}`,
-        notAllowedMessageHyperLinked: ' copiloto con acceso',
-        notAllowedMessageEnd: ' limitado',
+        notAllowedMessageHyperLinked: ' copiloto',
     },
     debug: {
         debug: 'Depuración',
