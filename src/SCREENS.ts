@@ -316,6 +316,10 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
             QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
             QUICKBOOKS_DESKTOP_EXPORT: 'Workspace_Accounting_Quickbooks_Desktop_Export',
+            QUICKBOOKS_DESKTOP_SETUP_MODAL: 'Policy_Accouting_Quickbooks_Desktop_Setup_Modal',
+            QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL: 'Policy_Accouting_Quickbooks_Desktop_Setup_Required_Device_Modal',
+            QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC: 'Policy_Accouting_Quickbooks_Desktop_Trigger_First_Sync',
+            QUICKBOOKS_DESKTOP_IMPORT: 'Policy_Accounting_Quickbooks_Desktop_Import',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
             XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
             XERO_CHART_OF_ACCOUNTS: 'Policy_Accounting_Xero_Import_Chart_Of_Accounts',
@@ -385,9 +389,6 @@ const SCREENS = {
             SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Credit_Card_Account',
             SAGE_INTACCT_ADVANCED: 'Policy_Accounting_Sage_Intacct_Advanced',
             SAGE_INTACCT_PAYMENT_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Payment_Account',
-            QUICKBOOKS_DESKTOP_SETUP_MODAL: 'Policy_Accouting_Quickbooks_Desktop_Setup_Modal',
-            QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL: 'Policy_Accouting_Quickbooks_Desktop_Setup_Required_Device_Modal',
-            QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC: 'Policy_Accouting_Quickbooks_Desktop_Trigger_First_Sync',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             RECONCILIATION_ACCOUNT_SETTINGS: 'Policy_Accounting_Reconciliation_Account_Settings',
         },
@@ -527,7 +528,8 @@ const SCREENS = {
     ONBOARDING: {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
-        WORK: 'Onboarding_Work',
+        EMPLOYEES: 'Onboarding_Employees',
+        ACCOUNTING: 'Onboarding_Accounting',
     },
 
     WELCOME_VIDEO: {

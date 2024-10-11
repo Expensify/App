@@ -119,8 +119,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.ONBOARDING_PERSONAL_DETAILS.route,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.WORK]: {
-                    path: ROUTES.ONBOARDING_WORK.route,
+                [SCREENS.ONBOARDING.EMPLOYEES]: {
+                    path: ROUTES.ONBOARDING_EMPLOYEES.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.ACCOUNTING]: {
+                    path: ROUTES.ONBOARDING_ACCOUNTING.route,
                     exact: true,
                 },
             },
@@ -387,6 +391,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC]: {
                             path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC.route,
                         },
+                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: {path: ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.route},

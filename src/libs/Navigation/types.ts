@@ -445,6 +445,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_IMPORT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {
         policyID: string;
     };
@@ -1393,7 +1396,10 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.PURPOSE]: {
         backTo?: string;
     };
-    [SCREENS.ONBOARDING.WORK]: {
+    [SCREENS.ONBOARDING.EMPLOYEES]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.ACCOUNTING]: {
         backTo?: string;
     };
 };
