@@ -54,7 +54,6 @@ function SearchFiltersExpenseTypePage() {
             />
             <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
-                    pickerTitle={translate('search.expenseType')}
                     items={expenseTypesItems}
                     initiallySelectedItems={initiallySelectedItems}
                     onSaveSelection={updateExpenseTypeFilter}
