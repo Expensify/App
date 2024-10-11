@@ -497,7 +497,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     filename={receiptURIs?.filename}
                                     transaction={updatedTransaction ?? transaction}
                                     enablePreviewModal
-                                    readonly={readonly}
+                                    readonly={readonly || !canEditReceipt}
                                 />
                             </View>
                         )}

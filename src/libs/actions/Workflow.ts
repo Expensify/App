@@ -334,7 +334,7 @@ function clearApprovalWorkflowApprovers() {
 }
 
 function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>) {
-    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+    Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 }
 
 function clearApprovalWorkflow() {

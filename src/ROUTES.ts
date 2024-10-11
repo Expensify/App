@@ -138,6 +138,14 @@ const ROUTES = {
         route: 'settings/security/delegate/:login/role/:role',
         getRoute: (login: string, role?: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}` as const,
     },
+    SETTINGS_UPDATE_DELEGATE_ROLE: {
+        route: 'settings/security/delegate/:login/update-role/:currentRole',
+        getRoute: (login: string, currentRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${currentRole}` as const,
+    },
+    SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE: {
+        route: 'settings/security/delegate/:login/update-role/:role/magic-code',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${role}/magic-code` as const,
+    },
     SETTINGS_DELEGATE_CONFIRM: {
         route: 'settings/security/delegate/:login/role/:role/confirm',
         getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm` as const,
@@ -662,6 +670,22 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/setup-modal',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/setup-modal` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/setup-required-device',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/setup-required-device` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/trigger-first-sync',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/trigger-first-sync` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import` as const,
+    },
     WORKSPACE_PROFILE_NAME: {
         route: 'settings/workspaces/:policyID/profile/name',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/name` as const,
@@ -1163,9 +1187,13 @@ const ROUTES = {
         route: 'onboarding/personal-details',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
     },
-    ONBOARDING_WORK: {
-        route: 'onboarding/work',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work`, backTo),
+    ONBOARDING_EMPLOYEES: {
+        route: 'onboarding/employees',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/employees`, backTo),
+    },
+    ONBOARDING_ACCOUNTING: {
+        route: 'onboarding/accounting',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/accounting`, backTo),
     },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',
@@ -1529,18 +1557,6 @@ const ROUTES = {
     POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/setup-modal',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/setup-modal` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/setup-required-device',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/setup-required-device` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/trigger-first-sync',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/trigger-first-sync` as const,
     },
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',

@@ -129,10 +129,22 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
 
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
+type OnboardingCompanySizeType = ValueOf<typeof onboardingCompanySize>;
+
+type OnboardingAccountingType = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
+
 const onboardingInviteTypes = {
     IOU: 'iou',
     INVOICE: 'invoice',
     CHAT: 'chat',
+} as const;
+
+const onboardingCompanySize = {
+    MICRO: '1-10',
+    SMALL: '11-50',
+    MEDIUM_SMALL: '51-100',
+    MEDIUM: '101-1000',
+    LARGE: '1001+',
 } as const;
 
 type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
@@ -470,7 +482,6 @@ const CONST = {
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
-        WORKSPACE_FEEDS: 'workspaceFeeds',
         COMPANY_CARD_FEEDS: 'companyCardFeeds',
         DIRECT_FEEDS: 'directFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
@@ -4479,12 +4490,12 @@ const CONST = {
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
-    QUALIFIER_PARAM: 'signupQualifier',
     ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
+    ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_CONCIERGE: {
         [onboardingChoices.EMPLOYER]:
@@ -5839,6 +5850,18 @@ type FeedbackSurveyOptionID = ValueOf<Pick<ValueOf<typeof CONST.FEEDBACK_SURVEY_
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
-export type {Country, IOUAction, IOUType, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInviteType};
+export type {
+    Country,
+    IOUAction,
+    IOUType,
+    OnboardingPurposeType,
+    OnboardingCompanySizeType,
+    IOURequestType,
+    SubscriptionType,
+    FeedbackSurveyOptionID,
+    CancellationType,
+    OnboardingInviteType,
+    OnboardingAccountingType,
+};
 
 export default CONST;
