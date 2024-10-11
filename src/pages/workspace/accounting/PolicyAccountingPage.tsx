@@ -381,6 +381,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isSyncInProgress,
         connectedIntegration,
         synchronizationError,
+        shouldShowSynchronizationError,
         policyID,
         translate,
         styles.sectionMenuItemTopDescription,
