@@ -2444,10 +2444,7 @@ function calculateDiffAmount(
         // Add the diff to the total if we change the currency from a different currency to the currency of the IOU report
         return updatedAmount;
     }
-    if (updatedCurrency !== iouReport?.currency && currentCurrency === iouReport?.currency) {
-        // Subtract the diff from the total if we change the currency from the currency of IOU report to a different currency
-        return -updatedAmount;
-    }
+
     if (updatedCurrency === iouReport?.currency && updatedAmount !== currentAmount) {
         // Calculate the diff between the updated amount and the current amount if we change the amount and the currency of the transaction is the currency of the report
         return updatedAmount - currentAmount;
