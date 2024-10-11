@@ -171,10 +171,8 @@ function isApprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportA
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED);
 }
 
-function isUnapprovedOrApprovedAction(
-    reportAction: OnyxInputOrEntry<ReportAction>,
-): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED | typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED, CONST.REPORT.ACTIONS.TYPE.APPROVED);
+function isUnapprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED);
 }
 
 function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
@@ -1871,7 +1869,7 @@ export {
     isSubmittedAction,
     isSubmittedAndClosedAction,
     isApprovedAction,
-    isUnapprovedOrApprovedAction,
+    isUnapprovedAction,
     isForwardedAction,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,

@@ -453,15 +453,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                     } else {
                         Clipboard.setString(ReportUtils.getIOUSubmittedMessage(reportAction));
                     }
-                } else if (ReportActionsUtils.isUnapprovedOrApprovedAction(reportAction)) {
-                    const wasAutoApproved = ReportActionsUtils.isApprovedAction(reportAction) && ReportActionsUtils.getOriginalMessage(reportAction)?.automaticAction;
-                    let displayMessage = '';
-                    if (wasAutoApproved) {
-                        displayMessage = ReportUtils.getReportAutomaticallyApprovedMessage(reportAction);
+                } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
+                    const {automaticAction} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
+                    if (automaticAction) {
+                        setClipboardMessage(ReportUtils.getReportAutomaticallyApprovedMessage(reportAction));
                     } else {
-                        displayMessage = ReportUtils.getIOUUnapprovedOrApprovedMessage(reportAction);
+                        Clipboard.setString(ReportUtils.getIOUApprovedMessage(reportAction));
                     }
-                    Clipboard.setString(displayMessage);
+                } else if (ReportActionsUtils.isUnapprovedAction(reportAction)) {
+                    Clipboard.setString(ReportUtils.getIOUUnapprovedMessage(reportAction));
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
                     const {automaticAction} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
