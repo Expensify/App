@@ -1026,6 +1026,7 @@ const translations = {
         bookingPendingDescription: "This booking is pending because it hasn't been paid yet.",
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
+        paymentComplete: 'Payment complete',
         justTrackIt: 'Just track it (don’t submit it)',
     },
     notificationPreferencesPage: {
@@ -1723,9 +1724,9 @@ const translations = {
         getStarted: 'Get started',
         whatsYourName: "What's your name?",
         whereYouWork: 'Where do you work?',
+        errorSelection: 'Please make a selection to continue.',
         purpose: {
             title: 'What do you want to do today?',
-            errorSelection: 'Please make a selection to continue.',
             errorContinue: 'Please press continue to get set up.',
             errorBackButton: 'Please finish the setup questions to start using the app.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
@@ -1733,6 +1734,18 @@ const translations = {
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chat and split expenses with friends',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Something else',
+        },
+        employees: {
+            title: 'How many employees do you have?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1,000 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'More than 1,000 employees',
+        },
+        accounting: {
+            title: 'Do you use any accounting software?',
+            noneOfAbove: 'None of the above',
         },
         error: {
             requiredFirstName: 'Please input your first name to continue.',
@@ -2304,6 +2317,7 @@ const translations = {
             }),
             settlementFrequency: 'Settlement frequency',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
+            deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
@@ -2368,6 +2382,10 @@ const translations = {
                 title: 'Open this link to connect',
                 body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running.',
             },
+            importDescription: 'Choose which coding configurations to import from QuickBooks Desktop to Expensify.',
+            classes: 'Classes',
+            items: 'Items',
+            customers: 'Customers/projects',
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
