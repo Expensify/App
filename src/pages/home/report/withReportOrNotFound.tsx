@@ -24,7 +24,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WithReportOrNotFoundOnyxProps = {
     /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
+    report: OnyxTypes.Report;
 
     /** Metadata of the report currently being looked at */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
@@ -51,18 +51,13 @@ type ScreenProps =
     | PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
 
 type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
-    /** The report currently being looked at */
-    report: OnyxTypes.Report;
-
     route: ScreenProps['route'];
     navigation: ScreenProps['navigation'];
 };
 
 export default function (
     shouldRequireReportID = true,
-): <TProps extends WithReportOrNotFoundProps, TRef>(
-    WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>,
-) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof WithReportOrNotFoundOnyxProps>> {
+): <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>) => React.ComponentType<TProps & React.RefAttributes<TRef>> {
     return function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
         function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
             const [betas] = useOnyx(ONYXKEYS.BETAS);
