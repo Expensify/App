@@ -128,12 +128,12 @@ Onyx.connect({
     },
 });
 
-let reportActions: OnyxCollection<ReportActions>;
+let reportActionsCollection: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
     callback: (value) => {
-        reportActions = value;
+        reportActionsCollection = value;
     },
 });
 
@@ -622,7 +622,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPath
 
     if (
         !([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) &&
-        SidebarUtils.shouldShowRedBrickRoad(report, reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`], doesReportHaveViolations, transactionViolations)
+        SidebarUtils.shouldShowRedBrickRoad(report, reportActionsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`], doesReportHaveViolations, transactionViolations)
     ) {
         return `debug.reasonVisibleInLHN.hasRBR`;
     }
