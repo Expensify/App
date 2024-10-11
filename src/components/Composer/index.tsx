@@ -50,6 +50,7 @@ function Composer(
         isComposerFullSize = false,
         shouldContainScroll = true,
         isGroupPolicyReport = false,
+        showSoftInputOnFocus = true,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
@@ -349,6 +350,7 @@ function Composer(
             value={value}
             defaultValue={defaultValue}
             autoFocus={autoFocus}
+            inputMode={showSoftInputOnFocus ? 'text' : 'none'}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             onSelectionChange={addCursorPositionToSelectionChange}
