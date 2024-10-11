@@ -45,4 +45,5 @@ if [ "$EXIT_CODE" -eq 0 ]; then
 else
   # patch-package failed
   error "patch-package failed to apply a patch"
+  exit "$EXIT_CODE"
 fi
