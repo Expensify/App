@@ -39,6 +39,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 // On small screen we hide the search page from central pane to show the search bottom tab page with bottom tab bar.
 // We need to take this in consideration when checking if the screen is focused.
@@ -136,7 +137,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: FloatingActionButtonAndPopoverProps, ref: ForwardedRef<FloatingActionButtonAndPopoverRef>) {
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID ?? '-1'}`);
