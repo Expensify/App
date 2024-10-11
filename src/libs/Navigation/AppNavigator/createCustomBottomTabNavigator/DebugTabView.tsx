@@ -1,5 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -15,9 +17,11 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoadReport} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {ReimbursementAccount} from '@src/types/onyx';
 
 type DebugTabViewProps = {
     selectedTab?: string;
@@ -56,7 +60,7 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
     }
 }
 
-function getSettingsRoute(status: IndicatorStatus | undefined, policyIDWithErrors = ''): Route | undefined {
+function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAccount: OnyxEntry<ReimbursementAccount>, policyIDWithErrors = ''): Route | undefined {
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
             return ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithErrors);
@@ -71,7 +75,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, policyIDWithError
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
             return ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithErrors);
         case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
-            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyIDWithErrors);
+            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(reimbursementAccount?.achData?.currentStep, reimbursementAccount?.achData?.policyID);
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS:
             return ROUTES.SETTINGS_SUBSCRIPTION;
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
@@ -92,6 +96,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
 
     const message = useMemo((): TranslationPaths | undefined => {
@@ -133,13 +138,13 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
             }
         }
         if (selectedTab === SCREENS.SETTINGS.ROOT) {
-            const route = getSettingsRoute(status, policyIDWithErrors);
+            const route = getSettingsRoute(status, reimbursementAccount, policyIDWithErrors);
 
             if (route) {
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, status, policyIDWithErrors]);
+    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, status, reimbursementAccount, policyIDWithErrors]);
 
     if (!([SCREENS.HOME, SCREENS.SETTINGS.ROOT] as string[]).includes(selectedTab) || !indicator) {
         return null;
