@@ -30,6 +30,7 @@ import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchUtils';
 import * as SessionUtils from '@libs/SessionUtils';
+import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
@@ -392,6 +393,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }, []);
 
     const CentralPaneScreenOptions = {
+        ...hideKeyboardOnSwipe,
         headerShown: false,
         title: 'New Expensify',
 
