@@ -15,7 +15,7 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsForm} from '@src/types/form';
-import type {CardList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -26,13 +26,12 @@ import {getInitialSubstep, getSubstepValues} from './utils';
 
 type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
-    cardList: OnyxEntry<CardList>;
     draftValues: OnyxEntry<PersonalDetailsForm>;
 };
 
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
 
-function MissingPersonalDetailsContent({privatePersonalDetails, cardList, draftValues}: MissingPersonalDetailsContentProps) {
+function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
@@ -41,16 +40,14 @@ function MissingPersonalDetailsContent({privatePersonalDetails, cardList, draftV
 
     const startFrom = useMemo(() => getInitialSubstep(values), [values]);
 
-    const firstUnissuedCard = useMemo(() => Object.values(cardList ?? {}).find((card) => card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED), [cardList]);
-
     const handleFinishStep = useCallback(() => {
         if (!values) {
             return;
         }
-        PersonalDetails.updatePersonalDetailsAndShipExpensifyCards(values, firstUnissuedCard?.cardID ?? 0);
+        PersonalDetails.updatePersonalDetailsAndShipExpensifyCards(values);
         FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         Navigation.goBack();
-    }, [firstUnissuedCard?.cardID, values]);
+    }, [values]);
 
     const {
         componentToRender: SubStep,
