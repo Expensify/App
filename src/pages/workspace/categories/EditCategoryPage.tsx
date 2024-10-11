@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,17 +14,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyCategories} from '@src/types/onyx';
 import CategoryForm from './CategoryForm';
 
-type WorkspaceEditCategoryPageOnyxProps = {
-    /** All policy categories */
-    policyCategories: OnyxEntry<PolicyCategories>;
-};
+type EditCategoryPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_EDIT>;
 
-type EditCategoryPageProps = WorkspaceEditCategoryPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_EDIT>;
-
-function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
+function EditCategoryPage({route}: EditCategoryPageProps) {
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentCategoryName = route.params.categoryName;
@@ -59,7 +53,6 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
                     ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
                     : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
             );
-            return;
         },
         [backTo, currentCategoryName, route.params.categoryName, route.params.policyID],
     );
@@ -99,8 +92,4 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
 
 EditCategoryPage.displayName = 'EditCategoryPage';
 
-export default withOnyx<EditCategoryPageProps, WorkspaceEditCategoryPageOnyxProps>({
-    policyCategories: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route?.params?.policyID}`,
-    },
-})(EditCategoryPage);
+export default EditCategoryPage;

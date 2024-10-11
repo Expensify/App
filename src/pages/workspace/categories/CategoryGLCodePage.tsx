@@ -45,7 +45,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
                     : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName),
             );
         },
-        [categoryName, glCode, route.params.policyID],
+        [categoryName, glCode, route.params.policyID, backTo],
     );
 
     return (

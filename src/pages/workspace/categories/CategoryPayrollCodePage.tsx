@@ -45,7 +45,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                     : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName),
             );
         },
-        [categoryName, payrollCode, route.params.policyID],
+        [categoryName, payrollCode, route.params.policyID, backTo],
     );
 
     return (
