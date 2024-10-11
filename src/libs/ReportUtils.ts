@@ -3825,17 +3825,16 @@ function getReportName(
         }
         return getIOUForwardedMessage(parentReportAction, report);
     }
+    if (ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
+        const {automaticAction} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
+        if (automaticAction) {
+            return Parser.htmlToText(getReportAutomaticallyApprovedMessage(parentReportAction));
+        }
+        return getIOUApprovedMessage(parentReportAction);
+    }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         return getRejectedReportMessage();
     }
-    if (ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
-        const {automaticAction} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
-        if (automaticAction) {
-            return Parser.htmlToText(getReportAutomaticallyForwardedMessage(parentReportAction, reportID));
-        }
-        return getIOUForwardedMessage(parentReportAction, report);
-    }
-
     if (ReportActionsUtils.isUnapprovedAction(parentReportAction)) {
         return getIOUUnapprovedMessage(parentReportAction);
     }
