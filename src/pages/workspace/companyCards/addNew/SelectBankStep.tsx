@@ -23,11 +23,11 @@ function SelectBankStep() {
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>>();
-    const [isError, setIsError] = useState(false);
+    const [hasError, setHasError] = useState(false);
 
     const submit = () => {
         if (!bankSelected) {
-            setIsError(true);
+            setHasError(true);
         } else {
             CompanyCards.setAddNewCompanyCardStepAndData({
                 step: CardUtils.getCorrectStepForSelectedBank(bankSelected),
@@ -79,7 +79,7 @@ function SelectBankStep() {
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => {
                     setBankSelected(value);
-                    setIsError(false);
+                    setHasError(false);
                 }}
                 sections={[{data}]}
                 shouldSingleExecuteRowSelect
@@ -89,10 +89,10 @@ function SelectBankStep() {
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
             >
-                {isError && (
+                {hasError && (
                     <View style={[styles.ph5, styles.mb3]}>
                         <FormHelpMessage
-                            isError={isError}
+                            isError={hasError}
                             message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBankAccount')}
                         />
                     </View>
