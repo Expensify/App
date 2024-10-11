@@ -1846,6 +1846,7 @@ export type {
     XeroTrackingCategory,
     NetSuiteConnection,
     ConnectionLastSync,
+    QBDReimbursableExportAccountType,
     NetSuiteSubsidiary,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
