@@ -22,7 +22,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type ReplacementReason = 'damaged' | 'stolen';
