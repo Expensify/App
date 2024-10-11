@@ -1542,7 +1542,6 @@ const translations = {
                 'Has introducido incorrectamente los 4 últimos dígitos de tu tarjeta Expensify demasiadas veces. Si estás seguro de que los números son correctos, ponte en contacto con Conserjería para solucionarlo. De lo contrario, inténtalo de nuevo más tarde.',
         },
     },
-    // TODO: add translation
     getPhysicalCard: {
         header: 'Obtener tarjeta física',
         nameMessage: 'Introduce tu nombre y apellido como aparecerá en tu tarjeta.',
