@@ -1,6 +1,6 @@
 import AmexCompanyCards from '@assets/images/companyCards/amex.svg';
 import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
-import BankOfAmericaCompanyCardDetail from '@assets/images/companyCards/card-bank_of_america.svg';
+import BankOfAmericaCompanyCardDetail from '@assets/images/companyCards/card-bofa.svg';
 import BrexCompanyCardDetail from '@assets/images/companyCards/card-brex.svg';
 import CapitalOneCompanyCardDetail from '@assets/images/companyCards/card-capitalone.svg';
 import ChaseCompanyCardDetail from '@assets/images/companyCards/card-chase.svg';
