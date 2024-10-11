@@ -27,7 +27,7 @@ function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            shouldBeBlocked={!canUseNewDotQBD}
+            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] Will be removed when release
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID))}
         >
             <ToggleSettingOptionRow
