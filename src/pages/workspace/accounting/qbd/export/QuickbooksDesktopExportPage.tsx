@@ -52,13 +52,6 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
                 CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED,
             ],
         },
-        // TODO: [QBD] This is not supported in QBD.
-        // {
-        //     description: translate('workspace.qbd.exportInvoices'),
-        //     onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID)),
-        //     title: qbdConfig?.receivableAccount?.name,
-        //     subscribedSettings: [CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT],
-        // },
         {
             description: translate('workspace.accounting.exportCompanyCard'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)), // TODO: [QBD] should be updated to use new routes

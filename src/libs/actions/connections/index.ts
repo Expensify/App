@@ -19,13 +19,6 @@ type Nullable<T> = {
     [P in keyof T]: T[P] | null;
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-type DeepPartial<T> = T extends object
-    ? {
-          [P in keyof T]?: DeepPartial<T[P]>;
-      }
-    : T;
-
 function removePolicyConnection(policyID: string, connectionName: PolicyConnectionName) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -223,8 +216,7 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
     );
 }
 
-// We use DeepPartial to allow partial updates to the config object
-function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends DeepPartial<Connections[TConnectionName]['config']>>(
+function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
     policyID: string,
     connectionName: TConnectionName,
     configUpdate: TConfigUpdate,
@@ -372,8 +364,6 @@ function isConnectionInProgress(connectionSyncProgress: OnyxEntry<PolicyConnecti
         differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES
     );
 }
-
-export type {DeepPartial};
 
 export {
     removePolicyConnection,
