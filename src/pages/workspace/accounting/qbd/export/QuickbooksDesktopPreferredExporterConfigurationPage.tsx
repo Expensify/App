@@ -56,7 +56,6 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== qbdConfig?.export?.exporter) {
-                // TODO: [QBD] Should be updated to use the new QBD API
                 QuickbooksDesktop.updateQuickbooksDesktopPreferredExporter(policyID, row.value, qbdConfig?.export?.exporter);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID));
