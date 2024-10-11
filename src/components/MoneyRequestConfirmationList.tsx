@@ -292,7 +292,9 @@ function MoneyRequestConfirmationList({
     const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
 
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
+    const prevCurrency = usePrevious(currency);
+
+    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency);
 
     const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
