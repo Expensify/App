@@ -55,6 +55,13 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
+let isLoadingReportData = true;
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    initWithStoredValues: false,
+    callback: (value) => (isLoadingReportData = value ?? false),
+});
+
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
  * These are policies that we can use to create reports with in NewDot.
@@ -1041,7 +1048,7 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
 }
 
 function isPolicyAccessible(policy: OnyxEntry<Policy>) {
-    return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && policy?.id;
+    return !isLoadingReportData && !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && policy?.id;
 }
 
 export {
