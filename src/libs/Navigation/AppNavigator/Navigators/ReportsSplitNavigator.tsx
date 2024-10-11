@@ -60,7 +60,8 @@ function ReportsSplitNavigator() {
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('state', () => {
-            const navigationIndex = (navigation.getState()?.index ?? 0) - (screenIndexRef.current ?? 0);
+            const modalNavigatorsCount = navigation.getState()?.routes?.filter((route) => route.name.endsWith('ModalNavigator'))?.length ?? 0;
+            const navigationIndex = (navigation.getState()?.index ?? 0) - (screenIndexRef.current ?? 0) - modalNavigatorsCount;
             setIsScreenBlurred(navigationIndex >= 1);
         });
         return () => unsubscribe();
