@@ -222,7 +222,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID});
-    const {reportActions, linkedAction, sortedAllReportActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+    const {reportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
@@ -238,7 +238,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
-    const isEmptyChat = useMemo(() => ReportUtils.isEmptyReport(report), [report]);
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const indexOfLinkedMessage = useMemo(
         (): number => reportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)),
@@ -687,8 +686,14 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Report.readNewestAction(report?.reportID ?? '');
     }, [report]);
     const mostRecentReportAction = reportActions.at(0);
+    const isMostRecentReportIOU = mostRecentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+    const isSingleIOUReportAction = reportActions.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU).length === 1;
+    const isSingleExpenseReport = ReportUtils.isExpenseReport(report) && isMostRecentReportIOU && isSingleIOUReportAction;
+    const isSingleInvoiceReport = ReportUtils.isInvoiceReport(report) && isMostRecentReportIOU && isSingleIOUReportAction;
     const shouldShowMostRecentReportAction =
         !!mostRecentReportAction &&
+        !isSingleExpenseReport &&
+        !isSingleInvoiceReport &&
         !ReportActionsUtils.isActionOfType(mostRecentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) &&
         !ReportActionsUtils.isDeletedAction(mostRecentReportAction);
 
@@ -756,6 +761,8 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 {!shouldShowSkeleton && report && (
                                     <ReportActionsView
                                         reportActions={reportActions}
+                                        hasNewerActions={hasNewerActions}
+                                        hasOlderActions={hasOlderActions}
                                         report={report}
                                         parentReportAction={parentReportAction}
                                         isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
@@ -802,7 +809,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                         policy={policy}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
-                                        isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                         workspaceTooltip={workspaceTooltip}
                                     />
