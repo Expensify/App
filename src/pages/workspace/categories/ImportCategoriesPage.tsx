@@ -12,6 +12,7 @@ type ImportCategoriesPageProps = StackScreenProps<SettingsNavigatorParamList, ty
 
 function ImportCategoriesPage({route}: ImportCategoriesPageProps) {
     const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
@@ -21,8 +22,8 @@ function ImportCategoriesPage({route}: ImportCategoriesPageProps) {
 
     return (
         <ImportSpreedsheet
-            backTo={ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)}
-            goTo={ROUTES.WORKSPACE_CATEGORIES_IMPORTED.getRoute(policyID)}
+            backTo={backTo ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)}
+            goTo={backTo ? ROUTES.SETTINGS_CATEGORIES_IMPORTED.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES_IMPORTED.getRoute(policyID)}
         />
     );
 }

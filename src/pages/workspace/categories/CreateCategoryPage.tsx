@@ -33,11 +33,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             Category.createPolicyCategory(route.params.policyID, values.categoryName.trim());
-            if (backTo) {
-                Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo));
-                return;
-            }
-            Navigation.goBack();
+            Navigation.goBack(backTo ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
         [backTo, route.params.policyID],
     );
@@ -56,7 +52,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
             >
                 <HeaderWithBackButton
                     title={translate('workspace.categories.addCategory')}
-                    onBackButtonPress={() => (backTo ? Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo)) : Navigation.goBack())}
+                    onBackButtonPress={() => Navigation.goBack(backTo ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined)}
                 />
                 <CategoryForm
                     onSubmit={createCategory}

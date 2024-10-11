@@ -246,6 +246,10 @@ const SCREENS = {
         SETTINGS_CATEGORY_CREATE: 'Settings_Category_Create',
         SETTINGS_CATEGORY_EDIT: 'Settings_Category_Edit',
         SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
+        SETTINGS_CATEGORIES_IMPORT: 'Settings_Categories_Import',
+        SETTINGS_CATEGORIES_IMPORTED: 'Settings_Categories_Imported',
+        SETTINGS_CATEGORY_PAYROLL_CODE: 'Settings_Category_Payroll_Code',
+        SETTINGS_CATEGORY_GL_CODE: 'Settings_Category_GL_Code',
     },
     EXPENSIFY_CARD: {
         EXPENSIFY_CARD_DETAILS: 'Expensify_Card_Details',

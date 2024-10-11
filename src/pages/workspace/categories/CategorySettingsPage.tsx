@@ -53,11 +53,7 @@ function CategorySettingsPage({
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
 
     const navigateBack = () => {
-        if (backTo) {
-            Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo));
-            return;
-        }
-        Navigation.goBack();
+        Navigation.goBack(backTo ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
     };
 
     useEffect(() => {
@@ -115,11 +111,7 @@ function CategorySettingsPage({
     };
 
     const navigateToEditCategory = () => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_EDIT.getRoute(policyID, policyCategory.name, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(policyID, policyCategory.name));
+        Navigation.navigate(backTo ? ROUTES.SETTINGS_CATEGORY_EDIT.getRoute(policyID, policyCategory.name, backTo) : ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(policyID, policyCategory.name));
     };
 
     const deleteCategory = () => {
@@ -200,7 +192,11 @@ function CategorySettingsPage({
                                             );
                                             return;
                                         }
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(
+                                            backTo
+                                                ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
+                                        );
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -220,7 +216,11 @@ function CategorySettingsPage({
                                             );
                                             return;
                                         }
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(
+                                            backTo
+                                                ? ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                : ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name),
+                                        );
                                     }}
                                     shouldShowRightIcon
                                 />

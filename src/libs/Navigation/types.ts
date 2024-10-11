@@ -210,10 +210,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE]: {
         policyID: string;
         categoryName: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORY_GL_CODE]: {
         policyID: string;
         categoryName: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORY_DEFAULT_TAX_RATE]: {
         policyID: string;
@@ -251,9 +253,11 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.CATEGORIES_IMPORT]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORIES_IMPORTED]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.TAG_CREATE]: {
         policyID: string;

@@ -503,7 +503,25 @@ const ROUTES = {
     },
     SETTINGS_CATEGORY_EDIT: {
         route: 'settings/:policyID/category/:categoryName/edit',
-        getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/edit`, backTo),
+        getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}/edit`, backTo),
+    },
+    SETTINGS_CATEGORIES_IMPORT: {
+        route: 'settings/:policyID/categories/import',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/import` as const, backTo),
+    },
+    SETTINGS_CATEGORIES_IMPORTED: {
+        route: 'settings/:policyID/categories/imported',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/imported` as const, backTo),
+    },
+    SETTINGS_CATEGORY_PAYROLL_CODE: {
+        route: 'settings/:policyID/category/:categoryName/payroll-code',
+        getRoute: (policyID: string, categoryName: string, backTo = '') =>
+            getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}/payroll-code` as const, backTo),
+    },
+    SETTINGS_CATEGORY_GL_CODE: {
+        route: 'settings/:policyID/category/:categoryName/gl-code',
+        getRoute: (policyID: string, categoryName: string, backTo = '') =>
+            getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}/gl-code` as const, backTo),
     },
     MONEY_REQUEST_STEP_CURRENCY: {
         route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',

@@ -54,11 +54,12 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
             if (currentCategoryName !== newCategoryName) {
                 Category.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
             }
-            if (backTo) {
-                Navigation.goBack(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo));
-                return;
-            }
-            Navigation.goBack();
+            Navigation.goBack(
+                backTo
+                    ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
+                    : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
+            );
+            return;
         },
         [backTo, currentCategoryName, route.params.categoryName, route.params.policyID],
     );
@@ -78,9 +79,11 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
                 <HeaderWithBackButton
                     title={translate('workspace.categories.editCategory')}
                     onBackButtonPress={() =>
-                        backTo
-                            ? Navigation.goBack(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo))
-                            : Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))
+                        Navigation.goBack(
+                            backTo
+                                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
+                                : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
+                        )
                     }
                 />
                 <CategoryForm

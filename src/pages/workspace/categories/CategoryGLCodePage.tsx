@@ -26,6 +26,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyId = route.params.policyID ?? '-1';
+    const backTo = route.params.backTo;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
 
     const categoryName = route.params.categoryName;
@@ -38,7 +39,11 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
             if (newGLCode !== glCode) {
                 Category.setPolicyCategoryGLCode(route.params.policyID, categoryName, newGLCode);
             }
-            Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName));
+            Navigation.goBack(
+                backTo
+                    ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName, backTo)
+                    : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName),
+            );
         },
         [categoryName, glCode, route.params.policyID],
     );
@@ -57,7 +62,13 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.categories.glCode')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))}
+                    onBackButtonPress={() =>
+                        Navigation.goBack(
+                            backTo
+                                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
+                                : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
+                        )
+                    }
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}

@@ -925,6 +925,24 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
                         },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORT]: {
+                            path: ROUTES.SETTINGS_CATEGORIES_IMPORT.route,
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED]: {
+                            path: ROUTES.SETTINGS_CATEGORIES_IMPORTED.route,
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_PAYROLL_CODE]: {
+                            path: ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_GL_CODE]: {
+                            path: ROUTES.SETTINGS_CATEGORY_GL_CODE.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SETTINGS_TAGS]: {

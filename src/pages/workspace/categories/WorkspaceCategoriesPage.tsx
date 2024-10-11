@@ -140,27 +140,17 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     );
 
     const navigateToCategorySettings = (category: PolicyOption) => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList));
+        Navigation.navigate(
+            backTo ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo) : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList),
+        );
     };
 
     const navigateToCategoriesSettings = () => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyId));
+        Navigation.navigate(backTo ? ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyId));
     };
 
     const navigateToCreateCategoryPage = () => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
+        Navigation.navigate(backTo ? ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
     };
 
     const dismissError = (item: PolicyOption) => {
@@ -312,7 +302,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId));
+                    Navigation.navigate(backTo ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId));
                 },
             });
         }
