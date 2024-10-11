@@ -3031,12 +3031,14 @@ const translations = {
             selectCardFeed: 'Select card feed',
             addCardFeed: 'Add card feed',
             addNewCard: {
+                other: 'Other',
                 cardProviders: {
                     amex: 'American Express Corporate Cards',
                     mastercard: 'Mastercard Commercial Cards',
                     visa: 'Visa Commercial Cards',
                 },
                 yourCardProvider: `Who's your card provider?`,
+                whoIsYourBankAccount: 'Who’s your bank?',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
                     heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
@@ -3064,6 +3066,7 @@ const translations = {
                 },
                 error: {
                     pleaseSelectProvider: 'Please select a card provider before continuing.',
+                    pleaseSelectBankAccount: 'Please select a bank account before continuing.',
                 },
             },
             assignCard: 'Assign card',

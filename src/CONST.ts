@@ -2549,6 +2549,7 @@ const CONST = {
     },
     COMPANY_CARDS: {
         STEP: {
+            SELECT_BANK: 'SelectBank',
             CARD_TYPE: 'CardType',
             CARD_INSTRUCTIONS: 'CardInstructions',
             CARD_NAME: 'CardName',
@@ -2558,6 +2559,17 @@ const CONST = {
             AMEX: 'amex',
             VISA: 'visa',
             MASTERCARD: 'mastercard',
+        },
+        BANKS: {
+            AMEX: 'American Express',
+            BANK_OF_AMERICA: 'Bank of America',
+            BREX: 'Brex',
+            CAPITAL_ONE: 'Capital One',
+            CHASE: 'Chase',
+            CITI_BANK: 'Citibank',
+            STRIPE: 'Stripe',
+            WELLS_FARGO: 'Wells Fargo',
+            OTHER: 'Other',
         },
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',

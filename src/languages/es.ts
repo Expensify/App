@@ -3069,12 +3069,14 @@ const translations = {
             selectCardFeed: 'Seleccionar feed de tarjetas',
             addCardFeed: 'Añadir alimentación de tarjeta',
             addNewCard: {
+                other: 'Otros',
                 cardProviders: {
                     amex: 'Tarjetas de empresa American Express',
                     mastercard: 'Tarjetas comerciales Mastercard',
                     visa: 'Tarjetas comerciales Visa',
                 },
                 yourCardProvider: `¿Quién es su proveedor de tarjetas?`,
+                whoIsYourBankAccount: '¿Cuál es tu banco?',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Habilita tu feed ${provider}`,
                     heading:
@@ -3103,6 +3105,7 @@ const translations = {
                 },
                 error: {
                     pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar.',
+                    pleaseSelectBankAccount: 'Seleccione una cuenta bancaria antes de continuar.',
                 },
             },
             assignCard: 'Asignar tarjeta',
