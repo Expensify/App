@@ -256,6 +256,7 @@ function MoneyRequestConfirmationList({
     const prevRate = usePrevious(rate);
 
     const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
+    const prevCurrency = usePrevious(currency);
 
     // A flag for showing the categories field
     const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
@@ -291,8 +292,6 @@ function MoneyRequestConfirmationList({
 
     const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
-
-    const prevCurrency = usePrevious(currency);
 
     const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency);
 
