@@ -769,10 +769,12 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
 
 function getDisplayValue(filterName: string, filter: string, personalDetails: OnyxTypes.PersonalDetailsList, cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-        return personalDetails?.[filter]?.login ?? filter;
+        // login can be an empty string
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return personalDetails?.[filter]?.login || filter;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-        return cardList[filter]?.bank ?? filter;
+        return cardList[filter]?.bank || filter;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]) || filter;
