@@ -153,7 +153,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         closeAndClearRouter();
     });
 
-    const modalWidth = isSmallScreenWidth ? styles.w100 : {width: variables.popoverWidth};
+    const modalWidth = isSmallScreenWidth ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
     return (
         <View
