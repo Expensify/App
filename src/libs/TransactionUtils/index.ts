@@ -959,27 +959,9 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
         ];
     }
 
-    const getTransactionCommentWithoutWaypointKeys = (firstTransaction: OnyxEntry<Transaction['comment']>) => {
-        // Remove keyForList from each waypoint
-        const updatedWaypoints = Object.fromEntries(Object.entries(firstTransaction?.waypoints ?? {}).map(([key, waypoint]) => [key, (({keyForList, ...rest}) => rest)(waypoint)]));
-
-        // Create the new object
-        const updatedData = {
-            ...firstTransaction,
-            waypoints: updatedWaypoints,
-        };
-
-        return updatedData;
-    };
-
     // Helper function to check if all comments are equal
     function areAllCommentsEqual(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
-        return items.every((item) => {
-            if (item?.comment?.waypoints) {
-                return lodashIsEqual(getTransactionCommentWithoutWaypointKeys(item.comment), getTransactionCommentWithoutWaypointKeys(firstTransaction?.comment));
-            }
-            return lodashIsEqual(item?.comment, firstTransaction?.comment);
-        });
+        return items.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
     }
 
     // Helper function to check if all fields are equal for a given key
@@ -1004,11 +986,10 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
 
             if (fieldName === 'description') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
-                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => !item?.comment);
+                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
 
                 if (allCommentsAreEqual || allCommentsAreEmpty) {
                     keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
-                    keep.comment = firstTransaction?.comment;
                 } else {
                     processChanges(fieldName, transactions, keys);
                 }
@@ -1046,7 +1027,7 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
         ...restReviewDuplicateTransaction,
         modifiedMerchant: reviewDuplicateTransaction?.merchant,
         merchant: reviewDuplicateTransaction?.merchant,
-        comment: {...reviewDuplicateTransaction?.comment, comment: reviewDuplicateTransaction?.description},
+        comment: {comment: reviewDuplicateTransaction?.description},
     };
 }
 
