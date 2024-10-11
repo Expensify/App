@@ -108,7 +108,7 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
-    }, [navigateBackTo,isActingAsDelegate]);
+    }, [navigateBackTo, isActingAsDelegate]);
 
     return (
         <ScreenWrapper
@@ -152,7 +152,6 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
 
 ContactMethodsPage.displayName = 'ContactMethodsPage';
 
-// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 export default withOnyx<ContactMethodsPageProps, ContactMethodsPageOnyxProps>({
     loginList: {
         key: ONYXKEYS.LOGIN_LIST,
