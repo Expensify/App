@@ -5484,6 +5484,22 @@ const translations = {
             hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
             hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
         },
+        indicatorStatus: {
+            theresAReportAwaitingAction: 'Hay un informe pendiente de acción',
+            theresAReportWithErrors: 'Hay un informe con errores',
+            theresAWorkspaceWithCustomUnitsErrors: 'Hay un espacio de trabajo con errores en las unidades personalizadas',
+            theresAProblemWithAWorkspaceMember: 'Hay un problema con un miembro del espacio de trabajo',
+            theresAProblemWithAContactMethod: 'Hay un problema con un método de contacto',
+            aContactMethodRequiresVerification: 'Un método de contacto requiere verificación',
+            theresAProblemWithAPaymentMethod: 'Hay un problema con un método de pago',
+            theresAProblemWithAWorkspace: 'Hay un problema con un espacio de trabajo',
+            theresAProblemWithYourReimbursementAccount: 'Hay un problema con tu cuenta de reembolso',
+            theresABillingProblemWithYourSubscription: 'Hay un problema de facturación con tu suscripción',
+            yourSubscriptionHasBeenSuccessfullyRenewed: 'Tu suscripción se ha renovado con éxito',
+            theresWasAProblemDuringAWorkspaceConnectionSync: 'Hubo un problema durante la sincronización de la conexión del espacio de trabajo',
+            theresAProblemWithYourWallet: 'Hay un problema con tu billetera',
+            theresAProblemWithYourWalletTerms: 'Hay un problema con los términos de tu billetera',
+        },
     },
 };
 

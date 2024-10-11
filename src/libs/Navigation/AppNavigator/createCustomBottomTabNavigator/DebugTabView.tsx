@@ -28,23 +28,23 @@ type DebugTabViewProps = {
 function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
-            return 'debug.indicatorStatus.workspaceHasCustomUnitsErrors';
+            return 'debug.indicatorStatus.theresAWorkspaceWithCustomUnitsErrors';
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
-            return 'debug.indicatorStatus.workspaceHasEmployeeListErrors';
+            return 'debug.indicatorStatus.theresAProblemWithAWorkspaceMember';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAContactMethod';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
-            return 'debug.indicatorStatus.contactMethodRequiresVerification';
+            return 'debug.indicatorStatus.aContactMethodRequiresVerification';
         case CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAPaymentMethod';
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
             return 'debug.indicatorStatus.theresAProblemWithAWorkspace';
         case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
-            return 'debug.indicatorStatus.workspaceHasReimbursementAccountError';
+            return 'debug.indicatorStatus.theresAProblemWithYourReimbursementAccount';
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS:
-            return 'debug.indicatorStatus.subscriptionHasErrors';
+            return 'debug.indicatorStatus.theresABillingProblemWithYourSubscription';
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
-            return 'debug.indicatorStatus.subscriptionRequiresAttention';
+            return 'debug.indicatorStatus.yourSubscriptionHasBeenSuccessfullyRenewed';
         case CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS:
             return 'debug.indicatorStatus.theresWasAProblemDuringAWorkspaceConnectionSync';
         case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
