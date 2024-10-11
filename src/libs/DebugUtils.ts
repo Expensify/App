@@ -7,6 +7,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
 import * as ReportUtils from './ReportUtils';
+import SidebarUtils from './SidebarUtils';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -124,6 +125,15 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         policies = value;
+    },
+});
+
+let reportActions: OnyxCollection<ReportActions>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        reportActions = value;
     },
 });
 
@@ -612,7 +622,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPath
 
     if (
         !([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) &&
-        ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations)
+        SidebarUtils.shouldShowRedBrickRoad(report, reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`], doesReportHaveViolations, transactionViolations)
     ) {
         return `debug.reasonVisibleInLHN.hasRBR`;
     }
