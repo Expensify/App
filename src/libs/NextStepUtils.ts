@@ -135,12 +135,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 ],
             };
 
-            if (!PolicyUtils.arePaymentsEnabled(policy)) {
-                optimisticNextStep = noActionRequired;
-
-                break;
-            }
-
             // Scheduled submit enabled
             if (harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
                 optimisticNextStep.message = [
