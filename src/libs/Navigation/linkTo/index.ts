@@ -1,14 +1,31 @@
 import {getActionFromState} from '@react-navigation/core';
-import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+import type {NavigationContainerRef, NavigationState, PartialState, StackActionType} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import {shallowCompare} from '@libs/ObjectUtils';
-import {getPathWithoutPolicyID} from '@libs/PolicyUtils';
+import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import getStateFromPath from '@navigation/getStateFromPath';
 import linkingConfig from '@navigation/linkingConfig';
 import type {RootStackParamList, StackNavigationAction} from '@navigation/types';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import getMinimalAction from './getMinimalAction';
+
+function createActionWithPolicyID(action: StackActionType, policyID: string): StackActionType | undefined {
+    if (action.type !== 'PUSH' && action.type !== 'REPLACE') {
+        return;
+    }
+
+    return {
+        ...action,
+        payload: {
+            ...action.payload,
+            params: {
+                ...action.payload.params,
+                policyID,
+            },
+        },
+    };
+}
 
 function shouldDispatchAction(currentState: NavigationState<RootStackParamList>, stateFromPath: PartialState<NavigationState<RootStackParamList>>) {
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -29,6 +46,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
 
+    const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
     const pathWithoutPolicyID = getPathWithoutPolicyID(`/${path}`) as Route;
 
     // This is the state generated with the default getStateFromPath function.
@@ -54,6 +72,16 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     } else if (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         // We want to PUSH by default to add entries to the browser history.
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+    }
+
+    if (extractedPolicyID) {
+        const actionWithPolicyID = createActionWithPolicyID(action as StackActionType, extractedPolicyID);
+        if (!actionWithPolicyID) {
+            return;
+        }
+
+        navigation.dispatch(actionWithPolicyID);
+        return;
     }
 
     const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
