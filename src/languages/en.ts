@@ -2421,6 +2421,8 @@ const translations = {
                 [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Journal entry',
                 [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Check',
 
+                // TODO: [QBD] Add translate
+                [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Description`]: 'TODO',
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
                     "We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.",
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
@@ -2451,6 +2453,8 @@ const translations = {
             classes: 'Classes',
             items: 'Items',
             customers: 'Customers/projects',
+            exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Desktop.',
+            defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',

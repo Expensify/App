@@ -1841,6 +1841,7 @@ export type {
     Tenant,
     Account,
     QBONonReimbursableExportAccountType,
+    QBDNonReimbursableExportAccountType,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
     XeroTrackingCategory,

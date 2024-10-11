@@ -1483,7 +1483,11 @@ const CONST = {
     QUICKBOOKS_DESKTOP_CONFIG: {
         MARK_CHECKS_TO_BE_PRINTED: 'markChecksToBePrinted',
         REIMBURSABLE_ACCOUNT: 'reimbursableAccount',
+        NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        SHOULD_AUTO_CREATE_VENDOR: 'shouldAutoCreateVendor',
+        NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'nonReimbursableBillDefaultVendor',
     },
 
     QUICKBOOKS_CONFIG: {
