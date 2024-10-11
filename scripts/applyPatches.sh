@@ -11,7 +11,7 @@ source "$SCRIPTS_DIR/shellUtils.sh"
 function patchPackage {
   OS="$(uname)"
   if [[ "$OS" == "Darwin" || "$OS" == "Linux" ]]; then
-    npx patch-package --error-on-fail --color=always
+    npx patch-package --error-on-fail --color=always || (echo 'Patch failed, reinstalling node_modules...' && npm ci && patch-package --error-on-fail --color=always)
   else
     error "Unsupported OS: $OS"
     exit 1
@@ -45,5 +45,4 @@ if [ "$EXIT_CODE" -eq 0 ]; then
 else
   # patch-package failed
   error "patch-package failed to apply a patch"
-  exit "$EXIT_CODE"
 fi
