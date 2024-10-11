@@ -352,6 +352,9 @@ function getRate({
 /**
  * Get the updated distance unit from the selected rate instead of the distanceUnit stored on the transaction.
  * Useful for updating the transaction distance unit when the distance or rate changes.
+ *
+ * For example, if an expense is '10 mi @ $1.00 / mi' and the rate is updated to '$1.00 / km',
+ * then the updated distance unit should be 'km' from the updated rate, not 'mi' from the currently stored transaction distance unit.
  */
 function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}) {
     return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false}).unit;
