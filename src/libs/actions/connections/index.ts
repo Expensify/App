@@ -216,7 +216,6 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
     );
 }
 
-// We use DeepPartial to allow partial updates to the config object
 function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
     policyID: string,
     connectionName: TConnectionName,

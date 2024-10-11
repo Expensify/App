@@ -1236,9 +1236,6 @@ type QBDConnectionData = {
 
     /** Collections of vendors */
     vendors: Vendor[];
-
-    /** Collection of export destination accounts */
-    accountPayable: Account[];
 };
 
 /**
@@ -1257,21 +1254,16 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         enabled: boolean;
     };
 
-<<<<<<< HEAD
-=======
     /** Whether a check to be printed */
     markChecksToBePrinted: boolean;
 
     /** Determines if a vendor should be automatically created */
     shouldAutoCreateVendor: boolean;
 
->>>>>>> main
     /** Configuration of the export */
     export: {
         /** E-mail of the exporter */
         exporter: string;
-<<<<<<< HEAD
-=======
 
         /** Defines how reimbursable expenses are exported */
         reimbursable: QBDReimbursableExportAccountType;
@@ -1299,7 +1291,6 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** How QuickBooks Desktop customers displayed as */
         customers: IntegrationEntityMap;
->>>>>>> main
     };
 
     /** Collections of form field errors */
