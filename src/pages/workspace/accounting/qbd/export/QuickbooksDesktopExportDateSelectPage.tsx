@@ -39,7 +39,7 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
     const selectExportDate = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportDate) {
-                QuickbooksDesktop.updateExportConnectionConfig(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE, row.value, exportDate);
+                QuickbooksDesktop.updateQuickbooksDesktopExportDate(policyID, row.value, exportDate);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT.getRoute(policyID));
         },
