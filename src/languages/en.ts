@@ -918,6 +918,7 @@ const translations = {
         automaticallyApprovedAmount: ({amount}: ApprovedAmountParams) =>
             `automatically approved ${amount} via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
+        unapprovedAmount: ({amount}: UnapprovedParams) => `unapproved ${amount}`,
         automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
             `automatically approved ${amount} via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount}`,
@@ -4395,7 +4396,6 @@ const translations = {
                 unshare: ({to}: UnshareParams) => `removed user ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
-                unapproved: ({amount, currency}: UnapprovedParams) => `unapproved ${currency}${amount}`,
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label} ("${errorMessage}")`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} from ${currentRole} to ${newRole}`,

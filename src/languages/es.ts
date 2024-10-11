@@ -912,6 +912,7 @@ const translations = {
         automaticallyApprovedAmount: ({amount}: ApprovedAmountParams) =>
             `aprobado automáticamente ${amount} según las <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
+        unapprovedAmount: ({amount}: UnapprovedParams) => `desaprobó ${amount}`,
         automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
             `aprobado automáticamente ${amount} según las <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
@@ -4443,7 +4444,6 @@ const translations = {
                 unshare: ({to}: UnshareParams) => `usuario eliminado ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
-                unapproved: ({amount, currency}: UnapprovedParams) => `no aprobado ${currency}${amount}`,
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo sincronizar con ${label} ("${errorMessage}")`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role === 'user' ? 'miembro' : 'administrador'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>

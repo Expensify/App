@@ -664,6 +664,8 @@ function ReportActionItem({
             } else {
                 children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(action)} />;
             }
+        } else if (ReportActionsUtils.isUnapprovedAction(action)) {
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUUnapprovedMessage(action)} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
             const wasAutoForwarded = ReportActionsUtils.getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoForwarded) {

@@ -460,6 +460,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     } else {
                         Clipboard.setString(ReportUtils.getIOUApprovedMessage(reportAction));
                     }
+                } else if (ReportActionsUtils.isUnapprovedAction(reportAction)) {
+                    Clipboard.setString(ReportUtils.getIOUUnapprovedMessage(reportAction));
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
                     const {automaticAction} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
