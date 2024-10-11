@@ -119,8 +119,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.ONBOARDING_PERSONAL_DETAILS.route,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.WORK]: {
-                    path: ROUTES.ONBOARDING_WORK.route,
+                [SCREENS.ONBOARDING.EMPLOYEES]: {
+                    path: ROUTES.ONBOARDING_EMPLOYEES.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.ACCOUNTING]: {
+                    path: ROUTES.ONBOARDING_ACCOUNTING.route,
                     exact: true,
                 },
             },
