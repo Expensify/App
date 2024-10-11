@@ -219,17 +219,30 @@ function getDistanceMerchant(
     return `${distanceInUnits} @ ${ratePerUnit}`;
 }
 
+function ensureRateDefined(rate: number | undefined): asserts rate is number {
+    if (rate !== undefined) {
+        return;
+    }
+    throw new Error('All default P2P rates should have a rate defined');
+}
+
 /**
  * Retrieves the rate and unit for a P2P distance expense for a given currency.
  *
  * @param currency
  * @returns The rate and unit in MileageRate object.
  */
-function getRateForP2P(currency: string): MileageRate {
+function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): MileageRate {
     const currencyWithExistingRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ? currency : CONST.CURRENCY.USD;
+    const mileageRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currencyWithExistingRate];
+    ensureRateDefined(mileageRate.rate);
+
+    // Ensure the rate is updated when the currency changes, otherwise use the stored rate
+    const rate = TransactionUtils.getCurrency(transaction) === currency ? transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate : mileageRate.rate;
     return {
-        ...CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currencyWithExistingRate],
+        ...mileageRate,
         currency: currencyWithExistingRate,
+        rate,
     };
 }
 
@@ -327,7 +340,7 @@ function getRate({
     const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency) : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency, transaction) : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
         ...mileageRate,

@@ -820,7 +820,7 @@ function calculateAmountForUpdatedWaypointOrRate(
     const mileageRates = DistanceRequestUtils.getMileageRates(policy, true);
     const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
     const mileageRate = isCustomUnitRateIDForP2P(transaction)
-        ? DistanceRequestUtils.getRateForP2P(policyCurrency)
+        ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction ?? undefined)
         : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
     const {unit, rate, currency} = mileageRate;
 
