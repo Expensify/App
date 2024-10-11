@@ -62,7 +62,7 @@ export default {
     fontSizeh2: 19,
     fontSizeXLarge: 22,
     fontSizeXXLarge: 28,
-    fontSizeXXXLarge: 32,
+    fontSizeXXXLarge: getValueUsingPixelRatio(32, 37),
     fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
     fontSizeEReceiptLarge: 44,
     fontSizeSignInHeroLarge: 48,
@@ -213,14 +213,13 @@ export default {
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
-    welcomeVideoDelay: 1000,
-    explanationModalDelay: 2000,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
     googleEmptyListViewHeight: 14,
     hoverDimValue: 1,
     pressDimValue: 0.8,
+    dimAnimationDuration: 50,
     qrShareHorizontalPadding: 32,
     menuIconSize: 48,
 
@@ -251,6 +250,11 @@ export default {
 
     composerTooltipShiftHorizontal: 10,
     composerTooltipShiftVertical: -10,
+    gbrTooltipShiftHorizontal: -20,
+
+    minimalTopBarOffset: -26,
+    searchHeaderHeight: 80,
+    searchListContentMarginTop: 116,
 
     h20: 20,
     h28: 28,

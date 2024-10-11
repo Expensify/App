@@ -22,7 +22,7 @@ import type {Route} from '@src/ROUTES';
 import type {PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
-import type {BankAccountStep, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
+import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as ReimbursementAccount from './ReimbursementAccount';
 
@@ -39,10 +39,6 @@ export {
 } from './ReimbursementAccount';
 export {openPlaidBankAccountSelector, openPlaidBankLogin} from './Plaid';
 export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTerms} from './Wallet';
-
-type ReimbursementAccountStep = BankAccountStep | '';
-
-type ReimbursementAccountSubStep = BankAccountSubStep | '';
 
 type AccountFormValues = typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM;
 
@@ -128,14 +124,14 @@ function updateAddPersonalBankAccountDraft(bankData: Partial<PersonalBankAccount
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  */
-function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
+function getVBBADataForOnyx(currentStep?: BankAccountStep, shouldShowLoading = true): OnyxData {
     return {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
-                    isLoading: true,
+                    isLoading: shouldShowLoading,
                     errors: null,
                 },
             },
@@ -298,7 +294,7 @@ function updatePersonalInformationForBankAccount(bankAccountID: number, params: 
             policyID,
             confirm: isConfirmPage,
         },
-        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR),
+        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR, isConfirmPage),
     );
 }
 
@@ -411,7 +407,7 @@ function updateCompanyInformationForBankAccount(bankAccountID: number, params: P
             policyID,
             confirm: isConfirmPage,
         },
-        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY),
+        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY, isConfirmPage),
     );
 }
 

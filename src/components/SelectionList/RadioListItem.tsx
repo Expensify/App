@@ -18,8 +18,10 @@ function RadioListItem<TItem extends ListItem>({
     rightHandSideComponent,
     isMultilineSupported = false,
     isAlternateTextMultilineSupported = false,
+    alternateTextNumberOfLines = 2,
     onFocus,
     shouldSyncFocus,
+    wrapperStyle,
 }: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
@@ -30,7 +32,7 @@ function RadioListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.optionRow, isFocused && styles.sidebarLinkActive]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.optionRow, isFocused && styles.sidebarLinkActive, wrapperStyle]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -71,7 +73,7 @@ function RadioListItem<TItem extends ListItem>({
                                 isAlternateTextMultilineSupported ? styles.preWrap : styles.pre,
                                 isAlternateTextMultilineSupported ? {maxWidth: alternateTextMaxWidth} : null,
                             ]}
-                            numberOfLines={isAlternateTextMultilineSupported ? 2 : 1}
+                            numberOfLines={isAlternateTextMultilineSupported ? alternateTextNumberOfLines : 1}
                         />
                     )}
                 </View>

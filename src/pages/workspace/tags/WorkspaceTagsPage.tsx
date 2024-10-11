@@ -8,10 +8,13 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -21,11 +24,13 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
@@ -33,6 +38,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Modal from '@userActions/Modal';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,17 +51,20 @@ import type {PolicyTag, PolicyTagList, TagListItem} from './types';
 type WorkspaceTagsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {windowWidth} = useWindowDimensions();
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
+    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
+    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID ?? '-1';
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {selectionMode} = useMobileSelectionMode();
     const {environmentURL} = useEnvironment();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
@@ -99,13 +108,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 required: policyTagList.required,
                 rightElement: (
                     <ListItemRightCaretWithLabel
-                        labelText={policyTagList.required ? translate('common.required') : undefined}
+                        labelText={policyTagList.required && !!Object.values(policyTagList?.tags ?? {}).some((tag) => tag.enabled) ? translate('common.required') : undefined}
                         shouldShowCaret={false}
                     />
                 ),
             }));
         }
-        const sortedTags = lodashSortBy(Object.values(policyTagLists[0]?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
+        const sortedTags = lodashSortBy(Object.values(policyTagLists.at(0)?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
         return sortedTags.map((tag) => ({
             value: tag.name,
             text: PolicyUtils.getCleanedTagName(tag.name),
@@ -149,7 +158,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     styles.flexRow,
                     styles.justifyContentBetween,
                     // Required padding accounting for the checkbox and the right arrow in multi-select mode
-                    canSelectMultiple && [styles.pl3, styles.pr9],
+                    canSelectMultiple && [styles.pl3, styles.pr8],
                 ]}
             >
                 <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
@@ -193,10 +202,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTagsArray.length === 0) {
             return (
-                <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+                <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                     {!hasAccountingConnections && !isMultiLevelTags && (
                         <Button
-                            medium
                             success
                             onPress={navigateToCreateTagPage}
                             icon={Expensicons.Plus}
@@ -205,7 +213,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         />
                     )}
                     <Button
-                        medium
                         onPress={navigateToTagsSettings}
                         icon={Expensicons.Gear}
                         text={translate('common.settings')}
@@ -277,7 +284,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 pressOnEnter
                 isSplitButton={false}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
+                customText={translate('workspace.common.selected', {count: selectedTagsArray.length})}
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedTagsArray.length}
@@ -285,8 +292,46 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
+    const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+
+    const threeDotsMenuItems = useMemo(() => {
+        const menuItems: PopoverMenuItem[] = [
+            {
+                icon: Expensicons.Table,
+                text: translate('spreadsheet.importSpreadsheet'),
+                onSelected: () => {
+                    if (isOffline) {
+                        Modal.close(() => setIsOfflineModalVisible(true));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID));
+                },
+            },
+        ];
+
+        if (hasVisibleTags) {
+            menuItems.push({
+                icon: Expensicons.Download,
+                text: translate('spreadsheet.downloadCSV'),
+                onSelected: () => {
+                    if (isOffline) {
+                        Modal.close(() => setIsOfflineModalVisible(true));
+                        return;
+                    }
+                    Modal.close(() => {
+                        Tag.downloadTagsCSV(policyID, () => {
+                            setIsDownloadFailureModalVisible(true);
+                        });
+                    });
+                },
+            });
+        }
+
+        return menuItems;
+    }, [translate, hasVisibleTags, isOffline, policyID]);
+
     const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             {isConnectedToAccounting ? (
                 <Text>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
@@ -303,8 +348,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             )}
         </View>
     );
-
-    const hasVisibleTag = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -333,6 +376,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         }
                         Navigation.goBack();
                     }}
+                    shouldShowThreeDotsButton={!policy?.hasMultipleTagLists}
+                    threeDotsMenuItems={threeDotsMenuItems}
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
@@ -347,7 +393,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {(!shouldUseNarrowLayout || !hasVisibleTag || isLoading) && getHeaderText()}
+                {(!shouldUseNarrowLayout || !hasVisibleTags || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -355,18 +401,19 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         color={theme.spinner}
                     />
                 )}
-                {!hasVisibleTag && !isLoading && (
+                {!hasVisibleTags && !isLoading && (
                     <EmptyStateComponent
                         SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                        headerMedia={Illustrations.EmptyState}
-                        headerStyles={styles.emptyFolderBG}
-                        headerContentStyles={styles.emptyStateFolderIconSize}
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                        headerMedia={LottieAnimations.GenericEmptyState}
                         title={translate('workspace.tags.emptyTags.title')}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                        headerContentStyles={styles.emptyStateFolderWebStyles}
                     />
                 )}
-                {hasVisibleTag && !isLoading && (
+                {hasVisibleTags && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={!isMultiLevelTags}
@@ -385,6 +432,24 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         showScrollIndicator={false}
                     />
                 )}
+
+                <ConfirmModal
+                    isVisible={isOfflineModalVisible}
+                    onConfirm={() => setIsOfflineModalVisible(false)}
+                    title={translate('common.youAppearToBeOffline')}
+                    prompt={translate('common.thisFeatureRequiresInternet')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
+                <DecisionModal
+                    title={translate('common.downloadFailedTitle')}
+                    prompt={translate('common.downloadFailedDescription')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={isDownloadFailureModalVisible}
+                    onClose={() => setIsDownloadFailureModalVisible(false)}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

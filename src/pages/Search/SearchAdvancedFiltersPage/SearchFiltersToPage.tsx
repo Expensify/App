@@ -6,8 +6,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFiltersParticipantsSelector from '@components/Search/SearchFiltersParticipantsSelector';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 function SearchFiltersToPage() {
     const styles = useThemeStyles();
@@ -23,7 +25,12 @@ function SearchFiltersToPage() {
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton title={translate('common.to')} />
+            <HeaderWithBackButton
+                title={translate('common.to')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
             <View style={[styles.flex1]}>
                 <SearchFiltersParticipantsSelector
                     initialAccountIDs={searchAdvancedFiltersForm?.to ?? []}

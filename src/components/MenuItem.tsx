@@ -3,7 +3,6 @@ import type {ReactElement, ReactNode} from 'react';
 import React, {forwardRef, useContext, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
-import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -91,9 +90,6 @@ type MenuItemBaseProps = {
     /** Any additional styles to apply to the label */
     labelStyle?: StyleProp<ViewStyle>;
 
-    /** Any adjustments to style when menu item is hovered or pressed */
-    hoverAndPressStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
-
     /** Additional styles to style the description text below the title */
     descriptionTextStyle?: StyleProp<TextStyle>;
 
@@ -155,7 +151,7 @@ type MenuItemBaseProps = {
     shouldShowDescriptionOnTop?: boolean;
 
     /** Error to display at the bottom of the component */
-    errorText?: string;
+    errorText?: string | ReactNode;
 
     /** Any additional styles to pass to error text. */
     errorTextStyle?: StyleProp<ViewStyle>;
@@ -177,6 +173,9 @@ type MenuItemBaseProps = {
 
     /** Text that appears above the title */
     label?: string;
+
+    /** Character limit after which the menu item text will be truncated */
+    characterLimit?: number;
 
     isLabelHoverable?: boolean;
 
@@ -200,6 +199,9 @@ type MenuItemBaseProps = {
 
     /** Should we make this selectable with a checkbox */
     shouldShowSelectedState?: boolean;
+
+    /** Should we truncate the title */
+    shouldTruncateTitle?: boolean;
 
     /** Whether this item is selected */
     isSelected?: boolean;
@@ -267,6 +269,9 @@ type MenuItemBaseProps = {
     /** Whether should render error text as HTML or as Text */
     shouldRenderErrorAsHTML?: boolean;
 
+    /** List of markdown rules that will be ignored */
+    excludedMarkdownRules?: string[];
+
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress?: boolean;
 
@@ -322,10 +327,15 @@ type MenuItemBaseProps = {
     renderTooltipContent?: () => ReactNode;
 
     shouldShowLoadingSpinnerIcon?: boolean;
+
+    /** Should selected item be marked with checkmark */
+    shouldShowSelectedItemCheck?: boolean;
+
+    /** Handles what to do when hiding the tooltip */
+    onHideTooltip?: () => void;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
-
 function MenuItem(
     {
         interactive = true,
@@ -337,7 +347,6 @@ function MenuItem(
         containerStyle,
         titleStyle,
         labelStyle,
-        hoverAndPressStyle,
         descriptionTextStyle,
         badgeStyle,
         viewMode = CONST.OPTION_MODE.DEFAULT,
@@ -376,6 +385,8 @@ function MenuItem(
         subtitle,
         shouldShowBasicTitle,
         label,
+        shouldTruncateTitle = false,
+        characterLimit = 200,
         isLabelHoverable = true,
         rightLabel,
         shouldShowSelectedState = false,
@@ -402,12 +413,13 @@ function MenuItem(
         shouldParseHelperText = false,
         shouldRenderHintAsHTML = false,
         shouldRenderErrorAsHTML = false,
+        excludedMarkdownRules = [],
         shouldCheckActionAllowedOnPress = true,
         onSecondaryInteraction,
         titleWithTooltips,
         displayInDefaultIconColor = false,
         contentFit = 'cover',
-        isPaneMenu = false,
+        isPaneMenu = true,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
         onBlur,
@@ -418,6 +430,8 @@ function MenuItem(
         tooltipShiftHorizontal = 0,
         tooltipShiftVertical = 0,
         renderTooltipContent,
+        shouldShowSelectedItemCheck = false,
+        onHideTooltip,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -431,6 +445,7 @@ function MenuItem(
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+    const firstIcon = floatRightAvatars.at(0);
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,
@@ -457,8 +472,8 @@ function MenuItem(
         if (!title || !shouldParseTitle) {
             return '';
         }
-        return Parser.replace(title, {shouldEscapeText});
-    }, [title, shouldParseTitle, shouldEscapeText]);
+        return Parser.replace(title, {shouldEscapeText, disabledRules: excludedMarkdownRules});
+    }, [title, shouldParseTitle, shouldEscapeText, excludedMarkdownRules]);
 
     const helperHtml = useMemo(() => {
         if (!helperText || !shouldParseHelperText) {
@@ -477,8 +492,13 @@ function MenuItem(
             titleToWrap = html;
         }
 
+        if (shouldTruncateTitle) {
+            titleToWrap = Parser.truncateHTML(`<comment>${titleToWrap}</comment>`, characterLimit, {ellipsis: '...'});
+            return titleToWrap;
+        }
+
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
-    }, [title, shouldRenderAsHTML, shouldParseTitle, html]);
+    }, [title, shouldRenderAsHTML, shouldParseTitle, characterLimit, shouldTruncateTitle, html]);
 
     const processedHelperText = useMemo(() => {
         let textToWrap = '';
@@ -544,6 +564,7 @@ function MenuItem(
                 shiftHorizontal={tooltipShiftHorizontal}
                 shiftVertical={tooltipShiftVertical}
                 shouldAutoDismiss
+                onHideTooltip={onHideTooltip}
             >
                 <View>
                     <Hoverable>
@@ -554,6 +575,8 @@ function MenuItem(
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={onSecondaryInteraction}
                                 wrapperStyle={outerWrapperStyle}
+                                activeOpacity={variables.pressDimValue}
+                                opacityAnimationDuration={0}
                                 style={({pressed}) =>
                                     [
                                         containerStyle,
@@ -562,7 +585,6 @@ function MenuItem(
                                         !shouldRemoveBackground &&
                                             StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
-                                        !focused && (isHovered || pressed) && hoverAndPressStyle,
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                                         isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && styles.hoveredComponentBG,
                                     ] as StyleProp<ViewStyle>
@@ -755,13 +777,13 @@ function MenuItem(
                                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                                     </View>
                                                 )}
-                                                {floatRightAvatars?.length > 0 && (
+                                                {floatRightAvatars?.length > 0 && firstIcon && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
                                                         {shouldShowSubscriptRightAvatar ? (
                                                             <SubscriptAvatar
                                                                 backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
-                                                                mainAvatar={floatRightAvatars[0]}
-                                                                secondaryAvatar={floatRightAvatars[1]}
+                                                                mainAvatar={firstIcon}
+                                                                secondaryAvatar={floatRightAvatars.at(1)}
                                                                 size={floatRightAvatarSize ?? fallbackAvatarSize}
                                                             />
                                                         ) : (
@@ -802,6 +824,13 @@ function MenuItem(
                                                 )}
                                                 {shouldShowRightComponent && rightComponent}
                                                 {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
+                                                {shouldShowSelectedItemCheck && isSelected && (
+                                                    <Icon
+                                                        src={Expensicons.Checkmark}
+                                                        fill={theme.iconSuccessFill}
+                                                        additionalStyles={styles.alignSelfCenter}
+                                                    />
+                                                )}
                                             </View>
                                         </View>
                                         {!!errorText && (

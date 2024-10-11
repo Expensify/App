@@ -1,15 +1,20 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useLayoutEffect, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet} from 'react-native';
+import type {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import FocusableMenuItem from './FocusableMenuItem';
 import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
@@ -17,7 +22,9 @@ import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import type BaseModalProps from './Modal/types';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
+import ScrollView from './ScrollView';
 import Text from './Text';
 
 type PopoverMenuItem = MenuItemProps & {
@@ -35,6 +42,16 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Determines whether the menu item is disabled or not */
     disabled?: boolean;
+
+    /** Determines whether the menu item's onSelected() function is called after the modal is hidden
+     *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
+     */
+    shouldCallAfterModalHide?: boolean;
+
+    /** Whether to close all modals */
+    shouldCloseAllModals?: boolean;
+
+    pendingAction?: PendingAction;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -87,6 +104,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
+
+    /** Whether to show the selected option checkmark */
+    shouldShowSelectedItemCheck?: boolean;
 };
 
 function PopoverMenu({
@@ -111,23 +131,38 @@ function PopoverMenu({
     shouldSetModalVisibility = true,
     shouldEnableNewFocusManagement,
     restoreFocusType,
+    shouldShowSelectedItemCheck = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
+    const {windowHeight} = useWindowDimensions();
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
     const selectItem = (index: number) => {
-        const selectedItem = currentMenuItems[index];
+        const selectedItem = currentMenuItems.at(index);
+        if (!selectedItem) {
+            return;
+        }
         if (selectedItem?.subMenuItems) {
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
+        } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
+            onItemSelected(selectedItem, index);
+            Modal.close(
+                () => {
+                    selectedItem.onSelected?.();
+                },
+                undefined,
+                selectedItem.shouldCloseAllModals,
+            );
         } else {
             onItemSelected(selectedItem, index);
             selectedItem.onSelected?.();
@@ -226,52 +261,63 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            useNativeDriver
             restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>
-                <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                <ScrollView style={isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
-                        <FocusableMenuItem
+                        <OfflineWithFeedback
                             // eslint-disable-next-line react/no-array-index-key
                             key={`${item.text}_${menuIndex}`}
-                            icon={item.icon}
-                            iconWidth={item.iconWidth}
-                            iconHeight={item.iconHeight}
-                            iconFill={item.iconFill}
-                            contentFit={item.contentFit}
-                            title={item.text}
-                            titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
-                            shouldCheckActionAllowedOnPress={false}
-                            description={item.description}
-                            numberOfLinesDescription={item.numberOfLinesDescription}
-                            onPress={() => selectItem(menuIndex)}
-                            focused={focusedIndex === menuIndex}
-                            displayInDefaultIconColor={item.displayInDefaultIconColor}
-                            shouldShowRightIcon={item.shouldShowRightIcon}
-                            iconRight={item.iconRight}
-                            shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
-                            label={item.label}
-                            isLabelHoverable={item.isLabelHoverable}
-                            floatRightAvatars={item.floatRightAvatars}
-                            floatRightAvatarSize={item.floatRightAvatarSize}
-                            shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
-                            disabled={item.disabled}
-                            onFocus={() => setFocusedIndex(menuIndex)}
-                            success={item.success}
-                            containerStyle={item.containerStyle}
-                            shouldRenderTooltip={item.shouldRenderTooltip}
-                            tooltipAnchorAlignment={item.tooltipAnchorAlignment}
-                            tooltipShiftHorizontal={item.tooltipShiftHorizontal}
-                            tooltipShiftVertical={item.tooltipShiftVertical}
-                            tooltipWrapperStyle={item.tooltipWrapperStyle}
-                            renderTooltipContent={item.renderTooltipContent}
-                            numberOfLinesTitle={item.numberOfLinesTitle}
-                            interactive={item.interactive}
-                        />
+                            pendingAction={item.pendingAction}
+                        >
+                            <FocusableMenuItem
+                                icon={item.icon}
+                                iconWidth={item.iconWidth}
+                                iconHeight={item.iconHeight}
+                                iconFill={item.iconFill}
+                                contentFit={item.contentFit}
+                                title={item.text}
+                                shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                                titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
+                                shouldCheckActionAllowedOnPress={false}
+                                description={item.description}
+                                numberOfLinesDescription={item.numberOfLinesDescription}
+                                onPress={() => selectItem(menuIndex)}
+                                focused={focusedIndex === menuIndex}
+                                displayInDefaultIconColor={item.displayInDefaultIconColor}
+                                shouldShowRightIcon={item.shouldShowRightIcon}
+                                shouldShowRightComponent={item.shouldShowRightComponent}
+                                iconRight={item.iconRight}
+                                rightComponent={item.rightComponent}
+                                shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
+                                label={item.label}
+                                style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
+                                isLabelHoverable={item.isLabelHoverable}
+                                floatRightAvatars={item.floatRightAvatars}
+                                floatRightAvatarSize={item.floatRightAvatarSize}
+                                shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
+                                disabled={item.disabled}
+                                onFocus={() => setFocusedIndex(menuIndex)}
+                                success={item.success}
+                                containerStyle={item.containerStyle}
+                                shouldRenderTooltip={item.shouldRenderTooltip}
+                                tooltipAnchorAlignment={item.tooltipAnchorAlignment}
+                                tooltipShiftHorizontal={item.tooltipShiftHorizontal}
+                                tooltipShiftVertical={item.tooltipShiftVertical}
+                                tooltipWrapperStyle={item.tooltipWrapperStyle}
+                                renderTooltipContent={item.renderTooltipContent}
+                                numberOfLinesTitle={item.numberOfLinesTitle}
+                                interactive={item.interactive}
+                                isSelected={item.isSelected}
+                                badgeText={item.badgeText}
+                            />
+                        </OfflineWithFeedback>
                     ))}
-                </View>
+                </ScrollView>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );

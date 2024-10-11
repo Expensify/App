@@ -13,7 +13,7 @@ apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.grad
 /* Fullstory settings */
 fullstory {
     org 'o-1WN56P-na1'
-    enabledVariants 'all'
+    enabledVariants 'production'
     logcatLevel 'debug'
     recordOnStart false
 }
@@ -21,13 +21,13 @@ fullstory {
 react {
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '..'
-    // root = file("../")
-    //   The folder where the react-native NPM package is. Default is ../node_modules/react-native
-    // reactNativeDir = file("../node_modules/react-native")
-    //   The folder where the react-native Codegen package is. Default is ../node_modules/@react-native/codegen
-    // codegenDir = file("../node_modules/@react-native/codegen")
-    //   The cli.js file which is the React Native CLI entrypoint. Default is ../node_modules/react-native/cli.js
-    // cliFile = file("../node_modules/react-native/cli.js")
+    // root = file("../../")
+    //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
+    // reactNativeDir = file("../../node_modules/react-native")
+    //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
+    // codegenDir = file("../../node_modules/@react-native/codegen")
+    //   The cli.js file which is the React Native CLI entrypoint. Default is ../../node_modules/react-native/cli.js
+    // cliFile = file("../../node_modules/react-native/cli.js")
 
     /* Variants */
     //   The list of variants to that are debuggable. For those we're going to
@@ -62,6 +62,8 @@ react {
     //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
     // hermesFlags = ["-O", "-output-source-map"]
     //
+    /* Autolinking */
+    autolinkLibrariesWithApp()
     // Added by install-expo-modules
     entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", rootDir.getAbsoluteFile().getParentFile().getAbsolutePath(), "android", "absolute"].execute(null, rootDir).text.trim())
     cliFile = new File(["node", "--print", "require.resolve('@expo/cli')"].execute(null, rootDir).text.trim())
@@ -108,8 +110,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1009002401
-        versionName "9.0.24-1"
+        versionCode 1009004800
+        versionName "9.0.48-0"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"
@@ -227,11 +229,11 @@ dependencies {
     implementation 'com.facebook.fresco:fresco:2.5.0'
     implementation 'com.facebook.fresco:animated-gif:2.5.0'
 
-    // Android support library
-    implementation 'com.android.support:support-core-utils:28.0.0'
+    // AndroidX support library
+    implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
 
     // Multi Dex Support: https://developer.android.com/studio/build/multidex#mdex-gradle
-    implementation 'com.android.support:multidex:1.0.3'
+    implementation 'androidx.multidex:multidex:2.0.1'
 
     // Plaid SDK
     implementation project(':react-native-plaid-link-sdk')
@@ -246,6 +248,5 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
 }
 
-apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
 apply plugin: 'com.google.gms.google-services'  // Google Play services Gradle plugin
 apply plugin: 'com.google.firebase.crashlytics'

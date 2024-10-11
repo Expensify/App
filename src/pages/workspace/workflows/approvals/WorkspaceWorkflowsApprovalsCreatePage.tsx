@@ -45,7 +45,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
         }
 
         Workflow.createApprovalWorkflow(route.params.policyID, approvalWorkflow);
-        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+        Navigation.dismissModal();
     }, [approvalWorkflow, route.params.policyID]);
 
     return (
@@ -65,7 +65,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsCreateApprovalsPage.title')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0))}
                     />
                     {approvalWorkflow && (
                         <>

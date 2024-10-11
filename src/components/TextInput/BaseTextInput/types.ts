@@ -1,3 +1,4 @@
+import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -72,6 +73,9 @@ type CustomBaseTextInputProps = {
     /** Prefix character */
     prefixCharacter?: string;
 
+    /** Suffix character */
+    suffixCharacter?: string;
+
     /** Whether autoCorrect functionality should enable  */
     autoCorrect?: boolean;
 
@@ -112,14 +116,29 @@ type CustomBaseTextInputProps = {
     /** Should live markdown be enabled. Changes RNTextInput component to RNMarkdownTextInput */
     isMarkdownEnabled?: boolean;
 
+    /** List of markdowns that won't be styled as a markdown */
+    excludedMarkdownStyles?: Array<keyof MarkdownStyle>;
+
     /** Whether the clear button should be displayed */
     shouldShowClearButton?: boolean;
+
+    /** Whether to apply styles when input is disabled */
+    shouldUseDisabledStyles?: boolean;
 
     /** Style for the prefix */
     prefixStyle?: StyleProp<TextStyle>;
 
     /** Style for the prefix container */
     prefixContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Style for the suffix */
+    suffixStyle?: StyleProp<TextStyle>;
+
+    /** Style for the suffix container */
+    suffixContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Style for the loading spinner */
+    loadingSpinnerStyle?: StyleProp<ViewStyle>;
 
     /** The width of inner content */
     contentWidth?: number;

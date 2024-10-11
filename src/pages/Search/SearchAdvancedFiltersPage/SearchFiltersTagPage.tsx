@@ -25,12 +25,15 @@ function SearchFiltersTagPage() {
 
     const tagItems = useMemo(() => {
         if (!singlePolicyTagsList) {
+            const uniqueTagNames = new Set<string>();
             const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
-            return tagListsUnpacked
+            tagListsUnpacked
                 .map((policyTagLists) => {
-                    return getTagNamesFromTagsLists(policyTagLists).map((name) => ({name, value: name}));
+                    return getTagNamesFromTagsLists(policyTagLists);
                 })
-                .flat();
+                .flat()
+                .forEach((tag) => uniqueTagNames.add(tag));
+            return Array.from(uniqueTagNames).map((tagName) => ({name: tagName, value: tagName}));
         }
         return getTagNamesFromTagsLists(singlePolicyTagsList).map((name) => ({name, value: name}));
     }, [allPoliciesTagsLists, singlePolicyTagsList]);

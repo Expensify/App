@@ -9,6 +9,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -61,7 +62,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {canUseWorkspaceFeeds, canUseWorkspaceRules} = usePermissions();
+    const {canUseWorkspaceRules, canUseCompanyCardFeeds} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -70,13 +71,20 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
     const policyID = policy?.id;
     const workspaceAccountID = policy?.workspaceAccountID ?? -1;
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}${CONST.EXPENSIFY_CARD.BANK}`);
-    const [companyCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID.toString()}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID.toString()}`);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const [isDisableExpensifyCardWarningModalOpen, setIsDisableExpensifyCardWarningModalOpen] = useState(false);
     const [isDisableCompanyCardsWarningModalOpen, setIsDisableCompanyCardsWarningModalOpen] = useState(false);
+
+    const onDisabledOrganizeSwitchPress = useCallback(() => {
+        if (!hasAccountingConnection) {
+            return;
+        }
+        setIsOrganizeWarningModalOpen(true);
+    }, [hasAccountingConnection]);
 
     const spendItems: Item[] = [
         {
@@ -92,11 +100,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 DistanceRate.enablePolicyDistanceRates(policyID, isEnabled);
             },
         },
-    ];
-
-    // TODO remove this when feature will be fully done, and move spend item inside spendItems array
-    if (canUseWorkspaceFeeds) {
-        spendItems.push({
+        {
             icon: Illustrations.HandCard,
             titleTranslationKey: 'workspace.moreFeatures.expensifyCard.title',
             subtitleTranslationKey: 'workspace.moreFeatures.expensifyCard.subtitle',
@@ -112,14 +116,17 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabledAction: () => {
                 setIsDisableExpensifyCardWarningModalOpen(true);
             },
-        });
+        },
+    ];
+
+    if (canUseCompanyCardFeeds) {
         spendItems.push({
             icon: Illustrations.CompanyCard,
             titleTranslationKey: 'workspace.moreFeatures.companyCards.title',
             subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
             isActive: policy?.areCompanyCardsEnabled ?? false,
             pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
-            disabled: !isEmptyObject(companyCardsList),
+            disabled: !isEmptyObject(cardFeeds?.companyCards),
             action: (isEnabled: boolean) => {
                 if (!policyID) {
                     return;
@@ -199,13 +206,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.categories.subtitle',
             isActive: policy?.areCategoriesEnabled ?? false,
             disabled: hasAccountingConnection,
+            disabledAction: onDisabledOrganizeSwitchPress,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
-                    return;
-                }
-                if (hasAccountingConnection) {
-                    setIsOrganizeWarningModalOpen(true);
                     return;
                 }
                 Category.enablePolicyCategories(policyID, isEnabled);
@@ -218,12 +222,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: policy?.areTagsEnabled ?? false,
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areTagsEnabled,
+            disabledAction: onDisabledOrganizeSwitchPress,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
-                    return;
-                }
-                if (hasAccountingConnection) {
-                    setIsOrganizeWarningModalOpen(true);
                     return;
                 }
                 Tag.enablePolicyTags(policyID, isEnabled);
@@ -236,12 +237,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled,
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.tax,
+            disabledAction: onDisabledOrganizeSwitchPress,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
-                    return;
-                }
-                if (hasAccountingConnection) {
-                    setIsOrganizeWarningModalOpen(true);
                     return;
                 }
                 Policy.enablePolicyTaxes(policyID, isEnabled);
@@ -254,12 +252,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: policy?.areReportFieldsEnabled ?? false,
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areReportFieldsEnabled,
+            disabledAction: onDisabledOrganizeSwitchPress,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
-                    return;
-                }
-                if (hasAccountingConnection) {
-                    setIsOrganizeWarningModalOpen(true);
                     return;
                 }
                 if (isEnabled) {
@@ -285,12 +280,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
             isActive: isAccountingEnabled,
             pendingAction: policy?.pendingFields?.areConnectionsEnabled,
-            action: (isEnabled: boolean) => {
-                if (!policyID) {
+            disabledAction: () => {
+                if (!hasAccountingConnection) {
                     return;
                 }
-                if (hasAccountingConnection) {
-                    setIsIntegrateWarningModalOpen(true);
+                setIsIntegrateWarningModalOpen(true);
+            },
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
                     return;
                 }
                 Policy.enablePolicyConnections(policyID, isEnabled);
@@ -409,7 +406,12 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
+                <ScrollView contentContainerStyle={styles.pb2}>
+                    <Text style={[styles.ph5, styles.mb4, styles.mt3, styles.textSupporting, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        {translate('workspace.moreFeatures.subtitle')}
+                    </Text>
+                    {sections.map(renderSection)}
+                </ScrollView>
 
                 <ConfirmModal
                     title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}

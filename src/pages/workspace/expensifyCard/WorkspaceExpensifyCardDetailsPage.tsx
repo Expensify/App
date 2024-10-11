@@ -5,17 +5,19 @@ import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Badge from '@components/Badge';
 import ConfirmModal from '@components/ConfirmModal';
+import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -38,9 +40,11 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
+    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const {translate} = useLocalize();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const theme = useTheme();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
@@ -63,9 +67,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
-
-        // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407841
-
+        Card.deactivateCard(workspaceAccountID, card);
         Navigation.goBack();
     };
 
@@ -115,37 +117,43 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
-                            <MenuItemWithTopDescription
-                                description={translate('cardPage.availableSpend')}
-                                title={formattedAvailableSpendAmount}
-                                interactive={false}
-                                titleStyle={styles.newKansasLarge}
-                                containerStyle={isOffline ? styles.buttonOpacityDisabled : null}
-                            />
-                            <MenuItemWithTopDescription
-                                description={translate('workspace.expensifyCard.cardLimit')}
-                                title={formattedLimit}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID))}
-                            />
-                            <MenuItemWithTopDescription
-                                description={translate('workspace.card.issueNewCard.limitType')}
-                                title={translationForLimitType ? translate(translationForLimitType) : ''}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID))}
-                            />
-                            <MenuItemWithTopDescription
-                                description={translate('workspace.card.issueNewCard.cardName')}
-                                title={card?.nameValuePairs?.cardTitle}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID))}
-                            />
+                            <OfflineWithFeedback pendingAction={card?.pendingFields?.availableSpend}>
+                                <MenuItemWithTopDescription
+                                    description={translate('cardPage.availableSpend')}
+                                    title={formattedAvailableSpendAmount}
+                                    interactive={false}
+                                    titleStyle={styles.newKansasLarge}
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.unapprovedExpenseLimit}>
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.expensifyCard.cardLimit')}
+                                    title={formattedLimit}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID))}
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.limitType}>
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.card.issueNewCard.limitType')}
+                                    title={translationForLimitType ? translate(translationForLimitType) : ''}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID))}
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}>
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.card.issueNewCard.cardName')}
+                                    title={card?.nameValuePairs?.cardTitle}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID))}
+                                />
+                            </OfflineWithFeedback>
                             <MenuItem
                                 icon={Expensicons.Trashcan}
-                                iconFill={theme.icon}
                                 title={translate('workspace.expensifyCard.deactivate')}
                                 style={styles.mv1}
-                                onPress={() => setIsDeactivateModalVisible(true)}
+                                onPress={() => (isOffline ? setIsOfflineModalVisible(true) : setIsDeactivateModalVisible(true))}
                             />
                             <ConfirmModal
                                 title={translate('workspace.card.deactivateCardModal.deactivateCard')}
@@ -157,6 +165,15 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 confirmText={translate('workspace.card.deactivateCardModal.deactivate')}
                                 cancelText={translate('common.cancel')}
                                 danger
+                            />
+                            <DecisionModal
+                                title={translate('common.youAppearToBeOffline')}
+                                prompt={translate('common.offlinePrompt')}
+                                isSmallScreenWidth={isSmallScreenWidth}
+                                onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
+                                secondOptionText={translate('common.buttonConfirm')}
+                                isVisible={isOfflineModalVisible}
+                                onClose={() => setIsOfflineModalVisible(false)}
                             />
                         </ScrollView>
                     </>

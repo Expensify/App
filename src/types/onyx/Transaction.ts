@@ -99,7 +99,7 @@ type TransactionCustomUnit = {
     name?: ValueOf<typeof CONST.CUSTOM_UNITS>;
 
     /** Default rate for custom unit */
-    defaultP2PRate?: number;
+    defaultP2PRate?: number | null;
 };
 
 /** Types of geometry */
@@ -356,9 +356,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The edited waypoints for the distance expense */
         modifiedWaypoints?: WaypointCollection;
-
-        /** The edited distance rate for the distance request */
-        modifiedCustomUnitRateID?: string;
 
         /**
          * Used during the creation flow before the transaction is saved to the server and helps dictate where

@@ -3,10 +3,12 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -23,6 +25,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import variables from '@styles/variables';
 import * as Workflow from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,14 +53,15 @@ type WorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenL
 function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsExpensesFromPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListMember[]>([]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
+    const shouldShowListEmptyContent = approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
+    const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
 
     useEffect(() => {
         if (!approvalWorkflow?.members) {
@@ -120,11 +124,21 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         return [
             {
                 title: undefined,
-                data: filteredMembers,
+                data: OptionsListUtils.sortAlphabetically(filteredMembers, 'text'),
                 shouldShow: true,
             },
         ];
     }, [approvalWorkflow?.availableMembers, debouncedSearchTerm, policy?.employeeList, selectedMembers, translate]);
+
+    const goBack = useCallback(() => {
+        let backTo;
+        if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
+            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
+        } else if (!isInitialCreationFlow) {
+            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
+        }
+        Navigation.goBack(backTo);
+    }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action]);
 
     const nextStep = useCallback(() => {
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons?.[0]?.source, email: member.login}));
@@ -138,37 +152,50 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
         } else {
-            const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
         }
-    }, [approvalWorkflow, route.params.backTo, route.params.policyID, selectedMembers]);
+    }, [approvalWorkflow?.action, firstApprover, route.params.backTo, route.params.policyID, selectedMembers]);
 
-    const goBack = useCallback(() => {
-        if (isInitialCreationFlow) {
-            Workflow.clearApprovalWorkflow();
+    const button = useMemo(() => {
+        let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
+
+        if (shouldShowListEmptyContent) {
+            buttonText = translate('common.buttonConfirm');
         }
-        Navigation.goBack();
-    }, [isInitialCreationFlow]);
 
-    const nextButton = useMemo(
-        () => (
+        return (
             <FormAlertWithSubmitButton
-                isDisabled={!selectedMembers.length}
-                buttonText={isInitialCreationFlow ? translate('common.next') : translate('common.save')}
-                onSubmit={nextStep}
+                isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
+                buttonText={buttonText}
+                onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
             />
-        ),
-        [isInitialCreationFlow, nextStep, selectedMembers.length, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
-    );
+        );
+    }, [isInitialCreationFlow, nextStep, selectedMembers.length, shouldShowListEmptyContent, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
 
     const toggleMember = (member: SelectionListMember) => {
         const isAlreadySelected = selectedMembers.some((selectedOption) => selectedOption.login === member.login);
         setSelectedMembers(isAlreadySelected ? selectedMembers.filter((selectedOption) => selectedOption.login !== member.login) : [...selectedMembers, {...member, isSelected: true}]);
     };
 
-    const headerMessage = useMemo(() => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
+    const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data?.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
+
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={Illustrations.TurtleInShell}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workflowsPage.emptyContent.title')}
+                subtitle={translate('workflowsPage.emptyContent.expensesFromSubtitle')}
+                subtitleStyle={styles.textSupporting}
+                containerStyle={styles.pb10}
+                contentFitImage="contain"
+            />
+        ),
+        [translate, styles.textSupporting, styles.pb10],
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -178,7 +205,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 testID={WorkspaceWorkflowsApprovalsExpensesFromPage.displayName}
-                onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
@@ -190,22 +216,24 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         title={translate('workflowsExpensesFromPage.title')}
                         onBackButtonPress={goBack}
                     />
-                    {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
+
+                    {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !shouldShowListEmptyContent && (
                         <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsExpensesFromPage.header')}</Text>
                     )}
                     <SelectionList
                         canSelectMultiple
                         sections={sections}
                         ListItem={InviteMemberListItem}
-                        textInputLabel={translate('selectionList.findMember')}
+                        textInputLabel={shouldShowListEmptyContent ? undefined : translate('selectionList.findMember')}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}
                         onSelectRow={toggleMember}
                         showScrollIndicator
-                        showLoadingPlaceholder={!didScreenTransitionEnd || approvalWorkflowMetadata.status === 'loading'}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                        footerContent={nextButton}
+                        footerContent={button}
+                        listEmptyContent={listEmptyContent}
+                        shouldShowListEmptyContent={shouldShowListEmptyContent}
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>

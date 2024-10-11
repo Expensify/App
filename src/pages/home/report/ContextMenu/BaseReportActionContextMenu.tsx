@@ -19,6 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import shouldEnableContextMenuEnterShortcut from '@libs/shouldEnableContextMenuEnterShortcut';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -174,9 +175,10 @@ function BaseReportActionContextMenu({
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(childReport);
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
-    const isMoneyRequestOrReport = isMoneyRequestReport || isInvoiceReport || isSingleTransactionView;
+    const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
 
-    const areHoldRequirementsMet = isMoneyRequestOrReport && !ReportUtils.isArchivedRoom(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
+    const areHoldRequirementsMet =
+        !isInvoiceReport && isMoneyRequestOrReport && !ReportUtils.isArchivedRoom(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
 
     const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, reportAction), [reportID, reportAction]);
 
@@ -257,7 +259,7 @@ function BaseReportActionContextMenu({
             menuItemRefs.current[focusedIndex]?.triggerPressAndUpdateSuccess?.();
             setFocusedIndex(-1);
         },
-        {isActive: shouldEnableArrowNavigation, shouldPreventDefault: false},
+        {isActive: shouldEnableArrowNavigation && shouldEnableContextMenuEnterShortcut, shouldPreventDefault: false},
     );
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
