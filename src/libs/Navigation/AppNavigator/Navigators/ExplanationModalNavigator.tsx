@@ -3,9 +3,9 @@ import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import ExplanationModal from '@components/ExplanationModal';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {ExplanationModalNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 
 const Stack = createPlatformStackNavigator<ExplanationModalNavigatorParamList>();
 

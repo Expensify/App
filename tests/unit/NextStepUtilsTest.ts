@@ -592,10 +592,6 @@ describe('libs/NextStepUtils', () => {
                         text: ' a business bank account.',
                     },
                 ];
-                // mock the report as approved
-                const originalState = {stateNum: report.stateNum, statusNum: report.statusNum};
-                report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
-                report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
 
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 

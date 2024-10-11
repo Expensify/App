@@ -6,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList, SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -14,7 +15,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList,
