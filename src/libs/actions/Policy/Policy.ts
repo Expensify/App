@@ -4670,7 +4670,7 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
     API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD, parameters, {optimisticData, finallyData, failureData});
 }
 
-function updateCompanyCardName(workspaceAccountID: number, cardID: string, newCardTitle: string, bankName: string) {
+function updateCompanyCardName(workspaceAccountID: number, cardID: string, newCardTitle: string, bankName: string, oldCardName?: string) {
     const authToken = NetworkStore.getAuthToken();
 
     const optimisticData: OnyxUpdate[] = [
@@ -4690,6 +4690,11 @@ function updateCompanyCardName(workspaceAccountID: number, cardID: string, newCa
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
+            value: {[cardID]: newCardTitle},
         },
     ];
 
@@ -4724,6 +4729,11 @@ function updateCompanyCardName(workspaceAccountID: number, cardID: string, newCa
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
+            value: {[cardID]: oldCardName},
         },
     ];
 

@@ -38,6 +38,7 @@ type WorkspaceCompanyCardDetailsPageProps = StackScreenProps<SettingsNavigatorPa
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
     const {policyID, cardID, backTo, bank} = route.params;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const policy = usePolicy(policyID);
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
@@ -113,7 +114,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.moreFeatures.companyCards.cardName')}
-                                    title={card?.nameValuePairs?.cardTitle}
+                                    title={customCardNames?.[cardID] ?? ''}
                                     shouldShowRightIcon
                                     brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, bank))}
