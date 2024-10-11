@@ -154,6 +154,15 @@ type IssueNewCard = {
 
     /** Whether the user is editing step */
     isEditing: boolean;
+
+    /** Whether the request is being processed */
+    isLoading?: boolean;
+
+    /** Error message */
+    errors?: OnyxCommon.Errors;
+
+    /** Whether the request was successful */
+    success?: boolean;
 };
 
 /** List of Expensify cards */

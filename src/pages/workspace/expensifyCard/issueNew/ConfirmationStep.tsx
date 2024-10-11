@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
@@ -38,6 +39,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
     const data = issueNewCard?.data;
+    const success = issueNewCard?.success;
 
     const submitButton = useRef<View>(null);
 
@@ -45,11 +47,19 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         submitButton.current?.focus();
     }, []);
 
-    const submit = () => {
-        Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);
+    useEffect(() => {
+        if (!success) {
+            return;
+        }
         Navigation.navigate(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID ?? '-1'));
         Card.clearIssueNewCardFlow();
+    }, [backTo, policyID, success]);
+
+    const submit = () => {
+        Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);
     };
+
+    const errorMessage = ErrorUtils.getLatestErrorMessage(issueNewCard);
 
     const editStep = (step: IssueNewCardStep) => {
         Card.setIssueNewCardStepAndData({step, isEditing: true});
@@ -115,14 +125,14 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
                 />
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
-                    <Button
-                        ref={submitButton}
+                    <FormAlertWithSubmitButton
+                        buttonRef={submitButton}
+                        message={errorMessage}
+                        isAlertVisible={!!errorMessage}
                         isDisabled={isOffline}
-                        success
-                        large
-                        style={[styles.w100]}
-                        onPress={submit}
-                        text={translate('workspace.card.issueCard')}
+                        isLoading={issueNewCard?.isLoading}
+                        onSubmit={submit}
+                        buttonText={translate('workspace.card.issueCard')}
                     />
                 </View>
             </ScrollView>
