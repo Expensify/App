@@ -97,7 +97,10 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <FullPageBlockingView style={customUnit ? styles.flexGrow1 : []}>
-                    <ScrollView contentContainerStyle={styles.flexGrow1} keyboardShouldPersistTaps="always">
+                    <ScrollView
+                        contentContainerStyle={styles.flexGrow1}
+                        keyboardShouldPersistTaps="always"
+                    >
                         <View>
                             {defaultUnit && (
                                 <OfflineWithFeedback
