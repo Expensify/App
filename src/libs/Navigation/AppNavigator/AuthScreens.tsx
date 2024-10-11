@@ -14,7 +14,6 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Welcome from '@libs/actions/Welcome';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -272,18 +271,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         if (isLoggingInAsNewUser && isTransitioning) {
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
             return;
-        }
-
-        let signupQualifier;
-        if (currentUrl.includes(CONST.QUALIFIER_PARAM)) {
-            signupQualifier = new URL(currentUrl).searchParams.get(CONST.QUALIFIER_PARAM);
-
-            if (signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL) {
-                Welcome.setOnboardingCustomChoices([CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
-            }
-            if (signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB) {
-                Welcome.setOnboardingPurposeSelected(CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-            }
         }
 
         NetworkConnection.listenForReconnect();
@@ -574,7 +561,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={SCREENS.CONNECTION_COMPLETE}
-                        options={defaultScreenOptions}
+                        options={screenOptions.fullScreen}
                         component={ConnectionCompletePage}
                     />
                     {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {

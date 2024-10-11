@@ -31,8 +31,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const {shouldUseNarrowLayout, isSmallScreenWidth, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
@@ -56,10 +56,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             Report.completeOnboarding(
                 onboardingPurposeSelected,
                 CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
-                {
-                    firstName,
-                    lastName,
-                },
+                firstName,
+                lastName,
                 onboardingAdminsChatReportID ?? undefined,
                 onboardingPolicyID,
             );
