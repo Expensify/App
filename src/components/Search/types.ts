@@ -38,7 +38,8 @@ type SearchContext = {
     selectedReports: Array<SearchReport['reportID']>;
     setCurrentSearchHash: (hash: number) => void;
     setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[]) => void;
-    clearSelectedTransactions: (hash?: number) => void;
+    clearSelectedTransactions: (hash?: number, shouldTurnOffSelectionMode?: boolean) => void;
+    shouldTurnOffSelectionMode: boolean;
     shouldShowStatusBarLoading: boolean;
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
 };

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import {useSearchContext} from '@components/Search/SearchContext';
 import SearchStatusBar from '@components/Search/SearchStatusBar';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -21,6 +22,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import SearchSelectionModeHeader from './SearchSelectionModeHeader';
 import SearchTypeMenu from './SearchTypeMenu';
+import useHandleBackButton from './useHandleBackButton';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -33,6 +35,17 @@ function SearchPageBottomTab() {
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const styles = useThemeStyles();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {clearSelectedTransactions} = useSearchContext();
+
+    const handleBackButtonPress = useCallback(() => {
+        if (!selectionMode?.isEnabled) {
+            return false;
+        }
+        clearSelectedTransactions(undefined, true);
+        return true;
+    }, [selectionMode, clearSelectedTransactions]);
+
+    useHandleBackButton(handleBackButtonPress);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(variables.searchHeaderHeight);
