@@ -46,7 +46,9 @@ function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
                 description={translate('workspace.common.displayedAs')}
                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt2]}
             />
-            <Text style={styles.pv5}>{translate('workspace.qbd.accountsSwitchTitle')}</Text>
+            {/* TODO: [QBD] Temporary hide this menu item until BE supports this option
+                more details: https://github.com/Expensify/App/pull/50545#issuecomment-2406554260 */}
+            {/* <Text style={styles.pv5}>{translate('workspace.qbd.accountsSwitchTitle')}</Text>
             <ToggleSettingOptionRow
                 title={translate('workspace.common.enabled')}
                 subtitle={translate('workspace.qbd.accountsSwitchDescription')}
@@ -56,7 +58,7 @@ function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
                 onToggle={() => {}}
                 disabled
                 showLockIcon
-            />
+            /> */}
         </ConnectionLayout>
     );
 }
