@@ -3531,14 +3531,18 @@ const translations = {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
+                        case 'quickbooksDesktopImportCustomers':
                             return 'Importando clientes';
                         case 'quickbooksOnlineImportEmployees':
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
+                        case 'quickbooksDesktopImportEmployees':
                             return 'Importando empleados';
                         case 'quickbooksOnlineImportAccounts':
+                        case 'quickbooksDesktopImportAccounts':
                             return 'Importando cuentas';
                         case 'quickbooksOnlineImportClasses':
+                        case 'quickbooksDesktopImportClasses':
                             return 'Importando clases';
                         case 'quickbooksOnlineImportLocations':
                             return 'Importando localidades';
@@ -3558,7 +3562,16 @@ const translations = {
                         case 'startingImportQBO':
                             return 'Importando datos desde QuickBooks Online';
                         case 'startingImportQBD':
-                            return 'Importing QuickBooks Desktop data';
+                        case 'quickbooksDesktopImportMore':
+                            return 'Importando datos desde QuickBooks Desktop';
+                        case 'quickbooksDesktopImportTitle':
+                            return 'Importando artículos';
+                        case 'quickbooksDesktopImportApproveCertificate':
+                            return 'Importing approve ceritificate';
+                        case 'quickbooksDesktopImportDimensions':
+                            return 'Importing dimensions';
+                        case 'quickbooksDesktopImportSavePolicy':
+                            return 'Importing save policy';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Sincronizando datos desde QuickBooks Online';
                         case 'quickbooksOnlineSyncLoadData':
@@ -3626,6 +3639,7 @@ const translations = {
                         case 'netSuiteSyncImportSubsidiaries':
                             return 'Importando subsidiarias';
                         case 'netSuiteSyncImportVendors':
+                        case 'quickbooksDesktopImportVendors':
                             return 'Importando proveedores';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marcando facturas y recibos de NetSuite como pagados';
