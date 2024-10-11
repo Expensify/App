@@ -627,6 +627,10 @@ describe('libs/NextStepUtils', () => {
                         text: ' %expenses.',
                     },
                 ];
+                // mock the report as approved
+                const originalState = {stateNum: report.stateNum, statusNum: report.statusNum};
+                report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
+                report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
 
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     achAccount: {

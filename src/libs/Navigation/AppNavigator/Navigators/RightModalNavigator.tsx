@@ -1,40 +1,47 @@
-import type {StackCardInterpolationProps, StackScreenProps} from '@react-navigation/stack';
-import {createStackNavigator} from '@react-navigation/stack';
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {isSafari} from '@libs/Browser';
-import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
+import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import createModalCardStyleInterpolator from '@navigation/AppNavigator/createModalCardStyleInterpolator';
+import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
+import useModalNavigatorOptions from '@libs/Navigation/AppNavigator/useModalNavigatorOptions';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
-type RightModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
+type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
-const Stack = createStackNavigator<RightModalNavigatorParamList>();
+const Stack = createPlatformStackNavigator<RightModalNavigatorParamList>();
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
-    const styleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
+    const customInterpolator = useModalCardStyleInterpolator();
+    const modalNavigatorOptions = useModalNavigatorOptions();
+
     const screenOptions = useMemo(() => {
-        const options = ModalNavigatorScreenOptions(styles);
         // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
         if (isSafari()) {
-            const customInterpolator = createModalCardStyleInterpolator(styleUtils);
-            options.cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator(shouldUseNarrowLayout, false, false, props);
+            return {
+                ...modalNavigatorOptions,
+                web: {
+                    ...modalNavigatorOptions.web,
+                    cardStyleInterpolator: (props: StackCardInterpolationProps) => customInterpolator({props}),
+                },
+            };
         }
 
-        return options;
-    }, [shouldUseNarrowLayout, styleUtils, styles]);
+        return modalNavigatorOptions;
+    }, [customInterpolator, modalNavigatorOptions]);
 
     return (
         <NoDropZone>
@@ -170,6 +177,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PRIVATE_NOTES}
                         component={ModalStackNavigators.PrivateNotesModalStackNavigator}
+                        options={hideKeyboardOnSwipe}
                     />
                     <Stack.Screen
                         name="ProcessMoneyRequestHold"
