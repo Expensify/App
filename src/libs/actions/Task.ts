@@ -1087,6 +1087,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     Report.notifyNewAction(report.reportID, currentUserAccountID);
 
     if (shouldDeleteTaskReport) {
+        Navigation.goBack();
         if (parentReport?.reportID) {
             return ROUTES.REPORT_WITH_ID.getRoute(parentReport.reportID);
         }

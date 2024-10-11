@@ -175,9 +175,10 @@ function BaseReportActionContextMenu({
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(childReport);
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
-    const isMoneyRequestOrReport = isMoneyRequestReport || isInvoiceReport || isSingleTransactionView;
+    const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
 
-    const areHoldRequirementsMet = isMoneyRequestOrReport && !ReportUtils.isArchivedRoom(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
+    const areHoldRequirementsMet =
+        !isInvoiceReport && isMoneyRequestOrReport && !ReportUtils.isArchivedRoom(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
 
     const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, reportAction), [reportID, reportAction]);
 
