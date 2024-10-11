@@ -429,6 +429,10 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
+function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
+    return !isMerchantMissing(transaction) ? getMerchant(transaction) : getDescription(transaction);
+}
+
 /**
  * Return the list of modified attendees if present otherwise list of attendees
  */
@@ -1127,6 +1131,7 @@ export {
     getOriginalAmount,
     getFormattedAttendees,
     getMerchant,
+    getMerchantOrDescription,
     getMCCGroup,
     getCreated,
     getFormattedCreated,

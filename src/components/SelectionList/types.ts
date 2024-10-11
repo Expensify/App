@@ -577,6 +577,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to show the empty list content */
     shouldShowListEmptyContent?: boolean;
 
+    /** The style is applied for the wrap component of list item */
+    listItemWrapperStyle?: StyleProp<ViewStyle>;
+
     /** Scroll event throttle for preventing onScroll callbacks to be fired too often */
     scrollEventThrottle?: number;
 
