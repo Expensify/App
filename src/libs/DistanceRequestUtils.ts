@@ -332,6 +332,7 @@ function getRate({
     return {
         ...mileageRate,
         unit,
+        currency: mileageRate.currency ?? policyCurrency,
     };
 }
 
