@@ -3568,6 +3568,8 @@ const translations = {
                             return 'Importing dimensions';
                         case 'quickbooksDesktopImportSavePolicy':
                             return 'Importing save policy';
+                        case 'quickbooksDesktopWebConnectorReminder':
+                            return 'Still syncing data with QuickBooks... Please make sure the Web Connector is running';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Syncing QuickBooks Online data';
                         case 'quickbooksOnlineSyncLoadData':

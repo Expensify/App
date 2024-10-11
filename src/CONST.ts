@@ -2363,6 +2363,7 @@ const CONST = {
                 QBD_IMPORT_EMPLOYEES: 'quickbooksDesktopImportEmployees',
                 QBD_IMPORT_MORE: 'quickbooksDesktopImportMore',
                 QBD_IMPORT_GENERIC: 'quickbooksDesktopImportSavePolicy',
+                QBD_WEB_CONNECTOR_REMINDER: 'quickbooksDesktopWebConnectorReminder',
                 JOB_DONE: 'jobDone',
                 XERO_SYNC_STEP: 'xeroSyncStep',
                 XERO_SYNC_XERO_REIMBURSED_REPORTS: 'xeroSyncXeroReimbursedReports',

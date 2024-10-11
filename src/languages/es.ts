@@ -3483,7 +3483,7 @@ const translations = {
             other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
-            reinstall: 'Reinstall connector',
+            reinstall: 'Reinstalar el conector',
             disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integración';
@@ -3565,13 +3565,15 @@ const translations = {
                         case 'quickbooksDesktopImportMore':
                             return 'Importando datos desde QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
-                            return 'Importando artículos';
+                            return 'Importando título';
                         case 'quickbooksDesktopImportApproveCertificate':
-                            return 'Importing approve ceritificate';
+                            return 'Importando certificado de aprobación';
                         case 'quickbooksDesktopImportDimensions':
-                            return 'Importing dimensions';
+                            return 'Importando dimensiones';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return 'Importing save policy';
+                            return 'Importando política de guardado';
+                        case 'quickbooksDesktopWebConnectorReminder':
+                            return 'Aún sincronizando datos con QuickBooks... Por favor, asegúrate de que el Conector Web esté en funcionamiento';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Sincronizando datos desde QuickBooks Online';
                         case 'quickbooksOnlineSyncLoadData':
