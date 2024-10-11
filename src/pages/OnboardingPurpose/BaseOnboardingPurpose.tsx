@@ -28,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseOnboardingPurposeProps} from './types';
+import {generatePolicyID} from "@userActions/Policy/Policy";
 
 const selectableOnboardingChoices = Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES);
 
@@ -84,7 +85,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     if (!onboardingPolicyID) {
-                        const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true);
+                        const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', generatePolicyID(), choice);
                         Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
                         Welcome.setOnboardingPolicyID(policyID);
                     }
