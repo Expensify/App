@@ -39,7 +39,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? -1;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
     const feedName = cardFeeds?.settings?.companyCardNicknames?.[selectedFeed] ?? '';
 
