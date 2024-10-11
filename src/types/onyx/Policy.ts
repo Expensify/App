@@ -439,6 +439,16 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/**
+ * Reimbursable account types exported from QuickBooks Desktop
+ */
+type QBDReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE>;
+
+/**
+ * Non reimbursable account types exported from QuickBooks Desktop
+ */
+type QBDNonReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE>;
+
 /** Xero bill status values
  *
  * TODO: Xero remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
@@ -1247,10 +1257,49 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         enabled: boolean;
     };
 
+<<<<<<< HEAD
+=======
+    /** Whether a check to be printed */
+    markChecksToBePrinted: boolean;
+
+    /** Determines if a vendor should be automatically created */
+    shouldAutoCreateVendor: boolean;
+
+>>>>>>> main
     /** Configuration of the export */
     export: {
         /** E-mail of the exporter */
         exporter: string;
+<<<<<<< HEAD
+=======
+
+        /** Defines how reimbursable expenses are exported */
+        reimbursable: QBDReimbursableExportAccountType;
+
+        /** Account that receives the reimbursable expenses */
+        reimbursableAccount: string;
+
+        /** Export date type */
+        exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+
+        /** Defines how non-reimbursable expenses are exported */
+        nonReimbursable: QBDNonReimbursableExportAccountType;
+
+        /** Account that receives the non reimbursable expenses */
+        nonReimbursableAccount: string;
+
+        /** Default vendor of non reimbursable bill */
+        nonReimbursableBillDefaultVendor: string;
+    };
+
+    /** Configuration of import settings from QuickBooks Desktop to the app */
+    mappings: {
+        /** How QuickBooks Desktop classes displayed as */
+        classes: IntegrationEntityMap;
+
+        /** How QuickBooks Desktop customers displayed as */
+        customers: IntegrationEntityMap;
+>>>>>>> main
     };
 
     /** Collections of form field errors */
@@ -1806,6 +1855,7 @@ export type {
     XeroTrackingCategory,
     NetSuiteConnection,
     ConnectionLastSync,
+    QBDReimbursableExportAccountType,
     NetSuiteSubsidiary,
     NetSuiteCustomList,
     NetSuiteCustomSegment,

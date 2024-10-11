@@ -2,15 +2,15 @@ import React from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BaseOnboardingWork from './BaseOnboardingWork';
-import type {OnboardingWorkProps} from './types';
+import BaseOnboardingAccounting from './BaseOnboardingAccounting';
+import type {OnboardingAccountingProps} from './types';
 
-function OnboardingWork(props: OnboardingWorkProps) {
+function OnboardingAccounting(props: OnboardingAccountingProps) {
     const styles = useThemeStyles();
     return (
         <FocusTrapForScreens>
             <View style={styles.h100}>
-                <BaseOnboardingWork
+                <BaseOnboardingAccounting
                     shouldUseNativeStyles={false}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
@@ -20,6 +20,6 @@ function OnboardingWork(props: OnboardingWorkProps) {
     );
 }
 
-OnboardingWork.displayName = 'OnboardingPurpose';
+OnboardingAccounting.displayName = 'OnboardingAccounting';
 
-export default OnboardingWork;
+export default OnboardingAccounting;

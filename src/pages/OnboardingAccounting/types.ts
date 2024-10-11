@@ -2,11 +2,11 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
 
-type OnboardingWorkProps = Record<string, unknown> & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK>;
+type OnboardingAccountingProps = StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.ACCOUNTING>;
 
-type BaseOnboardingWorkProps = OnboardingWorkProps & {
+type BaseOnboardingAccountingProps = OnboardingAccountingProps & {
     /* Whether to use native styles tailored for native devices */
     shouldUseNativeStyles: boolean;
 };
 
-export type {OnboardingWorkProps, BaseOnboardingWorkProps};
+export type {OnboardingAccountingProps, BaseOnboardingAccountingProps};
