@@ -1,9 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {ConnectPolicyToQuickBooksDesktopParams} from '@libs/API/parameters';
-import type UpdateQuickbooksDesktopExpensesExportDestinationTypeParams from '@libs/API/parameters/UpdateQuickbooksDesktopExpensesExportDestinationTypeParams';
-import type UpdateQuickbooksDesktopGenericTypeParams from '@libs/API/parameters/UpdateQuickbooksDesktopGenericTypeParams';
+import type {ConnectPolicyToQuickBooksDesktopParams, UpdateQuickbooksDesktopExpensesExportDestinationTypeParams, UpdateQuickbooksDesktopGenericTypeParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -13,7 +11,7 @@ import type {Connections, QBDReimbursableExportAccountType} from '@src/types/ony
 function buildOnyxDataForMultipleQuickbooksExportConfigurations<TConfigUpdate extends Partial<Connections['quickbooksDesktop']['config']['export']>>(
     policyID: string,
     configUpdate: TConfigUpdate,
-    configCurrentData: TConfigUpdate,
+    configCurrentData: Partial<TConfigUpdate>,
 ) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -248,7 +246,7 @@ function getQuickbooksDesktopCodatSetupLink(policyID: string) {
 function updateQuickbooksDesktopExpensesExportDestination<TConfigUpdate extends {reimbursable: QBDReimbursableExportAccountType; reimbursableAccount: string}>(
     policyID: string,
     configUpdate: TConfigUpdate,
-    configCurrentData: TConfigUpdate,
+    configCurrentData: Partial<TConfigUpdate>,
 ) {
     const onyxData = buildOnyxDataForMultipleQuickbooksExportConfigurations(policyID, configUpdate, configCurrentData);
 
