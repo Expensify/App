@@ -46,17 +46,17 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
                     value: exporter.email,
                     text: exporter.email,
                     keyForList: exporter.email,
-                    isSelected: (qbdConfig?.export?.exporter ?? policy?.owner) === exporter.email,
+                    isSelected: (qbdConfig?.export.exporter ?? policy?.owner) === exporter.email,
                 });
                 return options;
             }, []),
-        [exporters, policy?.owner, currentUserLogin, qbdConfig?.export?.exporter],
+        [exporters, policy?.owner, currentUserLogin, qbdConfig?.export.exporter],
     );
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
-            if (row.value !== qbdConfig?.export?.exporter) {
-                QuickbooksDesktop.updateQuickbooksDesktopPreferredExporter(policyID, row.value, qbdConfig?.export?.exporter);
+            if (row.value !== qbdConfig?.export.exporter) {
+                QuickbooksDesktop.updateQuickbooksDesktopPreferredExporter(policyID, row.value, qbdConfig?.export.exporter);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID));
         },
