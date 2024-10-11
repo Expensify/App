@@ -6,10 +6,10 @@ import CapitalOneCompanyCardDetail from '@assets/images/companyCards/card-capita
 import ChaseCompanyCardDetail from '@assets/images/companyCards/card-chase.svg';
 import CitibankCompanyCardDetail from '@assets/images/companyCards/card-citi.svg';
 import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
-import OtherCompanyCardDetail from '@assets/images/companyCards/card-other.svg';
 import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
+import OtherCompanyCardDetail from '@assets/images/companyCards/card=-generic.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import MasterCardCompanyCards from '@assets/images/companyCards/mastercard.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
