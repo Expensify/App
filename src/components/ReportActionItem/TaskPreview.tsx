@@ -73,7 +73,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const isTaskCompleted = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-    const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
+    const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitleFromReport(taskReport, action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? -1;
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
@@ -128,7 +128,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                     <Text style={titleStyle}>{taskTitle}</Text>
                 </View>
                 {shouldShowGreenDotIndicator && (
-                    <View style={styles.ml2}>
+                    <View style={iconWrapperStyle}>
                         <Icon
                             src={Expensicons.DotIndicator}
                             fill={theme.success}
