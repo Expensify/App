@@ -189,7 +189,9 @@ function CategorySettingsPage({
                                                 ROUTES.WORKSPACE_UPGRADE.getRoute(
                                                     policyID,
                                                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                                    ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
+                                                    backTo
+                                                        ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                        : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
                                                 ),
                                             );
                                             return;
