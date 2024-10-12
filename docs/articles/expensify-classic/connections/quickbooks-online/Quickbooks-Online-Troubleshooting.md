@@ -18,7 +18,7 @@ This error occurs when the account applied as a category to the expense in Expen
 5. Click on the pencil icon on the right to check if you have "In multiple accounts" selected:
 6. If "In multiple accounts" is selected, go to Chart of Accounts and click Edit for the account in question.
 7. Check the billable option and select an income account within your chart of accounts
-8. Sync your QuickBooks Online connection in Settings > Workspaces > [click workspace] > Connections.
+8. Sync your QuickBooks Online connection in Settings > Workspaces > [workspace name] > Connections.
 9. Open the report and click the Export to button and then the QuickBooks Online option.
 
 # ExpensiError QBO046: Feature Not Included in Subscription
@@ -40,11 +40,11 @@ _Please note: Self Employed is not supported:_
 
 **Why does this happen?**
 
-QuickBooks Online requires all expenses exported from Expensify to use a category matching an account in your chart of accounts. If a category from another source is used, QuickBooks Online will reject the expense. This errors occurs when an expense on the report has a category applied that is not valid in QuickBooks Online.
+QuickBooks Online requires all expenses exported from Expensify to use a category matching an account in your chart of accounts. If a category from another source is used, QuickBooks Online will reject the expense. This error occurs when an expense on the report has a category applied that is not valid in QuickBooks Online.
 
 ## How to fix it
 
-1. Sync your QuickBooks Online connection in Expensify from Settings > Workspaces > [click workspace] > Connections, and click the **Sync Now** button.
+1. Sync your QuickBooks Online connection in Expensify from Settings > Workspaces > [workspace name] > Connections, and click the **Sync Now** button.
 2. Review the expenses on the report. If any appear with a red _Category no longer valid_ violation, recategorize the expense until all expenses are violation-free.
 3. Click the **Export t**o button and then the **QuickBooks Online** option.
     - If you receive the same error, continue.
@@ -56,7 +56,7 @@ QuickBooks Online requires all expenses exported from Expensify to use a categor
 
 **Why does this happen?**
 
-This error occurs when you have an Employee Record set up with the employee's name, which prevents the Expensify integration from automatically creating the Vendor Record with the same name, since QuickBooks Online won't allow you to have an employee and vendor with the same name. 
+This error occurs when you have an Employee Record set up with the employee's name. This prevents the Expensify integration from automatically creating the Vendor Record with the same name since QuickBooks Online won't allow you to have an employee and vendor with the same name. 
 
 ## How to fix it
 
@@ -67,7 +67,7 @@ There are two different ways you can resolve this error.
 1. Log into QuickBooks Online.
 2. Access the Employee Records for your submitters. 
 3. Edit the name to differentiate them from the name they have on their account in Expensify.
-4. Sync your QuickBooks Online connection in Settings > Workspaces > [click workspace] > Connections.
+4. Sync your QuickBooks Online connection in Settings > Workspaces > [workspace name] > Connections.
 5. Open the report and click the Export to button and then the QuickBooks Online option.
 
 **Option 2**:
@@ -85,7 +85,7 @@ This error occurs when you are exporting reimbursable expenses as Journal Entrie
 
 There are three different ways you can resolve this error.
 - Select a different type of export for reimbursable expenses under Settings > Workspaces > [worksapce name] > Connections > Configure > Export tab. 
-- Enable _Automatically Create Entities_ under Settings > Workspaces > [worksapce name] > Connections > Configure > Advanced to create vendor records automatically.
+- Enable _Automatically Create Entities_ under Settings > Workspaces > [workspace name] > Connections > Configure > Advanced to create vendor records automatically.
 - Manually create vendor records in QuickBooks Online for each employee.
 
 # ExpensiError QBO099: Items marked as billable must have sales information checked
@@ -97,7 +97,7 @@ This error occurs when an Item category on an expense does not have sales inform
 ## How to fix it
 
 1. Log into QuickBooks Online.
-2. Navigate to to your items list.
+2. Navigate to your items list.
 3. Click **Edit** to the right of the item used on the report with the error. Here you will see an option to check either "Sales" or "Purchasing".
 4. Check the option for **Sales**.
 5. Select an income account.
@@ -146,12 +146,12 @@ This error occurs because the currency on the Vendor record in QuickBooks Online
 
 1. Log into QuickBooks Online.
 2. Open the vendor record.
-3. Update the record to use with the correct A/P account, currency and an email matching their Expensify email. 
-You can find the correct Vendor record by exporting your QuickBooks Online [vendor list](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fqbo.intuit.com%2Fapp%2Fvendors) to a spreadsheet (click the export icon on the right-hand side of the page), and search for the email address of the person who submitted the report.
+3. Update the record to use with the correct A/P account, currency, and email matching their Expensify email. 
+You can find the correct Vendor record by exporting your QuickBooks Online vendor list to a spreadsheet (click the export icon on the right-hand side of the page), and search for the email address of the person who submitted the report.
 
 If you have multiple Vendors with different currencies with the same email, Expensify is likely trying to export to the wrong one.
 
-1. Try removing the email address from the vendor in QuickBooks Online you aren't trying to export to. 
+1. Try removing the email address from the vendor in QuickBooks Online that you aren't trying to export to. 
 2. Sync your QuickBooks Online connection in Settings > Workspaces > [workspace name] > Connections. 
 3. Open the report and click the **Export to** button and then the **QuickBooks Online** option.
 
@@ -160,13 +160,13 @@ If this still fails, you'll need to confirm that the A/P account selected in Exp
 1. Navigate to Settings > Workspaces > [workspace name] > Connections.
 2. Under the Exports tab check that both A/P accounts are the correct currency.
 
-# Why are company card expenses exporting to the wrong account in QuickBooks Online?
+# Why are company card expenses exported to the wrong account in QuickBooks Online?
 
 Multiple factors could be causing your company card transactions to export to the wrong place in your accounting system, but the best place to start is always the same.
 
 1. First, confirm that the company cards have been mapped to the correct accounts in Settings > Domains > Company Cards > click the **Edit Export button** for the card to view the account.
-2. Next, confirm the expenses in question have been imported from the company card? 
-    - Only expenses that have the Card+Lock icon next to them will export according to the mapping settings that you configure in the domain settings.
+2. Next, confirm the expenses in question have been imported from the company card. 
+   - Only expenses with the Card+Lock icon next to them will export according to the mapping settings that you configure in the domain settings.
 
 It’s important to note that expenses imported from a card linked at the individual account level, expenses created from a SmartScanned receipt, and manually created cash expenses will export to the default bank account selected in your connection's configuration settings.
 
@@ -174,7 +174,7 @@ It’s important to note that expenses imported from a card linked at the indivi
 
 The user exporting the report must be a domain admin. You can check the history and comment section at the bottom of the report to see who exported the report.
 
-If your reports are being exported automatically by Concierge, the user listed as the Preferred Exporter under Settings > Workspaces > [workspaces name] > Connections > click **Configure** must be a domain admin as well. 
+If your reports are being exported automatically by Concierge, the user listed as the Preferred Exporter under Settings > Workspaces > [workspace name] > Connections > click **Configure** must also be a domain admin. 
 
 If the report exporter is not a domain admin, all company card expenses will export to the bank account set in Settings > Workspaces > [workspace name] > Connections > click **Configure** for non-reimbursable expenses. 
 

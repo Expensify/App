@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useActiveWorkspace from './useActiveWorkspace';
 import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -42,7 +43,8 @@ const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>
         Object.values(reportActions)
             .filter(Boolean)
             .map((reportAction) => {
-                const {reportActionID, actionName, errors = [], originalMessage} = reportAction;
+                const {reportActionID, actionName, errors = []} = reportAction;
+                const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
                 const message = ReportActionsUtils.getReportActionMessage(reportAction);
                 const decision = message?.moderationDecision?.decision;
 
@@ -81,8 +83,8 @@ function ReportIDsContextProvider({
 }: ReportIDsContextProviderProps) {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT});
     const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector});
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: reportActionsSelector});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: (c) => mapOnyxCollectionItems(c, reportActionsSelector)});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
