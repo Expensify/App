@@ -183,6 +183,7 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const hasFooterRendered = useRef(false);
+    const lastActionAddedByCurrentUser = useRef<string>();
     const linkedReportActionID = route?.params?.reportActionID ?? '-1';
 
     const sortedVisibleReportActions = useMemo(
@@ -205,6 +206,7 @@ function ReportActionsList({
      * - switches reports
      * - marks a message as read/unread
      * - reads a new message as it is received
+     * - sends a new message, update with both optimistic and BE created value
      */
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(report.lastReadTime ?? '');
     useEffect(() => {
@@ -212,6 +214,20 @@ function ReportActionsList({
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
+
+    const lastAction = sortedVisibleReportActions.at(0);
+    useEffect(() => {
+        if (!lastActionAddedByCurrentUser.current || lastAction?.reportActionID !== lastActionAddedByCurrentUser.current) {
+            return;
+        }
+        setUnreadMarkerTime(lastAction.created);
+
+        if (lastAction.isOptimisticAction) {
+            return;
+        }
+
+        lastActionAddedByCurrentUser.current = undefined;
+    }, [lastAction]);
 
     /**
      * The reportActionID the unread marker should display above
@@ -223,7 +239,7 @@ function ReportActionsList({
             const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
             const shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
             const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-            return shouldDisplay && isWithinVisibleThreshold;
+            return shouldDisplay && isWithinVisibleThreshold && reportAction.reportActionID !== lastActionAddedByCurrentUser.current;
         };
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
@@ -245,9 +261,11 @@ function ReportActionsList({
         const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
             setUnreadMarkerTime(newLastReadTime);
             userActiveSince.current = DateUtils.getDBTime();
+            lastActionAddedByCurrentUser.current = undefined;
         });
         const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
             setUnreadMarkerTime(newLastReadTime);
+            lastActionAddedByCurrentUser.current = undefined;
         });
 
         return () => {
@@ -339,11 +357,14 @@ function ReportActionsList({
     }, []);
 
     const scrollToBottomForCurrentUserAction = useCallback(
-        (isFromCurrentUser: boolean) => {
+        (isFromCurrentUser: boolean, reportActionID: string | undefined) => {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
             if (!isFromCurrentUser) {
                 return;
+            }
+            if (!unreadMarkerReportActionID) {
+                lastActionAddedByCurrentUser.current = reportActionID;
             }
             if (!hasNewestReportActionRef.current) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
@@ -351,7 +372,7 @@ function ReportActionsList({
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        [reportScrollManager, report.reportID],
+        [reportScrollManager, report.reportID, unreadMarkerReportActionID],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
@@ -382,7 +403,7 @@ function ReportActionsList({
         return cleanup;
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [report.reportID]);
+    }, [report.reportID, scrollToBottomForCurrentUserAction]);
 
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
