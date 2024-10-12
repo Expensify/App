@@ -12,7 +12,7 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {clearQBOErrorField} from '@userActions/Policy/Policy';
+import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -61,7 +61,7 @@ function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
                 onToggle={() => QuickbooksDesktop.updateQuickbooksDesktopEnableNewCategories(policyID, !qbdConfig?.enableNewCategories)}
                 pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES], qbdConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES)}
-                onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES)}
+                onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES)}
             />
         </ConnectionLayout>
     );
