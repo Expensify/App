@@ -29,7 +29,6 @@ type ReportActionHighlightProviderProps = {
 function ReportActionHighlightProvider({children}: ReportActionHighlightProviderProps): JSX.Element {
     const [linkedReportActionID, setLinkedReportActionID] = useState<string | null>(null);
 
-    // Function to set the highlight when needed
     const setHighlight = useCallback((id: string) => {
         setLinkedReportActionID(id);
     }, []);

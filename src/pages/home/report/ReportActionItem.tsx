@@ -46,7 +46,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -209,24 +209,13 @@ function ReportActionItem({
     const isActionableWhisper =
         ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action) || ReportActionsUtils.isActionableReportMentionWhisper(action);
     const originalMessage = ReportActionsUtils.getOriginalMessage(action);
-    const {linkedReportActionID: contextlinkedReportActionID, setHighlight, highlightedBackgroundColorIfNeeded, removeHighlight} = useContext(ReportActionHighlightContext);
+    const {linkedReportActionID: contextlinkedReportActionID, setHighlight, highlightedBackgroundColorIfNeeded} = useContext(ReportActionHighlightContext);
     useEffect(() => {
         if (!isReportActionLinked) {
             return;
         }
         setHighlight(linkedReportActionID);
     }, [isReportActionLinked, linkedReportActionID, setHighlight]);
-
-    useEffect(() => {
-        if (!isReportActionLinked || !contextlinkedReportActionID) {
-            return;
-        }
-        const listener = () => {
-            removeHighlight();
-        };
-        navigationRef.addListener('state', listener);
-        return () => navigationRef.removeListener('state', listener);
-    }, [removeHighlight, contextlinkedReportActionID, isReportActionLinked]);
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
     const isOriginalMessageAnObject = originalMessage && typeof originalMessage === 'object';
@@ -954,7 +943,6 @@ function ReportActionItem({
         : [];
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
-    console.log(contextlinkedReportActionID === linkedReportActionID, contextlinkedReportActionID, linkedReportActionID, highlightedBackgroundColorIfNeeded);
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
@@ -973,7 +961,7 @@ function ReportActionItem({
                 isDisabled={draftMessage !== undefined}
             >
                 {(hovered) => (
-                    <View style={contextlinkedReportActionID && action.reportActionID && contextlinkedReportActionID === action.reportActionID ? highlightedBackgroundColorIfNeeded : {}}>
+                    <View style={isReportActionLinked && contextlinkedReportActionID === action.reportActionID ? highlightedBackgroundColorIfNeeded : {}}>
                         {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
                         {shouldDisplayContextMenu && (
                             <MiniReportActionContextMenu

@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import noop from 'lodash/noop';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -18,6 +18,7 @@ import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {ReportActionHighlightContext} from '@components/ReportActionHighlightProvider';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -332,6 +333,9 @@ function ReportActionCompose({
     const composerRefShared = useSharedValue<{
         clear: (() => void) | undefined;
     }>({clear: undefined});
+
+    const {removeHighlight} = useContext(ReportActionHighlightContext);
+
     const handleSendMessage = useCallback(() => {
         'worklet';
 
@@ -344,9 +348,10 @@ function ReportActionCompose({
             return;
         }
 
+        removeHighlight();
         // This will cause onCleared to be triggered where we actually send the message
         clearComposer();
-    }, [isSendDisabled, isReportReadyForDisplay, composerRefShared]);
+    }, [isSendDisabled, isReportReadyForDisplay, composerRefShared, removeHighlight]);
 
     // eslint-disable-next-line react-compiler/react-compiler
     onSubmitAction = handleSendMessage;
