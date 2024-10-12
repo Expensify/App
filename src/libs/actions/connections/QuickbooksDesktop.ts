@@ -340,8 +340,24 @@ function updateQuickbooksDesktopNonReimbursableExpensesAccount<TSettingValue ext
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, onyxData);
 }
 
+function updateQuickbooksDesktopNonReimbursableBillDefaultVendor<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['nonReimbursableBillDefaultVendor']>(
+    policyID: string,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
+        policyID,
+        settingValue,
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, parameters, onyxData);
+}
+
 export {
     updateQuickbooksDesktopMarkChecksToBePrinted,
+    updateQuickbooksDesktopNonReimbursableBillDefaultVendor,
     updateQuickbooksDesktopShouldAutoCreateVendor,
     updateQuickbooksDesktopNonReimbursableExpensesAccount,
     updateQuickbooksDesktopExpensesExportDestination,

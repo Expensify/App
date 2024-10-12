@@ -94,8 +94,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                             <MenuItemWithTopDescription
                                 title={nonReimbursableBillDefaultVendorObject?.name}
                                 description={translate('workspace.accounting.defaultVendor')}
-                                // TODO: [QBD] should be updated to use new routes
-                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
+                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
                                 brickRoadIndicator={
                                     PolicyUtils.areSettingsInErrorFields([CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qbdConfig?.errorFields)
                                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
