@@ -60,7 +60,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
             subscribedSettings: [
                 CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE,
                 CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT,
-                ...(shouldShowVendorMenuItems ? [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR] : []),
+                ...(shouldShowVendorMenuItems ? [CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR] : []),
                 ...(shouldShowVendorMenuItems && qbdConfig?.shouldAutoCreateVendor ? [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] : []),
             ],
         },
