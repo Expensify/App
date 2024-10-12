@@ -22,7 +22,6 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Routes} from '@src/types/onyx/Transaction';
 import SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 
 type WorkspaceCategoriesSettingsRouteProps = {
