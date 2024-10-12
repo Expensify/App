@@ -25,16 +25,21 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
-    const data: CardListItem[] = Object.values(CONST.QUICKBOOKS_EXPORT_DATE).map((dateType) => ({
-        value: dateType,
-        text: translate(`workspace.qbd.exportDate.values.${dateType}.label`),
-        alternateText: translate(`workspace.qbd.exportDate.values.${dateType}.description`),
-        keyForList: dateType,
-        isSelected: qbdConfig?.export.exportDate === dateType,
-    }));
+    const exportDate = qbdConfig?.export?.exportDate;
+
+    const data: CardListItem[] = useMemo(
+        () =>
+            Object.values(CONST.QUICKBOOKS_EXPORT_DATE).map((dateType) => ({
+                value: dateType,
+                text: translate(`workspace.qbd.exportDate.values.${dateType}.label`),
+                alternateText: translate(`workspace.qbd.exportDate.values.${dateType}.description`),
+                keyForList: dateType,
+                isSelected: exportDate === dateType,
+            })),
+        [exportDate, translate],
+    );
 
     const {canUseNewDotQBD} = usePermissions();
-    const exportDate = useMemo(() => qbdConfig?.export.exportDate, [qbdConfig]);
 
     const selectExportDate = useCallback(
         (row: CardListItem) => {
