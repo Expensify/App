@@ -58,7 +58,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const deleteTagAndHideModal = () => {
         Tag.deletePolicyTags(policyID, [currentPolicyTag.name]);
         setIsDeleteTagModalOpen(false);
-        Navigation.goBack(backTo);
+        Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
     };
 
     const updateWorkspaceTagEnabled = (value: boolean) => {

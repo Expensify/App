@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -20,9 +21,19 @@ import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {Routes} from '@src/types/onyx/Transaction';
 import SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 
-type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps;
+type WorkspaceCategoriesSettingsRouteProps = {
+    route: {
+        params: {
+            backTo: string;
+        };
+    };
+};
+
+type WorkspaceCategoriesSettingsPageProps = WorkspaceCategoriesSettingsRouteProps & WithPolicyConnectionsProps;
 
 function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSettingsPageProps) {
     const styles = useThemeStyles();
@@ -30,6 +41,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const {canUseWorkspaceRules} = usePermissions();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const policyID = route.params.policyID ?? '-1';
+    const backTo = route.params.backTo;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [currentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
@@ -90,7 +102,10 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceCategoriesSettingsPage.displayName}
             >
-                <HeaderWithBackButton title={translate('common.settings')} />
+                <HeaderWithBackButton
+                    title={translate('common.settings')}
+                    onBackButtonPress={() => Navigation.goBack(backTo ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined)}
+                />
                 <ToggleSettingOptionRow
                     title={translate('workspace.categories.requiresCategory')}
                     subtitle={toggleSubtitle}
