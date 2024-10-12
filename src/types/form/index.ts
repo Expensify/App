@@ -61,7 +61,6 @@ export type {PolicyDistanceRateTaxReclaimableOnEditForm} from './PolicyDistanceR
 export type {PolicyDistanceRateEditForm} from './PolicyDistanceRateEditForm';
 export type {WalletAdditionalDetailsForm} from './WalletAdditionalDetailsForm';
 export type {NewChatNameForm} from './NewChatNameForm';
-export type {WorkForm} from './WorkForm';
 export type {SageIntacctDimensionForm} from './SageIntacctDimensionsForm';
 export type {SubscriptionSizeForm} from './SubscriptionSizeForm';
 export type {WorkspaceReportFieldForm} from './WorkspaceReportFieldForm';
