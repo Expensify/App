@@ -1,13 +1,18 @@
 import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -16,6 +21,7 @@ function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const {canUseNewDotQBD} = usePermissions();
+    const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
 
     return (
         <ConnectionLayout
@@ -45,19 +51,18 @@ function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
                 description={translate('workspace.common.displayedAs')}
                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt2]}
             />
-            {/* TODO: [QBD] Temporary hide this menu item until BE supports this option
-                more details: https://github.com/Expensify/App/pull/50545#issuecomment-2406554260 */}
-            {/* <Text style={styles.pv5}>{translate('workspace.qbd.accountsSwitchTitle')}</Text>
+            <Text style={styles.pv5}>{translate('workspace.qbd.accountsSwitchTitle')}</Text>
             <ToggleSettingOptionRow
                 title={translate('workspace.common.enabled')}
                 subtitle={translate('workspace.qbd.accountsSwitchDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
                 shouldPlaceSubtitleBelowSwitch
-                isActive
-                onToggle={() => {}}
-                disabled
-                showLockIcon
-            /> */}
+                isActive={!!qbdConfig?.enableNewCategories}
+                onToggle={() => QuickbooksDesktop.updateQuickbooksDesktopEnableNewCategories(policyID, !qbdConfig?.enableNewCategories)}
+                pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES], qbdConfig?.pendingFields)}
+                errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES)}
+                onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES)}
+            />
         </ConnectionLayout>
     );
 }

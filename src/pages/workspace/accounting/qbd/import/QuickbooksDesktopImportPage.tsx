@@ -16,7 +16,7 @@ type QBDSectionType = {
     description: string;
     action: () => void;
     title?: string;
-    subscribedSettings?: [string];
+    subscribedSettings: [string];
 };
 
 function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
@@ -31,6 +31,7 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
             description: translate('workspace.accounting.accounts'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS.getRoute(policyID)),
             title: translate('workspace.accounting.importAsCategory'),
+            subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES],
         },
         {
             description: translate('workspace.qbd.classes'),
