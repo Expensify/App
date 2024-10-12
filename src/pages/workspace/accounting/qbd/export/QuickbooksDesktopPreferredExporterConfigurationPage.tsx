@@ -29,6 +29,7 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {canUseNewDotQBD} = usePermissions();
+    const currentExporter = qbdConfig?.export?.exporter;
 
     const policyID = policy?.id ?? '-1';
     const data: CardListItem[] = useMemo(
@@ -46,21 +47,21 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
                     value: exporter.email,
                     text: exporter.email,
                     keyForList: exporter.email,
-                    isSelected: (qbdConfig?.export.exporter ?? policy?.owner) === exporter.email,
+                    isSelected: (currentExporter ?? policy?.owner) === exporter.email,
                 });
                 return options;
             }, []),
-        [exporters, policy?.owner, currentUserLogin, qbdConfig?.export.exporter],
+        [exporters, policy?.owner, currentUserLogin, currentExporter],
     );
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
-            if (row.value !== qbdConfig?.export.exporter) {
-                QuickbooksDesktop.updateQuickbooksDesktopPreferredExporter(policyID, row.value, qbdConfig?.export.exporter);
+            if (row.value !== currentExporter) {
+                QuickbooksDesktop.updateQuickbooksDesktopPreferredExporter(policyID, row.value, currentExporter);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID));
         },
-        [qbdConfig?.export.exporter, policyID],
+        [currentExporter, policyID],
     );
 
     const headerContent = useMemo(
