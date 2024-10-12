@@ -59,7 +59,7 @@ function CreateTagPage({route}: CreateTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             Tag.createPolicyTag(route.params.policyID, values.tagName.trim());
             Keyboard.dismiss();
-            Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(route.params.policyID) : undefined);
+            Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
         [route.params.policyID, backTo],
     );
