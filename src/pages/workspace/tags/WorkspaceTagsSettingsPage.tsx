@@ -133,7 +133,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                 >
                     <HeaderWithBackButton
                         title={translate('common.settings')}
-                        onBackButtonPress={() => Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID) : ROUTES.WORKSPACE_TAGS.getRoute(policyID))}
+                        onBackButtonPress={() => Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
                     />
                     {isOffline && isLoading ? <FullPageOfflineBlockingView>{getTagsSettings(policy)}</FullPageOfflineBlockingView> : getTagsSettings(policy)}
                 </ScreenWrapper>

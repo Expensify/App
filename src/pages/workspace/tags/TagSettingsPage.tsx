@@ -13,6 +13,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -38,7 +39,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, orderWeight), [policyTags, orderWeight]);
     const policy = usePolicy(policyID);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
-
+    const {canUseCategoryAndTagApprovers} = usePermissions();
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
 
     const currentPolicyTag = policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
@@ -116,7 +117,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                 <HeaderWithBackButton
                     title={PolicyUtils.getCleanedTagName(tagName)}
                     shouldSetModalVisibility={false}
-                    onBackButtonPress={() => Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
                 />
                 <ConfirmModal
                     title={translate('workspace.tags.deleteTag')}
@@ -166,7 +167,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                         />
                     </OfflineWithFeedback>
 
-                    {policy?.areRulesEnabled && (
+                    {policy?.areRulesEnabled && canUseCategoryAndTagApprovers && (
                         <>
                             <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
