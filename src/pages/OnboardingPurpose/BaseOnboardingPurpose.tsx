@@ -21,6 +21,7 @@ import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy/Policy';
+import {generatePolicyID} from '@userActions/Policy/Policy';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {OnboardingPurposeType} from '@src/CONST';
@@ -84,7 +85,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     if (!onboardingPolicyID) {
-                        const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true);
+                        const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', generatePolicyID(), choice);
                         Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
                         Welcome.setOnboardingPolicyID(policyID);
                     }
