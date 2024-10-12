@@ -2,8 +2,9 @@ import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
+import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -15,7 +16,52 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 function QuickbooksDesktopClassesPage({policy}: WithPolicyProps) {
-    return null;
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {canUseNewDotQBD} = usePermissions();
+    const policyID = policy?.id ?? '-1';
+    const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
+    const isSwitchOn = !!(qbdConfig?.mappings?.classes && qbdConfig.mappings.classes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isReportFieldsSelected = qbdConfig?.mappings?.classes === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
+
+    return (
+        <ConnectionLayout
+            displayName={QuickbooksDesktopClassesPage.displayName}
+            headerTitle="workspace.qbd.classes"
+            title="workspace.qbd.classesDescription"
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={[styles.pb2, styles.ph5]}
+            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] Will be removed when release
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID))}
+        >
+            <ToggleSettingOptionRow
+                title={translate('workspace.accounting.import')}
+                switchAccessibilityLabel={translate('workspace.qbd.classes')}
+                isActive={isSwitchOn}
+                onToggle={() =>
+                    QuickbooksDesktop.updateQuickbooksDesktopSyncClasses(
+                        policyID,
+                        isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                        qbdConfig?.mappings?.classes,
+                    )
+                }
+                pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES], qbdConfig?.pendingFields)}
+                errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES)}
+                onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES)}
+            />
+            {isSwitchOn && (
+                <MenuItemWithTopDescription
+                    interactive={false}
+                    title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
+                    description={translate('workspace.common.displayedAs')}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
+                />
+            )}
+        </ConnectionLayout>
+    );
 }
 
 QuickbooksDesktopClassesPage.displayName = 'QuickbooksDesktopClassesPage';

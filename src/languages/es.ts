@@ -2476,6 +2476,7 @@ const translations = {
             classes: 'Clases',
             items: 'Artículos',
             customers: 'Clientes/proyectos',
+            classesDescription: 'Elige cómo gestionar las clases de QuickBooks Desktop en Expensify.',
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
