@@ -20,9 +20,9 @@ function getQBDNonReimbursableExportAccountType(exportDestination: QBDNonReimbur
         case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.JOURNAL_ENTRY:
             return translateLocal(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.JOURNAL_ENTRY}`);
         case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
-            return translateLocal(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountType`);
+            return translateLocal('workspace.qbd.creditCardAccount');
         case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL:
-            return translateLocal(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL}AccountType`);
+            return translateLocal('workspace.qbd.accountsPayable');
         default:
             return translateLocal('workspace.qbd.account');
     }
