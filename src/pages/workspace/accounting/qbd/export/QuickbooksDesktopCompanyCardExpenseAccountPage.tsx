@@ -5,7 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ConnectionUtils from '@libs/ConnectionUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -28,8 +28,8 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     const {canUseNewDotQBD} = usePermissions();
 
     const accountName = useMemo(
-        () => getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, qbdConfig?.export.nonReimbursable).find(({id}) => qbdConfig?.export.reimbursableAccount === id)?.name,
-        [policy?.connections?.quickbooksDesktop, qbdConfig?.export.nonReimbursable, qbdConfig?.export.reimbursableAccount],
+        () => getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, qbdConfig?.export.nonReimbursable).find(({id}) => qbdConfig?.export.nonReimbursableAccount === id)?.name,
+        [policy?.connections?.quickbooksDesktop, qbdConfig?.export.nonReimbursable, qbdConfig?.export.nonReimbursableAccount],
     );
 
     const sections = [
@@ -43,8 +43,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
         {
             title: accountName ?? translate('workspace.qbd.notConfigured'),
             description: ConnectionUtils.getQBDNonReimbursableExportAccountType(qbdConfig?.export.nonReimbursable),
-            // TODO: [QBD] should be updated to use new routes
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT],
         },
     ];
@@ -85,23 +84,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                         isActive={!!qbdConfig?.shouldAutoCreateVendor}
                         pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR], qbdConfig?.pendingFields)}
                         errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR)}
-                        onToggle={(isOn) =>
-                            Connections.updateManyPolicyConnectionConfigs(
-                                policyID,
-                                CONST.POLICY.CONNECTIONS.NAME.QBD,
-                                {
-                                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR]: isOn,
-                                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: isOn
-                                        ? vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
-                                        : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
-                                },
-                                {
-                                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR]: qbdConfig?.shouldAutoCreateVendor,
-                                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]:
-                                        nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
-                                },
-                            )
-                        }
+                        onToggle={(isOn) => QuickbooksDesktop.updateQuickbooksDesktopShouldAutoCreateVendor(policyID, isOn)}
                         onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR)}
                     />
                     {!!qbdConfig?.shouldAutoCreateVendor && (

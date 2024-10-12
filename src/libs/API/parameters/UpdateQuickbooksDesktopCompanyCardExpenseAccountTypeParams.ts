@@ -1,6 +1,6 @@
 import type {QBDNonReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
-type UpdateQuickbooksCompanyCardExpenseAccountTypeParams = {
+type UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams = {
     policyID: string;
     nonReimbursableExpensesExportDestination: QBDNonReimbursableExportAccountType;
     nonReimbursableExpensesAccount: string;
@@ -8,4 +8,4 @@ type UpdateQuickbooksCompanyCardExpenseAccountTypeParams = {
     idempotencyKey: string;
 };
 
-export default UpdateQuickbooksCompanyCardExpenseAccountTypeParams;
+export default UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams;

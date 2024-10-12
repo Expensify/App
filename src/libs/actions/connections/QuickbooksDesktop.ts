@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     ConnectPolicyToQuickBooksDesktopParams,
-    UpdateQuickbooksCompanyCardExpenseAccountTypeParams,
+    UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams,
     UpdateQuickbooksDesktopExpensesExportDestinationTypeParams,
     UpdateQuickbooksDesktopGenericTypeParams,
 } from '@libs/API/parameters';
@@ -270,7 +270,7 @@ function updateQuickbooksCompanyCardExpenseAccount<
 >(policyID: string, configUpdate: TConfigUpdate, configCurrentData: Partial<TConfigUpdate>) {
     const onyxData = buildOnyxDataForMultipleQuickbooksExportConfigurations(policyID, configUpdate, configCurrentData);
 
-    const parameters: UpdateQuickbooksCompanyCardExpenseAccountTypeParams = {
+    const parameters: UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams = {
         policyID,
         nonReimbursableExpensesExportDestination: configUpdate.nonReimbursable,
         nonReimbursableExpensesAccount: configUpdate.nonReimbursableAccount,
@@ -279,6 +279,21 @@ function updateQuickbooksCompanyCardExpenseAccount<
     };
 
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, parameters, onyxData);
+}
+
+function updateQuickbooksDesktopShouldAutoCreateVendor<TSettingValue extends Connections['quickbooksDesktop']['config']['shouldAutoCreateVendor']>(
+    policyID: string,
+    settingValue: TSettingValue,
+) {
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR, settingValue, !settingValue);
+
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_AUTO_CREATE_VENDOR, parameters, onyxData);
 }
 
 function updateQuickbooksDesktopMarkChecksToBePrinted<TSettingValue extends Connections['quickbooksDesktop']['config']['markChecksToBePrinted']>(
@@ -310,8 +325,25 @@ function updateQuickbooksDesktopReimbursableExpensesAccount<TSettingValue extend
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, onyxData);
 }
 
+function updateQuickbooksDesktopNonReimbursableExpensesAccount<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['nonReimbursableAccount']>(
+    policyID: string,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
+        policyID,
+        settingValue,
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, onyxData);
+}
+
 export {
     updateQuickbooksDesktopMarkChecksToBePrinted,
+    updateQuickbooksDesktopShouldAutoCreateVendor,
+    updateQuickbooksDesktopNonReimbursableExpensesAccount,
     updateQuickbooksDesktopExpensesExportDestination,
     updateQuickbooksDesktopReimbursableExpensesAccount,
     getQuickbooksDesktopCodatSetupLink,
