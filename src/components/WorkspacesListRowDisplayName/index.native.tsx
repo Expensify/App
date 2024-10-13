@@ -14,19 +14,7 @@ function WorkspacesListRowDisplayName({isDeleted, ownerName}: WorkspacesListRowD
             style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
         >
             {processedOwnerName.length !== 0
-                ? processedOwnerName.map(({text, isEmoji}, index) =>
-                      isEmoji ? (
-                          <Text
-                              // eslint-disable-next-line react/no-array-index-key
-                              key={index}
-                              style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}, styles.emojisWithTextFontFamily]}
-                          >
-                              {text}
-                          </Text>
-                      ) : (
-                          text
-                      ),
-                  )
+                ? EmojiUtils.getProcessedText(processedOwnerName, [styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}, styles.emojisWithTextFontFamily])
                 : ownerName}
         </Text>
     );

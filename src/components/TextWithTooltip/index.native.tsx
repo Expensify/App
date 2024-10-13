@@ -13,21 +13,7 @@ function TextWithTooltip({text, style, numberOfLines = 1}: TextWithTooltipProps)
             style={style}
             numberOfLines={numberOfLines}
         >
-            {processedTextArray.length !== 0
-                ? processedTextArray.map(({text: textItem, isEmoji}, index) =>
-                      isEmoji ? (
-                          <Text
-                              // eslint-disable-next-line react/no-array-index-key
-                              key={index}
-                              style={[style, styles.emojisFontFamily]}
-                          >
-                              {textItem}
-                          </Text>
-                      ) : (
-                          textItem
-                      ),
-                  )
-                : text}
+            {processedTextArray.length !== 0 ? EmojiUtils.getProcessedText(processedTextArray, [style, styles.emojisFontFamily]) : text}
         </Text>
     );
 }

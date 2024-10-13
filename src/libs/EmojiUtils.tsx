@@ -1,8 +1,11 @@
 import {Str} from 'expensify-common';
+import React from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
+import Text from '@components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
@@ -652,6 +655,22 @@ function splitTextWithEmojis(text = ''): TextWithEmoji[] {
     return splitText;
 }
 
+function getProcessedText(processedTextArray: TextWithEmoji[], style: StyleProp<TextStyle>): Array<React.JSX.Element | string> {
+    return processedTextArray.map(({text, isEmoji}, index) =>
+        isEmoji ? (
+            <Text
+                // eslint-disable-next-line react/no-array-index-key
+                key={index}
+                style={style}
+            >
+                {text}
+            </Text>
+        ) : (
+            text
+        ),
+    );
+}
+
 export type {HeaderIndice, EmojiPickerList, EmojiSpacer, EmojiPickerListItem};
 
 export {
@@ -659,6 +678,7 @@ export {
     findEmojiByCode,
     getEmojiName,
     getLocalizedEmojiName,
+    getProcessedText,
     getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
     containsOnlyEmojis,
