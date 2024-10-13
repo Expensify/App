@@ -28,7 +28,6 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
-import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 // eslint-disable-next-line import/no-cycle
 import * as TransactionUtils from './TransactionUtils';
@@ -123,7 +122,7 @@ function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
 
-function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
+function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | ReportUtils.OptimisticIOUReportAction>): boolean {
     const message = reportAction?.message ?? [];
 
     if (!Array.isArray(message)) {
@@ -136,7 +135,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     return isLegacyDeletedComment || !!message.at(0)?.deleted;
 }
 
-function getReportActionMessage(reportAction: PartialReportAction) {
+function getReportActionMessage(reportAction: ReportUtils.PartialReportAction) {
     return Array.isArray(reportAction?.message) ? reportAction.message.at(0) : reportAction?.message;
 }
 
@@ -144,7 +143,7 @@ function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): bo
     return (getReportActionMessage(reportAction)?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>) {
+function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | ReportUtils.OptimisticIOUReportAction>) {
     return (getReportActionMessage(reportAction)?.isReversedTransaction ?? false) && ((reportAction as ReportAction)?.childVisibleActionCount ?? 0) > 0;
 }
 
@@ -360,7 +359,7 @@ function getParentReportAction(report: OnyxInputOrEntry<Report>): OnyxEntry<Repo
 /**
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  */
-function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
+function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction | ReportUtils.OptimisticIOUReportAction>): boolean {
     return (
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) &&
         getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
@@ -990,11 +989,11 @@ function isSplitBillAction(reportAction: OnyxInputOrEntry<ReportAction>): report
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 }
 
-function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | ReportUtils.OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
 }
 
-function isPayAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+function isPayAction(reportAction: OnyxInputOrEntry<ReportAction | ReportUtils.OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
 }
 
@@ -1204,7 +1203,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     ];
 }
 
-function getReportActionHtml(reportAction: PartialReportAction): string {
+function getReportActionHtml(reportAction: ReportUtils.PartialReportAction): string {
     return getReportActionMessage(reportAction)?.html ?? '';
 }
 
@@ -1220,7 +1219,7 @@ function getTextFromHtml(html?: string): string {
     return html ? Parser.htmlToText(html) : '';
 }
 
-function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction): action is PartialReportAction {
+function isOldDotLegacyAction(action: OldDotReportAction | ReportUtils.PartialReportAction): action is ReportUtils.PartialReportAction {
     return [
         CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
         CONST.REPORT.ACTIONS.TYPE.DONATION,
@@ -1260,7 +1259,7 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
     ].some((oldDotActionName) => oldDotActionName === action.actionName);
 }
 
-function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
+function getMessageOfOldDotLegacyAction(legacyAction: ReportUtils.PartialReportAction) {
     if (!Array.isArray(legacyAction?.message)) {
         return getReportActionText(legacyAction);
     }
@@ -1275,7 +1274,7 @@ function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
 /**
  * Helper method to format message of OldDot Actions.
  */
-function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldDotReportAction, withMarkdown = true): string {
+function getMessageOfOldDotReportAction(oldDotAction: ReportUtils.PartialReportAction | OldDotReportAction, withMarkdown = true): string {
     if (isOldDotLegacyAction(oldDotAction)) {
         return getMessageOfOldDotLegacyAction(oldDotAction);
     }
