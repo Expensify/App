@@ -27,7 +27,8 @@ import Parser from './Parser';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportConnection from './ReportConnection';
-import * as ReportUtils from './ReportUtils';
+import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
+import {canUserPerformWriteAction, getReport} from './ReportUtils.ts';
 import StringUtils from './StringUtils';
 // eslint-disable-next-line import/no-cycle
 import * as TransactionUtils from './TransactionUtils';
@@ -122,7 +123,7 @@ function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
 
-function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | ReportUtils.OptimisticIOUReportAction>): boolean {
+function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
     const message = reportAction?.message ?? [];
 
     if (!Array.isArray(message)) {
@@ -135,7 +136,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | ReportUti
     return isLegacyDeletedComment || !!message.at(0)?.deleted;
 }
 
-function getReportActionMessage(reportAction: ReportUtils.PartialReportAction) {
+function getReportActionMessage(reportAction: PartialReportAction) {
     return Array.isArray(reportAction?.message) ? reportAction.message.at(0) : reportAction?.message;
 }
 
@@ -143,7 +144,7 @@ function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): bo
     return (getReportActionMessage(reportAction)?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | ReportUtils.OptimisticIOUReportAction>) {
+function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>) {
     return (getReportActionMessage(reportAction)?.isReversedTransaction ?? false) && ((reportAction as ReportAction)?.childVisibleActionCount ?? 0) > 0;
 }
 
@@ -359,7 +360,7 @@ function getParentReportAction(report: OnyxInputOrEntry<Report>): OnyxEntry<Repo
 /**
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  */
-function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction | ReportUtils.OptimisticIOUReportAction>): boolean {
+function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
     return (
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) &&
         getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
@@ -631,10 +632,10 @@ const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTy
  * and supported type, it's not deleted and also not closed.
  */
 function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, reportID: string): boolean {
-    const report = ReportUtils.getReport(reportID);
+    const report = getReport(reportID);
     if (
         (isActionableReportMentionWhisper(reportAction) || isActionableJoinRequestPending(report?.reportID ?? '-1') || isActionableMentionWhisper(reportAction)) &&
-        !ReportUtils.canUserPerformWriteAction(report)
+        !canUserPerformWriteAction(report)
     ) {
         return false;
     }
@@ -834,7 +835,7 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions> | ReportAction[], shouldIncludeInvisibleActions = false): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions> | ReportAction[], reportID: string, shouldIncludeInvisibleActions = false): ReportAction[] {
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
         return [];
@@ -844,7 +845,7 @@ function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions
         filteredReportActions = Object.values(reportActions).filter(Boolean);
     } else {
         filteredReportActions = Object.entries(reportActions)
-            .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
+            .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key, reportID))
             .map(([, reportAction]) => reportAction);
     }
 
@@ -989,11 +990,11 @@ function isSplitBillAction(reportAction: OnyxInputOrEntry<ReportAction>): report
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 }
 
-function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | ReportUtils.OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
 }
 
-function isPayAction(reportAction: OnyxInputOrEntry<ReportAction | ReportUtils.OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+function isPayAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
 }
 
@@ -1203,7 +1204,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     ];
 }
 
-function getReportActionHtml(reportAction: ReportUtils.PartialReportAction): string {
+function getReportActionHtml(reportAction: PartialReportAction): string {
     return getReportActionMessage(reportAction)?.html ?? '';
 }
 
@@ -1219,7 +1220,7 @@ function getTextFromHtml(html?: string): string {
     return html ? Parser.htmlToText(html) : '';
 }
 
-function isOldDotLegacyAction(action: OldDotReportAction | ReportUtils.PartialReportAction): action is ReportUtils.PartialReportAction {
+function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction): action is PartialReportAction {
     return [
         CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
         CONST.REPORT.ACTIONS.TYPE.DONATION,
@@ -1259,7 +1260,7 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
     ].some((oldDotActionName) => oldDotActionName === action.actionName);
 }
 
-function getMessageOfOldDotLegacyAction(legacyAction: ReportUtils.PartialReportAction) {
+function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
     if (!Array.isArray(legacyAction?.message)) {
         return getReportActionText(legacyAction);
     }
@@ -1274,7 +1275,7 @@ function getMessageOfOldDotLegacyAction(legacyAction: ReportUtils.PartialReportA
 /**
  * Helper method to format message of OldDot Actions.
  */
-function getMessageOfOldDotReportAction(oldDotAction: ReportUtils.PartialReportAction | OldDotReportAction, withMarkdown = true): string {
+function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldDotReportAction, withMarkdown = true): string {
     if (isOldDotLegacyAction(oldDotAction)) {
         return getMessageOfOldDotLegacyAction(oldDotAction);
     }

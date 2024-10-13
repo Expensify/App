@@ -274,7 +274,7 @@ registerPaginationConfig({
     nextCommand: READ_COMMANDS.GET_NEWER_ACTIONS,
     resourceCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-    sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+    sortItems: (reportActions, reportID) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, reportID, true),
     getItemID: (reportAction) => reportAction.reportActionID,
 });
 
