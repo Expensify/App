@@ -34,7 +34,7 @@ Before you can issue your Expensify Cards, you must connect your cards with the 
 
 1. Click **Expensify Card** in the left menu.
 2. Click **Issue new card**.
-3. Select an existing bank account from the list, or follow the steps to add a new one.
+3. Select an existing bank account from the list, or follow [the steps to add a new one](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account).
 
 ![Click the issue card button]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceFeeds_02.png){:width="100%"}
 
