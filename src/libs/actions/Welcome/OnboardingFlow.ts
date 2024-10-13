@@ -64,7 +64,7 @@ function adaptOnboardingRouteState() {
     }
 
     let adaptedOnboardingModalNavigatorState = {} as Readonly<PartialState<NavigationState>>;
-    if (currentRoute?.name === SCREENS.ONBOARDING.PERSONAL_DETAILS && selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+    if (currentRoute?.name === SCREENS.ONBOARDING.ACCOUNTING && selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
         adaptedOnboardingModalNavigatorState = {
             index: 2,
             routes: [
@@ -73,7 +73,7 @@ function adaptOnboardingRouteState() {
                     params: currentRoute?.params,
                 },
                 {
-                    name: SCREENS.ONBOARDING.WORK,
+                    name: SCREENS.ONBOARDING.EMPLOYEES,
                     params: currentRoute?.params,
                 },
                 {...currentRoute},
@@ -115,10 +115,15 @@ function startOnboardingFlow() {
 
 function getOnboardingInitialPath(): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
-    const showBusinessModal = onboardingValues && CONST.QUALIFIER_PARAM in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    const isVsb = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
-    if (showBusinessModal) {
-        return `/${ROUTES.ONBOARDING_WORK.route}`;
+    if (isVsb) {
+        Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
+        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
+    }
+    const isIndividual = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
+    if (isIndividual) {
+        Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
         return `/${ROUTES.ONBOARDING_ROOT.route}`;

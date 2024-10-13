@@ -417,6 +417,10 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
+function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
+    return !isMerchantMissing(transaction) ? getMerchant(transaction) : getDescription(transaction);
+}
+
 /**
  * Return the reimbursable value. Defaults to true to match BE logic.
  */
@@ -1119,6 +1123,7 @@ export {
     getOriginalCurrency,
     getOriginalAmount,
     getMerchant,
+    getMerchantOrDescription,
     getMCCGroup,
     getCreated,
     getFormattedCreated,

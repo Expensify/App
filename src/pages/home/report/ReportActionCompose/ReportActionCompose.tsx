@@ -28,8 +28,8 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
 import Performance from '@libs/Performance';
@@ -51,7 +51,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
-import RNMeasureContainer from './measureContainer';
 import SendButton from './SendButton';
 
 type SuggestionsRef = {
@@ -64,7 +63,7 @@ type SuggestionsRef = {
     getIsSuggestionsMenuVisible: () => boolean;
 };
 
-type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'lastReportAction'> & {
+type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize' | 'lastReportAction'> & {
     /** A method to call when the form is submitted */
     onSubmit: (newComment: string) => void;
 
@@ -90,10 +89,6 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     shouldShowEducationalTooltip?: boolean;
 };
 
-// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
-// prevent auto focus on existing chat for mobile device
-const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 // eslint-disable-next-line import/no-mutable-exports
@@ -107,7 +102,6 @@ function ReportActionCompose({
     report,
     reportID,
     isReportReadyForDisplay = true,
-    isEmptyChat,
     lastReportAction,
     shouldShowEducationalTooltip,
     onComposerFocus,
@@ -130,7 +124,7 @@ function ReportActionCompose({
      */
     const [isFocused, setIsFocused] = useState(() => {
         const initialModalState = getModalState();
-        return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
+        return shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
     const [shouldHideEducationalTooltip, setShouldHideEducationalTooltip] = useState(false);
@@ -212,7 +206,10 @@ function ReportActionCompose({
     const containerRef = useRef<View>(null);
     const measureContainer = useCallback(
         (callback: MeasureInWindowOnSuccessCallback) => {
-            RNMeasureContainer(containerRef, callback);
+            if (!containerRef.current) {
+                return;
+            }
+            containerRef.current.measureInWindow(callback);
         },
         // We added isComposerFullSize in dependencies so that when this value changes, we recalculate the position of the popup
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -405,7 +402,7 @@ function ReportActionCompose({
                         shouldRender={!shouldHideEducationalTooltip && shouldShowEducationalTooltip}
                         renderTooltipContent={renderWorkspaceChatTooltip}
                         shouldUseOverlay
-                        onHideTooltip={() => User.dismissWorkspaceTooltip()}
+                        onHideTooltip={User.dismissWorkspaceTooltip}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -463,11 +460,8 @@ function ReportActionCompose({
                                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                             reportID={reportID}
                                             policyID={report?.policyID ?? '-1'}
-                                            parentReportID={report?.parentReportID}
-                                            parentReportActionID={report?.parentReportActionID}
                                             includeChronos={ReportUtils.chatIncludesChronos(report)}
                                             isGroupPolicyReport={isGroupPolicyReport}
-                                            isEmptyChat={isEmptyChat}
                                             lastReportAction={lastReportAction}
                                             isMenuVisible={isMenuVisible}
                                             inputPlaceholder={inputPlaceholder}
@@ -511,6 +505,10 @@ function ReportActionCompose({
                                     isDisabled={isBlockedFromConcierge || disabled}
                                     onModalHide={(isNavigating) => {
                                         if (isNavigating) {
+                                            return;
+                                        }
+                                        const activeElementId = DomUtils.getActiveElement()?.id;
+                                        if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
                                             return;
                                         }
                                         focus();
