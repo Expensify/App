@@ -12,9 +12,12 @@ function TextWithEmojiFragment({message = '', style}: TextWithEmojiFragmentProps
 
     return (
         <Text style={style}>
-            {processedTextArray.map(({text, isEmoji}) =>
+            {processedTextArray.map(({text, isEmoji}, index) =>
                 isEmoji ? (
-                    <View>
+                    <View
+                        // eslint-disable-next-line react/no-array-index-key
+                        key={index}
+                    >
                         <Text style={styles.emojisWithTextFontSizeAligned}>{text}</Text>
                     </View>
                 ) : (

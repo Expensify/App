@@ -153,7 +153,19 @@ function AccountSwitcher() {
                                 style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
                             >
                                 {processedTextArray.length !== 0
-                                    ? processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.initialSettingsUsernameEmoji}>{text}</Text> : text))
+                                    ? processedTextArray.map(({text, isEmoji}, index) =>
+                                          isEmoji ? (
+                                              <Text
+                                                  // eslint-disable-next-line react/no-array-index-key
+                                                  key={index}
+                                                  style={styles.initialSettingsUsernameEmoji}
+                                              >
+                                                  {text}
+                                              </Text>
+                                          ) : (
+                                              text
+                                          ),
+                                      )
                                     : currentUserPersonalDetails?.displayName}
                             </Text>
                             {canSwitchAccounts && (

@@ -19,7 +19,21 @@ function ReportActionItemMessageHeaderSender({fragmentText, accountID, delegateA
                 numberOfLines={isSingleLine ? 1 : undefined}
                 style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
             >
-                {processedTextArray.length !== 0 ? processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.emojisWithTextFontSize}>{text}</Text> : text)) : fragmentText}
+                {processedTextArray.length !== 0
+                    ? processedTextArray.map(({text, isEmoji}, index) =>
+                          isEmoji ? (
+                              <Text
+                                  // eslint-disable-next-line react/no-array-index-key
+                                  key={index}
+                                  style={styles.emojisWithTextFontSize}
+                              >
+                                  {text}
+                              </Text>
+                          ) : (
+                              text
+                          ),
+                      )
+                    : fragmentText}
             </Text>
         </UserDetailsTooltip>
     );
