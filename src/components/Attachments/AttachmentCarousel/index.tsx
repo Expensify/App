@@ -5,7 +5,7 @@ import type {ListRenderItemInfo} from 'react-native';
 import {Keyboard, PixelRatio, View} from 'react-native';
 import type {GestureType} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -26,7 +26,7 @@ import CarouselButtons from './CarouselButtons';
 import CarouselItem from './CarouselItem';
 import extractAttachments from './extractAttachments';
 import AttachmentCarouselPagerContext from './Pager/AttachmentCarouselPagerContext';
-import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps, UpdatePageProps} from './types';
+import type {AttachmentCarouselProps, UpdatePageProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 import useCarouselContextEvents from './useCarouselContextEvents';
 
@@ -38,7 +38,7 @@ const viewabilityConfig = {
 
 const MIN_FLING_VELOCITY = 500;
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -48,7 +48,8 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const scrollRef = useAnimatedRef<Animated.FlatList<ListRenderItemInfo<Attachment>>>();
     const nope = useSharedValue(false);
     const pagerRef = useRef<GestureType>(null);
-
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
@@ -73,14 +74,14 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
-        let targetAttachments: Attachment[] = [];
+        let newAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
-            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID});
         } else {
-            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined});
         }
 
-        if (isEqual(attachments, targetAttachments)) {
+        if (isEqual(attachments, newAttachments)) {
             if (attachments.length === 0) {
                 setPage(-1);
                 setDownloadButtonVisibility?.(false);
@@ -88,23 +89,31 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             return;
         }
 
-        const initialPage = targetAttachments.findIndex(compareImage);
+        let newIndex = newAttachments.findIndex(compareImage);
+        const index = attachments.findIndex(compareImage);
 
-        // Dismiss the modal when deleting an attachment during its display in preview.
-        if (initialPage === -1 && attachments.find(compareImage)) {
+        // If newAttachments includes an attachment with the same index, update newIndex to that index.
+        // Previously, uploading an attachment offline would dismiss the modal when the image was previewed and the connection was restored.
+        // Now, instead of dismissing the modal, we replace it with the new attachment that has the same index.
+        if (newIndex === -1 && index !== -1 && newAttachments.at(index)) {
+            newIndex = index;
+        }
+
+        // If no matching attachment with the same index, dismiss the modal
+        if (newIndex === -1 && index !== -1 && attachments.at(index)) {
             Navigation.dismissModal();
         } else {
-            setPage(initialPage);
-            setAttachments(targetAttachments);
+            setPage(newIndex);
+            setAttachments(newAttachments);
 
             // Update the download button visibility in the parent modal
             if (setDownloadButtonVisibility) {
-                setDownloadButtonVisibility(initialPage !== -1);
+                setDownloadButtonVisibility(newIndex !== -1);
             }
 
-            const attachment = targetAttachments.at(initialPage);
+            const attachment = newAttachments.at(newIndex);
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (initialPage !== -1 && attachment !== undefined && onNavigate) {
+            if (newIndex !== -1 && attachment !== undefined && onNavigate) {
                 onNavigate(attachment);
             }
         }
@@ -307,13 +316,4 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
-export default withOnyx<AttachmentCarouselProps, AttachmentCaraouselOnyxProps>({
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-        canEvict: false,
-    },
-    reportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-        canEvict: false,
-    },
-})(AttachmentCarousel);
+export default AttachmentCarousel;

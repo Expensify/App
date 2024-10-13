@@ -1,10 +1,9 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import type {PrivatePersonalDetails} from '@src/types/onyx';
+import type {PersonalDetailsForm} from '@src/types/form';
 
 type CustomSubStepProps = SubStepProps & {
-    /** User's private personal details */
-    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+    /** User's personal details values */
+    personalDetailsValues: PersonalDetailsForm;
 };
 
 type CountryZipRegex = {
