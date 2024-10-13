@@ -19,7 +19,8 @@ function extractAttachments(
         accountID,
         parentReportAction,
         reportActions,
-    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>},
+        reportID,
+    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; reportID: string},
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const attachments: Attachment[] = [];
@@ -95,7 +96,7 @@ function extractAttachments(
 
     const actions = [...(parentReportAction ? [parentReportAction] : []), ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];
     actions.forEach((action, key) => {
-        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key) || ReportActionsUtils.isMoneyRequestAction(action)) {
+        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key, reportID) || ReportActionsUtils.isMoneyRequestAction(action)) {
             return;
         }
 
