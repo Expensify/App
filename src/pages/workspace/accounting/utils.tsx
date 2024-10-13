@@ -260,7 +260,7 @@ function getAccountingIntegrationData(
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID)),
                 onCardReconciliationPagePress: () => {},
                 onAdvancedPagePress: () => {},
-                subscribedImportSettings: [],
+                subscribedImportSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES],
                 subscribedExportSettings: [
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT,
