@@ -12,3 +12,4 @@ docs/assets/**
 web/gtm.js
 **/.expo/**
 src/libs/SearchParser/searchParser.js
+help/_scripts/**
