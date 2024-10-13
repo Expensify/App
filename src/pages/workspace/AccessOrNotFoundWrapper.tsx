@@ -100,7 +100,7 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
             }}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...fullPageNotFoundViewProps}
-            shouldShowBackButton={!shouldShowFullScreenFallback ? shouldUseNarrowLayout : undefined}
+            shouldShowBackButton={fullPageNotFoundViewProps?.shouldShowBackButton ?? (!shouldShowFullScreenFallback ? shouldUseNarrowLayout : undefined)}
         />
     );
 }
