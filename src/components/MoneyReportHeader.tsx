@@ -301,7 +301,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 shouldShowBorderBottom={!isMoreContentShown}
             >
                 {isDuplicate && !shouldUseNarrowLayout && (
-                    <View style={[styles.mh2]}>
+                    <View style={[shouldDuplicateButtonBeSuccess ? styles.ml2 : styles.mh2]}>
                         <Button
                             success={shouldDuplicateButtonBeSuccess}
                             text={translate('iou.reviewDuplicates')}
