@@ -115,7 +115,7 @@ const Pagination: Middleware = (requestResponse, request) => {
         const resourceCollections = resources.get(resourceCollectionKey) ?? {};
         const existingItems = resourceCollections[resourceKey] ?? {};
         const allItems = fastMerge(existingItems, pageItems, true);
-        const sortedAllItems = sortItems(allItems);
+        const sortedAllItems = sortItems(allItems, resourceID);
 
         const pagesCollections = pages.get(pageCollectionKey) ?? {};
         const existingPages = pagesCollections[pageKey] ?? [];
