@@ -171,7 +171,7 @@ function ReportActionItemSingle({
                       text: displayName,
                   },
               ]
-            : [action?.person?.at(0)] ?? [];
+            : [action?.person?.at(0)].filter(Boolean) ?? [];
 
         if (displayAllActors && secondaryAvatar?.name) {
             return [
@@ -254,7 +254,7 @@ function ReportActionItemSingle({
                 return (
                     <View style={[styles.flexRow]}>
                         <ReportActionItemFragment
-                            style={[styles.flex1]}
+                            style={[styles.flexShrink1]}
                             key={`person-${action?.reportActionID}-${0}`}
                             accountID={actorAccountID ?? -1}
                             fragment={{...personArray.at(0), type: 'TEXT', text: displayName ?? ''}}
@@ -265,12 +265,12 @@ function ReportActionItemSingle({
                         />
                         <Text
                             numberOfLines={1}
-                            style={[styles.chatItemMessageHeaderSender, styles.pre]}
+                            style={[styles.chatItemMessageHeaderSender, styles.pre, styles.flexShrink0]}
                         >
                             {` & `}
                         </Text>
                         <ReportActionItemFragment
-                            style={[styles.flex1]}
+                            style={[styles.flexShrink1]}
                             key={`person-${action?.reportActionID}-${1}`}
                             accountID={parseInt(`${secondaryAvatar?.id ?? -1}`, 10)}
                             fragment={{...personArray.at(1), type: 'TEXT', text: secondaryAvatar.name ?? ''}}
