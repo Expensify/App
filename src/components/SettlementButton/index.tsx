@@ -132,7 +132,6 @@ function SettlementButton({
                 text: defaultPaymentMethod?.title ?? '',
                 description: defaultPaymentMethod?.description ?? '',
                 icon: defaultPaymentMethod?.icon ?? Expensicons.Bank,
-                onSelected: () => {},
             };
 
             if (ReportUtils.isIndividualInvoiceRoom(chatReport)) {
@@ -160,7 +159,9 @@ function SettlementButton({
                     icon: Expensicons.User,
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
-                    subMenuItems: defaultPaymentMethod ? [paymentSubitem, ...subMenuItems] : subMenuItems,
+                    subMenuItems: defaultPaymentMethod
+                        ? [{...paymentSubitem, onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.VBBA, false, defaultPaymentMethod?.methodID)}, ...subMenuItems]
+                        : subMenuItems,
                 });
             }
 
@@ -188,7 +189,9 @@ function SettlementButton({
                 icon: Expensicons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 backButtonText: translate('iou.business'),
-                subMenuItems: defaultPaymentMethod ? [paymentSubitem, ...subMenuItems] : subMenuItems,
+                subMenuItems: defaultPaymentMethod
+                    ? [{...paymentSubitem, onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.VBBA, true, defaultPaymentMethod?.methodID)}, ...subMenuItems]
+                    : subMenuItems,
             });
         }
 

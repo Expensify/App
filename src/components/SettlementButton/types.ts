@@ -11,7 +11,7 @@ type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEN
 
 type SettlementButtonProps = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
-    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean) => void;
+    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean, methodID?: number) => void;
 
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
