@@ -80,7 +80,6 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     return (
         <UserListItem
             pressableStyle={[styles.br2]}
-            wrapperStyle={[styles.pr3, styles.pl3]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
@@ -145,7 +144,7 @@ function SearchRouterList(
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
-    const styledRecentReports = recentReports.map((item) => ({...item, pressableStyle: styles.br2}));
+    const styledRecentReports = recentReports.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
     sections.push({title: translate('search.recentChats'), data: styledRecentReports});
 
     const onSelectRow = useCallback(
@@ -182,6 +181,7 @@ function SearchRouterList(
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
             sectionListStyle={[isSmallScreenWidth ? styles.ph5 : styles.ph2, styles.pb2]}
+            listItemWrapperStyle={[styles.pr3, styles.pl3]}
             onLayout={setPerformanceTimersEnd}
             ref={ref}
             showScrollIndicator={!isSmallScreenWidth}
