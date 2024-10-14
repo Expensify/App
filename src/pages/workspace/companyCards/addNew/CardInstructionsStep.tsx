@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import Parser from '@libs/Parser';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -26,14 +27,21 @@ function CardInstructionsStep() {
     const data = addNewCard?.data;
     const feedProvider = data?.cardType;
 
+    const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.STRIPE;
+    const buttonTranslation = isStripeFeedProvider ? translate('common.submit') : translate('common.next');
+
     const submit = () => {
+        if (isStripeFeedProvider) {
+            // TODO: add submit logic
+            return;
+        }
         CompanyCards.setAddNewCompanyCardStepAndData({
             step: feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX ? CONST.COMPANY_CARDS.STEP.CARD_DETAILS : CONST.COMPANY_CARDS.STEP.CARD_NAME,
         });
     };
 
     const handleBackButtonPress = () => {
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
+        CompanyCards.setAddNewCompanyCardStepAndData({step: isStripeFeedProvider ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.CARD_TYPE});
     };
 
     return (
@@ -65,7 +73,7 @@ function CardInstructionsStep() {
                         large
                         style={[styles.w100]}
                         onPress={submit}
-                        text={translate('common.next')}
+                        text={buttonTranslation}
                     />
                 </View>
             </ScrollView>
