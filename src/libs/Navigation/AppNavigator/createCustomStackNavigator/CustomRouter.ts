@@ -160,7 +160,6 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
             }
 
             if (action.type === 'PUSH' && action.payload.name === SCREENS.SEARCH.CENTRAL_PANE) {
-                const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
                 const currentParams = action.payload.params as RootStackParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
                 const queryJSON = SearchUtils.buildSearchQueryJSON(currentParams.q);
 
@@ -168,10 +167,16 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                     return null;
                 }
 
-                if (policyID) {
-                    queryJSON.policyID = policyID;
+                if (!queryJSON.policyID) {
+                    const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
+
+                    if (policyID) {
+                        queryJSON.policyID = policyID;
+                    } else {
+                        delete queryJSON.policyID;
+                    }
                 } else {
-                    delete queryJSON.policyID;
+                    setActiveWorkspaceID(queryJSON.policyID);
                 }
 
                 const modifiedAction = {
