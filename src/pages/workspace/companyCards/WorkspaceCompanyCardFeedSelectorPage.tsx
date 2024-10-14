@@ -43,11 +43,11 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const feeds: CardFeedListItem[] = Object.keys(cardFeeds?.settings?.companyCards ?? {}).map((feed) => ({
         value: feed as CompanyCardFeed,
-        text: cardFeeds?.settings?.companyCardNicknames?.[selectedFeed] ?? translate(`workspace.companyCards.addNewCard.cardProviders.${feed as CompanyCardFeed}`),
+        text: cardFeeds?.settings?.companyCardNicknames?.[feed] ?? translate(`workspace.companyCards.addNewCard.cardProviders.${feed as CompanyCardFeed}`),
         keyForList: feed,
         isSelected: feed === selectedFeed,
-        brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
-        canShowSeveralIndicators: !!cardFeeds?.settings?.companyCards?.[selectedFeed]?.errors,
+        brickRoadIndicator: cardFeeds?.settings?.companyCards?.[feed]?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        canShowSeveralIndicators: !!cardFeeds?.settings?.companyCards?.[feed]?.errors,
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(feed)}

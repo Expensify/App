@@ -58,7 +58,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                     <View>
                         <View style={[styles.flexRow, styles.gap1]}>
                             <CaretWrapper>
-                                <Text style={styles.textStrong}>{cardFeeds?.settings?.companyCardNicknames?.[selectedFeed]}</Text>
+                                <Text style={styles.textStrong}>{feedName}</Text>
                             </CaretWrapper>
                             {PolicyUtils.hasPolicyFeedsError(cardFeeds?.settings?.companyCards ?? {}, selectedFeed) && (
                                 <Icon

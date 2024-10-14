@@ -4625,10 +4625,25 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                 [cardID]: {
                     isLoadingLastUpdated: true,
                     pendingFields: {
-                        lastUpdated: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                     errorFields: {
-                        lastUpdated: null,
+                        lastScrape: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    isLoadingLastUpdated: true,
+                    pendingFields: {
+                        lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    errorFields: {
+                        lastScrape: null,
                     },
                 },
             },
@@ -4656,7 +4671,19 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                 [cardID]: {
                     isLoadingLastUpdated: false,
                     pendingFields: {
-                        lastUpdated: null,
+                        lastScrape: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    isLoadingLastUpdated: false,
+                    pendingFields: {
+                        lastScrape: null,
                     },
                 },
             },
@@ -4671,10 +4698,25 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                 [cardID]: {
                     isLoadingLastUpdated: false,
                     pendingFields: {
-                        lastUpdated: null,
+                        lastScrape: null,
                     },
                     errorFields: {
-                        lastUpdated: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        lastScrape: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    isLoadingLastUpdated: false,
+                    pendingFields: {
+                        lastScrape: null,
+                    },
+                    errorFields: {
+                        lastScrape: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
             },

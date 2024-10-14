@@ -47,6 +47,18 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
 
+    /** Card name */
+    cardName?: string;
+
+    /** Related policy account id */
+    fundID?: string;
+
+    /** Transaction start date */
+    scrapeMinDate?: string;
+
+    /** Last updated time */
+    lastScrape?: string;
+
     /** Card related error messages */
     errors?: OnyxCommon.Errors;
 

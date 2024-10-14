@@ -89,7 +89,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         if (!allCardsList) {
             return [];
         }
-        return Object.values(allCardsList ?? {}).filter((card) => card.accountID === accountID);
+        return Object.values(allCardsList ?? {}).filter((card) => card.accountID === accountID && workspaceAccountID.toString() === card.fundID);
     }, [allCardsList, accountID]);
 
     const confirmModalPrompt = useMemo(() => {
@@ -300,7 +300,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             </View>
                                             {memberCards.map((memberCard) => (
                                                 <MenuItem
-                                                    title={memberCard.nameValuePairs?.cardTitle ?? memberCard?.cardNumber}
+                                                    title={memberCard.nameValuePairs?.cardTitle ?? memberCard?.cardName}
                                                     badgeText={
                                                         memberCard.bank === CONST.EXPENSIFY_CARD.BANK
                                                             ? CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)
