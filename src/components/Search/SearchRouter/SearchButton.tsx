@@ -27,8 +27,8 @@ function SearchButton({style}: SearchButtonProps) {
             accessibilityLabel={translate('common.search')}
             style={[styles.flexRow, styles.touchableButtonImage, style]}
             onPress={Session.checkIfActionIsAllowed(() => {
-                Timing.start(CONST.TIMING.SEARCH_ROUTER_OPEN);
-                Performance.markStart(CONST.TIMING.SEARCH_ROUTER_OPEN);
+                Timing.start(CONST.TIMING.SEARCH_ROUTER_RENDER);
+                Performance.markStart(CONST.TIMING.SEARCH_ROUTER_RENDER);
 
                 openSearchRouter();
             })}

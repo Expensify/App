@@ -51,8 +51,8 @@ type SearchRouterListProps = {
 };
 
 const setPerformanceTimersEnd = () => {
-    Timing.end(CONST.TIMING.SEARCH_ROUTER_OPEN);
-    Performance.markEnd(CONST.TIMING.SEARCH_ROUTER_OPEN);
+    Timing.end(CONST.TIMING.SEARCH_ROUTER_RENDER);
+    Performance.markEnd(CONST.TIMING.SEARCH_ROUTER_RENDER);
 };
 
 function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
@@ -186,6 +186,7 @@ function SearchRouterList(
             ref={ref}
             showScrollIndicator={!isSmallScreenWidth}
             sectionTitleStyles={styles.mhn2}
+            shouldSingleExecuteRowSelect
         />
     );
 }

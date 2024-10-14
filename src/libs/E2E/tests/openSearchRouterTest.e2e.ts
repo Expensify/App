@@ -32,7 +32,7 @@ const test = () => {
         Performance.subscribeToMeasurements((entry) => {
             console.debug(`[E2E] Entry: ${JSON.stringify(entry)}`);
 
-            if (entry.name === CONST.TIMING.SEARCH_ROUTER_OPEN) {
+            if (entry.name === CONST.TIMING.SEARCH_ROUTER_RENDER) {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: 'Open Search Router TTI',

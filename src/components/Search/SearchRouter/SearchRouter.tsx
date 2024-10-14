@@ -3,6 +3,7 @@ import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -10,6 +11,7 @@ import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
@@ -176,8 +178,13 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 setValue={setTextInputValue}
                 isFullWidth={isSmallScreenWidth}
                 updateSearch={onSearchChange}
+                onSubmit={() => {
+                    onSearchSubmit(SearchUtils.buildSearchQueryJSON(textInputValue));
+                }}
                 routerListRef={listRef}
-                wrapperStyle={[isSmallScreenWidth ? styles.mv3 : styles.mv2, isSmallScreenWidth ? styles.mh5 : styles.mh2, styles.border]}
+                shouldShowOfflineMessage
+                wrapperStyle={[styles.border, styles.alignItemsCenter]}
+                outerWrapperStyle={[isSmallScreenWidth ? styles.mv3 : styles.mv2, isSmallScreenWidth ? styles.mh5 : styles.mh2]}
                 wrapperFocusedStyle={[styles.borderColorFocus]}
                 isSearchingForReports={isSearchingForReports}
             />
