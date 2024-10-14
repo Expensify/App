@@ -2205,34 +2205,71 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
 /**
  * Build the options for the New Group view
  */
+type FilteredOptionsParams = {
+    reports?: Array<SearchOption<Report>>;
+    personalDetails?: Array<SearchOption<PersonalDetails>>;
+    betas?: OnyxEntry<Beta[]>;
+    searchValue?: string;
+    selectedOptions?: Array<Partial<ReportUtils.OptionData>>;
+    excludeLogins?: string[];
+    includeOwnedWorkspaceChats?: boolean;
+    includeP2P?: boolean;
+    includeCategories?: boolean;
+    categories?: PolicyCategories;
+    recentlyUsedCategories?: string[];
+    includeTags?: boolean;
+    tags?: PolicyTags | Array<PolicyTag | SelectedTagOption>;
+    recentlyUsedTags?: string[];
+    canInviteUser?: boolean;
+    includeSelectedOptions?: boolean;
+    includeTaxRates?: boolean;
+    taxRates?: TaxRatesWithDefault;
+    maxRecentReportsToShow?: number;
+    includeSelfDM?: boolean;
+    includePolicyReportFieldOptions?: boolean;
+    policyReportFieldOptions?: string[];
+    recentlyUsedPolicyReportFieldOptions?: string[];
+    includeInvoiceRooms?: boolean;
+    action?: IOUAction;
+    sortByReportTypeInSearch?: boolean;
+};
+
+type FilteredOptionsParamsWithDefaultSearchValue = Omit<FilteredOptionsParams, 'searchValue'> & {searchValue?: ''};
+
+type FilteredOptionsParamsWithoutOptions = Omit<FilteredOptionsParams, 'reports' | 'personalDetails'> & { reports?: []; personalDetails?: [] };
+
 function getFilteredOptions(
-    reports: Array<SearchOption<Report>> = [],
-    personalDetails: Array<SearchOption<PersonalDetails>> = [],
-    betas: OnyxEntry<Beta[]> = [],
-    searchValue = '',
-    selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
-    excludeLogins: string[] = [],
-    includeOwnedWorkspaceChats = false,
-    includeP2P = true,
-    includeCategories = false,
-    categories: PolicyCategories = {},
-    recentlyUsedCategories: string[] = [],
-    includeTags = false,
-    tags: PolicyTags | Array<PolicyTag | SelectedTagOption> = {},
-    recentlyUsedTags: string[] = [],
-    canInviteUser = true,
-    includeSelectedOptions = false,
-    includeTaxRates = false,
-    maxRecentReportsToShow: number = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-    taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
-    includeSelfDM = false,
-    includePolicyReportFieldOptions = false,
-    policyReportFieldOptions: string[] = [],
-    recentlyUsedPolicyReportFieldOptions: string[] = [],
-    includeInvoiceRooms = false,
-    action: IOUAction | undefined = undefined,
-    sortByReportTypeInSearch = false,
+    params: FilteredOptionsParamsWithDefaultSearchValue | FilteredOptionsParamsWithoutOptions,
 ) {
+
+    const {
+        reports = [],
+        personalDetails = [],
+        betas = [],
+        searchValue = '',
+        selectedOptions = [],
+        excludeLogins = [],
+        includeOwnedWorkspaceChats = false,
+        includeP2P = true,
+        includeCategories = false,
+        categories = {},
+        recentlyUsedCategories = [],
+        includeTags = false,
+        tags = {},
+        recentlyUsedTags = [],
+        canInviteUser = true,
+        includeSelectedOptions = false,
+        includeTaxRates = false,
+        maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        taxRates = {} as TaxRatesWithDefault,
+        includeSelfDM = false,
+        includePolicyReportFieldOptions = false,
+        policyReportFieldOptions = [],
+        recentlyUsedPolicyReportFieldOptions = [],
+        includeInvoiceRooms = false,
+        action,
+        sortByReportTypeInSearch,
+    } = params;
     return getOptions(
         {reports, personalDetails},
         {

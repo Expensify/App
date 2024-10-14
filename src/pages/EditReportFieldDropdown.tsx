@@ -64,37 +64,22 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
     const [sections, headerMessage] = useMemo(() => {
         const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
-        const {policyReportFieldOptions} = OptionsListUtils.getFilteredOptions(
-            [],
-            [],
-            [],
-            debouncedSearchValue,
-            [
+        const {policyReportFieldOptions} = OptionsListUtils.getFilteredOptions({
+            searchValue: debouncedSearchValue,
+            selectedOptions: [
                 {
                     keyForList: fieldValue,
                     searchText: fieldValue,
                     text: fieldValue,
                 },
             ],
-            [],
-            false,
-            false,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            false,
-            false,
-            undefined,
-            CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-            undefined,
-            undefined,
-            true,
-            validFieldOptions,
-            recentlyUsedOptions,
-        );
+            
+            includeP2P: false,
+            canInviteUser: false,
+            includePolicyReportFieldOptions: true,
+            policyReportFieldOptions: validFieldOptions,
+            recentlyUsedPolicyReportFieldOptions: recentlyUsedOptions,
+    });
 
         const policyReportFieldData = policyReportFieldOptions?.[0]?.data ?? [];
         const header = OptionsListUtils.getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue);
