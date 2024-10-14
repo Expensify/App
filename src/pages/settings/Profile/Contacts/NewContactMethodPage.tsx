@@ -164,15 +164,15 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                     handleSubmitForm={addNewContactMethod}
                     clearError={() => User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin')}
                     onClose={() => {
-                    if (loginData?.errorFields && pendingContactAction?.contactMethod) {
-                        User.clearContactMethod(pendingContactAction?.contactMethod);
-                        User.clearUnvalidatedNewContactMethodAction();
-                    }
-                    setIsValidateCodeActionModalVisible(false);
-                }}
+                        if (loginData?.errorFields && pendingContactAction?.contactMethod) {
+                            User.clearContactMethod(pendingContactAction?.contactMethod);
+                            User.clearUnvalidatedNewContactMethodAction();
+                        }
+                        setIsValidateCodeActionModalVisible(false);
+                    }}
                     isVisible={isValidateCodeActionModalVisible}
                     title={contactMethod}
-                sendValidateCode={sendValidateCode}
+                    sendValidateCode={sendValidateCode}
                     description={translate('contacts.enterMagicCode', {contactMethod})}
                 />
             </ScreenWrapper>

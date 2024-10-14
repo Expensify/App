@@ -1,11 +1,10 @@
 import debounce from 'lodash/debounce';
 import React, {useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {RefObject, useState} from 'react';
+import type {RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
@@ -42,11 +41,6 @@ import ROUTES from '@src/ROUTES';
 import type {Delegate} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DelegateMagicCodeModal from './AddDelegate/DelegateMagicCodeModal';
-
-type Delegate = {
-    login?: string;
-    role?: ValueOf<typeof CONST.DELEGATE_ROLE>;
-};
 
 function SecuritySettingsPage() {
     const styles = useThemeStyles();
@@ -86,7 +80,7 @@ function SecuritySettingsPage() {
             anchorPositionVertical: position.y,
         });
     }, [windowWidth]);
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate || false;
 
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
@@ -160,7 +154,7 @@ function SecuritySettingsPage() {
                             Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(email, role));
                             return;
                         }
-                        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(email, role));
+                        setSelectedDelegate({email, role});
                     };
 
                     const formattedEmail = formatPhoneNumber(email);
@@ -341,9 +335,9 @@ function SecuritySettingsPage() {
                             />
                         </View>
                     </ScrollView>
-                    {selectedDelegate.login && selectedDelegate.role && (
+                    {selectedDelegate && selectedDelegate.email && selectedDelegate.role && (
                         <DelegateMagicCodeModal
-                            login={selectedDelegate?.login}
+                            login={selectedDelegate?.email}
                             role={selectedDelegate?.role}
                         />
                     )}
