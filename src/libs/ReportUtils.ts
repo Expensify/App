@@ -1251,6 +1251,9 @@ function findSelfDMReportID(): string | undefined {
     return selfDMReport?.reportID;
 }
 
+/**
+ * Checks if the supplied report is from a policy or is an invoice report from a policy
+ */
 function isPolicyRelatedReport(report: OnyxEntry<Report>, policyID?: string) {
     return report?.policyID === policyID || !!(report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID);
 }
