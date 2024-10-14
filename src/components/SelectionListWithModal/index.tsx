@@ -53,7 +53,7 @@ function SelectionListWithModal<TItem extends ListItem>(
             }
             return;
         }
-        if (!isFocused && isSmallScreenWidth) {
+        if (!isFocused) {
             return;
         }
         if (!wasSelectionOnRef.current && selectedItems.length > 0) {
