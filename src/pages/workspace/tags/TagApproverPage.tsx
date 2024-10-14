@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -23,9 +24,12 @@ function TagApproverPage({route}: TagApproverPageProps) {
     const {translate} = useLocalize();
 
     const tagApprover = PolicyUtils.getTagApproverRule(policyID, tagName)?.approver;
+    const isQuickSettingsFlow = !isEmpty(backTo);
 
     const goBack = () => {
-        Navigation.goBack(backTo ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName, backTo) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName));
+        Navigation.goBack(
+            isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName, backTo) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName),
+        );
     };
 
     return (

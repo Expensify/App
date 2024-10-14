@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -41,6 +42,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const {canUseCategoryAndTagApprovers} = usePermissions();
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
+    const isQuickSettingsFlow = !isEmpty(backTo);
 
     const currentPolicyTag = policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
 
@@ -58,7 +60,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const deleteTagAndHideModal = () => {
         Tag.deletePolicyTags(policyID, [currentPolicyTag.name]);
         setIsDeleteTagModalOpen(false);
-        Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
+        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
     };
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
@@ -67,7 +69,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
 
     const navigateToEditTag = () => {
         Navigation.navigate(
-            backTo
+            isQuickSettingsFlow
                 ? ROUTES.SETTINGS_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
                 : ROUTES.WORKSPACE_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name),
         );
@@ -79,7 +81,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                 ROUTES.WORKSPACE_UPGRADE.getRoute(
                     policyID,
                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
-                    backTo
+                    isQuickSettingsFlow
                         ? ROUTES.SETTINGS_TAG_GL_CODE.getRoute(policy?.id ?? '', orderWeight, tagName, backTo)
                         : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policy?.id ?? '', orderWeight, tagName),
                 ),
@@ -87,7 +89,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             return;
         }
         Navigation.navigate(
-            backTo
+            isQuickSettingsFlow
                 ? ROUTES.SETTINGS_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
                 : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name),
         );
@@ -95,7 +97,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
 
     const navigateToEditTagApprover = () => {
         Navigation.navigate(
-            backTo
+            isQuickSettingsFlow
                 ? ROUTES.SETTINGS_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
                 : ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name),
         );
@@ -123,7 +125,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                 <HeaderWithBackButton
                     title={PolicyUtils.getCleanedTagName(tagName)}
                     shouldSetModalVisibility={false}
-                    onBackButtonPress={() => Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
+                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
                 />
                 <ConfirmModal
                     title={translate('workspace.tags.deleteTag')}

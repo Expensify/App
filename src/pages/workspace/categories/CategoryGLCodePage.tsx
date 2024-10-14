@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -32,6 +33,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
     const categoryName = route.params.categoryName;
     const glCode = policyCategories?.[categoryName]?.['GL Code'];
     const {inputCallbackRef} = useAutoFocusInput();
+    const isQuickSettingsFlow = !isEmpty(backTo);
 
     const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -40,12 +42,12 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
                 Category.setPolicyCategoryGLCode(route.params.policyID, categoryName, newGLCode);
             }
             Navigation.goBack(
-                backTo
+                isQuickSettingsFlow
                     ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName, backTo)
                     : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName),
             );
         },
-        [categoryName, glCode, route.params.policyID, backTo],
+        [categoryName, glCode, route.params.policyID, isQuickSettingsFlow],
     );
 
     return (
@@ -64,7 +66,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
                     title={translate('workspace.categories.glCode')}
                     onBackButtonPress={() =>
                         Navigation.goBack(
-                            backTo
+                            isQuickSettingsFlow
                                 ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
                                 : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
                         )

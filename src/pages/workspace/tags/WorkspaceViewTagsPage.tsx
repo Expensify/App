@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -59,6 +60,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const {selectionMode} = useMobileSelectionMode();
     const currentTagListName = useMemo(() => PolicyUtils.getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
+    const isQuickSettingsFlow = !isEmpty(backTo);
 
     const fetchTags = useCallback(() => {
         Tag.openPolicyTagsPage(policyID);
@@ -143,7 +145,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     const navigateToTagSettings = (tag: TagListItem) => {
         Navigation.navigate(
-            backTo
+            isQuickSettingsFlow
                 ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value, backTo)
                 : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value),
         );
@@ -243,7 +245,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     const navigateToEditTag = () => {
         Navigation.navigate(
-            backTo
+            isQuickSettingsFlow
                 ? ROUTES.SETTINGS_TAGS_EDIT.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0, backTo)
                 : ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0),
         );
@@ -270,7 +272,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID) : ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+                        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID) : ROUTES.WORKSPACE_TAGS.getRoute(policyID));
                     }}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}

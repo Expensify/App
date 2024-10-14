@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -31,6 +32,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     const taglistName = useMemo(() => PolicyUtils.getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const {inputCallbackRef} = useAutoFocusInput();
     const backTo = route.params.backTo;
+    const isQuickSettingsFlow = !isEmpty(backTo);
 
     const validateTagName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
@@ -54,9 +56,11 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             if (values[INPUT_IDS.POLICY_TAGS_NAME] !== taglistName) {
                 Tag.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
             }
-            Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(route?.params?.policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID));
+            Navigation.goBack(
+                isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(route?.params?.policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
+            );
         },
-        [policyTags, route.params.orderWeight, route.params.policyID, taglistName, backTo],
+        [policyTags, route.params.orderWeight, route.params.policyID, taglistName, isQuickSettingsFlow],
     );
 
     return (
@@ -73,7 +77,9 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                 <HeaderWithBackButton
                     title={translate(`workspace.tags.customTagName`)}
                     onBackButtonPress={() =>
-                        Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(route?.params?.policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID))
+                        Navigation.goBack(
+                            isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(route?.params?.policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
+                        )
                     }
                 />
                 <FormProvider

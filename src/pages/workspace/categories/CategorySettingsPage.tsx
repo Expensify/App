@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -53,9 +54,10 @@ function CategorySettingsPage({
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
+    const isQuickSettingsFlow = !isEmpty(backTo);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
+        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
     };
 
     useEffect(() => {
@@ -113,7 +115,9 @@ function CategorySettingsPage({
     };
 
     const navigateToEditCategory = () => {
-        Navigation.navigate(backTo ? ROUTES.SETTINGS_CATEGORY_EDIT.getRoute(policyID, policyCategory.name, backTo) : ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(policyID, policyCategory.name));
+        Navigation.navigate(
+            isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_EDIT.getRoute(policyID, policyCategory.name, backTo) : ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(policyID, policyCategory.name),
+        );
     };
 
     const deleteCategory = () => {
@@ -189,7 +193,7 @@ function CategorySettingsPage({
                                                 ROUTES.WORKSPACE_UPGRADE.getRoute(
                                                     policyID,
                                                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                                    backTo
+                                                    isQuickSettingsFlow
                                                         ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
                                                         : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
                                                 ),
@@ -197,7 +201,7 @@ function CategorySettingsPage({
                                             return;
                                         }
                                         Navigation.navigate(
-                                            backTo
+                                            isQuickSettingsFlow
                                                 ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
                                                 : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
                                         );
@@ -221,7 +225,7 @@ function CategorySettingsPage({
                                             return;
                                         }
                                         Navigation.navigate(
-                                            backTo
+                                            isQuickSettingsFlow
                                                 ? ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name, backTo)
                                                 : ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name),
                                         );

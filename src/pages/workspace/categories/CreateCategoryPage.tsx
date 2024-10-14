@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -23,13 +24,14 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
+    const isQuickSettingsFlow = !isEmpty(backTo);
 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             Category.createPolicyCategory(route.params.policyID, values.categoryName.trim());
-            Navigation.goBack(backTo ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
+            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
-        [backTo, route.params.policyID],
+        [isQuickSettingsFlow, route.params.policyID],
     );
 
     return (
@@ -46,7 +48,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.categories.addCategory')}
-                    onBackButtonPress={() => Navigation.goBack(backTo ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined)}
+                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined)}
                 />
                 <CategoryForm
                     onSubmit={createCategory}

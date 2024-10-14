@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -24,6 +25,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
     const {translate} = useLocalize();
     const currentCategoryName = route.params.categoryName;
     const backTo = route.params?.backTo;
+    const isQuickSettingsFlow = !isEmpty(backTo);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -49,12 +51,12 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                 Category.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
             }
             Navigation.goBack(
-                backTo
+                isQuickSettingsFlow
                     ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
                     : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
             );
         },
-        [backTo, currentCategoryName, route.params.categoryName, route.params.policyID],
+        [isQuickSettingsFlow, currentCategoryName, route.params.categoryName, route.params.policyID],
     );
 
     return (
@@ -73,7 +75,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                     title={translate('workspace.categories.editCategory')}
                     onBackButtonPress={() =>
                         Navigation.goBack(
-                            backTo
+                            isQuickSettingsFlow
                                 ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
                                 : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
                         )

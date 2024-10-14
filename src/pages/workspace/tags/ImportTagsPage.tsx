@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import ImportSpreedsheet from '@components/ImportSpreadsheet';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -10,11 +11,12 @@ type ImportTagsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof S
 function ImportTagsPage({route}: ImportTagsPageProps) {
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
+    const isQuickSettingsFlow = !isEmpty(backTo);
 
     return (
         <ImportSpreedsheet
-            backTo={backTo ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID)}
-            goTo={backTo ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORTED.getRoute(policyID)}
+            backTo={isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID)}
+            goTo={isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORTED.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORTED.getRoute(policyID)}
         />
     );
 }

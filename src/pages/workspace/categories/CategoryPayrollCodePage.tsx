@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -32,6 +33,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
     const categoryName = route.params.categoryName;
     const payrollCode = policyCategories?.[categoryName]?.['Payroll Code'];
     const {inputCallbackRef} = useAutoFocusInput();
+    const isQuickSettingsFlow = !isEmpty(backTo);
 
     const editPayrollCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -40,12 +42,12 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                 Category.setPolicyCategoryPayrollCode(route.params.policyID, categoryName, newPayrollCode);
             }
             Navigation.goBack(
-                backTo
+                isQuickSettingsFlow
                     ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName, backTo)
                     : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName),
             );
         },
-        [categoryName, payrollCode, route.params.policyID, backTo],
+        [categoryName, payrollCode, route.params.policyID, isQuickSettingsFlow],
     );
 
     return (
@@ -64,7 +66,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                     title={translate('workspace.categories.payrollCode')}
                     onBackButtonPress={() =>
                         Navigation.goBack(
-                            backTo
+                            isQuickSettingsFlow
                                 ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName, backTo)
                                 : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName),
                         )

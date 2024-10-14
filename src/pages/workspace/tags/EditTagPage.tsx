@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -32,6 +33,7 @@ function EditTagPage({route}: EditTagPageProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentTagName = PolicyUtils.getCleanedTagName(route.params.tagName);
+    const isQuickSettingsFlow = !isEmpty(backTo);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -61,12 +63,12 @@ function EditTagPage({route}: EditTagPageProps) {
             }
             Keyboard.dismiss();
             Navigation.goBack(
-                backTo
+                isQuickSettingsFlow
                     ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(route?.params?.policyID, route.params.orderWeight, route.params.tagName, backTo)
                     : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route?.params?.policyID, route.params.orderWeight, route.params.tagName),
             );
         },
-        [currentTagName, route.params.policyID, route.params.tagName, route.params.orderWeight, backTo],
+        [currentTagName, route.params.policyID, route.params.tagName, route.params.orderWeight, isQuickSettingsFlow],
     );
 
     return (
@@ -85,7 +87,7 @@ function EditTagPage({route}: EditTagPageProps) {
                     title={translate('workspace.tags.editTag')}
                     onBackButtonPress={() =>
                         Navigation.goBack(
-                            backTo
+                            isQuickSettingsFlow
                                 ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(route?.params?.policyID, route.params.orderWeight, route.params.tagName, backTo)
                                 : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route?.params?.policyID, route.params.orderWeight, route.params.tagName),
                         )

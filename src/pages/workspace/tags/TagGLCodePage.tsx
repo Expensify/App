@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -36,14 +37,15 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
     const orderWeight = route.params.orderWeight;
     const {tags} = PolicyUtils.getTagList(policyTags, orderWeight);
     const glCode = tags?.[route.params.tagName]?.['GL Code'];
+    const isQuickSettingsFlow = !isEmpty(backTo);
 
     const goBack = useCallback(() => {
         Navigation.goBack(
-            backTo
+            isQuickSettingsFlow
                 ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName, backTo)
                 : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName),
         );
-    }, [orderWeight, route.params.policyID, tagName, backTo]);
+    }, [orderWeight, route.params.policyID, tagName, isQuickSettingsFlow]);
 
     const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
