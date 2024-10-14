@@ -146,7 +146,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (prevValidatedDate || !loginData?.validatedDate) {
+        if (prevValidatedDate || !loginData?.validatedDate || !loginData) {
             return;
         }
 
@@ -267,7 +267,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     title={formattedContactMethod}
                     onModalHide={() => {}}
                     hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                    isVisible={isValidateCodeActionModalVisible}
+                    isVisible={isValidateCodeActionModalVisible && (!loginData.validatedDate && !!loginData)}
                     validatePendingAction={loginData.pendingFields?.validateCodeSent}
                     handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode)}
                     validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
