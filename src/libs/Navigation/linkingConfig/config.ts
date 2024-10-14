@@ -989,7 +989,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_TAGS_EDIT.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
                         },
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE]: {
