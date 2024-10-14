@@ -40,7 +40,9 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
         hasFocusBeenRequested.current = true;
 
         const setFocus = () => {
+            console.debug('[E2E] Requesting focus for ComposerWithSuggestions');
             if (!(textInputRef && 'current' in textInputRef)) {
+                console.error('[E2E] textInputRef is not available, failed to focus');
                 return;
             }
 
@@ -54,12 +56,10 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
 
                 textInputRef.current?.blur();
                 setFocus();
-                // 1000ms is enough time for any keyboard to open
-            }, 1000);
+                // Simulate user behavior and don't set focus immediately
+            }, 5_000);
         };
-
-        // Simulate user behavior and don't set focus immediately
-        setTimeout(setFocus, 2000);
+        setFocus();
     }, []);
 
     return (
