@@ -7,7 +7,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
 import * as ReportUtils from './ReportUtils';
-import SidebarUtils from './SidebarUtils';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -125,15 +124,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         policies = value;
-    },
-});
-
-let reportActionsCollection: OnyxCollection<ReportActions>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        reportActionsCollection = value;
     },
 });
 
@@ -601,7 +591,7 @@ function validateReportActionJSON(json: string) {
 /**
  * Gets the reason for showing LHN row
  */
-function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPaths | null {
+function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR: boolean): TranslationPaths | null {
     if (!report) {
         return null;
     }
@@ -620,10 +610,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPath
         includeSelfDM: true,
     });
 
-    if (
-        !([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) &&
-        SidebarUtils.shouldShowRedBrickRoad(report, reportActionsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`], doesReportHaveViolations, transactionViolations)
-    ) {
+    if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
         return `debug.reasonVisibleInLHN.hasRBR`;
     }
 
