@@ -24,7 +24,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';å
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewContactMethodForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -32,8 +32,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 type NewContactMethodPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
 function NewContactMethodPage({route}: NewContactMethodPageProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const contactMethod = account?.primaryLogin ?? '';
+    const contactMethod = UserUtils.getContactMethod();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
