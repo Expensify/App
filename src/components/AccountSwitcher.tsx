@@ -9,6 +9,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -22,10 +23,8 @@ import Avatar from './Avatar';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import type {MenuItemProps} from './MenuItem';
-import MenuItemList from './MenuItemList';
-import type {MenuItemWithLink} from './MenuItemList';
-import Popover from './Popover';
+import type {PopoverMenuItem} from './PopoverMenu';
+import PopoverMenu from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
 
@@ -41,6 +40,7 @@ function AccountSwitcher() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [user] = useOnyx(ONYXKEYS.USER);
     const buttonRef = useRef<HTMLDivElement>(null);
+    const {windowHeight} = useWindowDimensions();
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
@@ -49,10 +49,14 @@ function AccountSwitcher() {
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
 
-    const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, errors?: Errors, additionalProps: MenuItemWithLink = {}): MenuItemWithLink => {
-        const error = Object.values(errors ?? {})[0] ?? '';
+    const createBaseMenuItem = (
+        personalDetails: PersonalDetails | undefined,
+        errors?: Errors,
+        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> = {},
+    ): PopoverMenuItem => {
+        const error = Object.values(errors ?? {}).at(0) ?? '';
         return {
-            title: personalDetails?.displayName ?? personalDetails?.login,
+            text: personalDetails?.displayName ?? personalDetails?.login ?? '',
             description: Str.removeSMSDomain(personalDetails?.login ?? ''),
             avatarID: personalDetails?.accountID ?? -1,
             icon: personalDetails?.avatar ?? '',
@@ -66,14 +70,12 @@ function AccountSwitcher() {
         };
     };
 
-    const menuItems = (): MenuItemProps[] => {
+    const menuItems = (): PopoverMenuItem[] => {
         const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {
-            wrapperStyle: [styles.buttonDefaultBG],
-            focused: true,
             shouldShowRightIcon: true,
             iconRight: Expensicons.Checkmark,
             success: true,
-            key: `${currentUserPersonalDetails?.login}-current`,
+            isSelected: true,
         });
 
         if (isActingAsDelegate) {
@@ -89,34 +91,32 @@ function AccountSwitcher() {
 
             return [
                 createBaseMenuItem(delegatePersonalDetails, error, {
-                    onPress: () => {
+                    onSelected: () => {
                         if (isOffline) {
                             Modal.close(() => setShouldShowOfflineModal(true));
                             return;
                         }
                         disconnect();
                     },
-                    key: `${delegateEmail}-delegate`,
                 }),
                 currentUserMenuItem,
             ];
         }
 
-        const delegatorMenuItems: MenuItemProps[] = delegators
+        const delegatorMenuItems: PopoverMenuItem[] = delegators
             .filter(({email}) => email !== currentUserPersonalDetails.login)
-            .map(({email, role, errorFields}, index) => {
+            .map(({email, role, errorFields}) => {
                 const error = ErrorUtils.getLatestErrorField({errorFields}, 'connect');
                 const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
                 return createBaseMenuItem(personalDetails, error, {
-                    badgeText: translate('delegate.role', role),
-                    onPress: () => {
+                    badgeText: translate('delegate.role', {role}),
+                    onSelected: () => {
                         if (isOffline) {
                             Modal.close(() => setShouldShowOfflineModal(true));
                             return;
                         }
                         connect(email);
                     },
-                    key: `${email}-${index}`,
                 });
             });
 
@@ -133,6 +133,7 @@ function AccountSwitcher() {
                 }}
                 ref={buttonRef}
                 interactive={canSwitchAccounts}
+                pressDimmingValue={canSwitchAccounts ? undefined : 1}
                 wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
             >
                 <View style={[styles.flexRow, styles.gap3]}>
@@ -147,7 +148,7 @@ function AccountSwitcher() {
                         <View style={[styles.flexRow, styles.gap1]}>
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textBold, styles.textLarge]}
+                                style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
                             >
                                 {currentUserPersonalDetails?.displayName}
                             </Text>
@@ -180,23 +181,27 @@ function AccountSwitcher() {
                 </View>
             </PressableWithFeedback>
             {canSwitchAccounts && (
-                <Popover
+                <PopoverMenu
                     isVisible={shouldShowDelegatorMenu}
                     onClose={() => {
                         setShouldShowDelegatorMenu(false);
                         clearDelegatorErrors();
                     }}
                     anchorRef={buttonRef}
-                    anchorPosition={styles.accountSwitcherAnchorPosition}
-                >
-                    <View style={styles.pb4}>
-                        <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pb3, !shouldUseNarrowLayout && styles.pt4]}>{translate('delegate.switchAccount')}</Text>
-                        <MenuItemList
-                            menuItems={menuItems()}
-                            shouldUseSingleExecution
-                        />
-                    </View>
-                </Popover>
+                    anchorPosition={CONST.POPOVER_ACCOUNT_SWITCHER_POSITION}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
+                    menuItems={menuItems()}
+                    headerText={translate('delegate.switchAccount')}
+                    containerStyles={[{maxHeight: windowHeight / 2}, styles.pb0, styles.mw100, shouldUseNarrowLayout ? {} : styles.wFitContent]}
+                    headerStyles={styles.pt0}
+                    innerContainerStyle={styles.pb0}
+                    scrollContainerStyle={styles.pb4}
+                    shouldUseScrollView
+                    shouldUpdateFocusedIndex={false}
+                />
             )}
             <ConfirmModal
                 title={translate('common.youAppearToBeOffline')}

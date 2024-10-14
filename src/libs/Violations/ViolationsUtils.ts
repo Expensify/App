@@ -1,11 +1,10 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {Phrase, PhraseParameters} from '@libs/Localize';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 
@@ -19,7 +18,7 @@ function getTagViolationsForSingleLevelTags(
     policyTagList: PolicyTagLists,
 ): TransactionViolation[] {
     const policyTagKeys = Object.keys(policyTagList);
-    const policyTagListName = policyTagKeys[0];
+    const policyTagListName = policyTagKeys.at(0) ?? '';
     const policyTags = policyTagList[policyTagListName]?.tags;
     const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
     const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG);
@@ -81,7 +80,7 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transac
  */
 function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transactionViolations: TransactionViolation[], transaction: Transaction) {
     const policyTagKeys = getSortedTagKeys(policyTagList);
-    const selectedTags = transaction.tag?.split(CONST.COLON) ?? [];
+    const selectedTags = TransactionUtils.getTagArrayFromName(transaction?.tag ?? '');
     let newTransactionViolations = [...transactionViolations];
 
     newTransactionViolations = newTransactionViolations.filter(
@@ -93,8 +92,8 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
     const errorIndexes = [];
     for (let i = 0; i < policyTagKeys.length; i++) {
         const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
-        const isTagSelected = !!selectedTags[i];
-        if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags[0] === ''))) {
+        const isTagSelected = !!selectedTags.at(i);
+        if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags.at(0) === ''))) {
             errorIndexes.push(i);
         }
     }
@@ -109,7 +108,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
     } else {
         let hasInvalidTag = false;
         for (let i = 0; i < policyTagKeys.length; i++) {
-            const selectedTag = selectedTags[i];
+            const selectedTag = selectedTags.at(i);
             const tags = policyTagList[policyTagKeys[i]].tags;
             const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && !!tag.enabled);
             if (!isTagInPolicy && selectedTag) {
@@ -117,7 +116,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
                     data: {
-                        tagName: policyTagKeys[i],
+                        tagName: policyTagKeys.at(i),
                     },
                 });
                 hasInvalidTag = true;
@@ -237,10 +236,7 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(
-        violation: TransactionViolation,
-        translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
-    ): string {
+    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate']): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -250,7 +246,7 @@ const ViolationsUtils = {
             category,
             rejectedBy = '',
             rejectReason = '',
-            formattedLimit,
+            formattedLimit = '',
             surcharge = 0,
             invoiceMarkup = 0,
             maxAge = 0,

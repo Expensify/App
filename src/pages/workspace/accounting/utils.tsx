@@ -1,6 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
+import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
@@ -17,7 +18,7 @@ import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
-import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {Account, ConnectionName, Connections, PolicyConnectionName, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getImportCustomFieldsSettings,
@@ -72,7 +73,7 @@ function getAccountingIntegrationData(
                 ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
-                    CONST.QUICKBOOKS_CONFIG.EXPORTER,
+                    CONST.QUICKBOOKS_CONFIG.EXPORT,
                     CONST.QUICKBOOKS_CONFIG.EXPORT_DATE,
                     CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                     CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT,
@@ -245,6 +246,30 @@ function getAccountingIntegrationData(
                 pendingFields: policy?.connections?.intacct?.config?.pendingFields,
                 errorFields: policy?.connections?.intacct?.config?.errorFields,
             };
+        case CONST.POLICY.CONNECTIONS.NAME.QBD:
+            return {
+                title: translate('workspace.accounting.qbd'),
+                icon: Expensicons.QBDSquare,
+                setupConnectionFlow: (
+                    <ConnectToQuickbooksDesktopFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID)),
+                onCardReconciliationPagePress: () => {},
+                onAdvancedPagePress: () => {},
+                // TODO: [QBD] Make sure all values are passed to subscribedSettings
+                subscribedImportSettings: [],
+                subscribedExportSettings: [
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER,
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE,
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT,
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED,
+                ],
+                subscribedAdvancedSettings: [],
+            };
         default:
             return undefined;
     }
@@ -257,37 +282,51 @@ function getSynchronizationErrorMessage(
     translate: LocaleContextProps['translate'],
     styles?: ThemeStyles,
 ): React.ReactNode | undefined {
-    const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
-    // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        if (
-            !isSyncInProgress &&
-            (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false)
-        ) {
-            return syncError;
-        }
-        return;
+    if (isAuthenticationError(policy, connectionName)) {
+        return (
+            <Text style={[styles?.formError]}>
+                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', {connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]})} </Text>
+                {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
+                    <TextLink
+                        style={[styles?.link, styles?.fontSizeLabel]}
+                        href={CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS]}
+                    >
+                        {translate('workspace.common.learnMore')}
+                    </TextLink>
+                )}
+            </Text>
+        );
     }
+
+    const syncError = Localize.translateLocal('workspace.accounting.syncError', {connectionName});
 
     const connection = policy?.connections?.[connectionName];
     if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
         return;
     }
 
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)) {
-        return (
-            <Text style={[styles?.formError]}>
-                <Text style={[styles?.formError]}>{translate('workspace.sageIntacct.authenticationError')}</Text>
-                <TextLink
-                    style={[styles?.link, styles?.fontSizeLabel]}
-                    href={CONST.SAGE_INTACCT_HELP_LINK}
-                >
-                    {translate('workspace.sageIntacct.learnMore')}
-                </TextLink>
-            </Text>
-        );
-    }
     return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
 }
 
-export {getAccountingIntegrationData, getSynchronizationErrorMessage};
+function getQBDReimbursableAccounts(quickbooksDesktop?: Connections[typeof CONST.POLICY.CONNECTIONS.NAME.QBD], reimbursable?: QBDReimbursableExportAccountType | undefined) {
+    const {bankAccounts, journalEntryAccounts, payableAccounts} = quickbooksDesktop?.data ?? {};
+
+    let accounts: Account[];
+    switch (reimbursable ?? quickbooksDesktop?.config?.export.reimbursable) {
+        case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
+            accounts = bankAccounts ?? [];
+            break;
+        case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
+            // Journal entry accounts include payable accounts, other current liabilities, and other current assets
+            accounts = [...(payableAccounts ?? []), ...(journalEntryAccounts ?? [])];
+            break;
+        case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
+            accounts = payableAccounts ?? [];
+            break;
+        default:
+            accounts = [];
+    }
+    return accounts;
+}
+
+export {getAccountingIntegrationData, getSynchronizationErrorMessage, getQBDReimbursableAccounts};
