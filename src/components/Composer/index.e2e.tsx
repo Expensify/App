@@ -1,4 +1,5 @@
 import type {ForwardedRef} from 'react';
+import React from 'react';
 import type {TextInput} from 'react-native';
 import Composer from './implementation';
 import type {ComposerProps} from './types';
@@ -15,4 +16,4 @@ function ComposerE2e(props: ComposerProps, ref: ForwardedRef<TextInput>) {
     );
 }
 
-export default ComposerE2e;
+export default React.forwardRef(ComposerE2e);
