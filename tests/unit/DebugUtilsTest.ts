@@ -838,7 +838,7 @@ describe('DebugUtils', () => {
                     },
                 ],
             });
-            const reason = DebugUtils.getReasonForShowingRowInLHN(MOCK_TRANSACTION_REPORT);
+            const reason = DebugUtils.getReasonForShowingRowInLHN(MOCK_TRANSACTION_REPORT, true);
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
         it('returns correct reason when report has violations', async () => {
@@ -896,16 +896,19 @@ describe('DebugUtils', () => {
                     },
                 ],
             });
-            const reason = DebugUtils.getReasonForShowingRowInLHN(MOCK_EXPENSE_REPORT);
+            const reason = DebugUtils.getReasonForShowingRowInLHN(MOCK_EXPENSE_REPORT, true);
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
         it('returns correct reason when report has errors', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-                errors: {
-                    error: 'Something went wrong',
+            const reason = DebugUtils.getReasonForShowingRowInLHN(
+                {
+                    ...baseReport,
+                    errors: {
+                        error: 'Something went wrong',
+                    },
                 },
-            });
+                true,
+            );
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
     });

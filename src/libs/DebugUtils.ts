@@ -591,7 +591,7 @@ function validateReportActionJSON(json: string) {
 /**
  * Gets the reason for showing LHN row
  */
-function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR: boolean): TranslationPaths | null {
+function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false): TranslationPaths | null {
     if (!report) {
         return null;
     }
