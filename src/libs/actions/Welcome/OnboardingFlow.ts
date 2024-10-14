@@ -5,6 +5,9 @@ import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
+import * as Policy from '@userActions/Policy/Policy';
+// eslint-disable-next-line @dword-design/import-alias/prefer-alias
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -118,9 +121,14 @@ function getOnboardingInitialPath(): string {
     const isVsb = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
     if (isVsb) {
+        // Create a workspace for the user if they have selected "Manage my team's expenses"
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
+        const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
+        Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
+        Welcome.setOnboardingPolicyID(policyID);
         return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
     }
+
     const isIndividual = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
