@@ -242,6 +242,7 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
     return iconMap[bank];
 };
 
+// We will simplify the logic below once we have #50450 #50451 implemented
 const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) => {
     const banksWithFeedType = [
         CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA,
