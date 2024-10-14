@@ -7,6 +7,9 @@ Our new QuickBooks Desktop integration allows you to automate the import and exp
 # Step 1: Configure export settings
 The following steps will determine how data will be exported from Expensify to QuickBooks Desktop.
 
+![Expensify export settings page for the QuickBooks Desktop integration](https://help.expensify.com/assets/images/quickbooks-desktop-export-settings.png
+){:width="100%"}
+
 1. In Expensify, hover over **Settings** and click **Workspaces**.
 2. Select the Workspace you want to connect to QuickBooks Desktop.
 3. Click the **Connections** tab. 
@@ -28,6 +31,9 @@ The following steps will determine how data will be exported from Expensify to Q
 
 The following steps help you determine how data will be imported from QuickBooks Online to Expensify:
 
+![Expensify coding settings page for the QuickBooks Desktop integration](https://help.expensify.com/assets/images/quickbooks-desktop-coding-settings.png
+){:width="100%"}
+
 1. Click Import under the QuickBooks Online connection.
 2. Review each of the following import settings:
 - **Chart of Accounts**: The Chart of Accounts is automatically imported from QuickBooks Desktop as categories. This cannot be amended.
@@ -38,6 +44,9 @@ The following steps help you determine how data will be imported from QuickBooks
 # Step 3: Configure advanced settings
 
 The following steps help you determine the advanced settings for your connection, like auto-sync and employee invitation settings.
+
+![Expensify advanced settings page for the QuickBooks Desktop integration](https://help.expensify.com/assets/images/quickbooks-desktop-advanced-settings.png
+){:width="100%"}
 
 1. Click **Advanced** under the QuickBooks Desktop connection.
 2. **Enable or disable Auto-Sync**: If enabled, QuickBooks Desktop automatically communicates changes with Expensify to ensure that the data shared between the two systems is up to date. New report approvals/reimbursements will be synced during the next auto-sync period.
