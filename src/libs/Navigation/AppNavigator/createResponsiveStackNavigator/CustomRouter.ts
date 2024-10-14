@@ -118,7 +118,7 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
         return true;
     }
 
-    return true;
+    return false;
 }
 
 function CustomRouter(options: PlatformStackRouterOptions) {
