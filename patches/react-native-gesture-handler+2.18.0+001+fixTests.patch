@@ -1,0 +1,21 @@
+diff --git a/node_modules/react-native-gesture-handler/lib/commonjs/handlers/gestures/GestureDetector/useAnimatedGesture.js b/node_modules/react-native-gesture-handler/lib/commonjs/handlers/gestures/GestureDetector/useAnimatedGesture.js
+index d426c7c..260ba1e 100644
+--- a/node_modules/react-native-gesture-handler/lib/commonjs/handlers/gestures/GestureDetector/useAnimatedGesture.js
++++ b/node_modules/react-native-gesture-handler/lib/commonjs/handlers/gestures/GestureDetector/useAnimatedGesture.js
+@@ -100,7 +100,7 @@ function isTouchEvent(event) {
+ }
+ 
+ function useAnimatedGesture(preparedGesture, needsRebuild) {
+-  if (!_reanimatedWrapper.Reanimated) {
++  if (!_reanimatedWrapper.Reanimated || (0, _utils.isJestEnv)()) {
+     return;
+   } // Hooks are called conditionally, but the condition is whether the
+   // react-native-reanimated is installed, which shouldn't change while running
+@@ -171,7 +171,6 @@ function useAnimatedGesture(preparedGesture, needsRebuild) {
+     }
+   }; // eslint-disable-next-line react-hooks/rules-of-hooks
+ 
+-
+   const event = _reanimatedWrapper.Reanimated.useEvent(callback, ['onGestureHandlerStateChange', 'onGestureHandlerEvent'], needsRebuild);
+ 
+   preparedGesture.animatedEventHandler = event;

@@ -4,7 +4,7 @@ name: Process new code merged to main
 on:
   push:
     branches: [main]
-    paths-ignore: [docs/**, contributingGuides/**, jest/**, tests/**]
+    paths-ignore: [docs/**, help/**, contributingGuides/**, jest/**, tests/**]
 
 jobs:
   typecheck:
@@ -12,6 +12,9 @@ jobs:
 
   lint:
     uses: ./.github/workflows/lint.yml
+
+  prettier:
+    uses: ./.github/workflows/prettier.yml
 
   test:
     uses: ./.github/workflows/test.yml

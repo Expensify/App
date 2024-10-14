@@ -3,8 +3,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
@@ -34,20 +33,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
+import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
-type WorkspaceProfilePageOnyxProps = {
-    /** Constant, list of available currencies */
-    currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
-};
+type WorkspaceProfilePageProps = WithPolicyProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
-type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
-
-function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {}, route}: WorkspaceProfilePageProps) {
+function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -55,6 +48,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
     const {canUseSpotnanaTravel} = usePermissions();
 
+    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
@@ -62,6 +56,12 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
+
+    // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const hasCardFeedOrExpensifyCard = !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList);
 
     const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
     const formattedAddress =
@@ -196,7 +196,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                             disabledStyle={styles.cursorDefault}
                             errorRowStyles={styles.mt3}
                         />
-                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.name}>
                             <MenuItemWithTopDescription
                                 title={policyName}
                                 titleStyle={styles.workspaceTitleStyle}
@@ -229,7 +229,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                             </OfflineWithFeedback>
                         )}
                         <OfflineWithFeedback
-                            pendingAction={policy?.pendingFields?.generalSettings}
+                            pendingAction={policy?.pendingFields?.outputCurrency}
                             errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
                             onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
                             errorRowStyles={[styles.mt2]}
@@ -249,7 +249,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                             </View>
                         </OfflineWithFeedback>
                         {canUseSpotnanaTravel && shouldShowAddress && (
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
                                 <View>
                                     <MenuItemWithTopDescription
                                         title={formattedAddress}
@@ -270,7 +270,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                                     accessibilityLabel={translate('common.share')}
                                     text={translate('common.share')}
                                     onPress={onPressShare}
-                                    medium
                                     icon={Expensicons.QrCode}
                                 />
                                 {isOwner && (
@@ -279,7 +278,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                                         text={translate('common.delete')}
                                         style={[styles.ml2]}
                                         onPress={() => setIsDeleteModalOpen(true)}
-                                        medium
                                         icon={Expensicons.Trashcan}
                                     />
                                 )}
@@ -287,11 +285,11 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                         )}
                     </Section>
                     <ConfirmModal
-                        title={translate('common.delete')}
+                        title={translate('workspace.common.delete')}
                         isVisible={isDeleteModalOpen}
                         onConfirm={confirmDeleteAndHideModal}
                         onCancel={() => setIsDeleteModalOpen(false)}
-                        prompt={translate('workspace.common.deleteConfirmation')}
+                        prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
                         danger
@@ -304,8 +302,4 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
 
 WorkspaceProfilePage.displayName = 'WorkspaceProfilePage';
 
-export default withPolicy(
-    withOnyx<WorkspaceProfilePageProps, WorkspaceProfilePageOnyxProps>({
-        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-    })(WorkspaceProfilePage),
-);
+export default withPolicy(WorkspaceProfilePage);

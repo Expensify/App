@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addDays, addMinutes, format, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
-import {format as tzFormat, utcToZonedTime} from 'date-fns-tz';
+import {toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
@@ -132,6 +132,7 @@ describe('DateUtils', () => {
     it('canUpdateTimezone should return false when lastUpdatedTimezoneTime is less than 5 minutes ago', () => {
         // Use fake timers to control the current time
         jest.useFakeTimers();
+        DateUtils.setTimezoneUpdated();
         jest.setSystemTime(addMinutes(new Date(), 4));
         const isUpdateTimezoneAllowed = DateUtils.canUpdateTimezone();
         expect(isUpdateTimezoneAllowed).toBe(false);
@@ -161,9 +162,9 @@ describe('DateUtils', () => {
         const tomorrow = addDays(today, 1);
         const yesterday = subDays(today, 1);
 
-        const todayInTimezone = utcToZonedTime(today, timezone);
-        const tomorrowInTimezone = utcToZonedTime(tomorrow, timezone);
-        const yesterdayInTimezone = utcToZonedTime(yesterday, timezone);
+        const todayInTimezone = toZonedTime(today, timezone);
+        const tomorrowInTimezone = toZonedTime(tomorrow, timezone);
+        const yesterdayInTimezone = toZonedTime(yesterday, timezone);
 
         it('isToday should correctly identify today', () => {
             expect(DateUtils.isToday(todayInTimezone, timezone)).toBe(true);

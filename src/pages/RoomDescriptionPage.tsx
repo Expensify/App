@@ -1,17 +1,21 @@
-import {useFocusEffect} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
@@ -19,6 +23,8 @@ import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReportDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -31,6 +37,8 @@ type RoomDescriptionPageProps = {
 };
 
 function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
+    const route = useRoute<RouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
+    const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const [description, setDescription] = useState(() => Parser.htmlToMarkdown(report?.description ?? ''));
     const reportDescriptionInputRef = useRef<BaseTextInputRef | null>(null);
@@ -42,9 +50,17 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         setDescription(value);
     }, []);
 
+    const goBack = useCallback(() => {
+        Navigation.goBack(backTo ?? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+    }, [report.reportID, backTo]);
+
     const submitForm = useCallback(() => {
-        Report.updateDescription(report.reportID, report?.description ?? '', description.trim());
-    }, [report.reportID, report.description, description]);
+        const previousValue = report?.description ?? '';
+        const newValue = description.trim();
+
+        Report.updateDescription(report.reportID, previousValue, newValue);
+        goBack();
+    }, [report.reportID, report.description, description, goBack]);
 
     useFocusEffect(
         useCallback(() => {
@@ -60,14 +76,18 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         }, []),
     );
 
+    const canEdit = ReportUtils.canEditReportDescription(report, policy);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom={false}
             testID={RoomDescriptionPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!ReportUtils.canEditReportDescription(report, policy)}>
-                <HeaderWithBackButton title={translate('reportDescriptionPage.roomDescription')} />
+            <HeaderWithBackButton
+                title={translate('reportDescriptionPage.roomDescription')}
+                onBackButtonPress={goBack}
+            />
+            {canEdit && (
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM}
@@ -102,7 +122,12 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                         />
                     </View>
                 </FormProvider>
-            </FullPageNotFoundView>
+            )}
+            {!canEdit && (
+                <ScrollView style={[styles.flexGrow1, styles.ph5, styles.mb5]}>
+                    <RenderHTML html={Parser.replace(description)} />
+                </ScrollView>
+            )}
         </ScreenWrapper>
     );
 }

@@ -13,9 +13,6 @@ type CustomSelectionChangeEvent = NativeSyntheticEvent<TextInputSelectionChangeE
 };
 
 type ComposerProps = Omit<TextInputProps, 'onClear'> & {
-    /** identify id in the text input */
-    id?: string;
-
     /** Indicate whether input is multiline */
     multiline?: boolean;
 
@@ -69,9 +66,6 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
     /** Function to check whether composer is covered up or not */
     checkComposerVisibility?: () => boolean;
 
-    /** Whether this is the report action compose */
-    isReportActionCompose?: boolean;
-
     /** Whether the sull composer is open */
     isComposerFullSize?: boolean;
 
@@ -80,6 +74,9 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
 
     /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
     isGroupPolicyReport?: boolean;
+
+    /** Whether the soft keyboard is open */
+    showSoftInputOnFocus?: boolean;
 };
 
 export type {TextSelection, ComposerProps, CustomSelectionChangeEvent};

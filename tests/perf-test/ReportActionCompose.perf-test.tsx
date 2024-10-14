@@ -1,5 +1,5 @@
 import {fireEvent, screen} from '@testing-library/react-native';
-import type {ComponentType} from 'react';
+import type {ComponentType, EffectCallback} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
@@ -11,7 +11,6 @@ import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import OnyxProvider from '@src/components/OnyxProvider';
 import {KeyboardStateProvider} from '@src/components/withKeyboardState';
-import {WindowDimensionsProvider} from '@src/components/withWindowDimensions';
 import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionCompose from '@src/pages/home/report/ReportActionCompose/ReportActionCompose';
@@ -36,6 +35,7 @@ jest.mock('@react-navigation/native', () => {
         }),
         useIsFocused: () => true,
         useNavigationState: () => {},
+        useFocusEffect: (cb: EffectCallback) => cb(),
     };
 });
 
@@ -84,7 +84,7 @@ beforeEach(() => {
 
 function ReportActionComposeWrapper() {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, KeyboardStateProvider, WindowDimensionsProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, KeyboardStateProvider]}>
             <ReportActionCompose
                 onSubmit={() => jest.fn()}
                 reportID="1"

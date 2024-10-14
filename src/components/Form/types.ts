@@ -7,18 +7,22 @@ import type AmountForm from '@components/AmountForm';
 import type AmountPicker from '@components/AmountPicker';
 import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
+import type CountryPicker from '@components/CountryPicker';
 import type CountrySelector from '@components/CountrySelector';
 import type CurrencySelector from '@components/CurrencySelector';
 import type DatePicker from '@components/DatePicker';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
+import type PercentageForm from '@components/PercentageForm';
 import type Picker from '@components/Picker';
 import type RadioButtons from '@components/RadioButtons';
 import type RoomNameInput from '@components/RoomNameInput';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
+import type StatePicker from '@components/StatePicker';
 import type StateSelector from '@components/StateSelector';
 import type TextInput from '@components/TextInput';
 import type TextPicker from '@components/TextPicker';
 import type ValuePicker from '@components/ValuePicker';
+import type ConstantSelector from '@pages/Debug/ConstantSelector';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
 import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/import/DimensionTypeSelector';
 import type NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
@@ -42,6 +46,7 @@ type ValidInputs =
     | typeof CountrySelector
     | typeof CurrencySelector
     | typeof AmountForm
+    | typeof PercentageForm
     | typeof BusinessTypePicker
     | typeof DimensionTypeSelector
     | typeof StateSelector
@@ -55,7 +60,10 @@ type ValidInputs =
     | typeof EmojiPickerButtonDropdown
     | typeof NetSuiteCustomListPicker
     | typeof NetSuiteCustomFieldMappingPicker
-    | typeof NetSuiteMenuWithTopDescriptionForm;
+    | typeof NetSuiteMenuWithTopDescriptionForm
+    | typeof CountryPicker
+    | typeof StatePicker
+    | typeof ConstantSelector;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues';
 type ValueTypeMap = {
@@ -149,6 +157,7 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;
+    resetErrors: () => void;
 };
 
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;

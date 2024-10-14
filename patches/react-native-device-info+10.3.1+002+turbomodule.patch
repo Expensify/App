@@ -298,7 +298,7 @@ index 0000000..e91e5a2
 +
 +}
 diff --git a/node_modules/react-native-device-info/android/src/main/java/com/learnium/RNDeviceInfo/RNDeviceModule.java b/node_modules/react-native-device-info/android/src/main/java/com/learnium/RNDeviceInfo/RNDeviceModule.java
-index b01e9d2..9ac1628 100644
+index b01e9d2..d954717 100644
 --- a/node_modules/react-native-device-info/android/src/main/java/com/learnium/RNDeviceInfo/RNDeviceModule.java
 +++ b/node_modules/react-native-device-info/android/src/main/java/com/learnium/RNDeviceInfo/RNDeviceModule.java
 @@ -20,8 +20,6 @@ import android.os.Environment;
@@ -327,6 +327,15 @@ index b01e9d2..9ac1628 100644
    public static final String NAME = "RNDeviceInfo";
    private final DeviceTypeResolver deviceTypeResolver;
    private final DeviceIdResolver deviceIdResolver;
+@@ -152,7 +149,7 @@ public class RNDeviceModule extends ReactContextBaseJavaModule {
+ 
+ 
+   @Override
+-  public void onCatalystInstanceDestroy() {
++  public void invalidate() {
+     getReactApplicationContext().unregisterReceiver(receiver);
+     getReactApplicationContext().unregisterReceiver(headphoneConnectionReceiver);
+   }
 @@ -177,39 +174,13 @@ public class RNDeviceModule extends ReactContextBaseJavaModule {
      return null;
    }

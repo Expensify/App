@@ -384,7 +384,7 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
 
     valueIndexes.forEach((valueIndex) => {
         updatedReportField.disabledOptions[valueIndex] = !enabled;
-        const shouldResetDefaultValue = !enabled && reportField.defaultValue === reportField.values[valueIndex];
+        const shouldResetDefaultValue = !enabled && reportField.defaultValue === reportField.values.at(valueIndex);
 
         if (shouldResetDefaultValue) {
             updatedReportField.defaultValue = '';
@@ -461,7 +461,7 @@ function removeReportFieldListValue(policyID: string, reportFieldID: string, val
     valueIndexes
         .sort((a, b) => b - a)
         .forEach((valueIndex) => {
-            const shouldResetDefaultValue = reportField.defaultValue === reportField.values[valueIndex];
+            const shouldResetDefaultValue = reportField.defaultValue === reportField.values.at(valueIndex);
 
             if (shouldResetDefaultValue) {
                 updatedReportField.defaultValue = '';

@@ -95,6 +95,9 @@ type ConfirmContentProps = {
 
     /** Image to display with content */
     image?: IconAsset;
+
+    /** Whether the modal is visibile */
+    isVisible: boolean;
 };
 
 function ConfirmContent({
@@ -123,6 +126,7 @@ function ConfirmContent({
     image,
     titleContainerStyles,
     shouldReverseStackedButtons = false,
+    isVisible,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -200,6 +204,7 @@ function ConfirmContent({
                             style={shouldReverseStackedButtons ? styles.mt3 : styles.mt4}
                             onPress={onConfirm}
                             pressOnEnter
+                            isPressOnEnterActive={isVisible}
                             large
                             text={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
@@ -220,7 +225,6 @@ function ConfirmContent({
                                 style={[styles.noSelect, styles.flex1]}
                                 onPress={onCancel}
                                 text={cancelText || translate('common.no')}
-                                medium
                             />
                         )}
                         <Button
@@ -229,9 +233,9 @@ function ConfirmContent({
                             style={[styles.flex1]}
                             onPress={onConfirm}
                             pressOnEnter
+                            isPressOnEnterActive={isVisible}
                             text={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
-                            medium
                         />
                     </View>
                 )}

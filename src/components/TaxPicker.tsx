@@ -92,9 +92,9 @@ function TaxPicker({selectedTaxRate = '', policy, transaction, insets, onSubmit,
         [searchValue, selectedOptions, policy, currentTransaction],
     );
 
-    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(sections[0].data.length > 0, searchValue);
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);
 
-    const selectedOptionKey = useMemo(() => sections?.[0]?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
+    const selectedOptionKey = useMemo(() => sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
 
     const handleSelectRow = useCallback(
         (newSelectedOption: OptionsListUtils.TaxRatesOption) => {
@@ -131,7 +131,7 @@ export default withOnyx<TaxPickerProps, TaxPickerOnyxProps>({
     },
     transaction: {
         key: ({transactionID, action}) => {
-            if (action === CONST.IOU.ACTION.CREATE || IOUUtils.isMovingTransactionFromTrackExpense(action)) {
+            if (IOUUtils.shouldUseTransactionDraft(action)) {
                 return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
             }
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;

@@ -45,6 +45,8 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
 
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {
                 errors.tagName = translate('workspace.tags.tagRequiredError');
+            } else if (tagName === '0') {
+                errors.tagName = translate('workspace.tags.invalidTagNameError');
             } else if (tags?.[tagName]) {
                 errors.tagName = translate('workspace.tags.existingTagError');
             } else if ([...tagName].length > CONST.TAG_NAME_LIMIT) {

@@ -6,6 +6,7 @@ import type {Attachment} from '@components/Attachments/types';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -16,6 +17,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     const reportID = route.params.reportID;
     const type = route.params.type;
     const accountID = route.params.accountID;
+    const isAuthTokenRequired = route.params.isAuthTokenRequired;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
@@ -44,7 +46,8 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
                 ComposerFocusManager.setReadyToFocus();
             }}
             onCarouselAttachmentChange={onCarouselAttachmentChange}
-            shouldShowNotFoundPage={!isLoadingApp && !report?.reportID}
+            shouldShowNotFoundPage={!isLoadingApp && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID}
+            isAuthTokenRequired={!!isAuthTokenRequired}
         />
     );
 }

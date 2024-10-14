@@ -22,9 +22,9 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '1',
             participants: {
-                2: {},
-                1: {},
-                5: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                5: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Iron Man, Mister Fantastic, Invisible Woman',
             type: CONST.REPORT.TYPE.CHAT,
@@ -35,8 +35,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '2',
             participants: {
-                2: {},
-                3: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Spider-Man',
             type: CONST.REPORT.TYPE.CHAT,
@@ -49,8 +49,8 @@ describe('OptionsListUtils', () => {
             isPinned: true,
             reportID: '3',
             participants: {
-                2: {},
-                1: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Mister Fantastic',
             type: CONST.REPORT.TYPE.CHAT,
@@ -61,8 +61,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '4',
             participants: {
-                2: {},
-                4: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Black Panther',
             type: CONST.REPORT.TYPE.CHAT,
@@ -73,8 +73,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '5',
             participants: {
-                2: {},
-                5: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                5: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Invisible Woman',
             type: CONST.REPORT.TYPE.CHAT,
@@ -85,8 +85,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '6',
             participants: {
-                2: {},
-                6: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                6: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Thor',
             type: CONST.REPORT.TYPE.CHAT,
@@ -99,8 +99,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '7',
             participants: {
-                2: {},
-                7: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                7: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Captain America',
             type: CONST.REPORT.TYPE.CHAT,
@@ -113,8 +113,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '8',
             participants: {
-                2: {},
-                12: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                12: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Silver Surfer',
             type: CONST.REPORT.TYPE.CHAT,
@@ -127,8 +127,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '9',
             participants: {
-                2: {},
-                8: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                8: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Mister Sinister',
             iouReportID: '100',
@@ -142,8 +142,8 @@ describe('OptionsListUtils', () => {
             reportID: '10',
             isPinned: false,
             participants: {
-                2: {},
-                7: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                7: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: '',
             oldPolicyName: "SHIELD's workspace",
@@ -236,8 +236,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '11',
             participants: {
-                2: {},
-                999: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                999: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Concierge',
             type: CONST.REPORT.TYPE.CHAT,
@@ -252,8 +252,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '12',
             participants: {
-                2: {},
-                1000: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1000: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Chronos',
             type: CONST.REPORT.TYPE.CHAT,
@@ -268,8 +268,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '13',
             participants: {
-                2: {},
-                1001: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1001: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Receipts',
             type: CONST.REPORT.TYPE.CHAT,
@@ -284,34 +284,16 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '14',
             participants: {
-                2: {},
-                1: {},
-                10: {},
-                3: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: '',
             oldPolicyName: 'Avengers Room',
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
-        },
-    };
-
-    const REPORTS_WITH_WORKSPACE: OnyxCollection<Report> = {
-        ...REPORTS,
-        '15': {
-            lastReadTime: '2021-01-14 11:25:39.295',
-            lastVisibleActionCreated: '2022-11-22 03:26:02.015',
-            isPinned: false,
-            isChatRoom: false,
-            reportID: '15',
-            participants: {
-                1: {},
-                2: {},
-            },
-            reportName: 'Test Workspace',
-            type: CONST.REPORT.TYPE.CHAT,
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         },
     };
 
@@ -323,9 +305,9 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '15',
             participants: {
-                2: {},
-                3: {},
-                4: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Spider-Man, Black Panther',
             type: CONST.REPORT.TYPE.CHAT,
@@ -382,7 +364,7 @@ describe('OptionsListUtils', () => {
         id: policyID,
         name: 'Hero Policy',
         role: 'user',
-        type: 'free',
+        type: CONST.POLICY.TYPE.TEAM,
         owner: '',
         outputCurrency: '',
         isPolicyExpenseChatEnabled: false,
@@ -411,7 +393,6 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_CHRONOS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_RECEIPTS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
-    let OPTIONS_WITH_WORKSPACE: OptionsListUtils.OptionList;
 
     beforeEach(() => {
         OPTIONS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS);
@@ -419,7 +400,6 @@ describe('OptionsListUtils', () => {
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
         OPTIONS_WITH_RECEIPTS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, REPORTS_WITH_RECEIPTS);
         OPTIONS_WITH_WORKSPACE_ROOM = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE_ROOMS);
-        OPTIONS_WITH_WORKSPACE = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE);
     });
 
     it('getSearchOptions()', () => {
@@ -447,10 +427,10 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1 - MAX_RECENT_REPORTS);
 
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Widow');
-        expect(results.personalDetails[1].text).toBe('Invisible Woman');
-        expect(results.personalDetails[2].text).toBe('Spider-Man');
-        expect(results.personalDetails[3].text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(1)?.text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(2)?.text).toBe('Spider-Man');
+        expect(results.personalDetails.at(3)?.text).toBe('The Incredible Hulk');
 
         // Then the result which has an existing report should also have the reportID attached
         const personalDetailWithExistingReport = results.personalDetails.find((personalDetail) => personalDetail.login === 'peterparker@expensify.com');
@@ -460,10 +440,10 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getFilteredOptions([], OPTIONS.personalDetails, [], '');
 
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Panther');
-        expect(results.personalDetails[1].text).toBe('Black Widow');
-        expect(results.personalDetails[2].text).toBe('Captain America');
-        expect(results.personalDetails[3].text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
 
         // When we don't include personal detail to the result
         results = OptionsListUtils.getFilteredOptions(
@@ -539,10 +519,10 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 6);
 
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Widow');
-        expect(results.personalDetails[1].text).toBe('Invisible Woman');
-        expect(results.personalDetails[2].text).toBe('Spider-Man');
-        expect(results.personalDetails[3].text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(1)?.text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(2)?.text).toBe('Spider-Man');
+        expect(results.personalDetails.at(3)?.text).toBe('The Incredible Hulk');
 
         // And none of our personalDetails should include any of the users with recent reports
         const reportLogins = results.recentReports.map((reportOption) => reportOption.login);
@@ -638,10 +618,10 @@ describe('OptionsListUtils', () => {
         const results = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], '');
 
         // We should expect personal details to be sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Panther');
-        expect(results.personalDetails[1].text).toBe('Black Widow');
-        expect(results.personalDetails[2].text).toBe('Captain America');
-        expect(results.personalDetails[3].text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
     });
 
     it('getFilteredOptions() for categories', () => {
@@ -2611,12 +2591,12 @@ describe('OptionsListUtils', () => {
         const formattedMembers = Object.values(PERSONAL_DETAILS).map((personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
 
         // We're only formatting items inside the array, so the order should be the same as the original PERSONAL_DETAILS array
-        expect(formattedMembers[0].text).toBe('Mister Fantastic');
-        expect(formattedMembers[1].text).toBe('Iron Man');
-        expect(formattedMembers[2].text).toBe('Spider-Man');
+        expect(formattedMembers.at(0)?.text).toBe('Mister Fantastic');
+        expect(formattedMembers.at(1)?.text).toBe('Iron Man');
+        expect(formattedMembers.at(2)?.text).toBe('Spider-Man');
 
         // We should expect only the first item to be selected
-        expect(formattedMembers[0].isSelected).toBe(true);
+        expect(formattedMembers.at(0)?.isSelected).toBe(true);
 
         // And all the others to be unselected
         expect(formattedMembers.slice(1).every((personalDetail) => !personalDetail.isSelected)).toBe(true);
@@ -2638,12 +2618,11 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
-            expect(filteredOptions.recentReports.length).toBe(5);
-            expect(filteredOptions.recentReports[0].text).toBe('Invisible Woman');
-            expect(filteredOptions.recentReports[1].text).toBe('Spider-Man');
-            expect(filteredOptions.recentReports[2].text).toBe('Black Widow');
-            expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic, Invisible Woman');
-            expect(filteredOptions.recentReports[4].text).toBe("SHIELD's workspace (archived)");
+            expect(filteredOptions.recentReports.length).toBe(4);
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Invisible Woman');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Spider-Man');
+            expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Widow');
+            expect(filteredOptions.recentReports.at(3)?.text).toBe('Mister Fantastic, Invisible Woman');
         });
 
         it('should filter users by email', () => {
@@ -2653,7 +2632,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].text).toBe('Mr Sinister');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mr Sinister');
         });
 
         it('should find archived chats', () => {
@@ -2662,7 +2641,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].isArchivedRoom).toBe(true);
+            expect(!!filteredOptions.recentReports.at(0)?.private_isArchived).toBe(true);
         });
 
         it('should filter options by email if dot is skipped in the email', () => {
@@ -2673,7 +2652,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].login).toBe('barry.allen@expensify.com');
+            expect(filteredOptions.recentReports.at(0)?.login).toBe('barry.allen@expensify.com');
         });
 
         it('should include workspace rooms in the search results', () => {
@@ -2683,7 +2662,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].subtitle).toBe('Avengers Room');
+            expect(filteredOptions.recentReports.at(0)?.subtitle).toBe('Avengers Room');
         });
 
         it('should put exact match by login on the top of the list', () => {
@@ -2692,8 +2671,8 @@ describe('OptionsListUtils', () => {
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
-            expect(filteredOptions.recentReports.length).toBe(2);
-            expect(filteredOptions.recentReports[0].login).toBe(searchText);
+            expect(filteredOptions.recentReports.length).toBe(1);
+            expect(filteredOptions.recentReports.at(0)?.login).toBe(searchText);
         });
 
         it('should prioritize options with matching display name over chatrooms', () => {
@@ -2704,7 +2683,7 @@ describe('OptionsListUtils', () => {
             const filterOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filterOptions.recentReports.length).toBe(2);
-            expect(filterOptions.recentReports[1].isChatRoom).toBe(true);
+            expect(filterOptions.recentReports.at(1)?.isChatRoom).toBe(true);
         });
 
         it('should put the item with latest lastVisibleActionCreated on top when search value match multiple items', () => {
@@ -2714,8 +2693,8 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(2);
-            expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
         });
 
         it('should return the user to invite when the search value is a valid, non-existent email', () => {
@@ -2742,17 +2721,6 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
 
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
-        });
-
-        it('should return the workspaces that match the participant login', () => {
-            const searchText = 'reedrichards@expensify.com';
-
-            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_WORKSPACE, '');
-            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
-
-            const recentReportsNames = filteredOptions.recentReports.map((option) => option.text);
-
-            expect(recentReportsNames).toContain('Test Workspace');
         });
 
         it('should return limited amount of recent reports if the limit is set', () => {
@@ -2784,7 +2752,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, 'peterparker@expensify.com');
 
             expect(filteredOptions.personalDetails.length).toBe(1);
-            expect(filteredOptions.personalDetails[0].text).toBe('Spider-Man');
+            expect(filteredOptions.personalDetails.at(0)?.text).toBe('Spider-Man');
         });
 
         it('should not show any recent reports if a search value does not match the group chat name (getShareDestinationsOptions)', () => {
@@ -2841,7 +2809,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports.length).toBe(0);
 
             expect(filteredOptions.personalDetails.length).toBe(1);
-            expect(filteredOptions.personalDetails[0].login).toBe('brucebanner@expensify.com');
+            expect(filteredOptions.personalDetails.at(0)?.login).toBe('brucebanner@expensify.com');
         });
 
         it('should return all matching reports and personal details (getFilteredOptions)', () => {
@@ -2849,10 +2817,10 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, '.com');
 
             expect(filteredOptions.recentReports.length).toBe(5);
-            expect(filteredOptions.recentReports[0].text).toBe('Captain America');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America');
 
             expect(filteredOptions.personalDetails.length).toBe(4);
-            expect(filteredOptions.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
+            expect(filteredOptions.personalDetails.at(0)?.login).toBe('natasharomanoff@expensify.com');
         });
 
         it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone (getFilteredOptions)', () => {
@@ -2931,7 +2899,7 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
             const filteredOptions = OptionsListUtils.filterOptions(options, 'peterparker@expensify.com', {sortByReportTypeInSearch: true});
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].text).toBe('Spider-Man');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Spider-Man');
             expect(filteredOptions.personalDetails.length).toBe(0);
         });
 
@@ -2941,10 +2909,10 @@ describe('OptionsListUtils', () => {
 
             expect(filteredOptions.personalDetails.length).toBe(4);
             expect(filteredOptions.recentReports.length).toBe(5);
-            expect(filteredOptions.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
-            expect(filteredOptions.recentReports[0].text).toBe('Captain America');
-            expect(filteredOptions.recentReports[1].text).toBe('Mr Sinister');
-            expect(filteredOptions.recentReports[2].text).toBe('Black Panther');
+            expect(filteredOptions.personalDetails.at(0)?.login).toBe('natasharomanoff@expensify.com');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mr Sinister');
+            expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Panther');
         });
 
         it('should return matching option when searching (getSearchOptions)', () => {
@@ -2952,7 +2920,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, 'spider');
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].text).toBe('Spider-Man');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Spider-Man');
         });
 
         it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
@@ -2960,8 +2928,8 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, 'fantastic');
 
             expect(filteredOptions.recentReports.length).toBe(2);
-            expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
 
             return waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
@@ -2971,7 +2939,7 @@ describe('OptionsListUtils', () => {
                     const filteredResults = OptionsListUtils.filterOptions(results, 'barry.allen@expensify.com', {sortByReportTypeInSearch: true});
 
                     expect(filteredResults.recentReports.length).toBe(1);
-                    expect(filteredResults.recentReports[0].text).toBe('The Flash');
+                    expect(filteredResults.recentReports.at(0)?.text).toBe('The Flash');
                 });
         });
     });

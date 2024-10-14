@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
@@ -10,7 +10,9 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,6 +25,7 @@ import * as reportActions from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type MoneyReportViewProps = {
     /** The report currently being looked at */
@@ -39,13 +42,16 @@ type MoneyReportViewProps = {
 
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: boolean;
+
+    pendingAction?: PendingAction;
 };
 
-function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTotal = true, shouldHideThreadDividerLine}: MoneyReportViewProps) {
+function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTotal = true, shouldHideThreadDividerLine, pendingAction}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const isSettled = ReportUtils.isSettled(report.reportID);
     const isTotalUpdated = ReportUtils.hasUpdatedTotal(report, policy);
 
@@ -72,9 +78,25 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     }, [policy, report]);
 
     const enabledReportFields = sortedPolicyReportFields.filter((reportField) => !ReportUtils.isReportFieldDisabled(report, reportField, policy));
-    const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && ReportUtils.isReportFieldOfTypeTitle(enabledReportFields[0]);
+    const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && ReportUtils.isReportFieldOfTypeTitle(enabledReportFields.at(0));
     const shouldShowReportField =
         !ReportUtils.isClosedExpenseReportWithNoExpenses(report) && ReportUtils.isPaidGroupPolicyExpenseReport(report) && (!isCombinedReport || !isOnlyTitleFieldEnabled);
+
+    const renderThreadDivider = useMemo(
+        () =>
+            shouldHideThreadDividerLine && !isCombinedReport ? (
+                <UnreadActionIndicator
+                    reportActionID={report.reportID}
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                />
+            ) : (
+                <SpacerView
+                    shouldShow={!shouldHideThreadDividerLine}
+                    style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
+                />
+            ),
+        [shouldHideThreadDividerLine, report.reportID, styles.reportHorizontalRule, isCombinedReport],
+    );
 
     return (
         <>
@@ -99,7 +121,8 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
                                 return (
                                     <OfflineWithFeedback
-                                        pendingAction={report.pendingFields?.[fieldKey]}
+                                        // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+                                        pendingAction={pendingAction ? undefined : report.pendingFields?.[fieldKey]}
                                         errors={report.errorFields?.[fieldKey]}
                                         errorRowStyles={styles.ph5}
                                         key={`menuItem-${fieldKey}`}
@@ -108,7 +131,16 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                         <MenuItemWithTopDescription
                                             description={Str.UCFirst(reportField.name)}
                                             title={fieldValue}
-                                            onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', reportField.fieldID))}
+                                            onPress={() =>
+                                                Navigation.navigate(
+                                                    ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(
+                                                        report.reportID,
+                                                        report.policyID ?? '-1',
+                                                        reportField.fieldID,
+                                                        Navigation.getReportRHPActiveRoute(),
+                                                    ),
+                                                )
+                                            }
                                             shouldShowRightIcon
                                             disabled={isFieldDisabled}
                                             wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -117,7 +149,6 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                             interactive
                                             shouldStackHorizontally={false}
                                             onSecondaryInteraction={() => {}}
-                                            hoverAndPressStyle={false}
                                             titleWithTooltips={[]}
                                             brickRoadIndicator={violation ? 'error' : undefined}
                                             errorText={violationTranslation}
@@ -144,12 +175,20 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                             />
                                         </View>
                                     )}
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
-                                    >
-                                        {formattedTotalAmount}
-                                    </Text>
+                                    {!isTotalUpdated && !isOffline ? (
+                                        <ActivityIndicator
+                                            size="small"
+                                            style={[styles.moneyRequestLoadingHeight]}
+                                            color={theme.textSupporting}
+                                        />
+                                    ) : (
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
+                                        >
+                                            {formattedTotalAmount}
+                                        </Text>
+                                    )}
                                 </View>
                             </View>
                         )}
@@ -197,12 +236,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                     </>
                 )}
             </View>
-            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotal) && (
-                <SpacerView
-                    shouldShow={!shouldHideThreadDividerLine}
-                    style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
-                />
-            )}
+            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotal) && renderThreadDivider}
         </>
     );
 }

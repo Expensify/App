@@ -4,7 +4,7 @@ import adbTypeText from './adbTypeText';
 // eslint-disable-next-line rulesdir/prefer-import-module-contents
 import {NativeCommandsAction} from './NativeCommandsAction';
 
-const executeFromPayload = (actionName?: string, payload?: NativeCommandPayload): boolean => {
+const executeFromPayload = (actionName?: string, payload?: NativeCommandPayload): Promise<boolean> => {
     switch (actionName) {
         case NativeCommandsAction.scroll:
             throw new Error('Not implemented yet');
