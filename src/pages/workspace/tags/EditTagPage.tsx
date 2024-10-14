@@ -51,7 +51,7 @@ function EditTagPage({route}: EditTagPageProps) {
 
             return errors;
         },
-        [policyTags, route.params.orderWeight, currentTagName, translate, backTo],
+        [policyTags, route.params.orderWeight, currentTagName, translate],
     );
 
     const editTag = useCallback(
@@ -68,7 +68,7 @@ function EditTagPage({route}: EditTagPageProps) {
                     : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route?.params?.policyID, route.params.orderWeight, route.params.tagName),
             );
         },
-        [currentTagName, route.params.policyID, route.params.tagName, route.params.orderWeight, isQuickSettingsFlow],
+        [currentTagName, route.params.policyID, route.params.tagName, route.params.orderWeight, isQuickSettingsFlow, backTo],
     );
 
     return (
