@@ -153,7 +153,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
-    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
+    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo, loginData]);
 
     useEffect(() => {
         setIsValidateCodeActionModalVisible(!loginData?.validatedDate);
