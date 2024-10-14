@@ -250,6 +250,21 @@ function getMemberCards(policy: OnyxEntry<Policy>, allCardsList: OnyxCollection<
     return cards;
 }
 
+const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>): IconAsset => {
+    const iconMap: Record<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>, IconAsset> = {
+        [CONST.COMPANY_CARDS.BANKS.AMEX]: Illustrations.AmexCardCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA]: Illustrations.BankOfAmericaCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE]: Illustrations.CapitalOneCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.CHASE]: Illustrations.ChaseCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.CITI_BANK]: Illustrations.CitibankCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.WELLS_FARGO]: Illustrations.WellsFargoCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.BREX]: Illustrations.BrexCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.STRIPE]: Illustrations.StripeCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.OTHER]: Illustrations.OtherCompanyCardDetail,
+    };
+    return iconMap[bank];
+};
+
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed {
     const defaultFeed = Object.keys(cardFeeds?.settings?.companyCards ?? {}).at(0) as CompanyCardFeed;
     return lastSelectedFeed ?? defaultFeed;
@@ -275,5 +290,6 @@ export {
     getCardFeedName,
     getCardDetailsImage,
     getMemberCards,
+    getBankCardDetailsImage,
     getSelectedFeed,
 };

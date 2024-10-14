@@ -53,8 +53,6 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
             return;
         }
         if (selectedFeed === CONST.EXPENSIFY_CARD.NAME) {
-            const activeRoute = Navigation.getActiveRoute();
-
             Card.setIssueNewCardStepAndData({
                 step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
                 data: {
@@ -62,7 +60,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                 },
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)));
         } else {
             CompanyCards.setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CARD,

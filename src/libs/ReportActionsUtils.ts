@@ -171,6 +171,10 @@ function isApprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportA
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED);
 }
 
+function isUnapprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED);
+}
+
 function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
@@ -1876,6 +1880,7 @@ export {
     isSubmittedAction,
     isSubmittedAndClosedAction,
     isApprovedAction,
+    isUnapprovedAction,
     isForwardedAction,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,

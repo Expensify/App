@@ -10,6 +10,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -23,6 +24,7 @@ function CardTypeStep() {
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [typeSelected, setTypeSelected] = useState<CompanyCardFeed>();
+    const {canUseDirectFeeds} = usePermissions();
     const [isError, setIsError] = useState(false);
 
     const submit = () => {
@@ -44,7 +46,11 @@ function CardTypeStep() {
     }, [addNewCard?.data.feedType]);
 
     const handleBackButtonPress = () => {
-        Navigation.goBack();
+        if (canUseDirectFeeds) {
+            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+        } else {
+            Navigation.goBack();
+        }
     };
 
     const data = [

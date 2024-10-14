@@ -46,6 +46,8 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         text: cardFeeds?.settings?.companyCardNicknames?.[selectedFeed] ?? translate(`workspace.companyCards.addNewCard.cardProviders.${feed as CompanyCardFeed}`),
         keyForList: feed,
         isSelected: feed === selectedFeed,
+        brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+        canShowSeveralIndicators: !!cardFeeds?.companyCards?.[selectedFeed]?.errors,
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(feed)}
