@@ -378,7 +378,7 @@ function updateQuickbooksDesktopSyncClasses<TSettingValue extends Connections['q
     const onyxData = buildOnyxDataForQuickbooksDesktopMappingsConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES, settingValue, oldSettingValue);
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
         policyID,
-        settingValue: JSON.stringify(settingValue),
+        settingValue,
         idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES),
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_SYNC_CLASSES, parameters, onyxData);
