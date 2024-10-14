@@ -267,7 +267,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     title={formattedContactMethod}
                     onModalHide={() => {}}
                     hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                    isVisible={isValidateCodeActionModalVisible && (!loginData.validatedDate && !!loginData)}
+                    isVisible={isValidateCodeActionModalVisible && !loginData.validatedDate && !!loginData}
                     validatePendingAction={loginData.pendingFields?.validateCodeSent}
                     handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode)}
                     validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
