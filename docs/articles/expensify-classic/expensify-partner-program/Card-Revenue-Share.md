@@ -13,7 +13,7 @@ To benefit from this program, you or a member of your firm must be a domain admi
      - If you can click on the domain and access the domain settings, you are a Domain Admin
      - If you’re not a Domain Admin, your client can add you as one by heading to **Settings > Domains > [Client's Domain] > Domain Admins > Add Admin**.
 
-_**Note:** You can view all domain admins under *Settings > Domains > [Client's Domain] > Domain Admins*._
+_**Note:** You can view all domain admins under Settings > Domains > [Client's Domain] > Domain Admins._
 
 # Connect a deposit-only business bank account
 [Follow these instructions](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#connect-a-business-deposit-only-account) to connect a deposit-only business bank account.
