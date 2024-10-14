@@ -3031,12 +3031,14 @@ const translations = {
             selectCardFeed: 'Select card feed',
             addCardFeed: 'Add card feed',
             addNewCard: {
+                other: 'Other',
                 cardProviders: {
                     amex: 'American Express Corporate Cards',
                     mastercard: 'Mastercard Commercial Cards',
                     visa: 'Visa Commercial Cards',
                 },
                 yourCardProvider: `Who's your card provider?`,
+                whoIsYourBankAccount: 'Who’s your bank?',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
                     heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
@@ -3064,6 +3066,7 @@ const translations = {
                 },
                 error: {
                     pleaseSelectProvider: 'Please select a card provider before continuing.',
+                    pleaseSelectBankAccount: 'Please select a bank account before continuing.',
                 },
             },
             assignCard: 'Assign card',
@@ -3085,6 +3088,9 @@ const translations = {
             card: 'Card',
             startTransactionDate: 'Start transaction date',
             cardName: 'Card name',
+            brokenConnectionErrorFirstPart: `Card feed connection is broken. Please `,
+            brokenConnectionErrorLink: 'log into your bank ',
+            brokenConnectionErrorSecondPart: 'so we can establish the connection again.',
             assignedYouCard: ({assigner}: AssignedYouCardParams) => `${assigner} assigned you a company card! Imported transactions will appear in this chat.`,
             chooseCardFeed: 'Choose card feed',
         },
@@ -4396,7 +4402,7 @@ const translations = {
                 unshare: ({to}: UnshareParams) => `removed user ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
-                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label} ("${errorMessage}")`,
+                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
@@ -5002,8 +5008,7 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to update your copilot.`,
         notAllowed: 'Not so fast...',
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
-        notAllowedMessageHyperLinked: ' limited access',
-        notAllowedMessageEnd: ' copilot',
+        notAllowedMessageHyperLinked: ' copilot',
     },
     debug: {
         debug: 'Debug',
