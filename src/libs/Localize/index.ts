@@ -9,6 +9,7 @@ import translations from '@src/languages/translations';
 import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
@@ -127,8 +128,10 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
 }
 
 const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
-    monitoringName: 'getTranslatedPhrase',
-    transformKey: ([language, phraseKey, fallbackLanguage, ...parameters]) => `${language}-${phraseKey}-${fallbackLanguage}-${parameters.length > 0 ? JSON.stringify(parameters.at(0)) : ''}`,
+    maxArgs: 2,
+    equality: 'shallow',
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    keyFilter: ([language, phraseKey, fallbackLanguage, ...parameters]) => !isEmptyObject(parameters.at(0)),
 });
 
 /**
