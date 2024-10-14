@@ -1124,6 +1124,10 @@ const ROUTES = {
         route: 'share/share-details/:reportID',
         getRoute: (reportID: string) => `share/share-details/${reportID}`,
     },
+    SHARE_SUBMIT_DETAILS: {
+        route: 'share/submit-details/:reportID',
+        getRoute: (reportID: string) => `share/submit-details/${reportID}`,
+    },
 
     PROCESS_MONEY_REQUEST_HOLD: {
         route: 'hold-expense-educational',

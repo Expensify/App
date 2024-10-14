@@ -1421,6 +1421,7 @@ type SharedScreensParamList = {
 type ShareNavigatorParamList = {
     [SCREENS.SHARE.ROOT]: undefined;
     [SCREENS.SHARE.SHARE_DETAILS]: {reportID: string};
+    [SCREENS.SHARE.SUBMIT_DETAILS]: {reportID: string};
 };
 
 type PublicScreensParamList = SharedScreensParamList & {

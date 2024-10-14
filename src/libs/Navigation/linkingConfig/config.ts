@@ -1288,6 +1288,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             screens: {
                 [SCREENS.SHARE.ROOT]: {path: ROUTES.SHARE_ROOT},
                 [SCREENS.SHARE.SHARE_DETAILS]: {path: ROUTES.SHARE_DETAILS.route},
+                [SCREENS.SHARE.SUBMIT_DETAILS]: {path: ROUTES.SHARE_SUBMIT_DETAILS.route},
             },
         },
     },

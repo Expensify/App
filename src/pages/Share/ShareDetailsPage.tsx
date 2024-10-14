@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentPreview from '@components/AttachmentPreview';
@@ -16,9 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as Report from '@userActions/Report';
-import * as ShareActions from '@userActions/Share';
 import UserListItem from '@src/components/SelectionList/UserListItem';
-import ShareActionHandlerModule from '@src/modules/ShareActionHandlerModule';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -37,22 +35,6 @@ function ShareDetailsPage({
     const [tempShareFiles] = useOnyx(`${ONYXKEYS.COLLECTION.TEMP_SHARE_FILES}`);
 
     const [message, setMessage] = useState('');
-
-    const handleProcessFiles = () => {
-        ShareActionHandlerModule.processFiles((processedFiles) => {
-            // eslint-disable-next-line no-console
-            const tempFile = processedFiles.at(0);
-            if (tempFile) {
-                ShareActions.addTempShareFile({...tempFile, reportID, readyForRemoval: false});
-            }
-        });
-    };
-
-    useEffect(() => {
-        handleProcessFiles();
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const currentAttachment = useMemo(() => {
         return Object.values(tempShareFiles ?? {})
