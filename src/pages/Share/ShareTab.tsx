@@ -15,7 +15,7 @@ function ShareTab() {
                 if (!reportID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.SHARE_SUBMIT_DETAILS.getRoute(reportID));
+                Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID));
             }}
             iouRequestType="manual"
             action="create"

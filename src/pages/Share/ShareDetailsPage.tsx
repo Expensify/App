@@ -38,10 +38,9 @@ function ShareDetailsPage({
 
     const currentAttachment = useMemo(() => {
         return Object.values(tempShareFiles ?? {})
-            ?.filter((file) => file?.reportID === reportID)
             .sort((a, b) => Number(b?.processedAt) - Number(a?.processedAt))
             .at(0);
-    }, [reportID, tempShareFiles]);
+    }, [tempShareFiles]);
 
     const reportDisplay = OptionsListUtils.getReportDisplayOption(report);
 
