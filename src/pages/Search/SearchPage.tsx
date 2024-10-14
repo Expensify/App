@@ -47,11 +47,7 @@ function SearchPage({route}: SearchPageProps) {
                             queryJSON={queryJSON}
                             hash={queryJSON.hash}
                         />
-                        <SearchStatusBar
-                            type={queryJSON.type}
-                            status={queryJSON.status}
-                            policyID={queryJSON.policyID}
-                        />
+                        <SearchStatusBar queryJSON={queryJSON} />
                         <Search queryJSON={queryJSON} />
                     </>
                 )}
