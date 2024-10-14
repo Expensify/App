@@ -337,31 +337,29 @@ function Composer(
     );
 
     return (
-        <>
-            <RNMarkdownTextInput
-                id={CONST.COMPOSER.NATIVE_ID}
-                autoComplete="off"
-                autoCorrect={!Browser.isMobileSafari()}
-                placeholderTextColor={theme.placeholderText}
-                ref={(el) => (textInput.current = el)}
-                selection={selection}
-                style={[inputStyleMemo]}
-                markdownStyle={markdownStyle}
-                value={value}
-                defaultValue={defaultValue}
-                autoFocus={autoFocus}
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...props}
-                onSelectionChange={addCursorPositionToSelectionChange}
-                onContentSizeChange={(e) => {
-                    setTextInputWidth(`${e.nativeEvent.contentSize.width}px`);
-                    updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
-                }}
-                disabled={isDisabled}
-                onKeyPress={handleKeyPress}
-            />
-            {shouldCalculateCaretPosition && renderElementForCaretPosition}
-        </>
+        <RNMarkdownTextInput
+            id={CONST.COMPOSER.NATIVE_ID}
+            autoComplete="off"
+            autoCorrect={!Browser.isMobileSafari()}
+            placeholderTextColor={theme.placeholderText}
+            ref={(el) => (textInput.current = el)}
+            selection={selection}
+            style={[inputStyleMemo]}
+            markdownStyle={markdownStyle}
+            value={value}
+            defaultValue={defaultValue}
+            autoFocus={autoFocus}
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            {...props}
+            onSelectionChange={addCursorPositionToSelectionChange}
+            onContentSizeChange={(e) => {
+                updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
+            }}
+            disabled={isDisabled}
+            onKeyPress={handleKeyPress}
+            addAuthTokenToImageURLCallback={addEncryptedAuthTokenToURL}
+            imagePreviewAuthRequiredURLs={imagePreviewAuthRequiredURLs}
+        />
     );
 }
 
