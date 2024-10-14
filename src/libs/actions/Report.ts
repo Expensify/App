@@ -2019,6 +2019,7 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
     const parameters = {
         reportID,
         reportFields: JSON.stringify({[fieldKey]: reportField}),
+        reportFieldsActionIDs: JSON.stringify({[fieldKey]: optimisticChangeFieldAction.reportActionID}),
     };
 
     API.write(WRITE_COMMANDS.SET_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
