@@ -62,6 +62,7 @@
     "react-compiler-healthcheck": "react-compiler-healthcheck --verbose",
     "react-compiler-healthcheck-test": "react-compiler-healthcheck --verbose &> react-compiler-output.txt",
     "generate-search-parser": "peggy --format es -o src/libs/SearchParser/searchParser.js src/libs/SearchParser/searchParser.peggy ",
+    "generate-autocomplete-parser": "peggy --format es -o src/libs/AutocompleteParser/autocompleteParser.js src/libs/AutocompleteParser/autocompleteParser.peggy ",
     "web:prod": "http-server ./dist --cors"
   },
   "dependencies": {

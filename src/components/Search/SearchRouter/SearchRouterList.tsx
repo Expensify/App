@@ -17,22 +17,27 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 type ItemWithQuery = {
     query: string;
+    text?: string;
 };
 
 type SearchRouterListProps = {
-    /** currentQuery value computed coming from parsed TextInput value */
-    currentQuery: SearchQueryJSON | undefined;
+    /** Value of TextInput */
+    textInputValue: string;
 
     /** Recent searches */
     recentSearches: ItemWithQuery[] | undefined;
 
     /** Recent reports */
     recentReports: OptionData[];
+
+    /** Autocomplete items */
+    autocompleteItems: ItemWithQuery[] | undefined;
 
     /** Callback to submit query when selecting a list item */
     onSearchSubmit: (query: SearchQueryJSON | undefined) => void;
@@ -41,7 +46,7 @@ type SearchRouterListProps = {
     reportForContextualSearch?: OptionData;
 
     /** Callback to update search query when selecting contextual suggestion */
-    updateUserSearchQuery: (newSearchQuery: string) => void;
+    updateSearchInputValue: (newSearchQuery: string) => void;
 
     /** Callback to close and clear SearchRouter */
     closeAndClearRouter: () => void;
@@ -80,7 +85,16 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 }
 
 function SearchRouterList(
-    {currentQuery, reportForContextualSearch, recentSearches, recentReports, onSearchSubmit, updateUserSearchQuery, closeAndClearRouter}: SearchRouterListProps,
+    {
+        textInputValue,
+        reportForContextualSearch,
+        recentSearches,
+        recentReports,
+        autocompleteItems,
+        onSearchSubmit,
+        updateSearchInputValue: updateUserSearchQuery,
+        closeAndClearRouter,
+    }: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -94,21 +108,22 @@ function SearchRouterList(
     const contextualQuery = `in:${reportForContextualSearch?.reportID}`;
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
 
-    if (currentQuery?.inputQuery) {
+    if (textInputValue) {
         sections.push({
             data: [
                 {
-                    text: currentQuery?.inputQuery,
+                    text: textInputValue,
                     singleIcon: Expensicons.MagnifyingGlass,
-                    query: currentQuery?.inputQuery,
+                    query: textInputValue,
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'findItem',
+                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
                 },
             ],
         });
     }
 
-    if (reportForContextualSearch && !currentQuery?.inputQuery?.includes(contextualQuery)) {
+    if (reportForContextualSearch && !textInputValue.includes(contextualQuery)) {
         sections.push({
             data: [
                 {
@@ -117,10 +132,24 @@ function SearchRouterList(
                     query: SearchUtils.getContextualSuggestionQuery(reportForContextualSearch.reportID),
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
-                    isContextualSearchItem: true,
+                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
                 },
             ],
         });
+    }
+
+    const autocompleteData = autocompleteItems?.map(({text, query}) => {
+        return {
+            text,
+            singleIcon: Expensicons.MagnifyingGlass,
+            query,
+            keyForList: query,
+            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
+        };
+    });
+
+    if (autocompleteData && autocompleteData.length > 0) {
+        sections.push({title: 'Autocomplete', data: autocompleteData});
     }
 
     const recentSearchesData = recentSearches?.map(({query}) => {
@@ -130,10 +159,11 @@ function SearchRouterList(
             singleIcon: Expensicons.History,
             query,
             keyForList: query,
+            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
         };
     });
 
-    if (!currentQuery?.inputQuery && recentSearchesData && recentSearchesData.length > 0) {
+    if (!textInputValue && recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
@@ -143,9 +173,18 @@ function SearchRouterList(
     const onSelectRow = useCallback(
         (item: OptionData | SearchQueryItem) => {
             if (isSearchQueryItem(item)) {
-                if (item.isContextualSearchItem) {
+                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
                     // Handle selection of "Contextual search suggestion"
-                    updateUserSearchQuery(`${item?.query} ${currentQuery?.inputQuery ?? ''}`);
+                    updateUserSearchQuery(`${item?.query} ${textInputValue ?? ''}`);
+                    return;
+                }
+
+                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION) {
+                    // Handle selection of "Autocomplete suggestion"
+                    const lastColonIndex = textInputValue.lastIndexOf(':');
+                    const lastComaIndex = textInputValue.lastIndexOf(',');
+                    const trimmedTextInputValue = lastColonIndex > lastComaIndex ? textInputValue.slice(0, lastColonIndex + 1) : textInputValue.slice(0, lastComaIndex + 1);
+                    updateUserSearchQuery(`${trimmedTextInputValue}${item?.query}`);
                     return;
                 }
 
@@ -164,7 +203,7 @@ function SearchRouterList(
                 Report.navigateToAndOpenReport(item?.login ? [item.login] : []);
             }
         },
-        [closeAndClearRouter, onSearchSubmit, currentQuery, updateUserSearchQuery],
+        [closeAndClearRouter, onSearchSubmit, textInputValue, updateUserSearchQuery],
     );
 
     return (

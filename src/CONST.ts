@@ -5609,6 +5609,11 @@ const CONST = {
             KEYWORD: 'keyword',
             IN: 'in',
         },
+        SEARCH_ROUTER_ITEM_TYPE: {
+            CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
+            AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
+            SEARCH: 'seearchItem',
+        },
     },
 
     REFERRER: {
