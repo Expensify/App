@@ -40,7 +40,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Delegate} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import DelegateMagicCodeModal from './AddDelegate/DelegateMagicCodeModal';
 
 function SecuritySettingsPage() {
     const styles = useThemeStyles();
@@ -154,7 +153,6 @@ function SecuritySettingsPage() {
                             Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(email, role));
                             return;
                         }
-                        setSelectedDelegate({email, role});
                     };
 
                     const formattedEmail = formatPhoneNumber(email);
@@ -335,12 +333,6 @@ function SecuritySettingsPage() {
                             />
                         </View>
                     </ScrollView>
-                    {selectedDelegate && selectedDelegate.email && selectedDelegate.role && (
-                        <DelegateMagicCodeModal
-                            login={selectedDelegate?.email}
-                            role={selectedDelegate?.role}
-                        />
-                    )}
                 </>
             )}
         </ScreenWrapper>
