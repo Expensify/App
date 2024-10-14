@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -42,7 +41,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const {canUseCategoryAndTagApprovers} = usePermissions();
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     const currentPolicyTag = policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
 

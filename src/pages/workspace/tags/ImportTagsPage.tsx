@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import ImportSpreedsheet from '@components/ImportSpreadsheet';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -11,7 +10,7 @@ type ImportTagsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof S
 function ImportTagsPage({route}: ImportTagsPageProps) {
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     return (
         <ImportSpreedsheet

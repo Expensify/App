@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -33,7 +32,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
     const categoryName = route.params.categoryName;
     const glCode = policyCategories?.[categoryName]?.['GL Code'];
     const {inputCallbackRef} = useAutoFocusInput();
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {

@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import ImportSpreedsheet from '@components/ImportSpreadsheet';
 import usePolicy from '@hooks/usePolicy';
@@ -16,7 +15,7 @@ function ImportCategoriesPage({route}: ImportCategoriesPageProps) {
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     if (hasAccountingConnections) {
         return <NotFoundPage />;

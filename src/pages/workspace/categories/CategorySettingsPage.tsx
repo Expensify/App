@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -54,7 +53,7 @@ function CategorySettingsPage({
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);

@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -25,7 +24,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
     const {translate} = useLocalize();
     const currentCategoryName = route.params.categoryName;
     const backTo = route.params?.backTo;
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {

@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -32,7 +31,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     const taglistName = useMemo(() => PolicyUtils.getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const {inputCallbackRef} = useAutoFocusInput();
     const backTo = route.params.backTo;
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     const validateTagName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {

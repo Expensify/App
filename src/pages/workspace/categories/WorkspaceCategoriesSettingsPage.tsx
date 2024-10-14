@@ -1,4 +1,3 @@
-import isEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -48,7 +47,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const [isSelectorModalVisible, setIsSelectorModalVisible] = useState(false);
     const [categoryID, setCategoryID] = useState<string>();
     const [groupID, setGroupID] = useState<string>();
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = backTo;
 
     const toggleSubtitle = isConnectedToAccounting && currentConnectionName ? `${translate('workspace.categories.needCategoryForExportToIntegration')} ${currentConnectionName}.` : undefined;
 

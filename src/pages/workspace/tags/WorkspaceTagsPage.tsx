@@ -1,6 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -75,7 +74,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const fetchTags = useCallback(() => {
         Tag.openPolicyTagsPage(policyID);
     }, [policyID]);
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
 

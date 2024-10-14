@@ -1,6 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -76,7 +75,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 

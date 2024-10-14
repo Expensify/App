@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -24,7 +23,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {

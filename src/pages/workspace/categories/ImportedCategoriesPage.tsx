@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -35,7 +34,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];

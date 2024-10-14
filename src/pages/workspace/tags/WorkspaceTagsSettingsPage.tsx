@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -67,7 +66,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
         },
         [policyID],
     );
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     const getTagsSettings = (policy: OnyxEntry<OnyxTypes.Policy>) => (
         <View style={styles.flexGrow1}>

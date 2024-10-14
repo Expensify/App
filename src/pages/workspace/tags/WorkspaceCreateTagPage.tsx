@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -33,7 +32,7 @@ function CreateTagPage({route}: CreateTagPageProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const backTo = route.params.backTo;
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {

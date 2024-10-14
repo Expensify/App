@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -36,7 +35,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
-    const isQuickSettingsFlow = !isEmpty(backTo);
+    const isQuickSettingsFlow = !!backTo;
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -129,7 +128,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.tags.importTags')}
-                onBackButtonPress={() => Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID))}
+                onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID))}
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}
