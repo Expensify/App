@@ -306,6 +306,8 @@ function ReportActionItemSingle({
         isReportPreviewAction,
         personArray,
         styles.flexRow,
+        styles.flexShrink0,
+        styles.flexShrink1,
         styles.flex1,
         styles.chatItemMessageHeaderSender,
         styles.pre,
