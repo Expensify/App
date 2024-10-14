@@ -90,7 +90,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             return [];
         }
         return Object.values(allCardsList ?? {}).filter((card) => card.accountID === accountID && workspaceAccountID.toString() === card.fundID);
-    }, [allCardsList, accountID]);
+    }, [allCardsList, accountID, workspaceAccountID]);
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
