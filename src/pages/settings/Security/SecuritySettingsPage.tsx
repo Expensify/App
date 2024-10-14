@@ -151,7 +151,6 @@ function SecuritySettingsPage() {
                         }
                         if (pendingFields?.role && !pendingFields?.email) {
                             Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(email, role));
-                            return;
                         }
                     };
 
