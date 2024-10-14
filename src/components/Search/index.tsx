@@ -91,7 +91,8 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
-    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading} = useSearchContext();
+    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading, lastSearchType, setLastSearchType} =
+        useSearchContext();
     const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
 
@@ -100,6 +101,13 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const previousTransactions = usePrevious(transactions);
+
+    useEffect(() => {
+        if (!currentSearchResults?.search?.type) {
+            return;
+        }
+        setLastSearchType(currentSearchResults.search.type);
+    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
@@ -184,8 +192,8 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
-        setShouldShowStatusBarLoading(shouldShowLoadingState && searchResults?.search?.type !== type);
-    }, [searchResults?.search?.type, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
+        setShouldShowStatusBarLoading(shouldShowLoadingState && lastSearchType !== type);
+    }, [lastSearchType, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
 
     useEffect(() => {
         if (type === CONST.SEARCH.DATA_TYPES.CHAT) {

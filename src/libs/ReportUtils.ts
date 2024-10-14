@@ -3181,6 +3181,13 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
         return {canHoldRequest: false, canUnholdRequest: false};
     }
 
+    if (isInvoiceReport(moneyRequestReport)) {
+        return {
+            canHoldRequest: false,
+            canUnholdRequest: false,
+        };
+    }
+
     const isRequestSettled = isSettled(moneyRequestReport?.reportID);
     const isApproved = isReportApproved(moneyRequestReport);
     const transactionID = moneyRequestReport ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID : 0;
@@ -3841,6 +3848,9 @@ function getReportName(
             return Parser.htmlToText(getReportAutomaticallyApprovedMessage(parentReportAction));
         }
         return getIOUApprovedMessage(parentReportAction);
+    }
+    if (ReportActionsUtils.isUnapprovedAction(parentReportAction)) {
+        return getIOUUnapprovedMessage(parentReportAction);
     }
 
     if (isChatThread(report)) {
@@ -4592,6 +4602,7 @@ function getFormattedAmount(reportAction: ReportAction) {
         !ReportActionsUtils.isSubmittedAction(reportAction) &&
         !ReportActionsUtils.isForwardedAction(reportAction) &&
         !ReportActionsUtils.isApprovedAction(reportAction) &&
+        !ReportActionsUtils.isUnapprovedAction(reportAction) &&
         !ReportActionsUtils.isSubmittedAndClosedAction(reportAction)
     ) {
         return '';
@@ -4613,6 +4624,10 @@ function getIOUSubmittedMessage(reportAction: ReportAction<typeof CONST.REPORT.A
 
 function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
     return Localize.translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction)});
+}
+
+function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>) {
+    return Localize.translateLocal('iou.unapprovedAmount', {amount: getFormattedAmount(reportAction)});
 }
 
 function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
@@ -8234,6 +8249,7 @@ export {
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
     getReportAutomaticallyApprovedMessage,
+    getIOUUnapprovedMessage,
     getIOUApprovedMessage,
     getReportAutomaticallyForwardedMessage,
     getIOUForwardedMessage,
