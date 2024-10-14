@@ -458,11 +458,11 @@ function IOURequestStepScan({
 
                     if (shouldStartLocationPermissionFlow) {
                         setStartLocationPermissionFlow(true);
+                        return;
                     }
                 }
-            } else {
-                navigateToConfirmationStep(file, file?.uri ?? '');
             }
+            navigateToConfirmationStep(file, file?.uri ?? '', false);
         });
     };
 
@@ -510,11 +510,11 @@ function IOURequestStepScan({
                                     DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS);
                             if (shouldStartLocationPermissionFlow) {
                                 setStartLocationPermissionFlow(true);
+                                return;
                             }
                         }
-                        return;
                     }
-                    navigateToConfirmationStep(file, source);
+                    navigateToConfirmationStep(file, source, false);
                 });
             })
             .catch((error: string) => {
@@ -679,7 +679,7 @@ function IOURequestStepScan({
                     onGrant={() => navigateToConfirmationStep(fileResize, fileSource, true)}
                     onDeny={() => {
                         IOU.updateLastLocationPermissionPrompt();
-                        navigateToConfirmationStep(fileResize, fileSource);
+                        navigateToConfirmationStep(fileResize, fileSource, false);
                     }}
                 />
             )}

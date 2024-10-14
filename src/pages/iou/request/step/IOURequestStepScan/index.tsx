@@ -492,11 +492,11 @@ function IOURequestStepScan({
 
                         if (shouldStartLocationPermissionFlow) {
                             setStartLocationPermissionFlow(true);
+                            return;
                         }
                     }
-                } else {
-                    navigateToConfirmationStep(file, source, false);
                 }
+                navigateToConfirmationStep(file, source, false);
             });
         });
     };
@@ -542,11 +542,11 @@ function IOURequestStepScan({
 
                 if (shouldStartLocationPermissionFlow) {
                     setStartLocationPermissionFlow(true);
+                    return;
                 }
             }
-        } else {
-            navigateToConfirmationStep(file, source, false);
         }
+        navigateToConfirmationStep(file, source, false);
     }, [transactionID, isEditing, shouldSkipConfirmation, requestCameraPermission, updateScanAndNavigate, gpsRequired, lastLocationPermissionPrompt, navigateToConfirmationStep]);
 
     const clearTorchConstraints = useCallback(() => {
