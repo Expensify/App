@@ -4,6 +4,7 @@ import usePermissions from '@hooks/usePermissions';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import BankConnection from './BankConnection';
 import CardInstructionsStep from './CardInstructionsStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
@@ -22,6 +23,8 @@ function AddNewCardPage() {
                 return <SelectBankStep />;
             case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
                 return <CardTypeStep />;
+            case CONST.COMPANY_CARDS.STEP.BANK_CONNECTION:
+                return <BankConnection />;
             case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
                 return <CardInstructionsStep />;
             case CONST.COMPANY_CARDS.STEP.CARD_NAME:

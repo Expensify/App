@@ -2555,6 +2555,7 @@ const CONST = {
             CARD_INSTRUCTIONS: 'CardInstructions',
             CARD_NAME: 'CardName',
             CARD_DETAILS: 'CardDetails',
+            BANK_CONNECTION: 'BankConnection',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -2571,6 +2572,15 @@ const CONST = {
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
             OTHER: 'Other',
+        },
+        BANK_CONNECTIONS: {
+            WELLS_FARGO: 'wellsfargo',
+            CHASE: 'chase',
+            BREX: 'brex',
+            CAPITAL_ONE: 'capitalone',
+            CITI_BANK: 'citibank',
+            AMEX: 'americanexpressfdx',
+            TESCO_BANK: 'tescobank',
         },
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
