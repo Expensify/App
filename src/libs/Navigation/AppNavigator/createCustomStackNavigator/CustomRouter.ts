@@ -13,7 +13,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import syncBrowserHistory from './syncBrowserHistory/index.web';
+import syncBrowserHistory from './syncBrowserHistory';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
 
 function insertRootRoute(state: State<RootStackParamList>, routeToInsert: NavigationPartialRoute) {
