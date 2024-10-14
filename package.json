@@ -216,7 +216,7 @@
     "@react-native/metro-config": "0.75.2",
     "@react-navigation/devtools": "^6.0.10",
     "@storybook/addon-a11y": "^8.1.10",
-    "@storybook/addon-essentials": "^8.1.10",
+    "@storybook/addon-essentials": "^8.2.0",
     "@storybook/addon-webpack5-compiler-babel": "^3.0.3",
     "@storybook/cli": "^8.3.0",
     "@storybook/react": "^8.1.10",
