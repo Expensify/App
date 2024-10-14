@@ -41,6 +41,9 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Number of transaction of a money request */
     transactionCount: number;
+
+    /** Callback for displaying payment animation on IOU preview component */
+    startAnimation?: () => void;
 };
 
 function ProcessMoneyReportHoldMenu({
@@ -53,6 +56,7 @@ function ProcessMoneyReportHoldMenu({
     chatReport,
     moneyRequestReport,
     transactionCount,
+    startAnimation,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
@@ -66,6 +70,9 @@ function ProcessMoneyReportHoldMenu({
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID ?? ''));
             }
         } else if (chatReport && paymentType) {
+            if (startAnimation) {
+                startAnimation();
+            }
             IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
         }
         onClose();

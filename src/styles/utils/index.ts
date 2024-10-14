@@ -132,6 +132,7 @@ const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.SMALL]: 2,
     [CONST.AVATAR_SIZE.SMALLER]: 2,
     [CONST.AVATAR_SIZE.LARGE]: 4,
+    [CONST.AVATAR_SIZE.XLARGE]: 4,
     [CONST.AVATAR_SIZE.MEDIUM]: 3,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
 };
@@ -1249,6 +1250,15 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         };
     },
 
+    /*
+     * Returns the actual maxHeight of the auto-growing markdown text input.
+     */
+    getMarkdownMaxHeight: (maxAutoGrowHeight: number | undefined): TextStyle => {
+        // maxHeight is not of the input only but the of the whole input container
+        // which also includes the top padding and bottom border
+        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth} : {};
+    },
+
     /**
      * Return the style from an avatar size constant
      */
@@ -1667,6 +1677,17 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         alignItems: 'center',
         justifyContent: 'center',
     }),
+
+    getTaskPreviewIconWrapper: (avatarSize?: AvatarSizeName) => ({
+        height: avatarSize ? getAvatarSize(avatarSize) : variables.fontSizeNormalHeight,
+        ...styles.justifyContentCenter,
+    }),
+
+    getTaskPreviewTitleStyle: (iconHeight: number, isTaskCompleted: boolean): StyleProp<TextStyle> => [
+        styles.flex1,
+        isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : [],
+        {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
+    ],
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
