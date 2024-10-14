@@ -633,18 +633,6 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
-    if (!isOneOnOneSplit) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: {
-                action: newQuickAction,
-                chatReportID: chatReport?.reportID,
-                isFirstQuickAction: isEmptyObject(quickAction),
-            },
-        });
-    }
-
     if (optimisticPolicyRecentlyUsedCategories.length) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -874,6 +862,23 @@ function buildOnyxDataForMoneyRequest(
             },
         },
     ];
+
+    if (!isOneOnOneSplit) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: {
+                action: newQuickAction,
+                chatReportID: chatReport?.reportID,
+                isFirstQuickAction: isEmptyObject(quickAction),
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: quickAction ?? null,
+        });
+    }
 
     if (!isEmptyObject(transactionThreadCreatedReportAction)) {
         failureData.push({
@@ -4103,6 +4108,11 @@ function createSplitsAndOnyxData(
                 pendingFields: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: quickAction ?? null,
+        },
     ];
 
     if (existingSplitChatReport) {
@@ -4672,6 +4682,11 @@ function startSplitBill({
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: quickAction ?? null,
         },
     ];
 
@@ -6353,6 +6368,11 @@ function getSendMoneyParams(
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: quickAction ?? null,
+        },
     ];
 
     // Now, let's add the data we need just when we are creating a new chat report
@@ -6550,7 +6570,10 @@ function getReportFromHoldRequestsOnyxData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
-            value: optimisticExpenseReport,
+            value: {
+                ...optimisticExpenseReport,
+                unheldTotal: 0,
+            },
         },
         // add preview report action to main chat
         {

@@ -4405,7 +4405,7 @@ const translations = {
                 unshare: ({to}: UnshareParams) => `removed user ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
-                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label} ("${errorMessage}")`,
+                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
@@ -5011,8 +5011,7 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to update your copilot.`,
         notAllowed: 'Not so fast...',
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
-        notAllowedMessageHyperLinked: ' limited access',
-        notAllowedMessageEnd: ' copilot',
+        notAllowedMessageHyperLinked: ' copilot',
     },
     debug: {
         debug: 'Debug',
