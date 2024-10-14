@@ -6,13 +6,11 @@ description: Code expenses by creating tags
 
 You can tag expenses for a specific department, project, location, cost center, customer, etc. You can also use different tags for each workspace to create customized coding for different employees.
 
-You can use single tags or multi-level tags:
+**There are two options for tag configuration in Expensify:**
 - **Single Tags**: Employees click one dropdown to select one tag. Single tags are helpful if employees need to select only one tag from a list, for example, their department.
 - **Multi-level Tags**: Employees click multiple dropdowns to select more than one tag. You can also create dependent tags that only appear if another tag has already been selected. Multi-tags are helpful if you have multiple tags, for example, projects, locations, cost centers, etc., for employees to select or if you have dependent tags. For example, if an employee selects a specific department, another tag can appear where they have to select their project. 
 
-To add your tags, you can either import them for an accounting system or spreadsheet or add them manually.
-
-# Single Tags
+# Individual Tags
 
 ## Import via spreadsheet
 
@@ -49,7 +47,7 @@ To update your tags in Expensify, you must first update the tag in your accounti
 4. Click the **Connections** tab on the left.
 5. Click **Sync Now**.
 
-Once the tags are updated in your accounting integration, the changes will reflect in Expensify automatically after running the connection sync. 
+Once the tags are updated in your accounting integration, the changes will automatically reflect in Expensify after the connection sync is run. 
 
 ## Import via spreadsheet
 
@@ -82,7 +80,7 @@ Each time you upload a list of tags, it will override your previous list. To avo
 
 # FAQ
 
-## Why can’t I see a "Do you want to use multiple level tags" option on my workspace?
+## Why can’t I see a multi-level tags option on my workspace?
 
 If you are connected to an accounting integration, you will not see this feature. You will need to add those tags in your integration first, then sync the connection.
  
