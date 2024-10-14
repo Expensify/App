@@ -7584,7 +7584,14 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     API.write(apiCommand, params, {optimisticData, successData, failureData});
 }
 
-function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxEntry<OnyxTypes.Report>, payAsBusiness = false) {
+function payInvoice(
+    paymentMethodType: PaymentMethodType,
+    chatReport: OnyxTypes.Report,
+    invoiceReport: OnyxEntry<OnyxTypes.Report>,
+    payAsBusiness = false,
+    bankAccountID?: number,
+    fundID?: number,
+) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? -1};
     const {
         optimisticData,
@@ -7613,6 +7620,14 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
         paymentMethodType,
         payAsBusiness,
     };
+
+    if (bankAccountID) {
+        params.bankAccountID = bankAccountID;
+    }
+
+    if (fundID) {
+        params.fundID = fundID;
+    }
 
     if (policyID) {
         params = {
