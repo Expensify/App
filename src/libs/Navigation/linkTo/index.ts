@@ -41,7 +41,7 @@ function shouldDispatchAction(currentState: NavigationState<RootStackParamList>,
     return true;
 }
 
-export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
+export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }

@@ -5,17 +5,13 @@ import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReportActionPushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
-import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
-import * as ReportConnection from '@libs/ReportConnection';
-import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PushNotification from '..';
 
 let lastVisitedPath: string | undefined;
@@ -93,7 +89,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                     }
 
                     Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                    Navigation.navigateToReportWithPolicyCheck({reportID, policyIDToCheck: policyID});
+                    Navigation.navigateToReportWithPolicyCheck({reportID: String(reportID), policyIDToCheck: policyID});
                 } catch (error) {
                     let errorMessage = String(error);
                     if (error instanceof Error) {

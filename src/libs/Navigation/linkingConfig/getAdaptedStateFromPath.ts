@@ -2,7 +2,7 @@ import type {NavigationState, PartialState, Route} from '@react-navigation/nativ
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import {isAnonymousUser} from '@libs/actions/Session';
-import type {NavigationPartialRoute, RootStackParamList, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {NavigationPartialRoute, RootStackParamList, SettingsSplitNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import extractPolicyIDFromQuery from '@navigation/extractPolicyIDFromQuery';
@@ -85,7 +85,7 @@ function getMatchingFullScreenRouteForState(state: PartialState<NavigationState<
                 name: SCREENS.WORKSPACE.INITIAL,
             },
             {
-                name: RELATIONS.RHP_TO_WORKSPACE[focusedRoute.name],
+                name: RELATIONS.RHP_TO_WORKSPACE[focusedRoute.name] as keyof WorkspaceSplitNavigatorParamList,
                 params: {
                     ...pick(focusedRoute.params, paramsFromRoute),
                 },
