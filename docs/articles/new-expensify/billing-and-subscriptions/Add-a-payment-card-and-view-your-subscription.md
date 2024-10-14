@@ -4,10 +4,10 @@ description: How to manage your subscription
 ---
 Under the subscriptions section of your account, you can manage your payment card details, view your current plan, add a billing card, and adjust your subscription size and renewal date.
 To view or manage your subscription in New Expensify:
-**Open the App**: Launch New Expensify on your device.
-**Go to Account Settings**: Click your profile icon in the bottom-left corner.
-**Find Workspaces**: Navigate to the Workspaces section.
-**Open Subscriptions**: Click Subscription under Workspaces to view your subscription.
+* **Open the App**: Launch New Expensify on your device.
+* **Go to Account Settings**: Click your profile icon in the bottom-left corner.
+* **Find Workspaces**: Navigate to the Workspaces section.
+* **Open Subscriptions**: Click Subscription under Workspaces to view your subscription.
 
 ## Add a Payment Card
 
