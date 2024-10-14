@@ -37,7 +37,7 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
             description: translate('workspace.qbd.classes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES.getRoute(policyID)),
             title: translate(`workspace.accounting.importTypes.${mappings?.classes ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES],
+            subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES],
         },
         {
             description: translate('workspace.qbd.customers'),
