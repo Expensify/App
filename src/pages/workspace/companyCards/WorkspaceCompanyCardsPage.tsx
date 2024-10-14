@@ -29,12 +29,17 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const theme = useTheme();
     const policyID = route.params.policyID;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const isLoading = !cardFeeds || cardFeeds.isLoading;
-
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+
+    const isLoading = !cardFeeds || !!(cardFeeds.isLoading && !cardFeeds.settings);
+    const companyCards = cardFeeds?.settings?.companyCards ?? {};
+    const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? null;
+    const isNoFeed = !selectedCompanyCard;
+    const isPending = !!selectedCompanyCard?.pending;
+    const isFeedAdded = !isPending && !isNoFeed;
 
     const fetchCompanyCards = useCallback(() => {
         Policy.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
@@ -43,17 +48,12 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     useFocusEffect(fetchCompanyCards);
 
     useEffect(() => {
-        if (!!isLoading || !selectedFeed) {
+        if (isLoading || !selectedFeed || isPending) {
             return;
         }
-        Policy.openPolicyCompanyCardsFeed(policyID, selectedFeed);
-    }, [selectedFeed, isLoading, policyID]);
 
-    const companyCards = cardFeeds?.settings?.companyCards ?? {};
-    const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? null;
-    const isNoFeed = !selectedCompanyCard;
-    const isPending = selectedCompanyCard?.pending;
-    const isFeedAdded = !isPending && !isNoFeed;
+        Policy.openPolicyCompanyCardsFeed(policyID, selectedFeed);
+    }, [selectedFeed, isLoading, policyID, isPending]);
 
     return (
         <AccessOrNotFoundWrapper
