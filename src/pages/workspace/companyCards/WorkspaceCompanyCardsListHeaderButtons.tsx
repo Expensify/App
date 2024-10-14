@@ -58,9 +58,9 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                     <View>
                         <View style={[styles.flexRow, styles.gap1]}>
                             <CaretWrapper>
-                                <Text style={styles.textStrong}>{cardFeeds?.companyCardNicknames?.[selectedFeed]}</Text>
+                                <Text style={styles.textStrong}>{cardFeeds?.settings?.companyCardNicknames?.[selectedFeed]}</Text>
                             </CaretWrapper>
-                            {PolicyUtils.hasPolicyFeedsError(cardFeeds?.companyCards ?? {}, selectedFeed) && (
+                            {PolicyUtils.hasPolicyFeedsError(cardFeeds?.settings?.companyCards ?? {}, selectedFeed) && (
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={theme.danger}
@@ -74,7 +74,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 <View style={[styles.flexRow, styles.gap2]}>
                     <Button
                         success
-                        isDisabled={!!cardFeeds?.settings?.companyCards?.[selectedFeed].pending || !!cardFeeds?.companyCards?.[selectedFeed].errors}
+                        isDisabled={!!cardFeeds?.settings?.companyCards?.[selectedFeed].pending || !!cardFeeds?.settings?.companyCards?.[selectedFeed].errors}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed))}
                         icon={Expensicons.Plus}
                         text={translate('workspace.companyCards.assignCard')}

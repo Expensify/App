@@ -47,7 +47,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         keyForList: feed,
         isSelected: feed === selectedFeed,
         brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
-        canShowSeveralIndicators: !!cardFeeds?.companyCards?.[selectedFeed]?.errors,
+        canShowSeveralIndicators: !!cardFeeds?.settings?.companyCards?.[selectedFeed]?.errors,
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(feed)}
