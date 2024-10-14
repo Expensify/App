@@ -60,7 +60,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                 isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(route?.params?.policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
             );
         },
-        [policyTags, route.params.orderWeight, route.params.policyID, taglistName, isQuickSettingsFlow],
+        [policyTags, route.params.orderWeight, route.params.policyID, taglistName, isQuickSettingsFlow, backTo],
     );
 
     return (

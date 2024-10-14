@@ -332,7 +332,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [translate, hasVisibleTags, isOffline, policyID, isQuickSettingsFlow]);
+    }, [translate, hasVisibleTags, isOffline, policyID, isQuickSettingsFlow, backTo]);
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

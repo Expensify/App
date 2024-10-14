@@ -51,7 +51,7 @@ function EditTagPage({route}: EditTagPageProps) {
 
             return errors;
         },
-        [policyTags, route.params.orderWeight, currentTagName, translate],
+        [policyTags, route.params.orderWeight, currentTagName, translate, backTo],
     );
 
     const editTag = useCallback(

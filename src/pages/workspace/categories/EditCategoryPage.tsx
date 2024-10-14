@@ -56,7 +56,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                     : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
             );
         },
-        [isQuickSettingsFlow, currentCategoryName, route.params.categoryName, route.params.policyID],
+        [isQuickSettingsFlow, currentCategoryName, route.params.categoryName, route.params.policyID, backTo],
     );
 
     return (

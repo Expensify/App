@@ -63,7 +63,7 @@ function CreateTagPage({route}: CreateTagPageProps) {
             Keyboard.dismiss();
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
-        [route.params.policyID, isQuickSettingsFlow],
+        [route.params.policyID, isQuickSettingsFlow, backTo],
     );
 
     return (

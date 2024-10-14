@@ -31,7 +31,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
             Category.createPolicyCategory(route.params.policyID, values.categoryName.trim());
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
-        [isQuickSettingsFlow, route.params.policyID],
+        [isQuickSettingsFlow, route.params.policyID, backTo],
     );
 
     return (

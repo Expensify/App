@@ -45,7 +45,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
                 ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName, backTo)
                 : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName),
         );
-    }, [orderWeight, route.params.policyID, tagName, isQuickSettingsFlow]);
+    }, [orderWeight, route.params.policyID, tagName, isQuickSettingsFlow, backTo]);
 
     const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
