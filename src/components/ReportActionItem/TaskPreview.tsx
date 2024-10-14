@@ -118,7 +118,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                         />
                     </View>
                     {hasAssignee && (
-                        <UserDetailsTooltip accountID={Number(taskAssigneeAccountID ?? -1)}>
+                        <UserDetailsTooltip accountID={taskAssigneeAccountID}>
                             <View>
                                 <Avatar
                                     containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
