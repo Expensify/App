@@ -1038,8 +1038,6 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
 
                 if (!areAllFieldsEqualForKey && validTaxes.length > 1) {
                     change[fieldName] = validTaxes;
-                } else {
-                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'category') {
                 const differentValues = getDifferentValues(transactions, keys);
@@ -1050,8 +1048,6 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
 
                 if (!areAllFieldsEqualForKey && (availableCategories.length > 1 || (availableCategories.length === 1 && differentValues.includes('')))) {
                     change[fieldName] = [...availableCategories, ...(differentValues.includes('') ? [''] : [])];
-                } else {
-                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'tag') {
                 const policyTags = getPolicyTagsData(report?.policyID ?? '-1');
@@ -1068,8 +1064,6 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
                     const availableTags = policyTagsObj.filter((tag) => differentValues.includes(tag.name) && firstTransaction?.tag !== tag.name).map((e) => e.name);
                     if (!areAllFieldsEqualForKey && (availableTags.length > 1 || (availableTags.length === 1 && differentValues.includes('')))) {
                         change[fieldName] = [...availableTags, ...(differentValues.includes('') ? [''] : [])];
-                    } else {
-                        keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                     }
                 }
             } else if (areAllFieldsEqualForKey) {
