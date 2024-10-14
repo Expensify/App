@@ -20,7 +20,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -583,7 +583,53 @@ function getTransactionViolations(transactionID: string, transactionViolations: 
  * Check if there is pending rter violation in transactionViolations.
  */
 function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
-    return !!transactionViolations?.some((transactionViolation: TransactionViolation) => transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern);
+    return !!transactionViolations?.some(
+        (transactionViolation: TransactionViolation) =>
+            transactionViolation.name === CONST.VIOLATIONS.RTER &&
+            transactionViolation.data?.pendingPattern &&
+            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION &&
+            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
+    );
+}
+
+/**
+ * Check if there is broken connection violation.
+ */
+function hasBrokenConnectionViolation(transactionID: string): boolean {
+    const violations = getTransactionViolations(transactionID, allTransactionViolations);
+    return !!violations?.find(
+        (violation) =>
+            violation.name === CONST.VIOLATIONS.RTER &&
+            (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530),
+    );
+}
+
+/**
+ * Returns broken connection description.
+ */
+function getBrokenConnectionDescription(transactionID: string, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
+    const violations = getTransactionViolations(transactionID, allTransactionViolations);
+    const brokenConnection530Error = violations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
+    const brokenConnectionError = violations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+
+    if (!brokenConnection530Error && !brokenConnectionError) {
+        return '';
+    }
+
+    if (brokenConnection530Error) {
+        return Localize.translateLocal('violations.brokenConnection530Error');
+    }
+
+    if (isPolicyAdmin) {
+        return `${Localize.translateLocal('violations.adminBrokenConnectionError')}`;
+    }
+
+    if (ReportUtils.isReportApproved(report) || ReportUtils.isReportManuallyReimbursed(report) || (ReportUtils.isProcessingReport(report) && !PolicyUtils.isInstantSubmitEnabled(policy))) {
+        return Localize.translateLocal('violations.memberBrokenConnectionError');
+    }
+
+    return `${Localize.translateLocal('violations.memberBrokenConnectionError')}${Localize.translateLocal('violations.markAsCashToIgnore')}`;
 }
 
 /**
@@ -1141,6 +1187,8 @@ export {
     getRecentTransactions,
     hasReservationList,
     hasViolation,
+    hasBrokenConnectionViolation,
+    getBrokenConnectionDescription,
     hasNoticeTypeViolation,
     hasWarningTypeViolation,
     hasModifiedAmountOrDateViolation,

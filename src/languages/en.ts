@@ -4688,6 +4688,10 @@ const translations = {
 
             return '';
         },
+        brokenConnection530Error: 'Receipt pending due to broken bank connection.',
+        adminBrokenConnectionError: 'Receipt pending due to broken bank connection. Please resolve in ',
+        memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',
+        markAsCashToIgnore: 'Mark as cash to ignore and request payment.',
         smartscanFailed: 'Receipt scanning failed. Enter details manually.',
         someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Missing ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `${tagName ?? 'Tag'} no longer valid`,
