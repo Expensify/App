@@ -1177,7 +1177,7 @@ const ROUTES = {
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string, readonly = false, isFromReviewDuplicates = false) =>
-            `r/${reportID}/transaction/${transactionID}/receipt${readonly ? '?readonly=true' : ''}${isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''}` as const,
+            `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''}` as const,
     },
 
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {

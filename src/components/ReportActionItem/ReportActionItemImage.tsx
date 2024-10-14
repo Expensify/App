@@ -77,7 +77,7 @@ function ReportActionItemImage({
     isSingleImage = true,
     readonly = false,
     shouldMapHaveBorderRadius,
-    isFromReviewDuplicates,
+    isFromReviewDuplicates = false,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
