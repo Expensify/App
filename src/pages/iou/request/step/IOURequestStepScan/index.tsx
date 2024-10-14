@@ -416,6 +416,7 @@ function IOURequestStepScan({
                     return;
                 }
                 createTransaction(receipt, participant);
+                return;
             }
             navigateToConfirmationPage();
         },
