@@ -963,6 +963,7 @@ function MoneyRequestConfirmationList({
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={false}
                 shouldPreventDefaultFocusOnSelectRow
+                shouldShowListEmptyContent={false}
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
                 containerStyle={[styles.flexBasisAuto]}
