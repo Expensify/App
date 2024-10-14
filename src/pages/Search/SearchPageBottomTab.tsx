@@ -110,9 +110,7 @@ function SearchPageBottomTab() {
                                 searchName={searchName}
                             />
                             <SearchStatusBar
-                                type={queryJSON.type}
-                                status={queryJSON.status}
-                                policyID={queryJSON.policyID}
+                                queryJSON={queryJSON}
                                 onStatusChange={() => {
                                     topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
                                 }}

@@ -52,7 +52,7 @@ export default {
     LOG_FILE: `${OUTPUT_DIR}/debug.log`,
 
     // The time in milliseconds after which an operation fails due to timeout
-    INTERACTION_TIMEOUT: 300000,
+    INTERACTION_TIMEOUT: 150 * 1000,
 
     // Period we wait between each test runs, to let the device cool down
     BOOT_COOL_DOWN: 90 * 1000,

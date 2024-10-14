@@ -14,6 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
@@ -41,6 +42,9 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
 
     const {isSmallScreenWidth} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
+
+    const taxRates = getAllTaxRates();
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const [textInputValue, debouncedInputValue, setTextInputValue] = useDebouncedState('', 500);
     const [userSearchQuery, setUserSearchQuery] = useState<SearchQueryJSON | undefined>(undefined);
@@ -140,7 +144,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 return;
             }
             onRouterClose();
-            const queryString = SearchUtils.buildSearchQueryString(query);
+            const standardizedQuery = SearchUtils.standardizeQueryJSON(query, cardList, taxRates);
+            const queryString = SearchUtils.buildSearchQueryString(standardizedQuery);
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: queryString}));
             clearUserQuery();
         },

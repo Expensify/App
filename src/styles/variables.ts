@@ -253,6 +253,9 @@ export default {
     composerTooltipShiftVertical: -10,
     gbrTooltipShiftHorizontal: -20,
 
+    inlineImagePreviewMinSize: 64,
+    inlineImagePreviewMaxSize: 148,
+
     minimalTopBarOffset: -26,
     searchHeaderHeight: 80,
     searchListContentMarginTop: 116,

@@ -19,6 +19,9 @@ type SearchRouterInputProps = {
     /** Callback to update search in SearchRouter */
     updateSearch: (searchTerm: string) => void;
 
+    /** Callback invoked when the user submits the input */
+    onSubmit?: () => void;
+
     /** SearchRouterList ref for managing TextInput and SearchRouterList focus */
     routerListRef?: RefObject<SelectionListHandle>;
 
@@ -27,6 +30,9 @@ type SearchRouterInputProps = {
 
     /** Whether the input is disabled */
     disabled?: boolean;
+
+    /** Whether the input should be focused */
+    autoFocus?: boolean;
 
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -45,9 +51,11 @@ function SearchRouterInput({
     value,
     setValue,
     updateSearch,
+    onSubmit = () => {},
     routerListRef,
     isFullWidth,
     disabled = false,
+    autoFocus = true,
     wrapperStyle,
     wrapperFocusedStyle,
     rightComponent,
@@ -71,12 +79,14 @@ function SearchRouterInput({
                     testID="search-router-text-input"
                     value={value}
                     onChangeText={onChangeText}
-                    autoFocus
+                    autoFocus={autoFocus}
                     loadingSpinnerStyle={[styles.mt0, styles.mr2]}
                     role={CONST.ROLE.PRESENTATION}
                     placeholder={translate('search.searchPlaceholder')}
                     autoCapitalize="none"
+                    autoCorrect={false}
                     disabled={disabled}
+                    onSubmitEditing={onSubmit}
                     shouldUseDisabledStyles={false}
                     textInputContainerStyles={styles.borderNone}
                     inputStyle={[styles.searchInputStyle, inputWidth, styles.pl3, styles.pr3]}
