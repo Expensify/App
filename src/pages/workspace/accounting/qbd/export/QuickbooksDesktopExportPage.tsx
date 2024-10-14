@@ -32,9 +32,9 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
     const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID)), // TODO: [QBD] should be updated to use new routes
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID)),
             title: qbdConfig?.export?.exporter ?? policyOwner,
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT],
+            subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER],
         },
         {
             description: translate('workspace.qbd.date'),
