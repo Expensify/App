@@ -310,9 +310,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
     ];
 
     const reportsToArchive = Object.values(ReportConnection.getAllReports() ?? {}).filter(
-        (report) =>
-            (report?.policyID === policyID || (report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID)) &&
-            (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
+        (report) => ReportUtils.isPolicyRelatedReport(report, policyID) && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
     );
     const finallyData: OnyxUpdate[] = [];
     const currentTime = DateUtils.getDBTime();
