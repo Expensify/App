@@ -11,6 +11,7 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import getInitialSubstepForBusinessInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForBusinessInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -80,6 +81,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
                     ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
                     companyTaxID: values.companyTaxID?.replace(CONST.REGEX.NON_NUMERIC, ''),
                     companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
+                    website: ValidationUtils.isValidWebsite(values.website) ? values.website : undefined,
                 },
                 policyID,
                 isConfirmPage,
