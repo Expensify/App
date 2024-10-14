@@ -376,7 +376,6 @@ function Composer(
     );
 
     return (
-<<<<<<< HEAD
         <>
             <RNMarkdownTextInput
                 id={CONST.COMPOSER.NATIVE_ID}
@@ -390,7 +389,6 @@ function Composer(
                 value={value}
                 defaultValue={defaultValue}
                 autoFocus={autoFocus}
-                inputMode={showSoftInputOnFocus ? 'text' : 'none'}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
@@ -403,31 +401,6 @@ function Composer(
             />
             {shouldCalculateCaretPosition && renderElementForCaretPosition}
         </>
-=======
-        <RNMarkdownTextInput
-            id={CONST.COMPOSER.NATIVE_ID}
-            autoComplete="off"
-            autoCorrect={!Browser.isMobileSafari()}
-            placeholderTextColor={theme.placeholderText}
-            ref={(el) => (textInput.current = el)}
-            selection={selection}
-            style={[inputStyleMemo]}
-            markdownStyle={markdownStyle}
-            value={value}
-            defaultValue={defaultValue}
-            autoFocus={autoFocus}
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
-            {...props}
-            onSelectionChange={addCursorPositionToSelectionChange}
-            onContentSizeChange={(e) => {
-                updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
-            }}
-            disabled={isDisabled}
-            onKeyPress={handleKeyPress}
-            addAuthTokenToImageURLCallback={addEncryptedAuthTokenToURL}
-            imagePreviewAuthRequiredURLs={imagePreviewAuthRequiredURLs}
-        />
->>>>>>> b89f3e7 (Merge pull request #50746 from Expensify/dangrous-revert50279)
     );
 }
 
