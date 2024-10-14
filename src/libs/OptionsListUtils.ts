@@ -1637,7 +1637,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     }
 
     const policiesWithoutExpenseChats = Object.values(policies ?? {}).filter((policy) => {
-        if (policy?.type === CONST.POLICY.TYPE.PERSONAL || !policy?.isPolicyExpenseChatEnabled) {
+        if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
             return false;
         }
         return !policyToReportForPolicyExpenseChats[policy?.id ?? ''];
