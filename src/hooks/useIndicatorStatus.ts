@@ -1,3 +1,4 @@
+import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {isConnectionInProgress} from '@libs/actions/connections';
@@ -19,7 +20,7 @@ type IndicatorStatusResult = {
 
 function useIndicatorStatus(): IndicatorStatusResult {
     const theme = useTheme();
-    const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
+    const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -30,7 +31,7 @@ function useIndicatorStatus(): IndicatorStatusResult {
 
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
-    const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
+    const cleanPolicies = useMemo(() => Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id)), [policies]);
 
     const policyErrors = {
         [CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS]: Object.values(cleanPolicies).find(PolicyUtils.hasPolicyError),
