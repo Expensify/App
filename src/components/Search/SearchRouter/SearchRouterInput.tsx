@@ -120,6 +120,7 @@ function SearchRouterInput({
                 {rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
             </View>
             <FormHelpMessage
+                style={styles.ph3}
                 isError={false}
                 message={offlineMessage}
             />
