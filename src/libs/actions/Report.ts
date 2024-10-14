@@ -837,8 +837,8 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
     };
-
-    if (ReportUtils.isGroupChat(newReportObject)) {
+    const isGroupChat = ReportUtils.isGroupChat(newReportObject);
+    if (isGroupChat) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
         parameters.groupChatAdminLogins = currentUserEmail;
         parameters.optimisticAccountIDList = Object.keys(newReportObject?.participants ?? {}).join(',');
@@ -870,6 +870,7 @@ function openReport(
                 ...newReportObject,
                 pendingFields: {
                     createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    ...(isGroupChat && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
                 },
                 isOptimisticReport: true,
             };
@@ -923,6 +924,7 @@ function openReport(
                 participants: redundantParticipants,
                 pendingFields: {
                     createChat: null,
+                    reportName: null,
                 },
                 errorFields: {
                     createChat: null,
