@@ -5008,8 +5008,7 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to update your copilot.`,
         notAllowed: 'Not so fast...',
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
-        notAllowedMessageHyperLinked: ' limited access',
-        notAllowedMessageEnd: ' copilot',
+        notAllowedMessageHyperLinked: ' copilot',
     },
     debug: {
         debug: 'Debug',
