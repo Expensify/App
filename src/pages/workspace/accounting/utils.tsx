@@ -264,6 +264,7 @@ function getAccountingIntegrationData(
                 subscribedImportSettings: [],
                 subscribedExportSettings: [
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE,
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED,

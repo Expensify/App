@@ -726,6 +726,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         } else {
             lastMessageTextFromReport = ReportUtils.getIOUApprovedMessage(lastReportAction);
         }
+    } else if (ReportActionUtils.isUnapprovedAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getIOUUnapprovedMessage(lastReportAction);
     } else if (ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = ReportActionUtils.getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {

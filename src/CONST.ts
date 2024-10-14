@@ -205,6 +205,10 @@ const CONST = {
         IN: 'in',
         OUT: 'out',
     },
+    POPOVER_ACCOUNT_SWITCHER_POSITION: {
+        horizontal: 12,
+        vertical: 80,
+    },
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
@@ -1482,6 +1486,7 @@ const CONST = {
 
     QUICKBOOKS_DESKTOP_CONFIG: {
         EXPORT_DATE: 'exportDate',
+        EXPORTER: 'exporter',
         MARK_CHECKS_TO_BE_PRINTED: 'markChecksToBePrinted',
         REIMBURSABLE_ACCOUNT: 'reimbursableAccount',
         REIMBURSABLE: 'reimbursable',
@@ -2549,7 +2554,9 @@ const CONST = {
         CARD_TITLE_INPUT_LIMIT: 255,
     },
     COMPANY_CARDS: {
+        CONNECTION_ERROR: 'connectionError',
         STEP: {
+            SELECT_BANK: 'SelectBank',
             CARD_TYPE: 'CardType',
             CARD_INSTRUCTIONS: 'CardInstructions',
             CARD_NAME: 'CardName',
@@ -2559,6 +2566,17 @@ const CONST = {
             AMEX: 'amex',
             VISA: 'visa',
             MASTERCARD: 'mastercard',
+        },
+        BANKS: {
+            AMEX: 'American Express',
+            BANK_OF_AMERICA: 'Bank of America',
+            BREX: 'Brex',
+            CAPITAL_ONE: 'Capital One',
+            CHASE: 'Chase',
+            CITI_BANK: 'Citibank',
+            STRIPE: 'Stripe',
+            WELLS_FARGO: 'Wells Fargo',
+            OTHER: 'Other',
         },
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
