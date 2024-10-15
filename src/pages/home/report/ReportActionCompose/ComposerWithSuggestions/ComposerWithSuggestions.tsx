@@ -247,7 +247,6 @@ function ComposerWithSuggestions(
     }: ComposerWithSuggestionsProps,
     ref: ForwardedRef<ComposerRef>,
 ) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
@@ -286,7 +285,8 @@ function ComposerWithSuggestions(
         !modal?.isVisible &&
         Modal.areAllModalsHidden() &&
         isFocused &&
-        (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction) && !ReportUtils.isTaskReport(report))) &&
+        (shouldFocusInputOnScreenFocus ||
+            (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction) && !ReportActionsUtils.isCreatedTaskReportAction(parentReportAction))) &&
         shouldShowComposeInput;
 
     const valueRef = useRef(value);
