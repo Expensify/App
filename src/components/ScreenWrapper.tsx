@@ -164,12 +164,11 @@ function ScreenWrapper(
 
     const route = useRoute();
     const shouldReturnToOldDot = useMemo(() => {
-        return !!(route?.params && 'singleNewDotEntry' in route.params && route?.params?.singleNewDotEntry === 'true');
+        return !!route?.params && 'singleNewDotEntry' in route.params && route.params.singleNewDotEntry === 'true';
     }, [route]);
 
     UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
-        Navigation.setParams({singleNewDotEntry: undefined});
-        NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+        NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
     });
 
     const panResponder = useRef(
