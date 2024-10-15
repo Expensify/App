@@ -1247,12 +1247,15 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
     autoSync: {
-        /** TODO: Will be handled in another issue */
+        /** Job ID of the synchronization	*/
         jobID: string;
 
-        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
+        /** Whether changes made in QuickBooks Desktop should be reflected into the app automatically */
         enabled: boolean;
     };
+
+    /** Whether AutoSync is enabled */
+    isAutoSyncEnabled: boolean;
 
     /** Whether a check to be printed */
     markChecksToBePrinted: boolean;
