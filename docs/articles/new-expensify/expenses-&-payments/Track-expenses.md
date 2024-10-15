@@ -40,4 +40,6 @@ For an in-depth walkthrough on how to create an expense, check out the [create a
 
 {% include end-selector.html %}
 
+![The New Expensify page is open with the FAB (big + button) clicked and the option to Track Expenses is highlighted.]({{site.url}}/assets/images/FAB_track_expense.png){:width="100%"}
+
 </div>
