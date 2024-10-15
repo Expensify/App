@@ -1,0 +1,62 @@
+import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
+import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report} from '@src/types/onyx';
+
+type BrokenConnectionDescriptionProps = {
+    /** Transaction id of the corresponding report */
+    transactionID: string;
+
+    /** Current report */
+    report: OnyxEntry<Report>;
+
+    /** Policy which the report is tied to */
+    policy: OnyxEntry<Policy>;
+};
+
+function BrokenConnectionDescription({transactionID, policy, report}: BrokenConnectionDescriptionProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+
+    const brokenConnection530Error = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
+    const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+
+    if (!brokenConnection530Error && !brokenConnectionError) {
+        return '';
+    }
+
+    if (brokenConnection530Error) {
+        return translate('violations.brokenConnection530Error');
+    }
+
+    if (isPolicyAdmin) {
+        return (
+            <>
+                {`${translate('violations.adminBrokenConnectionError')}`}
+                <TextLink
+                    style={[styles.textLabelSupporting, styles.link]}
+                    onPress={() => {}}
+                >{`${translate('workspace.common.companyCards')}`}</TextLink>
+            </>
+        );
+    }
+
+    if (ReportUtils.isReportApproved(report) || ReportUtils.isReportManuallyReimbursed(report) || (ReportUtils.isProcessingReport(report) && !PolicyUtils.isInstantSubmitEnabled(policy))) {
+        return translate('violations.memberBrokenConnectionError');
+    }
+
+    return `${translate('violations.memberBrokenConnectionError')}${translate('violations.markAsCashToIgnore')}`;
+}
+
+BrokenConnectionDescription.displayName = 'BrokenConnectionDescription';
+
+export default BrokenConnectionDescription;

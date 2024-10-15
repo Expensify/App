@@ -605,31 +605,13 @@ function hasBrokenConnectionViolation(transactionID: string): boolean {
 }
 
 /**
- * Returns broken connection description.
+ * Check if user should see broken connection violation warning.
  */
-function getBrokenConnectionDescription(transactionID: string, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
-    const violations = getTransactionViolations(transactionID, allTransactionViolations);
-    const brokenConnection530Error = violations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
-    const brokenConnectionError = violations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-
-    if (!brokenConnection530Error && !brokenConnectionError) {
-        return '';
-    }
-
-    if (brokenConnection530Error) {
-        return Localize.translateLocal('violations.brokenConnection530Error');
-    }
-
-    if (isPolicyAdmin) {
-        return `${Localize.translateLocal('violations.adminBrokenConnectionError')}`;
-    }
-
-    if (ReportUtils.isReportApproved(report) || ReportUtils.isReportManuallyReimbursed(report) || (ReportUtils.isProcessingReport(report) && !PolicyUtils.isInstantSubmitEnabled(policy))) {
-        return Localize.translateLocal('violations.memberBrokenConnectionError');
-    }
-
-    return `${Localize.translateLocal('violations.memberBrokenConnectionError')}${Localize.translateLocal('violations.markAsCashToIgnore')}`;
+function shouldShowBrokenConnectionViolation(transactionID: string, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    return (
+        hasBrokenConnectionViolation(transactionID) &&
+        (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isOpenExpenseReport(report) || (ReportUtils.isProcessingReport(report) && PolicyUtils.isInstantSubmitEnabled(policy)))
+    );
 }
 
 /**
@@ -1188,7 +1170,7 @@ export {
     hasReservationList,
     hasViolation,
     hasBrokenConnectionViolation,
-    getBrokenConnectionDescription,
+    shouldShowBrokenConnectionViolation,
     hasNoticeTypeViolation,
     hasWarningTypeViolation,
     hasModifiedAmountOrDateViolation,

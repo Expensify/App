@@ -3,11 +3,13 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import BrokenConnectionDescription from '@components/BrokenConnectionDescription';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -61,6 +63,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
 
+    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', report, policy);
+
+    const shouldShowMarkAsCashButton = hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && !PolicyUtils.isPolicyAdmin(policy));
+
     const markAsCash = useCallback(() => {
         TransactionActions.markAsCash(transaction?.transactionID ?? '-1', reportID ?? '');
     }, [reportID, transaction?.transactionID]);
@@ -83,6 +89,18 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
             return {icon: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
+        }
+        if (shouldShowBrokenConnectionViolation) {
+            return {
+                icon: getStatusIcon(Expensicons.Hourglass),
+                description: (
+                    <BrokenConnectionDescription
+                        transactionID={transaction?.transactionID ?? '-1'}
+                        report={report}
+                        policy={policy}
+                    />
+                ),
+            };
         }
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
             return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
@@ -137,7 +155,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     shouldDisplaySearchRouter
                     onBackButtonPress={onBackButtonPress}
                 >
-                    {hasAllPendingRTERViolations && !shouldUseNarrowLayout && (
+                    {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
                         <Button
                             success
                             text={translate('iou.markAsCash')}
@@ -156,7 +174,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         />
                     )}
                 </HeaderWithBackButton>
-                {hasAllPendingRTERViolations && shouldUseNarrowLayout && (
+                {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, styles.pb3]}>
                         <Button
                             success
