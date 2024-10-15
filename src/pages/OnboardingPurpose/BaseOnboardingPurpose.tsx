@@ -84,11 +84,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 Welcome.setOnboardingErrorMessage('');
 
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-                    if (!onboardingPolicyID) {
-                        const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', generatePolicyID(), choice);
-                        Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
-                        Welcome.setOnboardingPolicyID(policyID);
-                    }
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
                 }

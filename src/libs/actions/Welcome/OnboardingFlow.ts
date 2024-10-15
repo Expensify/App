@@ -123,9 +123,6 @@ function getOnboardingInitialPath(): string {
     if (isVsb) {
         // Create a workspace for the user if they have selected "Manage my team's expenses"
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-        const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-        Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
-        Welcome.setOnboardingPolicyID(policyID);
         return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
     }
 
