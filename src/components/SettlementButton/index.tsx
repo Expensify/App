@@ -178,7 +178,7 @@ function SettlementButton({
                     {
                         text: translate('workspace.invoices.paymentMethods.addCorporateCard'),
                         icon: Expensicons.CreditCard,
-                        onSelected: () => Navigation.navigate(addDebitCardRoute), // TODO: Clarify if this is the correct route
+                        onSelected: () => Navigation.navigate(addDebitCardRoute),
                     },
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
