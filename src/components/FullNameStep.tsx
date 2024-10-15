@@ -40,9 +40,11 @@ type FullNameStepProps = SubStepProps & {
         firstName: string;
         lastName: string;
     };
+
+    shouldShowHelpLinks?: boolean;
 };
 
-function FullNameStep({formID, formTitle, customValidate, onSubmit, stepFields, firstNameInputID, lastNameInputID, defaultValues, isEditing}: FullNameStepProps) {
+function FullNameStep({formID, formTitle, customValidate, onSubmit, stepFields, firstNameInputID, lastNameInputID, defaultValues, isEditing, shouldShowHelpLinks = true}: FullNameStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -93,7 +95,7 @@ function FullNameStep({formID, formTitle, customValidate, onSubmit, stepFields, 
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
                 />
-                <HelpLinks />
+                {shouldShowHelpLinks && <HelpLinks />}
             </View>
         </FormProvider>
     );
