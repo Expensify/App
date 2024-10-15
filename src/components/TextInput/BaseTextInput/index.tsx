@@ -261,6 +261,7 @@ function BaseTextInput(
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
+        isAutoGrowHeightMarkdown && styles.autoGrowMarkdwonTextInputPaddingBottom,
     ]);
     const isMultiline = multiline || autoGrowHeight;
 

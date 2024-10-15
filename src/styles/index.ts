@@ -1181,6 +1181,9 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderBottomWidth: 2,
             borderColor: theme.border,
+        },
+
+        autoGrowMarkdwonTextInputPaddingBottom: {
             paddingBottom: 8,
         },
 
