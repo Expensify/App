@@ -56,6 +56,7 @@ type ReportActionItemImageProps = {
     /** Whether the receipt is not editable */
     readonly?: boolean;
 
+    /** whether or not this report is from review duplicates */
     isFromReviewDuplicates?: boolean;
 };
 
