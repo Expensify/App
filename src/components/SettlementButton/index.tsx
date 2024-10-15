@@ -127,74 +127,66 @@ function SettlementButton({
 
         if (isInvoiceReport) {
             const formattedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, fundList, styles);
-            const defaultPaymentMethod = formattedPaymentMethods.find((paymentMethod) => !!paymentMethod.isDefault) ?? formattedPaymentMethods.at(0) ?? null;
-            const paymentSubitem = {
-                text: defaultPaymentMethod?.title ?? '',
-                description: defaultPaymentMethod?.description ?? '',
-                icon: defaultPaymentMethod?.icon ?? Expensicons.Bank,
-            };
+            const getPaymentSubitems = (payAsBusiness: boolean) =>
+                formattedPaymentMethods.map((formattedPaymentMethod) => ({
+                    text: formattedPaymentMethod?.title ?? '',
+                    description: formattedPaymentMethod?.description ?? '',
+                    icon: formattedPaymentMethod?.icon,
+                    onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.VBBA, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType),
+                }));
 
             if (ReportUtils.isIndividualInvoiceRoom(chatReport)) {
-                const subMenuItems = [
-                    {
-                        text: translate('workspace.invoices.paymentMethods.addBankAccount'),
-                        icon: Expensicons.Bank,
-                        onSelected: () => Navigation.navigate(addBankAccountRoute),
-                    },
-                    {
-                        text: translate('workspace.invoices.paymentMethods.addDebitOrCreditCard'),
-                        icon: Expensicons.CreditCard,
-                        onSelected: () => Navigation.navigate(addDebitCardRoute),
-                    },
-                    {
-                        text: translate('iou.payElsewhere', {formattedAmount: ''}),
-                        icon: Expensicons.Cash,
-                        value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                        onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
-                    },
-                ];
-
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
                     icon: Expensicons.User,
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
-                    subMenuItems: defaultPaymentMethod
-                        ? [
-                              {...paymentSubitem, onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.VBBA, false, defaultPaymentMethod.methodID, defaultPaymentMethod.accountType)},
-                              ...subMenuItems,
-                          ]
-                        : subMenuItems,
+                    subMenuItems: [
+                        ...getPaymentSubitems(false),
+                        {
+                            text: translate('workspace.invoices.paymentMethods.addBankAccount'),
+                            icon: Expensicons.Bank,
+                            onSelected: () => Navigation.navigate(addBankAccountRoute),
+                        },
+                        {
+                            text: translate('workspace.invoices.paymentMethods.addDebitOrCreditCard'),
+                            icon: Expensicons.CreditCard,
+                            onSelected: () => Navigation.navigate(addDebitCardRoute),
+                        },
+                        {
+                            text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                            icon: Expensicons.Cash,
+                            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                            onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
+                        },
+                    ],
                 });
             }
-
-            const subMenuItems = [
-                {
-                    text: translate('workspace.invoices.paymentMethods.addBankAccount'),
-                    icon: Expensicons.Bank,
-                    onSelected: () => Navigation.navigate(addBankAccountRoute),
-                },
-                {
-                    text: translate('workspace.invoices.paymentMethods.addCorporateCard'),
-                    icon: Expensicons.CreditCard,
-                    onSelected: () => Navigation.navigate(addDebitCardRoute), // TODO: Clarify if this is the correct route
-                },
-                {
-                    text: translate('iou.payElsewhere', {formattedAmount: ''}),
-                    icon: Expensicons.Cash,
-                    value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                    onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, true),
-                },
-            ];
 
             buttonOptions.push({
                 text: translate('iou.settleBusiness', {formattedAmount}),
                 icon: Expensicons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 backButtonText: translate('iou.business'),
-                subMenuItems: defaultPaymentMethod
-                    ? [{...paymentSubitem, onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.VBBA, true, defaultPaymentMethod.methodID, defaultPaymentMethod.accountType)}, ...subMenuItems]
-                    : subMenuItems,
+                subMenuItems: [
+                    ...getPaymentSubitems(true),
+                    {
+                        text: translate('workspace.invoices.paymentMethods.addBankAccount'),
+                        icon: Expensicons.Bank,
+                        onSelected: () => Navigation.navigate(addBankAccountRoute),
+                    },
+                    {
+                        text: translate('workspace.invoices.paymentMethods.addCorporateCard'),
+                        icon: Expensicons.CreditCard,
+                        onSelected: () => Navigation.navigate(addDebitCardRoute), // TODO: Clarify if this is the correct route
+                    },
+                    {
+                        text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                        icon: Expensicons.Cash,
+                        value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, true),
+                    },
+                ],
             });
         }
 
