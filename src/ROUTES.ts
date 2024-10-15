@@ -713,6 +713,7 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/accounts',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/accounts` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/classes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/classes` as const,
