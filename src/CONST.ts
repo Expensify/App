@@ -1491,6 +1491,9 @@ const CONST = {
         MARK_CHECKS_TO_BE_PRINTED: 'markChecksToBePrinted',
         REIMBURSABLE_ACCOUNT: 'reimbursableAccount',
         REIMBURSABLE: 'reimbursable',
+        MAPPINGS: {
+            CLASSES: 'classes',
+        },
     },
 
     QUICKBOOKS_CONFIG: {
