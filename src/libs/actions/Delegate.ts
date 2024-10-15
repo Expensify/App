@@ -1,3 +1,4 @@
+import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -6,6 +7,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
+import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -97,6 +99,8 @@ function connect(email: string) {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
                     openApp();
+
+                    NativeModules.HybridAppModule.switchAccounts(email);
                 });
         })
         .catch((error) => {
@@ -160,6 +164,8 @@ function disconnect() {
                     NetworkStore.setAuthToken(response?.authToken ?? null);
                     confirmReadyToOpenApp();
                     openApp();
+
+                    NativeModules.HybridAppModule.switchAccounts(getCurrentUserEmail() ?? '');
                 });
         })
         .catch((error) => {
@@ -573,4 +579,5 @@ export {
     clearDelegateRolePendingAction,
     updateDelegateRole,
     removeDelegate,
+    KEYS_TO_PRESERVE_DELEGATE_ACCESS,
 };
