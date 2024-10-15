@@ -1181,6 +1181,7 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderBottomWidth: 2,
             borderColor: theme.border,
+            paddingBottom: 8,
         },
 
         optionRowAmountInput: {
@@ -4535,6 +4536,10 @@ const styles = (theme: ThemeColors) =>
         onboardingVideoPlayer: {
             borderRadius: 12,
             backgroundColor: theme.highlightBG,
+        },
+
+        onboardingSmallIcon: {
+            padding: 10,
         },
 
         sidebarStatusAvatarContainer: {
