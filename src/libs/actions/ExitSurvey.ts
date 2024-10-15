@@ -64,4 +64,14 @@ function switchToOldDot() {
     );
 }
 
-export {saveExitReason, saveResponse, switchToOldDot};
+/**
+ * Clear the exit survey form data.
+ */
+function resetExitSurveyForm() {
+    Onyx.set(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, null);
+    Onyx.set(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT, null);
+    Onyx.set(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, null);
+    Onyx.set(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, null);
+}
+
+export {saveExitReason, saveResponse, switchToOldDot, resetExitSurveyForm};

@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
-import {NativeModules, View} from 'react-native';
+import {InteractionManager, NativeModules, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
@@ -47,6 +47,7 @@ import ROUTES from '@src/ROUTES';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import { resetExitSurveyForm } from '@libs/actions/ExitSurvey';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
@@ -237,7 +238,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                               },
                           }
                         : {
-                              routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                              action() {
+                                  resetExitSurveyForm();
+                                  InteractionManager.runAfterInteractions(() => {
+                                      Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
+                                  });
+                              },
                           }),
                 },
                 {
