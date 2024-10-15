@@ -160,7 +160,10 @@ function SettlementButton({
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: defaultPaymentMethod
-                        ? [{...paymentSubitem, onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.VBBA, false, defaultPaymentMethod?.methodID)}, ...subMenuItems]
+                        ? [
+                              {...paymentSubitem, onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.VBBA, false, defaultPaymentMethod.methodID, defaultPaymentMethod.accountType)},
+                              ...subMenuItems,
+                          ]
                         : subMenuItems,
                 });
             }
@@ -190,7 +193,7 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 backButtonText: translate('iou.business'),
                 subMenuItems: defaultPaymentMethod
-                    ? [{...paymentSubitem, onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.VBBA, true, defaultPaymentMethod?.methodID)}, ...subMenuItems]
+                    ? [{...paymentSubitem, onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.VBBA, true, defaultPaymentMethod.methodID, defaultPaymentMethod.accountType)}, ...subMenuItems]
                     : subMenuItems,
             });
         }
