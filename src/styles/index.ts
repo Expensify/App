@@ -1181,7 +1181,6 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderBottomWidth: 2,
             borderColor: theme.border,
-            paddingBottom: 8,
         },
 
         optionRowAmountInput: {
