@@ -20,7 +20,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import variables from '@styles/variables';
+<<<<<<< HEAD
 import * as Policy from '@userActions/Policy/Policy';
+=======
+>>>>>>> 0167316 (Merge pull request #50759 from Expensify/marcaaron-createWorkspaceOnOldDotRedirect)
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {OnboardingPurposeType} from '@src/CONST';
@@ -50,7 +53,6 @@ const menuIcons = {
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
@@ -83,11 +85,14 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 Welcome.setOnboardingErrorMessage('');
 
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+<<<<<<< HEAD
                     if (!onboardingPolicyID) {
                         const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true);
                         Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
                         Welcome.setOnboardingPolicyID(policyID);
                     }
+=======
+>>>>>>> 0167316 (Merge pull request #50759 from Expensify/marcaaron-createWorkspaceOnOldDotRedirect)
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
                 }
