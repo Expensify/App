@@ -199,7 +199,6 @@ function WorkspacePageWithSections({
                         {shouldUseScrollView ? (
                             <ScrollViewWithContext
                                 keyboardShouldPersistTaps="handled"
-                                contentContainerStyle={styles.flex1}
                                 style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                             >
                                 <View style={[styles.w100, styles.flex1]}>{content}</View>
