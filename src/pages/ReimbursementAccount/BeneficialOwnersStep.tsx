@@ -1,16 +1,11 @@
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -46,7 +41,6 @@ const bodyContent: Array<React.ComponentType<BeneficialOwnerSubStepProps>> = [Le
 
 function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}: BeneficialOwnersStepProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const defaultValues = {
