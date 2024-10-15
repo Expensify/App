@@ -1,5 +1,5 @@
 ---
-title: Pay Bills
+title: Create and Pay Bills
 description: Expensify bill management and payment methods.
 ---
 Streamline your operations by receiving and paying vendor or supplier bills directly in Expensify. Vendors can send bills even if they don't have an Expensify account, and you can manage payments seamlessly.
