@@ -58,8 +58,7 @@ function DebugTransactionPage({
                                     onDelete={() => {
                                         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
                                     }}
-                                    // TODO: Create DebugUtils.validateTransactionDraftProperty
-                                    validate={DebugUtils.validateReportDraftProperty}
+                                    validate={DebugUtils.validateTransactionDraftProperty}
                                 />
                             )}
                         </TopTab.Screen>

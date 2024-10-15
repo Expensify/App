@@ -5,7 +5,8 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Policy, RecentWaypoint, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Comment, Receipt, TaxRate} from '@src/types/onyx/Transaction';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as ReportUtils from './ReportUtils';
 
@@ -35,7 +36,7 @@ class ObjectError extends SyntaxError {
     }
 }
 
-type ObjectType = Record<string, 'string' | 'number' | 'object' | 'array' | 'boolean' | ConstantEnum>;
+type ObjectType<T extends string = string> = Record<T, 'string' | 'number' | 'object' | 'array' | 'boolean' | ConstantEnum>;
 
 type ConstantEnum = Record<string, unknown>;
 
@@ -110,6 +111,23 @@ const REPORT_ACTION_BOOLEAN_PROPERTIES: Array<keyof ReportAction> = [
 ] satisfies Array<keyof ReportAction>;
 
 const REPORT_ACTION_DATE_PROPERTIES: Array<keyof ReportAction> = ['created', 'lastModified'] satisfies Array<keyof ReportAction>;
+
+const TRANSACTION_REQUIRED_PROPERTIES: Array<keyof Transaction> = ['transactionID', 'reportID', 'amount', 'created', 'currency', 'merchant'] satisfies Array<keyof Transaction>;
+
+const TRANSACTION_NUMBER_PROPERTIES: Array<keyof Transaction> = ['amount', 'taxAmount', 'modifiedAmount', 'cardID', 'originalAmount'] satisfies Array<keyof Transaction>;
+
+const TRANSACTION_DATE_PROPERTIES: Array<keyof Transaction> = ['created', 'modifiedCreated'] satisfies Array<keyof Transaction>;
+
+const TRANSACTION_BOOLEAN_PROPERTIES: Array<keyof Transaction> = [
+    'billable',
+    'participantsAutoAssigned',
+    'isFromGlobalCreate',
+    'reimbursable',
+    'hasEReceipt',
+    'isLoading',
+    'shouldShowOriginalAmount',
+    'managedCard',
+] satisfies Array<keyof Transaction>;
 
 let isInFocusMode: OnyxEntry<boolean>;
 Onyx.connect({
@@ -355,7 +373,7 @@ function validateArray(
 /**
  * Validates if a string is a valid representation of an object.
  */
-function validateObject(value: string, type: ObjectType, collectionIndexType?: 'string' | 'number') {
+function validateObject<T extends string>(value: string, type: ObjectType<T>, collectionIndexType?: 'string' | 'number') {
     if (value === 'undefined') {
         return;
     }
@@ -394,7 +412,7 @@ function validateObject(value: string, type: ObjectType, collectionIndexType?: '
         Object.entries(type).forEach(([key, val]) => {
             // test[key] is a constant enum
             if (typeof val === 'object') {
-                return validateConstantEnum(test[key] as string, val);
+                return validateConstantEnum(test[key] as string, val as ConstantEnum);
             }
             if (val === 'array' ? !Array.isArray(test[key]) : typeof test[key] !== val) {
                 throw new ObjectError(expectedType);
@@ -565,6 +583,118 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
 }
 
 /**
+ * Validates if a property of Transaction is of the expected type
+ *
+ * @param key - property key
+ * @param value - value provided by the user
+ */
+function validateTransactionDraftProperty(key: keyof Transaction, value: string) {
+    if (TRANSACTION_REQUIRED_PROPERTIES.includes(key) && value === 'undefined') {
+        throw SyntaxError('debug.missingValue');
+    }
+    if (TRANSACTION_NUMBER_PROPERTIES.includes(key)) {
+        return validateNumber(value);
+    }
+    if (TRANSACTION_BOOLEAN_PROPERTIES.includes(key)) {
+        return validateBoolean(value);
+    }
+    if (TRANSACTION_DATE_PROPERTIES.includes(key)) {
+        return validateDate(value);
+    }
+    if (key === 'iouRequestType') {
+        return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
+    }
+    if (key === 'status') {
+        return validateConstantEnum(value, CONST.TRANSACTION.STATUS);
+    }
+    if (key === 'mccGroup') {
+        return validateConstantEnum(value, CONST.MCC_GROUPS);
+    }
+    if (key === 'modifiedMCCGroup') {
+        return validateConstantEnum(value, CONST.MCC_GROUPS);
+    }
+    if (key === 'comment') {
+        return validateObject<keyof Comment>(value, {
+            comment: 'string',
+            hold: 'string',
+            waypoints: 'object',
+            isLoading: 'boolean',
+            type: CONST.TRANSACTION.TYPE,
+            customUnit: 'object',
+            source: 'string',
+            originalTransactionID: 'string',
+            splits: 'array',
+            dismissedViolations: 'object',
+        });
+    }
+    if (key === 'modifiedWaypoints') {
+        return validateObject<keyof RecentWaypoint>(
+            value,
+            {
+                name: 'string',
+                address: 'string',
+                lat: 'number',
+                lng: 'number',
+                keyForList: 'string',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+            },
+            'string',
+        );
+    }
+    if (key === 'participants') {
+        return validateArray(value, {
+            accountID: 'number',
+            login: 'string',
+            displayName: 'string',
+            isPolicyExpenseChat: 'boolean',
+            isInvoiceRoom: 'boolean',
+            isOwnPolicyExpenseChat: 'boolean',
+            chatType: CONST.REPORT.CHAT_TYPE,
+            reportID: 'string',
+            policyID: 'string',
+            selected: 'boolean',
+            searchText: 'string',
+            alternateText: 'string',
+            firstName: 'string',
+            keyForList: 'string',
+            lastName: 'string',
+            phoneNumber: 'string',
+            text: 'string',
+            isSelected: 'boolean',
+            isSelfDM: 'boolean',
+            isSender: 'boolean',
+            iouType: CONST.IOU.TYPE,
+            ownerAccountID: 'number',
+        });
+    }
+    if (key === 'receipt') {
+        return validateObject<keyof Receipt>(value, {
+            type: 'string',
+            source: 'string',
+            name: 'string',
+            filename: 'string',
+            state: CONST.IOU.RECEIPT_STATE,
+            receiptID: 'number',
+            reservationList: 'array',
+        });
+    }
+    if (key === 'splitPayerAccountIDs') {
+        return validateArray(value, 'number');
+    }
+    if (key === 'taxRate') {
+        return validateObject<keyof TaxRate>(value, {
+            keyForList: 'string',
+            text: 'string',
+            data: 'object',
+        });
+    }
+    if (key === 'errors') {
+        return validateObject(value, {});
+    }
+    validateString(value);
+}
+
+/**
  * Validates if the ReportAction JSON that the user provided is of the expected type
  */
 function validateReportActionJSON(json: string) {
@@ -666,6 +796,7 @@ const DebugUtils = {
     validateString,
     validateReportDraftProperty,
     validateReportActionDraftProperty,
+    validateTransactionDraftProperty,
     validateReportActionJSON,
     getReasonForShowingRowInLHN,
     getReasonAndReportActionForGBRInLHNRow,
