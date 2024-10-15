@@ -28,9 +28,9 @@ import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
-import DateUtils from '@libs/DateUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -84,7 +84,6 @@ function IOURequestStepScan({
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
-    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
@@ -485,10 +484,7 @@ function IOURequestStepScan({
                     setFileResize(file);
                     setFileSource(source);
                     if (gpsRequired) {
-                        const shouldStartLocationPermissionFlow =
-                            !lastLocationPermissionPrompt ||
-                            (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') &&
-                                DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS);
+                        const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
 
                         if (shouldStartLocationPermissionFlow) {
                             setStartLocationPermissionFlow(true);
@@ -535,11 +531,7 @@ function IOURequestStepScan({
             setFileResize(file);
             setFileSource(source);
             if (gpsRequired) {
-                const shouldStartLocationPermissionFlow =
-                    !lastLocationPermissionPrompt ||
-                    (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') &&
-                        DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS);
-
+                const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
                 if (shouldStartLocationPermissionFlow) {
                     setStartLocationPermissionFlow(true);
                     return;
@@ -547,7 +539,7 @@ function IOURequestStepScan({
             }
         }
         navigateToConfirmationStep(file, source, false);
-    }, [transactionID, isEditing, shouldSkipConfirmation, requestCameraPermission, updateScanAndNavigate, gpsRequired, lastLocationPermissionPrompt, navigateToConfirmationStep]);
+    }, [transactionID, isEditing, shouldSkipConfirmation, requestCameraPermission, updateScanAndNavigate, gpsRequired, navigateToConfirmationStep]);
 
     const clearTorchConstraints = useCallback(() => {
         if (!trackRef.current) {
