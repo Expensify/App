@@ -1,0 +1,1435 @@
+diff --git a/node_modules/@react-navigation/core/lib/commonjs/index.js b/node_modules/@react-navigation/core/lib/commonjs/index.js
+index d1ea4eb..4b0a660 100644
+--- a/node_modules/@react-navigation/core/lib/commonjs/index.js
++++ b/node_modules/@react-navigation/core/lib/commonjs/index.js
+@@ -22,6 +22,7 @@ var _exportNames = {
+   useFocusEffect: true,
+   useIsFocused: true,
+   useNavigation: true,
++  NavigationBuilderOptions: true,
+   useNavigationBuilder: true,
+   useNavigationContainerRef: true,
+   useNavigationState: true,
+@@ -42,6 +43,12 @@ Object.defineProperty(exports, "CurrentRenderContext", {
+     return _CurrentRenderContext.default;
+   }
+ });
++Object.defineProperty(exports, "NavigationBuilderOptions", {
++  enumerable: true,
++  get: function () {
++    return _useNavigationBuilder.NavigationBuilderOptions;
++  }
++});
+ Object.defineProperty(exports, "NavigationContainerRefContext", {
+   enumerable: true,
+   get: function () {
+@@ -210,7 +217,7 @@ Object.keys(_types).forEach(function (key) {
+ var _useFocusEffect = _interopRequireDefault(require("./useFocusEffect"));
+ var _useIsFocused = _interopRequireDefault(require("./useIsFocused"));
+ var _useNavigation = _interopRequireDefault(require("./useNavigation"));
+-var _useNavigationBuilder = _interopRequireDefault(require("./useNavigationBuilder"));
++var _useNavigationBuilder = _interopRequireWildcard(require("./useNavigationBuilder"));
+ var _useNavigationContainerRef = _interopRequireDefault(require("./useNavigationContainerRef"));
+ var _useNavigationState = _interopRequireDefault(require("./useNavigationState"));
+ var _usePreventRemove = _interopRequireDefault(require("./usePreventRemove"));
+@@ -229,5 +236,7 @@ Object.keys(_routers).forEach(function (key) {
+     }
+   });
+ });
++function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
++function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/commonjs/index.js.map b/node_modules/@react-navigation/core/lib/commonjs/index.js.map
+index f531070..f6131d3 100644
+--- a/node_modules/@react-navigation/core/lib/commonjs/index.js.map
++++ b/node_modules/@react-navigation/core/lib/commonjs/index.js.map
+@@ -1 +1 @@
+-{"version":3,"names":[],"sourceRoot":"../../src","sources":["index.tsx"],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAAA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AAAA;EAAA;EAAA;EAAA;EAAA;IAAA;IAAA;MAAA;IAAA;EAAA;AAAA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AAAA;EAAA;EAAA;EAAA;EAAA;IAAA;IAAA;MAAA;IAAA;EAAA;AAAA;AAA0C"}
+\ No newline at end of file
++{"version":3,"names":[],"sourceRoot":"../../src","sources":["index.tsx"],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAAA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AAAA;EAAA;EAAA;EAAA;EAAA;IAAA;IAAA;MAAA;IAAA;EAAA;AAAA;AACA;AACA;AACA;AACA;AAIA;AACA;AACA;AACA;AACA;AACA;AACA;AAAA;EAAA;EAAA;EAAA;EAAA;IAAA;IAAA;MAAA;IAAA;EAAA;AAAA;AAA0C;AAAA;AAAA"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/commonjs/types.js.map b/node_modules/@react-navigation/core/lib/commonjs/types.js.map
+index a3da390..bca9dc0 100644
+--- a/node_modules/@react-navigation/core/lib/commonjs/types.js.map
++++ b/node_modules/@react-navigation/core/lib/commonjs/types.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["PrivateValueStore"],"sourceRoot":"../../src","sources":["types.tsx"],"mappings":";;;;;;AAoJO,MAAMA,iBAAiB,CAA4B;AAYzD"}
+\ No newline at end of file
++{"version":3,"names":["PrivateValueStore"],"sourceRoot":"../../src","sources":["types.tsx"],"mappings":";;;;;;AAmLO,MAAMA,iBAAiB,CAA4B;AAYzD"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js b/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js
+index 778981c..87fa958 100644
+--- a/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js
++++ b/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js
+@@ -21,8 +21,10 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj &&
+  * - Helper method to render a screen
+  * - Options specified by the screen for the navigator
+  * - Navigation object intended for the route
++ * @param convertCustomScreenOptions Function to convert custom screen options to screen options.
++ * If passed, it means that the `options`/`screenOptions` passed to the navigator are custom and need to be converted to regular screen options.
+  */
+-function useDescriptors(_ref) {
++function useDescriptors(_ref, convertCustomScreenOptions) {
+   let {
+     state,
+     screens,
+@@ -67,29 +69,45 @@ function useDescriptors(_ref) {
+     const config = screens[route.name];
+     const screen = config.props;
+     const navigation = navigations[route.key];
+-    const optionsList = [
+-    // The default `screenOptions` passed to the navigator
+-    screenOptions,
+-    // The `screenOptions` props passed to `Group` elements
+-    ...(config.options ? config.options.filter(Boolean) : []),
+-    // The `options` prop passed to `Screen` elements,
+-    screen.options,
+-    // The options set via `navigation.setOptions`
+-    options[route.key]];
++    let optionsList;
++    if (convertCustomScreenOptions) {
++      optionsList = [
++      // The default `screenOptions` passed to the navigator
++      convertCustomScreenOptions(screenOptions),
++      // The `screenOptions` props passed to `Group` elements
++      ...(config.options ? config.options.filter(Boolean).map(convertCustomScreenOptions) : []),
++      // The `options` prop passed to `Screen` elements,
++      convertCustomScreenOptions(screen.options),
++      // The options set via `navigation.setOptions`
++      convertCustomScreenOptions(options[route.key])];
++    } else {
++      optionsList = [
++      // The default `screenOptions` passed to the navigator
++      screenOptions,
++      // The `screenOptions` props passed to `Group` elements
++      ...(config.options ? config.options.filter(Boolean) : []),
++      // The `options` prop passed to `Screen` elements,
++      screen.options,
++      // The options set via `navigation.setOptions`
++      options[route.key]];
++    }
+     const customOptions = optionsList.reduce((acc, curr) => Object.assign(acc,
+     // @ts-expect-error: we check for function but TS still complains
+     typeof curr !== 'function' ? curr : curr({
+       route,
+       navigation
+     })), {});
++    const customDefaultScreenOptions = (convertCustomScreenOptions === null || convertCustomScreenOptions === void 0 ? void 0 : convertCustomScreenOptions(defaultScreenOptions)) ?? defaultScreenOptions;
+     const mergedOptions = {
+       ...(typeof defaultScreenOptions === 'function' ?
++      // In Expensify's PlatformStackNavigation we don't allow a callback function for `defaultScreenOptions`,
++      // therefore we don't need to convert any custom default options when it's a function.
+       // @ts-expect-error: ts gives incorrect error here
+       defaultScreenOptions({
+         route,
+         navigation,
+         options: customOptions
+-      }) : defaultScreenOptions),
++      }) : customDefaultScreenOptions),
+       ...customOptions
+     };
+     const clearOptions = () => setOptions(o => {
+diff --git a/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js.map b/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js.map
+index d2248a2..33f2f63 100644
+--- a/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js.map
++++ b/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["useDescriptors","state","screens","navigation","screenOptions","defaultScreenOptions","onAction","getState","setState","addListener","addKeyedListener","onRouteFocus","router","emitter","options","setOptions","React","useState","onDispatchAction","onOptionsChange","stackRef","useContext","NavigationBuilderContext","context","useMemo","navigations","useNavigationCache","routes","useRouteCache","reduce","acc","route","i","config","name","screen","props","key","optionsList","filter","Boolean","customOptions","curr","Object","assign","mergedOptions","clearOptions","o","_","rest","render"],"sourceRoot":"../../src","sources":["useDescriptors.tsx"],"mappings":"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"}
+\ No newline at end of file
++{"version":3,"names":["useDescriptors","convertCustomScreenOptions","state","screens","navigation","screenOptions","defaultScreenOptions","onAction","getState","setState","addListener","addKeyedListener","onRouteFocus","router","emitter","options","setOptions","React","useState","onDispatchAction","onOptionsChange","stackRef","useContext","NavigationBuilderContext","context","useMemo","navigations","useNavigationCache","routes","useRouteCache","reduce","acc","route","i","config","name","screen","props","key","optionsList","filter","Boolean","map","customOptions","curr","Object","assign","customDefaultScreenOptions","mergedOptions","clearOptions","o","_","rest","render"],"sourceRoot":"../../src","sources":["useDescriptors.tsx"],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/commonjs/useNavigationBuilder.js b/node_modules/@react-navigation/core/lib/commonjs/useNavigationBuilder.js
+index 14338b9..70564a7 100644
+--- a/node_modules/@react-navigation/core/lib/commonjs/useNavigationBuilder.js
++++ b/node_modules/@react-navigation/core/lib/commonjs/useNavigationBuilder.js
+@@ -127,9 +127,11 @@ const getRouteConfigsFromChildren = (children, groupKey, groupOptions) => {
+  *
+  * @param createRouter Factory method which returns router object.
+  * @param options Options object containing `children` and additional options for the router.
++ * @param convertCustomScreenOptions Function to convert custom screen options to screen options.
++ * If passed, it means that the `options`/`screenOptions` passed to the navigator are custom and need to be converted to regular screen options.
+  * @returns An object containing `state`, `navigation`, `descriptors` objects.
+  */
+-function useNavigationBuilder(createRouter, options) {
++function useNavigationBuilder(createRouter, options, convertCustomScreenOptions) {
+   const navigatorKey = (0, _useRegisterNavigator.default)();
+   const route = React.useContext(_NavigationRouteContext.default);
+   const {
+@@ -182,10 +184,6 @@ function useNavigationBuilder(createRouter, options) {
+     getIsInitial
+   } = React.useContext(_NavigationStateContext.default);
+   const stateCleanedUp = React.useRef(false);
+-  const cleanUpState = React.useCallback(() => {
+-    setCurrentState(undefined);
+-    stateCleanedUp.current = true;
+-  }, [setCurrentState]);
+   const setState = React.useCallback(state => {
+     if (stateCleanedUp.current) {
+       // State might have been already cleaned up due to unmount
+@@ -299,6 +297,9 @@ function useNavigationBuilder(createRouter, options) {
+   // So we override the state object we return to use the latest state as soon as possible
+   state = nextState;
+   React.useEffect(() => {
++    // In strict mode, React will double-invoke effects.
++    // So we need to reset the flag if component was not unmounted
++    stateCleanedUp.current = false;
+     setKey(navigatorKey);
+     if (!getIsInitial()) {
+       // If it's not initial render, we need to update the state
+@@ -308,14 +309,10 @@ function useNavigationBuilder(createRouter, options) {
+     }
+     return () => {
+       // We need to clean up state for this navigator on unmount
+-      // We do it in a timeout because we need to detect if another navigator mounted in the meantime
+-      // For example, if another navigator has started rendering, we should skip cleanup
+-      // Otherwise, our cleanup step will cleanup state for the other navigator and re-initialize it
+-      setTimeout(() => {
+-        if (getCurrentState() !== undefined && getKey() === navigatorKey) {
+-          cleanUpState();
+-        }
+-      }, 0);
++      if (getCurrentState() !== undefined && getKey() === navigatorKey) {
++        setCurrentState(undefined);
++        stateCleanedUp.current = true;
++      }
+     };
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, []);
+@@ -438,7 +435,7 @@ function useNavigationBuilder(createRouter, options) {
+     router,
+     // @ts-expect-error: this should have both core and custom events, but too much work right now
+     emitter
+-  });
++  }, convertCustomScreenOptions);
+   (0, _useCurrentRender.default)({
+     state,
+     navigation,
+diff --git a/node_modules/@react-navigation/core/lib/commonjs/useNavigationBuilder.js.map b/node_modules/@react-navigation/core/lib/commonjs/useNavigationBuilder.js.map
+index 55b77ca..564a9dc 100644
+--- a/node_modules/@react-navigation/core/lib/commonjs/useNavigationBuilder.js.map
++++ b/node_modules/@react-navigation/core/lib/commonjs/useNavigationBuilder.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["PrivateValueStore","isValidKey","key","undefined","getRouteConfigsFromChildren","children","groupKey","groupOptions","configs","React","Children","toArray","reduce","acc","child","isValidElement","type","Screen","props","navigationKey","Error","JSON","stringify","name","push","keys","options","Fragment","Group","screenOptions","String","process","env","NODE_ENV","forEach","config","component","getComponent","isValidElementType","console","warn","test","useNavigationBuilder","createRouter","navigatorKey","useRegisterNavigator","route","useContext","NavigationRouteContext","screenListeners","rest","current","router","useRef","params","state","initial","screen","initialRouteName","routeConfigs","screens","routeNames","map","routeKeyList","curr","join","routeParamList","initialParams","routeGetIdList","Object","assign","getId","length","isStateValid","useCallback","isStateInitialized","stale","currentState","getState","getCurrentState","setState","setCurrentState","setKey","getKey","getIsInitial","NavigationStateContext","stateCleanedUp","cleanUpState","initializedState","isFirstStateInitialization","useMemo","initialRouteParamList","initialParamsFromParams","getInitialState","getRehydratedState","previousRouteKeyListRef","useEffect","previousRouteKeyList","nextState","isArrayEqual","isRecordEqual","getStateForRouteNamesChange","routeKeyChanges","filter","hasOwnProperty","previousNestedParamsRef","previousParams","action","CommonActions","reset","navigate","path","updatedState","getStateForAction","shouldUpdate","useScheduleUpdate","setTimeout","initializedStateRef","emitter","useEventEmitter","e","target","routes","find","index","navigation","descriptors","listeners","concat","cb","i","self","lastIndexOf","listener","useFocusEvents","emit","data","childListeners","addListener","useChildListeners","keyedListeners","addKeyedListener","useKeyedChildListeners","onAction","useOnAction","actionListeners","beforeRemoveListeners","beforeRemove","routerConfigOptions","onRouteFocus","useOnRouteFocus","useNavigationHelpers","id","useFocusedListenersChildrenAdapter","focusedListeners","focus","useOnGetState","getStateListeners","useDescriptors","defaultScreenOptions","useCurrentRender","NavigationContent","useComponent"],"sourceRoot":"../../src","sources":["useNavigationBuilder.tsx"],"mappings":"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"}
+\ No newline at end of file
++{"version":3,"names":["PrivateValueStore","isValidKey","key","undefined","getRouteConfigsFromChildren","children","groupKey","groupOptions","configs","React","Children","toArray","reduce","acc","child","isValidElement","type","Screen","props","navigationKey","Error","JSON","stringify","name","push","keys","options","Fragment","Group","screenOptions","String","process","env","NODE_ENV","forEach","config","component","getComponent","isValidElementType","console","warn","test","useNavigationBuilder","createRouter","convertCustomScreenOptions","navigatorKey","useRegisterNavigator","route","useContext","NavigationRouteContext","screenListeners","rest","current","router","useRef","params","state","initial","screen","initialRouteName","routeConfigs","screens","routeNames","map","routeKeyList","curr","join","routeParamList","initialParams","routeGetIdList","Object","assign","getId","length","isStateValid","useCallback","isStateInitialized","stale","currentState","getState","getCurrentState","setState","setCurrentState","setKey","getKey","getIsInitial","NavigationStateContext","stateCleanedUp","initializedState","isFirstStateInitialization","useMemo","initialRouteParamList","initialParamsFromParams","getInitialState","getRehydratedState","previousRouteKeyListRef","useEffect","previousRouteKeyList","nextState","isArrayEqual","isRecordEqual","getStateForRouteNamesChange","routeKeyChanges","filter","hasOwnProperty","previousNestedParamsRef","previousParams","action","CommonActions","reset","navigate","path","updatedState","getStateForAction","shouldUpdate","useScheduleUpdate","initializedStateRef","emitter","useEventEmitter","e","target","routes","find","index","navigation","descriptors","listeners","concat","cb","i","self","lastIndexOf","listener","useFocusEvents","emit","data","childListeners","addListener","useChildListeners","keyedListeners","addKeyedListener","useKeyedChildListeners","onAction","useOnAction","actionListeners","beforeRemoveListeners","beforeRemove","routerConfigOptions","onRouteFocus","useOnRouteFocus","useNavigationHelpers","id","useFocusedListenersChildrenAdapter","focusedListeners","focus","useOnGetState","getStateListeners","useDescriptors","defaultScreenOptions","useCurrentRender","NavigationContent","useComponent"],"sourceRoot":"../../src","sources":["useNavigationBuilder.tsx"],"mappings":";;;;;;AAAA;AAYA;AACA;AAEA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AASA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AAAoD;AAAA;AAAA;AAEpD;AACA;AACAA,wBAAiB;AAejB,MAAMC,UAAU,GAAIC,GAAY,IAC9BA,GAAG,KAAKC,SAAS,IAAK,OAAOD,GAAG,KAAK,QAAQ,IAAIA,GAAG,KAAK,EAAG;;AAE9D;AACA;AACA;AACA;AACA;AACA,MAAME,2BAA2B,GAAG,CAMlCC,QAAyB,EACzBC,QAAiB,EACjBC,YAIY,KACT;EACH,MAAMC,OAAO,GAAGC,KAAK,CAACC,QAAQ,CAACC,OAAO,CAACN,QAAQ,CAAC,CAACO,MAAM,CAMrD,CAACC,GAAG,EAAEC,KAAK,KAAK;IAAA;IAChB,kBAAIL,KAAK,CAACM,cAAc,CAACD,KAAK,CAAC,EAAE;MAC/B,IAAIA,KAAK,CAACE,IAAI,KAAKC,eAAM,EAAE;QACzB;QACA;;QAEA,IAAI,CAAChB,UAAU,CAACa,KAAK,CAACI,KAAK,CAACC,aAAa,CAAC,EAAE;UAC1C,MAAM,IAAIC,KAAK,CACZ,wCAAuCC,IAAI,CAACC,SAAS,CACpDR,KAAK,CAACI,KAAK,CAACC,aAAa,CACzB,qBACAL,KAAK,CAACI,KAAK,CAACK,IACb,kDAAiD,CACnD;QACH;QAEAV,GAAG,CAACW,IAAI,CAAC;UACPC,IAAI,EAAE,CAACnB,QAAQ,EAAEQ,KAAK,CAACI,KAAK,CAACC,aAAa,CAAC;UAC3CO,OAAO,EAAEnB,YAAY;UACrBW,KAAK,EAAEJ,KAAK,CAACI;QACf,CAAC,CAAC;QACF,OAAOL,GAAG;MACZ;MAEA,IAAIC,KAAK,CAACE,IAAI,KAAKP,KAAK,CAACkB,QAAQ,IAAIb,KAAK,CAACE,IAAI,KAAKY,cAAK,EAAE;QACzD,IAAI,CAAC3B,UAAU,CAACa,KAAK,CAACI,KAAK,CAACC,aAAa,CAAC,EAAE;UAC1C,MAAM,IAAIC,KAAK,CACZ,wCAAuCC,IAAI,CAACC,SAAS,CACpDR,KAAK,CAACI,KAAK,CAACC,aAAa,CACzB,gEAA+D,CAClE;QACH;;QAEA;QACA;QACAN,GAAG,CAACW,IAAI,CACN,GAAGpB,2BAA2B,CAM5BU,KAAK,CAACI,KAAK,CAACb,QAAQ,EACpBS,KAAK,CAACI,KAAK,CAACC,aAAa,EACzBL,KAAK,CAACE,IAAI,KAAKY,cAAK,GAChBrB,YAAY,GACZA,YAAY,IAAI,IAAI,GACpB,CAAC,GAAGA,YAAY,EAAEO,KAAK,CAACI,KAAK,CAACW,aAAa,CAAC,GAC5C,CAACf,KAAK,CAACI,KAAK,CAACW,aAAa,CAAC,CAChC,CACF;QACD,OAAOhB,GAAG;MACZ;IACF;IAEA,MAAM,IAAIO,KAAK,CACZ,oGACC,aAAAX,KAAK,CAACM,cAAc,CAACD,KAAK,CAAC,GACtB,IACC,OAAOA,KAAK,CAACE,IAAI,KAAK,QAAQ,GAAGF,KAAK,CAACE,IAAI,kBAAGF,KAAK,CAACE,IAAI,gDAAV,YAAYO,IAC3D,IACCT,KAAK,CAACI,KAAK,IAAI,IAAI,IACnB,OAAOJ,KAAK,CAACI,KAAK,KAAK,QAAQ,IAC/B,MAAM,IAAIJ,KAAK,CAACI,KAAK,oBACrBJ,KAAK,CAACI,KAAK,yCAAX,aAAaK,IAAI,GACZ,oBAAmBT,KAAK,CAACI,KAAK,CAACK,IAAK,GAAE,GACvC,EACL,EAAC,GACF,OAAOT,KAAK,KAAK,QAAQ,GACzBO,IAAI,CAACC,SAAS,CAACR,KAAK,CAAC,GACpB,IAAGgB,MAAM,CAAChB,KAAK,CAAE,GACvB,4FAA2F,CAC7F;EACH,CAAC,EAAE,EAAE,CAAC;EAEN,IAAIiB,OAAO,CAACC,GAAG,CAACC,QAAQ,KAAK,YAAY,EAAE;IACzCzB,OAAO,CAAC0B,OAAO,CAAEC,MAAM,IAAK;MAC1B,MAAM;QAAEZ,IAAI;QAAElB,QAAQ;QAAE+B,SAAS;QAAEC;MAAa,CAAC,GAAGF,MAAM,CAACjB,KAAK;MAEhE,IAAI,OAAOK,IAAI,KAAK,QAAQ,IAAI,CAACA,IAAI,EAAE;QACrC,MAAM,IAAIH,KAAK,CACZ,wBAAuBC,IAAI,CAACC,SAAS,CACpCC,IAAI,CACJ,kDAAiD,CACpD;MACH;MAEA,IACElB,QAAQ,IAAI,IAAI,IAChB+B,SAAS,KAAKjC,SAAS,IACvBkC,YAAY,KAAKlC,SAAS,EAC1B;QACA,IAAIE,QAAQ,IAAI,IAAI,IAAI+B,SAAS,KAAKjC,SAAS,EAAE;UAC/C,MAAM,IAAIiB,KAAK,CACZ,6DAA4DG,IAAK,oCAAmC,CACtG;QACH;QAEA,IAAIlB,QAAQ,IAAI,IAAI,IAAIgC,YAAY,KAAKlC,SAAS,EAAE;UAClD,MAAM,IAAIiB,KAAK,CACZ,gEAA+DG,IAAK,oCAAmC,CACzG;QACH;QAEA,IAAIa,SAAS,KAAKjC,SAAS,IAAIkC,YAAY,KAAKlC,SAAS,EAAE;UACzD,MAAM,IAAIiB,KAAK,CACZ,iEAAgEG,IAAK,oCAAmC,CAC1G;QACH;QAEA,IAAIlB,QAAQ,IAAI,IAAI,IAAI,OAAOA,QAAQ,KAAK,UAAU,EAAE;UACtD,MAAM,IAAIe,KAAK,CACZ,4DAA2DG,IAAK,qDAAoD,CACtH;QACH;QAEA,IAAIa,SAAS,KAAKjC,SAAS,IAAI,CAAC,IAAAmC,2BAAkB,EAACF,SAAS,CAAC,EAAE;UAC7D,MAAM,IAAIhB,KAAK,CACZ,6DAA4DG,IAAK,wCAAuC,CAC1G;QACH;QAEA,IAAIc,YAAY,KAAKlC,SAAS,IAAI,OAAOkC,YAAY,KAAK,UAAU,EAAE;UACpE,MAAM,IAAIjB,KAAK,CACZ,gEAA+DG,IAAK,uDAAsD,CAC5H;QACH;QAEA,IAAI,OAAOa,SAAS,KAAK,UAAU,EAAE;UACnC,IAAIA,SAAS,CAACb,IAAI,KAAK,WAAW,EAAE;YAClC;YACA;YACA;YACAgB,OAAO,CAACC,IAAI,CACT,qFAAoFjB,IAAK,uRAAsR,CACjX;UACH,CAAC,MAAM,IAAI,QAAQ,CAACkB,IAAI,CAACL,SAAS,CAACb,IAAI,CAAC,EAAE;YACxCgB,OAAO,CAACC,IAAI,CACT,kCAAiCJ,SAAS,CAACb,IAAK,qBAAoBA,IAAK,yMAAwM,CACnR;UACH;QACF;MACF,CAAC,MAAM;QACL,MAAM,IAAIH,KAAK,CACZ,kFAAiFG,IAAK,qLAAoL,CAC5Q;MACH;IACF,CAAC,CAAC;EACJ;EAEA,OAAOf,OAAO;AAChB,CAAC;;AAED;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACe,SAASkC,oBAAoB,CAQ1CC,YAAsD,EACtDjB,OAOe,EACfkB,0BAGC,EACD;EACA,MAAMC,YAAY,GAAG,IAAAC,6BAAoB,GAAE;EAE3C,MAAMC,KAAK,GAAGtC,KAAK,CAACuC,UAAU,CAACC,+BAAsB,CAExC;EAEb,MAAM;IAAE5C,QAAQ;IAAE6C,eAAe;IAAE,GAAGC;EAAK,CAAC,GAAGzB,OAAO;EACtD,MAAM;IAAE0B,OAAO,EAAEC;EAAO,CAAC,GAAG5C,KAAK,CAAC6C,MAAM,CACtCX,YAAY,CAAC;IACX,GAAIQ,IAAiC;IACrC,IAAIJ,KAAK,aAALA,KAAK,eAALA,KAAK,CAAEQ,MAAM,IACjBR,KAAK,CAACQ,MAAM,CAACC,KAAK,IAAI,IAAI,IAC1BT,KAAK,CAACQ,MAAM,CAACE,OAAO,KAAK,KAAK,IAC9B,OAAOV,KAAK,CAACQ,MAAM,CAACG,MAAM,KAAK,QAAQ,GACnC;MAAEC,gBAAgB,EAAEZ,KAAK,CAACQ,MAAM,CAACG;IAAO,CAAC,GACzC,IAAI;EACV,CAAC,CAAC,CACH;EAED,MAAME,YAAY,GAAGxD,2BAA2B,CAK9CC,QAAQ,CAAC;EAEX,MAAMwD,OAAO,GAAGD,YAAY,CAAChD,MAAM,CASjC,CAACC,GAAG,EAAEsB,MAAM,KAAK;IACjB,IAAIA,MAAM,CAACjB,KAAK,CAACK,IAAI,IAAIV,GAAG,EAAE;MAC5B,MAAM,IAAIO,KAAK,CACZ,6GAA4Ge,MAAM,CAACjB,KAAK,CAACK,IAAK,IAAG,CACnI;IACH;IAEAV,GAAG,CAACsB,MAAM,CAACjB,KAAK,CAACK,IAAI,CAAC,GAAGY,MAAM;IAC/B,OAAOtB,GAAG;EACZ,CAAC,EAAE,CAAC,CAAC,CAAC;EAEN,MAAMiD,UAAU,GAAGF,YAAY,CAACG,GAAG,CAAE5B,MAAM,IAAKA,MAAM,CAACjB,KAAK,CAACK,IAAI,CAAC;EAClE,MAAMyC,YAAY,GAAGF,UAAU,CAAClD,MAAM,CACpC,CAACC,GAAG,EAAEoD,IAAI,KAAK;IACbpD,GAAG,CAACoD,IAAI,CAAC,GAAGJ,OAAO,CAACI,IAAI,CAAC,CAACxC,IAAI,CAACsC,GAAG,CAAE7D,GAAG,IAAKA,GAAG,IAAI,EAAE,CAAC,CAACgE,IAAI,CAAC,GAAG,CAAC;IAChE,OAAOrD,GAAG;EACZ,CAAC,EACD,CAAC,CAAC,CACH;EACD,MAAMsD,cAAc,GAAGL,UAAU,CAAClD,MAAM,CACtC,CAACC,GAAG,EAAEoD,IAAI,KAAK;IACb,MAAM;MAAEG;IAAc,CAAC,GAAGP,OAAO,CAACI,IAAI,CAAC,CAAC/C,KAAK;IAC7CL,GAAG,CAACoD,IAAI,CAAC,GAAGG,aAAa;IACzB,OAAOvD,GAAG;EACZ,CAAC,EACD,CAAC,CAAC,CACH;EACD,MAAMwD,cAAc,GAAGP,UAAU,CAAClD,MAAM,CAGtC,CAACC,GAAG,EAAEoD,IAAI,KACRK,MAAM,CAACC,MAAM,CAAC1D,GAAG,EAAE;IACjB,CAACoD,IAAI,GAAGJ,OAAO,CAACI,IAAI,CAAC,CAAC/C,KAAK,CAACsD;EAC9B,CAAC,CAAC,EACJ,CAAC,CAAC,CACH;EAED,IAAI,CAACV,UAAU,CAACW,MAAM,EAAE;IACtB,MAAM,IAAIrD,KAAK,CACb,4FAA4F,CAC7F;EACH;EAEA,MAAMsD,YAAY,GAAGjE,KAAK,CAACkE,WAAW,CACnCnB,KAAsD,IACrDA,KAAK,CAACxC,IAAI,KAAKb,SAAS,IAAIqD,KAAK,CAACxC,IAAI,KAAKqC,MAAM,CAACrC,IAAI,EACxD,CAACqC,MAAM,CAACrC,IAAI,CAAC,CACd;EAED,MAAM4D,kBAAkB,GAAGnE,KAAK,CAACkE,WAAW,CACzCnB,KAAkE,IACjEA,KAAK,KAAKrD,SAAS,IAAIqD,KAAK,CAACqB,KAAK,KAAK,KAAK,IAAIH,YAAY,CAAClB,KAAK,CAAC,EACrE,CAACkB,YAAY,CAAC,CACf;EAED,MAAM;IACJlB,KAAK,EAAEsB,YAAY;IACnBC,QAAQ,EAAEC,eAAe;IACzBC,QAAQ,EAAEC,eAAe;IACzBC,MAAM;IACNC,MAAM;IACNC;EACF,CAAC,GAAG5E,KAAK,CAACuC,UAAU,CAACsC,+BAAsB,CAAC;EAE5C,MAAMC,cAAc,GAAG9E,KAAK,CAAC6C,MAAM,CAAC,KAAK,CAAC;EAE1C,MAAM2B,QAAQ,GAAGxE,KAAK,CAACkE,WAAW,CAC/BnB,KAAkE,IAAK;IACtE,IAAI+B,cAAc,CAACnC,OAAO,EAAE;MAC1B;MACA;MACA;MACA;IACF;IACA8B,eAAe,CAAC1B,KAAK,CAAC;EACxB,CAAC,EACD,CAAC0B,eAAe,CAAC,CAClB;EAED,MAAM,CAACM,gBAAgB,EAAEC,0BAA0B,CAAC,GAAGhF,KAAK,CAACiF,OAAO,CAAC,MAAM;IAAA;IACzE,MAAMC,qBAAqB,GAAG7B,UAAU,CAAClD,MAAM,CAE7C,CAACC,GAAG,EAAEoD,IAAI,KAAK;MAAA;MACf,MAAM;QAAEG;MAAc,CAAC,GAAGP,OAAO,CAACI,IAAI,CAAC,CAAC/C,KAAK;MAC7C,MAAM0E,uBAAuB,GAC3B,CAAA7C,KAAK,aAALA,KAAK,wCAALA,KAAK,CAAEQ,MAAM,kDAAb,cAAeC,KAAK,KAAI,IAAI,IAC5B,CAAAT,KAAK,aAALA,KAAK,yCAALA,KAAK,CAAEQ,MAAM,mDAAb,eAAeE,OAAO,MAAK,KAAK,IAChC,CAAAV,KAAK,aAALA,KAAK,yCAALA,KAAK,CAAEQ,MAAM,mDAAb,eAAeG,MAAM,MAAKO,IAAI,GAC1BlB,KAAK,CAACQ,MAAM,CAACA,MAAM,GACnBpD,SAAS;MAEfU,GAAG,CAACoD,IAAI,CAAC,GACPG,aAAa,KAAKjE,SAAS,IAAIyF,uBAAuB,KAAKzF,SAAS,GAChE;QACE,GAAGiE,aAAa;QAChB,GAAGwB;MACL,CAAC,GACDzF,SAAS;MAEf,OAAOU,GAAG;IACZ,CAAC,EAAE,CAAC,CAAC,CAAC;;IAEN;IACA;IACA;IACA;IACA,IACE,CAACiE,YAAY,KAAK3E,SAAS,IAAI,CAACuE,YAAY,CAACI,YAAY,CAAC,KAC1D,CAAA/B,KAAK,aAALA,KAAK,yCAALA,KAAK,CAAEQ,MAAM,mDAAb,eAAeC,KAAK,KAAI,IAAI,EAC5B;MACA,OAAO,CACLH,MAAM,CAACwC,eAAe,CAAC;QACrB/B,UAAU;QACVK,cAAc,EAAEwB,qBAAqB;QACrCtB;MACF,CAAC,CAAC,EACF,IAAI,CACL;IACH,CAAC,MAAM;MAAA;MACL,OAAO,CACLhB,MAAM,CAACyC,kBAAkB,CACvB,CAAA/C,KAAK,aAALA,KAAK,yCAALA,KAAK,CAAEQ,MAAM,mDAAb,eAAeC,KAAK,KAAKsB,YAAoC,EAC7D;QACEhB,UAAU;QACVK,cAAc,EAAEwB,qBAAqB;QACrCtB;MACF,CAAC,CACF,EACD,KAAK,CACN;IACH;IACA;IACA;IACA;IACA;IACA;IACA;EACF,CAAC,EAAE,CAACS,YAAY,EAAEzB,MAAM,EAAEqB,YAAY,CAAC,CAAC;EAExC,MAAMqB,uBAAuB,GAAGtF,KAAK,CAAC6C,MAAM,CAACU,YAAY,CAAC;EAE1DvD,KAAK,CAACuF,SAAS,CAAC,MAAM;IACpBD,uBAAuB,CAAC3C,OAAO,GAAGY,YAAY;EAChD,CAAC,CAAC;EAEF,MAAMiC,oBAAoB,GAAGF,uBAAuB,CAAC3C,OAAO;EAE5D,IAAII,KAAK;EACP;EACA;EACA;EACAoB,kBAAkB,CAACE,YAAY,CAAC,GAC3BA,YAAY,GACZU,gBAA0B;EAEjC,IAAIU,SAAgB,GAAG1C,KAAK;EAE5B,IACE,CAAC,IAAA2C,qBAAY,EAAC3C,KAAK,CAACM,UAAU,EAAEA,UAAU,CAAC,IAC3C,CAAC,IAAAsC,sBAAa,EAACpC,YAAY,EAAEiC,oBAAoB,CAAC,EAClD;IACA;IACAC,SAAS,GAAG7C,MAAM,CAACgD,2BAA2B,CAAC7C,KAAK,EAAE;MACpDM,UAAU;MACVK,cAAc;MACdE,cAAc;MACdiC,eAAe,EAAEhC,MAAM,CAAC7C,IAAI,CAACuC,YAAY,CAAC,CAACuC,MAAM,CAC9ChF,IAAI,IACH0E,oBAAoB,CAACO,cAAc,CAACjF,IAAI,CAAC,IACzCyC,YAAY,CAACzC,IAAI,CAAC,KAAK0E,oBAAoB,CAAC1E,IAAI,CAAC;IAEvD,CAAC,CAAC;EACJ;EAEA,MAAMkF,uBAAuB,GAAGhG,KAAK,CAAC6C,MAAM,CAACP,KAAK,aAALA,KAAK,uBAALA,KAAK,CAAEQ,MAAM,CAAC;EAE3D9C,KAAK,CAACuF,SAAS,CAAC,MAAM;IACpBS,uBAAuB,CAACrD,OAAO,GAAGL,KAAK,aAALA,KAAK,uBAALA,KAAK,CAAEQ,MAAM;EACjD,CAAC,EAAE,CAACR,KAAK,aAALA,KAAK,uBAALA,KAAK,CAAEQ,MAAM,CAAC,CAAC;EAEnB,IAAIR,KAAK,aAALA,KAAK,eAALA,KAAK,CAAEQ,MAAM,EAAE;IACjB,MAAMmD,cAAc,GAAGD,uBAAuB,CAACrD,OAAO;IAEtD,IAAIuD,MAAwC;IAE5C,IACE,OAAO5D,KAAK,CAACQ,MAAM,CAACC,KAAK,KAAK,QAAQ,IACtCT,KAAK,CAACQ,MAAM,CAACC,KAAK,IAAI,IAAI,IAC1BT,KAAK,CAACQ,MAAM,KAAKmD,cAAc,EAC/B;MACA;MACAC,MAAM,GAAGC,sBAAa,CAACC,KAAK,CAAC9D,KAAK,CAACQ,MAAM,CAACC,KAAK,CAAC;IAClD,CAAC,MAAM,IACL,OAAOT,KAAK,CAACQ,MAAM,CAACG,MAAM,KAAK,QAAQ,KACrCX,KAAK,CAACQ,MAAM,CAACE,OAAO,KAAK,KAAK,IAAIgC,0BAA0B,IAC5D1C,KAAK,CAACQ,MAAM,KAAKmD,cAAc,CAAC,EAClC;MACA;MACAC,MAAM,GAAGC,sBAAa,CAACE,QAAQ,CAAC;QAC9BvF,IAAI,EAAEwB,KAAK,CAACQ,MAAM,CAACG,MAAM;QACzBH,MAAM,EAAER,KAAK,CAACQ,MAAM,CAACA,MAAM;QAC3BwD,IAAI,EAAEhE,KAAK,CAACQ,MAAM,CAACwD;MACrB,CAAC,CAAC;IACJ;;IAEA;IACA,MAAMC,YAAY,GAAGL,MAAM,GACvBtD,MAAM,CAAC4D,iBAAiB,CAACf,SAAS,EAAES,MAAM,EAAE;MAC1C7C,UAAU;MACVK,cAAc;MACdE;IACF,CAAC,CAAC,GACF,IAAI;IAER6B,SAAS,GACPc,YAAY,KAAK,IAAI,GACjB3D,MAAM,CAACyC,kBAAkB,CAACkB,YAAY,EAAE;MACtClD,UAAU;MACVK,cAAc;MACdE;IACF,CAAC,CAAC,GACF6B,SAAS;EACjB;EAEA,MAAMgB,YAAY,GAAG1D,KAAK,KAAK0C,SAAS;EAExC,IAAAiB,0BAAiB,EAAC,MAAM;IACtB,IAAID,YAAY,EAAE;MAChB;MACAjC,QAAQ,CAACiB,SAAS,CAAC;IACrB;EACF,CAAC,CAAC;;EAEF;EACA;EACA;EACA1C,KAAK,GAAG0C,SAAS;EAEjBzF,KAAK,CAACuF,SAAS,CAAC,MAAM;IACpB;IACA;IACAT,cAAc,CAACnC,OAAO,GAAG,KAAK;IAC9B+B,MAAM,CAACtC,YAAY,CAAC;IAEpB,IAAI,CAACwC,YAAY,EAAE,EAAE;MACnB;MACA;MACA;MACAJ,QAAQ,CAACiB,SAAS,CAAC;IACrB;IAEA,OAAO,MAAM;MACX;MACA,IAAIlB,eAAe,EAAE,KAAK7E,SAAS,IAAIiF,MAAM,EAAE,KAAKvC,YAAY,EAAE;QAChEqC,eAAe,CAAC/E,SAAS,CAAC;QAC1BoF,cAAc,CAACnC,OAAO,GAAG,IAAI;MAC/B;IACF,CAAC;IACD;EACF,CAAC,EAAE,EAAE,CAAC;;EAEN;EACA;EACA;EACA,MAAMgE,mBAAmB,GAAG3G,KAAK,CAAC6C,MAAM,EAAS;EACjD8D,mBAAmB,CAAChE,OAAO,GAAGoC,gBAAgB;EAE9C,MAAMT,QAAQ,GAAGtE,KAAK,CAACkE,WAAW,CAAC,MAAa;IAC9C,MAAMG,YAAY,GAAGE,eAAe,EAAE;IAEtC,OAAOJ,kBAAkB,CAACE,YAAY,CAAC,GAClCA,YAAY,GACZsC,mBAAmB,CAAChE,OAAiB;EAC5C,CAAC,EAAE,CAAC4B,eAAe,EAAEJ,kBAAkB,CAAC,CAAC;EAEzC,MAAMyC,OAAO,GAAG,IAAAC,wBAAe,EAAuBC,CAAC,IAAK;IAC1D,IAAIzD,UAAU,GAAG,EAAE;IAEnB,IAAIf,KAAgC;IAEpC,IAAIwE,CAAC,CAACC,MAAM,EAAE;MAAA;MACZzE,KAAK,GAAGS,KAAK,CAACiE,MAAM,CAACC,IAAI,CAAE3E,KAAK,IAAKA,KAAK,CAAC7C,GAAG,KAAKqH,CAAC,CAACC,MAAM,CAAC;MAE5D,cAAIzE,KAAK,mCAAL,OAAOxB,IAAI,EAAE;QACfuC,UAAU,CAACtC,IAAI,CAACuB,KAAK,CAACxB,IAAI,CAAC;MAC7B;IACF,CAAC,MAAM;MACLwB,KAAK,GAAGS,KAAK,CAACiE,MAAM,CAACjE,KAAK,CAACmE,KAAK,CAAC;MACjC7D,UAAU,CAACtC,IAAI,CACb,GAAG8C,MAAM,CAAC7C,IAAI,CAACoC,OAAO,CAAC,CAAC0C,MAAM,CAAEhF,IAAI;QAAA;QAAA,OAAK,YAAAwB,KAAK,4CAAL,QAAOxB,IAAI,MAAKA,IAAI;MAAA,EAAC,CAC/D;IACH;IAEA,IAAIwB,KAAK,IAAI,IAAI,EAAE;MACjB;IACF;IAEA,MAAM6E,UAAU,GAAGC,WAAW,CAAC9E,KAAK,CAAC7C,GAAG,CAAC,CAAC0H,UAAU;IAEpD,MAAME,SAAS,GAAI,EAAE,CAClBC,MAAM;IACL;IACA,GAAG,CACD7E,eAAe,EACf,GAAGY,UAAU,CAACC,GAAG,CAAExC,IAAI,IAAK;MAC1B,MAAM;QAAEuG;MAAU,CAAC,GAAGjE,OAAO,CAACtC,IAAI,CAAC,CAACL,KAAK;MACzC,OAAO4G,SAAS;IAClB,CAAC,CAAC,CACH,CAAC/D,GAAG,CAAE+D,SAAS,IAAK;MACnB,MAAM/D,GAAG,GACP,OAAO+D,SAAS,KAAK,UAAU,GAC3BA,SAAS,CAAC;QAAE/E,KAAK,EAAEA,KAAY;QAAE6E;MAAW,CAAC,CAAC,GAC9CE,SAAS;MAEf,OAAO/D,GAAG,GACNO,MAAM,CAAC7C,IAAI,CAACsC,GAAG,CAAC,CACbwC,MAAM,CAAEvF,IAAI,IAAKA,IAAI,KAAKuG,CAAC,CAACvG,IAAI,CAAC,CACjC+C,GAAG,CAAE/C,IAAI,IAAK+C,GAAG,aAAHA,GAAG,uBAAHA,GAAG,CAAG/C,IAAI,CAAC,CAAC,GAC7Bb,SAAS;IACf,CAAC,CAAC;IAEJ;IACA;IAAA,CACCoG,MAAM,CAAC,CAACyB,EAAE,EAAEC,CAAC,EAAEC,IAAI,KAAKF,EAAE,IAAIE,IAAI,CAACC,WAAW,CAACH,EAAE,CAAC,KAAKC,CAAC,CAAC;IAE5DH,SAAS,CAAC5F,OAAO,CAAEkG,QAAQ,IAAKA,QAAQ,aAARA,QAAQ,uBAARA,QAAQ,CAAGb,CAAC,CAAC,CAAC;EAChD,CAAC,CAAC;EAEF,IAAAc,uBAAc,EAAC;IAAE7E,KAAK;IAAE6D;EAAQ,CAAC,CAAC;EAElC5G,KAAK,CAACuF,SAAS,CAAC,MAAM;IACpBqB,OAAO,CAACiB,IAAI,CAAC;MAAEtH,IAAI,EAAE,OAAO;MAAEuH,IAAI,EAAE;QAAE/E;MAAM;IAAE,CAAC,CAAC;EAClD,CAAC,EAAE,CAAC6D,OAAO,EAAE7D,KAAK,CAAC,CAAC;EAEpB,MAAM;IAAEsE,SAAS,EAAEU,cAAc;IAAEC;EAAY,CAAC,GAAG,IAAAC,0BAAiB,GAAE;EAEtE,MAAM;IAAEC,cAAc;IAAEC;EAAiB,CAAC,GAAG,IAAAC,+BAAsB,GAAE;EAErE,MAAMC,QAAQ,GAAG,IAAAC,oBAAW,EAAC;IAC3B1F,MAAM;IACN0B,QAAQ;IACRE,QAAQ;IACR/E,GAAG,EAAE6C,KAAK,aAALA,KAAK,uBAALA,KAAK,CAAE7C,GAAG;IACf8I,eAAe,EAAER,cAAc,CAAC7B,MAAM;IACtCsC,qBAAqB,EAAEN,cAAc,CAACO,YAAY;IAClDC,mBAAmB,EAAE;MACnBrF,UAAU;MACVK,cAAc;MACdE;IACF,CAAC;IACDgD;EACF,CAAC,CAAC;EAEF,MAAM+B,YAAY,GAAG,IAAAC,wBAAe,EAAC;IACnChG,MAAM;IACNnD,GAAG,EAAE6C,KAAK,aAALA,KAAK,uBAALA,KAAK,CAAE7C,GAAG;IACf6E,QAAQ;IACRE;EACF,CAAC,CAAC;EAEF,MAAM2C,UAAU,GAAG,IAAA0B,6BAAoB,EAKrC;IACAC,EAAE,EAAE7H,OAAO,CAAC6H,EAAE;IACdT,QAAQ;IACR/D,QAAQ;IACRsC,OAAO;IACPhE;EACF,CAAC,CAAC;EAEF,IAAAmG,2CAAkC,EAAC;IACjC5B,UAAU;IACV6B,gBAAgB,EAAEjB,cAAc,CAACkB;EACnC,CAAC,CAAC;EAEF,IAAAC,sBAAa,EAAC;IACZ5E,QAAQ;IACR6E,iBAAiB,EAAEjB,cAAc,CAAC5D;EACpC,CAAC,CAAC;EAEF,MAAM8C,WAAW,GAAG,IAAAgC,uBAAc,EAOhC;IACErG,KAAK;IACLK,OAAO;IACP+D,UAAU;IACV/F,aAAa,EAAEH,OAAO,CAACG,aAAa;IACpCiI,oBAAoB,EAAEpI,OAAO,CAACoI,oBAAoB;IAClDhB,QAAQ;IACR/D,QAAQ;IACRE,QAAQ;IACRmE,YAAY;IACZX,WAAW;IACXG,gBAAgB;IAChBvF,MAAM;IACN;IACAgE;EACF,CAAC,EACDzE,0BAA0B,CAC3B;EAED,IAAAmH,yBAAgB,EAAC;IACfvG,KAAK;IACLoE,UAAU;IACVC;EACF,CAAC,CAAC;EAEF,MAAMmC,iBAAiB,GAAG,IAAAC,qBAAY,EAAE5J,QAAyB,iBAC/D,oBAAC,iCAAwB,CAAC,QAAQ;IAAC,KAAK,EAAEuH;EAAW,gBACnD,oBAAC,8BAAqB,QAAEvH,QAAQ,CAAyB,CAE5D,CAAC;EAEF,OAAO;IACLmD,KAAK;IACLoE,UAAU;IACVC,WAAW;IACXmC;EACF,CAAC;AACH"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/module/index.js.map b/node_modules/@react-navigation/core/lib/module/index.js.map
+index ed01400..32855ca 100644
+--- a/node_modules/@react-navigation/core/lib/module/index.js.map
++++ b/node_modules/@react-navigation/core/lib/module/index.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["default","BaseNavigationContainer","createNavigationContainerRef","createNavigatorFactory","CurrentRenderContext","findFocusedRoute","getActionFromState","getFocusedRouteNameFromRoute","getPathFromState","getStateFromPath","NavigationContainerRefContext","NavigationContext","NavigationHelpersContext","NavigationRouteContext","PreventRemoveContext","PreventRemoveProvider","useFocusEffect","useIsFocused","useNavigation","useNavigationBuilder","useNavigationContainerRef","useNavigationState","UNSTABLE_usePreventRemove","usePreventRemoveContext","useRoute","validatePathConfig"],"sourceRoot":"../../src","sources":["index.tsx"],"mappings":"AAAA,SAASA,OAAO,IAAIC,uBAAuB,QAAQ,2BAA2B;AAC9E,SAASD,OAAO,IAAIE,4BAA4B,QAAQ,gCAAgC;AACxF,SAASF,OAAO,IAAIG,sBAAsB,QAAQ,0BAA0B;AAC5E,SAASH,OAAO,IAAII,oBAAoB,QAAQ,wBAAwB;AACxE,SAASJ,OAAO,IAAIK,gBAAgB,QAAQ,oBAAoB;AAChE,SAASL,OAAO,IAAIM,kBAAkB,QAAQ,sBAAsB;AACpE,SAASN,OAAO,IAAIO,4BAA4B,QAAQ,gCAAgC;AACxF,SAASP,OAAO,IAAIQ,gBAAgB,QAAQ,oBAAoB;AAChE,SAASR,OAAO,IAAIS,gBAAgB,QAAQ,oBAAoB;AAChE,SAAST,OAAO,IAAIU,6BAA6B,QAAQ,iCAAiC;AAC1F,SAASV,OAAO,IAAIW,iBAAiB,QAAQ,qBAAqB;AAClE,SAASX,OAAO,IAAIY,wBAAwB,QAAQ,4BAA4B;AAChF,SAASZ,OAAO,IAAIa,sBAAsB,QAAQ,0BAA0B;AAC5E,SAASb,OAAO,IAAIc,oBAAoB,QAAQ,wBAAwB;AACxE,SAASd,OAAO,IAAIe,qBAAqB,QAAQ,yBAAyB;AAC1E,cAAc,SAAS;AACvB,SAASf,OAAO,IAAIgB,cAAc,QAAQ,kBAAkB;AAC5D,SAAShB,OAAO,IAAIiB,YAAY,QAAQ,gBAAgB;AACxD,SAASjB,OAAO,IAAIkB,aAAa,QAAQ,iBAAiB;AAC1D,SAASlB,OAAO,IAAImB,oBAAoB,QAAQ,wBAAwB;AACxE,SAASnB,OAAO,IAAIoB,yBAAyB,QAAQ,6BAA6B;AAClF,SAASpB,OAAO,IAAIqB,kBAAkB,QAAQ,sBAAsB;AACpE,SAASrB,OAAO,IAAIsB,yBAAyB,QAAQ,oBAAoB;AACzE,SAAStB,OAAO,IAAIuB,uBAAuB,QAAQ,2BAA2B;AAC9E,SAASvB,OAAO,IAAIwB,QAAQ,QAAQ,YAAY;AAChD,SAASxB,OAAO,IAAIyB,kBAAkB,QAAQ,sBAAsB;AACpE,cAAc,2BAA2B"}
+\ No newline at end of file
++{"version":3,"names":["default","BaseNavigationContainer","createNavigationContainerRef","createNavigatorFactory","CurrentRenderContext","findFocusedRoute","getActionFromState","getFocusedRouteNameFromRoute","getPathFromState","getStateFromPath","NavigationContainerRefContext","NavigationContext","NavigationHelpersContext","NavigationRouteContext","PreventRemoveContext","PreventRemoveProvider","useFocusEffect","useIsFocused","useNavigation","NavigationBuilderOptions","useNavigationBuilder","useNavigationContainerRef","useNavigationState","UNSTABLE_usePreventRemove","usePreventRemoveContext","useRoute","validatePathConfig"],"sourceRoot":"../../src","sources":["index.tsx"],"mappings":"AAAA,SAASA,OAAO,IAAIC,uBAAuB,QAAQ,2BAA2B;AAC9E,SAASD,OAAO,IAAIE,4BAA4B,QAAQ,gCAAgC;AACxF,SAASF,OAAO,IAAIG,sBAAsB,QAAQ,0BAA0B;AAC5E,SAASH,OAAO,IAAII,oBAAoB,QAAQ,wBAAwB;AACxE,SAASJ,OAAO,IAAIK,gBAAgB,QAAQ,oBAAoB;AAChE,SAASL,OAAO,IAAIM,kBAAkB,QAAQ,sBAAsB;AACpE,SAASN,OAAO,IAAIO,4BAA4B,QAAQ,gCAAgC;AACxF,SAASP,OAAO,IAAIQ,gBAAgB,QAAQ,oBAAoB;AAChE,SAASR,OAAO,IAAIS,gBAAgB,QAAQ,oBAAoB;AAChE,SAAST,OAAO,IAAIU,6BAA6B,QAAQ,iCAAiC;AAC1F,SAASV,OAAO,IAAIW,iBAAiB,QAAQ,qBAAqB;AAClE,SAASX,OAAO,IAAIY,wBAAwB,QAAQ,4BAA4B;AAChF,SAASZ,OAAO,IAAIa,sBAAsB,QAAQ,0BAA0B;AAC5E,SAASb,OAAO,IAAIc,oBAAoB,QAAQ,wBAAwB;AACxE,SAASd,OAAO,IAAIe,qBAAqB,QAAQ,yBAAyB;AAC1E,cAAc,SAAS;AACvB,SAASf,OAAO,IAAIgB,cAAc,QAAQ,kBAAkB;AAC5D,SAAShB,OAAO,IAAIiB,YAAY,QAAQ,gBAAgB;AACxD,SAASjB,OAAO,IAAIkB,aAAa,QAAQ,iBAAiB;AAC1D,SACEC,wBAAwB,EACxBnB,OAAO,IAAIoB,oBAAoB,QAC1B,wBAAwB;AAC/B,SAASpB,OAAO,IAAIqB,yBAAyB,QAAQ,6BAA6B;AAClF,SAASrB,OAAO,IAAIsB,kBAAkB,QAAQ,sBAAsB;AACpE,SAAStB,OAAO,IAAIuB,yBAAyB,QAAQ,oBAAoB;AACzE,SAASvB,OAAO,IAAIwB,uBAAuB,QAAQ,2BAA2B;AAC9E,SAASxB,OAAO,IAAIyB,QAAQ,QAAQ,YAAY;AAChD,SAASzB,OAAO,IAAI0B,kBAAkB,QAAQ,sBAAsB;AACpE,cAAc,2BAA2B"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/module/types.js.map b/node_modules/@react-navigation/core/lib/module/types.js.map
+index 21fd3e8..29de331 100644
+--- a/node_modules/@react-navigation/core/lib/module/types.js.map
++++ b/node_modules/@react-navigation/core/lib/module/types.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["PrivateValueStore"],"sourceRoot":"../../src","sources":["types.tsx"],"mappings":"AAoJA,OAAO,MAAMA,iBAAiB,CAA4B"}
+\ No newline at end of file
++{"version":3,"names":["PrivateValueStore"],"sourceRoot":"../../src","sources":["types.tsx"],"mappings":"AAmLA,OAAO,MAAMA,iBAAiB,CAA4B"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/module/useDescriptors.js b/node_modules/@react-navigation/core/lib/module/useDescriptors.js
+index b8f73f9..76fdab1 100644
+--- a/node_modules/@react-navigation/core/lib/module/useDescriptors.js
++++ b/node_modules/@react-navigation/core/lib/module/useDescriptors.js
+@@ -12,8 +12,10 @@ import useRouteCache from './useRouteCache';
+  * - Helper method to render a screen
+  * - Options specified by the screen for the navigator
+  * - Navigation object intended for the route
++ * @param convertCustomScreenOptions Function to convert custom screen options to screen options.
++ * If passed, it means that the `options`/`screenOptions` passed to the navigator are custom and need to be converted to regular screen options.
+  */
+-export default function useDescriptors(_ref) {
++export default function useDescriptors(_ref, convertCustomScreenOptions) {
+   let {
+     state,
+     screens,
+@@ -58,29 +60,45 @@ export default function useDescriptors(_ref) {
+     const config = screens[route.name];
+     const screen = config.props;
+     const navigation = navigations[route.key];
+-    const optionsList = [
+-    // The default `screenOptions` passed to the navigator
+-    screenOptions,
+-    // The `screenOptions` props passed to `Group` elements
+-    ...(config.options ? config.options.filter(Boolean) : []),
+-    // The `options` prop passed to `Screen` elements,
+-    screen.options,
+-    // The options set via `navigation.setOptions`
+-    options[route.key]];
++    let optionsList;
++    if (convertCustomScreenOptions) {
++      optionsList = [
++      // The default `screenOptions` passed to the navigator
++      convertCustomScreenOptions(screenOptions),
++      // The `screenOptions` props passed to `Group` elements
++      ...(config.options ? config.options.filter(Boolean).map(convertCustomScreenOptions) : []),
++      // The `options` prop passed to `Screen` elements,
++      convertCustomScreenOptions(screen.options),
++      // The options set via `navigation.setOptions`
++      convertCustomScreenOptions(options[route.key])];
++    } else {
++      optionsList = [
++      // The default `screenOptions` passed to the navigator
++      screenOptions,
++      // The `screenOptions` props passed to `Group` elements
++      ...(config.options ? config.options.filter(Boolean) : []),
++      // The `options` prop passed to `Screen` elements,
++      screen.options,
++      // The options set via `navigation.setOptions`
++      options[route.key]];
++    }
+     const customOptions = optionsList.reduce((acc, curr) => Object.assign(acc,
+     // @ts-expect-error: we check for function but TS still complains
+     typeof curr !== 'function' ? curr : curr({
+       route,
+       navigation
+     })), {});
++    const customDefaultScreenOptions = (convertCustomScreenOptions === null || convertCustomScreenOptions === void 0 ? void 0 : convertCustomScreenOptions(defaultScreenOptions)) ?? defaultScreenOptions;
+     const mergedOptions = {
+       ...(typeof defaultScreenOptions === 'function' ?
++      // In Expensify's PlatformStackNavigation we don't allow a callback function for `defaultScreenOptions`,
++      // therefore we don't need to convert any custom default options when it's a function.
+       // @ts-expect-error: ts gives incorrect error here
+       defaultScreenOptions({
+         route,
+         navigation,
+         options: customOptions
+-      }) : defaultScreenOptions),
++      }) : customDefaultScreenOptions),
+       ...customOptions
+     };
+     const clearOptions = () => setOptions(o => {
+diff --git a/node_modules/@react-navigation/core/lib/module/useDescriptors.js.map b/node_modules/@react-navigation/core/lib/module/useDescriptors.js.map
+index 77a198a..026d685 100644
+--- a/node_modules/@react-navigation/core/lib/module/useDescriptors.js.map
++++ b/node_modules/@react-navigation/core/lib/module/useDescriptors.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["React","NavigationBuilderContext","NavigationContext","NavigationRouteContext","SceneView","useNavigationCache","useRouteCache","useDescriptors","state","screens","navigation","screenOptions","defaultScreenOptions","onAction","getState","setState","addListener","addKeyedListener","onRouteFocus","router","emitter","options","setOptions","useState","onDispatchAction","onOptionsChange","stackRef","useContext","context","useMemo","navigations","routes","reduce","acc","route","i","config","name","screen","props","key","optionsList","filter","Boolean","customOptions","curr","Object","assign","mergedOptions","clearOptions","o","_","rest","render"],"sourceRoot":"../../src","sources":["useDescriptors.tsx"],"mappings":"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"}
+\ No newline at end of file
++{"version":3,"names":["React","NavigationBuilderContext","NavigationContext","NavigationRouteContext","SceneView","useNavigationCache","useRouteCache","useDescriptors","convertCustomScreenOptions","state","screens","navigation","screenOptions","defaultScreenOptions","onAction","getState","setState","addListener","addKeyedListener","onRouteFocus","router","emitter","options","setOptions","useState","onDispatchAction","onOptionsChange","stackRef","useContext","context","useMemo","navigations","routes","reduce","acc","route","i","config","name","screen","props","key","optionsList","filter","Boolean","map","customOptions","curr","Object","assign","customDefaultScreenOptions","mergedOptions","clearOptions","o","_","rest","render"],"sourceRoot":"../../src","sources":["useDescriptors.tsx"],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
+index 6fb49e0..e17764e 100644
+--- a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
++++ b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
+@@ -119,9 +119,11 @@ const getRouteConfigsFromChildren = (children, groupKey, groupOptions) => {
+  *
+  * @param createRouter Factory method which returns router object.
+  * @param options Options object containing `children` and additional options for the router.
++ * @param convertCustomScreenOptions Function to convert custom screen options to screen options.
++ * If passed, it means that the `options`/`screenOptions` passed to the navigator are custom and need to be converted to regular screen options.
+  * @returns An object containing `state`, `navigation`, `descriptors` objects.
+  */
+-export default function useNavigationBuilder(createRouter, options) {
++export default function useNavigationBuilder(createRouter, options, convertCustomScreenOptions) {
+   const navigatorKey = useRegisterNavigator();
+   const route = React.useContext(NavigationRouteContext);
+   const {
+@@ -425,7 +427,7 @@ export default function useNavigationBuilder(createRouter, options) {
+     router,
+     // @ts-expect-error: this should have both core and custom events, but too much work right now
+     emitter
+-  });
++  }, convertCustomScreenOptions);
+   useCurrentRender({
+     state,
+     navigation,
+diff --git a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js.map b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js.map
+index 5d5cdbd..9724f28 100644
+--- a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js.map
++++ b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["CommonActions","React","isValidElementType","Group","isArrayEqual","isRecordEqual","NavigationHelpersContext","NavigationRouteContext","NavigationStateContext","PreventRemoveProvider","Screen","PrivateValueStore","useChildListeners","useComponent","useCurrentRender","useDescriptors","useEventEmitter","useFocusedListenersChildrenAdapter","useFocusEvents","useKeyedChildListeners","useNavigationHelpers","useOnAction","useOnGetState","useOnRouteFocus","useRegisterNavigator","useScheduleUpdate","isValidKey","key","undefined","getRouteConfigsFromChildren","children","groupKey","groupOptions","configs","Children","toArray","reduce","acc","child","isValidElement","type","props","navigationKey","Error","JSON","stringify","name","push","keys","options","Fragment","screenOptions","String","process","env","NODE_ENV","forEach","config","component","getComponent","console","warn","test","useNavigationBuilder","createRouter","navigatorKey","route","useContext","screenListeners","rest","current","router","useRef","params","state","initial","screen","initialRouteName","routeConfigs","screens","routeNames","map","routeKeyList","curr","join","routeParamList","initialParams","routeGetIdList","Object","assign","getId","length","isStateValid","useCallback","isStateInitialized","stale","currentState","getState","getCurrentState","setState","setCurrentState","setKey","getKey","getIsInitial","stateCleanedUp","cleanUpState","initializedState","isFirstStateInitialization","useMemo","initialRouteParamList","initialParamsFromParams","getInitialState","getRehydratedState","previousRouteKeyListRef","useEffect","previousRouteKeyList","nextState","getStateForRouteNamesChange","routeKeyChanges","filter","hasOwnProperty","previousNestedParamsRef","previousParams","action","reset","navigate","path","updatedState","getStateForAction","shouldUpdate","setTimeout","initializedStateRef","emitter","e","target","routes","find","index","navigation","descriptors","listeners","concat","cb","i","self","lastIndexOf","listener","emit","data","childListeners","addListener","keyedListeners","addKeyedListener","onAction","actionListeners","beforeRemoveListeners","beforeRemove","routerConfigOptions","onRouteFocus","id","focusedListeners","focus","getStateListeners","defaultScreenOptions","NavigationContent"],"sourceRoot":"../../src","sources":["useNavigationBuilder.tsx"],"mappings":"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"}
+\ No newline at end of file
++{"version":3,"names":["CommonActions","React","isValidElementType","Group","isArrayEqual","isRecordEqual","NavigationHelpersContext","NavigationRouteContext","NavigationStateContext","PreventRemoveProvider","Screen","PrivateValueStore","useChildListeners","useComponent","useCurrentRender","useDescriptors","useEventEmitter","useFocusedListenersChildrenAdapter","useFocusEvents","useKeyedChildListeners","useNavigationHelpers","useOnAction","useOnGetState","useOnRouteFocus","useRegisterNavigator","useScheduleUpdate","isValidKey","key","undefined","getRouteConfigsFromChildren","children","groupKey","groupOptions","configs","Children","toArray","reduce","acc","child","isValidElement","type","props","navigationKey","Error","JSON","stringify","name","push","keys","options","Fragment","screenOptions","String","process","env","NODE_ENV","forEach","config","component","getComponent","console","warn","test","useNavigationBuilder","createRouter","convertCustomScreenOptions","navigatorKey","route","useContext","screenListeners","rest","current","router","useRef","params","state","initial","screen","initialRouteName","routeConfigs","screens","routeNames","map","routeKeyList","curr","join","routeParamList","initialParams","routeGetIdList","Object","assign","getId","length","isStateValid","useCallback","isStateInitialized","stale","currentState","getState","getCurrentState","setState","setCurrentState","setKey","getKey","getIsInitial","stateCleanedUp","initializedState","isFirstStateInitialization","useMemo","initialRouteParamList","initialParamsFromParams","getInitialState","getRehydratedState","previousRouteKeyListRef","useEffect","previousRouteKeyList","nextState","getStateForRouteNamesChange","routeKeyChanges","filter","hasOwnProperty","previousNestedParamsRef","previousParams","action","reset","navigate","path","updatedState","getStateForAction","shouldUpdate","initializedStateRef","emitter","e","target","routes","find","index","navigation","descriptors","listeners","concat","cb","i","self","lastIndexOf","listener","emit","data","childListeners","addListener","keyedListeners","addKeyedListener","onAction","actionListeners","beforeRemoveListeners","beforeRemove","routerConfigOptions","onRouteFocus","id","focusedListeners","focus","getStateListeners","defaultScreenOptions","NavigationContent"],"sourceRoot":"../../src","sources":["useNavigationBuilder.tsx"],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/BaseNavigationContainer.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/BaseNavigationContainer.test.d.ts
+new file mode 100644
+index 0000000..d22cbd4
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/BaseNavigationContainer.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=BaseNavigationContainer.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/BaseNavigationContainer.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/BaseNavigationContainer.test.d.ts.map
+new file mode 100644
+index 0000000..6334965
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/BaseNavigationContainer.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"BaseNavigationContainer.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/BaseNavigationContainer.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/StaticContainer.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/StaticContainer.test.d.ts
+new file mode 100644
+index 0000000..433d407
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/StaticContainer.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=StaticContainer.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/StaticContainer.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/StaticContainer.test.d.ts.map
+new file mode 100644
+index 0000000..34bb501
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/StaticContainer.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"StaticContainer.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/StaticContainer.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/__fixtures__/MockRouter.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/__fixtures__/MockRouter.d.ts
+new file mode 100644
+index 0000000..7e2c7c6
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/__fixtures__/MockRouter.d.ts
+@@ -0,0 +1,25 @@
++import { CommonNavigationAction, DefaultRouterOptions, Router } from '@react-navigation/routers';
++export type MockActions = CommonNavigationAction | {
++    type: 'NOOP' | 'UPDATE';
++};
++export declare const MockRouterKey: {
++    current: number;
++};
++export default function MockRouter(options: DefaultRouterOptions): Router<Readonly<{
++    key: string;
++    index: number;
++    routeNames: string[];
++    history?: unknown[] | undefined;
++    routes: (Readonly<{
++        key: string;
++        name: string;
++        path?: string | undefined;
++    }> & Readonly<{
++        params?: Readonly<object | undefined>;
++    }> & {
++        state?: Readonly<any> | import("@react-navigation/routers").PartialState<Readonly<any>> | undefined;
++    })[];
++    type: string;
++    stale: false;
++}>, MockActions>;
++//# sourceMappingURL=MockRouter.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/__fixtures__/MockRouter.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/__fixtures__/MockRouter.d.ts.map
+new file mode 100644
+index 0000000..4ff520f
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/__fixtures__/MockRouter.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"MockRouter.d.ts","sourceRoot":"","sources":["../../../../../src/__tests__/__fixtures__/MockRouter.tsx"],"names":[],"mappings":"AAAA,OAAO,EAEL,sBAAsB,EACtB,oBAAoB,EAGpB,MAAM,EACP,MAAM,2BAA2B,CAAC;AAEnC,MAAM,MAAM,WAAW,GAAG,sBAAsB,GAAG;IAAE,IAAI,EAAE,MAAM,GAAG,QAAQ,CAAA;CAAE,CAAC;AAE/E,eAAO,MAAM,aAAa;;CAAiB,CAAC;AAE5C,MAAM,CAAC,OAAO,UAAU,UAAU,CAAC,OAAO,EAAE,oBAAoB;;;;;;;;;;;;;;;;iBA+I/D"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/checkSerializable.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/checkSerializable.test.d.ts
+new file mode 100644
+index 0000000..1fa4c05
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/checkSerializable.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=checkSerializable.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/checkSerializable.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/checkSerializable.test.d.ts.map
+new file mode 100644
+index 0000000..7134153
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/checkSerializable.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"checkSerializable.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/checkSerializable.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigationContainerRef.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigationContainerRef.test.d.ts
+new file mode 100644
+index 0000000..600781b
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigationContainerRef.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=createNavigationContainerRef.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigationContainerRef.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigationContainerRef.test.d.ts.map
+new file mode 100644
+index 0000000..c92c69c
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigationContainerRef.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"createNavigationContainerRef.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/createNavigationContainerRef.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigatorFactory.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigatorFactory.test.d.ts
+new file mode 100644
+index 0000000..3dcc160
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigatorFactory.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=createNavigatorFactory.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigatorFactory.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigatorFactory.test.d.ts.map
+new file mode 100644
+index 0000000..8f35188
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigatorFactory.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"createNavigatorFactory.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/createNavigatorFactory.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getActionFromState.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getActionFromState.test.d.ts
+new file mode 100644
+index 0000000..df51c94
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getActionFromState.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=getActionFromState.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getActionFromState.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getActionFromState.test.d.ts.map
+new file mode 100644
+index 0000000..e3191ac
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getActionFromState.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"getActionFromState.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/getActionFromState.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getFocusedRouteNameFromRoute.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getFocusedRouteNameFromRoute.test.d.ts
+new file mode 100644
+index 0000000..ae3812b
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getFocusedRouteNameFromRoute.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=getFocusedRouteNameFromRoute.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getFocusedRouteNameFromRoute.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getFocusedRouteNameFromRoute.test.d.ts.map
+new file mode 100644
+index 0000000..be64b01
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getFocusedRouteNameFromRoute.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"getFocusedRouteNameFromRoute.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/getFocusedRouteNameFromRoute.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getPathFromState.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getPathFromState.test.d.ts
+new file mode 100644
+index 0000000..7625849
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getPathFromState.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=getPathFromState.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getPathFromState.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getPathFromState.test.d.ts.map
+new file mode 100644
+index 0000000..b119f20
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getPathFromState.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"getPathFromState.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/getPathFromState.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getStateFromPath.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getStateFromPath.test.d.ts
+new file mode 100644
+index 0000000..2ebde5a
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getStateFromPath.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=getStateFromPath.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getStateFromPath.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getStateFromPath.test.d.ts.map
+new file mode 100644
+index 0000000..cd928df
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getStateFromPath.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"getStateFromPath.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/getStateFromPath.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/index.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/index.test.d.ts
+new file mode 100644
+index 0000000..121d59b
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/index.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=index.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/index.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/index.test.d.ts.map
+new file mode 100644
+index 0000000..7b9421a
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/index.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"index.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/index.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useDescriptors.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useDescriptors.test.d.ts
+new file mode 100644
+index 0000000..98b6561
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useDescriptors.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useDescriptors.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useDescriptors.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useDescriptors.test.d.ts.map
+new file mode 100644
+index 0000000..666ac88
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useDescriptors.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useDescriptors.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useDescriptors.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useEventEmitter.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useEventEmitter.test.d.ts
+new file mode 100644
+index 0000000..86ccf20
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useEventEmitter.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useEventEmitter.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useEventEmitter.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useEventEmitter.test.d.ts.map
+new file mode 100644
+index 0000000..0c223bb
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useEventEmitter.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useEventEmitter.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useEventEmitter.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useFocusEffect.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useFocusEffect.test.d.ts
+new file mode 100644
+index 0000000..88a0334
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useFocusEffect.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useFocusEffect.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useFocusEffect.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useFocusEffect.test.d.ts.map
+new file mode 100644
+index 0000000..14fd128
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useFocusEffect.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useFocusEffect.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useFocusEffect.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useIsFocused.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useIsFocused.test.d.ts
+new file mode 100644
+index 0000000..5ace84d
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useIsFocused.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useIsFocused.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useIsFocused.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useIsFocused.test.d.ts.map
+new file mode 100644
+index 0000000..eb4a60a
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useIsFocused.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useIsFocused.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useIsFocused.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigation.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigation.test.d.ts
+new file mode 100644
+index 0000000..49943be
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigation.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useNavigation.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigation.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigation.test.d.ts.map
+new file mode 100644
+index 0000000..0d5f05d
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigation.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useNavigation.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useNavigation.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationCache.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationCache.test.d.ts
+new file mode 100644
+index 0000000..c4bdd73
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationCache.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useNavigationCache.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationCache.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationCache.test.d.ts.map
+new file mode 100644
+index 0000000..45d5eec
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationCache.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useNavigationCache.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useNavigationCache.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationState.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationState.test.d.ts
+new file mode 100644
+index 0000000..3f3e1e8
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationState.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useNavigationState.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationState.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationState.test.d.ts.map
+new file mode 100644
+index 0000000..7f87ce2
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationState.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useNavigationState.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useNavigationState.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useOnAction.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useOnAction.test.d.ts
+new file mode 100644
+index 0000000..a2d09c2
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useOnAction.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useOnAction.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useOnAction.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useOnAction.test.d.ts.map
+new file mode 100644
+index 0000000..f1b8ce2
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useOnAction.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useOnAction.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useOnAction.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/usePreventRemove.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/usePreventRemove.test.d.ts
+new file mode 100644
+index 0000000..8f19ec2
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/usePreventRemove.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=usePreventRemove.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/usePreventRemove.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/usePreventRemove.test.d.ts.map
+new file mode 100644
+index 0000000..6c812fd
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/usePreventRemove.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"usePreventRemove.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/usePreventRemove.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useRoute.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useRoute.test.d.ts
+new file mode 100644
+index 0000000..2fc7bc3
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useRoute.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useRoute.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useRoute.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useRoute.test.d.ts.map
+new file mode 100644
+index 0000000..0f1e440
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useRoute.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useRoute.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useRoute.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/index.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/index.d.ts
+index e59dc93..9481d93 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/index.d.ts
++++ b/node_modules/@react-navigation/core/lib/typescript/src/index.d.ts
+@@ -17,7 +17,7 @@ export * from './types';
+ export { default as useFocusEffect } from './useFocusEffect';
+ export { default as useIsFocused } from './useIsFocused';
+ export { default as useNavigation } from './useNavigation';
+-export { default as useNavigationBuilder } from './useNavigationBuilder';
++export { NavigationBuilderOptions, default as useNavigationBuilder, } from './useNavigationBuilder';
+ export { default as useNavigationContainerRef } from './useNavigationContainerRef';
+ export { default as useNavigationState } from './useNavigationState';
+ export { default as UNSTABLE_usePreventRemove } from './usePreventRemove';
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/index.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/index.d.ts.map
+index 366138e..b8b7de5 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/index.d.ts.map
++++ b/node_modules/@react-navigation/core/lib/typescript/src/index.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../../src/index.tsx"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,IAAI,uBAAuB,EAAE,MAAM,2BAA2B,CAAC;AAC/E,OAAO,EAAE,OAAO,IAAI,4BAA4B,EAAE,MAAM,gCAAgC,CAAC;AACzF,OAAO,EAAE,OAAO,IAAI,sBAAsB,EAAE,MAAM,0BAA0B,CAAC;AAC7E,OAAO,EAAE,OAAO,IAAI,oBAAoB,EAAE,MAAM,wBAAwB,CAAC;AACzE,OAAO,EAAE,OAAO,IAAI,gBAAgB,EAAE,MAAM,oBAAoB,CAAC;AACjE,OAAO,EAAE,OAAO,IAAI,kBAAkB,EAAE,MAAM,sBAAsB,CAAC;AACrE,OAAO,EAAE,OAAO,IAAI,4BAA4B,EAAE,MAAM,gCAAgC,CAAC;AACzF,OAAO,EAAE,OAAO,IAAI,gBAAgB,EAAE,MAAM,oBAAoB,CAAC;AACjE,OAAO,EAAE,OAAO,IAAI,gBAAgB,EAAE,MAAM,oBAAoB,CAAC;AACjE,OAAO,EAAE,OAAO,IAAI,6BAA6B,EAAE,MAAM,iCAAiC,CAAC;AAC3F,OAAO,EAAE,OAAO,IAAI,iBAAiB,EAAE,MAAM,qBAAqB,CAAC;AACnE,OAAO,EAAE,OAAO,IAAI,wBAAwB,EAAE,MAAM,4BAA4B,CAAC;AACjF,OAAO,EAAE,OAAO,IAAI,sBAAsB,EAAE,MAAM,0BAA0B,CAAC;AAC7E,OAAO,EAAE,OAAO,IAAI,oBAAoB,EAAE,MAAM,wBAAwB,CAAC;AACzE,OAAO,EAAE,OAAO,IAAI,qBAAqB,EAAE,MAAM,yBAAyB,CAAC;AAC3E,cAAc,SAAS,CAAC;AACxB,OAAO,EAAE,OAAO,IAAI,cAAc,EAAE,MAAM,kBAAkB,CAAC;AAC7D,OAAO,EAAE,OAAO,IAAI,YAAY,EAAE,MAAM,gBAAgB,CAAC;AACzD,OAAO,EAAE,OAAO,IAAI,aAAa,EAAE,MAAM,iBAAiB,CAAC;AAC3D,OAAO,EAAE,OAAO,IAAI,oBAAoB,EAAE,MAAM,wBAAwB,CAAC;AACzE,OAAO,EAAE,OAAO,IAAI,yBAAyB,EAAE,MAAM,6BAA6B,CAAC;AACnF,OAAO,EAAE,OAAO,IAAI,kBAAkB,EAAE,MAAM,sBAAsB,CAAC;AACrE,OAAO,EAAE,OAAO,IAAI,yBAAyB,EAAE,MAAM,oBAAoB,CAAC;AAC1E,OAAO,EAAE,OAAO,IAAI,uBAAuB,EAAE,MAAM,2BAA2B,CAAC;AAC/E,OAAO,EAAE,OAAO,IAAI,QAAQ,EAAE,MAAM,YAAY,CAAC;AACjD,OAAO,EAAE,OAAO,IAAI,kBAAkB,EAAE,MAAM,sBAAsB,CAAC;AACrE,cAAc,2BAA2B,CAAC"}
+\ No newline at end of file
++{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../../src/index.tsx"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,IAAI,uBAAuB,EAAE,MAAM,2BAA2B,CAAC;AAC/E,OAAO,EAAE,OAAO,IAAI,4BAA4B,EAAE,MAAM,gCAAgC,CAAC;AACzF,OAAO,EAAE,OAAO,IAAI,sBAAsB,EAAE,MAAM,0BAA0B,CAAC;AAC7E,OAAO,EAAE,OAAO,IAAI,oBAAoB,EAAE,MAAM,wBAAwB,CAAC;AACzE,OAAO,EAAE,OAAO,IAAI,gBAAgB,EAAE,MAAM,oBAAoB,CAAC;AACjE,OAAO,EAAE,OAAO,IAAI,kBAAkB,EAAE,MAAM,sBAAsB,CAAC;AACrE,OAAO,EAAE,OAAO,IAAI,4BAA4B,EAAE,MAAM,gCAAgC,CAAC;AACzF,OAAO,EAAE,OAAO,IAAI,gBAAgB,EAAE,MAAM,oBAAoB,CAAC;AACjE,OAAO,EAAE,OAAO,IAAI,gBAAgB,EAAE,MAAM,oBAAoB,CAAC;AACjE,OAAO,EAAE,OAAO,IAAI,6BAA6B,EAAE,MAAM,iCAAiC,CAAC;AAC3F,OAAO,EAAE,OAAO,IAAI,iBAAiB,EAAE,MAAM,qBAAqB,CAAC;AACnE,OAAO,EAAE,OAAO,IAAI,wBAAwB,EAAE,MAAM,4BAA4B,CAAC;AACjF,OAAO,EAAE,OAAO,IAAI,sBAAsB,EAAE,MAAM,0BAA0B,CAAC;AAC7E,OAAO,EAAE,OAAO,IAAI,oBAAoB,EAAE,MAAM,wBAAwB,CAAC;AACzE,OAAO,EAAE,OAAO,IAAI,qBAAqB,EAAE,MAAM,yBAAyB,CAAC;AAC3E,cAAc,SAAS,CAAC;AACxB,OAAO,EAAE,OAAO,IAAI,cAAc,EAAE,MAAM,kBAAkB,CAAC;AAC7D,OAAO,EAAE,OAAO,IAAI,YAAY,EAAE,MAAM,gBAAgB,CAAC;AACzD,OAAO,EAAE,OAAO,IAAI,aAAa,EAAE,MAAM,iBAAiB,CAAC;AAC3D,OAAO,EACL,wBAAwB,EACxB,OAAO,IAAI,oBAAoB,GAChC,MAAM,wBAAwB,CAAC;AAChC,OAAO,EAAE,OAAO,IAAI,yBAAyB,EAAE,MAAM,6BAA6B,CAAC;AACnF,OAAO,EAAE,OAAO,IAAI,kBAAkB,EAAE,MAAM,sBAAsB,CAAC;AACrE,OAAO,EAAE,OAAO,IAAI,yBAAyB,EAAE,MAAM,oBAAoB,CAAC;AAC1E,OAAO,EAAE,OAAO,IAAI,uBAAuB,EAAE,MAAM,2BAA2B,CAAC;AAC/E,OAAO,EAAE,OAAO,IAAI,QAAQ,EAAE,MAAM,YAAY,CAAC;AACjD,OAAO,EAAE,OAAO,IAAI,kBAAkB,EAAE,MAAM,sBAAsB,CAAC;AACrE,cAAc,2BAA2B,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
+index fcd456b..f0b0bdb 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
++++ b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
+@@ -7,7 +7,20 @@ declare global {
+     }
+ }
+ type Keyof<T extends {}> = Extract<keyof T, string>;
+-export type DefaultNavigatorOptions<ParamList extends ParamListBase, State extends NavigationState, ScreenOptions extends {}, EventMap extends EventMapBase> = DefaultRouterOptions<Keyof<ParamList>> & {
++export type ScreenListenersOrCallback<State extends NavigationState, EventMap extends EventMapBase, ParamList extends ParamListBase = ParamListBase, RouteName extends keyof ParamList = keyof ParamList> = ScreenListeners<State, EventMap> | ((props: {
++    route: RouteProp<ParamList, RouteName>;
++    navigation: any;
++}) => ScreenListeners<State, EventMap>);
++export type ScreenOptionsOrCallback<ScreenOptions extends {}, ParamList extends ParamListBase = ParamListBase, RouteName extends keyof ParamList = keyof ParamList> = ScreenOptions | ((props: {
++    route: RouteProp<ParamList, RouteName>;
++    navigation: any;
++}) => ScreenOptions);
++export type DefaultScreenOptionsOrCallback<ScreenOptions extends {}, ParamList extends ParamListBase = ParamListBase, RouteName extends keyof ParamList = keyof ParamList> = ScreenOptions | ((props: {
++    route: RouteProp<ParamList, RouteName>;
++    navigation: any;
++    options: ScreenOptions;
++}) => ScreenOptions);
++export type DefaultNavigatorOptions<ParamList extends ParamListBase, State extends NavigationState, ScreenOptions extends {}, EventMap extends EventMapBase, RouteName extends keyof ParamList = keyof ParamList> = DefaultRouterOptions<Keyof<ParamList>> & {
+     /**
+      * Optional ID for the navigator. Can be used with `navigation.getParent(id)` to refer to a parent.
+      */
+@@ -20,17 +33,11 @@ export type DefaultNavigatorOptions<ParamList extends ParamListBase, State exten
+     /**
+      * Event listeners for all the screens in the navigator.
+      */
+-    screenListeners?: ScreenListeners<State, EventMap> | ((props: {
+-        route: RouteProp<ParamList>;
+-        navigation: any;
+-    }) => ScreenListeners<State, EventMap>);
++    screenListeners?: ScreenListenersOrCallback<State, EventMap, ParamList, RouteName>;
+     /**
+      * Default options for all screens under this navigator.
+      */
+-    screenOptions?: ScreenOptions | ((props: {
+-        route: RouteProp<ParamList>;
+-        navigation: any;
+-    }) => ScreenOptions);
++    screenOptions?: ScreenOptionsOrCallback<ScreenOptions, ParamList, RouteName>;
+ };
+ export type EventMapBase = Record<string, {
+     data?: any;
+@@ -336,6 +343,7 @@ export type RouteConfigComponent<ParamList extends ParamListBase, RouteName exte
+     component?: never;
+     getComponent?: never;
+ };
++export type ConvertCustomScreenOptions<CustomScreenOptions extends {}, ScreenOptions extends {}> = (options: ScreenOptionsOrCallback<CustomScreenOptions> | undefined) => ScreenOptionsOrCallback<ScreenOptions> | undefined;
+ export type RouteConfig<ParamList extends ParamListBase, RouteName extends keyof ParamList, State extends NavigationState, ScreenOptions extends {}, EventMap extends EventMapBase> = {
+     /**
+      * Optional key for this screen. This doesn't need to be unique.
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts.map
+index 6594ef4..f6c839d 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts.map
++++ b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../../src/types.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,oBAAoB,EACpB,YAAY,EACZ,gBAAgB,EAChB,eAAe,EACf,aAAa,EACb,YAAY,EACZ,KAAK,EACN,MAAM,2BAA2B,CAAC;AACnC,OAAO,KAAK,KAAK,KAAK,MAAM,OAAO,CAAC;AAEpC,OAAO,CAAC,MAAM,CAAC;IAEb,UAAU,eAAe,CAAC;QAExB,UAAU,aAAa;SAAG;KAC3B;CACF;AAED,KAAK,KAAK,CAAC,CAAC,SAAS,EAAE,IAAI,OAAO,CAAC,MAAM,CAAC,EAAE,MAAM,CAAC,CAAC;AAEpD,MAAM,MAAM,uBAAuB,CACjC,SAAS,SAAS,aAAa,EAC/B,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,IAC3B,oBAAoB,CAAC,KAAK,CAAC,SAAS,CAAC,CAAC,GAAG;IAC3C;;OAEG;IACH,EAAE,CAAC,EAAE,MAAM,CAAC;IACZ;;;OAGG;IACH,QAAQ,EAAE,KAAK,CAAC,SAAS,CAAC;IAC1B;;OAEG;IACH,eAAe,CAAC,EACZ,eAAe,CAAC,KAAK,EAAE,QAAQ,CAAC,GAChC,CAAC,CAAC,KAAK,EAAE;QACP,KAAK,EAAE,SAAS,CAAC,SAAS,CAAC,CAAC;QAC5B,UAAU,EAAE,GAAG,CAAC;KACjB,KAAK,eAAe,CAAC,KAAK,EAAE,QAAQ,CAAC,CAAC,CAAC;IAC5C;;OAEG;IACH,aAAa,CAAC,EACV,aAAa,GACb,CAAC,CAAC,KAAK,EAAE;QACP,KAAK,EAAE,SAAS,CAAC,SAAS,CAAC,CAAC;QAC5B,UAAU,EAAE,GAAG,CAAC;KACjB,KAAK,aAAa,CAAC,CAAC;CAC1B,CAAC;AAEF,MAAM,MAAM,YAAY,GAAG,MAAM,CAC/B,MAAM,EACN;IAAE,IAAI,CAAC,EAAE,GAAG,CAAC;IAAC,iBAAiB,CAAC,EAAE,OAAO,CAAA;CAAE,CAC5C,CAAC;AAEF,MAAM,MAAM,YAAY,CAAC,KAAK,SAAS,eAAe,IAAI;IACxD,KAAK,EAAE;QAAE,IAAI,EAAE,SAAS,CAAA;KAAE,CAAC;IAC3B,IAAI,EAAE;QAAE,IAAI,EAAE,SAAS,CAAA;KAAE,CAAC;IAC1B,KAAK,EAAE;QAAE,IAAI,EAAE;YAAE,KAAK,EAAE,KAAK,CAAA;SAAE,CAAA;KAAE,CAAC;IAClC,YAAY,EAAE;QAAE,IAAI,EAAE;YAAE,MAAM,EAAE,gBAAgB,CAAA;SAAE,CAAC;QAAC,iBAAiB,EAAE,IAAI,CAAA;KAAE,CAAC;CAC/E,CAAC;AAEF,MAAM,MAAM,QAAQ,CAClB,SAAS,SAAS,MAAM,EACxB,iBAAiB,SAAS,OAAO,GAAG,SAAS,GAAG,KAAK,EACrD,IAAI,GAAG,SAAS,IACd;IACF;;OAEG;IACH,QAAQ,CAAC,IAAI,EAAE,SAAS,CAAC;IACzB,QAAQ,CAAC,MAAM,CAAC,EAAE,MAAM,CAAC;CAC1B,GAAG,CAAC,iBAAiB,SAAS,IAAI,GAC/B;IACE;;OAEG;IACH,QAAQ,CAAC,gBAAgB,EAAE,OAAO,CAAC;IACnC;;OAEG;IACH,cAAc,IAAI,IAAI,CAAC;CACxB,GACD,EAAE,CAAC,GACL,CAAC,SAAS,SAAS,IAAI,GACnB;IAAE,QAAQ,CAAC,IAAI,CAAC,EAAE,QAAQ,CAAC,IAAI,CAAC,CAAA;CAAE,GAClC;IAAE,QAAQ,CAAC,IAAI,EAAE,QAAQ,CAAC,IAAI,CAAC,CAAA;CAAE,CAAC,CAAC;AAEzC,MAAM,MAAM,qBAAqB,CAC/B,QAAQ,SAAS,YAAY,EAC7B,SAAS,SAAS,MAAM,QAAQ,IAC9B,CACF,CAAC,EAAE,QAAQ,CACT,OAAO,CAAC,SAAS,EAAE,MAAM,CAAC,EAC1B,QAAQ,CAAC,SAAS,CAAC,CAAC,mBAAmB,CAAC,EACxC,QAAQ,CAAC,SAAS,CAAC,CAAC,MAAM,CAAC,CAC5B,KACE,IAAI,CAAC;AAEV,MAAM,MAAM,aAAa,CAAC,QAAQ,SAAS,YAAY,IAAI;IACzD;;;;;OAKG;IACH,WAAW,CAAC,SAAS,SAAS,KAAK,CAAC,QAAQ,CAAC,EAC3C,IAAI,EAAE,SAAS,EACf,QAAQ,EAAE,qBAAqB,CAAC,QAAQ,EAAE,SAAS,CAAC,GACnD,MAAM,IAAI,CAAC;IACd,cAAc,CAAC,SAAS,SAAS,KAAK,CAAC,QAAQ,CAAC,EAC9C,IAAI,EAAE,SAAS,EACf,QAAQ,EAAE,qBAAqB,CAAC,QAAQ,EAAE,SAAS,CAAC,GACnD,IAAI,CAAC;CACT,CAAC;AAEF,MAAM,MAAM,YAAY,CAAC,QAAQ,SAAS,YAAY,IAAI;IACxD;;;;;;;OAOG;IACH,IAAI,CAAC,SAAS,SAAS,KAAK,CAAC,QAAQ,CAAC,EACpC,OAAO,EAAE;QACP,IAAI,EAAE,SAAS,CAAC;QAChB,MAAM,CAAC,EAAE,MAAM,CAAC;KACjB,GAAG,CAAC,QAAQ,CAAC,SAAS,CAAC,CAAC,mBAAmB,CAAC,SAAS,IAAI,GACtD;QAAE,iBAAiB,EAAE,IAAI,CAAA;KAAE,GAC3B,EAAE,CAAC,GACL,CAAC,SAAS,SAAS,QAAQ,CAAC,SAAS,CAAC,CAAC,MAAM,CAAC,GAC1C;QAAE,IAAI,CAAC,EAAE,QAAQ,CAAC,SAAS,CAAC,CAAC,MAAM,CAAC,CAAA;KAAE,GACtC;QAAE,IAAI,EAAE,QAAQ,CAAC,SAAS,CAAC,CAAC,MAAM,CAAC,CAAA;KAAE,CAAC,GAC3C,QAAQ,CACT,SAAS,EACT,QAAQ,CAAC,SAAS,CAAC,CAAC,mBAAmB,CAAC,EACxC,QAAQ,CAAC,SAAS,CAAC,CAAC,MAAM,CAAC,CAC5B,CAAC;CACH,CAAC;AAEF,qBAAa,iBAAiB,CAAC,CAAC,SAAS,CAAC,GAAG,EAAE,GAAG,EAAE,GAAG,CAAC;IACtD;;;;;;;;;OASG;IACH,SAAS,CAAC,EAAE,CAAC,EAAE,CAAC,CAAC;CAClB;AAED,KAAK,uBAAuB,CAC1B,SAAS,SAAS,aAAa,EAC/B,KAAK,SAAS,eAAe,GAAG,eAAe,IAC7C;IACF;;;;;OAKG;IACH,QAAQ,CACN,MAAM,EAAE,gBAAgB,GAAG,CAAC,CAAC,KAAK,EAAE,KAAK,KAAK,gBAAgB,CAAC,GAC9D,IAAI,CAAC;IAER;;;;;OAKG;IACH,QAAQ,CAAC,SAAS,SAAS,MAAM,SAAS,EACxC,GAAG,IAAI,EAGP,SAAS,SAAS,OAAO,GAGrB,SAAS,SAAS,SAAS,CAAC,SAAS,CAAC,GAEhC,CAAC,MAAM,EAAE,SAAS,CAAC,GACnB,CAAC,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,SAAS,CAAC,SAAS,CAAC,CAAC,GACrD,CAAC,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,SAAS,CAAC,SAAS,CAAC,CAAC,GACnD,KAAK,GACR,IAAI,CAAC;IAER;;;;OAIG;IACH,QAAQ,CAAC,SAAS,SAAS,MAAM,SAAS,EACxC,OAAO,EAAE,SAAS,SAAS,OAAO,GAE1B;QAAE,GAAG,EAAE,MAAM,CAAC;QAAC,MAAM,CAAC,EAAE,SAAS,CAAC,SAAS,CAAC,CAAC;QAAC,KAAK,CAAC,EAAE,OAAO,CAAA;KAAE,GAC/D;QACE,IAAI,EAAE,SAAS,CAAC;QAChB,GAAG,CAAC,EAAE,MAAM,CAAC;QACb,MAAM,EAAE,SAAS,CAAC,SAAS,CAAC,CAAC;QAC7B,KAAK,CAAC,EAAE,OAAO,CAAC;KACjB,GACL,KAAK,GACR,IAAI,CAAC;IAER;;;;OAIG;IACH,KAAK,CAAC,KAAK,EAAE,YAAY,CAAC,KAAK,CAAC,GAAG,KAAK,GAAG,IAAI,CAAC;IAEhD;;OAEG;IACH,MAAM,IAAI,IAAI,CAAC;IAEf;;;;;OAKG;IACH,SAAS,IAAI,OAAO,CAAC;IAErB;;;OAGG;IACH,SAAS,IAAI,OAAO,CAAC;IAErB;;;OAGG;IACH,KAAK,IAAI,MAAM,GAAG,SAAS,CAAC;IAE5B;;;;;;OAMG;IACH,SAAS,CAAC,CAAC,GAAG,iBAAiB,CAAC,aAAa,CAAC,GAAG,SAAS,EAAE,EAAE,CAAC,EAAE,MAAM,GAAG,CAAC,CAAC;IAE5E;;;OAGG;IACH,QAAQ,IAAI,KAAK,CAAC;CACnB,GAAG,iBAAiB,CAAC,CAAC,SAAS,EAAE,OAAO,EAAE,OAAO,CAAC,CAAC,CAAC;AAErD,MAAM,MAAM,iBAAiB,CAC3B,SAAS,SAAS,aAAa,EAC/B,QAAQ,SAAS,YAAY,GAAG,EAAE,IAChC,uBAAuB,CAAC,SAAS,CAAC,GACpC,YAAY,CAAC,QAAQ,CAAC,GAAG;IACvB;;;;;OAKG;IACH,SAAS,CAAC,SAAS,SAAS,MAAM,SAAS,EACzC,MAAM,EAAE,OAAO,CAAC,SAAS,CAAC,SAAS,CAAC,CAAC,GACpC,IAAI,CAAC;CACT,CAAC;AAEJ,MAAM,MAAM,wBAAwB,GAAG;IACrC;;OAEG;IACH,YAAY,CAAC,EAAE,YAAY,CAAC;IAC5B;;OAEG;IACH,aAAa,CAAC,EAAE,CAAC,KAAK,EAAE,eAAe,GAAG,SAAS,KAAK,IAAI,CAAC;IAC7D;;OAEG;IACH,iBAAiB,CAAC,EAAE,CAAC,MAAM,EAAE,gBAAgB,KAAK,IAAI,CAAC;IACvD;;;;OAIG;IACH,WAAW,CAAC,EAAE,OAAO,CAAC;IACtB;;OAEG;IACH,QAAQ,EAAE,KAAK,CAAC,SAAS,CAAC;CAC3B,CAAC;AAEF,MAAM,MAAM,cAAc,CACxB,SAAS,SAAS,EAAE,EACpB,SAAS,SAAS,MAAM,SAAS,GAAG,KAAK,CAAC,SAAS,CAAC,EACpD,WAAW,SAAS,MAAM,GAAG,SAAS,GAAG,SAAS,EAClD,KAAK,SAAS,eAAe,GAAG,eAAe,CAAC,SAAS,CAAC,EAC1D,aAAa,SAAS,EAAE,GAAG,EAAE,EAC7B,QAAQ,SAAS,YAAY,GAAG,EAAE,IAChC,IAAI,CAAC,uBAAuB,CAAC,SAAS,EAAE,KAAK,CAAC,EAAE,WAAW,CAAC,GAAG;IACjE;;;;;;OAMG;IACH,SAAS,CAAC,CAAC,GAAG,cAAc,CAAC,aAAa,CAAC,GAAG,SAAS,EAAE,EAAE,CAAC,EAAE,WAAW,GAAG,CAAC,CAAC;IAE9E;;;;;OAKG;IACH,SAAS,CACP,MAAM,EAAE,SAAS,CAAC,SAAS,CAAC,SAAS,SAAS,GAC1C,SAAS,GACT,OAAO,CAAC,SAAS,CAAC,SAAS,CAAC,CAAC,GAChC,IAAI,CAAC;IAER;;;;;OAKG;IACH,UAAU,CAAC,OAAO,EAAE,OAAO,CAAC,aAAa,CAAC,GAAG,IAAI,CAAC;CACnD,GAAG,aAAa,CAAC,QAAQ,GAAG,YAAY,CAAC,KAAK,CAAC,CAAC,GAC/C,iBAAiB,CAAC,CAAC,SAAS,EAAE,SAAS,EAAE,QAAQ,CAAC,CAAC,CAAC;AAEtD,MAAM,MAAM,SAAS,CACnB,SAAS,SAAS,aAAa,EAC/B,SAAS,SAAS,MAAM,SAAS,GAAG,KAAK,CAAC,SAAS,CAAC,IAClD,KAAK,CAAC,OAAO,CAAC,SAAS,EAAE,MAAM,CAAC,EAAE,SAAS,CAAC,SAAS,CAAC,CAAC,CAAC;AAE5D,MAAM,MAAM,uBAAuB,CACjC,CAAC,SAAS,cAAc,CAAC,aAAa,EAAE,MAAM,EAAE,GAAG,EAAE,GAAG,EAAE,GAAG,CAAC,EAC9D,CAAC,SAAS,uBAAuB,CAAC,aAAa,EAAE,GAAG,CAAC,IACnD,IAAI,CAAC,CAAC,GAAG,CAAC,EAAE,MAAM,cAAc,CAAC,GAAG,CAAC,CAAC,GACxC,cAAc;AACZ;;;GAGG;AACH,CAAC,CAAC,SAAS,uBAAuB,CAAC,MAAM,CAAC,CAAC,GAAG,CAAC,GAAG,KAAK,CAAC,GACtD,CAAC,CAAC,SAAS,uBAAuB,CAAC,MAAM,CAAC,CAAC,GAAG,CAAC,GAAG,KAAK,CAAC;AAC1D;;;GAGG;AACH,CAAC,SAAS,cAAc,CAAC,GAAG,EAAE,MAAM,CAAC,CAAC,GAAG,CAAC,GAAG,MAAM;AACnD;;GAEG;AACD,CAAC,CAAC,SAAS,cAAc,CAAC,GAAG,EAAE,GAAG,EAAE,MAAM,CAAC,CAAC,GAAG,CAAC,GAAG,KAAK,CAAC,GACzD,CAAC,CAAC,SAAS,cAAc,CAAC,GAAG,EAAE,GAAG,EAAE,MAAM,CAAC,CAAC,GAAG,CAAC,GAAG,KAAK,CAAC;AAC3D;;GAEG;AACH,CAAC,SAAS,cAAc,CAAC,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,MAAM,CAAC,CAAC,GAAG,CAAC,GAAG,eAAe;AACtE;;;GAGG;AACH,CAAC,CAAC,SAAS,cAAc,CAAC,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,MAAM,CAAC,CAAC,GAAG,CAAC,GAAG,EAAE,CAAC,GAC9D,CAAC,CAAC,SAAS,cAAc,CAAC,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,MAAM,CAAC,CAAC,GAAG,CAAC,GAAG,EAAE,CAAC;AAClE;;;GAGG;AACH,CAAC,SAAS,cAAc,CAAC,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,MAAM,CAAC,CAAC,GAAG,CAAC,GAAG,EAAE,CACpE,CAAC;AAEJ,MAAM,MAAM,oBAAoB,CAC9B,CAAC,SAAS;IACR,UAAU,EAAE,cAAc,CACxB,aAAa,EACb,MAAM,EACN,MAAM,GAAG,SAAS,EAClB,GAAG,EACH,GAAG,EACH,GAAG,CACJ,CAAC;IACF,KAAK,EAAE,SAAS,CAAC,aAAa,CAAC,CAAC;CACjC,EACD,CAAC,SAAS;IACR,UAAU,EAAE,uBAAuB,CAAC,GAAG,EAAE,GAAG,CAAC,CAAC;CAC/C,IACC;IACF,UAAU,EAAE,uBAAuB,CAAC,CAAC,CAAC,YAAY,CAAC,EAAE,CAAC,CAAC,YAAY,CAAC,CAAC,CAAC;IACtE,KAAK,EAAE,CAAC,CAAC,OAAO,CAAC,CAAC;CACnB,CAAC;AAEF,MAAM,MAAM,UAAU,CACpB,aAAa,SAAS,EAAE,EACxB,UAAU,SAAS,cAAc,CAAC,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,GAAG,CAAC,EAC/D,KAAK,SAAS,SAAS,CAAC,GAAG,EAAE,GAAG,CAAC,IAC/B;IACF;;OAEG;IACH,MAAM,IAAI,GAAG,CAAC,OAAO,CAAC;IAEtB;;OAEG;IACH,OAAO,EAAE,aAAa,CAAC;IAEvB;;OAEG;IACH,KAAK,EAAE,KAAK,CAAC;IAEb;;OAEG;IACH,UAAU,EAAE,UAAU,CAAC;CACxB,CAAC;AAEF,MAAM,MAAM,eAAe,CACzB,KAAK,SAAS,eAAe,EAC7B,QAAQ,SAAS,YAAY,IAC3B,OAAO,CAAC;KACT,SAAS,IAAI,MAAM,CAAC,QAAQ,GAAG,YAAY,CAAC,KAAK,CAAC,CAAC,GAAG,qBAAqB,CAC1E,QAAQ,EACR,SAAS,CACV;CACF,CAAC,CAAC;AAEH,KAAK,mBAAmB,CACtB,SAAS,SAAS,aAAa,EAC/B,SAAS,SAAS,MAAM,SAAS,IAE/B,KAAK,CAAC,aAAa,CAAC;IAClB,KAAK,EAAE,SAAS,CAAC,SAAS,EAAE,SAAS,CAAC,CAAC;IACvC,UAAU,EAAE,GAAG,CAAC;CACjB,CAAC,GACF,KAAK,CAAC,aAAa,CAAC,EAAE,CAAC,CAAC;AAE5B,MAAM,MAAM,oBAAoB,CAC9B,SAAS,SAAS,aAAa,EAC/B,SAAS,SAAS,MAAM,SAAS,IAE/B;IACE;;OAEG;IACH,SAAS,EAAE,mBAAmB,CAAC,SAAS,EAAE,SAAS,CAAC,CAAC;IACrD,YAAY,CAAC,EAAE,KAAK,CAAC;IACrB,QAAQ,CAAC,EAAE,KAAK,CAAC;CAClB,GACD;IACE;;OAEG;IACH,YAAY,EAAE,MAAM,mBAAmB,CAAC,SAAS,EAAE,SAAS,CAAC,CAAC;IAC9D,SAAS,CAAC,EAAE,KAAK,CAAC;IAClB,QAAQ,CAAC,EAAE,KAAK,CAAC;CAClB,GACD;IACE;;OAEG;IACH,QAAQ,EAAE,CAAC,KAAK,EAAE;QAChB,KAAK,EAAE,SAAS,CAAC,SAAS,EAAE,SAAS,CAAC,CAAC;QACvC,UAAU,EAAE,GAAG,CAAC;KACjB,KAAK,KAAK,CAAC,SAAS,CAAC;IACtB,SAAS,CAAC,EAAE,KAAK,CAAC;IAClB,YAAY,CAAC,EAAE,KAAK,CAAC;CACtB,CAAC;AAEN,MAAM,MAAM,WAAW,CACrB,SAAS,SAAS,aAAa,EAC/B,SAAS,SAAS,MAAM,SAAS,EACjC,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,IAC3B;IACF;;;;OAIG;IACH,aAAa,CAAC,EAAE,MAAM,CAAC;IAEvB;;OAEG;IACH,IAAI,EAAE,SAAS,CAAC;IAEhB;;OAEG;IACH,OAAO,CAAC,EACJ,aAAa,GACb,CAAC,CAAC,KAAK,EAAE;QACP,KAAK,EAAE,SAAS,CAAC,SAAS,EAAE,SAAS,CAAC,CAAC;QACvC,UAAU,EAAE,GAAG,CAAC;KACjB,KAAK,aAAa,CAAC,CAAC;IAEzB;;OAEG;IACH,SAAS,CAAC,EACN,eAAe,CAAC,KAAK,EAAE,QAAQ,CAAC,GAChC,CAAC,CAAC,KAAK,EAAE;QACP,KAAK,EAAE,SAAS,CAAC,SAAS,EAAE,SAAS,CAAC,CAAC;QACvC,UAAU,EAAE,GAAG,CAAC;KACjB,KAAK,eAAe,CAAC,KAAK,EAAE,QAAQ,CAAC,CAAC,CAAC;IAE5C;;;;;OAKG;IACH,KAAK,CAAC,EAAE,CAAC,EAAE,MAAM,EAAE,EAAE;QAAE,MAAM,EAAE,SAAS,CAAC,SAAS,CAAC,CAAA;KAAE,KAAK,MAAM,GAAG,SAAS,CAAC;IAE7E;;OAEG;IACH,aAAa,CAAC,EAAE,OAAO,CAAC,SAAS,CAAC,SAAS,CAAC,CAAC,CAAC;CAC/C,GAAG,oBAAoB,CAAC,SAAS,EAAE,SAAS,CAAC,CAAC;AAE/C,MAAM,MAAM,gBAAgB,CAC1B,SAAS,SAAS,aAAa,EAC/B,aAAa,SAAS,EAAE,IACtB;IACF;;;OAGG;IACH,aAAa,CAAC,EAAE,MAAM,CAAC;IAEvB;;OAEG;IACH,aAAa,CAAC,EACV,aAAa,GACb,CAAC,CAAC,KAAK,EAAE;QACP,KAAK,EAAE,SAAS,CAAC,SAAS,EAAE,MAAM,SAAS,CAAC,CAAC;QAC7C,UAAU,EAAE,GAAG,CAAC;KACjB,KAAK,aAAa,CAAC,CAAC;IACzB;;;OAGG;IACH,QAAQ,EAAE,KAAK,CAAC,SAAS,CAAC;CAC3B,CAAC;AAEF,MAAM,MAAM,2BAA2B,GAAG;IACxC;;OAEG;IACH,KAAK,EAAE;QACL,IAAI,EAAE;YACJ;;eAEG;YACH,KAAK,EAAE,eAAe,GAAG,YAAY,CAAC,eAAe,CAAC,GAAG,SAAS,CAAC;SACpE,CAAC;KACH,CAAC;IACF;;OAEG;IACH,OAAO,EAAE;QAAE,IAAI,EAAE;YAAE,OAAO,EAAE,MAAM,CAAA;SAAE,CAAA;KAAE,CAAC;IACvC;;;;OAIG;IACH,iBAAiB,EAAE;QACjB,IAAI,EAAE;YACJ;;eAEG;YACH,MAAM,EAAE,gBAAgB,CAAC;YACzB;;eAEG;YACH,IAAI,EAAE,OAAO,CAAC;YACd;;eAEG;YACH,KAAK,EAAE,MAAM,GAAG,SAAS,CAAC;SAC3B,CAAC;KACH,CAAC;CACH,CAAC;AAEF,MAAM,MAAM,sBAAsB,CAAC,SAAS,SAAS,EAAE,IACrD,iBAAiB,CAAC,SAAS,CAAC,GAC1B,aAAa,CAAC,2BAA2B,CAAC,GAAG;IAC3C;;;;OAIG;IACH,SAAS,CAAC,KAAK,CAAC,EAAE,YAAY,CAAC,eAAe,CAAC,GAAG,eAAe,GAAG,IAAI,CAAC;IACzE;;OAEG;IACH,YAAY,IAAI,eAAe,CAAC;IAChC;;OAEG;IACH,eAAe,IAAI,KAAK,CAAC,MAAM,CAAC,GAAG,SAAS,CAAC;IAC7C;;OAEG;IACH,iBAAiB,IAAI,MAAM,GAAG,SAAS,CAAC;IACxC;;OAEG;IACH,OAAO,IAAI,OAAO,CAAC;IACnB;;OAEG;IACH,UAAU,IAAI,KAAK,CAAC;IACpB;;OAEG;IACH,SAAS,IAAI,KAAK,CAAC;IACnB;;OAEG;IACH,SAAS,IAAI,SAAS,CAAC;CACxB,CAAC;AAEN,MAAM,MAAM,iCAAiC,CAAC,SAAS,SAAS,EAAE,IAChE,sBAAsB,CAAC,SAAS,CAAC,GAAG;IAClC,OAAO,EAAE,sBAAsB,CAAC,SAAS,CAAC,GAAG,IAAI,CAAC;CACnD,CAAC;AAEJ,MAAM,MAAM,cAAc,CACxB,SAAS,SAAS,aAAa,EAC/B,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,EAC7B,SAAS,SAAS,KAAK,CAAC,aAAa,CAAC,GAAG,CAAC,IACxC;IACF;;OAEG;IACH,SAAS,EAAE,KAAK,CAAC,aAAa,CAC5B,IAAI,CACF,KAAK,CAAC,cAAc,CAAC,SAAS,CAAC,EAC/B,MAAM,uBAAuB,CAAC,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,GAAG,CAAC,CAClD,GACC,uBAAuB,CAAC,SAAS,EAAE,KAAK,EAAE,aAAa,EAAE,QAAQ,CAAC,CACrE,CAAC;IACF;;OAEG;IACH,KAAK,EAAE,KAAK,CAAC,aAAa,CAAC,gBAAgB,CAAC,SAAS,EAAE,aAAa,CAAC,CAAC,CAAC;IACvE;;OAEG;IACH,MAAM,EAAE,CAAC,SAAS,SAAS,MAAM,SAAS,EACxC,CAAC,EAAE,WAAW,CAAC,SAAS,EAAE,SAAS,EAAE,KAAK,EAAE,aAAa,EAAE,QAAQ,CAAC,KACjE,IAAI,CAAC;CACX,CAAC;AAEF,MAAM,MAAM,qBAAqB,CAC/B,SAAS,EACT,KAAK,SAAS,eAAe,GAAG,eAAe,IAE7C;IACE,MAAM,CAAC,EAAE,KAAK,CAAC;IACf,MAAM,CAAC,EAAE,KAAK,CAAC;IACf,OAAO,CAAC,EAAE,KAAK,CAAC;IAChB,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,KAAK,EAAE,YAAY,CAAC,KAAK,CAAC,GAAG,KAAK,GAAG,SAAS,CAAC;CAChD,GACD;KACG,SAAS,IAAI,MAAM,SAAS,GAAG,SAAS,SAAS,SAAS,CAAC,SAAS,CAAC,GAClE;QACE,MAAM,EAAE,SAAS,CAAC;QAClB,MAAM,CAAC,EAAE,SAAS,CAAC,SAAS,CAAC,CAAC;QAC9B,OAAO,CAAC,EAAE,OAAO,CAAC;QAClB,IAAI,CAAC,EAAE,MAAM,CAAC;QACd,KAAK,CAAC,EAAE,KAAK,CAAC;KACf,GACD;QACE,MAAM,EAAE,SAAS,CAAC;QAClB,MAAM,EAAE,SAAS,CAAC,SAAS,CAAC,CAAC;QAC7B,OAAO,CAAC,EAAE,OAAO,CAAC;QAClB,IAAI,CAAC,EAAE,MAAM,CAAC;QACd,KAAK,CAAC,EAAE,KAAK,CAAC;KACf;CACN,CAAC,MAAM,SAAS,CAAC,CAAC;AAEvB,MAAM,MAAM,UAAU,CAAC,SAAS,SAAS,EAAE,IAAI;IAC7C,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,KAAK,CAAC,EAAE,OAAO,CAAC;IAChB,KAAK,CAAC,EAAE,MAAM,CAAC,MAAM,EAAE,CAAC,KAAK,EAAE,MAAM,KAAK,GAAG,CAAC,CAAC;IAC/C,SAAS,CAAC,EAAE,MAAM,CAAC,MAAM,EAAE,CAAC,KAAK,EAAE,GAAG,KAAK,MAAM,CAAC,CAAC;IACnD,OAAO,CAAC,EAAE,aAAa,CAAC,SAAS,CAAC,CAAC;IACnC,gBAAgB,CAAC,EAAE,MAAM,SAAS,CAAC;CACpC,CAAC;AAEF,MAAM,MAAM,aAAa,CAAC,SAAS,SAAS,EAAE,IAAI;KAC/C,SAAS,IAAI,MAAM,SAAS,CAAC,CAAC,EAAE,WAAW,CAC1C,SAAS,CAAC,SAAS,CAAC,CACrB,SAAS,qBAAqB,CAAC,MAAM,CAAC,SAAS,EAAE,CAAC,GAC/C,MAAM,GAAG,UAAU,CAAC,CAAC,CAAC,GACtB,MAAM,GAAG,IAAI,CAAC,UAAU,CAAC,EAAE,CAAC,EAAE,SAAS,GAAG,kBAAkB,CAAC;CAClE,CAAC"}
+\ No newline at end of file
++{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../../src/types.tsx"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts
+index b0f331a..195ea3c 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts
++++ b/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts
+@@ -1,26 +1,18 @@
+ import type { NavigationAction, NavigationState, ParamListBase, Router } from '@react-navigation/routers';
+ import { AddKeyedListener, AddListener } from './NavigationBuilderContext';
+-import type { Descriptor, EventMapBase, NavigationHelpers, NavigationProp, RouteConfig, RouteProp } from './types';
++import type { ConvertCustomScreenOptions, DefaultScreenOptionsOrCallback, Descriptor, EventMapBase, NavigationHelpers, NavigationProp, RouteConfig, RouteProp, ScreenOptionsOrCallback } from './types';
+ import type { NavigationEventEmitter } from './useEventEmitter';
+ export type ScreenConfigWithParent<State extends NavigationState, ScreenOptions extends {}, EventMap extends EventMapBase> = {
+     keys: (string | undefined)[];
+     options: (ScreenOptionsOrCallback<ScreenOptions> | undefined)[] | undefined;
+     props: RouteConfig<ParamListBase, string, State, ScreenOptions, EventMap>;
+ };
+-type ScreenOptionsOrCallback<ScreenOptions extends {}> = ScreenOptions | ((props: {
+-    route: RouteProp<ParamListBase, string>;
+-    navigation: any;
+-}) => ScreenOptions);
+-type Options<State extends NavigationState, ScreenOptions extends {}, EventMap extends EventMapBase> = {
++type Options<State extends NavigationState, ScreenOptions extends {}, EventMap extends EventMapBase, CustomScreenOptions extends {} = ScreenOptions> = {
+     state: State;
+-    screens: Record<string, ScreenConfigWithParent<State, ScreenOptions, EventMap>>;
++    screens: Record<string, ScreenConfigWithParent<State, ScreenOptions | CustomScreenOptions, EventMap>>;
+     navigation: NavigationHelpers<ParamListBase>;
+-    screenOptions?: ScreenOptionsOrCallback<ScreenOptions>;
+-    defaultScreenOptions?: ScreenOptions | ((props: {
+-        route: RouteProp<ParamListBase>;
+-        navigation: any;
+-        options: ScreenOptions;
+-    }) => ScreenOptions);
++    screenOptions?: ScreenOptionsOrCallback<ScreenOptions | CustomScreenOptions>;
++    defaultScreenOptions?: DefaultScreenOptionsOrCallback<ScreenOptions | CustomScreenOptions>;
+     onAction: (action: NavigationAction) => boolean;
+     getState: () => State;
+     setState: (state: State) => void;
+@@ -37,8 +29,10 @@ type Options<State extends NavigationState, ScreenOptions extends {}, EventMap e
+  * - Helper method to render a screen
+  * - Options specified by the screen for the navigator
+  * - Navigation object intended for the route
++ * @param convertCustomScreenOptions Function to convert custom screen options to screen options.
++ * If passed, it means that the `options`/`screenOptions` passed to the navigator are custom and need to be converted to regular screen options.
+  */
+-export default function useDescriptors<State extends NavigationState, ActionHelpers extends Record<string, () => void>, ScreenOptions extends {}, EventMap extends EventMapBase>({ state, screens, navigation, screenOptions, defaultScreenOptions, onAction, getState, setState, addListener, addKeyedListener, onRouteFocus, router, emitter, }: Options<State, ScreenOptions, EventMap>): Record<string, Descriptor<ScreenOptions, Omit<{
++export default function useDescriptors<State extends NavigationState, ActionHelpers extends Record<string, () => void>, ScreenOptions extends {}, EventMap extends EventMapBase, CustomScreenOptions extends {} = ScreenOptions>({ state, screens, navigation, screenOptions, defaultScreenOptions, onAction, getState, setState, addListener, addKeyedListener, onRouteFocus, router, emitter, }: Options<State, ScreenOptions | CustomScreenOptions, EventMap>, convertCustomScreenOptions: ConvertCustomScreenOptions<CustomScreenOptions, ScreenOptions> | undefined): Record<string, Descriptor<ScreenOptions, Omit<{
+     dispatch(action: Readonly<{
+         type: string;
+         payload?: object | undefined;
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts.map
+index b67e6ea..754cba5 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts.map
++++ b/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"useDescriptors.d.ts","sourceRoot":"","sources":["../../../src/useDescriptors.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,gBAAgB,EAChB,eAAe,EACf,aAAa,EACb,MAAM,EACP,MAAM,2BAA2B,CAAC;AAGnC,OAAiC,EAC/B,gBAAgB,EAChB,WAAW,EACZ,MAAM,4BAA4B,CAAC;AAIpC,OAAO,KAAK,EACV,UAAU,EACV,YAAY,EACZ,iBAAiB,EACjB,cAAc,EACd,WAAW,EACX,SAAS,EACV,MAAM,SAAS,CAAC;AACjB,OAAO,KAAK,EAAE,sBAAsB,EAAE,MAAM,mBAAmB,CAAC;AAIhE,MAAM,MAAM,sBAAsB,CAChC,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,IAC3B;IACF,IAAI,EAAE,CAAC,MAAM,GAAG,SAAS,CAAC,EAAE,CAAC;IAC7B,OAAO,EAAE,CAAC,uBAAuB,CAAC,aAAa,CAAC,GAAG,SAAS,CAAC,EAAE,GAAG,SAAS,CAAC;IAC5E,KAAK,EAAE,WAAW,CAAC,aAAa,EAAE,MAAM,EAAE,KAAK,EAAE,aAAa,EAAE,QAAQ,CAAC,CAAC;CAC3E,CAAC;AAEF,KAAK,uBAAuB,CAAC,aAAa,SAAS,EAAE,IACjD,aAAa,GACb,CAAC,CAAC,KAAK,EAAE;IACP,KAAK,EAAE,SAAS,CAAC,aAAa,EAAE,MAAM,CAAC,CAAC;IACxC,UAAU,EAAE,GAAG,CAAC;CACjB,KAAK,aAAa,CAAC,CAAC;AAEzB,KAAK,OAAO,CACV,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,IAC3B;IACF,KAAK,EAAE,KAAK,CAAC;IACb,OAAO,EAAE,MAAM,CACb,MAAM,EACN,sBAAsB,CAAC,KAAK,EAAE,aAAa,EAAE,QAAQ,CAAC,CACvD,CAAC;IACF,UAAU,EAAE,iBAAiB,CAAC,aAAa,CAAC,CAAC;IAC7C,aAAa,CAAC,EAAE,uBAAuB,CAAC,aAAa,CAAC,CAAC;IACvD,oBAAoB,CAAC,EACjB,aAAa,GACb,CAAC,CAAC,KAAK,EAAE;QACP,KAAK,EAAE,SAAS,CAAC,aAAa,CAAC,CAAC;QAChC,UAAU,EAAE,GAAG,CAAC;QAChB,OAAO,EAAE,aAAa,CAAC;KACxB,KAAK,aAAa,CAAC,CAAC;IACzB,QAAQ,EAAE,CAAC,MAAM,EAAE,gBAAgB,KAAK,OAAO,CAAC;IAChD,QAAQ,EAAE,MAAM,KAAK,CAAC;IACtB,QAAQ,EAAE,CAAC,KAAK,EAAE,KAAK,KAAK,IAAI,CAAC;IACjC,WAAW,EAAE,WAAW,CAAC;IACzB,gBAAgB,EAAE,gBAAgB,CAAC;IACnC,YAAY,EAAE,CAAC,GAAG,EAAE,MAAM,KAAK,IAAI,CAAC;IACpC,MAAM,EAAE,MAAM,CAAC,KAAK,EAAE,gBAAgB,CAAC,CAAC;IACxC,OAAO,EAAE,sBAAsB,CAAC,QAAQ,CAAC,CAAC;CAC3C,CAAC;AAEF;;;;;;;GAOG;AACH,MAAM,CAAC,OAAO,UAAU,cAAc,CACpC,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,MAAM,CAAC,MAAM,EAAE,MAAM,IAAI,CAAC,EAChD,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,EAC7B,EACA,KAAK,EACL,OAAO,EACP,UAAU,EACV,aAAa,EACb,oBAAoB,EACpB,QAAQ,EACR,QAAQ,EACR,QAAQ,EACR,WAAW,EACX,gBAAgB,EAChB,YAAY,EACZ,MAAM,EACN,OAAO,GACR,EAAE,OAAO,CAAC,KAAK,EAAE,aAAa,EAAE,QAAQ,CAAC;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;mNAyIzC"}
+\ No newline at end of file
++{"version":3,"file":"useDescriptors.d.ts","sourceRoot":"","sources":["../../../src/useDescriptors.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,gBAAgB,EAChB,eAAe,EACf,aAAa,EACb,MAAM,EACP,MAAM,2BAA2B,CAAC;AAGnC,OAAiC,EAC/B,gBAAgB,EAChB,WAAW,EACZ,MAAM,4BAA4B,CAAC;AAIpC,OAAO,KAAK,EACV,0BAA0B,EAC1B,8BAA8B,EAC9B,UAAU,EACV,YAAY,EACZ,iBAAiB,EACjB,cAAc,EACd,WAAW,EACX,SAAS,EACT,uBAAuB,EACxB,MAAM,SAAS,CAAC;AACjB,OAAO,KAAK,EAAE,sBAAsB,EAAE,MAAM,mBAAmB,CAAC;AAIhE,MAAM,MAAM,sBAAsB,CAChC,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,IAC3B;IACF,IAAI,EAAE,CAAC,MAAM,GAAG,SAAS,CAAC,EAAE,CAAC;IAC7B,OAAO,EAAE,CAAC,uBAAuB,CAAC,aAAa,CAAC,GAAG,SAAS,CAAC,EAAE,GAAG,SAAS,CAAC;IAC5E,KAAK,EAAE,WAAW,CAAC,aAAa,EAAE,MAAM,EAAE,KAAK,EAAE,aAAa,EAAE,QAAQ,CAAC,CAAC;CAC3E,CAAC;AAEF,KAAK,OAAO,CACV,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,EAC7B,mBAAmB,SAAS,EAAE,GAAG,aAAa,IAC5C;IACF,KAAK,EAAE,KAAK,CAAC;IACb,OAAO,EAAE,MAAM,CACb,MAAM,EACN,sBAAsB,CAAC,KAAK,EAAE,aAAa,GAAG,mBAAmB,EAAE,QAAQ,CAAC,CAC7E,CAAC;IACF,UAAU,EAAE,iBAAiB,CAAC,aAAa,CAAC,CAAC;IAC7C,aAAa,CAAC,EAAE,uBAAuB,CAAC,aAAa,GAAG,mBAAmB,CAAC,CAAC;IAC7E,oBAAoB,CAAC,EAAE,8BAA8B,CACnD,aAAa,GAAG,mBAAmB,CACpC,CAAC;IACF,QAAQ,EAAE,CAAC,MAAM,EAAE,gBAAgB,KAAK,OAAO,CAAC;IAChD,QAAQ,EAAE,MAAM,KAAK,CAAC;IACtB,QAAQ,EAAE,CAAC,KAAK,EAAE,KAAK,KAAK,IAAI,CAAC;IACjC,WAAW,EAAE,WAAW,CAAC;IACzB,gBAAgB,EAAE,gBAAgB,CAAC;IACnC,YAAY,EAAE,CAAC,GAAG,EAAE,MAAM,KAAK,IAAI,CAAC;IACpC,MAAM,EAAE,MAAM,CAAC,KAAK,EAAE,gBAAgB,CAAC,CAAC;IACxC,OAAO,EAAE,sBAAsB,CAAC,QAAQ,CAAC,CAAC;CAC3C,CAAC;AAEF;;;;;;;;;GASG;AACH,MAAM,CAAC,OAAO,UAAU,cAAc,CACpC,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,MAAM,CAAC,MAAM,EAAE,MAAM,IAAI,CAAC,EAChD,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,EAC7B,mBAAmB,SAAS,EAAE,GAAG,aAAa,EAE9C,EACE,KAAK,EACL,OAAO,EACP,UAAU,EACV,aAAa,EACb,oBAAoB,EACpB,QAAQ,EACR,QAAQ,EACR,QAAQ,EACR,WAAW,EACX,gBAAgB,EAChB,YAAY,EACZ,MAAM,EACN,OAAO,GACR,EAAE,OAAO,CAAC,KAAK,EAAE,aAAa,GAAG,mBAAmB,EAAE,QAAQ,CAAC,EAChE,0BAA0B,EACtB,0BAA0B,CAAC,mBAAmB,EAAE,aAAa,CAAC,GAC9D,SAAS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;mNAyKd"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts
+index 53d474e..bf68b60 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts
++++ b/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts
+@@ -1,25 +1,23 @@
+ import { DefaultRouterOptions, NavigationState, ParamListBase, PartialState, RouterFactory } from '@react-navigation/routers';
+ import * as React from 'react';
+-import { DefaultNavigatorOptions, EventMapCore, PrivateValueStore, RouteProp } from './types';
+-type NavigationBuilderOptions<ScreenOptions extends {}> = {
++import { ConvertCustomScreenOptions, DefaultNavigatorOptions, DefaultScreenOptionsOrCallback, EventMapCore, PrivateValueStore } from './types';
++export type NavigationBuilderOptions<ScreenOptions extends {}> = {
+     /**
+      * Default options specified by the navigator.
+      * It receives the custom options in the arguments if a function is specified.
+      */
+-    defaultScreenOptions?: ScreenOptions | ((props: {
+-        route: RouteProp<ParamListBase>;
+-        navigation: any;
+-        options: ScreenOptions;
+-    }) => ScreenOptions);
++    defaultScreenOptions?: DefaultScreenOptionsOrCallback<ScreenOptions>;
+ };
+ /**
+  * Hook for building navigators.
+  *
+  * @param createRouter Factory method which returns router object.
+  * @param options Options object containing `children` and additional options for the router.
++ * @param convertCustomScreenOptions Function to convert custom screen options to screen options.
++ * If passed, it means that the `options`/`screenOptions` passed to the navigator are custom and need to be converted to regular screen options.
+  * @returns An object containing `state`, `navigation`, `descriptors` objects.
+  */
+-export default function useNavigationBuilder<State extends NavigationState, RouterOptions extends DefaultRouterOptions, ActionHelpers extends Record<string, () => void>, ScreenOptions extends {}, EventMap extends Record<string, any>>(createRouter: RouterFactory<State, any, RouterOptions>, options: DefaultNavigatorOptions<ParamListBase, State, ScreenOptions, EventMap> & NavigationBuilderOptions<ScreenOptions> & RouterOptions): {
++export default function useNavigationBuilder<State extends NavigationState, RouterOptions extends DefaultRouterOptions, ActionHelpers extends Record<string, () => void>, ScreenOptions extends {}, EventMap extends Record<string, any>, CustomScreenOptions extends {} = ScreenOptions>(createRouter: RouterFactory<State, any, RouterOptions>, options: DefaultNavigatorOptions<ParamListBase, State, ScreenOptions | CustomScreenOptions, EventMap> & NavigationBuilderOptions<ScreenOptions | CustomScreenOptions> & RouterOptions, convertCustomScreenOptions?: ConvertCustomScreenOptions<CustomScreenOptions, ScreenOptions>): {
+     state: State;
+     navigation: {
+         dispatch(action: Readonly<{
+@@ -168,10 +166,9 @@ export default function useNavigationBuilder<State extends NavigationState, Rout
+         }>, {}, {}> | undefined>(id?: string | undefined): T_1;
+         setParams(params: Partial<object | undefined>): void;
+         setOptions(options: Partial<ScreenOptions>): void;
+-    } & import("./types").EventConsumer<EventMap & EventMapCore<State>> & PrivateValueStore<[ParamListBase, string, EventMap]> & ActionHelpers, RouteProp<ParamListBase, string>>>;
++    } & import("./types").EventConsumer<EventMap & EventMapCore<State>> & PrivateValueStore<[ParamListBase, string, EventMap]> & ActionHelpers, import("./types").RouteProp<ParamListBase, string>>>;
+     NavigationContent: ({ children }: {
+         children: React.ReactNode;
+     }) => JSX.Element;
+ };
+-export {};
+ //# sourceMappingURL=useNavigationBuilder.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts.map
+index 33762f4..9800d08 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts.map
++++ b/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"useNavigationBuilder.d.ts","sourceRoot":"","sources":["../../../src/useNavigationBuilder.tsx"],"names":[],"mappings":"AAAA,OAAO,EAEL,oBAAoB,EAEpB,eAAe,EACf,aAAa,EACb,YAAY,EAIZ,aAAa,EACd,MAAM,2BAA2B,CAAC;AACnC,OAAO,KAAK,KAAK,MAAM,OAAO,CAAC;AAW/B,OAAO,EACL,uBAAuB,EAEvB,YAAY,EAEZ,iBAAiB,EAEjB,SAAS,EACV,MAAM,SAAS,CAAC;AAoBjB,KAAK,wBAAwB,CAAC,aAAa,SAAS,EAAE,IAAI;IACxD;;;OAGG;IACH,oBAAoB,CAAC,EACjB,aAAa,GACb,CAAC,CAAC,KAAK,EAAE;QACP,KAAK,EAAE,SAAS,CAAC,aAAa,CAAC,CAAC;QAChC,UAAU,EAAE,GAAG,CAAC;QAChB,OAAO,EAAE,aAAa,CAAC;KACxB,KAAK,aAAa,CAAC,CAAC;CAC1B,CAAC;AAwLF;;;;;;GAMG;AACH,MAAM,CAAC,OAAO,UAAU,oBAAoB,CAC1C,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,oBAAoB,EAC1C,aAAa,SAAS,MAAM,CAAC,MAAM,EAAE,MAAM,IAAI,CAAC,EAChD,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,MAAM,CAAC,MAAM,EAAE,GAAG,CAAC,EAEpC,YAAY,EAAE,aAAa,CAAC,KAAK,EAAE,GAAG,EAAE,aAAa,CAAC,EACtD,OAAO,EAAE,uBAAuB,CAC9B,aAAa,EACb,KAAK,EACL,aAAa,EACb,QAAQ,CACT,GACC,wBAAwB,CAAC,aAAa,CAAC,GACvC,aAAa;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EA0chB"}
+\ No newline at end of file
++{"version":3,"file":"useNavigationBuilder.d.ts","sourceRoot":"","sources":["../../../src/useNavigationBuilder.tsx"],"names":[],"mappings":"AAAA,OAAO,EAEL,oBAAoB,EAEpB,eAAe,EACf,aAAa,EACb,YAAY,EAIZ,aAAa,EACd,MAAM,2BAA2B,CAAC;AACnC,OAAO,KAAK,KAAK,MAAM,OAAO,CAAC;AAW/B,OAAO,EACL,0BAA0B,EAC1B,uBAAuB,EACvB,8BAA8B,EAE9B,YAAY,EAEZ,iBAAiB,EAClB,MAAM,SAAS,CAAC;AAoBjB,MAAM,MAAM,wBAAwB,CAAC,aAAa,SAAS,EAAE,IAAI;IAC/D;;;OAGG;IACH,oBAAoB,CAAC,EAAE,8BAA8B,CAAC,aAAa,CAAC,CAAC;CACtE,CAAC;AA4LF;;;;;;;;GAQG;AACH,MAAM,CAAC,OAAO,UAAU,oBAAoB,CAC1C,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,oBAAoB,EAC1C,aAAa,SAAS,MAAM,CAAC,MAAM,EAAE,MAAM,IAAI,CAAC,EAChD,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,MAAM,CAAC,MAAM,EAAE,GAAG,CAAC,EACpC,mBAAmB,SAAS,EAAE,GAAG,aAAa,EAE9C,YAAY,EAAE,aAAa,CAAC,KAAK,EAAE,GAAG,EAAE,aAAa,CAAC,EACtD,OAAO,EAAE,uBAAuB,CAC9B,aAAa,EACb,KAAK,EACL,aAAa,GAAG,mBAAmB,EACnC,QAAQ,CACT,GACC,wBAAwB,CAAC,aAAa,GAAG,mBAAmB,CAAC,GAC7D,aAAa,EACf,0BAA0B,CAAC,EAAE,0BAA0B,CACrD,mBAAmB,EACnB,aAAa,CACd;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAgdF"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/src/index.tsx b/node_modules/@react-navigation/core/src/index.tsx
+index 61706b6..9db0c9d 100644
+--- a/node_modules/@react-navigation/core/src/index.tsx
++++ b/node_modules/@react-navigation/core/src/index.tsx
+@@ -17,7 +17,10 @@ export * from './types';
+ export { default as useFocusEffect } from './useFocusEffect';
+ export { default as useIsFocused } from './useIsFocused';
+ export { default as useNavigation } from './useNavigation';
+-export { default as useNavigationBuilder } from './useNavigationBuilder';
++export {
++  NavigationBuilderOptions,
++  default as useNavigationBuilder,
++} from './useNavigationBuilder';
+ export { default as useNavigationContainerRef } from './useNavigationContainerRef';
+ export { default as useNavigationState } from './useNavigationState';
+ export { default as UNSTABLE_usePreventRemove } from './usePreventRemove';
+diff --git a/node_modules/@react-navigation/core/src/types.tsx b/node_modules/@react-navigation/core/src/types.tsx
+index b691d75..e9b8ea4 100644
+--- a/node_modules/@react-navigation/core/src/types.tsx
++++ b/node_modules/@react-navigation/core/src/types.tsx
+@@ -19,11 +19,47 @@ declare global {
+ 
+ type Keyof<T extends {}> = Extract<keyof T, string>;
+ 
++export type ScreenListenersOrCallback<
++  State extends NavigationState,
++  EventMap extends EventMapBase,
++  ParamList extends ParamListBase = ParamListBase,
++  RouteName extends keyof ParamList = keyof ParamList
++> =
++  | ScreenListeners<State, EventMap>
++  | ((props: {
++      route: RouteProp<ParamList, RouteName>;
++      navigation: any;
++    }) => ScreenListeners<State, EventMap>);
++
++export type ScreenOptionsOrCallback<
++  ScreenOptions extends {},
++  ParamList extends ParamListBase = ParamListBase,
++  RouteName extends keyof ParamList = keyof ParamList
++> =
++  | ScreenOptions
++  | ((props: {
++      route: RouteProp<ParamList, RouteName>;
++      navigation: any;
++    }) => ScreenOptions);
++
++export type DefaultScreenOptionsOrCallback<
++  ScreenOptions extends {},
++  ParamList extends ParamListBase = ParamListBase,
++  RouteName extends keyof ParamList = keyof ParamList
++> =
++  | ScreenOptions
++  | ((props: {
++      route: RouteProp<ParamList, RouteName>;
++      navigation: any;
++      options: ScreenOptions;
++    }) => ScreenOptions);
++
+ export type DefaultNavigatorOptions<
+   ParamList extends ParamListBase,
+   State extends NavigationState,
+   ScreenOptions extends {},
+-  EventMap extends EventMapBase
++  EventMap extends EventMapBase,
++  RouteName extends keyof ParamList = keyof ParamList
+ > = DefaultRouterOptions<Keyof<ParamList>> & {
+   /**
+    * Optional ID for the navigator. Can be used with `navigation.getParent(id)` to refer to a parent.
+@@ -37,21 +73,16 @@ export type DefaultNavigatorOptions<
+   /**
+    * Event listeners for all the screens in the navigator.
+    */
+-  screenListeners?:
+-    | ScreenListeners<State, EventMap>
+-    | ((props: {
+-        route: RouteProp<ParamList>;
+-        navigation: any;
+-      }) => ScreenListeners<State, EventMap>);
++  screenListeners?: ScreenListenersOrCallback<
++    State,
++    EventMap,
++    ParamList,
++    RouteName
++  >;
+   /**
+    * Default options for all screens under this navigator.
+    */
+-  screenOptions?:
+-    | ScreenOptions
+-    | ((props: {
+-        route: RouteProp<ParamList>;
+-        navigation: any;
+-      }) => ScreenOptions);
++  screenOptions?: ScreenOptionsOrCallback<ScreenOptions, ParamList, RouteName>;
+ };
+ 
+ export type EventMapBase = Record<
+@@ -482,6 +513,13 @@ export type RouteConfigComponent<
+       getComponent?: never;
+     };
+ 
++export type ConvertCustomScreenOptions<
++  CustomScreenOptions extends {},
++  ScreenOptions extends {}
++> = (
++  options: ScreenOptionsOrCallback<CustomScreenOptions> | undefined
++) => ScreenOptionsOrCallback<ScreenOptions> | undefined;
++
+ export type RouteConfig<
+   ParamList extends ParamListBase,
+   RouteName extends keyof ParamList,
+diff --git a/node_modules/@react-navigation/core/src/useDescriptors.tsx b/node_modules/@react-navigation/core/src/useDescriptors.tsx
+index d5a192c..2e4ee0f 100644
+--- a/node_modules/@react-navigation/core/src/useDescriptors.tsx
++++ b/node_modules/@react-navigation/core/src/useDescriptors.tsx
+@@ -14,12 +14,15 @@ import NavigationContext from './NavigationContext';
+ import NavigationRouteContext from './NavigationRouteContext';
+ import SceneView from './SceneView';
+ import type {
++  ConvertCustomScreenOptions,
++  DefaultScreenOptionsOrCallback,
+   Descriptor,
+   EventMapBase,
+   NavigationHelpers,
+   NavigationProp,
+   RouteConfig,
+   RouteProp,
++  ScreenOptionsOrCallback,
+ } from './types';
+ import type { NavigationEventEmitter } from './useEventEmitter';
+ import useNavigationCache from './useNavigationCache';
+@@ -35,32 +38,22 @@ export type ScreenConfigWithParent<
+   props: RouteConfig<ParamListBase, string, State, ScreenOptions, EventMap>;
+ };
+ 
+-type ScreenOptionsOrCallback<ScreenOptions extends {}> =
+-  | ScreenOptions
+-  | ((props: {
+-      route: RouteProp<ParamListBase, string>;
+-      navigation: any;
+-    }) => ScreenOptions);
+-
+ type Options<
+   State extends NavigationState,
+   ScreenOptions extends {},
+-  EventMap extends EventMapBase
++  EventMap extends EventMapBase,
++  CustomScreenOptions extends {} = ScreenOptions
+ > = {
+   state: State;
+   screens: Record<
+     string,
+-    ScreenConfigWithParent<State, ScreenOptions, EventMap>
++    ScreenConfigWithParent<State, ScreenOptions | CustomScreenOptions, EventMap>
+   >;
+   navigation: NavigationHelpers<ParamListBase>;
+-  screenOptions?: ScreenOptionsOrCallback<ScreenOptions>;
+-  defaultScreenOptions?:
+-    | ScreenOptions
+-    | ((props: {
+-        route: RouteProp<ParamListBase>;
+-        navigation: any;
+-        options: ScreenOptions;
+-      }) => ScreenOptions);
++  screenOptions?: ScreenOptionsOrCallback<ScreenOptions | CustomScreenOptions>;
++  defaultScreenOptions?: DefaultScreenOptionsOrCallback<
++    ScreenOptions | CustomScreenOptions
++  >;
+   onAction: (action: NavigationAction) => boolean;
+   getState: () => State;
+   setState: (state: State) => void;
+@@ -78,27 +71,35 @@ type Options<
+  * - Helper method to render a screen
+  * - Options specified by the screen for the navigator
+  * - Navigation object intended for the route
++ * @param convertCustomScreenOptions Function to convert custom screen options to screen options.
++ * If passed, it means that the `options`/`screenOptions` passed to the navigator are custom and need to be converted to regular screen options.
+  */
+ export default function useDescriptors<
+   State extends NavigationState,
+   ActionHelpers extends Record<string, () => void>,
+   ScreenOptions extends {},
+-  EventMap extends EventMapBase
+->({
+-  state,
+-  screens,
+-  navigation,
+-  screenOptions,
+-  defaultScreenOptions,
+-  onAction,
+-  getState,
+-  setState,
+-  addListener,
+-  addKeyedListener,
+-  onRouteFocus,
+-  router,
+-  emitter,
+-}: Options<State, ScreenOptions, EventMap>) {
++  EventMap extends EventMapBase,
++  CustomScreenOptions extends {} = ScreenOptions
++>(
++  {
++    state,
++    screens,
++    navigation,
++    screenOptions,
++    defaultScreenOptions,
++    onAction,
++    getState,
++    setState,
++    addListener,
++    addKeyedListener,
++    onRouteFocus,
++    router,
++    emitter,
++  }: Options<State, ScreenOptions | CustomScreenOptions, EventMap>,
++  convertCustomScreenOptions:
++    | ConvertCustomScreenOptions<CustomScreenOptions, ScreenOptions>
++    | undefined
++) {
+   const [options, setOptions] = React.useState<Record<string, object>>({});
+   const { onDispatchAction, onOptionsChange, stackRef } = React.useContext(
+     NavigationBuilderContext
+@@ -160,18 +161,42 @@ export default function useDescriptors<
+     const screen = config.props;
+     const navigation = navigations[route.key];
+ 
+-    const optionsList = [
+-      // The default `screenOptions` passed to the navigator
+-      screenOptions,
+-      // The `screenOptions` props passed to `Group` elements
+-      ...((config.options
+-        ? config.options.filter(Boolean)
+-        : []) as ScreenOptionsOrCallback<ScreenOptions>[]),
+-      // The `options` prop passed to `Screen` elements,
+-      screen.options,
+-      // The options set via `navigation.setOptions`
+-      options[route.key],
+-    ];
++    let optionsList: (ScreenOptionsOrCallback<ScreenOptions> | undefined)[];
++    if (convertCustomScreenOptions) {
++      optionsList = [
++        // The default `screenOptions` passed to the navigator
++        convertCustomScreenOptions(
++          screenOptions as ScreenOptionsOrCallback<CustomScreenOptions>
++        ),
++        // The `screenOptions` props passed to `Group` elements
++        ...((config.options
++          ? (config.options as ScreenOptionsOrCallback<CustomScreenOptions>[])
++              .filter(Boolean)
++              .map(convertCustomScreenOptions)
++          : []) as ScreenOptionsOrCallback<ScreenOptions>[]),
++        // The `options` prop passed to `Screen` elements,
++        convertCustomScreenOptions(
++          screen.options as ScreenOptionsOrCallback<CustomScreenOptions>
++        ),
++        // The options set via `navigation.setOptions`
++        convertCustomScreenOptions(
++          options[route.key] as ScreenOptionsOrCallback<CustomScreenOptions>
++        ),
++      ];
++    } else {
++      optionsList = [
++        // The default `screenOptions` passed to the navigator
++        screenOptions as ScreenOptionsOrCallback<ScreenOptions>,
++        // The `screenOptions` props passed to `Group` elements
++        ...((config.options
++          ? config.options.filter(Boolean)
++          : []) as ScreenOptionsOrCallback<ScreenOptions>[]),
++        // The `options` prop passed to `Screen` elements,
++        screen.options as ScreenOptionsOrCallback<ScreenOptions>,
++        // The options set via `navigation.setOptions`
++        options[route.key] as ScreenOptionsOrCallback<ScreenOptions>,
++      ];
++    }
+ 
+     const customOptions = optionsList.reduce<ScreenOptions>(
+       (acc, curr) =>
+@@ -183,15 +208,22 @@ export default function useDescriptors<
+       {} as ScreenOptions
+     );
+ 
++    const customDefaultScreenOptions =
++      convertCustomScreenOptions?.(
++        defaultScreenOptions as ScreenOptionsOrCallback<CustomScreenOptions>
++      ) ?? defaultScreenOptions;
++
+     const mergedOptions = {
+       ...(typeof defaultScreenOptions === 'function'
+-        ? // @ts-expect-error: ts gives incorrect error here
++        ? // In Expensify's PlatformStackNavigation we don't allow a callback function for `defaultScreenOptions`,
++          // therefore we don't need to convert any custom default options when it's a function.
++          // @ts-expect-error: ts gives incorrect error here
+           defaultScreenOptions({
+             route,
+             navigation,
+             options: customOptions,
+           })
+-        : defaultScreenOptions),
++        : customDefaultScreenOptions),
+       ...customOptions,
+     };
+ 
+diff --git a/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx b/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
+index 7d550e0..2bcf288 100644
+--- a/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
++++ b/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
+@@ -22,13 +22,13 @@ import NavigationStateContext from './NavigationStateContext';
+ import PreventRemoveProvider from './PreventRemoveProvider';
+ import Screen from './Screen';
+ import {
++  ConvertCustomScreenOptions,
+   DefaultNavigatorOptions,
++  DefaultScreenOptionsOrCallback,
+   EventMapBase,
+   EventMapCore,
+   NavigatorScreenParams,
+   PrivateValueStore,
+-  RouteConfig,
+-  RouteProp,
+ } from './types';
+ import useChildListeners from './useChildListeners';
+ import useComponent from './useComponent';
+@@ -49,18 +49,12 @@ import useScheduleUpdate from './useScheduleUpdate';
+ // eslint-disable-next-line babel/no-unused-expressions
+ PrivateValueStore;
+ 
+-type NavigationBuilderOptions<ScreenOptions extends {}> = {
++export type NavigationBuilderOptions<ScreenOptions extends {}> = {
+   /**
+    * Default options specified by the navigator.
+    * It receives the custom options in the arguments if a function is specified.
+    */
+-  defaultScreenOptions?:
+-    | ScreenOptions
+-    | ((props: {
+-        route: RouteProp<ParamListBase>;
+-        navigation: any;
+-        options: ScreenOptions;
+-      }) => ScreenOptions);
++  defaultScreenOptions?: DefaultScreenOptionsOrCallback<ScreenOptions>;
+ };
+ 
+ type NavigatorRoute<State extends NavigationState> = {
+@@ -79,18 +73,23 @@ const isValidKey = (key: unknown) =>
+ const getRouteConfigsFromChildren = <
+   State extends NavigationState,
+   ScreenOptions extends {},
+-  EventMap extends EventMapBase
++  EventMap extends EventMapBase,
++  CustomScreenOptions extends {} = ScreenOptions
+ >(
+   children: React.ReactNode,
+   groupKey?: string,
+   groupOptions?: ScreenConfigWithParent<
+     State,
+-    ScreenOptions,
++    ScreenOptions | CustomScreenOptions,
+     EventMap
+   >['options']
+ ) => {
+   const configs = React.Children.toArray(children).reduce<
+-    ScreenConfigWithParent<State, ScreenOptions, EventMap>[]
++    ScreenConfigWithParent<
++      State,
++      ScreenOptions | CustomScreenOptions,
++      EventMap
++    >[]
+   >((acc, child) => {
+     if (React.isValidElement(child)) {
+       if (child.type === Screen) {
+@@ -110,13 +109,7 @@ const getRouteConfigsFromChildren = <
+         acc.push({
+           keys: [groupKey, child.props.navigationKey],
+           options: groupOptions,
+-          props: child.props as RouteConfig<
+-            ParamListBase,
+-            string,
+-            State,
+-            ScreenOptions,
+-            EventMap
+-          >,
++          props: child.props,
+         });
+         return acc;
+       }
+@@ -133,7 +126,12 @@ const getRouteConfigsFromChildren = <
+         // When we encounter a fragment or group, we need to dive into its children to extract the configs
+         // This is handy to conditionally define a group of screens
+         acc.push(
+-          ...getRouteConfigsFromChildren<State, ScreenOptions, EventMap>(
++          ...getRouteConfigsFromChildren<
++            State,
++            ScreenOptions | CustomScreenOptions,
++            EventMap,
++            CustomScreenOptions
++          >(
+             child.props.children,
+             child.props.navigationKey,
+             child.type !== Group
+@@ -250,6 +248,8 @@ const getRouteConfigsFromChildren = <
+  *
+  * @param createRouter Factory method which returns router object.
+  * @param options Options object containing `children` and additional options for the router.
++ * @param convertCustomScreenOptions Function to convert custom screen options to screen options.
++ * If passed, it means that the `options`/`screenOptions` passed to the navigator are custom and need to be converted to regular screen options.
+  * @returns An object containing `state`, `navigation`, `descriptors` objects.
+  */
+ export default function useNavigationBuilder<
+@@ -257,17 +257,22 @@ export default function useNavigationBuilder<
+   RouterOptions extends DefaultRouterOptions,
+   ActionHelpers extends Record<string, () => void>,
+   ScreenOptions extends {},
+-  EventMap extends Record<string, any>
++  EventMap extends Record<string, any>,
++  CustomScreenOptions extends {} = ScreenOptions
+ >(
+   createRouter: RouterFactory<State, any, RouterOptions>,
+   options: DefaultNavigatorOptions<
+     ParamListBase,
+     State,
+-    ScreenOptions,
++    ScreenOptions | CustomScreenOptions,
+     EventMap
+   > &
+-    NavigationBuilderOptions<ScreenOptions> &
+-    RouterOptions
++    NavigationBuilderOptions<ScreenOptions | CustomScreenOptions> &
++    RouterOptions,
++  convertCustomScreenOptions?: ConvertCustomScreenOptions<
++    CustomScreenOptions,
++    ScreenOptions
++  >
+ ) {
+   const navigatorKey = useRegisterNavigator();
+ 
+@@ -291,11 +296,19 @@ export default function useNavigationBuilder<
+   const routeConfigs = getRouteConfigsFromChildren<
+     State,
+     ScreenOptions,
+-    EventMap
++    EventMap,
++    CustomScreenOptions
+   >(children);
+ 
+   const screens = routeConfigs.reduce<
+-    Record<string, ScreenConfigWithParent<State, ScreenOptions, EventMap>>
++    Record<
++      string,
++      ScreenConfigWithParent<
++        State,
++        ScreenOptions | CustomScreenOptions,
++        EventMap
++      >
++    >
+   >((acc, config) => {
+     if (config.props.name in acc) {
+       throw new Error(
+@@ -683,23 +696,27 @@ export default function useNavigationBuilder<
+     State,
+     ActionHelpers,
+     ScreenOptions,
+-    EventMap
+-  >({
+-    state,
+-    screens,
+-    navigation,
+-    screenOptions: options.screenOptions,
+-    defaultScreenOptions: options.defaultScreenOptions,
+-    onAction,
+-    getState,
+-    setState,
+-    onRouteFocus,
+-    addListener,
+-    addKeyedListener,
+-    router,
+-    // @ts-expect-error: this should have both core and custom events, but too much work right now
+-    emitter,
+-  });
++    EventMap,
++    CustomScreenOptions
++  >(
++    {
++      state,
++      screens,
++      navigation,
++      screenOptions: options.screenOptions,
++      defaultScreenOptions: options.defaultScreenOptions,
++      onAction,
++      getState,
++      setState,
++      onRouteFocus,
++      addListener,
++      addKeyedListener,
++      router,
++      // @ts-expect-error: this should have both core and custom events, but too much work right now
++      emitter,
++    },
++    convertCustomScreenOptions
++  );
+ 
+   useCurrentRender({
+     state,
