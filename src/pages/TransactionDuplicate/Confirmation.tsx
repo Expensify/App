@@ -118,6 +118,7 @@ function Confirmation() {
                                     report={report}
                                     shouldShowAnimatedBackground={false}
                                     readonly
+                                    isFromReviewDuplicates
                                     updatedTransaction={transaction as OnyxEntry<Transaction>}
                                 />
                             </ShowContextMenuContext.Provider>
