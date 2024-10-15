@@ -3,8 +3,7 @@ import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import AppleSignIn from '@components/SignInButtons/AppleSignIn';
@@ -34,24 +33,16 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CloseAccountForm} from '@src/types/form';
-import type {Account} from '@src/types/onyx';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 import type LoginFormProps from './types';
 import type {InputHandle} from './types';
 
-type BaseLoginFormOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
+type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
-    /** Message to display when user successfully closed their account */
-    closeAccount: OnyxEntry<CloseAccountForm>;
-};
-
-type BaseLoginFormProps = WithToggleVisibilityViewProps & BaseLoginFormOnyxProps & LoginFormProps;
-
-function BaseLoginForm({account, login, onLoginChanged, closeAccount, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -332,9 +323,4 @@ function BaseLoginForm({account, login, onLoginChanged, closeAccount, blurOnSubm
 
 BaseLoginForm.displayName = 'BaseLoginForm';
 
-export default withToggleVisibilityView(
-    withOnyx<BaseLoginFormProps, BaseLoginFormOnyxProps>({
-        account: {key: ONYXKEYS.ACCOUNT},
-        closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
-    })(forwardRef(BaseLoginForm)),
-);
+export default withToggleVisibilityView(forwardRef(BaseLoginForm));
