@@ -1183,10 +1183,6 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
-        autoGrowMarkdwonTextInputPaddingBottom: {
-            paddingBottom: 8,
-        },
-
         optionRowAmountInput: {
             textAlign: 'right',
         },
