@@ -120,6 +120,12 @@ function WorkspacesListPage() {
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
+    // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyIDToDelete ?? '-1');
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const hasCardFeedOrExpensifyCard = !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList);
+
     const confirmDeleteAndHideModal = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
             return;
@@ -191,7 +197,7 @@ function WorkspacesListPage() {
                     errorRowStyles={styles.ph5}
                     onClose={item.dismissError}
                     errors={item.errors}
-                    style={styles.mb3}
+                    style={styles.mb2}
                 >
                     <PressableWithoutFeedback
                         role={CONST.ROLE.BUTTON}
@@ -220,7 +226,7 @@ function WorkspacesListPage() {
                 </OfflineWithFeedback>
             );
         },
-        [isLessThanMediumScreen, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate, styles.offlineFeedback.deleted, session?.accountID, session?.email],
+        [isLessThanMediumScreen, styles.mb2, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate, styles.offlineFeedback.deleted, session?.accountID, session?.email],
     );
 
     const listHeaderComponent = useCallback(() => {
@@ -431,7 +437,7 @@ function WorkspacesListPage() {
                 isVisible={isDeleteModalOpen}
                 onConfirm={confirmDeleteAndHideModal}
                 onCancel={() => setIsDeleteModalOpen(false)}
-                prompt={translate('workspace.common.deleteConfirmation')}
+                prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger

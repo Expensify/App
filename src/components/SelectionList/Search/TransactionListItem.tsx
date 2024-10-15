@@ -31,10 +31,10 @@ function TransactionListItem<TItem extends ListItem>({
         styles.selectionListPressableItemWrapper,
         styles.pv3,
         styles.ph3,
+        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+        styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
         isFocused && styles.sidebarLinkActive,
-        // Removing some of the styles because they are added to the parent OpacityView via animatedHighlightStyle
-        {backgroundColor: 'unset'},
         styles.mh0,
     ];
 
@@ -56,7 +56,7 @@ function TransactionListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={[styles.mb3]}
+            containerStyle={[styles.mb2]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
