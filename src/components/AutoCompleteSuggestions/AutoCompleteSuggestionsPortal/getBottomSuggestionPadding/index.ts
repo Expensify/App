@@ -1,4 +1,4 @@
-import { isMobile } from "@libs/Browser";
+import {isMobile} from '@libs/Browser';
 
 function getBottomSuggestionPadding(): number {
     if (!isMobile()) {
