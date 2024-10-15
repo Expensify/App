@@ -72,6 +72,7 @@ function BaseTextInput(
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
+    const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
 
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
@@ -274,7 +275,10 @@ function BaseTextInput(
                     onLayout={onLayout}
                     accessibilityLabel={label}
                     style={[
-                        autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0),
+                        autoGrowHeight &&
+                            !isAutoGrowHeightMarkdown &&
+                            styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0),
+                        isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
@@ -293,7 +297,6 @@ function BaseTextInput(
                 to prevent text overlapping with label when scrolling */}
                                 {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
-                                    isLabelActive={isLabelActive.current}
                                     label={label}
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
@@ -352,9 +355,10 @@ function BaseTextInput(
                                     !isMultiline && {height, lineHeight: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    ...(autoGrowHeight
+                                    ...(autoGrowHeight && !isAutoGrowHeightMarkdown
                                         ? [StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0), styles.verticalAlignTop]
                                         : []),
+                                    isAutoGrowHeightMarkdown ? [StyleUtils.getMarkdownMaxHeight(maxAutoGrowHeight), styles.verticalAlignTop] : undefined,
                                     // Add disabled color theme when field is not editable.
                                     inputProps.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
@@ -445,7 +449,7 @@ function BaseTextInput(
                  This text view is used to calculate width or height of the input value given textStyle in this component.
                  This Text component is intentionally positioned out of the screen.
              */}
-            {(!!autoGrow || autoGrowHeight) && (
+            {(!!autoGrow || autoGrowHeight) && !isAutoGrowHeightMarkdown && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
                 // https://github.com/Expensify/App/issues/8158
                 // https://github.com/Expensify/App/issues/26628

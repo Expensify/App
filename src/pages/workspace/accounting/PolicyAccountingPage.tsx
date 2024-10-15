@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import type {MenuItemWithLink} from '@components/MenuItemList';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -72,7 +73,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
-    const {canUseWorkspaceFeeds} = usePermissions();
+    const {canUseNewDotQBD} = usePermissions();
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
 
     const route = useRoute();
@@ -83,7 +84,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const {QBD: qbdConnectionName, ...allConnectionNamesWithoutQBD} = CONST.POLICY.CONNECTIONS.NAME;
+    const connectionNames = canUseNewDotQBD ? CONST.POLICY.CONNECTIONS.NAME : allConnectionNamesWithoutQBD;
+    const accountingIntegrations = Object.values(connectionNames);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
@@ -228,33 +231,39 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
-            return accountingIntegrations.map((integration) => {
-                const integrationData = getAccountingIntegrationData(integration, policyID, translate);
-                const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
-                return {
-                    ...iconProps,
-                    interactive: false,
-                    wrapperStyle: [styles.sectionMenuItemTopDescription],
-                    shouldShowRightComponent: true,
-                    title: integrationData?.title,
-                    rightComponent: (
-                        <Button
-                            onPress={() => startIntegrationFlow({name: integration})}
-                            text={translate('workspace.accounting.setup')}
-                            style={styles.justifyContentCenter}
-                            small
-                            isDisabled={isOffline}
-                            ref={(ref) => {
-                                if (!popoverAnchorRefs?.current) {
-                                    return;
-                                }
-                                // eslint-disable-next-line react-compiler/react-compiler
-                                popoverAnchorRefs.current[integration].current = ref;
-                            }}
-                        />
-                    ),
-                };
-            });
+            return accountingIntegrations
+                .map((integration) => {
+                    const integrationData = getAccountingIntegrationData(integration, policyID, translate);
+                    if (!integrationData) {
+                        return undefined;
+                    }
+                    const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
+
+                    return {
+                        ...iconProps,
+                        interactive: false,
+                        wrapperStyle: [styles.sectionMenuItemTopDescription],
+                        shouldShowRightComponent: true,
+                        title: integrationData?.title,
+                        rightComponent: (
+                            <Button
+                                onPress={() => startIntegrationFlow({name: integration})}
+                                text={translate('workspace.accounting.setup')}
+                                style={styles.justifyContentCenter}
+                                small
+                                isDisabled={isOffline}
+                                ref={(ref) => {
+                                    if (!popoverAnchorRefs?.current) {
+                                        return;
+                                    }
+                                    // eslint-disable-next-line react-compiler/react-compiler
+                                    popoverAnchorRefs.current[integration].current = ref;
+                                }}
+                            />
+                        ),
+                    };
+                })
+                .filter(Boolean) as MenuItemData[];
         }
 
         if (!connectedIntegration) {
@@ -306,7 +315,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             },
         ];
 
-        if (!canUseWorkspaceFeeds || !policy?.areExpensifyCardsEnabled) {
+        if (!policy?.areExpensifyCardsEnabled) {
             configurationOptions.splice(2, 1);
         }
 
@@ -361,7 +370,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         styles.pb0,
         styles.mt5,
         styles.popoverMenuIcon,
-        canUseWorkspaceFeeds,
         styles.justifyContentCenter,
         connectionSyncProgress?.stageInProgress,
         datetimeToRelative,
@@ -383,38 +391,44 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const otherIntegrations = accountingIntegrations.filter(
             (integration) => (isSyncInProgress && integration !== connectionSyncProgress?.connectionName) || integration !== connectedIntegration,
         );
-        return otherIntegrations.map((integration) => {
-            const integrationData = getAccountingIntegrationData(integration, policyID, translate);
-            const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
-            return {
-                ...iconProps,
-                title: integrationData?.title,
-                rightComponent: (
-                    <Button
-                        onPress={() =>
-                            startIntegrationFlow({
-                                name: integration,
-                                integrationToDisconnect: connectedIntegration,
-                                shouldDisconnectIntegrationBeforeConnecting: true,
-                            })
-                        }
-                        text={translate('workspace.accounting.setup')}
-                        style={styles.justifyContentCenter}
-                        small
-                        isDisabled={isOffline}
-                        ref={(r) => {
-                            if (!popoverAnchorRefs?.current) {
-                                return;
+        return otherIntegrations
+            .map((integration) => {
+                const integrationData = getAccountingIntegrationData(integration, policyID, translate);
+                if (!integrationData) {
+                    return undefined;
+                }
+                const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
+
+                return {
+                    ...iconProps,
+                    title: integrationData?.title,
+                    rightComponent: (
+                        <Button
+                            onPress={() =>
+                                startIntegrationFlow({
+                                    name: integration,
+                                    integrationToDisconnect: connectedIntegration,
+                                    shouldDisconnectIntegrationBeforeConnecting: true,
+                                })
                             }
-                            popoverAnchorRefs.current[integration].current = r;
-                        }}
-                    />
-                ),
-                interactive: false,
-                shouldShowRightComponent: true,
-                wrapperStyle: styles.sectionMenuItemTopDescription,
-            };
-        });
+                            text={translate('workspace.accounting.setup')}
+                            style={styles.justifyContentCenter}
+                            small
+                            isDisabled={isOffline}
+                            ref={(r) => {
+                                if (!popoverAnchorRefs?.current) {
+                                    return;
+                                }
+                                popoverAnchorRefs.current[integration].current = r;
+                            }}
+                        />
+                    ),
+                    interactive: false,
+                    shouldShowRightComponent: true,
+                    wrapperStyle: styles.sectionMenuItemTopDescription,
+                };
+            })
+            .filter(Boolean) as MenuItemWithLink[];
     }, [
         policy?.connections,
         isSyncInProgress,
