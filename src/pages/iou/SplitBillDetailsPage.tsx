@@ -1,9 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import type {ComponentType} from 'react';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -27,46 +25,25 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type SplitBillDetailsPageTransactionOnyxProps = {
-    /** The current transaction */
-    transaction: OnyxEntry<Transaction>;
+type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & StackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.ROOT>;
 
-    /** The draft transaction that holds data to be persisited on the current transaction */
-    draftTransaction: OnyxEntry<Transaction>;
-};
-
-type SplitBillDetailsPageOnyxPropsWithoutTransaction = {
-    /** The personal details of the person who is logged in */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** The active report */
-    report: OnyxEntry<Report>;
-
-    /** Array of report actions for this report */
-    reportActions: OnyxEntry<ReportActions>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-};
-
-type SplitBillDetailsPageOnyxProps = SplitBillDetailsPageTransactionOnyxProps & SplitBillDetailsPageOnyxPropsWithoutTransaction;
-
-type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps &
-    SplitBillDetailsPageOnyxProps &
-    StackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.ROOT>;
-
-function SplitBillDetailsPage({personalDetails, report, route, reportActions, transaction, draftTransaction, session}: SplitBillDetailsPageProps) {
+function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const reportID = report?.reportID ?? '-1';
     const {translate} = useLocalize();
     const theme = useTheme();
-    const reportAction = useMemo(() => reportActions?.[route.params.reportActionID] ?? ({} as ReportAction), [reportActions, route.params.reportActionID]);
-    const participantAccountIDs = ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.participantAccountIDs ?? [] : [];
+
+    const reportID = report?.reportID ?? '-1';
+    const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
+    const IOUTransactionID = originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : '-1';
+    const participantAccountIDs = originalMessage?.participantAccountIDs ?? [];
+
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`);
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
@@ -166,37 +143,4 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
 
 SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 
-const WrappedComponent = withOnyx<SplitBillDetailsPageProps, SplitBillDetailsPageTransactionOnyxProps>({
-    transaction: {
-        key: ({route, reportActions}) => {
-            const reportAction = reportActions?.[route.params.reportActionID];
-            const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
-            const IOUTransactionID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : 0;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`;
-        },
-    },
-    draftTransaction: {
-        key: ({route, reportActions}) => {
-            const reportAction = reportActions?.[route.params.reportActionID];
-            const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
-            const IOUTransactionID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : 0;
-            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`;
-        },
-    },
-})(withReportAndReportActionOrNotFound(SplitBillDetailsPage) as ComponentType<SplitBillDetailsPageProps>);
-
-export default withOnyx<Omit<SplitBillDetailsPageProps, keyof SplitBillDetailsPageTransactionOnyxProps>, SplitBillDetailsPageOnyxPropsWithoutTransaction>({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-    },
-    reportActions: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
-        canEvict: false,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(WrappedComponent);
+export default withReportAndReportActionOrNotFound(SplitBillDetailsPage);

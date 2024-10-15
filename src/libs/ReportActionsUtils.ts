@@ -10,7 +10,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
-import type {IssueNewCardOriginalMessage, JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
@@ -25,6 +25,7 @@ import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as PolicyUtils from './PolicyUtils';
 import * as ReportConnection from './ReportConnection';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -168,6 +169,10 @@ function isSubmittedAndClosedAction(reportAction: OnyxInputOrEntry<ReportAction>
 
 function isApprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED);
+}
+
+function isUnapprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED);
 }
 
 function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
@@ -337,18 +342,6 @@ function isInviteOrRemovedAction(
 function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
     const {childType, childVisibleActionCount = 0, childReportID} = reportAction ?? {};
     return childType === CONST.REPORT.TYPE.CHAT && (childVisibleActionCount > 0 || String(childReportID) === reportID);
-}
-
-/**
- * Returns the parentReportAction if the given report is a thread/task.
- *
- * @deprecated Use Onyx.connect() or withOnyx() instead
- */
-function getParentReportAction(report: OnyxInputOrEntry<Report>): OnyxEntry<ReportAction> {
-    if (!report?.parentReportID || !report.parentReportActionID) {
-        return undefined;
-    }
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 }
 
 /**
@@ -1471,15 +1464,20 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): reportA
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST);
 }
 
+function getActionableJoinRequestPendingReportAction(reportID: string): OnyxEntry<ReportAction> {
+    const findPendingRequest = Object.values(getAllReportActions(reportID)).find(
+        (reportActionItem) => isActionableJoinRequest(reportActionItem) && getOriginalMessage(reportActionItem)?.choice === ('' as JoinWorkspaceResolution),
+    );
+
+    return findPendingRequest;
+}
+
 /**
  * Checks if any report actions correspond to a join request action that is still pending.
  * @param reportID
  */
 function isActionableJoinRequestPending(reportID: string): boolean {
-    const findPendingRequest = Object.values(getAllReportActions(reportID)).find(
-        (reportActionItem) => isActionableJoinRequest(reportActionItem) && getOriginalMessage(reportActionItem)?.choice === ('' as JoinWorkspaceResolution),
-    );
-    return !!findPendingRequest;
+    return !!getActionableJoinRequestPendingReportAction(reportID);
 }
 
 function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction>) {
@@ -1728,13 +1726,24 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS);
 }
 
-function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false) {
-    const assigneeAccountID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.assigneeAccountID;
-    const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1).at(0);
+function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1') {
+    const cardIssuedActionOriginalMessage = isActionOfType(
+        reportAction,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+    )
+        ? getOriginalMessage(reportAction)
+        : undefined;
 
+    const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID ?? -1;
+    const cardID = cardIssuedActionOriginalMessage?.cardID ?? -1;
+    const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1).at(0);
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
+    const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID));
     const link = shouldRenderHTML
-        ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
+        ? `<a href='${environmentURL}/${navigateRoute}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
         : Localize.translateLocal('cardPage.expensifyCard');
 
     const missingDetails =
@@ -1786,8 +1795,6 @@ export {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
-    // eslint-disable-next-line deprecation/deprecation
-    getParentReportAction,
     getRemovedFromApprovalChainMessage,
     getReportAction,
     getReportActionHtml,
@@ -1848,6 +1855,7 @@ export {
     isSubmittedAction,
     isSubmittedAndClosedAction,
     isApprovedAction,
+    isUnapprovedAction,
     isForwardedAction,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
@@ -1869,6 +1877,7 @@ export {
     isCardIssuedAction,
     getCardIssuedMessage,
     getRemovedConnectionMessage,
+    getActionableJoinRequestPendingReportAction,
 };
 
 export type {LastVisibleMessage};
