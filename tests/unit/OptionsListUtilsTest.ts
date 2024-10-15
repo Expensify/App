@@ -407,9 +407,9 @@ describe('OptionsListUtils', () => {
         const results = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
         // Then the 2 personalDetails that don't have reports should be returned
         expect(results.personalDetails.length).toBe(2);
-
         // Then all of the reports should be shown including the archived rooms.
-        expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length);
+        // - 1 because when we create the option list we also create a workspace chat optimistic options for the old oldot policies or polices with isPolicyExpenseChatEnabled: false, in this case we have a policy "Hero Policy" with isPolicyExpenseChatEnabled: false, More info:  https://github.com/Expensify/App/issues/49344
+        expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
     });
 
     it('getFilteredOptions()', () => {
@@ -593,8 +593,8 @@ describe('OptionsListUtils', () => {
         // When we pass an empty search value
         let results = OptionsListUtils.getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, [], '');
 
-        // Then we should expect all the recent reports to show but exclude the archived rooms
-        expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
+        // Then we should expect all the recent reports to show but exclude the archived rooms and workspace policy chat report
+        expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 2);
 
         // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
         const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionsListUtils.OptionList['reports']>((filtered, option) => {
@@ -609,8 +609,8 @@ describe('OptionsListUtils', () => {
         // When we also have a policy to return rooms in the results
         results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, [], '');
         // Then we should expect the DMS, the group chats and the workspace room to show
-        // We should expect all the recent reports to show, excluding the archived rooms
-        expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 1);
+        // We should expect all the recent reports to show, excluding the archived rooms and workspace policy chat report
+        expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 2);
     });
 
     it('getMemberInviteOptions()', () => {
