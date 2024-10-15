@@ -314,7 +314,7 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
     return amount * taxClaimablePercentage;
 }
 
-function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxEntry<MileageRate>) {
+function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxEntry<MileageRate>): Unit {
     return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 }
 
