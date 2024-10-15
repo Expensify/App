@@ -135,6 +135,7 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
 
             return PersonalDetailsUtils.createDisplayName(personalDetail.login ?? '', personalDetail);
         })
+        .filter(Boolean)
         .join(', ');
 }
 
@@ -218,7 +219,12 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
 }
 
 function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
-    return filters.in ? filters.in.map((id) => ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`])).join(', ') : undefined;
+    return filters.in
+        ? filters.in
+              .map((id) => ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]))
+              .filter(Boolean)
+              .join(', ')
+        : undefined;
 }
 function AdvancedSearchFilters() {
     const {translate} = useLocalize();
@@ -231,7 +237,10 @@ function AdvancedSearchFilters() {
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
-    const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    if (!Object.keys(typeFiltersKeys).includes(currentType)) {
+        currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
+    }
 
     const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
     const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery()), [queryString]);
@@ -265,42 +274,44 @@ function AdvancedSearchFilters() {
         applyFiltersAndNavigate();
     };
 
-    const filters = typeFiltersKeys[currentType].map((key) => {
-        const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
-        let filterTitle;
-        if (
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG
-        ) {
-            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            if (Object.keys(cardList).length === 0) {
-                return undefined;
+    const filters = typeFiltersKeys[currentType]
+        .map((key) => {
+            const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
+            let filterTitle;
+            if (
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG
+            ) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+                if (Object.keys(cardList).length === 0) {
+                    return undefined;
+                }
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
             }
-            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
-            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
-        }
-        return {
-            key,
-            title: filterTitle,
-            description: translate(baseFilterConfig[key].description),
-            onPress,
-        };
-    });
+            return {
+                key,
+                title: filterTitle,
+                description: translate(baseFilterConfig[key].description),
+                onPress,
+            };
+        })
+        .sort((a, b) => (a?.description ?? '')?.localeCompare(b?.description ?? ''));
 
     const displaySearchButton = queryJSON && !SearchUtils.isCannedSearchQuery(queryJSON);
 
