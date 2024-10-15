@@ -1487,6 +1487,7 @@ const CONST = {
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
     QUICKBOOKS_DESKTOP_CONFIG: {
+        EXPORT_DATE: 'exportDate',
         EXPORTER: 'exporter',
         MARK_CHECKS_TO_BE_PRINTED: 'markChecksToBePrinted',
         REIMBURSABLE_ACCOUNT: 'reimbursableAccount',

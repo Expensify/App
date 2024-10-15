@@ -399,11 +399,27 @@ function updateQuickbooksDesktopPreferredExporter<TSettingValue extends Connecti
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT, parameters, onyxData);
 }
 
+function updateQuickbooksDesktopExportDate<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['exportDate']>(
+    policyID: string,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
+        policyID,
+        settingValue,
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT_DATE, parameters, onyxData);
+}
+
 export {
     updateQuickbooksDesktopPreferredExporter,
     updateQuickbooksDesktopMarkChecksToBePrinted,
     updateQuickbooksDesktopExpensesExportDestination,
     updateQuickbooksDesktopReimbursableExpensesAccount,
     getQuickbooksDesktopCodatSetupLink,
+    updateQuickbooksDesktopExportDate,
     updateQuickbooksDesktopSyncClasses,
 };
