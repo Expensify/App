@@ -11,7 +11,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
 import Parser from '@libs/Parser';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
