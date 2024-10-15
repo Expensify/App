@@ -2110,7 +2110,11 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
         },
     ];
 
-    const parameters: UpdateRoomDescriptionParams = {reportID, description: parsedDescription, reportActionID: optimisticDescriptionUpdatedReportAction.reportActionID};
+    const parameters: UpdateRoomDescriptionParams = {
+        reportID,
+        description: JSON.stringify({html: parsedDescription}),
+        reportActionID: optimisticDescriptionUpdatedReportAction.reportActionID,
+    };
 
     API.write(WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION, parameters, {optimisticData, failureData, successData});
 }
