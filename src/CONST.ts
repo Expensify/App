@@ -1496,6 +1496,7 @@ const CONST = {
         NON_REIMBURSABLE: 'nonReimbursable',
         SHOULD_AUTO_CREATE_VENDOR: 'shouldAutoCreateVendor',
         NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'nonReimbursableBillDefaultVendor',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         MAPPINGS: {
             CLASSES: 'classes',
         },
