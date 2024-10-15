@@ -546,6 +546,7 @@ function ReportPreview({
                                         confirmApproval={confirmApproval}
                                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                         addBankAccountRoute={bankAccountRoute}
+                                        addDebitCardRoute={isInvoiceRoom ? ROUTES.SETTINGS_WALLET : undefined}
                                         shouldHidePaymentOptions={!shouldShowPayButton}
                                         shouldShowApproveButton={shouldShowApproveButton}
                                         shouldDisableApproveButton={shouldDisableApproveButton}
