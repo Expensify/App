@@ -2772,10 +2772,20 @@ function leaveGroupChat(reportID: string) {
 
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: null,
+            value: {
+                reportID: null,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+            },
         },
+        
     ];
     // Clean up any quick actions for the report we're leaving from
     if (quickAction?.chatReportID?.toString() === reportID) {
@@ -2786,8 +2796,27 @@ function leaveGroupChat(reportID: string) {
         });
     }
 
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: Object.keys(report).reduce<Record<string, null>>((acc, key) => {
+                          acc[key] = null;
+                          return acc;
+                      }, {}),
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: report,
+        },
+    ];
+
     navigateToMostRecentReport(report);
-    API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData});
+    API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
 /** Leave a report by setting the state to submitted and closed */

@@ -375,28 +375,39 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo((): boolean => {
         if (shouldShowNotFoundLinkedAction) {
+            console.log('[wildebug] shouldShowNotFoundLinkedAction:', shouldShowNotFoundLinkedAction);
             return true;
         }
-
-        // Wait until we're sure the app is done loading (needs to be a strict equality check since it's undefined initially)
+    
         if (isLoadingApp !== false) {
+            console.log('[wildebug] isLoadingApp:', isLoadingApp);
             return false;
         }
-
-        // If we just finished loading the app, we still need to try fetching the report. Wait until that's done before
-        // showing the Not Found page
+    
         if (finishedLoadingApp) {
+            console.log('[wildebug] finishedLoadingApp:', finishedLoadingApp);
             return false;
         }
-
+    
         if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            console.log('[wildebug] wasReportAccessibleRef.current:', wasReportAccessibleRef.current);
+            console.log('[wildebug] firstRenderRef.current:', firstRenderRef.current);
+            console.log('[wildebug] reportID:', reportID);
+            console.log('[wildebug] isOptimisticDelete:', isOptimisticDelete);
+            console.log('[wildebug] reportMetadata?.isLoadingInitialReportActions:', reportMetadata?.isLoadingInitialReportActions);
+            console.log('[wildebug] userLeavingStatus:', userLeavingStatus);
             return true;
         }
-
+    
         if (shouldHideReport) {
+            console.log('[wildebug] shouldHideReport:', shouldHideReport);
             return true;
         }
-        return !!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute);
+    
+        const isValidReportID = !!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute);
+        console.log('[wildebug] currentReportIDFormRoute:', currentReportIDFormRoute);
+        console.log('[wildebug] isValidReportID:', isValidReportID);
+        return isValidReportID;
     }, [
         shouldShowNotFoundLinkedAction,
         isLoadingApp,
