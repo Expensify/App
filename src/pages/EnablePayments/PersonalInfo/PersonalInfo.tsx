@@ -18,7 +18,7 @@ import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditi
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
 import DateOfBirth from './substeps/DateOfBirthStep';
-import FullName from './substeps/FullNameStep';
+import LegalName from './substeps/LegalNameStep';
 import PhoneNumber from './substeps/PhoneNumberStep';
 import SocialSecurityNumber from './substeps/SocialSecurityNumberStep';
 
@@ -33,7 +33,7 @@ type PersonalInfoPageOnyxProps = {
 type PersonalInfoPageProps = PersonalInfoPageOnyxProps;
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
-const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfBirth, Address, PhoneNumber, SocialSecurityNumber, Confirmation];
+const bodyContent: Array<React.ComponentType<SubStepProps>> = [LegalName, DateOfBirth, Address, PhoneNumber, SocialSecurityNumber, Confirmation];
 
 function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft}: PersonalInfoPageProps) {
     const {translate} = useLocalize();
