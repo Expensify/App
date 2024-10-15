@@ -3635,6 +3635,7 @@ const styles = (theme: ThemeColors) =>
         searchRouterInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
+            backgroundColor: theme.appBG,
         },
 
         searchTableHeaderActive: {
