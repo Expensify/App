@@ -21,14 +21,11 @@ import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
 type BottomTabAvatarProps = {
-    /** Whether the create menu is open or not */
-    isCreateMenuOpen?: boolean;
-
     /** Whether the avatar is selected */
     isSelected?: boolean;
 };
 
-function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomTabAvatarProps) {
+function BottomTabAvatar({isSelected = false}: BottomTabAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -39,11 +36,6 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const showSettingsPage = useCallback(() => {
-        if (isCreateMenuOpen) {
-            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
-            return;
-        }
-
         if (route.name === SCREENS.SETTINGS.WORKSPACES && shouldUseNarrowLayout) {
             Navigation.goUp(ROUTES.SETTINGS);
             return;
@@ -84,7 +76,7 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
             // This case also covers if there is no route to remember.
             Navigation.navigate(ROUTES.SETTINGS);
         });
-    }, [isCreateMenuOpen, shouldUseNarrowLayout, route.name]);
+    }, [shouldUseNarrowLayout, route.name]);
 
     let children;
 
