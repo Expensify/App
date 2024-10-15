@@ -17,8 +17,8 @@ function getQBONonReimbursableExportAccountType(exportDestination: QBONonReimbur
 
 function getQBDNonReimbursableExportAccountType(exportDestination: QBDNonReimbursableExportAccountType | undefined): string {
     switch (exportDestination) {
-        case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.JOURNAL_ENTRY:
-            return translateLocal(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.JOURNAL_ENTRY}`);
+        case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK:
+            return translateLocal('workspace.qbd.bankAccount');
         case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
             return translateLocal('workspace.qbd.creditCardAccount');
         case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL:

@@ -28,7 +28,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
-    const {creditCardAccounts, payableAccounts, vendors, journalEntryAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
+    const {creditCardAccounts, payableAccounts, vendors, bankAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const {canUseNewDotQBD} = usePermissions();
 
     const sections = useMemo(() => {
@@ -42,11 +42,11 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
                 defaultVendor: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
             },
             {
-                text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.JOURNAL_ENTRY}`),
-                value: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                keyForList: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.JOURNAL_ENTRY === qbdConfig?.export.nonReimbursable,
-                accounts: journalEntryAccounts ?? [],
+                text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}`),
+                value: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK,
+                keyForList: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK,
+                isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK === qbdConfig?.export.nonReimbursable,
+                accounts: bankAccounts ?? [],
                 defaultVendor: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
             },
             {
@@ -59,7 +59,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
             },
         ];
         return [{data: options}];
-    }, [translate, qbdConfig?.export.nonReimbursable, creditCardAccounts, journalEntryAccounts, payableAccounts, vendors]);
+    }, [translate, qbdConfig?.export.nonReimbursable, creditCardAccounts, bankAccounts, payableAccounts, vendors]);
 
     const selectExportCompanyCard = useCallback(
         (row: MenuItem) => {

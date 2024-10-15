@@ -39,12 +39,14 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT.getRoute(policyID)),
             hintText: qbdConfig?.export.nonReimbursable ? translate(`workspace.qbd.accounts.${qbdConfig?.export.nonReimbursable}Description`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE],
+            keyForList: translate('workspace.accounting.exportAs'),
         },
         {
             title: accountName ?? translate('workspace.qbd.notConfigured'),
             description: ConnectionUtils.getQBDNonReimbursableExportAccountType(qbdConfig?.export.nonReimbursable),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT],
+            keyForList: ConnectionUtils.getQBDNonReimbursableExportAccountType(qbdConfig?.export.nonReimbursable),
         },
     ];
 
