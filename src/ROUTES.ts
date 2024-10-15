@@ -138,6 +138,14 @@ const ROUTES = {
         route: 'settings/security/delegate/:login/role/:role',
         getRoute: (login: string, role?: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}` as const,
     },
+    SETTINGS_UPDATE_DELEGATE_ROLE: {
+        route: 'settings/security/delegate/:login/update-role/:currentRole',
+        getRoute: (login: string, currentRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${currentRole}` as const,
+    },
+    SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE: {
+        route: 'settings/security/delegate/:login/update-role/:role/magic-code',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${role}/magic-code` as const,
+    },
     SETTINGS_DELEGATE_CONFIRM: {
         route: 'settings/security/delegate/:login/role/:role/confirm',
         getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm` as const,
@@ -303,8 +311,12 @@ const ROUTES = {
     },
     ATTACHMENTS: {
         route: 'attachment',
-        getRoute: (reportID: string, type: ValueOf<typeof CONST.ATTACHMENT_TYPE>, url: string, accountID?: number) =>
-            `attachment?source=${encodeURIComponent(url)}&type=${type}${reportID ? `&reportID=${reportID}` : ''}${accountID ? `&accountID=${accountID}` : ''}` as const,
+        getRoute: (reportID: string, type: ValueOf<typeof CONST.ATTACHMENT_TYPE>, url: string, accountID?: number, isAuthTokenRequired?: boolean) => {
+            const reportParam = reportID ? `&reportID=${reportID}` : '';
+            const accountParam = accountID ? `&accountID=${accountID}` : '';
+            const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
+            return `attachment?source=${encodeURIComponent(url)}&type=${type}${reportParam}${accountParam}${authTokenParam}` as const;
+        },
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -658,9 +670,57 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/date-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/date-select` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/date-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/date-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/preferred-exporter',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/out-of-pocket-expense',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/out-of-pocket-expense/account-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense/account-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/setup-modal',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/setup-modal` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/setup-required-device',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/setup-required-device` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/trigger-first-sync',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/trigger-first-sync` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/accounts',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/accounts` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/classes',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/classes` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/classes/displayed_as',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/classes/displayed_as` as const,
     },
     WORKSPACE_PROFILE_NAME: {
         route: 'settings/workspaces/:policyID/profile/name',
@@ -1163,9 +1223,13 @@ const ROUTES = {
         route: 'onboarding/personal-details',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
     },
-    ONBOARDING_WORK: {
-        route: 'onboarding/work',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work`, backTo),
+    ONBOARDING_EMPLOYEES: {
+        route: 'onboarding/employees',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/employees`, backTo),
+    },
+    ONBOARDING_ACCOUNTING: {
+        route: 'onboarding/accounting',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/accounting`, backTo),
     },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',
@@ -1176,8 +1240,10 @@ const ROUTES = {
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
-        getRoute: (reportID: string, transactionID: string, readonly = false) => `r/${reportID}/transaction/${transactionID}/receipt${readonly ? '?readonly=true' : ''}` as const,
+        getRoute: (reportID: string, transactionID: string, readonly = false, isFromReviewDuplicates = false) =>
+            `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''}` as const,
     },
+
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {
         route: 'r/:threadReportID/duplicates/review',
         getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo),
@@ -1529,18 +1595,6 @@ const ROUTES = {
     POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/setup-modal',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/setup-modal` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/setup-required-device',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/setup-required-device` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/trigger-first-sync',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/trigger-first-sync` as const,
     },
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',

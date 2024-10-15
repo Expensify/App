@@ -60,18 +60,20 @@ function IOURequestStepDistanceRate({
         Navigation.goBack(backTo);
     };
 
-    const sections = Object.values(rates).map((rate) => {
-        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(rate.unit, rate.rate, rate.currency, translate, toLocaleDigit);
+    const sections = Object.values(rates)
+        .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
+        .map((rate) => {
+            const rateForDisplay = DistanceRequestUtils.getRateForDisplay(rate.unit, rate.rate, rate.currency, translate, toLocaleDigit);
 
-        return {
-            text: rate.name ?? rateForDisplay,
-            alternateText: rate.name ? rateForDisplay : '',
-            keyForList: rate.customUnitRateID,
-            value: rate.customUnitRateID,
-            isDisabled: !rate.enabled,
-            isSelected: currentRateID ? currentRateID === rate.customUnitRateID : rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE,
-        };
-    });
+            return {
+                text: rate.name ?? rateForDisplay,
+                alternateText: rate.name ? rateForDisplay : '',
+                keyForList: rate.customUnitRateID,
+                value: rate.customUnitRateID,
+                isDisabled: !rate.enabled,
+                isSelected: currentRateID ? currentRateID === rate.customUnitRateID : rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE,
+            };
+        });
 
     const unit = (Object.values(rates).at(0)?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer')) as Unit;
 
