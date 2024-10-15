@@ -55,6 +55,7 @@ function ProfilePage() {
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
+
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),

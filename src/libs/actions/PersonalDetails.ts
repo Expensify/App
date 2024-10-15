@@ -10,11 +10,11 @@ import type {
     UpdateDisplayNameParams,
     UpdateHomeAddressParams,
     UpdateLegalNameParams,
+    UpdatePhoneNumberParams,
     UpdatePronounsParams,
     UpdateSelectedTimezoneParams,
     UpdateUserAvatarParams,
 } from '@libs/API/parameters';
-import UpdatePhoneNumberParams from '@libs/API/parameters/UpdatePhoneNumberParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';

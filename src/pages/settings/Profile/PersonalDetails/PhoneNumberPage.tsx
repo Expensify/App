@@ -27,7 +27,6 @@ function PhoneNumberPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
-    console.log('phoneNumber', phoneNumber);
 
     const updatePhoneNumber = (values: PrivatePersonalDetails) => {
         PersonalDetails.updatePhoneNumber(values?.phoneNumber ?? '');
@@ -40,9 +39,9 @@ function PhoneNumberPage() {
             if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.PHONE_NUMBER])) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
             }
-            const phoneNumber = LoginUtils.appendCountryCode(values[INPUT_IDS.PHONE_NUMBER]);
-            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumber);
-            if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumber.slice(0))) {
+            const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(values[INPUT_IDS.PHONE_NUMBER]);
+            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
+            if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode.slice(0))) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
             }
             return errors;
