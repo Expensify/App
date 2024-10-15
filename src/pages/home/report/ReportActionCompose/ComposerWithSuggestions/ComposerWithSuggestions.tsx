@@ -250,7 +250,7 @@ function ComposerWithSuggestions(
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {canEvict: false, initWithStoredValues: false});
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {canEvict: false});
 
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
