@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as ReportUtils from './ReportUtils';
+import SidebarUtils from './SidebarUtils';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -641,13 +642,22 @@ function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>): GBRR
     return null;
 }
 
+type RBRReasonAndReportAction = {
+    reason: TranslationPaths;
+    reportAction: OnyxEntry<ReportAction>;
+};
+
 /**
  * Gets the report action that is causing the RBR to show up in LHN
  */
-function getRBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
-    const {reportAction} = OptionsListUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean): RBRReasonAndReportAction | null {
+    const {reason, reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations) ?? {};
 
-    return reportAction;
+    if (reason) {
+        return {reason: `debug.reasonRBR.${reason}`, reportAction};
+    }
+
+    return null;
 }
 
 const DebugUtils = {
@@ -669,7 +679,7 @@ const DebugUtils = {
     validateReportActionJSON,
     getReasonForShowingRowInLHN,
     getReasonAndReportActionForGBRInLHNRow,
-    getRBRReportAction,
+    getReasonAndReportActionForRBRInLHNRow,
     REPORT_ACTION_REQUIRED_PROPERTIES,
     REPORT_REQUIRED_PROPERTIES,
 };
