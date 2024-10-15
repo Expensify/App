@@ -20,6 +20,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
+import type {CompanyCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -802,6 +803,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
+        policyID: string;
+        feed: CompanyCardFeed;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
         policyID: string;
     };
@@ -1336,10 +1342,6 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
-    };
-    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
-        policyID: string;
-        feed: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
