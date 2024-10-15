@@ -140,7 +140,7 @@ function DetailsStep() {
                 contentContainerStyle={styles.flexGrow1}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
-                    {feedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
+                    {feedProvider && feedProvider !== CONST.COMPANY_CARDS.CARD_TYPE.STRIPE ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
                 </Text>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
