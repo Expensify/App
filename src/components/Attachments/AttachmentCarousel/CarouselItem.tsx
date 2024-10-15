@@ -84,7 +84,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
                     isHovered={isModalHovered}
                     isFocused={isFocused}
                     duration={item.duration}
-                    fallbackSource={Expensicons.Exclamation}
+                    fallbackSource={Expensicons.AttachmentNotFound}
                 />
             </View>
 
