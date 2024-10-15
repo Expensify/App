@@ -1414,6 +1414,16 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         }
     }
 }
+const addNewMessage = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
+
+const commentsToBeDeleted = new Set<string>([
+    WRITE_COMMANDS.ADD_COMMENT,
+    WRITE_COMMANDS.ADD_ATTACHMENT,
+    WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT,
+    WRITE_COMMANDS.UPDATE_COMMENT,
+    WRITE_COMMANDS.ADD_EMOJI_REACTION,
+    WRITE_COMMANDS.REMOVE_EMOJI_REACTION,
+]);
 
 /** Deletes a comment from the report, basically sets it as empty string */
 function deleteReportComment(reportID: string, reportAction: ReportAction) {
@@ -1538,7 +1548,56 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
 
     CachedPDFPaths.clearByKey(reportActionID);
 
-    API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
+    API.write(
+        WRITE_COMMANDS.DELETE_COMMENT,
+        parameters,
+        {optimisticData, successData, failureData},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) => {
+                const indices: number[] = [];
+                let addCommentFound = false;
+
+                persistedRequests.forEach((request, index) => {
+                    if (!commentsToBeDeleted.has(request.command) || request.data?.reportActionID !== reportActionID) {
+                        return;
+                    }
+                    if (addNewMessage.has(request.command)) {
+                        addCommentFound = true;
+                    }
+                    indices.push(index);
+                });
+
+                if (indices.length === 0) {
+                    return {
+                        conflictAction: {
+                            type: 'push',
+                        },
+                    };
+                }
+
+                if (addCommentFound) {
+                    const rollbackData: OnyxUpdate[] = [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
+                            value: {
+                                [reportActionID]: null,
+                            },
+                        },
+                    ];
+                    Onyx.update(rollbackData);
+                }
+
+                return {
+                    conflictAction: {
+                        type: 'delete',
+                        indices,
+                        pushNewRequest: !addCommentFound,
+                    },
+                };
+            },
+        },
+    );
 
     // if we are linking to the report action, and we are deleting it, and it's not a deleted parent action,
     // we should navigate to its report in order to not show not found page
