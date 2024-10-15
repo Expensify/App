@@ -4,7 +4,7 @@ import type {TextInput} from 'react-native';
 import Composer from './implementation';
 import type {ComposerProps} from './types';
 
-function ComposerE2e(props: ComposerProps, ref: ForwardedRef<TextInput>) {
+function ComposerE2E(props: ComposerProps, ref: ForwardedRef<TextInput>) {
     return (
         <Composer
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -16,4 +16,4 @@ function ComposerE2e(props: ComposerProps, ref: ForwardedRef<TextInput>) {
     );
 }
 
-export default React.forwardRef(ComposerE2e);
+export default React.forwardRef(ComposerE2E);
