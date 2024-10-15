@@ -115,15 +115,15 @@ function IOURequestStepDistance({
         (participants: Participant[]) => {
             // Get policy report based on transaction participants
             const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
-            const selectedReportID = participants?.length === 1 ? participants[0]?.reportID ?? reportID : reportID;
-            const policyReport = participants?.[0] ? ReportUtils.getReport(selectedReportID) : report;
+            const selectedReportID = participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID;
+            const policyReport = participants.at(0) ? ReportUtils.getReport(selectedReportID) : report;
 
-            const policyID2 = IOU.getIOURequestPolicyID(transaction, policyReport);
-            const policy2 = PolicyUtils.getPolicy(report?.policyID ?? policyID2);
+            const IOUpolicyID = IOU.getIOURequestPolicyID(transaction, policyReport);
+            const IOUpolicy = PolicyUtils.getPolicy(report?.policyID ?? IOUpolicyID);
             const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
-            const mileageRates = DistanceRequestUtils.getMileageRates(policy2);
-            const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy2);
+            const mileageRates = DistanceRequestUtils.getMileageRates(IOUpolicy);
+            const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
             const mileageRate: MileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
                 ? DistanceRequestUtils.getRateForP2P(policyCurrency)
                 : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
