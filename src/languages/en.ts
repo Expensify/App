@@ -3048,7 +3048,7 @@ const translations = {
                 howDoYouWantToConnect: 'How do you want to connect to your bank?',
                 learnMoreAboutConnections: {
                     text: 'Learn more about the ',
-                    linkText: 'connection methods',
+                    linkText: 'connection methods.',
                 },
                 customFeedDetails: 'Requires setup with your bank. This is most common for larger companies, and the best option, if you qualify.',
                 directFeedDetails: 'Connect now using your master credentials. This is most common.',
@@ -3077,6 +3077,8 @@ const translations = {
                         distributionLabel: 'Distribution ID',
                     },
                 },
+                amexCorporate: 'Select this if the front of your cards say “Corporate”',
+                amexBusiness: 'Select this if the front of your cards say “Business”',
                 error: {
                     pleaseSelectProvider: 'Please select a card provider before continuing.',
                     pleaseSelectBankAccount: 'Please select a bank account before continuing.',

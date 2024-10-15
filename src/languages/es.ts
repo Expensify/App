@@ -3086,7 +3086,7 @@ const translations = {
                 howDoYouWantToConnect: '¿Cómo deseas conectarte a tu banco?',
                 learnMoreAboutConnections: {
                     text: 'Obtén más información sobre ',
-                    linkText: 'los métodos de conexión',
+                    linkText: 'los métodos de conexión.',
                 },
                 customFeedDetails: 'Requiere configuración con tu banco. Esto es más común para empresas grandes, y la mejor opción, si calificas.',
                 directFeedDetails: 'Conéctate ahora usando tus credenciales maestras. Esto es lo más común.',
@@ -3116,6 +3116,8 @@ const translations = {
                         distributionLabel: 'ID de distribución',
                     },
                 },
+                amexCorporate: 'Seleccione esto si el frente de sus tarjetas dice “Corporativa”',
+                amexBusiness: 'Seleccione esta opción si el frente de sus tarjetas dice “Negocios”',
                 error: {
                     pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar.',
                     pleaseSelectBankAccount: 'Seleccione una cuenta bancaria antes de continuar.',
