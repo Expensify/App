@@ -6496,7 +6496,7 @@ function getReportFromHoldRequestsOnyxData(
         chatReport.reportID,
         chatReport.policyID ?? iouReport?.policyID ?? '',
         recipient.accountID ?? 1,
-        holdTransactions.reduce((acc, transaction) => acc + transaction.amount, 0) * (ReportUtils.isIOUReport(iouReport) ? 1 : -1),
+        holdTransactions.reduce((acc, transaction) => acc + TransactionUtils.getAmount(transaction), 0),
         getCurrency(firstHoldTransaction),
         false,
         newParentReportActionID,
