@@ -1181,6 +1181,7 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderBottomWidth: 2,
             borderColor: theme.border,
+            paddingBottom: 8,
         },
 
         optionRowAmountInput: {
@@ -4537,6 +4538,10 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
+        onboardingSmallIcon: {
+            padding: 10,
+        },
+
         sidebarStatusAvatarContainer: {
             height: 40,
             width: 40,
@@ -5265,6 +5270,7 @@ const styles = (theme: ThemeColors) =>
             top: 80,
             left: 12,
         },
+
         qbdSetupLinkBox: {
             backgroundColor: theme.hoverComponentBG,
             borderRadius: variables.componentBorderRadiusMedium,

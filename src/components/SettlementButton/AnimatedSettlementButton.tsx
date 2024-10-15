@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -14,6 +15,7 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
 
 function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, isDisabled, ...settlementButtonProps}: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const buttonScale = useSharedValue(1);
     const buttonOpacity = useSharedValue(1);
     const paymentCompleteTextScale = useSharedValue(0);
@@ -77,7 +79,7 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
         <Animated.View style={containerStyles}>
             {isPaidAnimationRunning && (
                 <Animated.View style={paymentCompleteTextStyles}>
-                    <Text style={[styles.buttonMediumText]}>Payment complete</Text>
+                    <Text style={[styles.buttonMediumText]}>{translate('iou.paymentComplete')}</Text>
                 </Animated.View>
             )}
             <Animated.View style={buttonStyles}>

@@ -18,7 +18,7 @@ import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
-import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {Account, ConnectionName, Connections, PolicyConnectionName, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getImportCustomFieldsSettings,
@@ -257,11 +257,18 @@ function getAccountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID)),
-                onExportPagePress: () => {},
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID)),
                 onCardReconciliationPagePress: () => {},
                 onAdvancedPagePress: () => {},
-                subscribedImportSettings: [],
-                subscribedExportSettings: [],
+                // TODO: [QBD] Make sure all values are passed to subscribedSettings
+                subscribedImportSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES],
+                subscribedExportSettings: [
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE,
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER,
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE,
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT,
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED,
+                ],
                 subscribedAdvancedSettings: [],
             };
         default:
@@ -302,4 +309,25 @@ function getSynchronizationErrorMessage(
     return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
 }
 
-export {getAccountingIntegrationData, getSynchronizationErrorMessage};
+function getQBDReimbursableAccounts(quickbooksDesktop?: Connections[typeof CONST.POLICY.CONNECTIONS.NAME.QBD], reimbursable?: QBDReimbursableExportAccountType | undefined) {
+    const {bankAccounts, journalEntryAccounts, payableAccounts} = quickbooksDesktop?.data ?? {};
+
+    let accounts: Account[];
+    switch (reimbursable ?? quickbooksDesktop?.config?.export.reimbursable) {
+        case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
+            accounts = bankAccounts ?? [];
+            break;
+        case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
+            // Journal entry accounts include payable accounts, other current liabilities, and other current assets
+            accounts = [...(payableAccounts ?? []), ...(journalEntryAccounts ?? [])];
+            break;
+        case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
+            accounts = payableAccounts ?? [];
+            break;
+        default:
+            accounts = [];
+    }
+    return accounts;
+}
+
+export {getAccountingIntegrationData, getSynchronizationErrorMessage, getQBDReimbursableAccounts};
