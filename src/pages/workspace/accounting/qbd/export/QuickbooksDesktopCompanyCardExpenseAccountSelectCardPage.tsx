@@ -30,6 +30,9 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const {creditCardAccounts, payableAccounts, vendors, bankAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const {canUseNewDotQBD} = usePermissions();
+    const nonReimbursable = qbdConfig?.export?.nonReimbursable;
+    const nonReimbursableAccount = qbdConfig?.export?.nonReimbursableAccount;
+    const nonReimbursableBillDefaultVendor = qbdConfig?.export?.nonReimbursableBillDefaultVendor;
 
     const sections = useMemo(() => {
         const options: MenuItem[] = [
@@ -37,7 +40,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
                 text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`),
                 value: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
                 keyForList: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
-                isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD === qbdConfig?.export.nonReimbursable,
+                isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD === nonReimbursable,
                 accounts: creditCardAccounts ?? [],
                 defaultVendor: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
             },
@@ -45,7 +48,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
                 text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}`),
                 value: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK,
                 keyForList: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK,
-                isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK === qbdConfig?.export.nonReimbursable,
+                isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK === nonReimbursable,
                 accounts: bankAccounts ?? [],
                 defaultVendor: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
             },
@@ -53,17 +56,17 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
                 text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL}`),
                 value: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
                 keyForList: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
-                isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL === qbdConfig?.export.nonReimbursable,
+                isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL === nonReimbursable,
                 accounts: payableAccounts ?? [],
                 defaultVendor: vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
             },
         ];
         return [{data: options}];
-    }, [translate, qbdConfig?.export.nonReimbursable, creditCardAccounts, bankAccounts, payableAccounts, vendors]);
+    }, [translate, nonReimbursable, creditCardAccounts, bankAccounts, payableAccounts, vendors]);
 
     const selectExportCompanyCard = useCallback(
         (row: MenuItem) => {
-            if (row.value !== qbdConfig?.export.nonReimbursable) {
+            if (row.value !== nonReimbursable) {
                 QuickbooksDesktop.updateQuickbooksCompanyCardExpenseAccount(
                     policyID,
                     {
@@ -72,15 +75,15 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
                         [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: row.defaultVendor,
                     },
                     {
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE]: qbdConfig?.export.nonReimbursable,
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT]: qbdConfig?.export.nonReimbursableAccount,
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: qbdConfig?.export.nonReimbursableBillDefaultVendor,
+                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE]: nonReimbursable,
+                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT]: nonReimbursableAccount,
+                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableBillDefaultVendor,
                     },
                 );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
-        [qbdConfig?.export.nonReimbursable, qbdConfig?.export.nonReimbursableAccount, qbdConfig?.export.nonReimbursableBillDefaultVendor, policyID],
+        [nonReimbursable, nonReimbursableAccount, nonReimbursableBillDefaultVendor, policyID],
     );
     return (
         <SelectionScreen

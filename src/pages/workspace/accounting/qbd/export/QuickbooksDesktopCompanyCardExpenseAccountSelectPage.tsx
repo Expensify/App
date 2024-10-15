@@ -32,25 +32,27 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
     const policyID = policy?.id ?? '-1';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const {canUseNewDotQBD} = usePermissions();
+    const nonReimbursable = qbdConfig?.export?.nonReimbursable;
+    const nonReimbursableAccount = qbdConfig?.export?.nonReimbursableAccount;
 
     const data: CardListItem[] = useMemo(() => {
-        const accounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, qbdConfig?.export.nonReimbursable);
+        const accounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable);
         return accounts.map((card) => ({
             value: card,
             text: card.name,
             keyForList: card.name,
-            isSelected: card.id === qbdConfig?.export.nonReimbursableAccount,
+            isSelected: card.id === nonReimbursableAccount,
         }));
-    }, [policy?.connections?.quickbooksDesktop, qbdConfig?.export.nonReimbursable, qbdConfig?.export.nonReimbursableAccount]);
+    }, [policy?.connections?.quickbooksDesktop, nonReimbursable, nonReimbursableAccount]);
 
     const selectExportAccount = useCallback(
         (row: CardListItem) => {
-            if (row.value.id !== qbdConfig?.export.nonReimbursableAccount) {
-                QuickbooksDesktop.updateQuickbooksDesktopNonReimbursableExpensesAccount(policyID, row.value.id, qbdConfig?.export.nonReimbursableAccount);
+            if (row.value.id !== nonReimbursableAccount) {
+                QuickbooksDesktop.updateQuickbooksDesktopNonReimbursableExpensesAccount(policyID, row.value.id, nonReimbursableAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
-        [qbdConfig?.export.nonReimbursableAccount, policyID],
+        [nonReimbursableAccount, policyID],
     );
 
     const listEmptyContent = useMemo(
@@ -72,12 +74,8 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksDesktopCompanyCardExpenseAccountSelectPage.displayName}
-            headerTitleAlreadyTranslated={ConnectionUtils.getQBDNonReimbursableExportAccountType(qbdConfig?.export.nonReimbursable)}
-            headerContent={
-                qbdConfig?.export.nonReimbursable ? (
-                    <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbd.accounts.${qbdConfig?.export.nonReimbursable}AccountDescription`)}</Text>
-                ) : null
-            }
+            headerTitleAlreadyTranslated={ConnectionUtils.getQBDNonReimbursableExportAccountType(nonReimbursable)}
+            headerContent={nonReimbursable ? <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbd.accounts.${nonReimbursable}AccountDescription`)}</Text> : null}
             shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] remove it once the QBD beta is done
             sections={data.length ? [{data}] : []}
             listItem={RadioListItem}

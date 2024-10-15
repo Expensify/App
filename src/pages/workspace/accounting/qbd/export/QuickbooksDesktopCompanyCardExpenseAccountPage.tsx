@@ -24,29 +24,31 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     const policyID = policy?.id ?? '-1';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const {vendors} = policy?.connections?.quickbooksDesktop?.data ?? {};
-    const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === qbdConfig?.export.nonReimbursableBillDefaultVendor);
+    const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === qbdConfig?.export?.nonReimbursableBillDefaultVendor);
     const {canUseNewDotQBD} = usePermissions();
+    const nonReimbursable = qbdConfig?.export?.nonReimbursable;
+    const nonReimbursableAccount = qbdConfig?.export?.nonReimbursableAccount;
 
     const accountName = useMemo(
-        () => getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, qbdConfig?.export.nonReimbursable).find(({id}) => qbdConfig?.export.nonReimbursableAccount === id)?.name,
-        [policy?.connections?.quickbooksDesktop, qbdConfig?.export.nonReimbursable, qbdConfig?.export.nonReimbursableAccount],
+        () => getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable).find(({id}) => nonReimbursableAccount === id)?.name,
+        [policy?.connections?.quickbooksDesktop, nonReimbursable, nonReimbursableAccount],
     );
 
     const sections = [
         {
-            title: qbdConfig?.export.nonReimbursable ? translate(`workspace.qbd.accounts.${qbdConfig?.export.nonReimbursable}`) : undefined,
+            title: nonReimbursable ? translate(`workspace.qbd.accounts.${nonReimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT.getRoute(policyID)),
-            hintText: qbdConfig?.export.nonReimbursable ? translate(`workspace.qbd.accounts.${qbdConfig?.export.nonReimbursable}Description`) : undefined,
+            hintText: nonReimbursable ? translate(`workspace.qbd.accounts.${nonReimbursable}Description`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE],
             keyForList: translate('workspace.accounting.exportAs'),
         },
         {
             title: accountName ?? translate('workspace.qbd.notConfigured'),
-            description: ConnectionUtils.getQBDNonReimbursableExportAccountType(qbdConfig?.export.nonReimbursable),
+            description: ConnectionUtils.getQBDNonReimbursableExportAccountType(nonReimbursable),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT],
-            keyForList: ConnectionUtils.getQBDNonReimbursableExportAccountType(qbdConfig?.export.nonReimbursable),
+            keyForList: ConnectionUtils.getQBDNonReimbursableExportAccountType(nonReimbursable),
         },
     ];
 
@@ -76,7 +78,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                     />
                 </OfflineWithFeedback>
             ))}
-            {qbdConfig?.export.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL && (
+            {nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL && (
                 <>
                     <ToggleSettingOptionRow
                         title={translate('workspace.accounting.defaultVendor')}
