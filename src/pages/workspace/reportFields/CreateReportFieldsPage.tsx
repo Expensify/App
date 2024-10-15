@@ -171,7 +171,7 @@ function CreateReportFieldsPage({
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DATE && (
                                 <MenuItemWithTopDescription
-                                    title={translate('common.currentDate')}
+                                    title={translate('common.initialValue')}
                                     description={translate('common.date')}
                                     rightLabel={translate('common.required')}
                                     interactive={false}

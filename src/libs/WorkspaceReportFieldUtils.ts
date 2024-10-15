@@ -80,7 +80,7 @@ function getReportFieldInitialValue(reportField: PolicyReportField | null): stri
     }
 
     if (reportField.type === CONST.REPORT_FIELD_TYPES.DATE) {
-        return Localize.translateLocal('common.currentDate');
+        return Localize.translateLocal('common.initialValue');
     }
 
     return reportField.value ?? reportField.defaultValue;
