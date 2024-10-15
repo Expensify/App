@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 import * as CompanyCards from '@userActions/CompanyCards';
@@ -20,6 +21,7 @@ function CardInstructionsStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {canUseDirectFeeds} = usePermissions();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
@@ -33,6 +35,12 @@ function CardInstructionsStep() {
     };
 
     const handleBackButtonPress = () => {
+        if (canUseDirectFeeds && feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX) {
+            CompanyCards.setAddNewCompanyCardStepAndData({
+                step: CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED,
+            });
+            return;
+        }
         CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
     };
 
