@@ -6,8 +6,10 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 
 type BrokenConnectionDescriptionProps = {
@@ -44,8 +46,9 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
                 {`${translate('violations.adminBrokenConnectionError')}`}
                 <TextLink
                     style={[styles.textLabelSupporting, styles.link]}
-                    onPress={() => {}}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id ?? '-1'))}
                 >{`${translate('workspace.common.companyCards')}`}</TextLink>
+                .
             </>
         );
     }
@@ -54,7 +57,7 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
         return translate('violations.memberBrokenConnectionError');
     }
 
-    return `${translate('violations.memberBrokenConnectionError')}${translate('violations.markAsCashToIgnore')}`;
+    return `${translate('violations.memberBrokenConnectionError')} ${translate('violations.markAsCashToIgnore')}`;
 }
 
 BrokenConnectionDescription.displayName = 'BrokenConnectionDescription';
