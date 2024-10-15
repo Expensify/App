@@ -10,6 +10,7 @@ import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import DetailsStep from './DetailsStep';
 import SelectBankStep from './SelectBankStep';
+import SelectFeedType from './SelectFeedType';
 
 type AssignCardFeedPageProps = WithPolicyAndFullscreenLoadingProps;
 
@@ -23,6 +24,8 @@ function AddNewCardPage({policy}: AssignCardFeedPageProps) {
         switch (currentStep) {
             case CONST.COMPANY_CARDS.STEP.SELECT_BANK:
                 return <SelectBankStep />;
+            case CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE:
+                return <SelectFeedType />;
             case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
                 return <CardTypeStep />;
             case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
