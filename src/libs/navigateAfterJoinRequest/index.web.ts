@@ -3,7 +3,8 @@ import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 const navigateAfterJoinRequest = () => {
-    Navigation.goBack(undefined, false, true);
+    // @TODO: Check if this method works the same as on the main branch
+    Navigation.goBack(undefined, true);
     if (getIsSmallScreenWidth()) {
         Navigation.navigate(ROUTES.SETTINGS);
     }
