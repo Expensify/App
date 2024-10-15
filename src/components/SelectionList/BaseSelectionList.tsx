@@ -101,6 +101,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onLongPressRow,
         shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
         shouldShowListEmptyContent = true,
+        listItemWrapperStyle,
         shouldIgnoreFocus = false,
         scrollEventThrottle,
         contentContainerStyle,
@@ -475,6 +476,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         setFocusedIndex(normalizedIndex);
                     }}
                     shouldSyncFocus={!isTextInputFocusedRef.current}
+                    wrapperStyle={listItemWrapperStyle}
                 />
                 {item.footerContent && item.footerContent}
             </>
