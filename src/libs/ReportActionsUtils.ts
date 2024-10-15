@@ -345,18 +345,6 @@ function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: 
 }
 
 /**
- * Returns the parentReportAction if the given report is a thread/task.
- *
- * @deprecated Use Onyx.connect() or withOnyx() instead
- */
-function getParentReportAction(report: OnyxInputOrEntry<Report>): OnyxEntry<ReportAction> {
-    if (!report?.parentReportID || !report.parentReportActionID) {
-        return undefined;
-    }
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
-}
-
-/**
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  */
 function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
@@ -1807,8 +1795,6 @@ export {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
-    // eslint-disable-next-line deprecation/deprecation
-    getParentReportAction,
     getRemovedFromApprovalChainMessage,
     getReportAction,
     getReportActionHtml,

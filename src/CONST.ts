@@ -205,6 +205,10 @@ const CONST = {
         IN: 'in',
         OUT: 'out',
     },
+    POPOVER_ACCOUNT_SWITCHER_POSITION: {
+        horizontal: 12,
+        vertical: 80,
+    },
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
@@ -1484,9 +1488,14 @@ const CONST = {
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
     QUICKBOOKS_DESKTOP_CONFIG: {
+        EXPORT_DATE: 'exportDate',
+        EXPORTER: 'exporter',
         MARK_CHECKS_TO_BE_PRINTED: 'markChecksToBePrinted',
         REIMBURSABLE_ACCOUNT: 'reimbursableAccount',
         REIMBURSABLE: 'reimbursable',
+        MAPPINGS: {
+            CLASSES: 'classes',
+        },
     },
 
     QUICKBOOKS_CONFIG: {
