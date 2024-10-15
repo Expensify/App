@@ -23,7 +23,7 @@ This process must be completed by a Domain Admin. Any domain Admin can complete 
 - Confirm the employees who should be receiving a new Expensify Card have a card limit set that's greater than $0
 
 ## Steps to upgrade the Expensify Cards
-1. On your Home page, click the task titled “Upgrade to the new and improved Expensify Card.”
+1. On your Home page, click the task titled _Upgrade to the new and improved Expensify Card._
 2. Review and agree to the Terms of Service.
 3. Click **Get the new card**. All existing cardholders with a limit greater than $0 will be automatically mailed a new physical card to the address they have on file. Virtual cards will be automatically issued and available for immediate use. 
 4. If you have Positive Pay enabled for your settlement account, contact your bank as soon as possible to whitelist the new ACH ID: 2270239450. 
