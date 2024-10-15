@@ -28,6 +28,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
@@ -47,7 +48,6 @@ import ROUTES from '@src/ROUTES';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import { resetExitSurveyForm } from '@libs/actions/ExitSurvey';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
