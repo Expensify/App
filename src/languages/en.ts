@@ -3045,7 +3045,7 @@ const translations = {
                 howDoYouWantToConnect: 'How do you want to connect to your bank?',
                 learnMoreAboutConnections: {
                     text: 'Learn more about the ',
-                    linkText: 'connection methods',
+                    linkText: 'connection methods.',
                 },
                 customFeedDetails: 'Requires setup with your bank. This is most common for larger companies, and the best option, if you qualify.',
                 directFeedDetails: 'Connect now using your master credentials. This is most common.',

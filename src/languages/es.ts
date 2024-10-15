@@ -3083,7 +3083,7 @@ const translations = {
                 howDoYouWantToConnect: '¿Cómo deseas conectarte a tu banco?',
                 learnMoreAboutConnections: {
                     text: 'Obtén más información sobre ',
-                    linkText: 'los métodos de conexión',
+                    linkText: 'los métodos de conexión.',
                 },
                 customFeedDetails: 'Requiere configuración con tu banco. Esto es más común para empresas grandes, y la mejor opción, si calificas.',
                 directFeedDetails: 'Conéctate ahora usando tus credenciales maestras. Esto es lo más común.',
