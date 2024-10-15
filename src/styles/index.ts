@@ -3615,7 +3615,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchInputStyle: {
-            color: theme.textSupporting,
             fontSize: 13,
             lineHeight: 16,
         },
