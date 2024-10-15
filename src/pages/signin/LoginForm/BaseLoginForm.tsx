@@ -62,6 +62,7 @@ function BaseLoginForm({account, login, onLoginChanged, closeAccount, blurOnSubm
     const isFocused = useIsFocused();
     const isLoading = useRef(false);
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const accountMessage = account?.message === 'unlinkLoginForm.succesfullyUnlinkedLogin' ? translate(account.message) : account?.message ?? '';
 
     /**
      * Validate the input value and set the error for formError
@@ -276,7 +277,7 @@ function BaseLoginForm({account, login, onLoginChanged, closeAccount, blurOnSubm
                     style={[styles.mv2]}
                     type="success"
                     // eslint-disable-next-line @typescript-eslint/naming-convention,@typescript-eslint/prefer-nullish-coalescing
-                    messages={{0: closeAccount?.success ? closeAccount.success : account?.message || ''}}
+                    messages={{0: closeAccount?.success ? closeAccount.success : accountMessage}}
                 />
             )}
             {
