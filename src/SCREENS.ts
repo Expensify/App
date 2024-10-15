@@ -327,6 +327,7 @@ const SCREENS = {
             QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL: 'Policy_Accouting_Quickbooks_Desktop_Setup_Required_Device_Modal',
             QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC: 'Policy_Accouting_Quickbooks_Desktop_Trigger_First_Sync',
             QUICKBOOKS_DESKTOP_IMPORT: 'Policy_Accounting_Quickbooks_Desktop_Import',
+            QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS: 'Policy_Accounting_Quickbooks_Desktop_Import_Chart_Of_Accounts',
             QUICKBOOKS_DESKTOP_CLASSES: 'Policy_Accounting_Quickbooks_Desktop_Import_Classes',
             QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Desktop_Import_Classes_Dipslayed_As',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
