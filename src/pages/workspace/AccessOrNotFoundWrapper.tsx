@@ -83,14 +83,20 @@ type AccessOrNotFoundWrapperProps = {
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
-type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {shouldShowFullScreenFallback: boolean; isMoneyRequest: boolean};
+type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {
+    isFeatureEnabled: boolean;
+    isPolicyNotAccessible: boolean;
+    isMoneyRequest: boolean;
+};
 
-function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageNotFoundViewProps, isMoneyRequest}: PageNotFoundFallbackProps) {
+function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEnabled, isPolicyNotAccessible, isMoneyRequest}: PageNotFoundFallbackProps) {
+    const shouldShowFullScreenFallback = !isFeatureEnabled || isPolicyNotAccessible;
+
     return (
         <NotFoundPage
             shouldForceFullScreen={shouldShowFullScreenFallback}
             onBackButtonPress={() => {
-                if (shouldShowFullScreenFallback) {
+                if (isPolicyNotAccessible) {
                     Navigation.dismissModal();
                     return;
                 }
@@ -166,7 +172,8 @@ function AccessOrNotFoundWrapper({
             <PageNotFoundFallback
                 policyID={policyID}
                 isMoneyRequest={isMoneyRequest}
-                shouldShowFullScreenFallback={!isFeatureEnabled || isPolicyNotAccessible}
+                isFeatureEnabled={isFeatureEnabled}
+                isPolicyNotAccessible={isPolicyNotAccessible}
                 fullPageNotFoundViewProps={fullPageNotFoundViewProps}
             />
         );
