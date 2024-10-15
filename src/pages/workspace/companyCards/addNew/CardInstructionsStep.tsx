@@ -27,15 +27,16 @@ function CardInstructionsStep() {
 
     const data = addNewCard?.data;
     const feedProvider = data?.cardType;
+    const isAmexFeedProvider = feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX;
 
     const submit = () => {
         CompanyCards.setAddNewCompanyCardStepAndData({
-            step: feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX ? CONST.COMPANY_CARDS.STEP.CARD_DETAILS : CONST.COMPANY_CARDS.STEP.CARD_NAME,
+            step: isAmexFeedProvider ? CONST.COMPANY_CARDS.STEP.CARD_DETAILS : CONST.COMPANY_CARDS.STEP.CARD_NAME,
         });
     };
 
     const handleBackButtonPress = () => {
-        if (canUseDirectFeeds && feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX) {
+        if (canUseDirectFeeds && isAmexFeedProvider) {
             CompanyCards.setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED,
             });
