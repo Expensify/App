@@ -12,7 +12,7 @@ import type {BankIcon} from '@src/types/onyx/Bank';
 import BaseListItem from './BaseListItem';
 import type {BaseListItemProps, ListItem} from './types';
 
-type CardListItemProps<TItem extends ListItem> = BaseListItemProps<TItem & {bankIcon?: BankIcon; lastFourPAN?: string}>;
+type CardListItemProps<TItem extends ListItem> = BaseListItemProps<TItem & {bankIcon?: BankIcon; lastFourPAN?: string; isVirtual?: boolean}>;
 
 function CardListItem<TItem extends ListItem>({
     item,
@@ -37,6 +37,11 @@ function CardListItem<TItem extends ListItem>({
             onSelectRow(item);
         }
     }, [item, onCheckboxPress, onSelectRow]);
+
+    const subtitleText =
+        `${item.lastFourPAN ? `${translate('paymentMethodList.accountLastFour')} ${item.lastFourPAN}` : ''}` +
+        `${item.lastFourPAN && item.isVirtual ? ` ${CONST.DOT_SEPARATOR} ` : ''}` +
+        `${item.isVirtual ? translate('workspace.expensifyCard.virtual') : ''}`;
 
     return (
         <BaseListItem
@@ -79,10 +84,10 @@ function CardListItem<TItem extends ListItem>({
                                 item.alternateText ? styles.mb1 : null,
                             ]}
                         />
-                        {!!item.lastFourPAN && (
+                        {!!subtitleText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                text={`${translate('paymentMethodList.accountLastFour')} ${item.lastFourPAN}`}
+                                text={subtitleText}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         )}

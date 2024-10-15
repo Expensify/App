@@ -1,4 +1,4 @@
-import differenceInMilliseconds from 'date-fns/differenceInMilliseconds';
+import {differenceInMilliseconds} from 'date-fns/differenceInMilliseconds';
 import {useErrorBoundary} from 'react-error-boundary';
 import CONST from '@src/CONST';
 import type UsePageRefresh from './type';
