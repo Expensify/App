@@ -135,6 +135,8 @@ const SCREENS = {
             DELEGATE_ROLE: 'Settings_Delegate_Role',
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
             DELEGATE_MAGIC_CODE: 'Settings_Delegate_Magic_Code',
+            UPDATE_DELEGATE_ROLE: 'Settings_Delegate_Update_Role',
+            UPDATE_DELEGATE_ROLE_MAGIC_CODE: 'Settings_Delegate_Update_Magic_Code',
         },
     },
     SAVE_THE_WORLD: {
@@ -315,7 +317,19 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_ADVANCED: 'Policy_Accounting_Quickbooks_Online_Advanced',
             QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
             QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
+            QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Date_Select',
+            QUICKBOOKS_DESKTOP_EXPORT_PREFERRED_EXPORTER: 'Workspace_Accounting_Quickbooks_Desktop_Export_Preferred_Exporter',
+            QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES: 'Workspace_Accounting_Quickbooks_Desktop_Export_Out_Of_Pocket_Expenses',
+            QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Out_Of_Pocket_Expenses_Select',
+            QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Out_Of_Pocket_Expenses_Account_Select',
             QUICKBOOKS_DESKTOP_EXPORT: 'Workspace_Accounting_Quickbooks_Desktop_Export',
+            QUICKBOOKS_DESKTOP_SETUP_MODAL: 'Policy_Accouting_Quickbooks_Desktop_Setup_Modal',
+            QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL: 'Policy_Accouting_Quickbooks_Desktop_Setup_Required_Device_Modal',
+            QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC: 'Policy_Accouting_Quickbooks_Desktop_Trigger_First_Sync',
+            QUICKBOOKS_DESKTOP_IMPORT: 'Policy_Accounting_Quickbooks_Desktop_Import',
+            QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS: 'Policy_Accounting_Quickbooks_Desktop_Import_Chart_Of_Accounts',
+            QUICKBOOKS_DESKTOP_CLASSES: 'Policy_Accounting_Quickbooks_Desktop_Import_Classes',
+            QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Desktop_Import_Classes_Dipslayed_As',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
             XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
             XERO_CHART_OF_ACCOUNTS: 'Policy_Accounting_Xero_Import_Chart_Of_Accounts',
@@ -524,7 +538,8 @@ const SCREENS = {
     ONBOARDING: {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
-        WORK: 'Onboarding_Work',
+        EMPLOYEES: 'Onboarding_Employees',
+        ACCOUNTING: 'Onboarding_Accounting',
     },
 
     WELCOME_VIDEO: {
