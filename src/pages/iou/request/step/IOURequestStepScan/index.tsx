@@ -487,6 +487,10 @@ function IOURequestStepScan({
 
         const imageBase64 = cameraRef.current.getScreenshot();
 
+        if (imageBase64 === null) {
+            return;
+        }
+
         const filename = `receipt_${Date.now()}.png`;
         const file = FileUtils.base64ToFile(imageBase64 ?? '', filename);
         const source = URL.createObjectURL(file);
