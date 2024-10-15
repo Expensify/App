@@ -84,7 +84,6 @@ function IOURequestStepScan({
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
-    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && fileResize;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -449,6 +448,8 @@ function IOURequestStepScan({
             if (shouldSkipConfirmation) {
                 setFileResize(file);
                 setFileSource(file?.uri ?? '');
+                const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && fileResize;
+
                 if (gpsRequired) {
                     const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
                     if (shouldStartLocationPermissionFlow) {
@@ -498,6 +499,7 @@ function IOURequestStepScan({
                     if (shouldSkipConfirmation) {
                         setFileResize(file);
                         setFileSource(source);
+                        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && fileResize;
                         if (gpsRequired) {
                             const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
                             if (shouldStartLocationPermissionFlow) {
@@ -526,7 +528,9 @@ function IOURequestStepScan({
         shouldSkipConfirmation,
         navigateToConfirmationStep,
         updateScanAndNavigate,
-        gpsRequired,
+        transaction?.amount,
+        iouType,
+        fileResize,
     ]);
 
     // Wait for camera permission status to render
@@ -663,7 +667,7 @@ function IOURequestStepScan({
                     </PressableWithFeedback>
                 )}
             </View>
-            {gpsRequired && (
+            {startLocationPermissionFlow && fileResize && (
                 <LocationPermissionModal
                     startPermissionFlow={startLocationPermissionFlow}
                     resetPermissionFlow={() => setStartLocationPermissionFlow(false)}

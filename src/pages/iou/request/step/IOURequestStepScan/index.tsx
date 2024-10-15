@@ -97,7 +97,6 @@ function IOURequestStepScan({
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
-    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && fileResize;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -480,9 +479,12 @@ function IOURequestStepScan({
                     updateScanAndNavigate(file, source);
                     return;
                 }
+                console.log('shouldSkipConfirmation :>> ', shouldSkipConfirmation);
+                console.log('IOUUtils.shouldStartLocationPermissionFlow() :>> ', IOUUtils.shouldStartLocationPermissionFlow());
                 if (shouldSkipConfirmation) {
                     setFileResize(file);
                     setFileSource(source);
+                    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
                     if (gpsRequired) {
                         const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
 
@@ -526,10 +528,12 @@ function IOURequestStepScan({
             updateScanAndNavigate(file, source);
             return;
         }
-
+        console.log('shouldSkipConfirmation :>> ', shouldSkipConfirmation);
+        console.log('IOUUtils.shouldStartLocationPermissionFlow() :>> ', IOUUtils.shouldStartLocationPermissionFlow());
         if (shouldSkipConfirmation) {
             setFileResize(file);
             setFileSource(source);
+            const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
             if (gpsRequired) {
                 const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
                 if (shouldStartLocationPermissionFlow) {
@@ -539,7 +543,7 @@ function IOURequestStepScan({
             }
         }
         navigateToConfirmationStep(file, source, false);
-    }, [transactionID, isEditing, shouldSkipConfirmation, requestCameraPermission, updateScanAndNavigate, gpsRequired, navigateToConfirmationStep]);
+    }, [transactionID, isEditing, shouldSkipConfirmation, navigateToConfirmationStep, requestCameraPermission, updateScanAndNavigate, transaction?.amount, iouType]);
 
     const clearTorchConstraints = useCallback(() => {
         if (!trackRef.current) {
@@ -775,7 +779,7 @@ function IOURequestStepScan({
                             confirmText={translate('common.close')}
                             shouldShowCancelButton={false}
                         />
-                        {gpsRequired && (
+                        {startLocationPermissionFlow && fileResize && (
                             <LocationPermissionModal
                                 startPermissionFlow={startLocationPermissionFlow}
                                 resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
