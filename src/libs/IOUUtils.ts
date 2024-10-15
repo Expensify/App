@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import DateUtils from '@libs/DateUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -7,6 +6,7 @@ import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, Report, Transaction} from '@src/types/onyx';
 import type {IOURequestType} from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
 
