@@ -2371,7 +2371,7 @@ function getIcons(
 
         // For one transaction IOUs, display a simplified report icon
         if (isOneTransactionReport(report?.reportID ?? '-1')) {
-            return [ownerIcon];
+            return [managerIcon];
         }
 
         return isManager ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
