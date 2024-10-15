@@ -9,7 +9,10 @@ import navigationRef from './Navigation/navigationRef';
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
 const composerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
-const editComposerRef = React.createRef<TextInput>();
+
+// There are two types of composer: general composer (edit composer) and main composer.
+// The general composer callback will take priority if it exists.
+const editComposerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
 // There are two types of focus callbacks: priority and general
 // Priority callback would take priority if it existed
 let priorityFocusCallback: FocusCallback | null = null;
@@ -58,6 +61,7 @@ function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
  */
 function clear(isPriorityCallback = false) {
     if (isPriorityCallback) {
+        editComposerRef.current = null;
         priorityFocusCallback = null;
     } else {
         focusCallback = null;
@@ -78,6 +82,14 @@ function isEditFocused(): boolean {
     return !!editComposerRef.current?.isFocused();
 }
 
+/**
+ * Utility function to blur both main composer and edit composer.
+ */
+function blurAll(): void {
+    composerRef.current?.blur();
+    editComposerRef.current?.blur();
+}
+
 export default {
     composerRef,
     onComposerFocus,
@@ -86,4 +98,5 @@ export default {
     isFocused,
     editComposerRef,
     isEditFocused,
+    blurAll,
 };
