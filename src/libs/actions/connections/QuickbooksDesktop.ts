@@ -158,6 +158,87 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
     };
 }
 
+function buildOnyxDataForQuickbooksDesktopMappingsConfiguration<TSettingName extends keyof Connections['quickbooksDesktop']['config']['mappings']>(
+    policyID: string,
+    settingName: TSettingName,
+    settingValue: Partial<Connections['quickbooksDesktop']['config']['mappings'][TSettingName]>,
+    oldSettingValue?: Partial<Connections['quickbooksDesktop']['config']['mappings'][TSettingName]>,
+) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                        config: {
+                            mappings: {
+                                [settingName]: settingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                        config: {
+                            mappings: {
+                                [settingName]: oldSettingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                        config: {
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    return {
+        optimisticData,
+        failureData,
+        successData,
+    };
+}
+
 function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Connections['quickbooksDesktop']['config']>(
     policyID: string,
     settingName: TSettingName,
@@ -289,9 +370,40 @@ function updateQuickbooksDesktopReimbursableExpensesAccount<TSettingValue extend
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, onyxData);
 }
 
+function updateQuickbooksDesktopSyncClasses<TSettingValue extends Connections['quickbooksDesktop']['config']['mappings']['classes']>(
+    policyID: string,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    const onyxData = buildOnyxDataForQuickbooksDesktopMappingsConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES, settingValue, oldSettingValue);
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
+        policyID,
+        settingValue,
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_SYNC_CLASSES, parameters, onyxData);
+}
+
+function updateQuickbooksDesktopPreferredExporter<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['exporter']>(
+    policyID: string,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
+        policyID,
+        settingValue,
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT, parameters, onyxData);
+}
+
 export {
+    updateQuickbooksDesktopPreferredExporter,
     updateQuickbooksDesktopMarkChecksToBePrinted,
     updateQuickbooksDesktopExpensesExportDestination,
     updateQuickbooksDesktopReimbursableExpensesAccount,
     getQuickbooksDesktopCodatSetupLink,
+    updateQuickbooksDesktopSyncClasses,
 };
