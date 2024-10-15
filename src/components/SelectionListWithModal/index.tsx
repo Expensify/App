@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -28,6 +29,8 @@ function SelectionListWithModal<TItem extends ListItem>(
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const isFocused = useIsFocused();
+
     const {selectionMode} = useMobileSelectionMode(shouldAutoTurnOff);
     // Check if selection should be on when the modal is opened
     const wasSelectionOnRef = useRef(false);
@@ -50,6 +53,9 @@ function SelectionListWithModal<TItem extends ListItem>(
             }
             return;
         }
+        if (!isFocused) {
+            return;
+        }
         if (!wasSelectionOnRef.current && selectedItems.length > 0) {
             wasSelectionOnRef.current = true;
         }
@@ -58,7 +64,7 @@ function SelectionListWithModal<TItem extends ListItem>(
         } else if (selectedItems.length === 0 && selectionMode?.isEnabled && !wasSelectionOnRef.current) {
             turnOffMobileSelectionMode();
         }
-    }, [sections, selectionMode, isSmallScreenWidth, isSelected]);
+    }, [sections, selectionMode, isSmallScreenWidth, isSelected, isFocused]);
 
     useEffect(
         () => () => {

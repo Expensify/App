@@ -70,7 +70,7 @@ import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
-import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
+import {extractPolicyIDFromPath, getPolicy} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -81,7 +81,7 @@ import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
-import type {OnboardingPurposeType} from '@src/CONST';
+import type {OnboardingAccountingType, OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -107,6 +107,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import navigateFromNotification from './navigateFromNotification';
+import {resolveCommentDeletionConflicts} from './RequestConflictUtils';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 import * as OnboardingFlow from './Welcome/OnboardingFlow';
@@ -492,7 +493,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
 
     if (shouldUpdateNotificationPrefernece) {
         optimisticReport.participants = {
-            [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            [currentUserAccountID]: {notificationPreference: ReportUtils.getDefaultNotificationPreferenceForReport(report)},
         };
     }
 
@@ -547,19 +548,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
             value: successReportActions,
         },
     ];
-
-    if (shouldUpdateNotificationPrefernece) {
-        // optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants: {
-                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-            },
-        });
-    }
 
     let failureReport: Partial<Report> = {
         lastMessageTranslationKey: '',
@@ -837,8 +825,8 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
     };
-
-    if (ReportUtils.isGroupChat(newReportObject)) {
+    const isGroupChat = ReportUtils.isGroupChat(newReportObject);
+    if (isGroupChat) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
         parameters.groupChatAdminLogins = currentUserEmail;
         parameters.optimisticAccountIDList = Object.keys(newReportObject?.participants ?? {}).join(',');
@@ -870,6 +858,7 @@ function openReport(
                 ...newReportObject,
                 pendingFields: {
                     createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    ...(isGroupChat && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
                 },
                 isOptimisticReport: true,
             };
@@ -923,6 +912,7 @@ function openReport(
                 participants: redundantParticipants,
                 pendingFields: {
                     createChat: null,
+                    reportName: null,
                 },
                 errorFields: {
                     createChat: null,
@@ -1414,16 +1404,6 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         }
     }
 }
-const addNewMessage = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
-
-const commentsToBeDeleted = new Set<string>([
-    WRITE_COMMANDS.ADD_COMMENT,
-    WRITE_COMMANDS.ADD_ATTACHMENT,
-    WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT,
-    WRITE_COMMANDS.UPDATE_COMMENT,
-    WRITE_COMMANDS.ADD_EMOJI_REACTION,
-    WRITE_COMMANDS.REMOVE_EMOJI_REACTION,
-]);
 
 /** Deletes a comment from the report, basically sets it as empty string */
 function deleteReportComment(reportID: string, reportAction: ReportAction) {
@@ -1553,49 +1533,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         parameters,
         {optimisticData, successData, failureData},
         {
-            checkAndFixConflictingRequest: (persistedRequests) => {
-                const indices: number[] = [];
-                let addCommentFound = false;
-
-                persistedRequests.forEach((request, index) => {
-                    if (!commentsToBeDeleted.has(request.command) || request.data?.reportActionID !== reportActionID) {
-                        return;
-                    }
-                    if (addNewMessage.has(request.command)) {
-                        addCommentFound = true;
-                    }
-                    indices.push(index);
-                });
-
-                if (indices.length === 0) {
-                    return {
-                        conflictAction: {
-                            type: 'push',
-                        },
-                    };
-                }
-
-                if (addCommentFound) {
-                    const rollbackData: OnyxUpdate[] = [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
-                            value: {
-                                [reportActionID]: null,
-                            },
-                        },
-                    ];
-                    Onyx.update(rollbackData);
-                }
-
-                return {
-                    conflictAction: {
-                        type: 'delete',
-                        indices,
-                        pushNewRequest: !addCommentFound,
-                    },
-                };
-            },
+            checkAndFixConflictingRequest: (persistedRequests) => resolveCommentDeletionConflicts(persistedRequests, reportActionID, originalReportID),
         },
     );
 
@@ -2816,7 +2754,7 @@ function joinRoom(report: OnyxEntry<Report>) {
     updateNotificationPreference(
         report.reportID,
         ReportUtils.getReportNotificationPreference(report),
-        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        ReportUtils.getDefaultNotificationPreferenceForReport(report),
         report.parentReportID,
         report.parentReportActionID,
     );
@@ -3384,16 +3322,13 @@ function getReportPrivateNote(reportID: string | undefined) {
 function completeOnboarding(
     engagementChoice: OnboardingPurposeType,
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
-    {
-        firstName,
-        lastName,
-    }: {
-        firstName: string;
-        lastName: string;
-    },
+    firstName = '',
+    lastName = '',
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
     paymentSelected?: string,
+    companySize?: OnboardingCompanySizeType,
+    userReportedIntegration?: OnboardingAccountingType,
 ) {
     const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
@@ -3706,6 +3641,38 @@ function completeOnboarding(
         },
     );
 
+    if (userReportedIntegration) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
+            value: {
+                areConnectionsEnabled: true,
+                pendingFields: {
+                    areConnectionsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
+            value: {
+                pendingFields: {
+                    areConnectionsEnabled: null,
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
+            value: {
+                areConnectionsEnabled: getPolicy(onboardingPolicyID)?.areConnectionsEnabled,
+                pendingFields: {
+                    areConnectionsEnabled: null,
+                },
+            },
+        });
+    }
+
     const guidedSetupData: GuidedSetupData = [
         {type: 'message', ...introductionMessage},
         {type: 'message', ...textMessage},
@@ -3750,6 +3717,8 @@ function completeOnboarding(
         actorAccountID,
         guidedSetupData: JSON.stringify(guidedSetupData),
         paymentSelected,
+        companySize,
+        userReportedIntegration,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
