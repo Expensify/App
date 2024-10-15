@@ -16,10 +16,7 @@ The Expensify Card upgrade must be completed by November 1, 2024.
 {% include end-info.html %}
 
 # Upgrade your company’s Expensify Card program
-
-{% include info.html %}
 This process must be completed by a Domain Admin. Any domain Admin can complete the upgrade, but only one admin needs to complete these steps. 
-{% include end-info.html %}
 
 **Before updating the card program:**
 - Make sure your employees' address is up-to-date in their Expensify account
