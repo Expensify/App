@@ -15,7 +15,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList, RootStackParamList, State} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
@@ -42,7 +42,7 @@ type BottomTabBarProps = {
  * Otherwise policyID will be inserted into query
  */
 function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: string): SearchQueryString {
-    const queryJSON = SearchUtils.buildSearchQueryJSON(query);
+    const queryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
     if (!queryJSON) {
         return query;
     }
@@ -57,7 +57,7 @@ function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: stri
         queryJSON.policyID = policyID;
     }
 
-    return SearchUtils.buildSearchQueryString(queryJSON);
+    return SearchQueryUtils.buildSearchQueryString(queryJSON);
 }
 
 function BottomTabBar({selectedTab}: BottomTabBarProps) {
@@ -101,7 +101,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 return;
             }
 
-            const defaultCannedQuery = SearchUtils.buildCannedSearchQuery();
+            const defaultCannedQuery = SearchQueryUtils.buildCannedSearchQuery();
             // when navigating to search we might have an activePolicyID set from workspace switcher
             const query = activeWorkspaceID ? `${defaultCannedQuery} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${activeWorkspaceID}` : defaultCannedQuery;
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));

@@ -110,7 +110,7 @@ function ReportListItem<TItem extends ListItem>({
     const participantFrom = reportItem.from;
     const participantTo = reportItem.to;
 
-    // These values should come as part of the item via SearchUtils.getSections() but ReportListItem is not yet 100% handled
+    // These values should come as part of the item via SearchUIUtils.getSections() but ReportListItem is not yet 100% handled
     // This will be simplified in future once sorting of ReportListItem is done
     const participantFromDisplayName = participantFrom?.displayName ?? participantFrom?.login ?? '';
     const participantToDisplayName = participantTo?.displayName ?? participantTo?.login ?? '';

@@ -23,7 +23,7 @@ import * as SearchActions from '@libs/actions/Search';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -136,8 +136,8 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
     const {status, type} = queryJSON;
-    const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
-    const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
+    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
+    const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchQueryUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
     const [inputValue, setInputValue] = useState(headerText);
 
     useEffect(() => {
@@ -327,7 +327,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     }
 
     const onPress = () => {
-        const filterFormValues = SearchUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
+        const filterFormValues = SearchQueryUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
         SearchActions.updateAdvancedFilters(filterFormValues);
 
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
@@ -337,10 +337,10 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         if (!inputValue) {
             return;
         }
-        const inputQueryJSON = SearchUtils.buildSearchQueryJSON(inputValue);
+        const inputQueryJSON = SearchQueryUtils.buildSearchQueryJSON(inputValue);
         if (inputQueryJSON) {
-            const standardizedQuery = SearchUtils.standardizeQueryJSON(inputQueryJSON, cardList, taxRates);
-            const query = SearchUtils.buildSearchQueryString(standardizedQuery);
+            const standardizedQuery = SearchQueryUtils.standardizeQueryJSON(inputQueryJSON, cardList, taxRates);
+            const query = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
             SearchActions.clearAllFilters();
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
         } else {

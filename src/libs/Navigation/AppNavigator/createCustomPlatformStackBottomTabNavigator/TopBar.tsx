@@ -15,7 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import SignInButton from '@pages/home/sidebar/SignInButton';
 import * as Session from '@userActions/Session';
 import Timing from '@userActions/Timing';
@@ -68,7 +68,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                         accessibilityLabel={translate('common.cancel')}
                         style={[styles.textBlue]}
                         onPress={() => {
-                            Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
+                            Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
                         }}
                     >
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>

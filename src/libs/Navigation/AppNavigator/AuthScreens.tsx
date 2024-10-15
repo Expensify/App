@@ -28,7 +28,7 @@ import onyxSubscribe from '@libs/onyxSubscribe';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as ReportUtils from '@libs/ReportUtils';
-import {buildSearchQueryString} from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -93,7 +93,7 @@ const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/worksp
 function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
         // Generate default query string with buildSearchQueryString without argument.
-        return {q: buildSearchQueryString()};
+        return {q: SearchQueryUtils.buildSearchQueryString()};
     }
 
     if (screenName === SCREENS.REPORT) {

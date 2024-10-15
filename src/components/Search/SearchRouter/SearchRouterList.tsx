@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -113,7 +113,7 @@ function SearchRouterList(
                 {
                     text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
                     singleIcon: Expensicons.MagnifyingGlass,
-                    query: SearchUtils.getContextualSuggestionQuery(reportForContextualSearch.reportID),
+                    query: SearchQueryUtils.getContextualSuggestionQuery(reportForContextualSearch.reportID),
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
                     isContextualSearchItem: true,
@@ -123,9 +123,9 @@ function SearchRouterList(
     }
 
     const recentSearchesData = recentSearches?.map(({query}) => {
-        const searchQueryJSON = SearchUtils.buildSearchQueryJSON(query);
+        const searchQueryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? SearchUtils.getSearchHeaderTitle(searchQueryJSON, personalDetails, cardList, reports, taxRates) : query,
+            text: searchQueryJSON ? SearchQueryUtils.getSearchHeaderTitle(searchQueryJSON, personalDetails, cardList, reports, taxRates) : query,
             singleIcon: Expensicons.History,
             query,
             keyForList: query,
@@ -152,7 +152,7 @@ function SearchRouterList(
                 if (!item?.query) {
                     return;
                 }
-                onSearchSubmit(SearchUtils.buildSearchQueryJSON(item?.query));
+                onSearchSubmit(SearchQueryUtils.buildSearchQueryJSON(item?.query));
             }
 
             // Handle selection of "Recent chat"

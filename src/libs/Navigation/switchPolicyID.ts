@@ -4,7 +4,7 @@ import {getPathFromState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {isCentralPaneName} from '@libs/NavigationUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -83,7 +83,7 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     // Here's the configuration: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
     const isOpeningSearchFromBottomTab = !route && topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     if (isOpeningSearchFromBottomTab) {
-        newPath = ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()});
+        newPath = ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()});
     }
     const stateFromPath = getStateFromPath(newPath as Route) as PartialState<NavigationState<RootStackParamList>>;
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
@@ -110,16 +110,16 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
 
         if (isOpeningSearchFromBottomTab && params.q) {
             delete params.policyID;
-            const queryJSON = SearchUtils.buildSearchQueryJSON(params.q);
+            const queryJSON = SearchQueryUtils.buildSearchQueryJSON(params.q);
 
             if (policyID) {
                 if (queryJSON) {
                     queryJSON.policyID = policyID;
-                    params.q = SearchUtils.buildSearchQueryString(queryJSON);
+                    params.q = SearchQueryUtils.buildSearchQueryString(queryJSON);
                 }
             } else if (queryJSON) {
                 delete queryJSON.policyID;
-                params.q = SearchUtils.buildSearchQueryString(queryJSON);
+                params.q = SearchQueryUtils.buildSearchQueryString(queryJSON);
             }
         }
 
