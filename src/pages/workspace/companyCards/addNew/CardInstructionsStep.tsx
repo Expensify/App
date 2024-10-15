@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type CardInstructionsStepProps = {
-    policyID: string;
+    policyID?: string;
 };
 function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const {translate} = useLocalize();
@@ -39,7 +39,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
 
     const submit = () => {
         if (canUseDirectFeeds && isStripeFeedProvider) {
-            Card.updateSelectedFeed(feedProvider, policyID);
+            Card.updateSelectedFeed(feedProvider, policyID ?? '-1');
             Navigation.goBack();
             return;
         }
