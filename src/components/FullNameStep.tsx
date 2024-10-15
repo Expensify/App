@@ -24,16 +24,16 @@ type FullNameStepProps = SubStepProps & {
     customValidate?: (values: FormOnyxValues<keyof OnyxFormValuesMapping>) => Partial<Record<never, string | undefined>>;
 
     /** A function to call when the form is submitted */
-    onSubmit: () => void;
+    onSubmit: (values: FormOnyxValues<keyof OnyxFormValuesMapping>) => void;
 
     /** Fields list of the form */
     stepFields: Array<FormOnyxKeys<keyof OnyxFormValuesMapping>>;
 
     /** The ID of the first name input */
-    firstNameInputID: never;
+    firstNameInputID: keyof FormOnyxValues;
 
     /** The ID of the last name input */
-    lastNameInputID: never;
+    lastNameInputID: keyof FormOnyxValues;
 
     /** The default values for the form */
     defaultValues: {
