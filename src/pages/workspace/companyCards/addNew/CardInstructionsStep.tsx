@@ -33,6 +33,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const data = addNewCard?.data;
     const feedProvider = data?.cardType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.STRIPE;
+    const isAmexFeedProvider = feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX;
 
     const buttonTranslation = isStripeFeedProvider ? translate('common.submit') : translate('common.next');
 
@@ -43,12 +44,22 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
             return;
         }
         CompanyCards.setAddNewCompanyCardStepAndData({
-            step: feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX ? CONST.COMPANY_CARDS.STEP.CARD_DETAILS : CONST.COMPANY_CARDS.STEP.CARD_NAME,
+            step: isAmexFeedProvider ? CONST.COMPANY_CARDS.STEP.CARD_DETAILS : CONST.COMPANY_CARDS.STEP.CARD_NAME,
         });
     };
 
     const handleBackButtonPress = () => {
-        CompanyCards.setAddNewCompanyCardStepAndData({step: isStripeFeedProvider ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.CARD_TYPE});
+        if (canUseDirectFeeds && isAmexFeedProvider) {
+            CompanyCards.setAddNewCompanyCardStepAndData({
+                step: CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED,
+            });
+            return;
+        }
+        if (canUseDirectFeeds && isStripeFeedProvider) {
+            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+            return;
+        }
+        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
     };
 
     return (

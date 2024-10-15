@@ -2452,6 +2452,9 @@ const translations = {
             classes: 'Classes',
             items: 'Items',
             customers: 'Customers/projects',
+            accountsDescription: 'Your QuickBooks Desktop chart of accounts will import into Expensify as categories.',
+            accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
+            accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
             classesDescription: 'Choose how to handle QuickBooks Desktop classes in Expensify.',
             tagsDisplayedAsDescription: 'Line item level',
             reportFieldsDisplayedAsDescription: 'Report level',
@@ -3045,7 +3048,7 @@ const translations = {
                 howDoYouWantToConnect: 'How do you want to connect to your bank?',
                 learnMoreAboutConnections: {
                     text: 'Learn more about the ',
-                    linkText: 'connection methods',
+                    linkText: 'connection methods.',
                 },
                 customFeedDetails: 'Requires setup with your bank. This is most common for larger companies, and the best option, if you qualify.',
                 directFeedDetails: 'Connect now using your master credentials. This is most common.',
@@ -3075,6 +3078,8 @@ const translations = {
                         distributionLabel: 'Distribution ID',
                     },
                 },
+                amexCorporate: 'Select this if the front of your cards say “Corporate”',
+                amexBusiness: 'Select this if the front of your cards say “Business”',
                 error: {
                     pleaseSelectProvider: 'Please select a card provider before continuing.',
                     pleaseSelectBankAccount: 'Please select a bank account before continuing.',

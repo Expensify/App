@@ -7,6 +7,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import AmexCustomFeed from './AmexCustomFeed';
 import CardInstructionsStep from './CardInstructionsStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
@@ -37,6 +38,8 @@ function AddNewCardPage({route}: AddNewCardPageProps) {
                 return <CardNameStep />;
             case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
                 return <DetailsStep />;
+            case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
+                return <AmexCustomFeed />;
             default:
                 return <SelectBankStep />;
         }
@@ -45,7 +48,7 @@ function AddNewCardPage({route}: AddNewCardPageProps) {
             case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
                 return <CardTypeStep />;
             case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
-                return <CardInstructionsStep />;
+                return <CardInstructionsStep policyID={policyID} />;
             case CONST.COMPANY_CARDS.STEP.CARD_NAME:
                 return <CardNameStep />;
             case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
