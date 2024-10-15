@@ -2463,7 +2463,6 @@ const translations = {
                 createEntities: 'Auto-create entities',
                 createEntitiesDescription:
                     "Expensify will automatically create vendors in QuickBooks Desktop if they don't exist already, and auto-create customers when exporting invoices.",
-                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks Online account below.',
             },
         },
         qbo: {

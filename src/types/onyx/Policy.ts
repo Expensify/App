@@ -1247,7 +1247,7 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
     autoSync: {
-        /** Job ID of the synchronization	*/
+        /** Job ID of the synchronization */
         jobID: string;
 
         /** Whether changes made in QuickBooks Desktop should be reflected into the app automatically */
