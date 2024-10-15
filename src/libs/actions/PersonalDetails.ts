@@ -14,6 +14,7 @@ import type {
     UpdateSelectedTimezoneParams,
     UpdateUserAvatarParams,
 } from '@libs/API/parameters';
+import UpdatePhoneNumberParams from '@libs/API/parameters/UpdatePhoneNumberParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
@@ -155,6 +156,21 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
     });
 
     Navigation.goBack();
+}
+
+function updatePhoneNumber(phoneNumber: string) {
+    const parameters: UpdatePhoneNumberParams = {phoneNumber};
+    API.write(WRITE_COMMANDS.UPDATE_PHONE_NUMBER, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    phoneNumber,
+                },
+            },
+        ],
+    });
 }
 
 function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
@@ -481,6 +497,7 @@ export {
     setDisplayName,
     updateDisplayName,
     updateLegalName,
+    updatePhoneNumber,
     updatePronouns,
     updateSelectedTimezone,
     updatePersonalDetailsAndShipExpensifyCard,

@@ -55,7 +55,6 @@ function ProfilePage() {
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
-
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),
@@ -95,6 +94,11 @@ function ProfilePage() {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
             pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
+        },
+        {
+            description: translate('common.phoneNumber'),
+            title: privateDetails.phoneNumber ?? '',
+            pageRoute: ROUTES.SETTINGS_PHONE_NUMBER,
         },
         {
             description: translate('privatePersonalDetails.address'),

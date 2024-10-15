@@ -268,6 +268,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_LEGAL_NAME,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.PROFILE.PHONE_NUMBER]: {
+                            path: ROUTES.SETTINGS_PHONE_NUMBER,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: {
                             path: ROUTES.SETTINGS_DATE_OF_BIRTH,
                             exact: true,
