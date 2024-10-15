@@ -103,6 +103,9 @@ type ListItem = {
     /** Whether this option is selected */
     isSelected?: boolean;
 
+    /** Whether the option can show both selected and error indicators */
+    canShowSeveralIndicators?: boolean;
+
     /** Whether the checkbox should be disabled */
     isDisabledCheckbox?: boolean;
 

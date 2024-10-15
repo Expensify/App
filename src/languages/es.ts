@@ -2479,6 +2479,12 @@ const translations = {
             classes: 'Clases',
             items: 'Artículos',
             customers: 'Clientes/proyectos',
+            accountsDescription: 'Tu plan de cuentas de QuickBooks Desktop se importará a Expensify como categorías.',
+            accountsSwitchTitle: 'Elige importar cuentas nuevas como categorías activadas o desactivadas.',
+            accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
+            classesDescription: 'Elige cómo gestionar las clases de QuickBooks Desktop en Expensify.',
+            tagsDisplayedAsDescription: 'Nivel de partida',
+            reportFieldsDisplayedAsDescription: 'Nivel de informe',
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -3072,12 +3078,21 @@ const translations = {
             selectCardFeed: 'Seleccionar feed de tarjetas',
             addCardFeed: 'Añadir alimentación de tarjeta',
             addNewCard: {
+                other: 'Otros',
                 cardProviders: {
                     amex: 'Tarjetas de empresa American Express',
                     mastercard: 'Tarjetas comerciales Mastercard',
                     visa: 'Tarjetas comerciales Visa',
                 },
                 yourCardProvider: `¿Quién es su proveedor de tarjetas?`,
+                whoIsYourBankAccount: '¿Cuál es tu banco?',
+                howDoYouWantToConnect: '¿Cómo deseas conectarte a tu banco?',
+                learnMoreAboutConnections: {
+                    text: 'Obtén más información sobre ',
+                    linkText: 'los métodos de conexión.',
+                },
+                customFeedDetails: 'Requiere configuración con tu banco. Esto es más común para empresas grandes, y la mejor opción, si calificas.',
+                directFeedDetails: 'Conéctate ahora usando tus credenciales maestras. Esto es lo más común.',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Habilita tu feed ${provider}`,
                     heading:
@@ -3104,13 +3119,18 @@ const translations = {
                         distributionLabel: 'ID de distribución',
                     },
                 },
+                amexCorporate: 'Seleccione esto si el frente de sus tarjetas dice “Corporativa”',
+                amexBusiness: 'Seleccione esta opción si el frente de sus tarjetas dice “Negocios”',
                 error: {
                     pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar.',
+                    pleaseSelectBankAccount: 'Seleccione una cuenta bancaria antes de continuar.',
+                    pleaseSelectFeedType: 'Seleccione un tipo de pienso antes de continuar.',
                 },
             },
             assignCard: 'Asignar tarjeta',
             cardNumber: 'Número de la tarjeta',
             customFeed: 'Fuente personalizada',
+            directFeed: 'Fuente directa',
             whoNeedsCardAssigned: '¿Quién necesita una tarjeta?',
             chooseCard: 'Elige una tarjeta',
             chooseCardFor: ({assignee, feed}: AssignCardParams) => `Elige una tarjeta para ${assignee} del feed de tarjetas ${feed}.`,
@@ -3127,6 +3147,9 @@ const translations = {
             card: 'Tarjeta',
             startTransactionDate: 'Fecha de inicio de transacciones',
             cardName: 'Nombre de la tarjeta',
+            brokenConnectionErrorFirstPart: `La conexión de la fuente de tarjetas está rota. Por favor, `,
+            brokenConnectionErrorLink: 'inicia sesión en tu banco ',
+            brokenConnectionErrorSecondPart: 'para que podamos restablecer la conexión.',
             assignedYouCard: ({assigner}: AssignedYouCardParams) => `¡${assigner} te ha asignado una tarjeta de empresa! Las transacciones importadas aparecerán en este chat.`,
             chooseCardFeed: 'Elige feed de tarjetas',
         },
@@ -4328,7 +4351,7 @@ const translations = {
     },
     fileDownload: {
         success: {
-            title: '!Descargado!',
+            title: '¡Descargado!',
             message: 'Archivo descargado correctamente',
             qrMessage:
                 'Busca la copia de tu código QR en la carpeta de fotos o descargas. Consejo: Añádelo a una presentación para que el público pueda escanearlo y conectar contigo directamente.',
@@ -4447,7 +4470,7 @@ const translations = {
                 unshare: ({to}: UnshareParams) => `usuario eliminado ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
-                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo sincronizar con ${label} ("${errorMessage}")`,
+                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role === 'user' ? 'miembro' : 'administrador'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
                     `actualicé el rol ${email} de ${currentRole === 'user' ? 'miembro' : 'administrador'} a ${newRole === 'user' ? 'miembro' : 'administrador'}`,
@@ -5520,8 +5543,7 @@ const translations = {
             `Por favor, introduce el código mágico enviado a ${contactMethod} para actualizar el nivel de acceso de tu copiloto.`,
         notAllowed: 'No tan rápido...',
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `No tienes permiso para realizar esta acción para ${accountOwnerEmail}`,
-        notAllowedMessageHyperLinked: ' copiloto con acceso',
-        notAllowedMessageEnd: ' limitado',
+        notAllowedMessageHyperLinked: ' copiloto',
     },
     debug: {
         debug: 'Depuración',
