@@ -24,7 +24,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as IOU from '@userActions/IOU';
-import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import DelegateNoAccessModal from '@src/components/DelegateNoAccessModal';
@@ -237,6 +236,13 @@ function AttachmentPickerWithMenuItems({
                     {
                         icon: Expensicons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
+                        onSelected: () => {
+                            if (Browser.isSafari()) {
+                                return;
+                            }
+                            triggerAttachmentPicker();
+                        },
+                        shouldCallAfterModalHide: true,
                     },
                 ];
                 return (
@@ -323,14 +329,8 @@ function AttachmentPickerWithMenuItems({
                                 // In order for the file picker to open dynamically, the click
                                 // function must be called from within a event handler that was initiated
                                 // by the user on Safari.
-                                if (index === menuItems.length - 1) {
-                                    if (Browser.isSafari()) {
-                                        triggerAttachmentPicker();
-                                        return;
-                                    }
-                                    Modal.close(() => {
-                                        triggerAttachmentPicker();
-                                    });
+                                if (index === menuItems.length - 1 && Browser.isSafari()) {
+                                    triggerAttachmentPicker();
                                 }
                             }}
                             anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
