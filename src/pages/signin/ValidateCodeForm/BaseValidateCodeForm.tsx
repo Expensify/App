@@ -46,7 +46,7 @@ type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryC
 
 type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
-function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps, forwardedRef: ForwardedRef<BaseValidateCodeFormRef>) {
+function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible, useOnboardingPrivateDomainSettings}: BaseValidateCodeFormProps, forwardedRef: ForwardedRef<BaseValidateCodeFormRef>) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -388,6 +388,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                 </View>
             )}
             <View>
+                {!useOnboardingPrivateDomainSettings && 
                 <Button
                     isDisabled={isOffline}
                     success
@@ -397,10 +398,12 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     isLoading={isValidateCodeFormSubmitting}
                     onPress={validateAndSubmitForm}
                 />
-                <ChangeExpensifyLoginLink onPress={clearSignInData} />
+                }
+                {!useOnboardingPrivateDomainSettings && 
+                <ChangeExpensifyLoginLink onPress={clearSignInData} /> }
             </View>
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
-                <Terms />
+                {!useOnboardingPrivateDomainSettings && <Terms/> }
             </View>
         </SafariFormWrapper>
     );

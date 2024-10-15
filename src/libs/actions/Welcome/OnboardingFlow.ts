@@ -122,6 +122,10 @@ function getOnboardingInitialPath(): string {
         return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
     }
     const isIndividual = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
+    const isPrivateDomain = true; // TODO fix this and below
+    if (isPrivateDomain) {
+        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
+    }
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }

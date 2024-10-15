@@ -6,6 +6,8 @@ type ValidateCodeFormProps = {
     setIsUsingRecoveryCode: (value: boolean) => void;
 
     isVisible: boolean;
+
+    useOnboardingPrivateDomainSettings?: boolean;
 };
 
 export default ValidateCodeFormProps;

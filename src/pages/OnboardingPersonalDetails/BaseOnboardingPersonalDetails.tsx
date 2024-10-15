@@ -26,6 +26,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsProps} from './types';
+import ROUTES from '@src/ROUTES';
+import * as LoginUtils from '@libs/LoginUtils';
 
 function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, route}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
@@ -37,17 +39,24 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isOffline} = useNetwork();
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const isPrivateDomain = true; //!!credentials?.login && !LoginUtils.isEmailPublicDomain(credentials?.login);
 
     useEffect(() => {
         Welcome.setOnboardingErrorMessage('');
     }, []);
 
-    const completeEngagement = useCallback(
+    const handleSubmit = useCallback(
         (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
             const firstName = values.firstName.trim();
             const lastName = values.lastName.trim();
 
             PersonalDetails.setDisplayName(firstName, lastName);
+
+            if (isPrivateDomain) {
+                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(route.params?.backTo));
+                return;
+            }
 
             if (!onboardingPurposeSelected) {
                 return;
@@ -126,7 +135,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
                 validate={validate}
-                onSubmit={completeEngagement}
+                onSubmit={handleSubmit}
                 submitButtonText={translate('common.continue')}
                 enabledWhenOffline
                 submitFlexEnabled

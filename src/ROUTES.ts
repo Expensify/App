@@ -1203,6 +1203,10 @@ const ROUTES = {
         route: 'onboarding/personal-details',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
     },
+    ONBOARDING_PRIVATE_DOMAIN: {
+        route: 'onboarding/private-domain',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/private-domain`, backTo),
+    },
     ONBOARDING_EMPLOYEES: {
         route: 'onboarding/employees',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/employees`, backTo),

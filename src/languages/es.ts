@@ -185,6 +185,7 @@ import type {
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceYouMayJoin,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
 } from './params';
@@ -338,6 +339,7 @@ const translations = {
         semicolon: 'el punto y coma',
         please: 'Por favor',
         rename: 'Renombrar',
+        skip: 'Saltarse',
         contactUs: 'contáctenos',
         pleaseEnterEmailOrPhoneNumber: 'Por favor, escribe un email o número de teléfono',
         fixTheErrors: 'corrige los errores',
@@ -1724,6 +1726,8 @@ const translations = {
         },
         getStarted: 'Comenzar',
         whatsYourName: '¿Cómo te llamas?',
+        peopleYouMayKnow: 'Las personas que tal vez conozcas ya están aquí. Verifica tu correo electrónico para unirte a ellos.',
+        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin ) => `Alguien de ${domain} ya ha creado un espacio de trabajo. Por favor, introduce el código mágico enviado a ${email}.`,
         whereYouWork: '¿Dónde trabajas?',
         errorSelection: 'Por favor selecciona una opción para continuar.',
         purpose: {

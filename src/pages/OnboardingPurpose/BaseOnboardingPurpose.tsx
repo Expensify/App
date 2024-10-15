@@ -29,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseOnboardingPurposeProps} from './types';
+import * as Report from '@userActions/Report';
 
 const selectableOnboardingChoices = Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES);
 
@@ -55,7 +56,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
 
     const theme = useTheme();
     const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
@@ -66,6 +67,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [customChoices = []] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
 
     const onboardingChoices = getOnboardingChoices(customChoices);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const isPrivateDomain = true; //!!credentials?.login && !LoginUtils.isEmailPublicDomain(credentials?.login);
 
     const menuItems: MenuItemProps[] = onboardingChoices.map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
@@ -82,7 +85,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             onPress: () => {
                 Welcome.setOnboardingPurposeSelected(choice);
                 Welcome.setOnboardingErrorMessage('');
-
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     if (!onboardingPolicyID) {
                         const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', generatePolicyID(), choice);
@@ -91,6 +93,27 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     }
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
+                }
+                // If user is joining a private domain, finish the onboarding here 
+                // TODO move to workspace list page 
+                if (isPrivateDomain) {
+                    Report.completeOnboarding(
+                        choice,
+                        CONST.ONBOARDING_MESSAGES[choice],
+                        onboardingPolicyID,
+                    );
+            
+                    Welcome.setOnboardingAdminsChatReportID();
+                    Welcome.setOnboardingPolicyID(onboardingPolicyID);
+            
+                    Navigation.dismissModal();
+            
+                    // Only navigate to concierge chat when central pane is visible
+                    // Otherwise stay on the chats screen.
+                    if (!shouldUseNarrowLayout && !route.params?.backTo) {
+                        Report.navigateToConciergeChat();
+                    }
+
                 }
                 Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
             },
