@@ -55,7 +55,7 @@ function RulesReceiptRequiredAmountPage({
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.pt3, styles.ph5]}
+                    style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM}
                     onSubmit={({maxExpenseAmountNoReceipt}) => {
                         PolicyActions.setPolicyMaxExpenseAmountNoReceipt(policyID, maxExpenseAmountNoReceipt);

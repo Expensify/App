@@ -416,6 +416,10 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
+function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
+    return !isMerchantMissing(transaction) ? getMerchant(transaction) : getDescription(transaction);
+}
+
 /**
  * Return the reimbursable value. Defaults to true to match BE logic.
  */
@@ -646,7 +650,10 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
     let waypointIndex = -1;
 
     return waypointValues.reduce<WaypointCollection>((acc, currentWaypoint, index) => {
-        const previousWaypoint = waypointValues.at(lastWaypointIndex);
+        // Array.at(-1) returns the last element of the array
+        // If a user does a round trip, the last waypoint will be the same as the first waypoint
+        // We want to avoid comparing them as this will result in an incorrect duplicate waypoint error.
+        const previousWaypoint = lastWaypointIndex !== -1 ? waypointValues.at(lastWaypointIndex) : undefined;
 
         // Check if the waypoint has a valid address
         if (!waypointHasValidAddress(currentWaypoint)) {
@@ -1093,6 +1100,7 @@ export {
     getOriginalCurrency,
     getOriginalAmount,
     getMerchant,
+    getMerchantOrDescription,
     getMCCGroup,
     getCreated,
     getFormattedCreated,

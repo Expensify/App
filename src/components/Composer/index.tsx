@@ -2,19 +2,18 @@ import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import lodashDebounce from 'lodash/debounce';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {flushSync} from 'react-dom';
 // eslint-disable-next-line no-restricted-imports
-import type {NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData, ViewStyle} from 'react-native';
-import {DeviceEventEmitter, StyleSheet, View} from 'react-native';
+import type {NativeSyntheticEvent, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData} from 'react-native';
+import {DeviceEventEmitter, StyleSheet} from 'react-native';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
-import Text from '@components/Text';
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -23,31 +22,9 @@ import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposit
 import CONST from '@src/CONST';
 import type {ComposerProps} from './types';
 
-/**
- * Retrieves the characters from the specified cursor position up to the next space or new line.
- *
- * @param inputString - The input string.
- * @param cursorPosition - The position of the cursor within the input string.
- * @returns - The substring from the cursor position up to the next space or new line.
- *                     If no space or new line is found, returns the substring from the cursor position to the end of the input string.
- */
-const getNextChars = (inputString: string, cursorPosition: number): string => {
-    // Get the substring starting from the cursor position
-    const subString = inputString.substring(cursorPosition);
-
-    // Find the index of the next space or new line character
-    const spaceIndex = subString.search(/[ \n]/);
-
-    if (spaceIndex === -1) {
-        return subString;
-    }
-
-    // If there is a space or new line, return the substring up to the space or new line
-    return subString.substring(0, spaceIndex);
-};
-
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
+const imagePreviewAuthRequiredURLs = [CONST.EXPENSIFY_URL, CONST.STAGING_EXPENSIFY_URL];
 
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
@@ -82,7 +59,6 @@ function Composer(
     const styles = useThemeStyles();
     const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const StyleUtils = useStyleUtils();
-    const textRef = useRef<HTMLElement & RNText>(null);
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const [selection, setSelection] = useState<
         | {
@@ -96,9 +72,6 @@ function Composer(
         start: selectionProp.start,
         end: selectionProp.end,
     });
-    const [caretContent, setCaretContent] = useState('');
-    const [valueBeforeCaret, setValueBeforeCaret] = useState('');
-    const [textInputWidth, setTextInputWidth] = useState<ViewStyle['width']>('');
     const [isRendered, setIsRendered] = useState(false);
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
@@ -117,17 +90,25 @@ function Composer(
      */
     const addCursorPositionToSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
         const webEvent = event as BaseSyntheticEvent<TextInputSelectionChangeEventData>;
-        if (shouldCalculateCaretPosition && isRendered) {
-            // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
-            flushSync(() => {
-                setValueBeforeCaret((webEvent.target as HTMLInputElement).value.slice(0, webEvent.nativeEvent.selection.start));
-                setCaretContent(getNextChars(value ?? '', webEvent.nativeEvent.selection.start));
-            });
+        const sel = window.getSelection();
+        if (shouldCalculateCaretPosition && isRendered && sel) {
+            const range = sel.getRangeAt(0).cloneRange();
+            range.collapse(true);
+            const rect = range.getClientRects()[0] || range.startContainer.parentElement?.getClientRects()[0];
+            const containerRect = textInput.current?.getBoundingClientRect();
+
+            let x = 0;
+            let y = 0;
+            if (rect && containerRect) {
+                x = rect.left - containerRect.left;
+                y = rect.top - containerRect.top + (textInput?.current?.scrollTop ?? 0) - rect.height / 2;
+            }
+
             const selectionValue = {
                 start: webEvent.nativeEvent.selection.start,
                 end: webEvent.nativeEvent.selection.end,
-                positionX: (textRef.current?.offsetLeft ?? 0) - CONST.SPACE_CHARACTER_WIDTH,
-                positionY: textRef.current?.offsetTop,
+                positionX: x - CONST.SPACE_CHARACTER_WIDTH,
+                positionY: y,
             };
 
             onSelectionChange({
@@ -334,26 +315,6 @@ function Composer(
         [onKeyPress],
     );
 
-    const renderElementForCaretPosition = (
-        <View
-            style={{
-                position: 'absolute',
-                zIndex: -1,
-                opacity: 0,
-            }}
-        >
-            <Text style={[StyleSheet.flatten([style, styles.noSelect]), StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), {maxWidth: textInputWidth}]}>
-                {`${valueBeforeCaret} `}
-                <Text
-                    numberOfLines={1}
-                    ref={textRef}
-                >
-                    {`${caretContent}`}
-                </Text>
-            </Text>
-        </View>
-    );
-
     const scrollStyleMemo = useMemo(() => {
         if (shouldContainScroll) {
             return isScrollBarVisible ? [styles.overflowScroll, styles.overscrollBehaviorContain] : styles.overflowHidden;
@@ -376,30 +337,29 @@ function Composer(
     );
 
     return (
-        <>
-            <RNMarkdownTextInput
-                autoComplete="off"
-                autoCorrect={!Browser.isMobileSafari()}
-                placeholderTextColor={theme.placeholderText}
-                ref={(el) => (textInput.current = el)}
-                selection={selection}
-                style={[inputStyleMemo]}
-                markdownStyle={markdownStyle}
-                value={value}
-                defaultValue={defaultValue}
-                autoFocus={autoFocus}
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...props}
-                onSelectionChange={addCursorPositionToSelectionChange}
-                onContentSizeChange={(e) => {
-                    setTextInputWidth(`${e.nativeEvent.contentSize.width}px`);
-                    updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
-                }}
-                disabled={isDisabled}
-                onKeyPress={handleKeyPress}
-            />
-            {shouldCalculateCaretPosition && renderElementForCaretPosition}
-        </>
+        <RNMarkdownTextInput
+            id={CONST.COMPOSER.NATIVE_ID}
+            autoComplete="off"
+            autoCorrect={!Browser.isMobileSafari()}
+            placeholderTextColor={theme.placeholderText}
+            ref={(el) => (textInput.current = el)}
+            selection={selection}
+            style={[inputStyleMemo]}
+            markdownStyle={markdownStyle}
+            value={value}
+            defaultValue={defaultValue}
+            autoFocus={autoFocus}
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            {...props}
+            onSelectionChange={addCursorPositionToSelectionChange}
+            onContentSizeChange={(e) => {
+                updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
+            }}
+            disabled={isDisabled}
+            onKeyPress={handleKeyPress}
+            addAuthTokenToImageURLCallback={addEncryptedAuthTokenToURL}
+            imagePreviewAuthRequiredURLs={imagePreviewAuthRequiredURLs}
+        />
     );
 }
 
