@@ -300,6 +300,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             </View>
                                             {memberCards.map((memberCard) => (
                                                 <MenuItem
+                                                    key={memberCard.cardID}
                                                     title={memberCard.nameValuePairs?.cardTitle ?? memberCard?.cardName}
                                                     badgeText={
                                                         memberCard.bank === CONST.EXPENSIFY_CARD.BANK
