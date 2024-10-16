@@ -109,6 +109,7 @@ jest.mock('@src/libs/Permissions', () => ({
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
+    getIsReportOpenInRHP: jest.fn(() => false),
 }));
 
 jest.mock('@react-navigation/native', () => {
