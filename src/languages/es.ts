@@ -2484,6 +2484,11 @@ const translations = {
             tagsDisplayedAsDescription: 'Nivel de partida',
             reportFieldsDisplayedAsDescription: 'Nivel de informe',
             customersDescription: 'Elige cómo gestionar los clientes/proyectos de QuickBooks Desktop en Expensify.',
+            advancedConfig: {
+                autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Desktop todos los días.',
+                createEntities: 'Crear entidades automáticamente',
+                createEntitiesDescription: 'Expensify creará automáticamente proveedores en QuickBooks Desktop si aún no existen, y creará automáticamente clientes al exportar facturas.',
+            },
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',

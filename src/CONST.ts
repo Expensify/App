@@ -1492,7 +1492,9 @@ const CONST = {
         MARK_CHECKS_TO_BE_PRINTED: 'markChecksToBePrinted',
         REIMBURSABLE_ACCOUNT: 'reimbursableAccount',
         REIMBURSABLE: 'reimbursable',
+        AUTO_SYNC: 'autoSync',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SHOULD_AUTO_CREATE_VENDOR: 'shouldAutoCreateVendor',
         MAPPINGS: {
             CLASSES: 'classes',
             CUSTOMERS: 'customers',
