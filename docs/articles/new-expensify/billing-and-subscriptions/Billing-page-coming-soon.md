@@ -7,7 +7,7 @@ description: Billing Page Overview
 
 At the beginning of each month, the Billing Owner for the workspace will be billed for the previous month’s activity. 
 Your Expensify bill is determined by: 
-The number of active members in your workspace
+- The number of active members in your workspace
 - Whether you have a Collect or Control plan
 - Whether you’re on pay-per-use or an annual subscription
 - Whether you’re using the Expensify Visa® Commercial Card
