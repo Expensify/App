@@ -203,7 +203,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                     stepNames={CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES}
                 />
             </View>
-            <View style={[styles.flexGrow1, styles.mt3]}>
+            <View style={[styles.flex1, styles.mt3]}>
                 {screenIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.SEGMENT_TYPE ? (
                     renderSubStepContent
                 ) : (

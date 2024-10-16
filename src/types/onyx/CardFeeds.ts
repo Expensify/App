@@ -52,6 +52,12 @@ type AddNewCardFeedData = {
     /** Selected bank */
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
 
+    /** Selected feed type */
+    selectedFeedType: ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
+
+    /** Selected Amex bank custom feed */
+    selectedAmexCustomFeed: ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>;
+
     /** Name of the card */
     cardTitle: string;
 };
