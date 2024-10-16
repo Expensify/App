@@ -140,7 +140,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
         }
-    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, ctaErrorMessage]);
+    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, ctaErrorMessage, navatticLink]);
 
     return (
         <EmptyStateComponent
@@ -151,8 +151,6 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             title={content.title}
             titleStyles={content.titleStyles}
             subtitle={content.subtitle}
-            // buttonText={content.buttonText}
-            // buttonAction={content.buttonAction}
             buttons={content.buttons}
             headerContentStyles={[styles.h100, styles.w100, content.headerContentStyles]}
             lottieWebViewStyles={styles.emptyStateFolderWebStyles}

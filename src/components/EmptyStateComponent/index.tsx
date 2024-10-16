@@ -101,6 +101,7 @@ function EmptyStateComponent({
                         <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter]}>
                             {buttons?.map(({buttonText, buttonAction, success}, index) => (
                                 <Button
+                                    // eslint-disable-next-line react/no-array-index-key
                                     key={index}
                                     success={success}
                                     onPress={buttonAction}
