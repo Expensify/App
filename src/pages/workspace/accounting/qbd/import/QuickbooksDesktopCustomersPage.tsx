@@ -1,6 +1,7 @@
 import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,12 +54,20 @@ function QuickbooksDesktopCustomersPage({policy}: WithPolicyProps) {
                 onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS)}
             />
             {isSwitchOn && (
-                <MenuItemWithTopDescription
-                    interactive={false}
-                    title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
-                    description={translate('workspace.common.displayedAs')}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
-                />
+                <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS], qbdConfig?.pendingFields)}>
+                    <MenuItemWithTopDescription
+                        title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
+                        description={translate('workspace.common.displayedAs')}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS.getRoute(policyID))}
+                        brickRoadIndicator={
+                            PolicyUtils.areSettingsInErrorFields([CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS], qbdConfig?.errorFields)
+                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                : undefined
+                        }
+                    />
+                </OfflineWithFeedback>
             )}
         </ConnectionLayout>
     );
