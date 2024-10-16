@@ -67,7 +67,7 @@ function WorkspaceTaxesPage({
     const hasSyncError = PolicyUtils.hasSyncError(policy, isSyncInProgress);
 
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy, true);
+    const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
     const fetchTaxes = useCallback(() => {
