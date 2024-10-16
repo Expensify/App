@@ -61,7 +61,8 @@ function SearchPageBottomTab() {
 
     const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
     const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
-    const searchName = searchParams?.name;
+    const isSearchNameModified = searchParams?.name === searchParams?.q;
+    const searchName = isSearchNameModified ? undefined : searchParams?.name;
     const policyIDFromSearchQuery = parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery);
     const isActiveCentralPaneRoute = activeCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
@@ -109,9 +110,7 @@ function SearchPageBottomTab() {
                                 searchName={searchName}
                             />
                             <SearchStatusBar
-                                type={queryJSON.type}
-                                status={queryJSON.status}
-                                policyID={queryJSON.policyID}
+                                queryJSON={queryJSON}
                                 onStatusChange={() => {
                                     topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
                                 }}
