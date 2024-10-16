@@ -141,6 +141,7 @@ function buildOptimisticTransaction(
     pendingFields: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}> | undefined = undefined,
     reimbursable = true,
     existingTransaction: OnyxEntry<Transaction> | undefined = undefined,
+    policy: OnyxEntry<Policy> = undefined,
 ): Transaction {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -156,12 +157,6 @@ function buildOptimisticTransaction(
 
     const isDistanceTransaction = !!pendingFields?.waypoints;
     if (isDistanceTransaction) {
-        // Get the policy of this transaction from the report.policyID
-        const allReports = ReportConnection.getAllReports();
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
-        const policyID = report?.policyID ?? '';
-        const policy = PolicyUtils.getPolicy(policyID);
-
         // Set the distance unit, which comes from the policy distance unit or the P2P rate data
         lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
     }

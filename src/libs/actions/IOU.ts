@@ -2101,6 +2101,7 @@ function getMoneyRequestInformation(
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
         undefined,
         existingTransaction,
+        policy,
     );
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
@@ -2340,6 +2341,7 @@ function getTrackExpenseInformation(
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
         false,
         existingTransaction,
+        policy,
     );
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
