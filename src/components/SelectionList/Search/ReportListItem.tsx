@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -91,6 +91,7 @@ function ReportListItem<TItem extends ListItem>({
         item.isSelected && styles.activeComponentBG,
         isFocused && styles.sidebarLinkActive,
         styles.mh0,
+        Platform.OS === CONST.PLATFORM.WEB && isFocused && styles.outsetShadow,
     ];
 
     const handleOnButtonPress = () => {
