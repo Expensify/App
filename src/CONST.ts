@@ -1495,6 +1495,7 @@ const CONST = {
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         MAPPINGS: {
             CLASSES: 'classes',
+            CUSTOMERS: 'customers',
         },
     },
 

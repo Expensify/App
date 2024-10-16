@@ -2483,6 +2483,7 @@ const translations = {
             classesDescription: 'Elige cómo gestionar las clases de QuickBooks Desktop en Expensify.',
             tagsDisplayedAsDescription: 'Nivel de partida',
             reportFieldsDisplayedAsDescription: 'Nivel de informe',
+            customersDescription: 'Elige cómo gestionar los clientes/proyectos de QuickBooks Desktop en Expensify.',
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
