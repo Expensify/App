@@ -3747,16 +3747,13 @@ function prepareOnboardingOptimisticData(
 function completeOnboarding(
     engagementChoice: OnboardingPurpose,
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
-    {
-        firstName,
-        lastName,
-    }: {
-        firstName: string;
-        lastName: string;
-    },
+    firstName = '',
+    lastName = '',
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
     paymentSelected?: string,
+    companySize?: OnboardingCompanySizeType,
+    userReportedIntegration?: OnboardingAccountingType,
 ) {
     const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(engagementChoice, data, adminsChatReportID, onboardingPolicyID);
 

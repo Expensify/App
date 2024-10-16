@@ -1,5 +1,5 @@
-import type {OnboardingPurpose} from '@src/types/onyx';
 import type {OnboardingAccountingType, OnboardingCompanySizeType} from '@src/CONST';
+import type {OnboardingPurpose} from '@src/types/onyx';
 
 type CompleteGuidedSetupParams = {
     firstName: string;
