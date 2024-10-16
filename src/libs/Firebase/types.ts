@@ -13,6 +13,7 @@ type FirebaseAttributes = {
     accountId: string;
     personalDetailsLength: string;
     reportsLength: string;
+    reportActionsLength: string;
     transactionViolationsLength: string;
 };
 
