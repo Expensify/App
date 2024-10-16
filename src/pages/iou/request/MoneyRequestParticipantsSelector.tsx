@@ -133,7 +133,7 @@ function MoneyRequestParticipantsSelector({
             action,
             sortByReportTypeInSearch: isPaidGroupPolicy,
             searchValue: '',
-    });
+        });
 
         return optionList;
     }, [
@@ -149,7 +149,7 @@ function MoneyRequestParticipantsSelector({
         options.reports,
         participants,
         isPaidGroupPolicy,
-        debouncedSearchTerm
+        debouncedSearchTerm,
     ]);
 
     const chatOptions = useMemo(() => {

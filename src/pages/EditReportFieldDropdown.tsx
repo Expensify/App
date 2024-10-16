@@ -73,13 +73,13 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
                     text: fieldValue,
                 },
             ],
-            
+
             includeP2P: false,
             canInviteUser: false,
             includePolicyReportFieldOptions: true,
             policyReportFieldOptions: validFieldOptions,
             recentlyUsedPolicyReportFieldOptions: recentlyUsedOptions,
-    });
+        });
 
         const policyReportFieldData = policyReportFieldOptions?.[0]?.data ?? [];
         const header = OptionsListUtils.getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue);

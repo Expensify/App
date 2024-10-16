@@ -2236,12 +2236,9 @@ type FilteredOptionsParams = {
 
 type FilteredOptionsParamsWithDefaultSearchValue = Omit<FilteredOptionsParams, 'searchValue'> & {searchValue?: ''};
 
-type FilteredOptionsParamsWithoutOptions = Omit<FilteredOptionsParams, 'reports' | 'personalDetails'> & { reports?: []; personalDetails?: [] };
+type FilteredOptionsParamsWithoutOptions = Omit<FilteredOptionsParams, 'reports' | 'personalDetails'> & {reports?: []; personalDetails?: []};
 
-function getFilteredOptions(
-    params: FilteredOptionsParamsWithDefaultSearchValue | FilteredOptionsParamsWithoutOptions,
-) {
-
+function getFilteredOptions(params: FilteredOptionsParamsWithDefaultSearchValue | FilteredOptionsParamsWithoutOptions) {
     const {
         reports = [],
         personalDetails = [],
