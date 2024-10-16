@@ -70,7 +70,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
         () =>
             Object.entries(data ?? {})
                 .filter(
-                    (entry): entry is [string, string | ObjectType] =>
+                    (entry): entry is [string, string | ObjectType<Record<string, unknown>>] =>
                         (typeof entry[1] === 'string' || typeof entry[1] === 'object') &&
                         !DETAILS_CONSTANT_FIELDS.includes(entry[0] as DetailsConstantFieldsKeys) &&
                         !DETAILS_DATETIME_FIELDS.includes(entry[0] as DetailsDatetimeFieldsKeys),

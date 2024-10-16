@@ -6,7 +6,8 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, RecentWaypoint, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {Comment, Receipt, TaxRate} from '@src/types/onyx/Transaction';
+import type {Participant} from '@src/types/onyx/IOU';
+import type {Comment, Receipt, SplitShare, TaxRate} from '@src/types/onyx/Transaction';
 import * as ReportUtils from './ReportUtils';
 
 class NumberError extends SyntaxError {
@@ -35,9 +36,9 @@ class ObjectError extends SyntaxError {
     }
 }
 
-type ObjectType<T extends string = string> = Record<T, 'string' | 'number' | 'object' | 'array' | 'boolean' | ConstantEnum>;
+type ObjectType<T extends Record<string, unknown>> = Record<keyof T, 'string' | 'number' | 'object' | 'array' | 'boolean' | ConstantEnum>;
 
-type ConstantEnum = Record<string, unknown>;
+type ConstantEnum = Record<string, string | number | boolean | Record<string, string | number | boolean>>;
 
 type PropertyTypes = Array<'string' | 'number' | 'object' | 'boolean' | 'undefined'>;
 
@@ -288,7 +289,7 @@ function validateBoolean(value: string) {
  * Validates if a string is a valid representation of a date.
  */
 function validateDate(value: string) {
-    if (value === 'undefined' || (isMatch(value, CONST.DATE.FNS_DB_FORMAT_STRING) && isValid(new Date(value)))) {
+    if (value === 'undefined' || value === '' || ((isMatch(value, CONST.DATE.FNS_DB_FORMAT_STRING) || isMatch(value, CONST.DATE.FNS_FORMAT_STRING)) && isValid(new Date(value)))) {
         return;
     }
 
@@ -316,9 +317,9 @@ function validateConstantEnum(value: string, constEnum: ConstantEnum) {
 /**
  * Validates if a string is a valid representation of an array.
  */
-function validateArray(
+function validateArray<T extends 'string' | 'number' | 'boolean' | Record<string, unknown> = 'string'>(
     value: string,
-    arrayType: 'string' | 'number' | 'boolean' | ConstantEnum | Record<string, 'string' | 'number' | 'object' | 'boolean' | 'array' | PropertyTypes | ConstantEnum>,
+    arrayType: T extends Record<string, unknown> ? Record<keyof T, 'string' | 'number' | 'object' | 'boolean' | 'array' | PropertyTypes | ConstantEnum> | ConstantEnum : T,
 ) {
     if (value === 'undefined') {
         return;
@@ -372,7 +373,7 @@ function validateArray(
 /**
  * Validates if a string is a valid representation of an object.
  */
-function validateObject<T extends string>(value: string, type: ObjectType<T>, collectionIndexType?: 'string' | 'number') {
+function validateObject<T extends Record<string, unknown>>(value: string, type: ObjectType<T>, collectionIndexType?: 'string' | 'number') {
     if (value === 'undefined') {
         return;
     }
@@ -383,7 +384,7 @@ function validateObject<T extends string>(value: string, type: ObjectType<T>, co
           }
         : type;
 
-    const object = parseJSON(value) as ObjectType;
+    const object = parseJSON(value) as ObjectType<T>;
 
     if (typeof object !== 'object' || Array.isArray(object)) {
         throw new ObjectError(expectedType);
@@ -408,12 +409,12 @@ function validateObject<T extends string>(value: string, type: ObjectType<T>, co
             throw new ObjectError(expectedType);
         }
 
-        Object.entries(type).forEach(([key, val]) => {
-            // test[key] is a constant enum
-            if (typeof val === 'object') {
-                return validateConstantEnum(test[key] as string, val as ConstantEnum);
+        Object.entries(test).forEach(([key, val]) => {
+            // val is a constant enum
+            if (typeof type[key] === 'object') {
+                return validateConstantEnum(val as string, type[key]);
             }
-            if (val === 'array' ? !Array.isArray(test[key]) : typeof test[key] !== val) {
+            if (type[key] === 'array' ? !Array.isArray(val) : typeof val !== type[key]) {
                 throw new ObjectError(expectedType);
             }
         });
@@ -613,7 +614,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         return validateConstantEnum(value, CONST.MCC_GROUPS);
     }
     if (key === 'comment') {
-        return validateObject<keyof Comment>(value, {
+        return validateObject<Comment>(value, {
             comment: 'string',
             hold: 'string',
             waypoints: 'object',
@@ -627,7 +628,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         });
     }
     if (key === 'modifiedWaypoints') {
-        return validateObject<keyof RecentWaypoint>(
+        return validateObject<RecentWaypoint>(
             value,
             {
                 name: 'string',
@@ -641,7 +642,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         );
     }
     if (key === 'participants') {
-        return validateArray(value, {
+        return validateArray<Participant>(value, {
             accountID: 'number',
             login: 'string',
             displayName: 'string',
@@ -664,10 +665,12 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             isSender: 'boolean',
             iouType: CONST.IOU.TYPE,
             ownerAccountID: 'number',
+            icons: 'array',
+            item: 'string',
         });
     }
     if (key === 'receipt') {
-        return validateObject<keyof Receipt>(value, {
+        return validateObject<Receipt>(value, {
             type: 'string',
             source: 'string',
             name: 'string',
@@ -681,10 +684,74 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         return validateArray(value, 'number');
     }
     if (key === 'taxRate') {
-        return validateObject<keyof TaxRate>(value, {
+        return validateObject<TaxRate>(value, {
             keyForList: 'string',
             text: 'string',
             data: 'object',
+        });
+    }
+    if (key === 'splitShares') {
+        return validateObject<SplitShare>(
+            value,
+            {
+                amount: 'number',
+                isModified: 'boolean',
+            },
+            'number',
+        );
+    }
+    if (key === 'linkedTrackedExpenseReportAction') {
+        return validateObject<ReportAction>(value, {
+            accountID: 'number',
+            message: 'string',
+            created: 'string',
+            error: 'string',
+            avatar: 'string',
+            receipt: 'object',
+            reportID: 'string',
+            automatic: 'boolean',
+            reportActionID: 'string',
+            parentReportID: 'string',
+            errors: 'object',
+            isLoading: 'boolean',
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+            pendingFields: 'object',
+            sequenceNumber: 'number',
+            actionName: CONST.REPORT.ACTIONS.TYPE,
+            actorAccountID: 'number',
+            actor: 'string',
+            person: 'array',
+            shouldShow: 'boolean',
+            childReportID: 'string',
+            childReportName: 'string',
+            childType: 'string',
+            childOldestFourAccountIDs: 'string',
+            childCommenterCount: 'number',
+            childLastVisibleActionCreated: 'string',
+            childVisibleActionCount: 'number',
+            childManagerAccountID: 'number',
+            childOwnerAccountID: 'number',
+            childStatusNum: CONST.REPORT.STATUS_NUM,
+            childStateNum: CONST.REPORT.STATE_NUM,
+            childLastMoneyRequestComment: 'string',
+            childLastActorAccountID: 'number',
+            childMoneyRequestCount: 'number',
+            isFirstItem: 'boolean',
+            isAttachmentOnly: 'boolean',
+            isAttachmentWithText: 'boolean',
+            lastModified: 'string',
+            delegateAccountID: 'number',
+            childRecentReceiptTransactionIDs: 'object',
+            linkMetadata: 'array',
+            childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
+            isNewestReportAction: 'boolean',
+            isOptimisticAction: 'boolean',
+            adminAccountID: 'number',
+            whisperedToAccountIDs: 'array',
+            reportActionTimestamp: 'string',
+            timestamp: 'string',
+            originalMessage: 'object',
+            previousMessage: 'object',
         });
     }
     if (key === 'errors') {
@@ -807,6 +874,7 @@ const DebugUtils = {
     getRBRReportAction,
     REPORT_ACTION_REQUIRED_PROPERTIES,
     REPORT_REQUIRED_PROPERTIES,
+    TRANSACTION_REQUIRED_PROPERTIES,
 };
 
 export type {ObjectType, OnyxDataType};
