@@ -2482,6 +2482,7 @@ const translations = {
             classesDescription: 'Elige cómo gestionar las clases de QuickBooks Desktop en Expensify.',
             tagsDisplayedAsDescription: 'Nivel de partida',
             reportFieldsDisplayedAsDescription: 'Nivel de informe',
+            customersDescription: 'Elige cómo gestionar los clientes/proyectos de QuickBooks Desktop en Expensify.',
             advancedConfig: {
                 autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Desktop todos los días.',
                 createEntities: 'Crear entidades automáticamente',

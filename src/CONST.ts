@@ -1497,6 +1497,7 @@ const CONST = {
         SHOULD_AUTO_CREATE_VENDOR: 'shouldAutoCreateVendor',
         MAPPINGS: {
             CLASSES: 'classes',
+            CUSTOMERS: 'customers',
         },
     },
 

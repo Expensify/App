@@ -2458,6 +2458,7 @@ const translations = {
             classesDescription: 'Choose how to handle QuickBooks Desktop classes in Expensify.',
             tagsDisplayedAsDescription: 'Line item level',
             reportFieldsDisplayedAsDescription: 'Report level',
+            customersDescription: 'Choose how to handle QuickBooks Desktop customers/projects in Expensify.',
             advancedConfig: {
                 autoSyncDescription: 'Expensify will automatically sync with QuickBooks Desktop every day.',
                 createEntities: 'Auto-create entities',
