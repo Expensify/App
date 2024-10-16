@@ -149,6 +149,7 @@ function SearchRouter() {
             }
             closeSearchRouter();
             const standardizedQuery = SearchUtils.standardizeQueryJSON(query, cardList, taxRates);
+            console.log('%%%%%\n', 'standardizedQuery', standardizedQuery);
             const queryString = SearchUtils.buildSearchQueryString(standardizedQuery);
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: queryString}));
             clearUserQuery();
