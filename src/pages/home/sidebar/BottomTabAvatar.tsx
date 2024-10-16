@@ -68,20 +68,18 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
     }
 
     return (
-        <Tooltip text={translate('initialSettingsPage.accountSettings')}>
-            <PressableWithFeedback
-                onPress={showSettingsPage}
-                role={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-                wrapperStyle={styles.flex1}
-                style={[styles.bottomTabBarItem]}
-            >
-                {children}
-                <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.bottomTabBarLabel]}>
-                    {translate('common.settings')}
-                </Text>
-            </PressableWithFeedback>
-        </Tooltip>
+        <PressableWithFeedback
+            onPress={showSettingsPage}
+            role={CONST.ROLE.BUTTON}
+            accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
+            wrapperStyle={styles.flex1}
+            style={[styles.bottomTabBarItem]}
+        >
+            {children}
+            <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.bottomTabBarLabel]}>
+                {translate('common.settings')}
+            </Text>
+        </PressableWithFeedback>
     );
 }
 
