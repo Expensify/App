@@ -1,14 +1,9 @@
 /* eslint-disable no-unused-vars */
 import crashlytics from '@react-native-firebase/crashlytics';
 import perf from '@react-native-firebase/perf';
-import {getAllTransactions, getAllTransactionViolationsLength} from '@libs/actions/Transaction';
 import * as Environment from '@libs/Environment/Environment';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {getAllPoliciesLength} from '@libs/PolicyUtils';
-import {getReportActionsLength} from '@libs/ReportActionsUtils';
-import * as ReportConnection from '@libs/ReportConnection';
-import * as SessionUtils from '@libs/SessionUtils';
-import type {FirebaseAttributes, Log, StartTrace, StopTrace, TraceMap} from './types';
+import type {Log, StartTrace, StopTrace, TraceMap} from './types';
+import utils from './utils';
 
 const traceMap: TraceMap = {};
 
@@ -22,7 +17,7 @@ const startTrace: StartTrace = (customEventName) => {
         return;
     }
 
-    const attributes = getAttributes();
+    const attributes = utils.getAttributes();
 
     perf()
         .startTrace(customEventName)
@@ -61,28 +56,6 @@ const stopTrace: StopTrace = (customEventName) => {
 const log: Log = (action: string) => {
     crashlytics().log(action);
 };
-
-function getAttributes(): FirebaseAttributes {
-    const session = SessionUtils.getSession();
-
-    const accountId = session?.accountID?.toString() ?? 'N/A';
-    const reportsLength = ReportConnection.getAllReportsLength().toString();
-    const reportActionsLength = getReportActionsLength().toString();
-    const personalDetailsLength = PersonalDetailsUtils.getPersonalDetailsLength().toString();
-    const transactionViolationsLength = getAllTransactionViolationsLength().toString();
-    const policiesLength = getAllPoliciesLength().toString();
-    const transactionsLength = getAllTransactions().toString();
-
-    return {
-        accountId,
-        reportsLength,
-        reportActionsLength,
-        personalDetailsLength,
-        transactionViolationsLength,
-        policiesLength,
-        transactionsLength,
-    };
-}
 
 export default {
     startTrace,
