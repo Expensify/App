@@ -155,7 +155,7 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
-        if (!value || timezone) {
+        if (!value || !isEmptyObject(timezone)) {
             return;
         }
 

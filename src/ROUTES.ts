@@ -710,6 +710,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/accounts',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/accounts` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/classes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/classes` as const,
@@ -1236,8 +1240,10 @@ const ROUTES = {
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
-        getRoute: (reportID: string, transactionID: string, readonly = false) => `r/${reportID}/transaction/${transactionID}/receipt${readonly ? '?readonly=true' : ''}` as const,
+        getRoute: (reportID: string, transactionID: string, readonly = false, isFromReviewDuplicates = false) =>
+            `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''}` as const,
     },
+
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {
         route: 'r/:threadReportID/duplicates/review',
         getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo),
