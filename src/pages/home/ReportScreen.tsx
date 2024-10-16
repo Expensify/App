@@ -359,11 +359,9 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         !isCurrentReportLoadedFromOnyx ||
         isLoading;
 
-    const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
-
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !isLinkedActionBecomesDeleted) ||
+        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !!prevIsLinkedActionDeleted) ||
         (shouldShowSkeleton &&
             !reportMetadata.isLoadingInitialReportActions &&
             !!reportActionIDFromRoute &&
@@ -377,39 +375,28 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo((): boolean => {
         if (shouldShowNotFoundLinkedAction) {
-            console.log('[wildebug] shouldShowNotFoundLinkedAction:', shouldShowNotFoundLinkedAction);
             return true;
         }
-    
+
+        // Wait until we're sure the app is done loading (needs to be a strict equality check since it's undefined initially)
         if (isLoadingApp !== false) {
-            console.log('[wildebug] isLoadingApp:', isLoadingApp);
             return false;
         }
-    
+
+        // If we just finished loading the app, we still need to try fetching the report. Wait until that's done before
+        // showing the Not Found page
         if (finishedLoadingApp) {
-            console.log('[wildebug] finishedLoadingApp:', finishedLoadingApp);
             return false;
         }
-    
+
         if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
-            console.log('[wildebug] wasReportAccessibleRef.current:', wasReportAccessibleRef.current);
-            console.log('[wildebug] firstRenderRef.current:', firstRenderRef.current);
-            console.log('[wildebug] reportID:', reportID);
-            console.log('[wildebug] isOptimisticDelete:', isOptimisticDelete);
-            console.log('[wildebug] reportMetadata?.isLoadingInitialReportActions:', reportMetadata?.isLoadingInitialReportActions);
-            console.log('[wildebug] userLeavingStatus:', userLeavingStatus);
             return true;
         }
-    
+
         if (shouldHideReport) {
-            console.log('[wildebug] shouldHideReport:', shouldHideReport);
             return true;
         }
-    
-        const isValidReportID = !!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute);
-        console.log('[wildebug] currentReportIDFormRoute:', currentReportIDFormRoute);
-        console.log('[wildebug] isValidReportID:', isValidReportID);
-        return isValidReportID;
+        return !!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute);
     }, [
         shouldShowNotFoundLinkedAction,
         isLoadingApp,
@@ -674,11 +661,12 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     useEffect(() => {
         // If the linked action is previously available but now deleted,
         // remove the reportActionID from the params to not link to the deleted action.
+        const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
         if (!isLinkedActionBecomesDeleted) {
             return;
         }
         Navigation.setParams({reportActionID: ''});
-    }, [isLinkedActionBecomesDeleted]);
+    }, [prevIsLinkedActionDeleted, isLinkedActionDeleted]);
 
     // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
     // then we set reportActionID as empty string, so we display them the report and not the "Not found page".
