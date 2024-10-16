@@ -44,7 +44,6 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
                 if (isVisibleAction && !isOffline) {
                     // Pop the chat report screen before navigating to the linked report action.
-                    // @TODO: Navigation.goBack was called here with shouldEnforceFallback set to true. Verify if this works correctly
                     Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID));
                 }
             }}

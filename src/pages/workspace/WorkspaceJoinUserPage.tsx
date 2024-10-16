@@ -46,6 +46,7 @@ function WorkspaceJoinUserPage({route, policy}: WorkspaceJoinUserPageProps) {
         if (!isEmptyObject(policy) && !policy?.isJoinRequestPending && !PolicyUtils.isPendingDeletePolicy(policy)) {
             Navigation.isNavigationReady().then(() => {
                 // @TODO: Check if this method works the same as on the main branch
+                // NOTE: It probably doesn't need any params. When this method is called, shouldPopAllStateOnUP is always false
                 Navigation.goBack(undefined, true);
                 Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID ?? '-1'));
             });
