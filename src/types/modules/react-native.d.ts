@@ -8,7 +8,7 @@ import type StartupTimer from '@libs/StartupTimer/types';
 type HybridAppModule = {
     closeReactNativeApp: (shouldSignOut: boolean, shouldSetNVP: boolean) => void;
     completeOnboarding: (status: boolean) => void;
-    switchAccounts: (newDotCurrentAccount: string) => void;
+    switchAccount: (newDotCurrentAccount: string) => void;
     exitApp: () => void;
 };
 

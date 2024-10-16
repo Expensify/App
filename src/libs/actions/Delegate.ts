@@ -100,7 +100,7 @@ function connect(email: string) {
                     confirmReadyToOpenApp();
                     openApp();
 
-                    NativeModules.HybridAppModule.switchAccounts(email);
+                    NativeModules.HybridAppModule.switchAccount(email);
                 });
         })
         .catch((error) => {
@@ -165,7 +165,7 @@ function disconnect() {
                     confirmReadyToOpenApp();
                     openApp();
 
-                    NativeModules.HybridAppModule.switchAccounts(getCurrentUserEmail() ?? '');
+                    NativeModules.HybridAppModule.switchAccount(getCurrentUserEmail() ?? '');
                 });
         })
         .catch((error) => {
