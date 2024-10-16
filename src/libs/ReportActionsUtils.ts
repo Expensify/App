@@ -2,7 +2,6 @@ import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
 import lodashFindLast from 'lodash/findLast';
 import isEmpty from 'lodash/isEmpty';
-import {report} from 'process';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -29,7 +28,6 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportConnection from './ReportConnection';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
-import * as ReportUtils from './ReportUtils';
 import StringUtils from './StringUtils';
 // eslint-disable-next-line import/no-cycle
 import * as TransactionUtils from './TransactionUtils';
@@ -595,20 +593,19 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
     return currentAction.actorAccountID === previousAction.actorAccountID;
 }
 
-function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    const isChronosReport = ReportUtils.chatIncludesChronosWithID(reportAction?.reportID);
-    const isAutomaticTimerAction = /start(?:ed|ing)?(?:\snow)?/i.test(getReportActionText(reportAction));
-    return isChronosReport && isAutomaticTimerAction;
+function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportAction>, isChronosReport: boolean): boolean {
+    const isAutomaticTimerAction = () => /start(?:ed|ing)?(?:\snow)?/i.test(getReportActionText(reportAction));
+    return isChronosReport && isAutomaticTimerAction();
 }
 
 /**
  * If the user sends consecutive actions to Chronos to start/stop the timer,
  * then detect that and show each individually so that the user can easily see when they were sent.
  */
-function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[], actionIndex: number): boolean {
+function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[], actionIndex: number, isChronosReport: boolean): boolean {
     const previousAction = findPreviousAction(reportActions, actionIndex);
     const currentAction = reportActions?.at(actionIndex);
-    return isChronosAutomaticTimerAction(currentAction) && isChronosAutomaticTimerAction(previousAction);
+    return isChronosAutomaticTimerAction(currentAction, isChronosReport) && isChronosAutomaticTimerAction(previousAction, isChronosReport);
 }
 
 /**
