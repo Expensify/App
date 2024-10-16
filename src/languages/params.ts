@@ -279,7 +279,7 @@ type LogSizeAndDateParams = {size: number; date: string};
 
 type HeldRequestParams = {comment: string};
 
-type ReimbursementRateParams = {unit: Unit};
+type ReimbursementRateParams = {unit: string};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 

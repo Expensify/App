@@ -73,7 +73,8 @@ function IOURequestStepDistanceRate({
             };
         });
 
-    const unit = (Object.values(rates).at(0)?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer')) as Unit;
+    const unit = Object.values(rates).at(0)?.unit;
+    const unitToDisplay = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
 
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
@@ -108,7 +109,7 @@ function IOURequestStepDistanceRate({
             shouldShowWrapper
             testID={IOURequestStepDistanceRate.displayName}
         >
-            <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate', {unit})}</Text>
+            <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate', {unit: unitToDisplay})}</Text>
 
             <SelectionList
                 sections={[{data: sections}]}
