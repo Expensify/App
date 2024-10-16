@@ -10,6 +10,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -22,6 +23,7 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -74,10 +76,11 @@ const CASES = {
 
 type CaseID = ValueOf<typeof CASES>;
 
-function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
+function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const backTo = route.params.backTo;
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
@@ -86,6 +89,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || '-1'}`);
     const {reportActions} = usePaginatedReportActions(report.reportID || '-1');
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+    const {currentSearchHash} = useSearchContext();
 
     const transactionThreadReportID = useMemo(
         () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
@@ -188,13 +192,15 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
     const canModifyTask = Task.canModifyTask(report, session?.accountID ?? -1);
+    const canActionTask = Task.canActionTask(report, session?.accountID ?? -1);
     const shouldShowTaskDeleteButton =
         isTaskReport &&
         !isCanceledTaskReport &&
         ReportUtils.canWriteInReport(report) &&
         report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
         !ReportUtils.isClosedReport(report) &&
-        canModifyTask;
+        canModifyTask &&
+        canActionTask;
     const canDeleteRequest = isActionOwner && (ReportUtils.canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
@@ -315,9 +321,9 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                 shouldShowRightIcon: true,
                 action: () => {
                     if (shouldOpenRoomMembersPage) {
-                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1'));
+                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1', backTo));
                     } else {
-                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1'));
+                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1', backTo));
                     }
                 },
             });
@@ -342,7 +348,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1'));
+                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1', backTo));
                 },
             });
         }
@@ -355,14 +361,14 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
-                action: () => ReportUtils.navigateToPrivateNotes(report, session),
+                action: () => ReportUtils.navigateToPrivateNotes(report, session, backTo),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
         }
 
         // Show actions related to Task Reports
         if (isTaskReport && !isCanceledTaskReport) {
-            if (ReportUtils.isCompletedTaskReport(report) && canModifyTask) {
+            if (ReportUtils.isCompletedTaskReport(report) && canModifyTask && canActionTask) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.MARK_AS_INCOMPLETE,
                     icon: Expensicons.Checkmark,
@@ -410,7 +416,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                 icon: Expensicons.Upload,
                 isAnonymousAction: false,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', connectedIntegration));
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', connectedIntegration, backTo));
                 },
             });
         }
@@ -470,6 +476,8 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
         isDebugModeEnabled,
         unapproveExpenseReportOrShowModal,
         isExpenseReport,
+        backTo,
+        canActionTask,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -489,10 +497,11 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
         />
     ) : null;
 
-    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', connectedIntegration) : '';
+    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
     const unapproveWarningText = (
         <Text>
-            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text> <Text>{translate('iou.unapproveWithIntegrationWarning', connectedIntegrationName)}</Text>
+            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text>{' '}
+            <Text>{translate('iou.unapproveWithIntegrationWarning', {accountingIntegration: connectedIntegrationName})}</Text>
         </Text>
     );
 
@@ -510,8 +519,8 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
         if (isGroupChat && !isThread) {
             return (
                 <AvatarWithImagePicker
-                    source={icons[0].source}
-                    avatarID={icons[0].id}
+                    source={icons.at(0)?.source}
+                    avatarID={icons.at(0)?.id}
                     isUsingDefaultAvatar={!report.avatarUrl}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
@@ -569,6 +578,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                     reportID: transactionThreadReportID ? report.reportID : moneyRequestAction?.childReportID ?? '-1',
                     isDelegateAccessRestricted,
                     setIsNoDelegateAccessMenuVisible,
+                    currentSearchHash,
                 }),
             );
         }
@@ -577,10 +587,21 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
             result.push(PromotedActions.pin(report));
         }
 
-        result.push(PromotedActions.share(report));
+        result.push(PromotedActions.share(report, backTo));
 
         return result;
-    }, [report, moneyRequestAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest, transactionThreadReportID, isDelegateAccessRestricted]);
+    }, [
+        report,
+        moneyRequestAction,
+        currentSearchHash,
+        canJoin,
+        isExpenseReport,
+        shouldShowHoldAction,
+        canHoldUnholdReportAction.canHoldRequest,
+        transactionThreadReportID,
+        isDelegateAccessRestricted,
+        backTo,
+    ]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
@@ -642,7 +663,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                     shouldCheckActionAllowedOnPress={false}
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
-                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID))}
+                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID, backTo))}
                 />
             </View>
         </OfflineWithFeedback>
@@ -687,7 +708,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                     titleStyle={styles.newKansasLarge}
                     shouldCheckActionAllowedOnPress={false}
                     description={Str.UCFirst(titleField.name)}
-                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1'))}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1', backTo))}
                     furtherDetailsComponent={nameSectionFurtherDetailsContent}
                 />
             </View>
@@ -719,10 +740,16 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
 
         isTransactionDeleted.current = true;
     }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView]);
+
+    const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
+
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
-                <HeaderWithBackButton title={translate('common.details')} />
+                <HeaderWithBackButton
+                    title={translate('common.details')}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                />
                 <ScrollView style={[styles.flex1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
@@ -735,17 +762,19 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
 
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                interactive
-                                title={report.description}
-                                shouldRenderAsHTML
-                                shouldTruncateTitle
-                                characterLimit={100}
-                                shouldCheckActionAllowedOnPress={false}
-                                description={translate('reportDescriptionPage.roomDescription')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}
-                            />
+                            <MentionReportContext.Provider value={mentionReportContextValue}>
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    interactive
+                                    title={report.description}
+                                    shouldRenderAsHTML
+                                    shouldTruncateTitle
+                                    characterLimit={100}
+                                    shouldCheckActionAllowedOnPress={false}
+                                    description={translate('reportDescriptionPage.roomDescription')}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getActiveRoute()))}
+                                />
+                            </MentionReportContext.Provider>
                         </OfflineWithFeedback>
                     )}
 
@@ -801,7 +830,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                     shouldEnableNewFocusManagement
                 />
                 <ConfirmModal
-                    title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense')}
+                    title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1})}
                     isVisible={isDeleteModalVisible}
                     onConfirm={deleteTransaction}
                     onCancel={() => setIsDeleteModalVisible(false)}
@@ -824,7 +853,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                             ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
                         }
                     }}
-                    prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}
+                    prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1})}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger

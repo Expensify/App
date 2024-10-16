@@ -45,18 +45,19 @@ function IOURequestStartPage({
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || -1}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {canUseP2PDistanceRequests, canUseCombinedTrackSubmit} = usePermissions(iouType);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.submitExpense'),
-        [CONST.IOU.TYPE.SUBMIT]: translate('iou.submitExpense'),
+        [CONST.IOU.TYPE.SUBMIT]: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.submitExpense'),
         [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
         [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
-        [CONST.IOU.TYPE.TRACK]: translate('iou.trackExpense'),
+        [CONST.IOU.TYPE.TRACK]: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.trackExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
+        [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
-    const {canUseP2PDistanceRequests} = usePermissions(iouType);
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
@@ -69,7 +70,8 @@ function IOURequestStartPage({
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
-    const shouldDisplayDistanceRequest = !!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT);
+    const shouldDisplayDistanceRequest =
+        !!canUseCombinedTrackSubmit || !!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT);
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();

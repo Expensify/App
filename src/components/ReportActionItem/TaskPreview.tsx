@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
@@ -11,10 +12,13 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import Text from '@components/Text';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -52,44 +56,53 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: () => void;
+
+    /** Style for the task preview container */
+    style: StyleProp<ViewStyle>;
 };
 
-function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, checkIfContextMenuActive, currentUserPersonalDetails, isHovered = false}: TaskPreviewProps) {
+function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, checkIfContextMenuActive, currentUserPersonalDetails, isHovered = false, style}: TaskPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const theme = useTheme();
     const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`);
+
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
     const isTaskCompleted = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-    const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
+    const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitleFromReport(taskReport, action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? -1;
+    const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
     const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? Expensicons.FallbackAvatar;
-    const htmlForTaskPreview = `<comment>${taskTitle}</comment>`;
+    const avatarSize = CONST.AVATAR_SIZE.SMALL;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(taskReport, action);
+    const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
+    const titleStyle = StyleUtils.getTaskPreviewTitleStyle(iconWrapperStyle.height, isTaskCompleted);
 
+    const shouldShowGreenDotIndicator = ReportUtils.isOpenTaskReport(taskReport, action) && ReportUtils.isReportManager(taskReport);
     if (isDeletedParentAction) {
         return <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />;
     }
 
     return (
-        <View style={[styles.chatItemMessage]}>
+        <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID))}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                 shouldUseHapticsOnLongPress
-                style={[styles.flexRow, styles.justifyContentBetween]}
+                style={[styles.flexRow, styles.justifyContentBetween, style]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
             >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mt1]}>
-                    <View style={[styles.taskCheckboxWrapper, styles.alignSelfCenter]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mr2]}>
+                    <View style={iconWrapperStyle}>
                         <Checkbox
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
@@ -104,22 +117,33 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                             accessibilityLabel={translate('task.task')}
                         />
                     </View>
-                    {taskAssigneeAccountID > 0 && (
-                        <Avatar
-                            containerStyles={[styles.mr2, styles.alignSelfCenter, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
-                            source={avatar}
-                            size={CONST.AVATAR_SIZE.SMALL}
-                            avatarID={taskAssigneeAccountID}
-                            type={CONST.ICON_TYPE_AVATAR}
-                        />
+                    {hasAssignee && (
+                        <UserDetailsTooltip accountID={taskAssigneeAccountID}>
+                            <View>
+                                <Avatar
+                                    containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
+                                    source={avatar}
+                                    size={avatarSize}
+                                    avatarID={taskAssigneeAccountID}
+                                    type={CONST.ICON_TYPE_AVATAR}
+                                />
+                            </View>
+                        </UserDetailsTooltip>
                     )}
-                    <View style={[styles.alignSelfCenter]}>
-                        <RenderHTML html={isTaskCompleted ? `<completed-task>${htmlForTaskPreview}</completed-task>` : htmlForTaskPreview} />
-                    </View>
+                    <Text style={titleStyle}>{taskTitle}</Text>
                 </View>
+                {shouldShowGreenDotIndicator && (
+                    <View style={iconWrapperStyle}>
+                        <Icon
+                            src={Expensicons.DotIndicator}
+                            fill={theme.success}
+                        />
+                    </View>
+                )}
                 <Icon
                     src={Expensicons.ArrowRight}
                     fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
+                    additionalStyles={iconWrapperStyle}
                 />
             </PressableWithoutFeedback>
         </View>

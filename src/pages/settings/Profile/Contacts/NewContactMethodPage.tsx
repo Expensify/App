@@ -2,8 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -20,32 +19,30 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as UserUtils from '@libs/UserUtils';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewContactMethodForm';
-import type {LoginList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type NewContactMethodPageOnyxProps = {
-    /** Login list for the user that is signed in */
-    loginList: OnyxEntry<LoginList>;
-};
+type NewContactMethodPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
-type NewContactMethodPageProps = NewContactMethodPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
-
-function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const contactMethod = account?.primaryLogin ?? '';
+function NewContactMethodPage({route}: NewContactMethodPageProps) {
+    const contactMethod = UserUtils.getContactMethod();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
 
@@ -106,61 +103,61 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
     }, [navigateBackTo]);
 
     return (
-        <ScreenWrapper
-            onEntryTransitionEnd={() => loginInputRef.current?.focus()}
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={NewContactMethodPage.displayName}
-        >
-            <HeaderWithBackButton
-                title={translate('contacts.newContactMethod')}
-                onBackButtonPress={onBackButtonPress}
-            />
-            <FormProvider
-                formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
-                validate={validate}
-                onSubmit={handleValidateMagicCode}
-                submitButtonText={translate('common.add')}
-                style={[styles.flexGrow1, styles.mh5]}
+        <AccessOrNotFoundWrapper shouldBeBlocked={isActingAsDelegate}>
+            <ScreenWrapper
+                onEntryTransitionEnd={() => loginInputRef.current?.focus()}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={NewContactMethodPage.displayName}
             >
-                <Text style={styles.mb5}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
-                <View style={styles.mb6}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
-                        aria-label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
-                        role={CONST.ROLE.PRESENTATION}
-                        inputMode={CONST.INPUT_MODE.EMAIL}
-                        ref={loginInputRef}
-                        inputID={INPUT_IDS.PHONE_OR_EMAIL}
-                        autoCapitalize="none"
-                        enterKeyHint="done"
-                        maxLength={CONST.LOGIN_CHARACTER_LIMIT}
-                    />
-                </View>
-                {hasFailedToSendVerificationCode && (
-                    <DotIndicatorMessage
-                        messages={ErrorUtils.getLatestErrorField(pendingContactAction, 'actionVerified')}
-                        type="error"
-                    />
-                )}
-            </FormProvider>
-            <ValidateCodeActionModal
-                validatePendingAction={pendingContactAction?.pendingFields?.actionVerified}
-                validateError={validateLoginError}
-                handleSubmitForm={addNewContactMethod}
-                clearError={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
-                onClose={() => setIsValidateCodeActionModalVisible(false)}
-                isVisible={isValidateCodeActionModalVisible}
-                title={contactMethod}
-                description={translate('contacts.enterMagicCode', {contactMethod})}
-            />
-        </ScreenWrapper>
+                <HeaderWithBackButton
+                    title={translate('contacts.newContactMethod')}
+                    onBackButtonPress={onBackButtonPress}
+                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
+                    validate={validate}
+                    onSubmit={handleValidateMagicCode}
+                    submitButtonText={translate('common.add')}
+                    style={[styles.flexGrow1, styles.mh5]}
+                >
+                    <Text style={styles.mb5}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
+                    <View style={styles.mb6}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
+                            aria-label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
+                            role={CONST.ROLE.PRESENTATION}
+                            inputMode={CONST.INPUT_MODE.EMAIL}
+                            ref={loginInputRef}
+                            inputID={INPUT_IDS.PHONE_OR_EMAIL}
+                            autoCapitalize="none"
+                            enterKeyHint="done"
+                            maxLength={CONST.LOGIN_CHARACTER_LIMIT}
+                        />
+                    </View>
+                    {hasFailedToSendVerificationCode && (
+                        <DotIndicatorMessage
+                            messages={ErrorUtils.getLatestErrorField(pendingContactAction, 'actionVerified')}
+                            type="error"
+                        />
+                    )}
+                </FormProvider>
+                <ValidateCodeActionModal
+                    validatePendingAction={pendingContactAction?.pendingFields?.actionVerified}
+                    validateError={validateLoginError}
+                    handleSubmitForm={addNewContactMethod}
+                    clearError={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
+                    onClose={() => setIsValidateCodeActionModalVisible(false)}
+                    isVisible={isValidateCodeActionModalVisible}
+                    title={contactMethod}
+                    description={translate('contacts.enterMagicCode', {contactMethod})}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
 NewContactMethodPage.displayName = 'NewContactMethodPage';
 
-export default withOnyx<NewContactMethodPageProps, NewContactMethodPageOnyxProps>({
-    loginList: {key: ONYXKEYS.LOGIN_LIST},
-})(NewContactMethodPage);
+export default NewContactMethodPage;

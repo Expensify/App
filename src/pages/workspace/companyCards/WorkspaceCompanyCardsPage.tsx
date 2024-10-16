@@ -122,7 +122,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {})[0];
+    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {}).at(0);
     const selectedFeed = lastSelectedFeed ?? defaultFeed;
     const fetchCompanyCards = useCallback(() => {
         Policy.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
@@ -131,7 +131,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     useFocusEffect(fetchCompanyCards);
 
     const companyCards = cardFeeds?.companyCards ?? {};
-    const selectedCompanyCard = companyCards[selectedFeed] ?? null;
+    const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? null;
     const isNoFeed = !selectedCompanyCard;
     const isPending = selectedCompanyCard?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
@@ -155,7 +155,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             )}
             {!isLoading && (
                 <WorkspacePageWithSections
-                    shouldUseScrollView={isFeedAdded}
+                    shouldUseScrollView={!isFeedAdded}
                     icon={Illustrations.CompanyCard}
                     headerText={translate('workspace.common.companyCards')}
                     route={route}
@@ -167,7 +167,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     {(isFeedAdded || isPending) && (
                         <WorkspaceCompanyCardsListHeaderButtons
                             policyID={policyID}
-                            selectedFeed={selectedFeed}
+                            selectedFeed={selectedFeed ?? ''}
                         />
                     )}
                     {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}

@@ -3,7 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
@@ -23,6 +23,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
@@ -43,19 +44,15 @@ import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
-import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
+import type IOURequestStepScanProps from './types';
 
 function IOURequestStepScan({
     report,
-    policy,
-    user,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction,
-    personalDetails,
     currentUserPersonalDetails,
-    skipConfirmation,
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -63,10 +60,15 @@ function IOURequestStepScan({
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
 
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const policy = usePolicy(report?.policyID);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
+    const [user] = useOnyx(ONYXKEYS.USER);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
@@ -183,7 +185,7 @@ function IOURequestStepScan({
             return false;
         }
 
-        if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
             Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
             return false;
         }
@@ -233,7 +235,9 @@ function IOURequestStepScan({
             }
 
             // If the transaction was created from the global create, the person needs to select participants, so take them there.
-            if (transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) {
+            // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if ((transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) || iouType === CONST.IOU.TYPE.CREATE) {
                 navigateToParticipantPage();
                 return;
             }
@@ -269,6 +273,10 @@ function IOURequestStepScan({
                 }
                 getCurrentPosition(
                     (successData) => {
+                        const participant = participants.at(0);
+                        if (!participant) {
+                            return;
+                        }
                         if (iouType === CONST.IOU.TYPE.TRACK && report) {
                             IOU.trackExpense(
                                 report,
@@ -278,7 +286,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                                 '',
@@ -303,7 +311,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                                 '',
@@ -322,6 +330,10 @@ function IOURequestStepScan({
                         }
                     },
                     (errorData) => {
+                        const participant = participants.at(0);
+                        if (!participant) {
+                            return;
+                        }
                         Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                         // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                         if (iouType === CONST.IOU.TYPE.TRACK && report) {
@@ -333,7 +345,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                             );
@@ -346,7 +358,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                             );
@@ -411,9 +423,9 @@ function IOURequestStepScan({
             // Store the receipt on the transaction object in Onyx
             // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
             // So, let us also save the file type in receipt for later use during blob fetch
-            IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', action !== CONST.IOU.ACTION.EDIT, file.type);
+            IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
 
-            if (action === CONST.IOU.ACTION.EDIT) {
+            if (isEditing) {
                 updateScanAndNavigate(file, file?.uri ?? '');
                 return;
             }
@@ -448,10 +460,10 @@ function IOURequestStepScan({
             .then((photo: PhotoFile) => {
                 // Store the receipt on the transaction object in Onyx
                 const source = getPhotoSource(photo.path);
-                IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
+                IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
 
                 FileUtils.readFileAsync(source, photo.path, (file) => {
-                    if (action === CONST.IOU.ACTION.EDIT) {
+                    if (isEditing) {
                         updateScanAndNavigate(file, source);
                         return;
                     }
@@ -464,7 +476,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [cameraPermissionStatus, didCapturePhoto, flash, hasFlash, user?.isMutedAllSounds, translate, transactionID, action, navigateToConfirmationStep, updateScanAndNavigate]);
+    }, [isEditing, cameraPermissionStatus, didCapturePhoto, flash, hasFlash, user?.isMutedAllSounds, translate, transactionID, navigateToConfirmationStep, updateScanAndNavigate]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -476,7 +488,7 @@ function IOURequestStepScan({
             includeSafeAreaPaddingBottom
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={!!backTo}
+            shouldShowWrapper={!!backTo || isEditing}
             testID={IOURequestStepScan.displayName}
         >
             {isLoadingReceipt && <FullScreenLoadingIndicator />}
@@ -606,23 +618,7 @@ function IOURequestStepScan({
 
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-const IOURequestStepScanWithOnyx = withOnyx<IOURequestStepScanProps, IOURequestStepOnyxProps>({
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    skipConfirmation: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? -1;
-            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
-        },
-    },
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(IOURequestStepScan);
+const IOURequestStepScanWithOnyx = IOURequestStepScan;
 
 const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScanWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables

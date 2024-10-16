@@ -16,9 +16,6 @@ type EmojiPickerButtonProps = {
     /** Flag to disable the emoji picker button */
     isDisabled?: boolean;
 
-    /** Id to use for the emoji picker button */
-    id?: string;
-
     /** Unique id for emoji picker */
     emojiPickerID?: string;
 
@@ -33,7 +30,7 @@ type EmojiPickerButtonProps = {
     onEmojiSelected: EmojiPickerAction.OnEmojiSelected;
 };
 
-function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shiftVertical = 0, onPress, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
+function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertical = 0, onPress, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
@@ -70,7 +67,7 @@ function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shi
                     }
                     onPress?.(e);
                 }}
-                id={id}
+                id={CONST.EMOJI_PICKER_BUTTON_NATIVE_ID}
                 accessibilityLabel={translate('reportActionCompose.emoji')}
             >
                 {({hovered, pressed}) => (

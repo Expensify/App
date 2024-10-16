@@ -133,7 +133,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9, !canSelectMultiple && styles.m5]}>
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr8, !canSelectMultiple && styles.m5]}>
             <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
             <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
         </View>
@@ -240,7 +240,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedCategoriesArray.length})}
+                    customText={translate('workspace.common.selected', {count: selectedCategoriesArray.length})}
                     options={options}
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
@@ -302,8 +302,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     );
 
     const threeDotsMenuItems = useMemo(() => {
-        const menuItems = [
-            {
+        const menuItems = [];
+        if (!PolicyUtils.hasAccountingConnections(policy)) {
+            menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
@@ -313,8 +314,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     }
                     Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId));
                 },
-            },
-        ];
+            });
+        }
         if (hasVisibleCategories) {
             menuItems.push({
                 icon: Expensicons.Download,
@@ -334,7 +335,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return menuItems;
-    }, [policyId, translate, isOffline, hasVisibleCategories]);
+    }, [policyId, translate, isOffline, hasVisibleCategories, policy]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 

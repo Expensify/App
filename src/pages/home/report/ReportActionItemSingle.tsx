@@ -14,12 +14,14 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -58,11 +60,11 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 };
 
 const showUserDetails = (accountID: string) => {
-    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID));
+    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute()));
 };
 
 const showWorkspaceDetails = (reportID: string) => {
-    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
+    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
 };
 
 function ReportActionItemSingle({
@@ -81,36 +83,40 @@ function ReportActionItemSingle({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
+    const policy = usePolicy(report?.policyID);
+    const delegatePersonalDetails = personalDetails[action?.delegateAccountID ?? ''];
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
+    const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = ReportUtils.isTripRoom(report);
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const displayAllActors = isReportPreviewAction && !isTripRoom;
+    const displayAllActors = isReportPreviewAction && !isTripRoom && !ReportUtils.isPolicyExpenseChat(report);
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
 
-    if (isWorkspaceActor) {
-        displayName = ReportUtils.getPolicyName(report);
+    if (isReportPreviewAction && ReportUtils.isPolicyExpenseChat(report)) {
+        avatarId = ownerAccountID;
+        avatarSource = personalDetails[ownerAccountID ?? -1]?.avatar;
+        displayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
         actorHint = displayName;
-        avatarSource = ReportUtils.getWorkspaceIcon(report).source;
+    }
+    if (isWorkspaceActor) {
+        displayName = ReportUtils.getPolicyName(report, undefined, policy);
+        actorHint = displayName;
+        avatarSource = ReportUtils.getWorkspaceIcon(report, policy).source;
         avatarId = report?.policyID;
     } else if (action?.delegateAccountID && personalDetails[action?.delegateAccountID]) {
-        // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
-        // details. This will be improved upon when the Copilot feature is implemented.
-        const delegateDetails = personalDetails[action.delegateAccountID];
-        const delegateDisplayName = delegateDetails?.displayName;
-        actorHint = `${delegateDisplayName} (${translate('reportAction.asCopilot')} ${displayName})`;
-        displayName = actorHint;
-        avatarSource = delegateDetails?.avatar;
-        avatarId = action.delegateAccountID;
+        displayName = delegatePersonalDetails?.displayName ?? '';
+        avatarSource = delegatePersonalDetails?.avatar;
+        avatarId = delegatePersonalDetails?.accountID;
     } else if (isReportPreviewAction && isTripRoom) {
         displayName = report?.reportName ?? '';
     }
@@ -146,7 +152,7 @@ function ReportActionItemSingle({
         const avatarIconIndex = report?.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
         const reportIcons = ReportUtils.getIcons(report, {});
 
-        secondaryAvatar = reportIcons[avatarIconIndex];
+        secondaryAvatar = reportIcons.at(avatarIconIndex) ?? {name: '', source: '', type: CONST.ICON_TYPE_AVATAR};
     } else {
         secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }
@@ -178,7 +184,7 @@ function ReportActionItemSingle({
         } else {
             // Show participants page IOU report preview
             if (iouReportID && displayAllActors) {
-                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID));
+                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID, Navigation.getReportRHPActiveRoute()));
                 return;
             }
             showUserDetails(action?.delegateAccountID ? String(action.delegateAccountID) : String(actorAccountID));
@@ -193,6 +199,15 @@ function ReportActionItemSingle({
     );
 
     const getAvatar = () => {
+        if (shouldShowSubscriptAvatar) {
+            return (
+                <SubscriptAvatar
+                    mainAvatar={icon}
+                    secondaryAvatar={secondaryAvatar}
+                    noMargin
+                />
+            );
+        }
         if (displayAllActors) {
             return (
                 <MultipleAvatars
@@ -200,15 +215,6 @@ function ReportActionItemSingle({
                     isInReportAction
                     shouldShowTooltip
                     secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
-                />
-            );
-        }
-        if (shouldShowSubscriptAvatar) {
-            return (
-                <SubscriptAvatar
-                    mainAvatar={icon}
-                    secondaryAvatar={secondaryAvatar}
-                    noMargin
                 />
             );
         }
@@ -285,6 +291,9 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
+                {action?.delegateAccountID && !isReportPreviewAction && (
+                    <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>
+                )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
         </View>

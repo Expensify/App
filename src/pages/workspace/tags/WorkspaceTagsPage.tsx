@@ -114,7 +114,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 ),
             }));
         }
-        const sortedTags = lodashSortBy(Object.values(policyTagLists[0]?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
+        const sortedTags = lodashSortBy(Object.values(policyTagLists.at(0)?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
         return sortedTags.map((tag) => ({
             value: tag.name,
             text: PolicyUtils.getCleanedTagName(tag.name),
@@ -158,7 +158,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     styles.flexRow,
                     styles.justifyContentBetween,
                     // Required padding accounting for the checkbox and the right arrow in multi-select mode
-                    canSelectMultiple && [styles.pl3, styles.pr9],
+                    canSelectMultiple && [styles.pl3, styles.pr8],
                 ]}
             >
                 <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
@@ -284,7 +284,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 pressOnEnter
                 isSplitButton={false}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
+                customText={translate('workspace.common.selected', {count: selectedTagsArray.length})}
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedTagsArray.length}

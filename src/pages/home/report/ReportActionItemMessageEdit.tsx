@@ -26,6 +26,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ComposerUtils from '@libs/ComposerUtils';
+import DomUtils from '@libs/DomUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
@@ -73,10 +74,6 @@ type ReportActionItemMessageEditProps = {
     /** Whether report is from group policy */
     isGroupPolicyReport: boolean;
 };
-
-// native ids
-const emojiButtonID = 'emojiButton';
-const messageEditInput = 'messageEditInput';
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
@@ -167,6 +164,22 @@ function ReportActionItemMessageEdit(
         };
     }, []);
 
+    useEffect(
+        // Remove focus callback on unmount to avoid stale callbacks
+        () => {
+            if (textInputRef.current) {
+                ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
+            }
+            return () => {
+                if (ReportActionComposeFocusManager.editComposerRef.current !== textInputRef.current) {
+                    return;
+                }
+                ReportActionComposeFocusManager.clear(true);
+            };
+        },
+        [],
+    );
+
     // We consider the report action active if it's focused, its emoji picker is open or its context menu is open
     const isActive = useCallback(
         () => isFocusedRef.current || EmojiPickerAction.isActive(action.reportActionID) || ReportActionContextMenu.isActiveReportAction(action.reportActionID),
@@ -187,14 +200,6 @@ function ReportActionItemMessageEdit(
             focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
         }, true);
     }, [focus]);
-
-    useEffect(
-        // Remove focus callback on unmount to avoid stale callbacks
-        () => () => {
-            ReportActionComposeFocusManager.clear(true);
-        },
-        [],
-    );
 
     useEffect(
         () => {
@@ -508,7 +513,6 @@ function ReportActionItemMessageEdit(
                                     forwardedRef.current = el;
                                 }
                             }}
-                            id={messageEditInput}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
@@ -516,6 +520,9 @@ function ReportActionItemMessageEdit(
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
+                                if (textInputRef.current) {
+                                    ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
+                                }
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
                                         reportScrollManager.scrollToIndex(index, true);
@@ -536,8 +543,7 @@ function ReportActionItemMessageEdit(
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || EmojiPickerAction.isEmojiPickerVisible()) {
+                                if (relatedTargetId === CONST.COMPOSER.NATIVE_ID || relatedTargetId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID || EmojiPickerAction.isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
@@ -567,10 +573,13 @@ function ReportActionItemMessageEdit(
                         <EmojiPickerButton
                             isDisabled={shouldDisableEmojiPicker}
                             onModalHide={() => {
+                                const activeElementId = DomUtils.getActiveElement()?.id;
+                                if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
+                                    return;
+                                }
                                 ReportActionComposeFocusManager.focus();
                             }}
                             onEmojiSelected={addEmojiToTextBox}
-                            id={emojiButtonID}
                             emojiPickerID={action.reportActionID}
                             onPress={setUpComposeFocusManager}
                         />
