@@ -119,7 +119,6 @@ key "key"
       / "cardID"
       / "from"
       / "expenseType"
-      / "in"
     )
 
 defaultKey "default key"
@@ -137,7 +136,7 @@ identifier
 quotedString "quote" = "\"" chars:[^"\r\n]* "\"" { return chars.join(""); }
 
 alphanumeric "word"
-  = chars:[A-Za-z0-9_@./#&+\-\\',;%]+ {
+  = chars:[^ "\t\n\r]+ {
       return chars.join("").trim().split(",").filter(Boolean);
     }
 
