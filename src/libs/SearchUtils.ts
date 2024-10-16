@@ -730,8 +730,12 @@ function buildFilterFormValuesFromQuery(
             filtersForm[FILTER_KEYS.DATE_AFTER] = filters[filterKey]?.find((filter) => filter.operator === 'gt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString();
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-            filtersForm[FILTER_KEYS.LESS_THAN] = filters[filterKey]?.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 2))?.value.toString();
-            filtersForm[FILTER_KEYS.GREATER_THAN] = filters[filterKey]?.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 2))?.value.toString();
+            filtersForm[FILTER_KEYS.LESS_THAN] = filters[filterKey]
+                ?.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                ?.value.toString();
+            filtersForm[FILTER_KEYS.GREATER_THAN] = filters[filterKey]
+                ?.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                ?.value.toString();
         }
     }
 
@@ -778,6 +782,9 @@ function getDisplayValue(filterName: string, filter: string, personalDetails: On
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]) || filter;
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+        return CurrencyUtils.convertToFrontendAmountAsString(Number(filter));
     }
     return filter;
 }
@@ -920,6 +927,12 @@ function findIDFromDisplayValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_F
                         .map((card) => card.cardID.toString()) ?? bank,
             )
             .flat();
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+        if (typeof filter === 'string') {
+            return CurrencyUtils.convertToBackendAmount(Number(filter)).toString();
+        }
+        return filter.map((amount) => CurrencyUtils.convertToBackendAmount(Number(amount)).toString());
     }
     return filter;
 }
