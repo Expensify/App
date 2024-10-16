@@ -208,7 +208,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         return <NotFoundPage />;
     }
 
-    const shouldShowCardsSection = (policy?.areExpensifyCardsEnabled && paymentAccountID) ?? policy?.areCompanyCardsEnabled;
+    const shouldShowCardsSection = (policy?.areExpensifyCardsEnabled && !!paymentAccountID) ?? policy?.areCompanyCardsEnabled;
 
     return (
         <AccessOrNotFoundWrapper

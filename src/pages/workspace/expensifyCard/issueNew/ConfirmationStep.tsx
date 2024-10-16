@@ -39,7 +39,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
     const data = issueNewCard?.data;
-    const success = issueNewCard?.success;
+    const isSuccessful = issueNewCard?.isSuccessful;
 
     const submitButton = useRef<View>(null);
 
@@ -48,12 +48,12 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     }, []);
 
     useEffect(() => {
-        if (!success) {
+        if (!isSuccessful) {
             return;
         }
         Navigation.navigate(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID ?? '-1'));
         Card.clearIssueNewCardFlow();
-    }, [backTo, policyID, success]);
+    }, [backTo, policyID, isSuccessful]);
 
     const submit = () => {
         Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);

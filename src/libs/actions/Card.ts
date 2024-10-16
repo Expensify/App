@@ -636,6 +636,7 @@ function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueN
             value: {
                 isLoading: true,
                 errors: null,
+                isSuccessful: null,
             },
         },
     ];
@@ -646,7 +647,7 @@ function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueN
             key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
             value: {
                 isLoading: false,
-                success: true,
+                isSuccessful: true,
             },
         },
     ];

@@ -162,7 +162,7 @@ type IssueNewCard = {
     errors?: OnyxCommon.Errors;
 
     /** Whether the request was successful */
-    success?: boolean;
+    isSuccessful?: boolean;
 };
 
 /** List of Expensify cards */
