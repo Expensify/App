@@ -10,6 +10,7 @@ ___
 **Version Number:**
 **Reproducible in staging?:**
 **Reproducible in production?:**
+**If this was caught on HybridApp, is this reproducible on New Expensify Standalone?:**
 **If this was caught during regression testing, add the test name, ID and link from TestRail:**
 **Email or phone of affected tester (no customers):**
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
@@ -34,9 +35,11 @@ Can the user still use Expensify without this being fixed? Have you informed the
 Check off any platforms that are affected by this issue
 --->
 Which of our officially supported platforms is this issue occurring on?
-- [ ] Android: Native
+- [ ] Android: Standalone
+- [ ] Android: HybridApp
 - [ ] Android: mWeb Chrome
-- [ ] iOS: Native
+- [ ] iOS: Standalone
+- [ ] iOS: HybridApp
 - [ ] iOS: mWeb Safari
 - [ ] MacOS: Chrome / Safari
 - [ ] MacOS: Desktop

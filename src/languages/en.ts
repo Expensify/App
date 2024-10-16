@@ -108,7 +108,6 @@ import type {
     PayerSettledParams,
     PaySomeoneParams,
     ReconciliationWorksParams,
-    ReimbursementRateParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
     RemoveMemberPromptParams,
@@ -277,6 +276,7 @@ const translations = {
         close: 'Close',
         download: 'Download',
         downloading: 'Downloading',
+        uploading: 'Uploading',
         pin: 'Pin',
         unPin: 'Unpin',
         back: 'Back',
@@ -1015,7 +1015,7 @@ const translations = {
         changed: 'changed',
         removed: 'removed',
         transactionPending: 'Transaction pending.',
-        chooseARate: ({unit}: ReimbursementRateParams) => `Select a workspace reimbursement rate per ${unit}`,
+        chooseARate: 'Select a workspace reimbursement rate per mile or kilometer',
         unapprove: 'Unapprove',
         unapproveReport: 'Unapprove report',
         headsUp: 'Heads up!',
@@ -2458,6 +2458,12 @@ const translations = {
             classesDescription: 'Choose how to handle QuickBooks Desktop classes in Expensify.',
             tagsDisplayedAsDescription: 'Line item level',
             reportFieldsDisplayedAsDescription: 'Report level',
+            advancedConfig: {
+                autoSyncDescription: 'Expensify will automatically sync with QuickBooks Desktop every day.',
+                createEntities: 'Auto-create entities',
+                createEntitiesDescription:
+                    "Expensify will automatically create vendors in QuickBooks Desktop if they don't exist already, and auto-create customers when exporting invoices.",
+            },
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -5062,6 +5068,7 @@ const translations = {
         reasonVisibleInLHN: {
             hasDraftComment: 'Has draft comment',
             hasGBR: 'Has GBR',
+            hasRBR: 'Has RBR',
             pinnedByUser: 'Pinned by user',
             hasIOUViolations: 'Has IOU violations',
             hasAddWorkspaceRoomErrors: 'Has add workspace room errors',

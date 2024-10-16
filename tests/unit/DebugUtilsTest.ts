@@ -783,6 +783,134 @@ describe('DebugUtils', () => {
             const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport);
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
+        it('returns correct reason when report has one transaction thread with violations', async () => {
+            const MOCK_TRANSACTION_REPORT: Report = {
+                reportID: '1',
+                ownerAccountID: 12345,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const MOCK_REPORTS: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_TRANSACTION_REPORT,
+                [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: {
+                    reportID: '2',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: '1',
+                    parentReportActionID: '1',
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                },
+            };
+            const MOCK_REPORT_ACTIONS: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '1': {
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        actorAccountID: 12345,
+                        created: '2024-08-08 18:20:44.171',
+                        childReportID: '2',
+                        message: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            amount: 10,
+                            currency: CONST.CURRENCY.USD,
+                            IOUReportID: '1',
+                            text: 'Vacation expense',
+                            IOUTransactionID: '1',
+                        },
+                    },
+                },
+            };
+            await Onyx.multiSet({
+                ...MOCK_REPORTS,
+                ...MOCK_REPORT_ACTIONS,
+                [ONYXKEYS.SESSION]: {
+                    accountID: 12345,
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
+                    transactionID: '1',
+                    amount: 10,
+                    modifiedAmount: 10,
+                    reportID: '1',
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1` as const]: [
+                    {
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    },
+                ],
+            });
+            const reason = DebugUtils.getReasonForShowingRowInLHN(MOCK_TRANSACTION_REPORT, true);
+            expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
+        });
+        it('returns correct reason when report has violations', async () => {
+            const MOCK_EXPENSE_REPORT: Report = {
+                reportID: '1',
+                chatReportID: '2',
+                parentReportID: '2',
+                parentReportActionID: '1',
+                ownerAccountID: 12345,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const MOCK_REPORTS: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_EXPENSE_REPORT,
+                [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: {
+                    reportID: '2',
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                },
+            };
+            const MOCK_REPORT_ACTIONS: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2` as const]: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '1': {
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        actorAccountID: 12345,
+                        created: '2024-08-08 18:20:44.171',
+                        message: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            amount: 10,
+                            currency: CONST.CURRENCY.USD,
+                            IOUReportID: '1',
+                            text: 'Vacation expense',
+                            IOUTransactionID: '1',
+                        },
+                    },
+                },
+            };
+            await Onyx.multiSet({
+                ...MOCK_REPORTS,
+                ...MOCK_REPORT_ACTIONS,
+                [ONYXKEYS.SESSION]: {
+                    accountID: 12345,
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
+                    transactionID: '1',
+                    amount: 10,
+                    modifiedAmount: 10,
+                    reportID: '1',
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1` as const]: [
+                    {
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    },
+                ],
+            });
+            const reason = DebugUtils.getReasonForShowingRowInLHN(MOCK_EXPENSE_REPORT, true);
+            expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
+        });
+        it('returns correct reason when report has errors', () => {
+            const reason = DebugUtils.getReasonForShowingRowInLHN(
+                {
+                    ...baseReport,
+                    errors: {
+                        error: 'Something went wrong',
+                    },
+                },
+                true,
+            );
+            expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
+        });
     });
     describe('getReasonAndReportActionForGBRInLHNRow', () => {
         beforeAll(() => {
@@ -963,8 +1091,7 @@ describe('DebugUtils', () => {
             );
             expect(reportAction).toBeUndefined();
         });
-        // TODO: remove '.failing' once the implementation is fixed
-        it.failing('returns parentReportAction if it is a transaction thread, the transaction is missing smart scan fields and the report is not settled', async () => {
+        it('returns undefined if it is a transaction thread, the transaction is missing smart scan fields and the report is not settled', async () => {
             const MOCK_REPORTS: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: {
                     reportID: '1',
@@ -1011,7 +1138,7 @@ describe('DebugUtils', () => {
                 MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report,
                 undefined,
             );
-            expect(reportAction).toBe(1);
+            expect(reportAction).toBe(undefined);
         });
         describe("Report has missing fields, isn't settled and it's owner is the current user", () => {
             describe('Report is IOU', () => {

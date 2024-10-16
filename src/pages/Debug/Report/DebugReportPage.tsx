@@ -59,12 +59,12 @@ function DebugReportPage({
             return [];
         }
 
-        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report);
-        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
-        const reportActionRBR = DebugUtils.getRBRReportAction(report, reportActions);
         const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
         const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
         const hasRBR = SidebarUtils.shouldShowRedBrickRoad(report, reportActions, !!shouldDisplayViolations || shouldDisplayReportViolations, transactionViolations);
+        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
+        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
+        const reportActionRBR = DebugUtils.getRBRReportAction(report, reportActions);
         const hasGBR = !hasRBR && !!reasonGBR;
 
         return [

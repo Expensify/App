@@ -1061,7 +1061,7 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
 
     // If there's only one IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
     // and want to display it using the standard view
-    if ((originalMessage?.deleted ?? '') !== '' && isMoneyRequestAction(singleAction)) {
+    if (((originalMessage?.deleted ?? '') !== '' || isDeletedAction(singleAction)) && isMoneyRequestAction(singleAction)) {
         return;
     }
 
