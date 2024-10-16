@@ -13,6 +13,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -80,6 +81,8 @@ function BaseValidateCodeForm({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
+
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
@@ -179,7 +182,7 @@ function BaseValidateCodeForm({
     }, [validateCode, handleSubmitForm]);
 
     return (
-        <>
+        <View style={styles.flex1}>
             <MagicCodeInput
                 autoComplete={autoComplete}
                 ref={inputValidateCodeRef}
@@ -220,25 +223,28 @@ function BaseValidateCodeForm({
                     )}
                 </View>
             </OfflineWithFeedback>
-            <OfflineWithFeedback
-                pendingAction={validatePendingAction}
-                errors={validateError}
-                errorRowStyles={[styles.mt2]}
-                onClose={() => clearError()}
-                style={buttonStyles}
-            >
-                <Button
-                    isDisabled={isOffline}
-                    text={translate('common.verify')}
-                    onPress={validateAndSubmitForm}
-                    style={[styles.mt4]}
-                    success
-                    pressOnEnter
-                    large
-                    isLoading={account?.isLoading}
-                />
-            </OfflineWithFeedback>
-        </>
+
+            <View style={[styles.flex1, styles.justifyContentEnd, safePaddingBottomStyle]}>
+                <OfflineWithFeedback
+                    pendingAction={validatePendingAction}
+                    errors={validateError}
+                    errorRowStyles={[styles.mt2]}
+                    onClose={() => clearError()}
+                    style={buttonStyles}
+                >
+                    <Button
+                        isDisabled={isOffline}
+                        text={translate('common.verify')}
+                        onPress={validateAndSubmitForm}
+                        style={[styles.mt4]}
+                        success
+                        pressOnEnter
+                        large
+                        isLoading={account?.isLoading}
+                    />
+                </OfflineWithFeedback>
+            </View>
+        </View>
     );
 }
 

@@ -54,7 +54,7 @@ function ValidateCodeActionModal({isVisible, title, description, onClose, valida
                     onBackButtonPress={hide}
                 />
 
-                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
+                <View style={[ themeStyles.flex1, themeStyles.ph5, themeStyles.mt3, themeStyles.pb5]}>
                     <Text style={[themeStyles.mb3]}>{description}</Text>
                     <ValidateCodeForm
                         validateCodeAction={validateCodeAction}
