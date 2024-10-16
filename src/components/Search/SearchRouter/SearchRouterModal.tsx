@@ -7,10 +7,10 @@ import SearchRouter from './SearchRouter';
 import {useSearchRouterContext} from './SearchRouterContext';
 
 function SearchRouterModal() {
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
 
-    const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.POPOVER;
+    const modalType = shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.POPOVER;
 
     return (
         <Modal

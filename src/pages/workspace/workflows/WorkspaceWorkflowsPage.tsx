@@ -48,6 +48,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate, preferredLocale} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
 
     const policyApproverEmail = policy?.approver;

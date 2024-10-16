@@ -66,6 +66,7 @@ function IOURequestStepScan({
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     // we need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
