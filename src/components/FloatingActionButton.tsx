@@ -10,7 +10,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import {PressableWithoutFeedback} from './Pressable';
-import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 AnimatedPath.displayName = 'AnimatedPath';
@@ -57,7 +56,6 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
     const {success, buttonDefaultBG, textLight, textDark} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
-    const {translate} = useLocalize();
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
