@@ -10,8 +10,7 @@ ___
 **Version Number:**
 **Reproducible in staging?:**
 **Reproducible in production?:**
-**Reproducible on New Expensify Standalone?:**
-**Reproducible on HybridApp?:**
+**If this was caught on HybridApp, is this reproducible on New Expensify Standalone?:**
 **If this was caught during regression testing, add the test name, ID and link from TestRail:**
 **Email or phone of affected tester (no customers):**
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
