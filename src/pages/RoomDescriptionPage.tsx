@@ -40,7 +40,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
     const route = useRoute<RouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
-    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(report?.description ?? ''));
+    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(ReportUtils.getReportDescription(report)));
     const reportDescriptionInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const {translate} = useLocalize();
