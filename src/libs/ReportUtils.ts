@@ -4239,7 +4239,7 @@ function getReportDescription(report: OnyxEntry<Report>): string {
     }
     try {
         const reportDescription = report?.description;
-        const objectDescription = JSON.parse(reportDescription);
+        const objectDescription = JSON.parse(reportDescription) as {html: string};
         return objectDescription.html ?? '';
     } catch (error) {
         return report?.description ?? '';
