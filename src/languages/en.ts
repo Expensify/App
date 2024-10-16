@@ -4244,6 +4244,10 @@ const translations = {
                 title: 'Nothing to show',
                 subtitle: 'Try creating something using the green + button.',
             },
+            emptyExpenseResults: {
+                title: "You haven't created any expenses yet",
+                subtitle: 'Use the green button below to create an expense or take a tour of Expensify to learn more.',
+            },
             emptyTripResults: {
                 title: 'No trips to display',
                 subtitle: 'Get started by booking your first trip below.',
@@ -5077,6 +5081,9 @@ const translations = {
             hasChildReportAwaitingAction: 'Has child report awaiting action',
             hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
         },
+    },
+    emptySearchView: {
+        takeATour: 'Take a tour',
     },
 };
 

@@ -1,5 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {Linking, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {FeatureListItem} from '@components/FeatureList';
@@ -13,9 +14,14 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TripsResevationUtils from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
+import * as IOU from '@userActions/IOU';
+import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
@@ -86,6 +92,9 @@ function EmptySearchView({type}: EmptySearchViewProps) {
         );
     }, [styles, translate, ctaErrorMessage]);
 
+    const [onboardingPurpose] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: (introSelected) => introSelected?.choice});
+    const navatticLink = onboardingPurpose === CONST.SELECTABLE_ONBOARDING_CHOICES.MANAGE_TEAM ? CONST.NAVATTIC.ADMIN_TOUR : CONST.NAVATTIC.EMPLOYEE_TOUR;
+
     const content = useMemo(() => {
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
@@ -96,11 +105,31 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     subtitle: subtitleComponent,
-                    buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
-                    buttonAction: () => TripsResevationUtils.bookATrip(translate, setCtaErrorMessage, ctaErrorMessage),
+                    buttons: [
+                        {
+                            buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
+                            buttonAction: () => TripsResevationUtils.bookATrip(translate, setCtaErrorMessage, ctaErrorMessage),
+                            success: true,
+                        },
+                    ],
                 };
             case CONST.SEARCH.DATA_TYPES.CHAT:
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
+                return {
+                    headerMedia: LottieAnimations.GenericEmptyState,
+                    headerStyles: [StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                    title: translate('search.searchResults.emptyExpenseResults.title'),
+                    subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
+                    buttons: [
+                        {buttonText: translate('emptySearchView.takeATour'), buttonAction: () => Link.openExternalLink(navatticLink)},
+                        {
+                            buttonText: translate('iou.createExpense'),
+                            buttonAction: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID())),
+                            success: true,
+                        },
+                    ],
+                    headerContentStyles: styles.emptyStateFolderWebStyles,
+                };
             case CONST.SEARCH.DATA_TYPES.INVOICE:
             default:
                 return {
@@ -108,8 +137,6 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     headerStyles: [StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    buttonText: undefined,
-                    buttonAction: undefined,
                     headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
         }
@@ -124,8 +151,9 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             title={content.title}
             titleStyles={content.titleStyles}
             subtitle={content.subtitle}
-            buttonText={content.buttonText}
-            buttonAction={content.buttonAction}
+            // buttonText={content.buttonText}
+            // buttonAction={content.buttonAction}
+            buttons={content.buttons}
             headerContentStyles={[styles.h100, styles.w100, content.headerContentStyles]}
             lottieWebViewStyles={styles.emptyStateFolderWebStyles}
         />
