@@ -479,8 +479,6 @@ function IOURequestStepScan({
                     updateScanAndNavigate(file, source);
                     return;
                 }
-                console.log('shouldSkipConfirmation :>> ', shouldSkipConfirmation);
-                console.log('IOUUtils.shouldStartLocationPermissionFlow() :>> ', IOUUtils.shouldStartLocationPermissionFlow());
                 if (shouldSkipConfirmation) {
                     setFileResize(file);
                     setFileSource(source);
@@ -528,8 +526,6 @@ function IOURequestStepScan({
             updateScanAndNavigate(file, source);
             return;
         }
-        console.log('shouldSkipConfirmation :>> ', shouldSkipConfirmation);
-        console.log('IOUUtils.shouldStartLocationPermissionFlow() :>> ', IOUUtils.shouldStartLocationPermissionFlow());
         if (shouldSkipConfirmation) {
             setFileResize(file);
             setFileSource(source);
