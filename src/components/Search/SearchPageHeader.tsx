@@ -1,5 +1,4 @@
-import React, {useMemo, useState} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
+import React, {useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -21,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
@@ -35,59 +35,56 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
 import SearchButton from './SearchRouter/SearchButton';
+import SearchRouterInput from './SearchRouter/SearchRouterInput';
 import type {SearchQueryJSON} from './types';
 
-type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'title' | 'subtitle' | 'icon' | 'children'> & {
-    subtitleStyles?: StyleProp<TextStyle>;
+type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> & {
+    text: string;
+    value: string;
+    isCannedQuery: boolean;
+    onSubmit: () => void;
+    setValue: (input: string) => void;
 };
 
-function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: HeaderWrapperProps) {
+function HeaderWrapper({icon, children, text, value, isCannedQuery, onSubmit, setValue}: HeaderWrapperProps) {
     const styles = useThemeStyles();
-
     // If the icon is present, the header bar should be taller and use different font.
     const isCentralPaneSettings = !!icon;
-
-    const middleContent = useMemo(() => {
-        return (
-            <Header
-                title={
-                    <Text
-                        style={[styles.mutedTextLabel, styles.pre]}
-                        numberOfLines={1}
-                    >
-                        {title}
-                    </Text>
-                }
-                subtitle={
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textLarge, subtitleStyles]}
-                    >
-                        {subtitle}
-                    </Text>
-                }
-            />
-        );
-    }, [styles.mutedTextLabel, styles.pre, styles.textLarge, subtitle, subtitleStyles, title]);
 
     return (
         <View
             dataSet={{dragArea: false}}
             style={[styles.headerBar, isCentralPaneSettings && styles.headerBarDesktopHeight]}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
-                {icon && (
-                    <Icon
-                        src={icon}
-                        width={variables.iconHeader}
-                        height={variables.iconHeader}
-                        additionalStyles={[styles.mr2]}
+            {isCannedQuery ? (
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
+                    {icon && (
+                        <Icon
+                            src={icon}
+                            width={variables.iconHeader}
+                            height={variables.iconHeader}
+                            additionalStyles={[styles.mr2]}
+                        />
+                    )}
+                    <Header subtitle={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{text}</Text>} />
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>{children}</View>
+                </View>
+            ) : (
+                <View style={styles.pr5}>
+                    <SearchRouterInput
+                        value={value}
+                        setValue={setValue}
+                        onSubmit={onSubmit}
+                        updateSearch={() => {}}
+                        autoFocus={false}
+                        isFullWidth
+                        wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
+                        wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
+                        rightComponent={children}
+                        routerListRef={undefined}
                     />
-                )}
-
-                {middleContent}
-                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>{children}</View>
-            </View>
+                </View>
+            )}
         </View>
     );
 }
@@ -131,20 +128,26 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-
     const {status, type} = queryJSON;
     const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
+    const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
+    const [inputValue, setInputValue] = useState(headerText);
 
-    const headerSubtitle = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
-    const headerTitle = isCannedQuery ? '' : translate('search.filtersHeader');
-    const headerIcon = isCannedQuery ? getHeaderContent(type).icon : Illustrations.Filters;
+    useEffect(() => {
+        setInputValue(headerText);
+    }, [headerText]);
 
-    const subtitleStyles = isCannedQuery ? styles.textHeadlineH2 : {};
+    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+
+    const headerIcon = getHeaderContent(type).icon;
+
     const handleDeleteExpenses = () => {
         if (selectedTransactionsKeys.length === 0) {
             return;
@@ -324,43 +327,57 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     }
 
     const onPress = () => {
-        const filterFormValues = SearchUtils.buildFilterFormValuesFromQuery(queryJSON);
+        const filterFormValues = SearchUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
         SearchActions.updateAdvancedFilters(filterFormValues);
 
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
-    const displaySearchRouter = SearchUtils.isCannedSearchQuery(queryJSON);
+    const onSubmit = () => {
+        if (!inputValue) {
+            return;
+        }
+        const inputQueryJSON = SearchUtils.buildSearchQueryJSON(inputValue);
+        if (inputQueryJSON) {
+            const standardizedQuery = SearchUtils.standardizeQueryJSON(inputQueryJSON, cardList, taxRates);
+            const query = SearchUtils.buildSearchQueryString(standardizedQuery);
+            SearchActions.clearAllFilters();
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+        } else {
+            Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, inputValue, false);
+        }
+    };
 
     return (
         <>
             <HeaderWrapper
-                title={headerTitle}
-                subtitle={headerSubtitle}
                 icon={headerIcon}
-                subtitleStyles={subtitleStyles}
+                text={headerText}
+                value={inputValue}
+                isCannedQuery={isCannedQuery}
+                onSubmit={onSubmit}
+                setValue={setInputValue}
             >
-                <>
-                    {headerButtonsOptions.length > 0 ? (
-                        <ButtonWithDropdownMenu
-                            onPress={() => null}
-                            shouldAlwaysShowDropdownMenu
-                            pressOnEnter
-                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                            customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
-                            options={headerButtonsOptions}
-                            isSplitButton={false}
-                            shouldUseStyleUtilityForAnchorPosition
-                        />
-                    ) : (
-                        <Button
-                            text={translate('search.filtersHeader')}
-                            icon={Expensicons.Filters}
-                            onPress={onPress}
-                        />
-                    )}
-                    {displaySearchRouter && <SearchButton />}
-                </>
+                {headerButtonsOptions.length > 0 ? (
+                    <ButtonWithDropdownMenu
+                        onPress={() => null}
+                        shouldAlwaysShowDropdownMenu
+                        pressOnEnter
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
+                        options={headerButtonsOptions}
+                        isSplitButton={false}
+                        shouldUseStyleUtilityForAnchorPosition
+                    />
+                ) : (
+                    <Button
+                        innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
+                        text={translate('search.filtersHeader')}
+                        icon={Expensicons.Filters}
+                        onPress={onPress}
+                    />
+                )}
+                {isCannedQuery && <SearchButton />}
             </HeaderWrapper>
             <ConfirmModal
                 isVisible={isDeleteExpensesConfirmModalVisible}

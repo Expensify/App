@@ -62,7 +62,7 @@ export default {
     fontSizeh2: 19,
     fontSizeXLarge: 22,
     fontSizeXXLarge: 28,
-    fontSizeXXXLarge: 32,
+    fontSizeXXXLarge: getValueUsingPixelRatio(32, 37),
     fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
     fontSizeEReceiptLarge: 44,
     fontSizeSignInHeroLarge: 48,
@@ -248,12 +248,12 @@ export default {
 
     searchTypeColumnWidth: 52,
 
-    inlineImagePreviewMinSize: 64,
-    inlineImagePreviewMaxSize: 148,
-
     composerTooltipShiftHorizontal: 10,
     composerTooltipShiftVertical: -10,
     gbrTooltipShiftHorizontal: -20,
+
+    inlineImagePreviewMinSize: 64,
+    inlineImagePreviewMaxSize: 148,
 
     minimalTopBarOffset: -26,
     searchHeaderHeight: 80,

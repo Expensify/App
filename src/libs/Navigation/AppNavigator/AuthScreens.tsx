@@ -7,7 +7,7 @@ import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
-import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
@@ -21,6 +21,7 @@ import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
 import Navigation from '@libs/Navigation/Navigation';
+import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
 import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
@@ -89,11 +90,6 @@ const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/Rep
 const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
-function shouldOpenOnAdminRoom() {
-    const url = getCurrentUrl();
-    return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
-}
-
 function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
         // Generate default query string with buildSearchQueryString without argument.
@@ -138,6 +134,7 @@ Onyx.connect({
     callback: (value) => {
         // When signed out, val hasn't accountID
         if (!(value && 'accountID' in value)) {
+            currentAccountID = -1;
             timezone = null;
             return;
         }
@@ -154,7 +151,7 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
-        if (!value || timezone) {
+        if (!value || !isEmptyObject(timezone)) {
             return;
         }
 
@@ -560,7 +557,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={SCREENS.CONNECTION_COMPLETE}
-                        options={defaultScreenOptions}
+                        options={screenOptions.fullScreen}
                         component={ConnectionCompletePage}
                     />
                     {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
@@ -577,7 +574,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         );
                     })}
                 </RootStack.Navigator>
-                <SearchRouter />
+                <SearchRouterModal />
             </View>
             {didPusherInit && <ActiveGuidesEventListener />}
         </ComposeProviders>
@@ -588,6 +585,10 @@ AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 
+// Migration to useOnyx cause re-login if logout from deeplinked report in desktop app
+// Further analysis required and more details can be seen here:
+// https://github.com/Expensify/App/issues/50560
+// eslint-disable-next-line
 export default withOnyx<AuthScreensProps, AuthScreensProps>({
     session: {
         key: ONYXKEYS.SESSION,

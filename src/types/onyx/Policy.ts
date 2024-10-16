@@ -439,6 +439,16 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/**
+ * Reimbursable account types exported from QuickBooks Desktop
+ */
+type QBDReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE>;
+
+/**
+ * Non reimbursable account types exported from QuickBooks Desktop
+ */
+type QBDNonReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE>;
+
 /** Xero bill status values
  *
  * TODO: Xero remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
@@ -1205,6 +1215,91 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig | keyof SageIntacctExportConfig
 >;
 
+/**
+ * Data imported from QuickBooks Desktop.
+ */
+type QBDConnectionData = {
+    /** Collection of cash accounts */
+    cashAccounts: Account[];
+
+    /** Collection of credit cards */
+    creditCardAccounts: Account[];
+
+    /** Collection of journal entry accounts  */
+    journalEntryAccounts: Account[];
+
+    /** Collection of payable accounts */
+    payableAccounts: Account[];
+
+    /** Collection of bank accounts */
+    bankAccounts: Account[];
+
+    /** Collections of vendors */
+    vendors: Vendor[];
+};
+
+/**
+ * User configuration for the QuickBooks Desktop accounting integration.
+ */
+type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** API provider */
+    apiProvider: string;
+
+    /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
+    autoSync: {
+        /** Job ID of the synchronization */
+        jobID: string;
+
+        /** Whether changes made in QuickBooks Desktop should be reflected into the app automatically */
+        enabled: boolean;
+    };
+
+    /** Whether a check to be printed */
+    markChecksToBePrinted: boolean;
+
+    /** Determines if a vendor should be automatically created */
+    shouldAutoCreateVendor: boolean;
+
+    /** Configuration of the export */
+    export: {
+        /** E-mail of the exporter */
+        exporter: string;
+
+        /** Defines how reimbursable expenses are exported */
+        reimbursable: QBDReimbursableExportAccountType;
+
+        /** Account that receives the reimbursable expenses */
+        reimbursableAccount: string;
+
+        /** Export date type */
+        exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+
+        /** Defines how non-reimbursable expenses are exported */
+        nonReimbursable: QBDNonReimbursableExportAccountType;
+
+        /** Account that receives the non reimbursable expenses */
+        nonReimbursableAccount: string;
+
+        /** Default vendor of non reimbursable bill */
+        nonReimbursableBillDefaultVendor: string;
+    };
+
+    /** Configuration of import settings from QuickBooks Desktop to the app */
+    mappings: {
+        /** How QuickBooks Desktop classes displayed as */
+        classes: IntegrationEntityMap;
+
+        /** How QuickBooks Desktop customers displayed as */
+        customers: IntegrationEntityMap;
+    };
+
+    /** Whether new categories are enabled in chart of accounts */
+    enableNewCategories: boolean;
+
+    /** Collections of form field errors */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
     /** State of the last synchronization */
@@ -1219,7 +1314,7 @@ type Connection<ConnectionData, ConnectionConfig> = {
 
 /** Available integration connections */
 type Connections = {
-    /** QuickBooks integration connection */
+    /** QuickBooks Online integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBO]: Connection<QBOConnectionData, QBOConnectionConfig>;
 
     /** Xero integration connection */
@@ -1230,6 +1325,9 @@ type Connections = {
 
     /** Sage Intacct integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
+
+    /** QuickBooks Desktop integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -1252,6 +1350,9 @@ type MccGroup = {
 
     /** ID of the Merchant Category Code */
     groupID: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 /** Model of verified reimbursement bank account linked to policy */
@@ -1359,25 +1460,25 @@ type PendingJoinRequestPolicy = {
     isJoinRequestPending: boolean;
 
     /** Record of public policy details, indexed by policy ID */
-    policyDetailsForNonMembers: Record<
-        string,
-        OnyxCommon.OnyxValueWithOfflineFeedback<{
-            /** Name of the policy */
-            name: string;
+    policyDetailsForNonMembers: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyDetailsForNonMembers>>;
+};
 
-            /** Policy owner account ID */
-            ownerAccountID: number;
+/** Details of public policy */
+type PolicyDetailsForNonMembers = {
+    /** Name of the policy */
+    name: string;
 
-            /** Policy owner e-mail */
-            ownerEmail: string;
+    /** Policy owner account ID */
+    ownerAccountID: number;
 
-            /** Policy type */
-            type: ValueOf<typeof CONST.POLICY.TYPE>;
+    /** Policy owner e-mail */
+    ownerEmail: string;
 
-            /** Policy avatar */
-            avatar?: string;
-        }>
-    >;
+    /** Policy type */
+    type: ValueOf<typeof CONST.POLICY.TYPE>;
+
+    /** Policy avatar */
+    avatar?: string;
 };
 
 /** Data informing when a given rule should be applied */
@@ -1731,6 +1832,7 @@ export type {
     CompanyAddress,
     IntegrationEntityMap,
     PolicyFeatureName,
+    PolicyDetailsForNonMembers,
     PendingJoinRequestPolicy,
     PolicyConnectionName,
     PolicyConnectionSyncStage,
@@ -1747,6 +1849,7 @@ export type {
     XeroTrackingCategory,
     NetSuiteConnection,
     ConnectionLastSync,
+    QBDReimbursableExportAccountType,
     NetSuiteSubsidiary,
     NetSuiteCustomList,
     NetSuiteCustomSegment,

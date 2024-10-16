@@ -62,6 +62,12 @@ type ReportActionsViewProps = {
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
+
+    /** If the report has newer actions to load */
+    hasNewerActions: boolean;
+
+    /** If the report has older actions to load */
+    hasOlderActions: boolean;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -76,6 +82,8 @@ function ReportActionsView({
     isLoadingNewerReportActions = false,
     hasLoadingNewerReportActionsError = false,
     transactionThreadReportID,
+    hasNewerActions,
+    hasOlderActions,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
@@ -85,6 +93,7 @@ function ReportActionsView({
         selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? -1}`);
+    const prevTransactionThreadReport = usePrevious(transactionThreadReport);
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
     const didLayout = useRef(false);
@@ -150,9 +159,9 @@ function ReportActionsView({
         }
 
         const actions = [...allReportActions];
-        const lastAction = allReportActions[allReportActions.length - 1];
+        const lastAction = allReportActions.at(-1);
 
-        if (!ReportActionsUtils.isCreatedAction(lastAction)) {
+        if (lastAction && !ReportActionsUtils.isCreatedAction(lastAction)) {
             const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(String(report?.ownerAccountID), DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1));
             optimisticCreatedAction.pendingAction = null;
             actions.push(optimisticCreatedAction);
@@ -183,7 +192,7 @@ function ReportActionsView({
                 false,
                 false,
                 false,
-                DateUtils.subtractMillisecondsFromDateTime(actions[actions.length - 1].created, 1),
+                DateUtils.subtractMillisecondsFromDateTime(actions.at(-1)?.created ?? '', 1),
             ) as OnyxTypes.ReportAction;
             moneyRequestActions.push(optimisticIOUAction);
             actions.splice(actions.length - 1, 0, optimisticIOUAction);
@@ -253,7 +262,7 @@ function ReportActionsView({
      */
     const fetchNewerAction = useCallback(
         (newestReportAction: OnyxTypes.ReportAction) => {
-            if (isLoadingNewerReportActions || isLoadingInitialReportActions || (reportActionID && isOffline)) {
+            if (!hasNewerActions || isLoadingNewerReportActions || isLoadingInitialReportActions || (reportActionID && isOffline)) {
                 return;
             }
 
@@ -270,16 +279,15 @@ function ReportActionsView({
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);
             }
         },
-        [isLoadingNewerReportActions, isLoadingInitialReportActions, reportActionID, isOffline, transactionThreadReport, reportActionIDMap, reportID],
+        [isLoadingNewerReportActions, isLoadingInitialReportActions, reportActionID, isOffline, transactionThreadReport, reportActionIDMap, reportID, hasNewerActions],
     );
 
     const hasMoreCached = reportActions.length < combinedReportActions.length;
-    const newestReportAction = useMemo(() => reportActions?.[0], [reportActions]);
+    const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const hasCachedActionOnFirstRender = useInitialValue(() => reportActions.length > 0);
-    const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated || reportActions[0]?.created === transactionThreadReport?.lastVisibleActionCreated;
+    const hasNewestReportAction = reportActions.at(0)?.created === report.lastVisibleActionCreated || reportActions.at(0)?.created === transactionThreadReport?.lastVisibleActionCreated;
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
-    const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
     useEffect(() => {
         const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !session?.authTokenType;
@@ -312,7 +320,9 @@ function ReportActionsView({
             // This function is a placeholder as the actual pagination is handled by visibleReportActions
             if (!hasMoreCached && !hasNewestReportAction) {
                 isFirstLinkedActionRender.current = false;
-                fetchNewerAction(newestReportAction);
+                if (newestReportAction) {
+                    fetchNewerAction(newestReportAction);
+                }
             }
             if (isFirstLinkedActionRender.current) {
                 isFirstLinkedActionRender.current = false;
@@ -341,7 +351,7 @@ function ReportActionsView({
             }
 
             // Don't load more chats if we're already at the beginning of the chat history
-            if (!oldestReportAction || hasCreatedAction) {
+            if (!oldestReportAction || !hasOlderActions) {
                 return;
             }
 
@@ -365,11 +375,11 @@ function ReportActionsView({
             isLoadingOlderReportActions,
             isLoadingInitialReportActions,
             oldestReportAction,
-            hasCreatedAction,
             reportID,
             reportActionIDMap,
             transactionThreadReport,
             hasLoadingOlderReportActionsError,
+            hasOlderActions,
         ],
     );
 
@@ -384,7 +394,7 @@ function ReportActionsView({
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
                     (!hasMoreCached && didLoadNewerChats.current && hasLoadingNewerReportActionsError) ||
-                    newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    newestReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             ) {
                 return;
             }
@@ -392,7 +402,7 @@ function ReportActionsView({
             didLoadNewerChats.current = true;
 
             if ((reportActionID && indexOfLinkedAction > -1) || !reportActionID) {
-                handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
+                handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID ?? '-1'});
             }
         },
         [
@@ -461,7 +471,7 @@ function ReportActionsView({
     }
 
     // AutoScroll is disabled when we do linking to a specific reportAction
-    const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage);
+    const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
     return (
         <>
             <ReportActionsList
@@ -519,6 +529,14 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
     }
 
     if (oldProps.hasLoadingNewerReportActionsError !== newProps.hasLoadingNewerReportActionsError) {
+        return false;
+    }
+
+    if (oldProps.hasNewerActions !== newProps.hasNewerActions) {
+        return false;
+    }
+
+    if (oldProps.hasOlderActions !== newProps.hasOlderActions) {
         return false;
     }
 

@@ -316,7 +316,7 @@ type UnshareParams = {to: string};
 
 type StripePaidParams = {amount: string; currency: string};
 
-type UnapprovedParams = {amount: string; currency: string};
+type UnapprovedParams = {amount: string};
 
 type RemoveMembersWarningPrompt = {
     memberName: string;
@@ -533,6 +533,10 @@ type AuthenticationErrorParams = {
     connectionName: string;
 };
 
+type ImportedTypesParams = {
+    importedTypes: string[];
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -730,4 +734,5 @@ export type {
     CharacterLengthLimitParams,
     OptionalParam,
     AssignCardParams,
+    ImportedTypesParams,
 };

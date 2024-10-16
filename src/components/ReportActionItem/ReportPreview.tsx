@@ -134,16 +134,9 @@ function ReportPreview({
     const iouSettled = ReportUtils.isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const previewMessageOpacity = useSharedValue(1);
     const previewMessageStyle = useAnimatedStyle(() => ({
-        ...styles.flex1,
-        ...styles.flexRow,
-        ...styles.alignItemsCenter,
         opacity: previewMessageOpacity.value,
     }));
     const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
-    const checkMarkStyle = useAnimatedStyle(() => ({
-        ...styles.defaultCheckmarkWrapper,
-        transform: [{scale: checkMarkScale.value}],
-    }));
 
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
@@ -170,10 +163,10 @@ function ReportPreview({
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage =
         numberOfRequests === 1 &&
-        TransactionUtils.hasPendingUI(allTransactions[0], TransactionUtils.getTransactionViolations(allTransactions[0]?.transactionID ?? '-1', transactionViolations));
+        TransactionUtils.hasPendingUI(allTransactions.at(0), TransactionUtils.getTransactionViolations(allTransactions.at(0)?.transactionID ?? '-1', transactionViolations));
 
-    let formattedMerchant = numberOfRequests === 1 ? TransactionUtils.getMerchant(allTransactions[0]) : null;
-    const formattedDescription = numberOfRequests === 1 ? TransactionUtils.getDescription(allTransactions[0]) : null;
+    let formattedMerchant = numberOfRequests === 1 ? TransactionUtils.getMerchant(allTransactions.at(0)) : null;
+    const formattedDescription = numberOfRequests === 1 ? TransactionUtils.getDescription(allTransactions.at(0)) : null;
 
     if (TransactionUtils.isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
@@ -192,6 +185,10 @@ function ReportPreview({
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const stopAnimation = useCallback(() => setIsPaidAnimationRunning(false), []);
+    const startAnimation = useCallback(() => {
+        setIsPaidAnimationRunning(true);
+        HapticFeedback.longPress();
+    }, []);
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
             if (!type) {
@@ -319,12 +316,14 @@ function ReportPreview({
     ]);
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
-
-    const shouldShowPayButton = useMemo(
-        () => isPaidAnimationRunning || IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions),
-        [isPaidAnimationRunning, iouReport, chatReport, policy, allTransactions],
+    const getCanIOUBePaid = useCallback(
+        (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions, onlyShowPayElsewhere),
+        [iouReport, chatReport, policy, allTransactions],
     );
 
+    const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
+    const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
@@ -465,7 +464,7 @@ function ReportPreview({
                             <View style={shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={styles.flexRow}>
-                                        <Animated.View style={previewMessageStyle}>
+                                        <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, previewMessageStyle]}>
                                             <Text style={[styles.textLabelSupporting, styles.lh16]}>{previewMessage}</Text>
                                         </Animated.View>
                                         {shouldShowRBR && (
@@ -487,7 +486,7 @@ function ReportPreview({
                                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                                 <Text style={styles.textHeadlineH1}>{getDisplayAmount()}</Text>
                                                 {iouSettled && (
-                                                    <Animated.View style={checkMarkStyle}>
+                                                    <Animated.View style={[styles.defaultCheckmarkWrapper, {transform: [{scale: checkMarkScale}]}]}>
                                                         <Icon
                                                             src={Expensicons.Checkmark}
                                                             fill={theme.iconSuccessFill}
@@ -518,6 +517,7 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && (
                                     <AnimatedSettlementButton
+                                        onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
                                         onAnimationFinish={stopAnimation}
                                         formattedAmount={getSettlementAmount() ?? ''}
@@ -587,6 +587,7 @@ function ReportPreview({
                     chatReport={chatReport}
                     moneyRequestReport={iouReport}
                     transactionCount={numberOfRequests}
+                    startAnimation={startAnimation}
                 />
             )}
         </OfflineWithFeedback>

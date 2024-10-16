@@ -146,7 +146,7 @@ function ReportActionItemSingle({
         const avatarIconIndex = report?.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
         const reportIcons = ReportUtils.getIcons(report, {});
 
-        secondaryAvatar = reportIcons[avatarIconIndex];
+        secondaryAvatar = reportIcons.at(avatarIconIndex) ?? {name: '', source: '', type: CONST.ICON_TYPE_AVATAR};
     } else {
         secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }
@@ -193,6 +193,15 @@ function ReportActionItemSingle({
     );
 
     const getAvatar = () => {
+        if (shouldShowSubscriptAvatar) {
+            return (
+                <SubscriptAvatar
+                    mainAvatar={icon}
+                    secondaryAvatar={secondaryAvatar}
+                    noMargin
+                />
+            );
+        }
         if (displayAllActors) {
             return (
                 <MultipleAvatars
@@ -200,15 +209,6 @@ function ReportActionItemSingle({
                     isInReportAction
                     shouldShowTooltip
                     secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
-                />
-            );
-        }
-        if (shouldShowSubscriptAvatar) {
-            return (
-                <SubscriptAvatar
-                    mainAvatar={icon}
-                    secondaryAvatar={secondaryAvatar}
-                    noMargin
                 />
             );
         }

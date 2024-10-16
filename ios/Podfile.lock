@@ -1606,16 +1606,29 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-config (1.5.0):
-    - react-native-config/App (= 1.5.0)
-  - react-native-config/App (1.5.0):
-    - RCT-Folly
+  - react-native-config (1.5.3):
+    - react-native-config/App (= 1.5.3)
+  - react-native-config/App (1.5.3):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
     - RCTRequired
     - RCTTypeSafety
-    - React
-    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
     - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-document-picker (9.3.1):
     - DoubleConversion
     - glog
@@ -1687,7 +1700,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-keyboard-controller (1.12.7):
+  - react-native-keyboard-controller (1.14.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2360,7 +2373,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.159):
+  - RNLiveMarkdown (0.1.164):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2380,9 +2393,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.159)
+    - RNLiveMarkdown/newarch (= 0.1.164)
     - Yoga
-  - RNLiveMarkdown/common (0.1.159):
+  - RNLiveMarkdown/newarch (0.1.164):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3173,12 +3186,12 @@ SPEC CHECKSUMS:
   react-native-airship: e10f6823d8da49bbcb2db4bdb16ff954188afccc
   react-native-blob-util: 221c61c98ae507b758472ac4d2d489119d1a6c44
   react-native-cameraroll: 478a0c1fcdd39f08f6ac272b7ed06e92b2c7c129
-  react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
+  react-native-config: 742a9e0a378a78d0eaff1fb3477d8c0ae222eb51
   react-native-document-picker: e9d83c149bdd72dc01cf8dcb8df0389c6bd5fddb
   react-native-geolocation: b9bd12beaf0ebca61a01514517ca8455bd26fa06
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: aae312752fcdfaa2240be9a015fc41ce54087546
-  react-native-keyboard-controller: b9b2ba987e3c6f4b6534740e88d11dccc34f69dc
+  react-native-keyboard-controller: 17d5830f2bd6c6cad44682eb2cc13f9078eff985
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: fb5112b1fa754975485884ae85a3fb6a684f49d5
   react-native-pager-view: 94195f1bf32e7f78359fa20057c97e632364a08b
@@ -3229,7 +3242,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 8781e2529230a1bc3ea8d75e5c3cd071b6c6aed7
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 2d97e3f4952c642cdd31bc05555e44dc5edcdba1
+  RNLiveMarkdown: b2bd97a6f1206be16cf6536c092fe39f986aca34
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28

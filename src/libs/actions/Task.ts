@@ -113,6 +113,7 @@ function createTaskAndNavigate(
     assigneeAccountID = 0,
     assigneeChatReport?: OnyxEntry<OnyxTypes.Report>,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
+    isCreatedUsingMarkdown = false,
 ) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
@@ -242,6 +243,11 @@ function createTaskAndNavigate(
             targetAccountID: assigneeAccountID,
         },
     });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+        value: quickAction ?? null,
+    });
 
     // If needed, update optimistic data for parent report action of the parent report.
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -277,8 +283,6 @@ function createTaskAndNavigate(
         },
     });
 
-    clearOutTaskInfo();
-
     const parameters: CreateTaskParams = {
         parentReportActionID: optimisticAddCommentReport.reportAction.reportActionID,
         parentReportID,
@@ -295,7 +299,10 @@ function createTaskAndNavigate(
 
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(parentReportID);
+    if (!isCreatedUsingMarkdown) {
+        clearOutTaskInfo();
+        Navigation.dismissModal(parentReportID);
+    }
     Report.notifyNewAction(parentReportID, currentUserAccountID);
 }
 
@@ -897,7 +904,7 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
 
     let subtitle = '';
     if (isOneOnOneChat) {
-        const participantAccountID = participants[0] ?? -1;
+        const participantAccountID = participants.at(0) ?? -1;
 
         const displayName = personalDetails?.[participantAccountID]?.displayName ?? '';
         const login = personalDetails?.[participantAccountID]?.login ?? '';
@@ -1085,6 +1092,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     Report.notifyNewAction(report.reportID, currentUserAccountID);
 
     if (shouldDeleteTaskReport) {
+        Navigation.goBack();
         if (parentReport?.reportID) {
             return ROUTES.REPORT_WITH_ID.getRoute(parentReport.reportID);
         }
