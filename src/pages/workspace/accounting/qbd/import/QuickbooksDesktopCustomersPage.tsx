@@ -42,7 +42,7 @@ function QuickbooksDesktopCustomersPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('workspace.qbd.customers')}
                 isActive={isSwitchOn}
                 onToggle={() =>
-                    QuickbooksDesktop.updateQuickbooksDesktopSyncClasses(
+                    QuickbooksDesktop.updateQuickbooksDesktopSyncCustomers(
                         policyID,
                         isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                         qbdConfig?.mappings?.classes,
