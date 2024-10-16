@@ -1475,5 +1475,87 @@ describe('DebugUtils', () => {
                 expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
             });
         });
+        describe('reason', () => {
+            it('returns correct reason when there are errors', () => {
+                const {reason} =
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                        {
+                            reportID: '1',
+                        },
+                        {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                                reportActionID: '1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                                created: '2024-09-20 13:11:11.122',
+                                errors: {
+                                    randomError: 'Something went wrong',
+                                },
+                            },
+                        },
+                        false,
+                    ) ?? {};
+                expect(reason).toBe('debug.reasonRBR.hasErrors');
+            });
+            it('returns correct reason when there are violations', () => {
+                const {reason} =
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                        {
+                            reportID: '1',
+                        },
+                        undefined,
+                        true,
+                    ) ?? {};
+                expect(reason).toBe('debug.reasonRBR.hasViolations');
+            });
+            it('returns correct reason when there are transaction thread violations', async () => {
+                const threadReport: Report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                    reportName: 'My first chat',
+                    lastMessageText: 'Hello World!',
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    parentReportID: '0',
+                    parentReportActionID: '0',
+                };
+                const reportActions: ReportActions = {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '0': {
+                        reportActionID: '0',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        message: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: '0',
+                            IOUReportID: '0',
+                            amount: 10,
+                            currency: CONST.CURRENCY.USD,
+                            text: '',
+                        },
+                        created: '2024-07-13 06:02:11.111',
+                    },
+                };
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        accountID: 1234,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT}0` as const]: {
+                        reportID: '0',
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        ownerAccountID: 1234,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}0` as const]: reportActions,
+                    [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: threadReport,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}0` as const]: [
+                        {
+                            type: CONST.VIOLATION_TYPES.VIOLATION,
+                            name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                        },
+                    ],
+                });
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(threadReport, reportActions, false) ?? {};
+                expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
+            });
+        });
     });
 });
