@@ -38,7 +38,7 @@ type NewChatPageProps = {
     isGroupChat?: boolean;
 };
 
-const excludedGroupEmails: Array<string> = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
+const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
 function useOptions({isGroupChat}: NewChatPageProps) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
