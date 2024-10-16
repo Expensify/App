@@ -5278,7 +5278,7 @@ const styles = (theme: ThemeColors) =>
             padding: 16,
         },
 
-        outsetShadow: {
+        selectionOuterBorder: {
             boxShadow: `0px 0px 0px 1px ${colors.blue300}`,
         },
     } satisfies Styles);

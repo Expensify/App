@@ -91,7 +91,7 @@ function ReportListItem<TItem extends ListItem>({
         item.isSelected && styles.activeComponentBG,
         isFocused && styles.sidebarLinkActive,
         styles.mh0,
-        Platform.OS === CONST.PLATFORM.WEB && isFocused && styles.outsetShadow,
+        Platform.OS === CONST.PLATFORM.WEB && isFocused && styles.selectionOuterBorder,
     ];
 
     const handleOnButtonPress = () => {
