@@ -611,6 +611,10 @@ function clearQBOErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
+function clearQBDErrorField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksDesktop: {config: {errorFields: {[fieldName]: null}}}}});
+}
+
 function clearXeroErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {xero: {config: {errorFields: {[fieldName]: null}}}}});
 }
@@ -1588,7 +1592,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
  * @param [policyID] custom policy id we will use for created workspace
  * @param [expenseReportId] the reportID of the expense report that is being used to create the workspace
  */
-function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID(), expenseReportId?: string) {
+function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID(), expenseReportId?: string, engagementChoice?: string) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
@@ -1805,6 +1809,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         expenseCreatedReportActionID,
         customUnitID,
         customUnitRateID,
+        engagementChoice,
     };
 
     return {successData, optimisticData, failureData, params};
@@ -1817,9 +1822,10 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
  * @param [makeMeAdmin] leave the calling account as an admin on the policy
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
+ * @param [engagementChoice] Purpose of using application selected by user in guided setup flow
  */
-function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): CreateWorkspaceParams {
-    const {optimisticData, failureData, successData, params} = buildPolicyData(policyOwnerEmail, makeMeAdmin, policyName, policyID);
+function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID(), engagementChoice = ''): CreateWorkspaceParams {
+    const {optimisticData, failureData, successData, params} = buildPolicyData(policyOwnerEmail, makeMeAdmin, policyName, policyID, undefined, engagementChoice);
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
     return params;
@@ -4536,6 +4542,17 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                companyCards: {
+                    [bankName]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
     ];
 
     const finallyData: OnyxUpdate[] = [
@@ -4565,6 +4582,17 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                     },
                     errorFields: {
                         lastUpdated: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                companyCards: {
+                    [bankName]: {
+                        errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR},
                     },
                 },
             },
@@ -4816,6 +4844,7 @@ export {
     clearAllPolicies,
     enablePolicyRules,
     setPolicyDefaultReportTitle,
+    clearQBDErrorField,
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
     setPolicyAutomaticApprovalLimit,

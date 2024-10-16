@@ -162,7 +162,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     styles.flexRow,
                     styles.justifyContentBetween,
                     // Required padding accounting for the checkbox and the right arrow in multi-select mode
-                    canSelectMultiple && [styles.pl3, styles.pr9],
+                    canSelectMultiple && [styles.pl3, styles.pr8],
                 ]}
             >
                 <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>

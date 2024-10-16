@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {CardFeedData} from '@src/types/onyx/CardFeeds';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -1043,6 +1044,10 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
 }
 
+function hasPolicyFeedsError(feeds: Record<string, CardFeedData>, feedToSkip?: string): boolean {
+    return Object.entries(feeds).filter(([feedName, feedData]) => feedName !== feedToSkip && !!feedData.errors).length > 0;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1071,6 +1076,7 @@ export {
     goBackFromInvalidPolicy,
     hasAccountingConnections,
     hasSyncError,
+    hasPolicyFeedsError,
     hasCustomUnitsError,
     hasEmployeeListError,
     hasIntegrationAutoSync,
