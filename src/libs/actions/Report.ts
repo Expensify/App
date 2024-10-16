@@ -2759,6 +2759,8 @@ function leaveGroupChat(reportID: string) {
         return;
     }
 
+    // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
+    // The remaining parts of the report object will be removed after the API call is successful.
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2774,7 +2776,6 @@ function leaveGroupChat(reportID: string) {
                 },
             },
         },
-        
     ];
     // Clean up any quick actions for the report we're leaving from
     if (quickAction?.chatReportID?.toString() === reportID) {
@@ -2790,9 +2791,9 @@ function leaveGroupChat(reportID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: Object.keys(report).reduce<Record<string, null>>((acc, key) => {
-                          acc[key] = null;
-                          return acc;
-                      }, {}),
+                acc[key] = null;
+                return acc;
+            }, {}),
         },
     ];
 
