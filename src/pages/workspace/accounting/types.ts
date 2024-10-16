@@ -23,7 +23,7 @@ type WorkspaceUpgradeNavigationDetails = {
     /** Route to redirect to after upgrading the workspace */
     backToAfterWorkspaceUpgradeRoute: string;
     /** Function to call after upgrading the workspace */
-    sideEffect?: () => void;
+    eventBeforeNavigation?: () => void;
 };
 
 type AccountingIntegration = {

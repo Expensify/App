@@ -284,7 +284,7 @@ function getAccountingIntegrationData(
                 subscribedAdvancedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.quickbooksDesktop.alias,
-                    sideEffect: () => {
+                    eventBeforeNavigation: () => {
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         if (isSmallScreenWidth || integrationToDisconnect) {
                             return;
