@@ -359,9 +359,11 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         !isCurrentReportLoadedFromOnyx ||
         isLoading;
 
+    const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !!prevIsLinkedActionDeleted) ||
+        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !isLinkedActionBecomesDeleted) ||
         (shouldShowSkeleton &&
             !reportMetadata.isLoadingInitialReportActions &&
             !!reportActionIDFromRoute &&
@@ -672,12 +674,11 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     useEffect(() => {
         // If the linked action is previously available but now deleted,
         // remove the reportActionID from the params to not link to the deleted action.
-        const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
         if (!isLinkedActionBecomesDeleted) {
             return;
         }
         Navigation.setParams({reportActionID: ''});
-    }, [prevIsLinkedActionDeleted, isLinkedActionDeleted]);
+    }, [isLinkedActionBecomesDeleted]);
 
     // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
     // then we set reportActionID as empty string, so we display them the report and not the "Not found page".

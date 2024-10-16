@@ -492,7 +492,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
 
     if (shouldUpdateNotificationPrefernece) {
         optimisticReport.participants = {
-            [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            [currentUserAccountID]: {notificationPreference: ReportUtils.getDefaultNotificationPreferenceForReport(report)},
         };
     }
 
@@ -547,19 +547,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
             value: successReportActions,
         },
     ];
-
-    if (shouldUpdateNotificationPrefernece) {
-        // optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants: {
-                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-            },
-        });
-    }
 
     let failureReport: Partial<Report> = {
         lastMessageTranslationKey: '',
@@ -837,8 +824,8 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
     };
-
-    if (ReportUtils.isGroupChat(newReportObject)) {
+    const isGroupChat = ReportUtils.isGroupChat(newReportObject);
+    if (isGroupChat) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
         parameters.groupChatAdminLogins = currentUserEmail;
         parameters.optimisticAccountIDList = Object.keys(newReportObject?.participants ?? {}).join(',');
@@ -870,6 +857,7 @@ function openReport(
                 ...newReportObject,
                 pendingFields: {
                     createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    ...(isGroupChat && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
                 },
                 isOptimisticReport: true,
             };
@@ -923,6 +911,7 @@ function openReport(
                 participants: redundantParticipants,
                 pendingFields: {
                     createChat: null,
+                    reportName: null,
                 },
                 errorFields: {
                     createChat: null,
@@ -2757,7 +2746,7 @@ function joinRoom(report: OnyxEntry<Report>) {
     updateNotificationPreference(
         report.reportID,
         ReportUtils.getReportNotificationPreference(report),
-        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        ReportUtils.getDefaultNotificationPreferenceForReport(report),
         report.parentReportID,
         report.parentReportActionID,
     );
