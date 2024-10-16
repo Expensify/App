@@ -239,10 +239,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                           }
                         : {
                               action() {
-                                  resetExitSurveyForm();
-                                  InteractionManager.runAfterInteractions(() => {
-                                      Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
-                                  });
+                                  resetExitSurveyForm(() => Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON));
                               },
                           }),
                 },
