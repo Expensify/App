@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -8,6 +8,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,9 +35,9 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
-
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const data = issueNewCard?.data;
 
     const submitButton = useRef<View>(null);
@@ -45,8 +46,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         submitButton.current?.focus();
     }, []);
 
-    const submit = () => {
-        Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);
+    const submit = (validateCode: string) => {
+        Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, validateCode, data);
         Navigation.navigate(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID ?? '-1'));
         Card.clearIssueNewCardFlow();
     };
@@ -121,11 +122,19 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                         success
                         large
                         style={[styles.w100]}
-                        onPress={submit}
+                        onPress={() => setIsValidateCodeActionModalVisible(true)}
                         text={translate('workspace.card.issueCard')}
                     />
                 </View>
             </ScrollView>
+            <ValidateCodeActionModal
+                handleSubmitForm={submit}
+                clearError={() => {}}
+                onClose={() => setIsValidateCodeActionModalVisible(false)}
+                isVisible={isValidateCodeActionModalVisible}
+                title={translate('cardPage.validateCardTitle')}
+                description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+            />
         </ScreenWrapper>
     );
 }

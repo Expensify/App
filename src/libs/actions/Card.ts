@@ -618,7 +618,7 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
     API.write(WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY, parameters);
 }
 
-function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueNewCardData) {
+function issueExpensifyCard(policyID: string, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
     if (!data) {
         return;
     }
@@ -631,6 +631,7 @@ function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueN
         limit,
         limitType,
         cardTitle,
+        validateCode,
     };
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
