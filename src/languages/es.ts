@@ -267,6 +267,7 @@ const translations = {
         close: 'Cerrar',
         download: 'Descargar',
         downloading: 'Descargando',
+        uploading: 'Subiendo',
         pin: 'Fijar',
         unPin: 'Desfijar',
         back: 'Volver',
@@ -2482,6 +2483,11 @@ const translations = {
             classesDescription: 'Elige cómo gestionar las clases de QuickBooks Desktop en Expensify.',
             tagsDisplayedAsDescription: 'Nivel de partida',
             reportFieldsDisplayedAsDescription: 'Nivel de informe',
+            advancedConfig: {
+                autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Desktop todos los días.',
+                createEntities: 'Crear entidades automáticamente',
+                createEntitiesDescription: 'Expensify creará automáticamente proveedores en QuickBooks Desktop si aún no existen, y creará automáticamente clientes al exportar facturas.',
+            },
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -4331,6 +4337,8 @@ const translations = {
             current: 'Actual',
             past: 'Anterior',
         },
+        noCategory: 'Sin categoría',
+        noTag: 'Sin etiqueta',
         expenseType: 'Tipo de gasto',
         recentSearches: 'Búsquedas recientes',
         recentChats: 'Chats recientes',
@@ -5188,7 +5196,7 @@ const translations = {
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
-        receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma tu exactitud',
+        receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma la exactitud',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Recibo obligatorio';
             if (formattedLimit ?? category) {
@@ -5575,6 +5583,7 @@ const translations = {
         reasonVisibleInLHN: {
             hasDraftComment: 'Tiene comentario en borrador',
             hasGBR: 'Tiene GBR',
+            hasRBR: 'Tiene RBR',
             pinnedByUser: 'Fijado por el usuario',
             hasIOUViolations: 'Tiene violaciones de IOU',
             hasAddWorkspaceRoomErrors: 'Tiene errores al agregar sala de espacio de trabajo',
