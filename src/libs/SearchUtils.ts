@@ -670,32 +670,35 @@ function buildFilterFormValuesFromQuery(
     taxRates: Record<string, string[]>,
 ) {
     const filters = queryJSON.flatFilters;
-    const filterKeys = Object.keys(filters);
+    const filterKeys = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS);
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
     const policyID = queryJSON.policyID;
     for (const filterKey of filterKeys) {
+        const filterValues = filters[filterKey]?.map((item) => item.value.toString());
+
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
-            filtersForm[filterKey] = filters[filterKey]?.[0]?.value.toString();
+            filtersForm[filterKey] = filterValues?.[0];
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
-            filtersForm[filterKey] = filters[filterKey]
-                ?.map((expenseType) => expenseType.value.toString())
-                .filter((expenseType) => Object.values(CONST.SEARCH.TRANSACTION_TYPE).includes(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
+            const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
+            filtersForm[filterKey] = filterValues?.filter((expenseType) => validExpenseTypes.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            filtersForm[filterKey] = filters[filterKey]?.map((card) => card.value.toString()).filter((card) => Object.keys(cardList).includes(card));
+            filtersForm[filterKey] = filterValues?.filter((card) => cardList[card]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            filtersForm[filterKey] = filters[filterKey]?.map((tax) => tax.value.toString()).filter((tax) => [...Object.values(taxRates)].flat().includes(tax));
+            const allTaxRates = new Set(Object.values(taxRates).flat());
+            filtersForm[filterKey] = filterValues?.filter((tax) => allTaxRates.has(tax));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-            filtersForm[filterKey] = filters[filterKey]?.map((report) => report.value.toString()).filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]);
+            filtersForm[filterKey] = filterValues?.filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-            filtersForm[filterKey] = filters[filterKey]?.map((id) => id.value.toString()).filter((id) => Object.keys(personalDetails).includes(id));
+            filtersForm[filterKey] = filterValues?.filter((id) => personalDetails[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
-            filtersForm[filterKey] = filters[filterKey]?.filter((currency) => Object.keys(currencyList).includes(currency.value.toString())).map((currency) => currency.value.toString());
+            const validCurrency = new Set(Object.keys(currencyList));
+            filtersForm[filterKey] = filterValues?.filter((currency) => validCurrency.has(currency));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
             const tags = policyID
@@ -704,20 +707,21 @@ function buildFilterFormValuesFromQuery(
                       .filter((item) => !!item)
                       .map((tagList) => getTagNamesFromTagsLists(tagList ?? {}))
                       .flat();
-            filtersForm[filterKey] = filters[filterKey]?.map((tag) => tag.value.toString()).filter((name) => tags.includes(name));
+            const uniqueTags = new Set(tags);
+            filtersForm[filterKey] = filterValues?.filter((name) => uniqueTags.has(name));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             const categories = policyID
                 ? Object.values(policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {}).map((category) => category.name)
                 : Object.values(policyCategories ?? {})
-                      .map((xd) => Object.values(xd ?? {}).map((category) => category.name))
+                      .map((categoryList) => Object.values(categoryList ?? {}).map((category) => category.name))
                       .flat();
-            filtersForm[filterKey] = filters[filterKey]?.map((category) => category.value.toString()).filter((name) => categories.includes(name));
+            const uniqueCategories = new Set(categories);
+            filtersForm[filterKey] = filterValues?.filter((name) => uniqueCategories.has(name));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filtersForm[filterKey] = filters[filterKey]
-                ?.map((filter) => filter.value.toString())
-                .map((filter) => {
+            filtersForm[filterKey] = filterValues
+                ?.map((filter) => {
                     if (filter.includes(' ')) {
                         return `"${filter}"`;
                     }
