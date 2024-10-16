@@ -136,10 +136,22 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
 
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
+type OnboardingCompanySizeType = ValueOf<typeof onboardingCompanySize>;
+
+type OnboardingAccountingType = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
+
 const onboardingInviteTypes = {
     IOU: 'iou',
     INVOICE: 'invoice',
     CHAT: 'chat',
+} as const;
+
+const onboardingCompanySize = {
+    MICRO: '1-10',
+    SMALL: '11-50',
+    MEDIUM_SMALL: '51-100',
+    MEDIUM: '101-1000',
+    LARGE: '1001+',
 } as const;
 
 type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
@@ -192,6 +204,10 @@ const CONST = {
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
+    },
+    POPOVER_ACCOUNT_SWITCHER_POSITION: {
+        horizontal: 12,
+        vertical: 80,
     },
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
@@ -730,6 +746,8 @@ const CONST = {
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_HELP: 'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds',
+    COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL:
+        'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds#what-is-the-difference-between-commercial-card-feeds-and-your-direct-bank-connections',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
@@ -1469,6 +1487,18 @@ const CONST = {
     },
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
+    QUICKBOOKS_DESKTOP_CONFIG: {
+        EXPORT_DATE: 'exportDate',
+        EXPORTER: 'exporter',
+        MARK_CHECKS_TO_BE_PRINTED: 'markChecksToBePrinted',
+        REIMBURSABLE_ACCOUNT: 'reimbursableAccount',
+        REIMBURSABLE: 'reimbursable',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        MAPPINGS: {
+            CLASSES: 'classes',
+        },
+    },
+
     QUICKBOOKS_CONFIG: {
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CLASSES: 'syncClasses',
@@ -1575,6 +1605,13 @@ const CONST = {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'journal_entry',
+    },
+
+    QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE: {
+        VENDOR_BILL: 'VENDOR_BILL',
+        CHECK: 'CHECK',
+        JOURNAL_ENTRY: 'JOURNAL_ENTRY',
+        NOTHING: 'NOTHING',
     },
 
     SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE: {
@@ -1845,6 +1882,12 @@ const CONST = {
         CREDIT_CARD: 'credit_card',
         DEBIT_CARD: 'debit_card',
         VENDOR_BILL: 'bill',
+    },
+
+    QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE: {
+        CREDIT_CARD: 'CREDIT_CARD_CHARGE',
+        JOURNAL_ENTRY: 'JOURNAL_ENTRY',
+        VENDOR_BILL: 'VENDOR_BILL',
     },
 
     MISSING_PERSONAL_DETAILS_INDEXES: {
@@ -2518,16 +2561,40 @@ const CONST = {
         CARD_TITLE_INPUT_LIMIT: 255,
     },
     COMPANY_CARDS: {
+        CONNECTION_ERROR: 'connectionError',
         STEP: {
+            SELECT_BANK: 'SelectBank',
+            SELECT_FEED_TYPE: 'SelectFeedType',
             CARD_TYPE: 'CardType',
             CARD_INSTRUCTIONS: 'CardInstructions',
             CARD_NAME: 'CardName',
             CARD_DETAILS: 'CardDetails',
+            BANK_CONNECTION: 'BankConnection',
+            AMEX_CUSTOM_FEED: 'AmexCustomFeed',
         },
         CARD_TYPE: {
             AMEX: 'amex',
             VISA: 'visa',
             MASTERCARD: 'mastercard',
+        },
+        FEED_TYPE: {
+            CUSTOM: 'customFeed',
+            DIRECT: 'directFeed',
+        },
+        BANKS: {
+            AMEX: 'American Express',
+            BANK_OF_AMERICA: 'Bank of America',
+            BREX: 'Brex',
+            CAPITAL_ONE: 'Capital One',
+            CHASE: 'Chase',
+            CITI_BANK: 'Citibank',
+            STRIPE: 'Stripe',
+            WELLS_FARGO: 'Wells Fargo',
+            OTHER: 'Other',
+        },
+        AMEX_CUSTOM_FEED: {
+            CORPORATE: 'American Express Corporate Cards',
+            BUSINESS: 'American Express Business Cards',
         },
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
@@ -4489,6 +4556,7 @@ const CONST = {
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
+    ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_CONCIERGE: {
         [onboardingChoices.EMPLOYER]:
@@ -5611,6 +5679,7 @@ const CONST = {
             KEYWORD: 'keyword',
             IN: 'in',
         },
+        EMPTY_VALUE: 'none',
     },
 
     REFERRER: {
@@ -5843,6 +5912,19 @@ type FeedbackSurveyOptionID = ValueOf<Pick<ValueOf<typeof CONST.FEEDBACK_SURVEY_
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInviteType};
+export type {
+    Country,
+    IOUAction,
+    IOUType,
+    RateAndUnit,
+    OnboardingPurposeType,
+    OnboardingCompanySizeType,
+    IOURequestType,
+    SubscriptionType,
+    FeedbackSurveyOptionID,
+    CancellationType,
+    OnboardingInviteType,
+    OnboardingAccountingType,
+};
 
 export default CONST;
