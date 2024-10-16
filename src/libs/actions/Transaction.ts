@@ -493,6 +493,10 @@ function getAllTransactionViolationsLength() {
     return allTransactionViolations.length;
 }
 
+function getAllTransactions() {
+    return Object.keys(allTransactions ?? {}).length;
+}
+
 export {
     addStop,
     createInitialWaypoints,
@@ -509,4 +513,5 @@ export {
     getRecentWaypoints,
     sanitizeRecentWaypoints,
     getAllTransactionViolationsLength,
+    getAllTransactions,
 };

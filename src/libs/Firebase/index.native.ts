@@ -1,9 +1,10 @@
 /* eslint-disable no-unused-vars */
 import crashlytics from '@react-native-firebase/crashlytics';
 import perf from '@react-native-firebase/perf';
-import {getAllTransactionViolationsLength} from '@libs/actions/Transaction';
+import {getAllTransactions, getAllTransactionViolationsLength} from '@libs/actions/Transaction';
 import * as Environment from '@libs/Environment/Environment';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getAllPoliciesLength} from '@libs/PolicyUtils';
 import {getReportActionsLength} from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as SessionUtils from '@libs/SessionUtils';
@@ -69,6 +70,8 @@ function getAttributes(): FirebaseAttributes {
     const reportActionsLength = getReportActionsLength().toString();
     const personalDetailsLength = PersonalDetailsUtils.getPersonalDetailsLength().toString();
     const transactionViolationsLength = getAllTransactionViolationsLength().toString();
+    const policiesLength = getAllPoliciesLength().toString();
+    const transactionsLength = getAllTransactions().toString();
 
     return {
         accountId,
@@ -76,6 +79,8 @@ function getAttributes(): FirebaseAttributes {
         reportActionsLength,
         personalDetailsLength,
         transactionViolationsLength,
+        policiesLength,
+        transactionsLength,
     };
 }
 

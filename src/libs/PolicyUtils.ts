@@ -1045,6 +1045,10 @@ function hasPolicyFeedsError(feeds: Record<string, CardFeedData>, feedToSkip?: s
     return Object.entries(feeds).filter(([feedName, feedData]) => feedName !== feedToSkip && !!feedData.errors).length > 0;
 }
 
+function getAllPoliciesLength() {
+    return Object.keys(allPolicies ?? {}).length;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1159,6 +1163,7 @@ export {
     hasUnsupportedIntegration,
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
+    getAllPoliciesLength,
 };
 
 export type {MemberEmailsToAccountIDs};
