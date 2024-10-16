@@ -6284,7 +6284,7 @@ type ReportErrorsAndReportActionThatRequiresAttention = {
 };
 
 function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): ReportErrorsAndReportActionThatRequiresAttention {
-    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !ReportActionUtils.isDeletedAction(action));
+    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !ReportActionsUtils.isDeletedAction(action));
     const reportActionErrors: ErrorFields = {};
     let reportAction: OnyxEntry<ReportAction>;
 
