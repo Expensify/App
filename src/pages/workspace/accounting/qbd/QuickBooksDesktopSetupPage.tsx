@@ -2,6 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
@@ -10,6 +11,7 @@ import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,19 +29,31 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     const [isLoading, setIsLoading] = useState(true);
     const [codatSetupLink, setCodatSetupLink] = useState<string>('');
 
-    useEffect(() => {
-        const fetchSetupLink = () => {
-            // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            QuickbooksDesktop.getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
-                setCodatSetupLink(String(response?.setupUrl ?? ''));
-                setIsLoading(false);
-            });
-        };
+    const FullPageView = codatSetupLink ? ({children}: React.PropsWithChildren) => <View style={[styles.flex1, styles.ph5]}>{children}</View> : FullPageOfflineBlockingView;
 
+    const fetchSetupLink = () => {
+        setIsLoading(true);
+        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
+        QuickbooksDesktop.getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
+            setCodatSetupLink(String(response?.setupUrl ?? ''));
+            setIsLoading(false);
+        });
+    };
+
+    useEffect(() => {
         fetchSetupLink();
         // disabling this rule, as we want this to run only on the first render
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
+    useNetwork({
+        onReconnect: () => {
+            if (codatSetupLink) {
+                return;
+            }
+            fetchSetupLink();
+        },
+    });
 
     if (isLoading) {
         return <LoadingPage title={translate('workspace.qbd.qbdSetup')} />;
@@ -56,7 +70,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.dismissModal()}
             />
-            <View style={[styles.flex1, styles.ph5]}>
+            <FullPageView>
                 <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer, styles.pv6]}>
                     <ImageSVG src={Computer} />
                 </View>
@@ -78,7 +92,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                         large
                     />
                 </FixedFooter>
-            </View>
+            </FullPageView>
         </ScreenWrapper>
     );
 }
