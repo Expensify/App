@@ -276,6 +276,7 @@ const translations = {
         close: 'Close',
         download: 'Download',
         downloading: 'Downloading',
+        uploading: 'Uploading',
         pin: 'Pin',
         unPin: 'Unpin',
         back: 'Back',
@@ -2457,6 +2458,12 @@ const translations = {
             classesDescription: 'Choose how to handle QuickBooks Desktop classes in Expensify.',
             tagsDisplayedAsDescription: 'Line item level',
             reportFieldsDisplayedAsDescription: 'Report level',
+            advancedConfig: {
+                autoSyncDescription: 'Expensify will automatically sync with QuickBooks Desktop every day.',
+                createEntities: 'Auto-create entities',
+                createEntitiesDescription:
+                    "Expensify will automatically create vendors in QuickBooks Desktop if they don't exist already, and auto-create customers when exporting invoices.",
+            },
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -4283,6 +4290,8 @@ const translations = {
             current: 'Current',
             past: 'Past',
         },
+        noCategory: 'No category',
+        noTag: 'No tag',
         expenseType: 'Expense type',
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
@@ -5059,6 +5068,7 @@ const translations = {
         reasonVisibleInLHN: {
             hasDraftComment: 'Has draft comment',
             hasGBR: 'Has GBR',
+            hasRBR: 'Has RBR',
             pinnedByUser: 'Pinned by user',
             hasIOUViolations: 'Has IOU violations',
             hasAddWorkspaceRoomErrors: 'Has add workspace room errors',

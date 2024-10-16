@@ -51,6 +51,8 @@ function IOURequestStepDistanceRate({
 
     const currentRateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
+    const transactionCurrency = TransactionUtils.getCurrency(transaction);
+
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
 
     const navigateBack = () => {
@@ -61,15 +63,15 @@ function IOURequestStepDistanceRate({
         .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
         .map((rate) => {
             const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
-            const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, rate.currency, translate, toLocaleDigit);
-
+            const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE;
+            const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
             return {
                 text: rate.name ?? rateForDisplay,
                 alternateText: rate.name ? rateForDisplay : '',
                 keyForList: rate.customUnitRateID,
                 value: rate.customUnitRateID,
                 isDisabled: !rate.enabled,
-                isSelected: currentRateID ? currentRateID === rate.customUnitRateID : rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE,
+                isSelected,
             };
         });
 

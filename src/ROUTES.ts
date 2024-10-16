@@ -74,7 +74,6 @@ const ROUTES = {
         route: 'flag/:reportID/:reportActionID',
         getRoute: (reportID: string, reportActionID: string, backTo?: string) => getUrlWithBackToParam(`flag/${reportID}/${reportActionID}` as const, backTo),
     },
-    CHAT_FINDER: 'chat-finder',
     PROFILE: {
         route: 'a/:accountID',
         getRoute: (accountID?: string | number, backTo?: string, login?: string) => {
@@ -669,6 +668,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/date-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/date-select` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/advanced',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/date-select',
