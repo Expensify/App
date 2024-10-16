@@ -4,6 +4,7 @@ import usePermissions from '@hooks/usePermissions';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import AmexCustomFeed from './AmexCustomFeed';
 import CardInstructionsStep from './CardInstructionsStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
@@ -31,6 +32,8 @@ function AddNewCardPage() {
                 return <CardNameStep />;
             case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
                 return <DetailsStep />;
+            case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
+                return <AmexCustomFeed />;
             default:
                 return <SelectBankStep />;
         }

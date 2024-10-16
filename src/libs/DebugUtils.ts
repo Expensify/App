@@ -6,7 +6,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
-import * as OptionsListUtils from './OptionsListUtils';
 import * as ReportUtils from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
 
@@ -593,12 +592,12 @@ function validateReportActionJSON(json: string) {
 /**
  * Gets the reason for showing LHN row
  */
-function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPaths | null {
+function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false): TranslationPaths | null {
     if (!report) {
         return null;
     }
 
-    const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, transactionViolations);
+    const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
 
     const reason = ReportUtils.reasonForReportToBeInOptionList({
         report,
@@ -612,7 +611,12 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPath
         includeSelfDM: true,
     });
 
-    // When there's no specific reason, we default to isFocused since the report is only showing because we're viewing it
+    if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
+        return `debug.reasonVisibleInLHN.hasRBR`;
+    }
+
+    // When there's no specific reason, we default to isFocused if the report is only showing because we're viewing it
+    // Otherwise we return hasRBR if the report has errors other that failed receipt
     if (reason === null || reason === CONST.REPORT_IN_LHN_REASONS.DEFAULT) {
         return 'debug.reasonVisibleInLHN.isFocused';
     }
