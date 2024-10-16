@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -26,12 +27,15 @@ type ExportWithDropdownMenuProps = {
     connectionName: ConnectionName;
 
     dropdownAnchorAlignment?: AnchorAlignment;
+
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 function ExportWithDropdownMenu({
     policy,
     report,
     connectionName,
+    wrapperStyle,
     dropdownAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -120,7 +124,7 @@ function ExportWithDropdownMenu({
                 onOptionSelected={({value}) => savePreferredExportMethod(value)}
                 options={dropdownOptions}
                 style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                wrapperStyle={styles.flex1}
+                wrapperStyle={[styles.flex1, wrapperStyle]}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             />
             <ConfirmModal

@@ -366,13 +366,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 )}
             </HeaderWithBackButton>
             {isMoreContentShown && (
-                <View style={[styles.dFlex, styles.flexColumn, shouldUseNarrowLayout && styles.gap3, styles.pb3, styles.ph5, styles.borderBottom]}>
+                <View style={[styles.dFlex, styles.flexColumn, styles.pb3, styles.ph5, styles.borderBottom]}>
                     <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
                         {isDuplicate && shouldUseNarrowLayout && (
                             <Button
                                 success={shouldDuplicateButtonBeSuccess}
                                 text={translate('iou.reviewDuplicates')}
-                                style={[styles.flex1, styles.pr0]}
+                                style={[styles.flex1, styles.pr0, styles.mb3]}
                                 onPress={() => {
                                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID ?? '', Navigation.getReportRHPActiveRoute()));
                                 }}
@@ -380,7 +380,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         )}
                         {shouldShowSettlementButton && shouldUseNarrowLayout && (
                             <SettlementButton
-                                wrapperStyle={[styles.flex1]}
+                                wrapperStyle={[styles.flex1, styles.mb3]}
                                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                                 currency={moneyRequestReport?.currency}
                                 confirmApproval={confirmApproval}
@@ -403,13 +403,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 policy={policy}
                                 report={moneyRequestReport}
                                 connectionName={connectedIntegration}
+                                wrapperStyle={styles.mb3}
                             />
                         )}
                         {shouldShowSubmitButton && shouldUseNarrowLayout && (
                             <Button
                                 success={isWaitingForSubmissionFromCurrentUser}
                                 text={translate('common.submit')}
-                                style={[styles.flex1, styles.pr0]}
+                                style={[styles.flex1, styles.pr0, styles.mb3]}
                                 onPress={() => IOU.submitReport(moneyRequestReport)}
                                 isDisabled={shouldDisableSubmitButton}
                             />
@@ -418,7 +419,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             <Button
                                 success
                                 text={translate('iou.markAsCash')}
-                                style={[styles.flex1, styles.pr0]}
+                                style={[styles.flex1, styles.pr0, styles.mb3]}
                                 onPress={markAsCash}
                             />
                         )}
