@@ -448,6 +448,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ADVANCED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: {
         policyID: string;
     };
@@ -1532,6 +1535,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
             reportID: string;
             transactionID: string;
             readonly?: boolean;
+            isFromReviewDuplicates?: boolean;
         };
         [SCREENS.CONNECTION_COMPLETE]: undefined;
     };
