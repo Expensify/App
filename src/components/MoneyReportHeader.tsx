@@ -241,7 +241,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     };
 
     const statusBarProps = getStatusBarProps();
-    const hasButtons = isDuplicate || shouldShowSettlementButton || !!shouldShowExportIntegrationButton || shouldShowSubmitButton || hasAllPendingRTERViolations;
+    const shouldAddGapToContents =
+        shouldUseNarrowLayout &&
+        (isDuplicate || shouldShowSettlementButton || !!shouldShowExportIntegrationButton || shouldShowSubmitButton || hasAllPendingRTERViolations) &&
+        (!!statusBarProps || shouldShowNextStep);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
@@ -367,8 +370,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 )}
             </HeaderWithBackButton>
             {isMoreContentShown && (
-                <View style={[styles.dFlex, styles.flexColumn, styles.pb3, styles.ph5, styles.borderBottom]}>
-                    <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3, shouldUseNarrowLayout && hasButtons && styles.mb3]}>
+                <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5, styles.borderBottom]}>
+                    <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
                         {isDuplicate && shouldUseNarrowLayout && (
                             <Button
                                 success={shouldDuplicateButtonBeSuccess}
