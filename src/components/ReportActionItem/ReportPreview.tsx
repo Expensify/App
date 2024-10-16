@@ -135,16 +135,9 @@ function ReportPreview({
     const iouSettled = ReportUtils.isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const previewMessageOpacity = useSharedValue(1);
     const previewMessageStyle = useAnimatedStyle(() => ({
-        ...styles.flex1,
-        ...styles.flexRow,
-        ...styles.alignItemsCenter,
         opacity: previewMessageOpacity.value,
     }));
     const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
-    const checkMarkStyle = useAnimatedStyle(() => ({
-        ...styles.defaultCheckmarkWrapper,
-        transform: [{scale: checkMarkScale.value}],
-    }));
 
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
@@ -479,7 +472,7 @@ function ReportPreview({
                             <View style={shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={styles.flexRow}>
-                                        <Animated.View style={previewMessageStyle}>
+                                        <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, previewMessageStyle]}>
                                             <Text style={[styles.textLabelSupporting, styles.lh16]}>{previewMessage}</Text>
                                         </Animated.View>
                                         {shouldShowRBR && (
@@ -501,7 +494,7 @@ function ReportPreview({
                                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                                 <Text style={styles.textHeadlineH1}>{getDisplayAmount()}</Text>
                                                 {iouSettled && (
-                                                    <Animated.View style={checkMarkStyle}>
+                                                    <Animated.View style={[styles.defaultCheckmarkWrapper, {transform: [{scale: checkMarkScale}]}]}>
                                                         <Icon
                                                             src={Expensicons.Checkmark}
                                                             fill={theme.iconSuccessFill}
