@@ -1,6 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
@@ -10,7 +9,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import type * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {PolicyTag, PolicyTags} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type SelectedTagOption = {
@@ -21,15 +20,7 @@ type SelectedTagOption = {
     pendingAction?: PendingAction;
 };
 
-type TagPickerOnyxProps = {
-    /** Collection of tag list on a policy */
-    policyTags: OnyxEntry<PolicyTagLists>;
-
-    /** List of recently used tags */
-    policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
-};
-
-type TagPickerProps = TagPickerOnyxProps & {
+type TagPickerProps = {
     /** The policyID we are getting tags for */
     // It's used in withOnyx HOC.
     // eslint-disable-next-line react/no-unused-prop-types
@@ -51,7 +42,9 @@ type TagPickerProps = TagPickerOnyxProps & {
     tagListIndex: number;
 };
 
-function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, onSubmit}: TagPickerProps) {
+function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShowDisabledAndSelectedOption = false, onSubmit}: TagPickerProps) {
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
@@ -122,13 +115,6 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
 
 TagPicker.displayName = 'TagPicker';
 
-export default withOnyx<TagPickerProps, TagPickerOnyxProps>({
-    policyTags: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-    },
-    policyRecentlyUsedTags: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
-    },
-})(TagPicker);
+export default TagPicker;
 
 export type {SelectedTagOption};
