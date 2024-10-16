@@ -5,6 +5,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
+import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -17,7 +18,6 @@ import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullCompo
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
-import type {ComposerProps} from './types';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];

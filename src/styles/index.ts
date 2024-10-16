@@ -1181,7 +1181,6 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderBottomWidth: 2,
             borderColor: theme.border,
-            paddingBottom: 8,
         },
 
         optionRowAmountInput: {
@@ -3636,6 +3635,7 @@ const styles = (theme: ThemeColors) =>
         searchRouterInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
+            backgroundColor: theme.appBG,
         },
 
         searchTableHeaderActive: {

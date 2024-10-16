@@ -1487,10 +1487,15 @@ const CONST = {
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
     QUICKBOOKS_DESKTOP_CONFIG: {
+        EXPORT_DATE: 'exportDate',
         EXPORTER: 'exporter',
         MARK_CHECKS_TO_BE_PRINTED: 'markChecksToBePrinted',
         REIMBURSABLE_ACCOUNT: 'reimbursableAccount',
         REIMBURSABLE: 'reimbursable',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        MAPPINGS: {
+            CLASSES: 'classes',
+        },
     },
 
     QUICKBOOKS_CONFIG: {
@@ -2563,6 +2568,8 @@ const CONST = {
             CARD_INSTRUCTIONS: 'CardInstructions',
             CARD_NAME: 'CardName',
             CARD_DETAILS: 'CardDetails',
+            BANK_CONNECTION: 'BankConnection',
+            AMEX_CUSTOM_FEED: 'AmexCustomFeed',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -2583,6 +2590,10 @@ const CONST = {
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
             OTHER: 'Other',
+        },
+        AMEX_CUSTOM_FEED: {
+            CORPORATE: 'American Express Corporate Cards',
+            BUSINESS: 'American Express Business Cards',
         },
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
@@ -5667,6 +5678,7 @@ const CONST = {
             KEYWORD: 'keyword',
             IN: 'in',
         },
+        EMPTY_VALUE: 'none',
     },
 
     REFERRER: {
