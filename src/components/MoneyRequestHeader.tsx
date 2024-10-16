@@ -59,6 +59,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
     const reportID = report?.reportID;
 
+    const isReportOpenInRHP = Navigation.getIsReportOpenInRHP();
+
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
 
     const markAsCash = useCallback(() => {
@@ -134,7 +136,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     }}
                     policy={policy}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplaySearchRouter
+                    shouldDisplaySearchRouter={!isReportOpenInRHP}
                     onBackButtonPress={onBackButtonPress}
                 >
                     {hasAllPendingRTERViolations && !shouldUseNarrowLayout && (

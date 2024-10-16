@@ -158,6 +158,14 @@ function getActiveRoute(): string {
     return '';
 }
 
+/**
+ * Checks whether the report is opened in RHP (from search results)
+ */
+function getIsReportOpenInRHP(): boolean {
+    const rootState = navigationRef.getRootState();
+    return isReportOpenInRHP(rootState);
+}
+
 function getReportRHPActiveRoute(): string {
     if (isReportOpenInRHP(navigationRef.getRootState())) {
         return getActiveRoute();
@@ -442,6 +450,7 @@ export default {
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
     getTopMostCentralPaneRouteFromRootState,
+    getIsReportOpenInRHP,
 };
 
 export {navigationRef};

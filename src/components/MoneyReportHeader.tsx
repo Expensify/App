@@ -149,6 +149,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
+    const isReportOpenInRHP = Navigation.getIsReportOpenInRHP();
+
     const confirmPayment = useCallback(
         (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
             if (!type || !chatReport) {
@@ -289,7 +291,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 report={moneyRequestReport}
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
+                shouldDisplaySearchRouter={!isReportOpenInRHP}
                 onBackButtonPress={onBackButtonPress}
                 // Shows border if no buttons or banners are showing below the header
                 shouldShowBorderBottom={!isMoreContentShown}
