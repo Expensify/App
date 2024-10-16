@@ -412,7 +412,7 @@ https://community.expensify.com/discussion/5732/deep-dive-all-about-policy-categ
 https://community.expensify.com/discussion/5469/deep-dive-auto-categorize-card-expenses-with-default-categories,https://help.expensify.com/articles/expensify-classic/workspaces/Set-up-category-automation
 https://community.expensify.com/discussion/4708/how-to-set-up-and-add-single-tags,https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags
 https://community.expensify.com/discussion/5756/how-to-set-up-and-manage-multi-level-tagging/,https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#multi-level-tags
-https://community.expensify.com/discussion/5044/how-to-set-up-multiple-taxes-on-indirect-connections,https://help.expensify.com/articles/expensify-classic/workspaces/Tax-Tracking
+https://community.expensify.com/discussion/5044/how-to-set-up-multiple-taxes-on-indirect-connections,https://help.expensify.com/articles/expensify-classic/connections/Indirect-Accounting-Integrations
 https://community.expensify.com/discussion/4643/how-to-invite-people-to-your-policy-using-a-join-link/,https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles#invite-with-a-link
 https://community.expensify.com/discussion/5700/deep-dive-approval-workflow-overview,https://help.expensify.com/articles/expensify-classic/reports/Create-a-report-approval-workflow
 https://community.expensify.com/discussion/4804/how-to-set-up-concierge-report-approval,https://help.expensify.com/articles/expensify-classic/reports/Require-review-for-over-limit-expenses
@@ -498,7 +498,7 @@ https://community.expensify.com/discussion/6827/what-s-happening-to-my-expensify
 https://community.expensify.com/discussion/6898/deep-dive-guide-to-billing,https://help.expensify.com/articles/expensify-classic/expensify-billing/Billing-Overview
 https://community.expensify.com/discussion/7231/how-to-export-invoices-to-netsuite,https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-to-NetSuite#export-invoices-to
 https://community.expensify.com/discussion/7335/faq-what-is-the-expensify-card-auto-reconciliation-process,https://help.expensify.com/articles/new-expensify/expenses-&-payments/Send-an-invoice
-https://community.expensify.com/discussion/7524/how-to-set-up-disable-2fa-for-your-domain,https://help.expensify.com/articles/expensify-classic/domains/Add-Domain-Members-and-Admins
+https://community.expensify.com/discussion/7524/how-to-set-up-disable-2fa-for-your-domain,https://help.expensify.com/articles/expensify-classic/settings/Enable-two-factor-authentication
 https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues,https://help.expensify.com/articles/expensify-classic/settings/Enable-two-factor-authentication
 https://community.expensify.com/discussion/7862/introducing-expensify-cash-open-source-financial-group-chat-built-with-react-native,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Reimburse-Reports-Invoices-and-Bills
 https://community.expensify.com/discussion/7931/how-to-become-an-expensify-org-donor,https://www.expensify.org/donate
@@ -575,7 +575,15 @@ https://help.expensify.com/articles/new-expensify/getting-started/Upgrade-to-a-C
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Reimburse-Reports-Invoices-and-Bills,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Reimburse-Reports
 https://help.expensify.com/articles/new-expensify/expenses-&-payments/pay-an-invoice.html,https://help.expensify.com/articles/new-expensify/expenses-&-payments/Pay-an-invoice
 https://community.expensify.com/discussion/4707/how-to-set-up-your-mobile-app,https://help.expensify.com/articles/expensify-classic/getting-started/Join-your-company's-workspace#download-the-mobile-app
-https://community.expensify.com//discussion/6927/deep-dive-how-can-i-estimate-the-savings-applied-to-my-bill,https://help.expensify.com/articles/expensify-classic/expensify-billing/Billing-Overview#savings-calculator
 https://community.expensify.com/discussion/5179/faq-what-does-a-policy-for-which-you-are-an-admin-has-out-of-date-billing-information-mean,https://help.expensify.com/articles/expensify-classic/expensify-billing/Out-of-date-Billing
 https://community.expensify.com/discussion/6179/setting-up-a-receipt-or-travel-integration-with-expensify,https://help.expensify.com/articles/expensify-classic/connections/Additional-Travel-Integrations
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-US-Bank-Account,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-Bank-Account
+https://community.expensify.com//discussion/6927/deep-dive-how-can-i-estimate-the-savings-applied-to-my-bill,https://help.expensify.com/articles/expensify-classic/expensify-billing/Billing-Overview#savings-calculator
+https://community.expensify.com/discussion/47/auto-sync-best-practices,https://help.expensify.com/expensify-classic/hubs/connections
+https://community.expensify.com/discussion/6699/faq-troubleshooting-known-bank-specific-issues,https://help.expensify.com/expensify-classic/hubs/bank-accounts-and-payments/bank-accounts
+https://community.expensify.com/discussion/4730/faq-expenses-are-exporting-to-the-wrong-accounts-whys-that,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Company-Card-Settings
+https://community.expensify.com/discussion/9000/how-to-integrate-with-deel,https://help.expensify.com/articles/expensify-classic/connections/Deel
+https://community.expensify.com/categories/expensify-classroom,https://use.expensify.com
+https://help.expensify.com/articles/expensify-classic/articles/expensify-classic/expenses/Send-Receive-for-Invoices,https://help.expensify.com/articles/expensify-classic/articles/expensify-classic/expenses/Send-and-Receive-Payment-for-Invoices.md
+https://help.expensify.com/articles/expensify-classic/articles/expensify-classic/expenses/Bulk-Upload-Multiple-Invoices,https://help.expensify.com/articles/expensify-classic/articles/expensify-classic/expenses/Add-Invoices-in-Bulk
+https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Pay-Bills,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Create-and-Pay-Bills

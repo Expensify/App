@@ -7,7 +7,7 @@ import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
-import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
@@ -155,7 +155,7 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
-        if (!value || timezone) {
+        if (!value || !isEmptyObject(timezone)) {
             return;
         }
 
@@ -561,7 +561,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={SCREENS.CONNECTION_COMPLETE}
-                        options={defaultScreenOptions}
+                        options={screenOptions.fullScreen}
                         component={ConnectionCompletePage}
                     />
                     {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
@@ -578,7 +578,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         );
                     })}
                 </RootStack.Navigator>
-                <SearchRouter />
+                <SearchRouterModal />
             </View>
             {didPusherInit && <ActiveGuidesEventListener />}
         </ComposeProviders>

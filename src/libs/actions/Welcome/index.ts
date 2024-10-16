@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import type {OnboardingPurposeType} from '@src/CONST';
+import type {OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
@@ -89,8 +89,16 @@ function checkOnboardingDataReady() {
     resolveOnboardingFlowStatus();
 }
 
+function setOnboardingCustomChoices(value: OnboardingPurposeType[]) {
+    Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, value ?? []);
+}
+
 function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
+}
+
+function setOnboardingCompanySize(value: OnboardingCompanySizeType) {
+    Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, value);
 }
 
 function setOnboardingErrorMessage(value: string) {
@@ -178,6 +186,7 @@ function resetAllChecks() {
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
+    setOnboardingCustomChoices,
     setOnboardingPurposeSelected,
     updateOnboardingLastVisitedPath,
     resetAllChecks,
@@ -185,4 +194,5 @@ export {
     setOnboardingPolicyID,
     completeHybridAppOnboarding,
     setOnboardingErrorMessage,
+    setOnboardingCompanySize,
 };

@@ -91,7 +91,6 @@ function SearchRouterList(
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const contextualQuery = `in:${reportForContextualSearch?.reportID}`;
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
 
     if (currentQuery?.inputQuery) {
@@ -108,7 +107,7 @@ function SearchRouterList(
         });
     }
 
-    if (reportForContextualSearch && !currentQuery?.inputQuery?.includes(contextualQuery)) {
+    if (reportForContextualSearch && !currentQuery?.inputQuery) {
         sections.push({
             data: [
                 {
@@ -175,6 +174,7 @@ function SearchRouterList(
             containerStyle={[styles.mh100]}
             sectionListStyle={[isSmallScreenWidth ? styles.ph5 : styles.ph2, styles.pb2]}
             ref={ref}
+            showScrollIndicator={!isSmallScreenWidth}
         />
     );
 }

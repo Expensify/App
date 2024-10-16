@@ -1,8 +1,7 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -10,6 +9,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import * as Illustrations from '@components/Icon/Illustrations';
+import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import RoomNameInput from '@components/RoomNameInput';
@@ -34,36 +34,20 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {NewRoomForm} from '@src/types/form/NewRoomForm';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
-import type {Policy, Report as ReportType, Session} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WorkspaceNewRoomPageOnyxProps = {
-    /** The list of policies the user has access to. */
-    policies: OnyxCollection<Policy>;
-
-    /** All reports shared with the user */
-    reports: OnyxCollection<ReportType>;
-
-    /** Form state for NEW_ROOM_FORM */
-    formState: OnyxEntry<NewRoomForm>;
-
-    /** Session details for the user */
-    session: OnyxEntry<Session>;
-
-    /** policyID for main workspace */
-    activePolicyID: OnyxEntry<Required<string>>;
-};
-
-type WorkspaceNewRoomPageProps = WorkspaceNewRoomPageOnyxProps;
-
-function WorkspaceNewRoomPage({policies, reports, formState, session, activePolicyID}: WorkspaceNewRoomPageProps) {
+function WorkspaceNewRoomPage() {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {initWithStoredValues: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
@@ -242,7 +226,12 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                 style={[styles.mh5, styles.mb5]}
             />
-            {isSmallScreenWidth && <OfflineIndicator />}
+            {isSmallScreenWidth && (
+                <>
+                    <OfflineIndicator />
+                    <ImportedStateIndicator />
+                </>
+            )}
         </>
     );
 
@@ -336,7 +325,12 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                 />
                             </View>
                         </FormProvider>
-                        {isSmallScreenWidth && <OfflineIndicator />}
+                        {isSmallScreenWidth && (
+                            <>
+                                <OfflineIndicator />
+                                <ImportedStateIndicator />
+                            </>
+                        )}
                     </KeyboardAvoidingView>
                 )
             }
@@ -346,21 +340,4 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
 
 WorkspaceNewRoomPage.displayName = 'WorkspaceNewRoomPage';
 
-export default withOnyx<WorkspaceNewRoomPageProps, WorkspaceNewRoomPageOnyxProps>({
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    formState: {
-        key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
-        initWithStoredValues: false,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    activePolicyID: {
-        key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    },
-})(WorkspaceNewRoomPage);
+export default WorkspaceNewRoomPage;
