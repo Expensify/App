@@ -38,6 +38,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
+import onyxSubscribe from '@libs/onyxSubscribe';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -247,7 +248,8 @@ function ComposerWithSuggestions(
     }: ComposerWithSuggestionsProps,
     ref: ForwardedRef<ComposerRef>,
 ) {
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const isVisibleRef = useRef(false);
+    const willAlertModalBecomeVisibleRef = useRef(false);
     const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {canEvict: false});
@@ -277,12 +279,29 @@ function ComposerWithSuggestions(
         lastTextRef.current = value;
     }, [value]);
 
+    useEffect(() => {
+        const unsubscribe = onyxSubscribe({
+            key: ONYXKEYS.MODAL,
+            callback: (modalArg) => {
+                if (!modalArg) {
+                    return;
+                }
+                isVisibleRef.current = !!modalArg.isVisible;
+                willAlertModalBecomeVisibleRef.current = !!modalArg.willAlertModalBecomeVisible;
+            },
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, []);
+
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
     const parentReportAction = useMemo(() => parentReportActions?.[parentReportActionID ?? '-1'], [parentReportActionID, parentReportActions]);
     const shouldAutoFocus =
-        !modal?.isVisible &&
+        !isVisibleRef.current &&
         Modal.areAllModalsHidden() &&
         isFocused &&
         (shouldFocusInputOnScreenFocus ||
@@ -570,9 +589,9 @@ function ComposerWithSuggestions(
      */
     const checkComposerVisibility = useCallback(() => {
         // Checking whether the screen is focused or not, helps avoid `modal.isVisible` false when popups are closed, even if the modal is opened.
-        const isComposerCoveredUp = !isFocused || EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || !!modal?.isVisible || modal?.willAlertModalBecomeVisible;
+        const isComposerCoveredUp = !isFocused || EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || !!isVisibleRef.current || willAlertModalBecomeVisibleRef.current;
         return !isComposerCoveredUp;
-    }, [isMenuVisible, modal, isFocused]);
+    }, [isMenuVisible, isFocused]);
 
     const focusComposerOnKeyPress = useCallback(
         (e: KeyboardEvent) => {
@@ -633,10 +652,11 @@ function ComposerWithSuggestions(
         };
     }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager]);
 
-    const prevIsModalVisible = usePrevious(modal?.isVisible);
+    const prevIsModalVisible = usePrevious(isVisibleRef.current);
     const prevIsFocused = usePrevious(isFocused);
+
     useEffect(() => {
-        if (modal?.isVisible && !prevIsModalVisible) {
+        if (isVisibleRef.current && !prevIsModalVisible) {
             // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
             isNextModalWillOpenRef.current = false;
         }
@@ -649,7 +669,7 @@ function ComposerWithSuggestions(
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!((willBlurTextInputOnTapOutside || shouldAutoFocus) && !isNextModalWillOpenRef.current && !modal?.isVisible && isFocused && (!!prevIsModalVisible || !prevIsFocused))) {
+        if (!((willBlurTextInputOnTapOutside || shouldAutoFocus) && !isNextModalWillOpenRef.current && !isVisibleRef.current && isFocused && (!!prevIsModalVisible || !prevIsFocused))) {
             return;
         }
 
@@ -658,7 +678,7 @@ function ComposerWithSuggestions(
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, isNextModalWillOpenRef, shouldAutoFocus]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
