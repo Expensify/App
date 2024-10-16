@@ -1316,6 +1316,9 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         customers: IntegrationEntityMap;
     };
 
+    /** Whether new categories are enabled in chart of accounts */
+    enableNewCategories: boolean;
+
     /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;
 }>;
