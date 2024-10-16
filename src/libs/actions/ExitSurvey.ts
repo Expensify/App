@@ -73,7 +73,7 @@ function resetExitSurveyForm(callback: () => void) {
         [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT]: null,
         [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM]: null,
         [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT]: null,
-    }).then(() => callback?.());
+    }).then(callback);
 }
 
 export {saveExitReason, saveResponse, switchToOldDot, resetExitSurveyForm};
