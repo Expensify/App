@@ -373,7 +373,6 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                     <Button
                         innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
                         text={translate('search.filtersHeader')}
-                        textStyles={!isCannedQuery && styles.textSupporting}
                         icon={Expensicons.Filters}
                         onPress={onPress}
                     />
