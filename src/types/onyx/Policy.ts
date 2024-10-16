@@ -1254,9 +1254,6 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         enabled: boolean;
     };
 
-    /** Whether AutoSync is enabled */
-    isAutoSyncEnabled: boolean;
-
     /** Whether a check to be printed */
     markChecksToBePrinted: boolean;
 
