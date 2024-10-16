@@ -5678,6 +5678,7 @@ const CONST = {
             KEYWORD: 'keyword',
             IN: 'in',
         },
+        EMPTY_VALUE: 'none',
     },
 
     REFERRER: {
