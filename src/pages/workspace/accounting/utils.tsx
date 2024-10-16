@@ -285,7 +285,8 @@ function getAccountingIntegrationData(
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.quickbooksDesktop.alias,
                     sideEffect: () => {
-                        if (isSmallScreenWidth) {
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        if (isSmallScreenWidth || integrationToDisconnect) {
                             return;
                         }
                         PolicyAction.enablePolicyTaxes(policyID, false);
