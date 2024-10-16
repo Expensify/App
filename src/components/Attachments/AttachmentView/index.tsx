@@ -2,8 +2,7 @@ import {Str} from 'expensify-common';
 import React, {memo, useContext, useEffect, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
@@ -24,60 +23,58 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
 import DefaultAttachmentView from './DefaultAttachmentView';
 import HighResolutionInfo from './HighResolutionInfo';
 
-type AttachmentViewOnyxProps = {
-    transaction: OnyxEntry<Transaction>;
+type AttachmentViewProps = Attachment & {
+    /** Whether this view is the active screen  */
+    isFocused?: boolean;
+
+    /** Function for handle on press */
+    onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
+
+    /** Whether the attachment is used in attachment modal */
+    isUsedInAttachmentModal?: boolean;
+
+    /** Flag to show/hide download icon */
+    shouldShowDownloadIcon?: boolean;
+
+    /** Flag to show the loading indicator */
+    shouldShowLoadingSpinnerIcon?: boolean;
+
+    /** Notify parent that the UI should be modified to accommodate keyboard */
+    onToggleKeyboard?: (shouldFadeOut: boolean) => void;
+
+    /** A callback when the PDF fails to load */
+    onPDFLoadError?: () => void;
+
+    /** Extra styles to pass to View wrapper */
+    containerStyles?: StyleProp<ViewStyle>;
+
+    /** Denotes whether it is a workspace avatar or not */
+    isWorkspaceAvatar?: boolean;
+
+    /** Denotes whether it is an icon (ex: SVG) */
+    maybeIcon?: boolean;
+
+    /** Fallback source to use in case of error */
+    fallbackSource?: AttachmentSource;
+
+    /* Whether it is hovered or not */
+    isHovered?: boolean;
+
+    /** Whether the attachment is used as a chat attachment */
+    isUsedAsChatAttachment?: boolean;
+
+    /* Flag indicating whether the attachment has been uploaded. */
+    isUploaded?: boolean;
+
+    /** Flag indicating if the attachment is being uploaded. */
+    isUploading?: boolean;
 };
-
-type AttachmentViewProps = AttachmentViewOnyxProps &
-    Attachment & {
-        /** Whether this view is the active screen  */
-        isFocused?: boolean;
-
-        /** Function for handle on press */
-        onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
-
-        isUsedInAttachmentModal?: boolean;
-
-        /** Flag to show/hide download icon */
-        shouldShowDownloadIcon?: boolean;
-
-        /** Flag to show the loading indicator */
-        shouldShowLoadingSpinnerIcon?: boolean;
-
-        /** Notify parent that the UI should be modified to accommodate keyboard */
-        onToggleKeyboard?: (shouldFadeOut: boolean) => void;
-
-        /** A callback when the PDF fails to load */
-        onPDFLoadError?: () => void;
-
-        /** Extra styles to pass to View wrapper */
-        containerStyles?: StyleProp<ViewStyle>;
-
-        /** Denotes whether it is a workspace avatar or not */
-        isWorkspaceAvatar?: boolean;
-
-        /** Denotes whether it is an icon (ex: SVG) */
-        maybeIcon?: boolean;
-
-        /** Fallback source to use in case of error */
-        fallbackSource?: AttachmentSource;
-
-        /* Whether it is hovered or not */
-        isHovered?: boolean;
-
-        /** Whether the attachment is used as a chat attachment */
-        isUsedAsChatAttachment?: boolean;
-
-        /* Flag indicating whether the attachment has been uploaded. */
-        isUploaded?: boolean;
-    };
 
 function AttachmentView({
     source,
@@ -95,16 +92,20 @@ function AttachmentView({
     isWorkspaceAvatar,
     maybeIcon,
     fallbackSource,
-    transaction,
+    transactionID = '-1',
     reportActionID,
     isHovered,
     duration,
     isUsedAsChatAttachment,
     isUploaded = true,
+    isUploading = false,
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -288,20 +289,16 @@ function AttachmentView({
         <DefaultAttachmentView
             fileName={file?.name}
             shouldShowDownloadIcon={shouldShowDownloadIcon}
-            shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon || isUploading}
             containerStyles={containerStyles}
+            isUploading={isUploading}
         />
     );
 }
 
 AttachmentView.displayName = 'AttachmentView';
 
-export default memo(
-    withOnyx<AttachmentViewProps, AttachmentViewOnyxProps>({
-        transaction: {
-            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-        },
-    })(AttachmentView),
-);
+export default memo(AttachmentView);
 
 export type {AttachmentViewProps};

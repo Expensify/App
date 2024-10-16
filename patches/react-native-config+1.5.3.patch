@@ -1,68 +1,11 @@
-diff --git a/node_modules/react-native-config/README.md b/node_modules/react-native-config/README.md
-index 8424402..ca29e39 100644
---- a/node_modules/react-native-config/README.md
-+++ b/node_modules/react-native-config/README.md
-@@ -78,13 +78,13 @@ if cocoapods are used in the project then pod has to be installed as well:
- 	**MainApplication.java**
- 	
- 	```diff
--	+ import com.lugg.ReactNativeConfig.ReactNativeConfigPackage;
-+	+ import com.lugg.RNCConfig.RNCConfigPackage;
- 	
- 	@Override
- 	protected List<ReactPackage> getPackages() {
- 		   return Arrays.asList(
-            		new MainReactPackage()
--	+      		new ReactNativeConfigPackage()
-+	+      		new RNCConfigPackage()
- 	    );
- 	}
- 	```
 diff --git a/node_modules/react-native-config/android/build.gradle b/node_modules/react-native-config/android/build.gradle
-index c8f7fd4..86b3e1a 100644
+index d3bdb07..1629423 100644
 --- a/node_modules/react-native-config/android/build.gradle
 +++ b/node_modules/react-native-config/android/build.gradle
-@@ -15,6 +15,55 @@ def safeExtGet(prop, fallback) {
+@@ -15,6 +15,18 @@ def safeExtGet(prop, fallback) {
      rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
  }
  
-+def resolveReactNativeDirectory() {
-+    def reactNativeLocation = safeExtGet("REACT_NATIVE_NODE_MODULES_DIR", null)
-+    if (reactNativeLocation != null) {
-+        return file(reactNativeLocation)
-+    }
-+
-+    // monorepo workaround
-+    // react-native can be hoisted or in project's own node_modules
-+    def reactNativeFromProjectNodeModules = file("${rootProject.projectDir}/../node_modules/react-native")
-+    if (reactNativeFromProjectNodeModules.exists()) {
-+        return reactNativeFromProjectNodeModules
-+    }
-+
-+    def reactNativeFromNodeModulesWithRNCConfig = file("${projectDir}/../../react-native")
-+    if (reactNativeFromNodeModulesWithRNCConfig.exists()) {
-+        return reactNativeFromNodeModulesWithRNCConfig
-+    }
-+
-+    throw new Exception(
-+            "[react-native-config] Unable to resolve react-native location in " +
-+                    "node_modules. You should add project extension property (in app/build.gradle) " +
-+                    "`REACT_NATIVE_NODE_MODULES_DIR` with path to react-native."
-+    )
-+}
-+
-+def getReactNativeMinorVersion() {
-+    def REACT_NATIVE_DIR = resolveReactNativeDirectory()
-+
-+    def reactProperties = new Properties()
-+    file("$REACT_NATIVE_DIR/ReactAndroid/gradle.properties").withInputStream { reactProperties.load(it) }
-+
-+    def REACT_NATIVE_VERSION = reactProperties.getProperty("VERSION_NAME")
-+    def REACT_NATIVE_MINOR_VERSION = REACT_NATIVE_VERSION.startsWith("0.0.0-") ? 1000 : REACT_NATIVE_VERSION.split("\\.")[1].toInteger()
-+
-+    return REACT_NATIVE_MINOR_VERSION
-+}
-+
 +def isNewArchitectureEnabled() {
 +    // To opt-in for the New Architecture, you can either:
 +    // - Set `newArchEnabled` to true inside the `gradle.properties` file
@@ -75,10 +18,10 @@ index c8f7fd4..86b3e1a 100644
 +    apply plugin: "com.facebook.react"
 +}
 +
- android {
-     compileSdkVersion rootProject.ext.compileSdkVersion
- 
-@@ -23,10 +72,23 @@ android {
+ def supportsNamespace() {
+   def parsed = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.');
+   def major = parsed[0].toInteger();
+@@ -44,10 +56,23 @@ android {
          targetSdkVersion rootProject.ext.targetSdkVersion
          versionCode 1
          versionName "1.0"
@@ -102,44 +45,45 @@ index c8f7fd4..86b3e1a 100644
  }
  
  repositories {
-@@ -34,5 +96,9 @@ repositories {
+@@ -55,5 +80,5 @@ repositories {
  }
  
  dependencies {
 -    implementation "com.facebook.react:react-native:${safeExtGet("reactNative", "+")}" // from node_modules
-+    if (isNewArchitectureEnabled() && getReactNativeMinorVersion() < 71) {
-+        implementation project(":ReactAndroid")
-+    } else {
-+        implementation 'com.facebook.react:react-native:+'
-+    }
++    implementation 'com.facebook.react:react-native:+'
  }
 diff --git a/node_modules/react-native-config/android/src/main/java/com/lugg/RNCConfig/RNCConfigModule.java b/node_modules/react-native-config/android/src/main/java/com/lugg/RNCConfig/RNCConfigModule.java
-index 0b52515..bef2834 100644
+index 55b853b..2784795 100644
 --- a/node_modules/react-native-config/android/src/main/java/com/lugg/RNCConfig/RNCConfigModule.java
 +++ b/node_modules/react-native-config/android/src/main/java/com/lugg/RNCConfig/RNCConfigModule.java
-@@ -13,20 +13,32 @@ import java.lang.reflect.Field;
+@@ -11,41 +11,58 @@ import java.lang.reflect.Field;
  import java.util.Map;
  import java.util.HashMap;
  
 -public class RNCConfigModule extends ReactContextBaseJavaModule {
 +public class RNCConfigModule extends NativeConfigModuleSpec {
 +  public static final String NAME = "RNCConfigModule";
-+
-   public RNCConfigModule(ReactApplicationContext reactContext) {
-     super(reactContext);
-   }
  
-   @Override
-   public String getName() {
--    return "RNCConfigModule";
+-    public RNCConfigModule(ReactApplicationContext reactContext) {
+-        super(reactContext);
+-    }
++  public RNCConfigModule(ReactApplicationContext reactContext) {
++    super(reactContext);
++  }
+ 
+-    @Override
+-    public String getName() {
+-        return "RNCConfigModule";
+-    }
++  @Override
++  public String getName() {
 +    return NAME;
-   }
- 
-   @Override
--  public Map<String, Object> getConstants() {
++  }
++
++  @Override
 +  public Map<String, Object> getTypedExportedConstants() {
-     final Map<String, Object> constants = new HashMap<>();
- 
++    final Map<String, Object> constants = new HashMap<>();
++
 +    // Codegen ensures that the constants defined in the module spec and in the native module implementation
 +    // are consistent, which is tad problematic in this case, as the constants are dependant on the `.env`
 +    // file. The simple workaround is to define a `constants` object that will contain actual constants.
@@ -149,33 +93,64 @@ index 0b52515..bef2834 100644
 +    // we export { constants: { constant1: "value1", constant2: "value2" } }
 +    // because of type safety on the new arch
 +    final Map<String, Object> realConstants = new HashMap<>();
-+
-     try {
-       Context context = getReactApplicationContext();
-       int resId = context.getResources().getIdentifier("build_config_package", "string", context.getPackageName());
-@@ -40,7 +52,7 @@ public class RNCConfigModule extends ReactContextBaseJavaModule {
-       Field[] fields = clazz.getDeclaredFields();
-       for(Field f: fields) {
+ 
+-    @Override
+-    public Map<String, Object> getConstants() {
+-        final Map<String, Object> constants = new HashMap<>();
++    try {
++      Context context = getReactApplicationContext();
++      int resId = context.getResources().getIdentifier("build_config_package", "string", context.getPackageName());
++      String className;
++      try {
++        className = context.getString(resId);
++      } catch (Resources.NotFoundException e) {
++        className = getReactApplicationContext().getApplicationContext().getPackageName();
++      }
++      Class clazz = Class.forName(className + ".BuildConfig");
++      Field[] fields = clazz.getDeclaredFields();
++      for(Field f: fields) {
          try {
--          constants.put(f.getName(), f.get(null));
+-            Context context = getReactApplicationContext();
+-            int resId = context.getResources().getIdentifier("build_config_package", "string", context.getPackageName());
+-            String className;
+-            try {
+-                className = context.getString(resId);
+-            } catch (Resources.NotFoundException e) {
+-                className = getReactApplicationContext().getApplicationContext().getPackageName();
+-            }
+-            Class clazz = Class.forName(className + ".BuildConfig");
+-            Field[] fields = clazz.getDeclaredFields();
+-            for (Field f : fields) {
+-                try {
+-                    constants.put(f.getName(), f.get(null));
+-                } catch (IllegalAccessException e) {
+-                    Log.d("ReactNative", "ReactConfig: Could not access BuildConfig field " + f.getName());
+-                }
+-            }
+-        } catch (ClassNotFoundException e) {
+-            Log.d("ReactNative", "ReactConfig: Could not find BuildConfig class");
 +          realConstants.put(f.getName(), f.get(null));
          }
-         catch (IllegalAccessException e) {
-           Log.d("ReactNative", "ReactConfig: Could not access BuildConfig field " + f.getName());
-@@ -51,6 +63,8 @@ public class RNCConfigModule extends ReactContextBaseJavaModule {
-       Log.d("ReactNative", "ReactConfig: Could not find BuildConfig class");
+-        return constants;
++        catch (IllegalAccessException e) {
++          Log.d("ReactNative", "ReactConfig: Could not access BuildConfig field " + f.getName());
++        }
++      }
++    }
++    catch (ClassNotFoundException e) {
++      Log.d("ReactNative", "ReactConfig: Could not find BuildConfig class");
      }
- 
++
 +    constants.put("constants", realConstants);
 +
-     return constants;
-   }
++    return constants;
++  }
  }
 diff --git a/node_modules/react-native-config/android/src/main/java/com/lugg/RNCConfig/RNCConfigPackage.java b/node_modules/react-native-config/android/src/main/java/com/lugg/RNCConfig/RNCConfigPackage.java
-index 9251c09..2edd797 100644
+index 599a81a..2edd797 100644
 --- a/node_modules/react-native-config/android/src/main/java/com/lugg/RNCConfig/RNCConfigPackage.java
 +++ b/node_modules/react-native-config/android/src/main/java/com/lugg/RNCConfig/RNCConfigPackage.java
-@@ -1,29 +1,42 @@
+@@ -1,27 +1,42 @@
  package com.lugg.RNCConfig;
  
 -import com.facebook.react.ReactPackage;
@@ -184,26 +159,24 @@ index 9251c09..2edd797 100644
  import com.facebook.react.bridge.NativeModule;
  import com.facebook.react.bridge.ReactApplicationContext;
 -import com.facebook.react.uimanager.ViewManager;
-+import com.facebook.react.module.model.ReactModuleInfo;
-+import com.facebook.react.module.model.ReactModuleInfoProvider;
- 
 -import java.util.Arrays;
 -import java.util.Collections;
 -import java.util.List;
++import com.facebook.react.module.model.ReactModuleInfo;
++import com.facebook.react.module.model.ReactModuleInfoProvider;
+ 
+-public class RNCConfigPackage implements ReactPackage {
 +import java.util.HashMap;
 +import java.util.Map;
  
--public class RNCConfigPackage implements ReactPackage {
 -    @Override
 -    public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
--        return Arrays.<NativeModule>asList(
--            new RNCConfigModule(reactContext)
--        );
+-        return Arrays.<NativeModule>asList(new RNCConfigModule(reactContext));
 -    }
 +public class RNCConfigPackage extends TurboReactPackage {
  
--    public List<Class<? extends JavaScriptModule>> createJSModules() {		
--        return Collections.emptyList();		
+-    public List<Class<? extends JavaScriptModule>> createJSModules() {
+-        return Collections.emptyList();
 +    @Override
 +    public NativeModule getModule(String name, ReactApplicationContext reactContext) {
 +        if (name.equals(RNCConfigModule.NAME)) {
@@ -336,31 +309,29 @@ index 70866c4..a8f3624 100644
  
 -export const Config = NativeModules.RNCConfigModule || {}
  export default Config;
-diff --git a/node_modules/react-native-config/ios/ReactNativeConfig/GeneratedDotEnv.m b/node_modules/react-native-config/ios/ReactNativeConfig/GeneratedDotEnv.m
-index 04a2f3d..59df625 100644
---- a/node_modules/react-native-config/ios/ReactNativeConfig/GeneratedDotEnv.m
-+++ b/node_modules/react-native-config/ios/ReactNativeConfig/GeneratedDotEnv.m
-@@ -1 +1 @@
--  #define DOT_ENV @{  };
-+  #define DOT_ENV @{ @"ENV":@"dev",@"API_URL":@"http://localhost" };
 diff --git a/node_modules/react-native-config/ios/ReactNativeConfig/RNCConfigModule.h b/node_modules/react-native-config/ios/ReactNativeConfig/RNCConfigModule.h
-index 755d103..5341aca 100644
+index 755d103..4e4c564 100644
 --- a/node_modules/react-native-config/ios/ReactNativeConfig/RNCConfigModule.h
 +++ b/node_modules/react-native-config/ios/ReactNativeConfig/RNCConfigModule.h
-@@ -1,3 +1,9 @@
+@@ -1,12 +1,15 @@
+-#if __has_include(<React/RCTBridgeModule.h>)
+-#import <React/RCTBridgeModule.h>
+-#elif __has_include("React/RCTBridgeModule.h")
+-#import "React/RCTBridgeModule.h"
 +#ifdef RCT_NEW_ARCH_ENABLED
 +#import "RNCConfigSpec.h"
-+
-+@interface RNCConfigModule : NSObject <NativeConfigModuleSpec>
-+#else
-+
- #if __has_include(<React/RCTBridgeModule.h>)
- #import <React/RCTBridgeModule.h>
- #elif __has_include("React/RCTBridgeModule.h")
-@@ -7,6 +13,7 @@
- #endif
+ #else
+-#import "RCTBridgeModule.h"
+-#endif
++#import <React/RCTBridgeModule.h>
++#endif // RCT_NEW_ARCH_ENABLED
  
- @interface RNCConfigModule : NSObject <RCTBridgeModule>
+-@interface RNCConfigModule : NSObject <RCTBridgeModule>
++@interface RNCConfigModule : NSObject
++#ifdef RCT_NEW_ARCH_ENABLED
++<NativeConfigModuleSpec>
++#else
++<RCTBridgeModule>
 +#endif // RCT_NEW_ARCH_ENABLED
  
  + (NSDictionary *)env;
@@ -440,10 +411,10 @@ index 0000000..1cacb65
 +
 +@end
 diff --git a/node_modules/react-native-config/package.json b/node_modules/react-native-config/package.json
-index b4d1fba..0a018a7 100644
+index f758725..f338b41 100644
 --- a/node_modules/react-native-config/package.json
 +++ b/node_modules/react-native-config/package.json
-@@ -26,6 +26,7 @@
+@@ -27,6 +27,7 @@
      "android/",
      "ios/",
      "windows/",
@@ -451,8 +422,8 @@ index b4d1fba..0a018a7 100644
      "index.js",
      "index.d.ts",
      "react-native-config.podspec",
-@@ -38,11 +39,21 @@
-     "semantic-release": "^17.0.4"
+@@ -39,11 +40,21 @@
+     "semantic-release": "^19.0.5"
    },
    "peerDependencies": {
 +    "react": "*",
@@ -474,7 +445,7 @@ index b4d1fba..0a018a7 100644
    }
  }
 diff --git a/node_modules/react-native-config/react-native-config.podspec b/node_modules/react-native-config/react-native-config.podspec
-index 35313d4..56bce4a 100644
+index 449b970..88b14c5 100644
 --- a/node_modules/react-native-config/react-native-config.podspec
 +++ b/node_modules/react-native-config/react-native-config.podspec
 @@ -4,6 +4,8 @@ require 'json'
@@ -486,7 +457,7 @@ index 35313d4..56bce4a 100644
  Pod::Spec.new do |s|
    s.name         = 'react-native-config'
    s.version      = package['version']
-@@ -33,8 +35,27 @@ HOST_PATH="$SRCROOT/../.."
+@@ -35,8 +37,13 @@ HOST_PATH="$SRCROOT/../.."
    s.default_subspec = 'App'
  
      s.subspec 'App' do |app|
@@ -495,21 +466,7 @@ index 35313d4..56bce4a 100644
 +    app.source_files = 'ios/**/*.{h,m,mm}'
 +    
 +    if fabric_enabled
-+      folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -Wno-comma -Wno-shorten-64-to-32'
-+
-+      app.pod_target_xcconfig = {
-+        'HEADER_SEARCH_PATHS' => '"$(PODS_ROOT)/boost" "$(PODS_ROOT)/boost-for-react-native" "$(PODS_ROOT)/RCT-Folly"',
-+        'CLANG_CXX_LANGUAGE_STANDARD' => 'c++17',
-+      }
-+      app.compiler_flags  = folly_compiler_flags + ' -DRCT_NEW_ARCH_ENABLED'
-+
-+      app.dependency "React"
-+      app.dependency "React-RCTFabric" # This is for fabric component
-+      app.dependency "React-Codegen"
-+      app.dependency "RCT-Folly"
-+      app.dependency "RCTRequired"
-+      app.dependency "RCTTypeSafety"
-+      app.dependency "ReactCommon/turbomodule/core"
++      install_modules_dependencies(app)
 +    else
 +      app.dependency 'React-Core'
 +    end
