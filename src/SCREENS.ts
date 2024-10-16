@@ -143,7 +143,6 @@ const SCREENS = {
         ROOT: 'SaveTheWorld_Root',
     },
     LEFT_MODAL: {
-        CHAT_FINDER: 'ChatFinder',
         WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
     },
     RIGHT_MODAL: {
