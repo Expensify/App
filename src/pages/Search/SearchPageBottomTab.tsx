@@ -86,6 +86,8 @@ function SearchPageBottomTab() {
         );
     }
 
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !SearchUtils.isCannedSearchQuery(queryJSON);
+
     return (
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
@@ -98,9 +100,8 @@ function SearchPageBottomTab() {
                         <TopBar
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
-                            shouldDisplaySearch={false}
-                            shouldDisplaySearchRouter={shouldUseNarrowLayout}
-                            isCustomSearchQuery={shouldUseNarrowLayout && !SearchQueryUtils.isCannedSearchQuery(queryJSON)}
+                            shouldDisplaySearch={shouldUseNarrowLayout}
+                            shouldDisplayCancelSearch={shouldDisplayCancelSearch}
                         />
                     </View>
                     {shouldUseNarrowLayout ? (
