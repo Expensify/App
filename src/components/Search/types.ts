@@ -41,6 +41,8 @@ type SearchContext = {
     clearSelectedTransactions: (hash?: number) => void;
     shouldShowStatusBarLoading: boolean;
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
+    setLastSearchType: (type: string | undefined) => void;
+    lastSearchType: string | undefined;
 };
 
 type ASTNode = {
