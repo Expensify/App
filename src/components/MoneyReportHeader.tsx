@@ -241,7 +241,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     };
 
     const statusBarProps = getStatusBarProps();
-    const hasButtons = isDuplicate || shouldShowSettlementButton || shouldShowExportIntegrationButton || shouldShowSubmitButton || hasAllPendingRTERViolations;
+    const hasButtons = isDuplicate || shouldShowSettlementButton || !!shouldShowExportIntegrationButton || shouldShowSubmitButton || hasAllPendingRTERViolations;
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
