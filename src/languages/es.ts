@@ -267,6 +267,7 @@ const translations = {
         close: 'Cerrar',
         download: 'Descargar',
         downloading: 'Descargando',
+        uploading: 'Subiendo',
         pin: 'Fijar',
         unPin: 'Desfijar',
         back: 'Volver',
