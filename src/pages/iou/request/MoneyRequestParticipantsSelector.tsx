@@ -149,7 +149,6 @@ function MoneyRequestParticipantsSelector({
         options.reports,
         participants,
         isPaidGroupPolicy,
-        debouncedSearchTerm,
     ]);
 
     const chatOptions = useMemo(() => {

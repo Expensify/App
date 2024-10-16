@@ -109,7 +109,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         // Ideally getFilteredOptions should not be used with both options and search value
         // The more performant filterOptions should be used instead to pass search value with options containing reports and personal details
-        // @ts-expect-error
+        // @ts-expect-error pass both options and search value together
         await measureFunction(() => OptionsListUtils.getFilteredOptions({reports: options.reports, personalDetails: options.personalDetails, betas: mockedBetas, searchValue: SEARCH_VALUE}));
     });
 

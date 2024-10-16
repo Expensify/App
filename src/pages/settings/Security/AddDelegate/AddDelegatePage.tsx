@@ -30,7 +30,7 @@ function useOptions() {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions({
             reports: optionsList.reports,
             personalDetails: optionsList.personalDetails,
-            betas: betas,
+            betas,
 
             excludeLogins: [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
 
