@@ -13,7 +13,7 @@ Your Expensify bill is determined by:
 - Whether you’re using the Expensify Visa® Commercial Card
 - Active members
 
-An active member is anyone who chats, creates, submits, approves, reimburses, or exports a report in Expensify in any given month. This includes Copilots and automated settings.
+An active member is anyone who chats, creates, submits, approves, reimburses, or exports a report in Expensify in any given month. This includes Copilots and automatic actions by Concierge.
 
 ## Collect vs Control plan
 
