@@ -1,5 +1,6 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
@@ -43,14 +44,25 @@ function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], comm
 
 function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], reportActionID: string, originalReportID: string): ConflictActionData {
     const indices: number[] = [];
+    const commentCouldBeThread: Record<string, number> = {};
     let addCommentFound = false;
-
     persistedRequests.forEach((request, index) => {
+        // If the request will open a Thread, we should not delete the comment and we should send all the requests
+        if (request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.parentReportActionID === reportActionID && reportActionID in commentCouldBeThread) {
+            const indexToRemove = commentCouldBeThread[reportActionID];
+            indices.splice(indexToRemove, 1);
+            return;
+        }
+
         if (!commentsToBeDeleted.has(request.command) || request.data?.reportActionID !== reportActionID) {
             return;
         }
+
+        // If we find a new message, we probably want to remove it and not perform any request given that the server
+        // doesn't know about it yet.
         if (addNewMessage.has(request.command)) {
             addCommentFound = true;
+            commentCouldBeThread[reportActionID] = index;
         }
         indices.push(index);
     });
@@ -64,6 +76,7 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
     }
 
     if (addCommentFound) {
+        // The new message performs some changes in Onyx, so we need to rollback those changes.
         const rollbackData: OnyxUpdate[] = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

@@ -778,8 +778,7 @@ describe('actions/Report', () => {
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
         Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
 
-        // wait for Onyx.connect execute the callback and start processing the queue
-        await Promise.resolve();
+        await waitForBatchedUpdates();
 
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
@@ -795,12 +794,13 @@ describe('actions/Report', () => {
             });
         });
 
-        // Checking the Report Action exists before dleting it
+        // Checking the Report Action exists before deleting it
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                 callback: (reportActions) => {
                     Onyx.disconnect(connection);
+
                     expect(reportActions?.[reportActionID]).not.toBeNull();
                     expect(reportActions?.[reportActionID].reportActionID).toBe(reportActionID);
                     resolve();
@@ -859,9 +859,7 @@ describe('actions/Report', () => {
                 key: ONYXKEYS.PERSISTED_REQUESTS,
                 callback: (persistedRequests) => {
                     Onyx.disconnect(connection);
-
                     expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
-
                     resolve();
                 },
             });
@@ -909,9 +907,7 @@ describe('actions/Report', () => {
                 key: ONYXKEYS.PERSISTED_REQUESTS,
                 callback: (persistedRequests) => {
                     Onyx.disconnect(connection);
-
                     expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
-
                     resolve();
                 },
             });
@@ -950,21 +946,20 @@ describe('actions/Report', () => {
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
         // wait for Onyx.connect execute the callback and start processing the queue
-        await Promise.resolve();
+        await waitForBatchedUpdates();
 
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.PERSISTED_REQUESTS,
                 callback: (persistedRequests) => {
                     Onyx.disconnect(connection);
-
                     expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_ATTACHMENT);
                     resolve();
                 },
             });
         });
 
-        // Checking the Report Action exists before dleting it
+        // Checking the Report Action exists before deleting it
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
@@ -1018,21 +1013,20 @@ describe('actions/Report', () => {
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
         // wait for Onyx.connect execute the callback and start processing the queue
-        await Promise.resolve();
+        await waitForBatchedUpdates();
 
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.PERSISTED_REQUESTS,
                 callback: (persistedRequests) => {
                     Onyx.disconnect(connection);
-
                     expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
                     resolve();
                 },
             });
         });
 
-        // Checking the Report Action exists before dleting it
+        // Checking the Report Action exists before deleting it
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
@@ -1226,6 +1220,66 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_EMOJI_REACTION, 0);
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
+    });
+
+    it('should create and delete thread processing all the requests', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        const TEST_USER_ACCOUNT_ID = 1;
+        const REPORT_ID = '1';
+        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
+        const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        Report.addComment(REPORT_ID, 'Testing a comment');
+
+        const newComment = PersistedRequests.getAll().at(0);
+        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
+        const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
+
+        Report.openReport(
+            REPORT_ID,
+            undefined,
+            ['test@user.com'],
+            {
+                isOptimisticReport: true,
+                parentReportID: REPORT_ID,
+                parentReportActionID: reportActionID,
+                reportID: '2',
+            },
+            reportActionID,
+        );
+
+        Report.deleteReportComment(REPORT_ID, reportAction);
+
+        expect(PersistedRequests.getAll().length).toBe(3);
+
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.PERSISTED_REQUESTS,
+                callback: (persistedRequests) => {
+                    if (persistedRequests?.length !== 3) {
+                        return;
+                    }
+                    Onyx.disconnect(connection);
+
+                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
+                    expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.OPEN_REPORT);
+                    expect(persistedRequests?.at(2)?.command).toBe(WRITE_COMMANDS.DELETE_COMMENT);
+                    resolve();
+                },
+            });
+        });
+
+        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+
+        // Checking no requests were or will be made
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
     });
 });
