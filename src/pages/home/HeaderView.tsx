@@ -140,6 +140,9 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report?.reportID || !title;
 
+    const isReportOpenInRHP = Navigation.getIsReportOpenInRHP();
+    const shouldDisplaySearchRouter = !isReportOpenInRHP;
+
     return (
         <View
             style={[shouldShowBorderBottom && styles.borderBottom]}
@@ -280,7 +283,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
-                            <SearchButton style={styles.ml4} />
+                            {shouldDisplaySearchRouter && <SearchButton style={styles.ml4} />}
                         </View>
                         <ConfirmModal
                             isVisible={isDeleteTaskConfirmModalVisible}
