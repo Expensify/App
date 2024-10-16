@@ -1,7 +1,7 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
-import FullNameStep from '@components/FullNameStep';
+import FullNameStep from '@components/SubStepForms/FullNameStep';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';

@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
-import FullNameStep from '@components/FullNameStep';
+import FullNameStep from '@components/SubStepForms/FullNameStep';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';

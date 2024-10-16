@@ -7,11 +7,11 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
-import FormProvider from './Form/FormProvider';
-import InputWrapper from './Form/InputWrapper';
-import type {FormOnyxKeys, FormOnyxValues} from './Form/types';
-import Text from './Text';
-import TextInput from './TextInput';
+import FormProvider from '../Form/FormProvider';
+import InputWrapper from '../Form/InputWrapper';
+import type {FormOnyxKeys, FormOnyxValues} from '../Form/types';
+import Text from '../Text';
+import TextInput from '../TextInput';
 
 type FullNameStepProps = SubStepProps & {
     /** The ID of the form */
