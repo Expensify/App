@@ -69,6 +69,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 undefined,
                 newActiveIntegration.integrationToDisconnect,
                 newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
+                undefined,
                 isSmallScreenWidth,
             );
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
