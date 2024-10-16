@@ -66,7 +66,7 @@ function getAttributes(): FirebaseAttributes {
     const accountId = session?.accountID?.toString() ?? 'N/A';
     const reportsLength = ReportConnection.getAllReportsLength().toString();
     const personalDetailsLength = PersonalDetailsUtils.getPersonalDetailsLength().toString();
-    const transactionViolationsLength = getAllTransactionViolationsLength();
+    const transactionViolationsLength = getAllTransactionViolationsLength().toString();
 
     return {
         accountId,
