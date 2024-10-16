@@ -75,8 +75,8 @@ function PhoneNumberPage() {
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PHONE_NUMBER}
                             name="lfname"
-                            label={translate('privatePersonalDetails.enterPhoneNumber')}
-                            aria-label={translate('privatePersonalDetails.enterPhoneNumber')}
+                            label={translate('common.phoneNumber')}
+                            aria-label={translate('common.phoneNumber')}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={phoneNumber}
                             spellCheck={false}
