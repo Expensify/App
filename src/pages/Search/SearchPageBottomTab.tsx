@@ -86,7 +86,7 @@ function SearchPageBottomTab() {
         );
     }
 
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !SearchUtils.isCannedSearchQuery(queryJSON);
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
 
     return (
         <ScreenWrapper

@@ -177,7 +177,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 isFullWidth={isSmallScreenWidth}
                 updateSearch={onSearchChange}
                 onSubmit={() => {
-                    onSearchSubmit(SearchUtils.buildSearchQueryJSON(textInputValue));
+                    onSearchSubmit(SearchQueryUtils.buildSearchQueryJSON(textInputValue));
                 }}
                 routerListRef={listRef}
                 shouldShowOfflineMessage
