@@ -261,8 +261,9 @@ function getAccountingIntegrationData(
                 onCardReconciliationPagePress: () => {},
                 onAdvancedPagePress: () => {},
                 // TODO: [QBD] Make sure all values are passed to subscribedSettings
-                subscribedImportSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES],
+                subscribedImportSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES],
                 subscribedExportSettings: [
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT,

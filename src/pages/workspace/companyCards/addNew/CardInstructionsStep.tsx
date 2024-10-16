@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Parser from '@libs/Parser';
@@ -20,19 +21,27 @@ function CardInstructionsStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {canUseDirectFeeds} = usePermissions();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const data = addNewCard?.data;
     const feedProvider = data?.feedType ?? CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
+    const isAmexFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
 
     const submit = () => {
         CompanyCards.setAddNewCompanyCardStepAndData({
-            step: feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX ? CONST.COMPANY_CARDS.STEP.CARD_DETAILS : CONST.COMPANY_CARDS.STEP.CARD_NAME,
+            step: isAmexFeedProvider ? CONST.COMPANY_CARDS.STEP.CARD_DETAILS : CONST.COMPANY_CARDS.STEP.CARD_NAME,
         });
     };
 
     const handleBackButtonPress = () => {
+        if (canUseDirectFeeds && isAmexFeedProvider) {
+            CompanyCards.setAddNewCompanyCardStepAndData({
+                step: CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED,
+            });
+            return;
+        }
         CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
     };
 

@@ -370,6 +370,17 @@ function updateQuickbooksDesktopReimbursableExpensesAccount<TSettingValue extend
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, onyxData);
 }
 
+function updateQuickbooksDesktopEnableNewCategories<TSettingValue extends Connections['quickbooksDesktop']['config']['enableNewCategories']>(policyID: string, settingValue: TSettingValue) {
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES, settingValue, !settingValue);
+
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_ENABLE_NEW_CATEGORIES, parameters, onyxData);
+}
+
 function updateQuickbooksDesktopSyncClasses<TSettingValue extends Connections['quickbooksDesktop']['config']['mappings']['classes']>(
     policyID: string,
     settingValue: TSettingValue,
@@ -399,11 +410,28 @@ function updateQuickbooksDesktopPreferredExporter<TSettingValue extends Connecti
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT, parameters, onyxData);
 }
 
+function updateQuickbooksDesktopExportDate<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['exportDate']>(
+    policyID: string,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
+        policyID,
+        settingValue,
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT_DATE, parameters, onyxData);
+}
+
 export {
     updateQuickbooksDesktopPreferredExporter,
     updateQuickbooksDesktopMarkChecksToBePrinted,
     updateQuickbooksDesktopExpensesExportDestination,
     updateQuickbooksDesktopReimbursableExpensesAccount,
     getQuickbooksDesktopCodatSetupLink,
+    updateQuickbooksDesktopEnableNewCategories,
+    updateQuickbooksDesktopExportDate,
     updateQuickbooksDesktopSyncClasses,
 };
