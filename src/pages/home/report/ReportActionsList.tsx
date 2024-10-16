@@ -412,7 +412,7 @@ function ReportActionsList({
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
             Report.openReport(report.reportID);
             reportScrollManager.scrollToBottom();
-            return; 
+            return;
         }
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
