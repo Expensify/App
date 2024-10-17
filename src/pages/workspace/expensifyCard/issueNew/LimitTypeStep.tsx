@@ -108,6 +108,7 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
                 shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={typeSelected}
                 shouldUpdateFocusedIndex
+                isAlternateTextMultilineSupported
             />
             <Button
                 success
