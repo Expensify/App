@@ -75,6 +75,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
+    const isQuickSettingsFlow = !!backTo;
 
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
@@ -140,27 +141,19 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     );
 
     const navigateToCategorySettings = (category: PolicyOption) => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList));
+        Navigation.navigate(
+            isQuickSettingsFlow
+                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo)
+                : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList),
+        );
     };
 
     const navigateToCategoriesSettings = () => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyId));
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyId));
     };
 
     const navigateToCreateCategoryPage = () => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
     };
 
     const dismissError = (item: PolicyOption) => {
@@ -312,7 +305,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId));
+                    Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId));
                 },
             });
         }
@@ -335,7 +328,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return menuItems;
-    }, [policyId, translate, isOffline, hasVisibleCategories, policy]);
+    }, [policyId, translate, isOffline, hasVisibleCategories, policy, isQuickSettingsFlow, backTo]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 

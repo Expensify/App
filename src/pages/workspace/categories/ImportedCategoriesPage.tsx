@@ -30,9 +30,11 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
+    const isQuickSettingsFlow = !!backTo;
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -120,7 +122,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const closeImportPageAndModal = () => {
         setIsImportingCategories(false);
         closeImportPage();
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
     };
 
     return (
@@ -130,7 +132,9 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.categories.importCategories')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyID))}
+                onBackButtonPress={() =>
+                    Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyID))
+                }
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}

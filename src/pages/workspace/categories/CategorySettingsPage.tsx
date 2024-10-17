@@ -53,13 +53,10 @@ function CategorySettingsPage({
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
+    const isQuickSettingsFlow = !!backTo;
 
     const navigateBack = () => {
-        if (backTo) {
-            Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo));
-            return;
-        }
-        Navigation.goBack();
+        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
     };
 
     useEffect(() => {
@@ -117,11 +114,9 @@ function CategorySettingsPage({
     };
 
     const navigateToEditCategory = () => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_EDIT.getRoute(policyID, policyCategory.name, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(policyID, policyCategory.name));
+        Navigation.navigate(
+            isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_EDIT.getRoute(policyID, policyCategory.name, backTo) : ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(policyID, policyCategory.name),
+        );
     };
 
     const deleteCategory = () => {
@@ -197,12 +192,18 @@ function CategorySettingsPage({
                                                 ROUTES.WORKSPACE_UPGRADE.getRoute(
                                                     policyID,
                                                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                                    ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
+                                                    isQuickSettingsFlow
+                                                        ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                        : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
                                                 ),
                                             );
                                             return;
                                         }
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(
+                                            isQuickSettingsFlow
+                                                ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
+                                        );
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -222,7 +223,11 @@ function CategorySettingsPage({
                                             );
                                             return;
                                         }
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(
+                                            isQuickSettingsFlow
+                                                ? ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                : ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name),
+                                        );
                                     }}
                                     shouldShowRightIcon
                                 />
