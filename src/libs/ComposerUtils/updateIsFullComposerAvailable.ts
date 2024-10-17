@@ -14,7 +14,7 @@ function updateIsFullComposerAvailable(props: ComposerProps, event: NativeSynthe
         return;
     }
     const totalHeight = inputHeight + paddingTopAndBottom;
-    const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
+    const isFullComposerAvailable = totalHeight > CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
     if (isFullComposerAvailable !== props.isFullComposerAvailable) {
         props.setIsFullComposerAvailable?.(isFullComposerAvailable);
     }

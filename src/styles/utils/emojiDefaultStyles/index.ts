@@ -6,7 +6,7 @@ import type EmojiDefaultStyles from './types';
 const emojiDefaultStyles: EmojiDefaultStyles = {
     fontStyle: 'normal',
     fontWeight: FontUtils.fontWeight.normal,
-    ...display.dInlineFlex,
+    ...display.dInline,
 };
 
 export default emojiDefaultStyles;
