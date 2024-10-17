@@ -153,7 +153,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport?.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
     const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport?.reportID);
-    const isInvoiceReport = ReportUtils.isInvoiceReport(moneyRequestReport);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
@@ -170,7 +169,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 setIsNoDelegateAccessMenuVisible(true);
             } else if (isAnyTransactionOnHold) {
                 setIsHoldMenuVisible(true);
-            } else if (isInvoiceReport) {
+            } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
                 IOU.payInvoice(
                     type,
                     chatReport,
@@ -183,7 +182,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, isInvoiceReport, moneyRequestReport],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport],
     );
 
     const confirmApproval = () => {
@@ -335,7 +334,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             onPress={confirmPayment}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
-                            addDebitCardRoute={isInvoiceReport ? ROUTES.SETTINGS_WALLET : undefined}
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
                             shouldDisableApproveButton={shouldDisableApproveButton}
