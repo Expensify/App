@@ -33,10 +33,6 @@ export default {
         width: '25%',
     },
 
-    w41: {
-        width: 164,
-    },
-
     mh100: {
         maxHeight: '100%',
     },

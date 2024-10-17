@@ -98,17 +98,21 @@ function EmptyStateComponent({
                     <View style={shouldUseNarrowLayout ? styles.p5 : styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
                         {typeof subtitle === 'string' ? <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text> : subtitle}
-                        <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter]}>
+                        <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : undefined]}>
                             {buttons?.map(({buttonText, buttonAction, success}, index) => (
-                                <Button
-                                    // eslint-disable-next-line react/no-array-index-key
+                                // eslint-disable-next-line react/no-array-index-key
+                                <View
                                     key={index}
-                                    success={success}
-                                    onPress={buttonAction}
-                                    text={buttonText}
-                                    style={[styles.mt5, styles.w41]}
-                                    large
-                                />
+                                    style={styles.flex1}
+                                >
+                                    <Button
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        success={success}
+                                        onPress={buttonAction}
+                                        text={buttonText}
+                                        large
+                                    />
+                                </View>
                             ))}
                         </View>
                     </View>
