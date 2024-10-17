@@ -122,7 +122,7 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
 }
 
-function wasMessageReceivedWhileOffline(message: OnyxTypes.ReportAction, offlineLastAt: Date | undefined, onlineLastAt: Date | undefined, locale: OnyxTypes.Locale): boolean {
+function wasMessageCreatedWhileOffline(message: OnyxTypes.ReportAction, offlineLastAt: Date | undefined, onlineLastAt: Date | undefined, locale: OnyxTypes.Locale): boolean {
     if (!onlineLastAt || !offlineLastAt) {
         return false;
     }
@@ -227,8 +227,8 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
-    const isMessageOffline = useCallback(
-        (m: OnyxTypes.ReportAction) => wasMessageReceivedWhileOffline(m, lastOfflineAt, lastOnlineAt, preferredLocale),
+    const wasMessageReceivedWhileOffline = useCallback(
+        (m: OnyxTypes.ReportAction) => !ReportActionsUtils.wasActionTakenByCurrentUser && wasMessageCreatedWhileOffline(m, lastOfflineAt, lastOnlineAt, preferredLocale),
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [lastOfflineAt, lastOnlineAt],
@@ -245,11 +245,14 @@ function ReportActionsList({
             const isNextMessageUnread = nextMessage ? isMessageUnread(nextMessage, unreadMarkerTime) : false;
 
             // If the user recevied new messages while being offline, we want to display the unread marker above the first offline message.
-            const wasCurrentMessageReceivedWhileOffline = !ReportActionsUtils.wasActionTakenByCurrentUser(message) && isMessageOffline(message);
-            const wasNextMessageReceivedWhileOffline = nextMessage && !ReportActionsUtils.wasActionTakenByCurrentUser(nextMessage) && isMessageOffline(nextMessage);
+            const wasCurrentMessageReceivedWhileOffline = wasMessageReceivedWhileOffline(message);
+            const wasNextMessageReceivedWhileOffline = nextMessage && wasMessageReceivedWhileOffline(nextMessage);
 
             const shouldDisplayForCurrentMessage = isCurrentMessageUnread || wasCurrentMessageReceivedWhileOffline;
             const shouldDisplayForNextMessage = isNextMessageUnread || wasNextMessageReceivedWhileOffline;
+
+            console.log({wasCurrentMessageReceivedWhileOffline, wasNextMessageReceivedWhileOffline, shouldDisplayForCurrentMessage, shouldDisplayForNextMessage});
+
             const shouldDisplay = shouldDisplayForCurrentMessage && !shouldDisplayForNextMessage && !ReportActionsUtils.shouldHideNewMarker(message);
 
             const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? message.created < (userActiveSince.current ?? '') : true;
@@ -266,7 +269,7 @@ function ReportActionsList({
         }
 
         return null;
-    }, [sortedVisibleReportActions, unreadMarkerTime, isMessageOffline]);
+    }, [sortedVisibleReportActions, unreadMarkerTime, wasMessageReceivedWhileOffline]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
