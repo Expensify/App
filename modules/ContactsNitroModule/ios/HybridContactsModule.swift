@@ -4,7 +4,7 @@ import Foundation
 
 final class HybridContactsModule: HybridContactsModuleSpec {
     public var hybridContext = margelo.nitro.HybridContext()
-    public var memorySize: Int { MemoryLayout<HybridContact>.size }
+    public var memorySize: Int { MemoryLayout<HybridContactsModule>.size }
     
     private let contactStore = CNContactStore()
     private let imageDirectory: URL
