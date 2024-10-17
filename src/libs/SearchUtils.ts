@@ -704,14 +704,16 @@ function buildFilterFormValuesFromQuery(
                       .filter((item) => !!item)
                       .map((tagList) => getTagNamesFromTagsLists(tagList ?? {}))
                       .flat();
+            tags.push(CONST.SEARCH.EMPTY_VALUE);
             filtersForm[filterKey] = filters[filterKey]?.map((tag) => tag.value.toString()).filter((name) => tags.includes(name));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             const categories = policyID
                 ? Object.values(policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {}).map((category) => category.name)
                 : Object.values(policyCategories ?? {})
-                      .map((xd) => Object.values(xd ?? {}).map((category) => category.name))
+                      .map((item) => Object.values(item ?? {}).map((category) => category.name))
                       .flat();
+            categories.push(CONST.SEARCH.EMPTY_VALUE);
             filtersForm[filterKey] = filters[filterKey]?.map((category) => category.value.toString()).filter((name) => categories.includes(name));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
