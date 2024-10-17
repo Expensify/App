@@ -20,18 +20,18 @@ def isNewArchitectureEnabled() {
 
 apply plugin: "com.android.library"
 apply plugin: 'org.jetbrains.kotlin.android'
-apply from: '../nitrogen/generated/android/ContactsNitroModule+autolinking.gradle'
+apply from: '../nitrogen/generated/android/ContactsModule+autolinking.gradle'
 
 if (isNewArchitectureEnabled()) {
   apply plugin: "com.facebook.react"
 }
 
 def getExtOrDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["ContactsNitroModule_" + name]
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["ContactsModule_" + name]
 }
 
 def getExtOrIntegerDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["ContactsNitroModule_" + name]).toInteger()
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["ContactsModule_" + name]).toInteger()
 }
 
 android {
