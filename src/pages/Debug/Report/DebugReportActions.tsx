@@ -23,7 +23,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const styles = useThemeStyles();
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
-        selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
+        selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, reportID, true),
     });
     const renderItem = ({item}: ListRenderItemInfo<ReportAction>) => (
         <PressableWithFeedback

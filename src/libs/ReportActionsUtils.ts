@@ -28,6 +28,7 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportConnection from './ReportConnection';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
+import {canUserPerformWriteAction, getReport} from './ReportUtils';
 import StringUtils from './StringUtils';
 // eslint-disable-next-line import/no-cycle
 import * as TransactionUtils from './TransactionUtils';
@@ -634,7 +635,15 @@ const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTy
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, reportID: string): boolean {
+    const report = getReport(reportID);
+    if (
+        (isActionableReportMentionWhisper(reportAction) || isActionableJoinRequestPending(report?.reportID ?? '-1') || isActionableMentionWhisper(reportAction)) &&
+        !canUserPerformWriteAction(report)
+    ) {
+        return false;
+    }
+
     if (!reportAction) {
         return false;
     }
@@ -710,7 +719,7 @@ function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): bo
  * Checks if a reportAction is fit for display as report last action, meaning that
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  */
-function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string): boolean {
     if (!reportAction) {
         return false;
     }
@@ -722,7 +731,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<
     // If a whisper action is the REPORT_PREVIEW action, we are displaying it.
     // If the action's message text is empty and it is not a deleted parent with visible child actions, hide it. Else, consider the action to be displayable.
     return (
-        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
+        shouldReportActionBeVisible(reportAction, reportAction.reportActionID, reportID) &&
         !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
         !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction)) &&
         !isResolvedActionTrackExpense(reportAction)
@@ -764,7 +773,7 @@ function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, N
     } else {
         reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
-    const visibleReportActions = reportActions.filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action));
+    const visibleReportActions = reportActions.filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action, reportID));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
         return undefined;
@@ -830,7 +839,7 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions> | ReportAction[], shouldIncludeInvisibleActions = false): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions> | ReportAction[], reportID: string, shouldIncludeInvisibleActions = false): ReportAction[] {
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
         return [];
@@ -840,7 +849,7 @@ function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions
         filteredReportActions = Object.values(reportActions).filter(Boolean);
     } else {
         filteredReportActions = Object.entries(reportActions)
-            .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
+            .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key, reportID))
             .map(([, reportAction]) => reportAction);
     }
 
@@ -1091,7 +1100,7 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
  */
 function doesReportHaveVisibleActions(reportID: string, actionsToMerge: ReportActions = {}): boolean {
     const reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge, true));
-    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
+    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action, reportID));
 
     // Exclude the task system message and the created message
     const visibleReportActionsWithoutTaskSystemMessage = visibleReportActions.filter((action) => !isTaskAction(action) && !isCreatedAction(action));

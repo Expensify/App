@@ -76,9 +76,9 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
         let newAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID, reportID: report.reportID});
         } else {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined, reportID: report.reportID});
         }
 
         if (isEqual(attachments, newAttachments)) {
@@ -117,7 +117,19 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                 onNavigate(attachment);
             }
         }
-    }, [report.privateNotes, reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, type]);
+    }, [
+        report.privateNotes,
+        reportActions,
+        parentReportActions,
+        compareImage,
+        report.parentReportActionID,
+        attachments,
+        setDownloadButtonVisibility,
+        onNavigate,
+        accountID,
+        type,
+        report.reportID,
+    ]);
 
     // Scroll position is affected when window width is resized, so we readjust it on width changes
     useEffect(() => {
