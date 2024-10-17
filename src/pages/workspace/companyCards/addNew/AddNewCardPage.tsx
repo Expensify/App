@@ -13,9 +13,8 @@ import DetailsStep from './DetailsStep';
 import SelectBankStep from './SelectBankStep';
 import SelectFeedType from './SelectFeedType';
 
-type AssignCardFeedPageProps = WithPolicyAndFullscreenLoadingProps;
-
-function AddNewCardPage({policy}: AssignCardFeedPageProps) {
+function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
+    const policyID = policy?.id;
     const [addNewCardFeed] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const {canUseDirectFeeds} = usePermissions();
 
@@ -30,7 +29,7 @@ function AddNewCardPage({policy}: AssignCardFeedPageProps) {
             case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
                 return <CardTypeStep />;
             case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
-                return <CardInstructionsStep />;
+                return <CardInstructionsStep policyID={policyID} />;
             case CONST.COMPANY_CARDS.STEP.CARD_NAME:
                 return <CardNameStep />;
             case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:

@@ -276,8 +276,7 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
     ];
 
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
-        // TODO https://github.com/Expensify/App/issues/50450
-        return;
+        return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
     }
 
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.AMEX) {
