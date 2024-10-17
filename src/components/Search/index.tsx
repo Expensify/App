@@ -80,8 +80,10 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
 
         return transactions;
     }
-
-    return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
+    const isArchivedReport = ReportUtils.isArchivedRoomWithID(item.reportID);
+    const canHoldtransaction = !isArchivedReport && item.canHold;
+    const canDeleteTransaction = !isArchivedReport && item.canDelete;
+    return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: canDeleteTransaction, canHold: canHoldtransaction, canUnhold: item.canUnhold, action: item.action}};
 }
 
 function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchProps) {
