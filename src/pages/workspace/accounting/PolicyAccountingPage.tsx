@@ -105,13 +105,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const shouldShowSynchronizationError = !!synchronizationError;
-    const shouldShowEnterCredentialsMenuItem =
-        shouldShowEnterCredentials && (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT || connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
-            ...(shouldShowEnterCredentialsMenuItem
+            ...(shouldShowEnterCredentials
                 ? [
                       {
                           icon: Expensicons.Key,
@@ -134,7 +132,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                       },
                   ]
                 : []),
-            ...(!shouldShowEnterCredentialsMenuItem && !shouldShowReinstallConnectorMenuItem
+            ...(!shouldShowEnterCredentials && !shouldShowReinstallConnectorMenuItem
                 ? [
                       {
                           icon: Expensicons.Sync,
@@ -151,7 +149,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldCallAfterModalHide: true,
             },
         ],
-        [shouldShowEnterCredentialsMenuItem, shouldShowReinstallConnectorMenuItem, translate, isOffline, policyID, connectedIntegration, startIntegrationFlow],
+        [shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policyID, connectedIntegration, startIntegrationFlow],
     );
 
     useFocusEffect(
