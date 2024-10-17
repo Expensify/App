@@ -477,7 +477,7 @@ type SpreadCategoriesParams = {
 };
 
 type AssignedYouCardParams = {
-    assigner: string;
+    link: string;
 };
 
 type FeatureNameParams = {
