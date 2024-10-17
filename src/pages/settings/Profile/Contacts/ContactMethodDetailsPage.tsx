@@ -168,7 +168,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
 
-    const renderContactMethodButton = () => {
+    const contactMethodRemoveButton = () => {
         return (
             <OfflineWithFeedback
                 pendingAction={loginData.pendingFields?.deletedLogin}
@@ -248,7 +248,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                             hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                             loginList={loginList ?? {}}
                             ref={validateCodeFormRef}
-                            renderComponent={() => (isDefaultContactMethod ? defaultContactDescription() : renderContactMethodButton())}
+                            renderComponent={() => (isDefaultContactMethod ? defaultContactDescription() : contactMethodRemoveButton())}
                         />
                     </View>
                 )}
@@ -267,7 +267,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     </OfflineWithFeedback>
                 ) : null}
                 {isDefaultContactMethod && loginData.validatedDate ? defaultContactDescription() : null}
-                {isFailedAddContactMethod ? renderContactMethodButton() : null}
+                {isFailedAddContactMethod ? contactMethodRemoveButton() : null}
             </ScrollView>
         </ScreenWrapper>
     );
