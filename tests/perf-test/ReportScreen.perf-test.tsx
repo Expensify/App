@@ -1,12 +1,12 @@
 import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
-import {screen} from '@testing-library/react-native';
+import {screen, waitFor} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import React from 'react';
 import type ReactNative from 'react-native';
 import {Dimensions, InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -206,7 +206,10 @@ const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', n
 test('[ReportScreen] should render ReportScreen', async () => {
     const {addListener} = createAddListenerMock();
     const scenario = async () => {
-        await screen.findByTestId(`report-screen-${report.reportID}`);
+        //  wrapp the screen with waitFor to wait for the screen to be rendered
+        await waitFor(async () => {
+            await screen.findByTestId(`report-screen-${report.reportID}`);
+        });
     };
 
     const navigation = {addListener} as unknown as StackNavigationProp<AuthScreensParamList, 'Report', undefined>;
@@ -228,7 +231,8 @@ test('[ReportScreen] should render ReportScreen', async () => {
         ...reportCollectionDataSet,
         ...reportActionsCollectionDataSet,
     });
-    await measurePerformance(
+
+    await measureRenders(
         <ReportScreenWrapper
             navigation={navigation}
             route={mockRoute}
@@ -240,7 +244,9 @@ test('[ReportScreen] should render ReportScreen', async () => {
 test('[ReportScreen] should render composer', async () => {
     const {addListener} = createAddListenerMock();
     const scenario = async () => {
-        await screen.findByTestId('composer');
+        await waitFor(async () => {
+            await screen.findByTestId('composer');
+        });
     };
 
     const navigation = {addListener} as unknown as StackNavigationProp<AuthScreensParamList, 'Report', undefined>;
@@ -263,7 +269,7 @@ test('[ReportScreen] should render composer', async () => {
         ...reportCollectionDataSet,
         ...reportActionsCollectionDataSet,
     });
-    await measurePerformance(
+    await measureRenders(
         <ReportScreenWrapper
             navigation={navigation}
             route={mockRoute}
@@ -275,7 +281,9 @@ test('[ReportScreen] should render composer', async () => {
 test('[ReportScreen] should render report list', async () => {
     const {addListener} = createAddListenerMock();
     const scenario = async () => {
-        await screen.findByTestId('report-actions-list');
+        await waitFor(async () => {
+            await screen.findByTestId('report-actions-list');
+        });
     };
 
     const navigation = {addListener} as unknown as StackNavigationProp<AuthScreensParamList, 'Report', undefined>;
@@ -303,7 +311,8 @@ test('[ReportScreen] should render report list', async () => {
         ...reportCollectionDataSet,
         ...reportActionsCollectionDataSet,
     });
-    await measurePerformance(
+
+    await measureRenders(
         <ReportScreenWrapper
             navigation={navigation}
             route={mockRoute}

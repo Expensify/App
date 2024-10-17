@@ -7,7 +7,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import isReportOpenInRHP from '@libs/Navigation/isReportOpenInRHP';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -61,6 +62,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
     const reportID = report?.reportID;
+
+    const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
+    const shouldDisplaySearchRouter = !isReportInRHP;
 
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
 
@@ -154,7 +158,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     }}
                     policy={policy}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplaySearchRouter
+                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                     onBackButtonPress={onBackButtonPress}
                 >
                     {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
