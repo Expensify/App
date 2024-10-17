@@ -22,6 +22,8 @@ type WorkspaceUpgradeNavigationDetails = {
     integrationAlias: string;
     /** Route to redirect to after upgrading the workspace */
     backToAfterWorkspaceUpgradeRoute: string;
+    /** Function to call before redirect */
+    preNavigationEvent?: () => void;
 };
 
 type AccountingIntegration = {
