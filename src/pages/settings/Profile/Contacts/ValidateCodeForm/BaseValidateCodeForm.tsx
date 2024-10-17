@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, ReactNode} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -12,6 +12,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,6 +56,8 @@ type ValidateCodeFormProps = {
 
     /** The contact that's going to be added after successful validation */
     pendingContact?: PendingContactAction;
+
+    renderComponent?: () => ReactNode;
 };
 
 function BaseValidateCodeForm({
@@ -65,12 +68,14 @@ function BaseValidateCodeForm({
     innerRef = () => {},
     isValidatingAction = false,
     pendingContact,
+    renderComponent,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -204,7 +209,7 @@ function BaseValidateCodeForm({
     }, [loginList, validateCode, contactMethod, isValidatingAction, pendingContact?.contactMethod]);
 
     return (
-        <>
+        <View style={[styles.flex1]}>
             <MagicCodeInput
                 autoComplete={autoComplete}
                 ref={inputValidateCodeRef}
@@ -245,24 +250,28 @@ function BaseValidateCodeForm({
                     )}
                 </View>
             </OfflineWithFeedback>
-            <OfflineWithFeedback
-                pendingAction={loginData?.pendingFields?.validateLogin}
-                errors={validateLoginError}
-                errorRowStyles={[styles.mt2]}
-                onClose={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
-            >
-                <Button
-                    isDisabled={isOffline}
-                    text={translate('common.verify')}
-                    onPress={validateAndSubmitForm}
-                    style={[styles.mt4]}
-                    success
-                    pressOnEnter
-                    large
-                    isLoading={account?.isLoading}
-                />
-            </OfflineWithFeedback>
-        </>
+            {renderComponent ? renderComponent() : null}
+
+            <View style={[styles.flex1, styles.justifyContentEnd, safePaddingBottomStyle]}>
+                <OfflineWithFeedback
+                    pendingAction={loginData?.pendingFields?.validateLogin}
+                    errors={validateLoginError}
+                    errorRowStyles={[styles.mt2]}
+                    onClose={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
+                >
+                    <Button
+                        isDisabled={isOffline}
+                        text={translate('common.verify')}
+                        onPress={validateAndSubmitForm}
+                        style={[styles.mt4]}
+                        success
+                        pressOnEnter
+                        large
+                        isLoading={account?.isLoading}
+                    />
+                </OfflineWithFeedback>
+            </View>
+        </View>
     );
 }
 
