@@ -297,7 +297,7 @@ const mainWindow = (): Promise<void> => {
                 let height = 900;
                 try {
                     const data: string = fs.readFileSync(windowSizePath, 'utf-8');
-                    const size: WindowSize = JSON.parse(data);
+                    const size = JSON.parse(data) as WindowSize;
                     if (typeof size.width === 'number' && typeof size.height === 'number') {
                         width = size.width;
                         height = size.height;
