@@ -362,7 +362,7 @@
     "electronmon": {
         "patterns": ["!node_modules", "!node_modules/**/*", "!**/*.map", "!ios/**", "!android/**", "*.test.*", "*.spec.*"]
     },
-    "workspaces": ["modules/contact"],
+    "workspaces": ["modules/contactsNitroModule"],
     "engines": {
         "node": "20.15.1",
         "npm": "10.7.0"
