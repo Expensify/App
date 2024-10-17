@@ -1,5 +1,6 @@
 import lodashHas from 'lodash/has';
 import lodashIsEqual from 'lodash/isEqual';
+import lodashSet from 'lodash/set';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -20,7 +21,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -139,6 +140,8 @@ function buildOptimisticTransaction(
     billable = false,
     pendingFields: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}> | undefined = undefined,
     reimbursable = true,
+    existingTransaction: OnyxEntry<Transaction> | undefined = undefined,
+    policy: OnyxEntry<Policy> = undefined,
 ): Transaction {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -150,6 +153,12 @@ function buildOptimisticTransaction(
     }
     if (originalTransactionID) {
         commentJSON.originalTransactionID = originalTransactionID;
+    }
+
+    const isDistanceTransaction = !!pendingFields?.waypoints;
+    if (isDistanceTransaction) {
+        // Set the distance unit, which comes from the policy distance unit or the P2P rate data
+        lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
     }
 
     return {
@@ -261,15 +270,26 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
     }
 
     if (Object.hasOwn(transactionChanges, 'customUnitRateID')) {
-        updatedTransaction.comment = {
-            ...(updatedTransaction?.comment ?? {}),
-            customUnit: {
-                ...updatedTransaction?.comment?.customUnit,
-                customUnitRateID: transactionChanges.customUnitRateID,
-                defaultP2PRate: null,
-            },
-        };
+        lodashSet(updatedTransaction, 'comment.customUnit.customUnitRateID', transactionChanges.customUnitRateID);
+        lodashSet(updatedTransaction, 'comment.customUnit.defaultP2PRate', null);
         shouldStopSmartscan = true;
+
+        const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+        const allReports = ReportConnection.getAllReports();
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? null;
+        const policyID = report?.policyID ?? '';
+        const policy = PolicyUtils.getPolicy(policyID);
+
+        // Get the new distance unit from the rate's unit
+        const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
+
+        // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit
+        if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
+            const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
+            const distance = NumberUtils.roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
+            lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
+            lodashSet(updatedTransaction, 'pendingFields.waypoints', CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        }
     }
 
     if (Object.hasOwn(transactionChanges, 'taxAmount') && typeof transactionChanges.taxAmount === 'number') {
@@ -583,7 +603,35 @@ function getTransactionViolations(transactionID: string, transactionViolations: 
  * Check if there is pending rter violation in transactionViolations.
  */
 function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
-    return !!transactionViolations?.some((transactionViolation: TransactionViolation) => transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern);
+    return !!transactionViolations?.some(
+        (transactionViolation: TransactionViolation) =>
+            transactionViolation.name === CONST.VIOLATIONS.RTER &&
+            transactionViolation.data?.pendingPattern &&
+            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION &&
+            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
+    );
+}
+
+/**
+ * Check if there is broken connection violation.
+ */
+function hasBrokenConnectionViolation(transactionID: string): boolean {
+    const violations = getTransactionViolations(transactionID, allTransactionViolations);
+    return !!violations?.find(
+        (violation) =>
+            violation.name === CONST.VIOLATIONS.RTER &&
+            (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530),
+    );
+}
+
+/**
+ * Check if user should see broken connection violation warning.
+ */
+function shouldShowBrokenConnectionViolation(transactionID: string, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    return (
+        hasBrokenConnectionViolation(transactionID) &&
+        (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isOpenExpenseReport(report) || (ReportUtils.isProcessingReport(report) && PolicyUtils.isInstantSubmitEnabled(policy)))
+    );
 }
 
 /**
@@ -795,7 +843,7 @@ function calculateAmountForUpdatedWaypointOrRate(
     const mileageRates = DistanceRequestUtils.getMileageRates(policy, true);
     const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
     const mileageRate = isCustomUnitRateIDForP2P(transaction)
-        ? DistanceRequestUtils.getRateForP2P(policyCurrency)
+        ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction ?? undefined)
         : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
     const {unit, rate, currency} = mileageRate;
 
@@ -1141,6 +1189,8 @@ export {
     getRecentTransactions,
     hasReservationList,
     hasViolation,
+    hasBrokenConnectionViolation,
+    shouldShowBrokenConnectionViolation,
     hasNoticeTypeViolation,
     hasWarningTypeViolation,
     hasModifiedAmountOrDateViolation,
