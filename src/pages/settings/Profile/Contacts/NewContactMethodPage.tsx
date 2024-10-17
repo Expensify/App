@@ -60,6 +60,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         (magicCode: string) => {
             User.addNewContactMethod(pendingContactAction?.contactMethod ?? '', magicCode);
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(pendingContactAction?.contactMethod ?? ''));
         },
         [pendingContactAction?.contactMethod],
     );

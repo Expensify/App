@@ -1,9 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, ReactNode} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -13,6 +12,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,7 +23,7 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, LoginList, PendingContactAction} from '@src/types/onyx';
+import type {LoginList, PendingContactAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ValidateCodeFormHandle = {
@@ -33,11 +33,6 @@ type ValidateCodeFormHandle = {
 
 type ValidateCodeFormError = {
     validateCode?: TranslationPaths;
-};
-
-type BaseValidateCodeFormOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
 };
 
 type ValidateCodeFormProps = {
@@ -61,12 +56,11 @@ type ValidateCodeFormProps = {
 
     /** The contact that's going to be added after successful validation */
     pendingContact?: PendingContactAction;
+
+    renderComponent?: () => ReactNode;
 };
 
-type BaseValidateCodeFormProps = BaseValidateCodeFormOnyxProps & ValidateCodeFormProps;
-
 function BaseValidateCodeForm({
-    account = {},
     contactMethod,
     hasMagicCodeBeenSent,
     loginList,
@@ -74,20 +68,24 @@ function BaseValidateCodeForm({
     innerRef = () => {},
     isValidatingAction = false,
     pendingContact,
-}: BaseValidateCodeFormProps) {
+    renderComponent,
+}: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const loginData = loginList?.[pendingContact?.contactMethod ?? contactMethod];
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isInitialCodeSent = useRef<boolean>(false);
     const validateCodeSentIsPressedRef = useRef(false);
     const [showDotIndicator, setShowDotIndicator] = useState(false);
 
@@ -168,6 +166,7 @@ function BaseValidateCodeForm({
         }
 
         inputValidateCodeRef.current?.clear();
+        isInitialCodeSent.current = true;
         validateCodeSentIsPressedRef.current = true;
     };
     /**
@@ -210,65 +209,73 @@ function BaseValidateCodeForm({
     }, [loginList, validateCode, contactMethod, isValidatingAction, pendingContact?.contactMethod]);
 
     return (
-        <>
-            <MagicCodeInput
-                autoComplete={autoComplete}
-                ref={inputValidateCodeRef}
-                name="validateCode"
-                value={validateCode}
-                onChangeText={onTextInput}
-                errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
-                hasError={!isEmptyObject(validateLoginError)}
-                onFulfill={validateAndSubmitForm}
-                autoFocus={false}
-            />
-            <OfflineWithFeedback
-                pendingAction={pendingContact?.pendingFields?.validateCodeSent ?? loginData?.pendingFields?.validateCodeSent}
-                errors={ErrorUtils.getLatestErrorField(pendingContact ?? loginData, pendingContact ? 'actionVerified' : 'validateCodeSent')}
-                errorRowStyles={[styles.mt2]}
-                onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
-            >
-                <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
-                    <PressableWithFeedback
-                        disabled={shouldDisableResendValidateCode}
-                        style={[styles.mr1]}
-                        onPress={resendValidateCode}
-                        underlayColor={theme.componentBG}
-                        hoverDimmingValue={1}
-                        pressDimmingValue={0.2}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
-                    >
-                        <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
-                    </PressableWithFeedback>
-                    {showDotIndicator && (
-                        <DotIndicatorMessage
-                            type="success"
-                            style={[styles.mt6, styles.flex0]}
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: pendingContact?.validateCodeSent ? translate('validateCodeModal.successfulNewCodeRequest') : translate('resendValidationForm.linkHasBeenResent')}}
-                        />
-                    )}
-                </View>
-            </OfflineWithFeedback>
-            <OfflineWithFeedback
-                pendingAction={loginData?.pendingFields?.validateLogin}
-                errors={validateLoginError}
-                errorRowStyles={[styles.mt2]}
-                onClose={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
-            >
-                <Button
-                    isDisabled={isOffline}
-                    text={translate('common.verify')}
-                    onPress={validateAndSubmitForm}
-                    style={[styles.mt4]}
-                    success
-                    pressOnEnter
-                    large
-                    isLoading={account?.isLoading}
+        <View style={[styles.flex1]}>
+            <View style={[styles.ph5, styles.mb5]}>
+                <MagicCodeInput
+                    autoComplete={autoComplete}
+                    ref={inputValidateCodeRef}
+                    name="validateCode"
+                    value={validateCode}
+                    onChangeText={onTextInput}
+                    errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
+                    hasError={!isEmptyObject(validateLoginError)}
+                    onFulfill={validateAndSubmitForm}
+                    autoFocus={false}
                 />
-            </OfflineWithFeedback>
-        </>
+                <OfflineWithFeedback
+                    pendingAction={pendingContact?.pendingFields?.validateCodeSent ?? loginData?.pendingFields?.validateCodeSent}
+                    errors={ErrorUtils.getLatestErrorField(pendingContact ?? loginData, pendingContact ? 'actionVerified' : 'validateCodeSent')}
+                    errorRowStyles={[styles.mt2]}
+                    onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
+                >
+                    <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
+                        <PressableWithFeedback
+                            disabled={shouldDisableResendValidateCode}
+                            style={[styles.mr1]}
+                            onPress={resendValidateCode}
+                            underlayColor={theme.componentBG}
+                            hoverDimmingValue={1}
+                            pressDimmingValue={0.2}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                        >
+                            <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                        </PressableWithFeedback>
+                        {showDotIndicator && isInitialCodeSent.current && (
+                            <DotIndicatorMessage
+                                type="success"
+                                style={[styles.mt6, styles.flex0]}
+                                messages={{
+                                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                                    0: pendingContact?.validateCodeSent ? translate('validateCodeModal.successfulNewCodeRequest') : translate('resendValidationForm.linkHasBeenResent'),
+                                }}
+                            />
+                        )}
+                    </View>
+                </OfflineWithFeedback>
+            </View>
+            {renderComponent ? renderComponent() : null}
+
+            <View style={[styles.flex1, styles.justifyContentEnd, safePaddingBottomStyle, styles.ph5]}>
+                <OfflineWithFeedback
+                    pendingAction={loginData?.pendingFields?.validateLogin}
+                    errors={validateLoginError}
+                    errorRowStyles={[styles.mt2]}
+                    onClose={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
+                >
+                    <Button
+                        isDisabled={isOffline}
+                        text={translate('common.verify')}
+                        onPress={validateAndSubmitForm}
+                        style={[styles.mt4]}
+                        success
+                        pressOnEnter
+                        large
+                        isLoading={account?.isLoading}
+                    />
+                </OfflineWithFeedback>
+            </View>
+        </View>
     );
 }
 
@@ -276,6 +283,4 @@ BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export type {ValidateCodeFormProps, ValidateCodeFormHandle};
 
-export default withOnyx<BaseValidateCodeFormProps, BaseValidateCodeFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(BaseValidateCodeForm);
+export default BaseValidateCodeForm;
