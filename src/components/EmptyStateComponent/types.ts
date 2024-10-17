@@ -9,13 +9,14 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ValidSkeletons = typeof SearchRowSkeleton | typeof TableRowSkeleton;
 type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
+type Button = {buttonText?: string; buttonAction?: () => void; success?: boolean};
 
 type SharedProps<T> = {
     SkeletonComponent: ValidSkeletons;
     title: string;
     titleStyles?: StyleProp<TextStyle>;
     subtitle: string | React.ReactNode;
-    buttons?: Array<{buttonText?: string; buttonAction?: () => void; success?: boolean}>;
+    buttons?: Array<Button>;
     containerStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: T;
