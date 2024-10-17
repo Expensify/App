@@ -96,6 +96,14 @@ jobs:
           )"
         env:
           GITHUB_TOKEN: ${{ github.token }}
+      
+      # If we merged a PR to main, this:
+      # - Gets the names of the files that were changed
+      # - Calls the UpdateHelpSiteDocumentation endpoint, passing the filepath and contents of each updated file
+      - name: Update vector embeddings for updated help site files
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          gh pr diff --name-only ${{ steps.getMergedPullRequest.outputs.number }} | grep '\.md$' | xargs -I {} curl -F "{}=@{}" http://expensify.com/api.php?command=UpdateHelpSiteDocumentation
 
       # Use the Cloudflare CLI...
       - name: Setup Cloudflare CLI
