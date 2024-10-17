@@ -56,6 +56,13 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
+let isLoadingReportData = true;
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    initWithStoredValues: false,
+    callback: (value) => (isLoadingReportData = value ?? false),
+});
+
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
  * These are policies that we can use to create reports with in NewDot.
@@ -1050,6 +1057,10 @@ function hasPolicyFeedsError(feeds: Record<string, CardFeedData>, feedToSkip?: s
     return Object.entries(feeds).filter(([feedName, feedData]) => feedName !== feedToSkip && !!feedData.errors).length > 0;
 }
 
+function isPolicyAccessible(policy: OnyxEntry<Policy>) {
+    return !isLoadingReportData && !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && policy?.id;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1165,6 +1176,7 @@ export {
     hasUnsupportedIntegration,
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
+    isPolicyAccessible,
 };
 
 export type {MemberEmailsToAccountIDs};
