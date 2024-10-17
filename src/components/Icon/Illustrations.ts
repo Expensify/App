@@ -12,6 +12,7 @@ import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsf
 import OtherCompanyCardDetail from '@assets/images/companyCards/card=-generic.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import MasterCardCompanyCards from '@assets/images/companyCards/mastercard.svg';
+import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 import VisaCompanyCards from '@assets/images/companyCards/visa.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
@@ -207,6 +208,7 @@ export {
     Approval,
     WalletAlt,
     Workflows,
+    PendingBank,
     ThreeLeggedLaptopWoman,
     House,
     Alert,

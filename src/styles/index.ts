@@ -5157,6 +5157,11 @@ const styles = (theme: ThemeColors) =>
             height: 188,
         },
 
+        pendingBankCardIllustration: {
+            width: 217,
+            height: 150,
+        },
+
         cardIcon: {
             overflow: 'hidden',
             borderRadius: variables.cardBorderRadius,
