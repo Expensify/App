@@ -1769,6 +1769,10 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
     }
 }
 
+function getReportActionsLength() {
+    return Object.keys(allReportActions ?? {}).length;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -1878,6 +1882,7 @@ export {
     getCardIssuedMessage,
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
+    getReportActionsLength,
 };
 
 export type {LastVisibleMessage};
