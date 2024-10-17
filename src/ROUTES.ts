@@ -149,10 +149,6 @@ const ROUTES = {
         route: 'settings/security/delegate/:login/role/:role/confirm',
         getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm` as const,
     },
-    SETTINGS_DELEGATE_MAGIC_CODE: {
-        route: 'settings/security/delegate/:login/role/:role/magic-code',
-        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/magic-code` as const,
-    },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
@@ -231,7 +227,6 @@ const ROUTES = {
         route: 'settings/profile/contact-methods/:contactMethod/details',
         getRoute: (contactMethod: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details`, backTo),
     },
-    SETINGS_CONTACT_METHOD_VALIDATE_ACTION: 'settings/profile/contact-methods/validate-action',
     SETTINGS_NEW_CONTACT_METHOD: {
         route: 'settings/profile/contact-methods/new',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),

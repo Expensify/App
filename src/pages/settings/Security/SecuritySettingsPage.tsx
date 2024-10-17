@@ -79,7 +79,7 @@ function SecuritySettingsPage() {
             anchorPositionVertical: position.y,
         });
     }, [windowWidth]);
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate || false;
 
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
@@ -151,9 +151,7 @@ function SecuritySettingsPage() {
                         }
                         if (pendingFields?.role && !pendingFields?.email) {
                             Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(email, role));
-                            return;
                         }
-                        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(email, role));
                     };
 
                     const formattedEmail = formatPhoneNumber(email);
