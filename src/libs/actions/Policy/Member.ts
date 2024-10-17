@@ -29,6 +29,7 @@ import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import execPolicyWriteCommand from './execPolicyWriteCommand';
 import {createPolicyExpenseChats} from './Policy';
 
 type AnnounceRoomMembersOnyxData = {
@@ -512,7 +513,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
         employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
+    execPolicyWriteCommand(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
 function requestWorkspaceOwnerChange(policyID: string) {
@@ -588,7 +589,7 @@ function requestWorkspaceOwnerChange(policyID: string) {
         ...ownershipChecks,
     };
 
-    API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
+    execPolicyWriteCommand(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
 }
 
 function clearWorkspaceOwnerChangeFlow(policyID: string) {
