@@ -137,7 +137,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
 
     const {status, type} = queryJSON;
     const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
-    const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchQueryUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
+    const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, cardList, reports, taxRates);
     const [inputValue, setInputValue] = useState(headerText);
 
     useEffect(() => {

@@ -55,6 +55,10 @@ const setPerformanceTimersEnd = () => {
     Performance.markEnd(CONST.TIMING.SEARCH_ROUTER_RENDER);
 };
 
+function getContextualSearchQuery(reportID: string) {
+    return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${CONST.SEARCH.DATA_TYPES.CHAT} in:${reportID}`;
+}
+
 function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
     if ('singleIcon' in item && item.singleIcon && 'query' in item && item.query) {
         return true;
@@ -120,7 +124,7 @@ function SearchRouterList(
                 {
                     text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
                     singleIcon: Expensicons.MagnifyingGlass,
-                    query: SearchQueryUtils.getContextualSuggestionQuery(reportForContextualSearch.reportID),
+                    query: getContextualSearchQuery(reportForContextualSearch.reportID),
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
                     isContextualSearchItem: true,
@@ -132,7 +136,7 @@ function SearchRouterList(
     const recentSearchesData = recentSearches?.map(({query}) => {
         const searchQueryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? SearchQueryUtils.getSearchHeaderTitle(searchQueryJSON, personalDetails, cardList, reports, taxRates) : query,
+            text: searchQueryJSON ? SearchQueryUtils.buildUserReadableQueryString(searchQueryJSON, personalDetails, cardList, reports, taxRates) : query,
             singleIcon: Expensicons.History,
             query,
             keyForList: query,

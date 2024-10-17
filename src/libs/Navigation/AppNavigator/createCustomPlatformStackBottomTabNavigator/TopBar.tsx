@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import Performance from '@libs/Performance';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import SignInButton from '@pages/home/sidebar/SignInButton';
 import * as Session from '@userActions/Session';

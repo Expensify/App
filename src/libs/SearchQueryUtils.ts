@@ -32,7 +32,19 @@ const operatorToCharMap = {
 
 /**
  * @private
- * returns Date filter query string part, which needs special logic
+ * Returns string value wrapped in quotes "", if the value contains special characters.
+ */
+function sanitizeSearchValue(str: string) {
+    const regexp = /[^A-Za-z0-9_@./#&+\-\\';,"]/g;
+    if (regexp.test(str)) {
+        return `"${str}"`;
+    }
+    return str;
+}
+
+/**
+ * @private
+ * Returns date filter value for QueryString.
  */
 function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) {
     const dateBefore = filterValues[FILTER_KEYS.DATE_BEFORE];
@@ -54,7 +66,7 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) 
 
 /**
  * @private
- * returns Date filter query string part, which needs special logic
+ * Returns amount filter value for QueryString.
  */
 function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) {
     const lessThan = filterValues[FILTER_KEYS.LESS_THAN];
@@ -74,17 +86,33 @@ function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>
     return amountFilter;
 }
 
-function sanitizeString(str: string) {
-    const regexp = /[^A-Za-z0-9_@./#&+\-\\';,"]/g;
-    if (regexp.test(str)) {
-        return `"${str}"`;
-    }
-    return str;
+/**
+ * @private
+ * Returns string of correctly formatted filter values from QueryFilters object.
+ */
+function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]) {
+    const delimiter = filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',';
+    let filterValueString = '';
+    queryFilters.forEach((queryFilter, index) => {
+        // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
+        if (
+            index !== 0 &&
+            ((queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq'))
+        ) {
+            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
+            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
+        } else {
+            filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(queryFilter.value.toString())}`;
+        }
+    });
+
+    return filterValueString;
 }
 
 /**
  * @private
- * traverses the AST and returns filters as a QueryFilters object
+ * Traverses the AST and returns filters as a QueryFilters object.
  */
 function getFilters(queryJSON: SearchQueryJSON) {
     const filters = {} as QueryFilters;
@@ -136,6 +164,51 @@ function getFilters(queryJSON: SearchQueryJSON) {
     return filters;
 }
 
+/**
+ * @private
+ * Given a filter name and its value, this function returns the corresponding ID found in Onyx data.
+ */
+function findIDFromDisplayValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filter: string | string[], cardList: OnyxTypes.CardList, taxRates: Record<string, string[]>) {
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+        if (typeof filter === 'string') {
+            const email = filter;
+            return PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? filter;
+        }
+        const emails = filter;
+        return emails.map((email) => PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+        const names = Array.isArray(filter) ? filter : ([filter] as string[]);
+        return names.map((name) => taxRates[name] ?? name).flat();
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+        if (typeof filter === 'string') {
+            const bank = filter;
+            const ids =
+                Object.values(cardList)
+                    .filter((card) => card.bank === bank)
+                    .map((card) => card.cardID.toString()) ?? filter;
+            return ids.length > 0 ? ids : bank;
+        }
+        const banks = filter;
+        return banks
+            .map(
+                (bank) =>
+                    Object.values(cardList)
+                        .filter((card) => card.bank === bank)
+                        .map((card) => card.cardID.toString()) ?? bank,
+            )
+            .flat();
+    }
+    return filter;
+}
+
+/**
+ * Parses a given search query string into a structured `SearchQueryJSON` format.
+ * This format of query is most commonly shared between components and also sent to backend to retrieve search results.
+ *
+ * In a way this is the reverse of buildSearchQueryString()
+ */
 function buildSearchQueryJSON(query: SearchQueryString) {
     try {
         const result = searchParser.parse(query) as SearchQueryJSON;
@@ -154,6 +227,12 @@ function buildSearchQueryJSON(query: SearchQueryString) {
     }
 }
 
+/**
+ * Formats a given `SearchQueryJSON` object into the string version of query.
+ * This format of query is the most basic string format and is used as the query param `q` in search URLs.
+ *
+ * In a way this is the reverse of buildSearchQueryJSON()
+ */
 function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
@@ -177,7 +256,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
         const queryFilter = filters[filterKey];
 
         if (queryFilter) {
-            const filterValueString = buildFilterString(filterKey, queryFilter);
+            const filterValueString = buildFilterValuesString(filterKey, queryFilter);
             queryParts.push(filterValueString);
         }
     }
@@ -186,7 +265,10 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
 }
 
 /**
- * Given object with chosen search filters builds correct query string from them
+ * Formats a given object with search filter values into the string version of the query.
+ * Main usage is to consume data format that comes from AdvancedFilters Onyx Form Data, and generate query string.
+ *
+ * Reverse operation of buildFilterFormValuesFromQuery()
  */
 function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
@@ -194,17 +276,17 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     const filtersString: string[] = [];
 
     if (type) {
-        const sanitizedType = sanitizeString(type);
+        const sanitizedType = sanitizeSearchValue(type);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizedType}`);
     }
 
     if (status) {
-        const sanitizedStatus = sanitizeString(status);
+        const sanitizedStatus = sanitizeSearchValue(status);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
     }
 
     if (policyID) {
-        const sanitizedPolicyID = sanitizeString(policyID);
+        const sanitizedPolicyID = sanitizeSearchValue(policyID);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${sanitizedPolicyID}`);
     }
 
@@ -213,12 +295,12 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
-                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeString(filterValue as string)}`;
+                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
                 }
             }
 
             if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
-                const value = (filterValue as string).split(' ').map(sanitizeString).join(' ');
+                const value = (filterValue as string).split(' ').map(sanitizeSearchValue).join(' ');
                 return `${value}`;
             }
 
@@ -238,7 +320,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const filterValueArray = [...new Set<string>(filterValue)];
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
-                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
+                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
                 }
             }
 
@@ -258,7 +340,10 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 }
 
 /**
- * returns the values of the filters in a format that can be used in the SearchAdvancedFiltersForm as initial form values
+ * Generates object with search filter values, in a format that can be consumed by SearchAdvancedFiltersForm.
+ * Main usage of this is to generate the initial values for AdvancedFilters from existing query.
+ *
+ * Reverse operation of buildQueryStringFromFilterFormValues()
  */
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
@@ -368,6 +453,10 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
     return policyID;
 }
 
+/**
+ * @private
+ * Returns the human-readable "pretty" value for a filter.
+ */
 function getDisplayValue(filterName: string, filter: string, personalDetails: OnyxTypes.PersonalDetailsList, cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
         // login can be an empty string
@@ -383,27 +472,13 @@ function getDisplayValue(filterName: string, filter: string, personalDetails: On
     return filter;
 }
 
-function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
-    const delimiter = filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',';
-    let filterValueString = '';
-    queryFilters.forEach((queryFilter, index) => {
-        // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
-        if (
-            index !== 0 &&
-            ((queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq'))
-        ) {
-            filterValueString += `${delimiter}${sanitizeString(queryFilter.value.toString())}`;
-        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filterValueString += `${delimiter}${sanitizeString(queryFilter.value.toString())}`;
-        } else {
-            filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeString(queryFilter.value.toString())}`;
-        }
-    });
-
-    return filterValueString;
-}
-
-function getSearchHeaderTitle(
+/**
+ * Formats a given `SearchQueryJSON` object into the human-readable string version of query.
+ * This format of query is the one which we want to display to users.
+ * We try to replace every numeric id value with a display version of this value,
+ * So: user IDs get turned into emails, report ids into report names etc.
+ */
+function buildUserReadableQueryString(
     queryJSON: SearchQueryJSON,
     PersonalDetails: OnyxTypes.PersonalDetailsList,
     cardList: OnyxTypes.CardList,
@@ -439,12 +514,15 @@ function getSearchHeaderTitle(
                 value: getDisplayValue(key, filter.value.toString(), PersonalDetails, cardList, reports),
             }));
         }
-        title += buildFilterString(key, displayQueryFilters);
+        title += buildFilterValuesString(key, displayQueryFilters);
     });
 
     return title;
 }
 
+/**
+ * Returns properly built QueryString for a canned query, with the optional policyID.
+ */
 function buildCannedSearchQuery({
     type = CONST.SEARCH.DATA_TYPES.EXPENSE,
     status = CONST.SEARCH.STATUS.EXPENSE.ALL,
@@ -462,42 +540,14 @@ function buildCannedSearchQuery({
 }
 
 /**
- * @private
- * Given a filter name and its value, this function will try to find the corresponding ID.
+ * Returns whether a given search query is a Canned query.
+ *
+ * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
+ * In addition, they can contain an optional policyID.
+ * For example: "type:trip status:all" is a canned query.
  */
-function findIDFromDisplayValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filter: string | string[], cardList: OnyxTypes.CardList, taxRates: Record<string, string[]>) {
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-        if (typeof filter === 'string') {
-            const email = filter;
-            return PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? filter;
-        }
-        const emails = filter;
-        return emails.map((email) => PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-        const names = Array.isArray(filter) ? filter : ([filter] as string[]);
-        return names.map((name) => taxRates[name] ?? name).flat();
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-        if (typeof filter === 'string') {
-            const bank = filter;
-            const ids =
-                Object.values(cardList)
-                    .filter((card) => card.bank === bank)
-                    .map((card) => card.cardID.toString()) ?? filter;
-            return ids.length > 0 ? ids : bank;
-        }
-        const banks = filter;
-        return banks
-            .map(
-                (bank) =>
-                    Object.values(cardList)
-                        .filter((card) => card.bank === bank)
-                        .map((card) => card.cardID.toString()) ?? bank,
-            )
-            .flat();
-    }
-    return filter;
+function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
+    return !queryJSON.filters;
 }
 
 /**
@@ -531,29 +581,14 @@ function standardizeQueryJSON(queryJSON: SearchQueryJSON, cardList: OnyxTypes.Ca
     return standardQuery;
 }
 
-/**
- * Returns whether a given search query is a Canned query.
- *
- * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
- * For example: "type:trip status:all" is a canned query.
- */
-function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    return !queryJSON.filters;
-}
-
-function getContextualSuggestionQuery(reportID: string) {
-    return `type:chat in:${reportID}`;
-}
-
 export {
     buildSearchQueryJSON,
     buildSearchQueryString,
+    buildUserReadableQueryString,
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     getPolicyIDFromSearchQuery,
-    getSearchHeaderTitle,
     buildCannedSearchQuery,
     isCannedSearchQuery,
     standardizeQueryJSON,
-    getContextualSuggestionQuery,
 };

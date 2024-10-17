@@ -116,7 +116,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         let title = item.name;
         if (title === item.query) {
             const jsonQuery = SearchQueryUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-            title = SearchQueryUtils.getSearchHeaderTitle(jsonQuery, personalDetails, cardList, reports, taxRates);
+            title = SearchQueryUtils.buildUserReadableQueryString(jsonQuery, personalDetails, cardList, reports, taxRates);
         }
 
         const baseMenuItem: SavedSearchMenuItem = {
@@ -221,7 +221,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
 
     if (shouldUseNarrowLayout) {
-        const title = searchName ?? (isCannedQuery ? undefined : SearchQueryUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates));
+        const title = searchName ?? (isCannedQuery ? undefined : SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, cardList, reports, taxRates));
 
         return (
             <SearchTypeMenuNarrow
