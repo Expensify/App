@@ -165,7 +165,8 @@ function ReportPreview({
     const showRTERViolationMessage =
         numberOfRequests === 1 &&
         TransactionUtils.hasPendingUI(allTransactions.at(0), TransactionUtils.getTransactionViolations(allTransactions.at(0)?.transactionID ?? '-1', transactionViolations));
-
+    const shouldShowBrokenConnectionViolation =
+        numberOfRequests === 1 && TransactionUtils.shouldShowBrokenConnectionViolation(allTransactions.at(0)?.transactionID ?? '-1', iouReport, policy);
     let formattedMerchant = numberOfRequests === 1 ? TransactionUtils.getMerchant(allTransactions.at(0)) : null;
     const formattedDescription = numberOfRequests === 1 ? TransactionUtils.getDescription(allTransactions.at(0)) : null;
 
@@ -173,7 +174,7 @@ function ReportPreview({
         formattedMerchant = null;
     }
 
-    const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0 && !showRTERViolationMessage;
+    const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0 && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
@@ -336,7 +337,7 @@ function ReportPreview({
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
 
-    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage;
+    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation;
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID) || ReportUtils.hasMissingInvoiceBankAccount(iouReportID);
     const shouldShowRBR = hasErrors;
@@ -377,6 +378,9 @@ function ReportPreview({
         }
         if (shouldShowPendingSubtitle) {
             return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
+        }
+        if (shouldShowBrokenConnectionViolation) {
+            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
         if (showRTERViolationMessage) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};

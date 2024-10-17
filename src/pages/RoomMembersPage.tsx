@@ -216,7 +216,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                 return;
             }
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            const isAdmin = !!(policy && policy.employeeList && details.login && policy.employeeList[details.login]?.role === CONST.POLICY.ROLE.ADMIN);
+            const isAdmin = PolicyUtils.isUserPolicyAdmin(policy, details.login);
             const isDisabled = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details.isOptimisticPersonalDetail;
             const isDisabledCheckbox =
                 (isPolicyExpenseChat && isAdmin) ||

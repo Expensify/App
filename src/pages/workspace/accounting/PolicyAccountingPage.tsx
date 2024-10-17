@@ -107,7 +107,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
-            ...(shouldShowEnterCredentials && (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT || connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE)
+            ...(shouldShowEnterCredentials
                 ? [
                       {
                           icon: Expensicons.Key,

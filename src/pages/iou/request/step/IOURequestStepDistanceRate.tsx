@@ -37,9 +37,11 @@ function IOURequestStepDistanceRate({
     transaction,
 }: IOURequestStepDistanceRateProps) {
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft) ?? '-1'}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`);
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID || '-1'}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID || '-1'}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID || '-1'}`);
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const policy = policyReal ?? policyDraft;
 
@@ -52,6 +54,8 @@ function IOURequestStepDistanceRate({
 
     const currentRateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
+    const transactionCurrency = TransactionUtils.getCurrency(transaction);
+
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
 
     const navigateBack = () => {
@@ -61,15 +65,16 @@ function IOURequestStepDistanceRate({
     const sections = Object.values(rates)
         .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
         .map((rate) => {
-            const rateForDisplay = DistanceRequestUtils.getRateForDisplay(rate.unit, rate.rate, rate.currency, translate, toLocaleDigit);
+            const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE;
 
+            const rateForDisplay = DistanceRequestUtils.getRateForDisplay(rate.unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
             return {
                 text: rate.name ?? rateForDisplay,
                 alternateText: rate.name ? rateForDisplay : '',
                 keyForList: rate.customUnitRateID,
                 value: rate.customUnitRateID,
                 isDisabled: !rate.enabled,
-                isSelected: currentRateID ? currentRateID === rate.customUnitRateID : rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE,
+                isSelected,
             };
         });
 
@@ -108,7 +113,7 @@ function IOURequestStepDistanceRate({
             shouldShowWrapper
             testID={IOURequestStepDistanceRate.displayName}
         >
-            <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate', {unit})}</Text>
+            <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
 
             <SelectionList
                 sections={[{data: sections}]}
