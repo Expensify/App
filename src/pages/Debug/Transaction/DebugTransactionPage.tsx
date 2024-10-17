@@ -2,6 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -17,6 +18,7 @@ import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import DebugTransactionViolations from './DebugTransactionViolations';
 
@@ -59,7 +61,16 @@ function DebugTransactionPage({
                                         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
                                     }}
                                     validate={DebugUtils.validateTransactionDraftProperty}
-                                />
+                                >
+                                    <View style={[styles.mh5, styles.mb5]}>
+                                        <Button
+                                            text={translate('debug.viewReport')}
+                                            onPress={() => {
+                                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(transaction?.reportID ?? ''));
+                                            }}
+                                        />
+                                    </View>
+                                </DebugDetails>
                             )}
                         </TopTab.Screen>
                         <TopTab.Screen name={CONST.DEBUG.JSON}>{() => <DebugJSON data={transaction ?? {}} />}</TopTab.Screen>

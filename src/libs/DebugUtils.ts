@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, RecentWaypoint, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Comment, Receipt, SplitShare, TaxRate} from '@src/types/onyx/Transaction';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 
 class NumberError extends SyntaxError {
@@ -851,6 +852,12 @@ function getRBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<
     return reportAction;
 }
 
+function getTransactionID(reportActions: OnyxEntry<ReportActions>) {
+    return Object.values(reportActions ?? {})
+        .map((reportAction) => ReportActionsUtils.getLinkedTransactionID(reportAction))
+        .find(Boolean);
+}
+
 const DebugUtils = {
     stringifyJSON,
     onyxDataToDraftData,
@@ -872,6 +879,7 @@ const DebugUtils = {
     getReasonForShowingRowInLHN,
     getReasonAndReportActionForGBRInLHNRow,
     getRBRReportAction,
+    getTransactionID,
     REPORT_ACTION_REQUIRED_PROPERTIES,
     REPORT_REQUIRED_PROPERTIES,
     TRANSACTION_REQUIRED_PROPERTIES,
