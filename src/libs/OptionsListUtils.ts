@@ -329,8 +329,7 @@ Onyx.connect({
                     ReportActionUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
                     !ReportActionUtils.isWhisperAction(reportAction) &&
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                    reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                    !ReportActionUtils.isResolvedActionTrackExpense(reportAction),
+                    reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
             const reportActionForDisplay = reportActionsForDisplay.at(0);
             if (!reportActionForDisplay) {
