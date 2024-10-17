@@ -59,7 +59,7 @@ function IOURequestStepConfirmation({
     const policyIDForDraft = IOU.getIOURequestPolicyID(transaction, reportDraft);
 
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyIDForReal}`);
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyIDForDraft}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyIDForDraft}`);
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyIDForReal}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyIDForDraft}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyIDForReal}`);
