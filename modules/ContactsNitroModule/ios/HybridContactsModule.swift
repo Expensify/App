@@ -31,7 +31,7 @@ final class HybridContactsModule: HybridContactsModuleSpec {
             guard !keysToFetch.isEmpty else { return [] }
             
             let request = CNContactFetchRequest(keysToFetch: keysToFetch)
-            var contacts = [ContactData]()
+            var contacts = [Contact]()
             contacts.reserveCapacity(1000)
             
             try self.contactStore.enumerateContacts(with: request) { contact, _ in
@@ -44,7 +44,7 @@ final class HybridContactsModule: HybridContactsModuleSpec {
     
     @inline(__always)
     private func processContact(_ contact: CNContact, keysSet: Set<ContactFields>) -> Contact {
-        ContactData(
+        Contact(
             firstName: keysSet.contains(.firstName) ? contact.givenName : nil,
             lastName: keysSet.contains(.lastName) ? contact.familyName : nil,
             middleName: keysSet.contains(.middleName) ? contact.middleName : nil,
