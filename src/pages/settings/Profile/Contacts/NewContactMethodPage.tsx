@@ -163,10 +163,10 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                     validateError={validateLoginError}
                     handleSubmitForm={addNewContactMethod}
                     clearError={() => {
-                        if(!loginData) {
+                        if (!loginData) {
                             return;
                         }
-                        User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin')
+                        User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin');
                     }}
                     onClose={() => {
                         if (loginData?.errorFields && pendingContactAction?.contactMethod) {
