@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
+import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,6 +33,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 shouldSkipVBBACall={false}
                 route={route}
+                icon={Illustrations.InvoiceBlue}
             >
                 {(_hasVBA?: boolean, policyID?: string) => (
                     <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
