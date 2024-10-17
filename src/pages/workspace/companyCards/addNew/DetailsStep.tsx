@@ -23,7 +23,8 @@ function DetailsStep() {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const feedProvider = addNewCard?.data.cardType;
+    const feedProvider = addNewCard?.data?.cardType;
+    const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.STRIPE;
     const submit = () => {};
 
     const handleBackButtonPress = () => {
@@ -140,7 +141,7 @@ function DetailsStep() {
                 contentContainerStyle={styles.flexGrow1}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
-                    {feedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
+                    {feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
                 </Text>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}

@@ -31,9 +31,7 @@ function SelectBankStep() {
         } else {
             CompanyCards.setAddNewCompanyCardStepAndData({
                 step: CardUtils.getCorrectStepForSelectedBank(bankSelected),
-                data: {
-                    selectedBank: bankSelected,
-                },
+                data: {...(bankSelected === CONST.COMPANY_CARDS.BANKS.STRIPE ? {cardType: CONST.COMPANY_CARDS.CARD_TYPE.STRIPE, selectedBank: bankSelected} : {selectedBank: bankSelected})},
                 isEditing: false,
             });
         }
