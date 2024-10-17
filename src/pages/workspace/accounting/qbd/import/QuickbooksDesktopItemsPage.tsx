@@ -25,7 +25,7 @@ function QuickbooksDesktopItemsPage({policy}: WithPolicyProps) {
         <ConnectionLayout
             displayName={QuickbooksDesktopItemsPage.displayName}
             headerTitle="workspace.qbd.items"
-            title="workspace.qbd.classesDescription"
+            title="workspace.qbd.itemsDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
