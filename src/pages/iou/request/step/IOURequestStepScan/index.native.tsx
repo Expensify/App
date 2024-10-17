@@ -530,7 +530,6 @@ function IOURequestStepScan({
         updateScanAndNavigate,
         transaction?.amount,
         iouType,
-        fileResize,
     ]);
 
     // Wait for camera permission status to render
