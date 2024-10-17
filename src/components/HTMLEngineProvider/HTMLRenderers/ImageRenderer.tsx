@@ -9,6 +9,7 @@ import {ShowContextMenuContext, showContextMenuForReport} from '@components/Show
 import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -67,6 +68,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
     const [hasLoadFailed, setHasLoadFailed] = useState(true);
     const {isOffline} = useNetwork();
+    const theme = useTheme();
 
     const thumbnailImageComponent = (
         <ThumbnailImage
@@ -79,6 +81,8 @@ function ImageRenderer({tnode}: ImageRendererProps) {
             altText={alt}
             onLoadFailure={() => setHasLoadFailed(true)}
             onMeasure={() => setHasLoadFailed(false)}
+            fallbackIconBackground={theme.highlightBG}
+            fallbackIconColor={theme.border}
         />
     );
 

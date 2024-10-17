@@ -132,7 +132,7 @@ function ThumbnailImage({
                         src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
                         height={fallbackIconSize}
                         width={fallbackIconSize}
-                        fill={fallbackIconColor ?? theme.icon}
+                        fill={fallbackIconColor ?? theme.border}
                     />
                 </View>
             </View>
