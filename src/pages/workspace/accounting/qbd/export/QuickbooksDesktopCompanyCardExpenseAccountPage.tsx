@@ -67,7 +67,10 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID))}
         >
             {sections.map((section) => (
-                <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction(section.subscribedSettings, qbdConfig?.pendingFields)}>
+                <OfflineWithFeedback
+                    key={section.keyForList}
+                    pendingAction={PolicyUtils.settingsPendingAction(section.subscribedSettings, qbdConfig?.pendingFields)}
+                >
                     <MenuItemWithTopDescription
                         title={section.title}
                         description={section.description}
@@ -86,14 +89,20 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                         switchAccessibilityLabel={translate('workspace.qbd.defaultVendorDescription')}
                         wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
                         isActive={!!qbdConfig?.shouldAutoCreateVendor}
-                        pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR], qbdConfig?.pendingFields)}
+                        pendingAction={PolicyUtils.settingsPendingAction(
+                            [CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR, CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE],
+                            qbdConfig?.pendingFields,
+                        )}
                         errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR)}
                         onToggle={(isOn) => QuickbooksDesktop.updateQuickbooksDesktopShouldAutoCreateVendor(policyID, isOn)}
                         onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR)}
                     />
                     {!!qbdConfig?.shouldAutoCreateVendor && (
                         <OfflineWithFeedback
-                            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qbdConfig?.pendingFields)}
+                            pendingAction={PolicyUtils.settingsPendingAction(
+                                [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR],
+                                qbdConfig?.pendingFields,
+                            )}
                         >
                             <MenuItemWithTopDescription
                                 title={nonReimbursableBillDefaultVendorObject?.name}
