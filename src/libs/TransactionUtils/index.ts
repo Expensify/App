@@ -21,7 +21,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -603,7 +603,35 @@ function getTransactionViolations(transactionID: string, transactionViolations: 
  * Check if there is pending rter violation in transactionViolations.
  */
 function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
-    return !!transactionViolations?.some((transactionViolation: TransactionViolation) => transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern);
+    return !!transactionViolations?.some(
+        (transactionViolation: TransactionViolation) =>
+            transactionViolation.name === CONST.VIOLATIONS.RTER &&
+            transactionViolation.data?.pendingPattern &&
+            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION &&
+            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
+    );
+}
+
+/**
+ * Check if there is broken connection violation.
+ */
+function hasBrokenConnectionViolation(transactionID: string): boolean {
+    const violations = getTransactionViolations(transactionID, allTransactionViolations);
+    return !!violations?.find(
+        (violation) =>
+            violation.name === CONST.VIOLATIONS.RTER &&
+            (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530),
+    );
+}
+
+/**
+ * Check if user should see broken connection violation warning.
+ */
+function shouldShowBrokenConnectionViolation(transactionID: string, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    return (
+        hasBrokenConnectionViolation(transactionID) &&
+        (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isOpenExpenseReport(report) || (ReportUtils.isProcessingReport(report) && PolicyUtils.isInstantSubmitEnabled(policy)))
+    );
 }
 
 /**
@@ -1161,6 +1189,8 @@ export {
     getRecentTransactions,
     hasReservationList,
     hasViolation,
+    hasBrokenConnectionViolation,
+    shouldShowBrokenConnectionViolation,
     hasNoticeTypeViolation,
     hasWarningTypeViolation,
     hasModifiedAmountOrDateViolation,
