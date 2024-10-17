@@ -448,7 +448,7 @@ function IOURequestStepScan({
             if (shouldSkipConfirmation) {
                 setFileResize(file);
                 setFileSource(file?.uri ?? '');
-                const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && fileResize;
+                const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
 
                 if (gpsRequired) {
                     const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
@@ -499,7 +499,7 @@ function IOURequestStepScan({
                     if (shouldSkipConfirmation) {
                         setFileResize(file);
                         setFileSource(source);
-                        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && fileResize;
+                        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
                         if (gpsRequired) {
                             const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
                             if (shouldStartLocationPermissionFlow) {
