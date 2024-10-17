@@ -162,7 +162,12 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                     validatePendingAction={pendingContactAction?.pendingFields?.actionVerified}
                     validateError={validateLoginError}
                     handleSubmitForm={addNewContactMethod}
-                    clearError={() => User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin')}
+                    clearError={() => {
+                        if(!loginData) {
+                            return;
+                        }
+                        User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin')
+                    }}
                     onClose={() => {
                         if (loginData?.errorFields && pendingContactAction?.contactMethod) {
                             User.clearContactMethod(pendingContactAction?.contactMethod);
