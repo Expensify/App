@@ -9,7 +9,6 @@ import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, 
 import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
 import {isConnectionInProgress} from './actions/connections';
 import * as CurrencyUtils from './CurrencyUtils';
-import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasSyncError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
@@ -60,7 +59,7 @@ Onyx.connect({
  */
 const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection<ReportActions>): BrickRoad => {
     const reportActions = (altReportActions ?? allReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-    const reportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
+    const reportErrors = ReportUtils.getAllReportErrors(report, reportActions);
     const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions);
     let doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
