@@ -141,7 +141,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report?.reportID || !title;
 
-    const isReportInRHP = isReportOpenInRHP(navigationRef.getRootState());
+    const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
     const shouldDisplaySearchRouter = !isReportInRHP;
 
     return (

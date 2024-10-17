@@ -158,7 +158,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
-    const isReportInRHP = isReportOpenInRHP(navigationRef.getRootState());
+    const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
     const shouldDisplaySearchRouter = !isReportInRHP;
 
     const confirmPayment = useCallback(

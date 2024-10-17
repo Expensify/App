@@ -63,7 +63,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
     const reportID = report?.reportID;
 
-    const isReportInRHP = isReportOpenInRHP(navigationRef.getRootState());
+    const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
     const shouldDisplaySearchRouter = !isReportInRHP;
 
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
