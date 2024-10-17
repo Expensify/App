@@ -332,6 +332,7 @@ const SCREENS = {
             QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Desktop_Import_Classes_Dipslayed_As',
             QUICKBOOKS_DESKTOP_CUSTOMERS: 'Policy_Accounting_Quickbooks_Desktop_Import_Customers',
             QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Desktop_Import_Customers_Dipslayed_As',
+            QUICKBOOKS_DESKTOP_ITEMS: 'Policy_Accounting_Quickbooks_Desktop_Import_Items',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
             XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
             XERO_CHART_OF_ACCOUNTS: 'Policy_Accounting_Xero_Import_Chart_Of_Accounts',
