@@ -58,7 +58,6 @@ function DebugReportPage({
             return [];
         }
 
-        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report);
         const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
         const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
         const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
@@ -66,6 +65,7 @@ function DebugReportPage({
         const {reason: reasonRBR, reportAction: reportActionRBR} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, hasViolations) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
+        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
 
         return [
             {
