@@ -18,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Debug from '@userActions/Debug';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {DetailsConstantFieldsKeys, DetailsDatetimeFieldsKeys, DetailsDisabledKeys} from './const';
 import {DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS, DETAILS_DISABLED_KEYS} from './const';
 import ConstantSelector from './ConstantSelector';
@@ -26,7 +26,7 @@ import DateTimeSelector from './DateTimeSelector';
 
 type DebugDetailsProps = {
     /** The report or report action data to be displayed and editted. */
-    data: OnyxEntry<Report> | OnyxEntry<ReportAction>;
+    data: OnyxEntry<Report> | OnyxEntry<ReportAction> | OnyxEntry<Transaction>;
 
     children?: React.ReactNode;
 
@@ -70,7 +70,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
         () =>
             Object.entries(data ?? {})
                 .filter(
-                    (entry): entry is [string, string | ObjectType] =>
+                    (entry): entry is [string, string | ObjectType<Record<string, unknown>>] =>
                         (typeof entry[1] === 'string' || typeof entry[1] === 'object') &&
                         !DETAILS_CONSTANT_FIELDS.includes(entry[0] as DetailsConstantFieldsKeys) &&
                         !DETAILS_DATETIME_FIELDS.includes(entry[0] as DetailsDatetimeFieldsKeys),

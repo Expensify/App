@@ -5060,6 +5060,8 @@ const translations = {
         createReportAction: 'Create Report Action',
         reportAction: 'Report Action',
         report: 'Report',
+        transaction: 'Transaction',
+        violations: 'Violations',
         hint: "Data changes won't be sent to the backend",
         textFields: 'Text fields',
         numberFields: 'Number fields',
@@ -5074,6 +5076,8 @@ const translations = {
         RBR: 'RBR',
         true: 'true',
         false: 'false',
+        viewReport: 'View report',
+        viewTransaction: 'View transaction',
         reasonVisibleInLHN: {
             hasDraftComment: 'Has draft comment',
             hasGBR: 'Has GBR',

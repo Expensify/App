@@ -5574,6 +5574,8 @@ const translations = {
         createReportAction: 'Crear Report Action',
         reportAction: 'Report Action',
         report: 'Report',
+        transaction: 'Transacción',
+        violations: 'Violaciones',
         hint: 'Los cambios de datos no se enviarán al backend',
         textFields: 'Campos de texto',
         numberFields: 'Campos numéricos',
@@ -5588,6 +5590,8 @@ const translations = {
         RBR: 'RBR',
         true: 'verdadero',
         false: 'falso',
+        viewReport: 'Ver informe',
+        viewTransaction: 'Ver transacción',
         reasonVisibleInLHN: {
             hasDraftComment: 'Tiene comentario en borrador',
             hasGBR: 'Tiene GBR',
