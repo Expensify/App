@@ -443,6 +443,7 @@ const ONYXKEYS = {
 
     /** States whether we transitioned from OldDot to show only certain group of screens. It should be undefined on pure NewDot. */
     IS_SINGLE_NEW_DOT_ENTRY: 'isSingleNewDotEntry',
+
     /** Company cards custom names */
     NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES: 'nvp_expensify_ccCustomNames',
 
