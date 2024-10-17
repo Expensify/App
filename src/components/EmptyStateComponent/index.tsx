@@ -99,7 +99,7 @@ function EmptyStateComponent({
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
                         {typeof subtitle === 'string' ? <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text> : subtitle}
                         <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : undefined]}>
-                            {buttons?.map(({buttonText, buttonAction, success}, index) => (                              
+                            {buttons?.map(({buttonText, buttonAction, success}, index) => (
                                 <View
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={index}
