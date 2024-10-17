@@ -59,5 +59,5 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
 
-    return useMemo(() => ({isOffline, lastOfflineAt, lastOnlineAt}), [isOffline, lastOfflineAt, lastOnlineAt]);
+    return {isOffline, lastOfflineAt, lastOnlineAt};
 }
