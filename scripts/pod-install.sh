@@ -8,10 +8,41 @@
 # Exit immediately if any command exits with a non-zero status
 set -e
 
-# Go to project root
+BLUE='\033[1;34m'
+NC='\033[0m'
+
+# Go to NewDot project root
 START_DIR="$(pwd)"
 ROOT_DIR="$(dirname "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)")"
 cd "$ROOT_DIR" || exit 1
+
+# See if we're in the HybridApp repo
+IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app-repo.sh)
+NEW_DOT_FLAG="false"
+SHOULD_CLEAN="false"
+
+for arg in "$@"; do
+    if [ "$arg" == "--clean" ]; then
+        SHOULD_CLEAN="true"
+    elif [ "$arg" == "--new-dot" ]; then
+        NEW_DOT_FLAG="true"
+    fi
+done
+
+
+if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
+    echo -e "${BLUE}Executing npm run pod-install for HybridApp...${NC}"
+    cd ../ios
+    if [ "$SHOULD_CLEAN" == "true" ]; then
+        bundle exec pod deintegrate
+    fi
+    # Navigate to the OldDot repository, and run pod install
+    bundle exec pod install
+    exit 0
+fi
+
+echo -e "${BLUE}Executing npm run pod-install for standalone NewDot...${NC}"
+
 
 # Cleanup and exit
 # param - status code
@@ -83,6 +114,9 @@ if [ -d "$CACHED_PODSPEC_DIR" ]; then
 fi
 
 cd ios || cleanupAndExit 1
+if [ "$SHOULD_CLEAN" == "true" ]; then
+    bundle exec pod deintegrate
+fi
 bundle exec pod install
 
 # Go back to where we started
