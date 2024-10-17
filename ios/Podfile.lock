@@ -286,6 +286,27 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
+  - NitroModules (0.11.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - Onfido (29.7.2)
   - onfido-react-native-sdk (10.6.0):
     - DoubleConversion
@@ -1700,7 +1721,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-keyboard-controller (1.14.0):
+  - react-native-keyboard-controller (1.14.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2678,26 +2699,9 @@ PODS:
   - SocketRocket (0.7.0)
   - Turf (2.8.0)
   - VisionCamera (4.0.0-beta.13):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.01.01.00)
-    - RCTRequired
-    - RCTTypeSafety
+    - React
+    - React-callinvoker
     - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2718,6 +2722,7 @@ DEPENDENCIES:
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
+  - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -2897,6 +2902,8 @@ EXTERNAL SOURCES:
     :tag: hermes-2024-08-15-RNv0.75.1-4b3bf912cc0f705b51b71ce1a5b8bd79b93a451b
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
+  NitroModules:
+    :path: "../node_modules/react-native-nitro-modules"
   onfido-react-native-sdk:
     :path: "../node_modules/@onfido/react-native-sdk"
   RCT-Folly:
@@ -3149,6 +3156,7 @@ SPEC CHECKSUMS:
   MapboxMaps: e76b14f52c54c40b76ddecd04f40448e6f35a864
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
+  NitroModules: e8722903c6ca5c7616f62c0d7a926a903ae75bce
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 4ccfdeb10f9ccb4a5799d2555cdbc2a068a42c0d
   Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89
@@ -3191,7 +3199,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: b9bd12beaf0ebca61a01514517ca8455bd26fa06
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: aae312752fcdfaa2240be9a015fc41ce54087546
-  react-native-keyboard-controller: 17d5830f2bd6c6cad44682eb2cc13f9078eff985
+  react-native-keyboard-controller: 902c07f41a415b632583b384427a71770a8b02a3
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: fb5112b1fa754975485884ae85a3fb6a684f49d5
   react-native-pager-view: 94195f1bf32e7f78359fa20057c97e632364a08b
@@ -3258,7 +3266,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
-  VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
+  VisionCamera: 9f26224fce1233ffdad9fa4e56863e3de2190dc0
   Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
 
 PODFILE CHECKSUM: a07e55247056ec5d84d1af31d694506efff3cfe2

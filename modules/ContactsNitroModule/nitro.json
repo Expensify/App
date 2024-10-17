@@ -1,0 +1,18 @@
+{
+  "cxxNamespace": ["contacts"],
+  "ios": {
+    "iosModulename": "ContactsNitroModule"
+  },
+  "android": {
+    "androidNamespace": ["contacts"],
+    "androidCxxLibName": "ContactsNitroModule"
+  },
+  "autolinking": {
+    "ContactsNitroModule": {
+      "swift": "HybridContactsNitroModule",
+      "kotlin": "HybridContactsNitroModule"
+    }
+  },
+  "ignorePaths": ["node_modules"]
+}
+
