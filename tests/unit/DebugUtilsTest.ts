@@ -1496,6 +1496,7 @@ describe('DebugUtils', () => {
                     errors: {
                         randomError: 'Random error',
                     },
+                    message: [{html: 'text', text: 'text', type: 'COMMENT'}],
                 },
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '2': {
