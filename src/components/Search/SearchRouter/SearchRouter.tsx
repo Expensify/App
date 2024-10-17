@@ -84,10 +84,13 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     }, [debouncedInputValue, searchOptions]);
 
     const recentReports: OptionData[] = useMemo(() => {
-        const currentSearchOptions = debouncedInputValue === '' ? searchOptions : filteredOptions;
-        const reports: OptionData[] = [...currentSearchOptions.recentReports, ...currentSearchOptions.personalDetails];
-        if (currentSearchOptions.userToInvite) {
-            reports.push(currentSearchOptions.userToInvite);
+        if (debouncedInputValue === '') {
+            return searchOptions.recentReports.slice(0, 10);
+        }
+
+        const reports: OptionData[] = [...filteredOptions.recentReports, ...filteredOptions.personalDetails];
+        if (filteredOptions.userToInvite) {
+            reports.push(filteredOptions.userToInvite);
         }
         return reports.slice(0, 10);
     }, [debouncedInputValue, filteredOptions, searchOptions]);
