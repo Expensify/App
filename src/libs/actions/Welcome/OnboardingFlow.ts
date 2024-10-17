@@ -110,7 +110,11 @@ function startOnboardingFlow() {
     if (focusedRoute?.name === currentRoute?.name) {
         return;
     }
-    navigationRef.resetRoot(adaptedState);
+    navigationRef.resetRoot({
+        ...navigationRef.getRootState(),
+        ...adaptedState,
+        stale: true,
+    } as PartialState<NavigationState>);
 }
 
 function getOnboardingInitialPath(): string {
