@@ -407,21 +407,21 @@ function isSearchResultsEmpty(searchResults: SearchResults) {
 }
 
 function getQueryHash(query: SearchQueryJSON): number {
-    let stringToHash = '';
+    let orderedQuery = '';
     if (query.policyID) {
-        stringToHash += `policyID ${query.policyID} `;
+        orderedQuery += `policyID ${query.policyID} `;
     }
-    stringToHash += `type ${query.type} `;
-    stringToHash += `status ${query.status} `;
-    stringToHash += `sortBy ${query.sortBy} `;
-    stringToHash += `sortOrder ${query.sortOrder} `;
+    orderedQuery += `type ${query.type} `;
+    orderedQuery += ` status ${query.status}`;
+    orderedQuery += ` sortBy ${query.sortBy} `;
+    orderedQuery += ` sortOrder ${query.sortOrder} `;
 
     Object.keys(query.flatFilters)
         .sort()
         .forEach((key) => {
-            const objectToIterate = query.flatFilters?.[key as AdvancedFiltersKeys];
-            stringToHash += key;
-            objectToIterate
+            const filterValues = query.flatFilters?.[key as AdvancedFiltersKeys];
+            orderedQuery += ` ${key}`;
+            filterValues
                 ?.sort((queryFilter1, queryFilter2) => {
                     if (queryFilter1.value > queryFilter2.value) {
                         return 1;
@@ -429,11 +429,11 @@ function getQueryHash(query: SearchQueryJSON): number {
                     return -1;
                 })
                 ?.forEach((queryFilter) => {
-                    stringToHash += ` ${queryFilter.operator} ${queryFilter.value}`;
+                    orderedQuery += ` ${queryFilter.operator} ${queryFilter.value}`;
                 });
         });
 
-    return UserUtils.hashText(stringToHash, 2 ** 32);
+    return UserUtils.hashText(orderedQuery, 2 ** 32);
 }
 
 function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
@@ -619,7 +619,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     const {type, status, policyID, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
 
-    // console.log('%%%%%\n', 'aa', type, status, policyID);
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${CONST.SEARCH.SORT_ORDER.DESC}`);
 
@@ -683,7 +682,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     const amountFilter = buildAmountFilterQuery(filterValues);
     filtersString.push(amountFilter);
-    // console.log('%%%%%\n', 'bb', filtersString.join(' ').trim());
     return filtersString.join(' ').trim();
 }
 
