@@ -11,7 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -177,7 +177,7 @@ function SearchStatusBar({queryJSON, onStatusChange}: SearchStatusBarProps) {
             {options.map((item, index) => {
                 const onPress = singleExecution(() => {
                     onStatusChange?.();
-                    const query = SearchUtils.buildSearchQueryString({...queryJSON, status: item.status});
+                    const query = SearchQueryUtils.buildSearchQueryString({...queryJSON, status: item.status});
                     Navigation.setParams({q: query});
                 });
                 const isActive = queryJSON.status === item.status;
