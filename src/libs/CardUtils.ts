@@ -253,18 +253,15 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
     ];
 
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
-        // TODO https://github.com/Expensify/App/issues/50450
-        return;
+        return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
     }
 
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.AMEX) {
-        // TODO https://github.com/Expensify/App/issues/50451
-        return;
+        return CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED;
     }
 
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.BREX) {
-        // TODO Skip the step to submit
-        return;
+        return CONST.COMPANY_CARDS.STEP.BANK_CONNECTION;
     }
 
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER) {
