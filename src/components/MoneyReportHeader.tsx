@@ -267,7 +267,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     };
 
     const statusBarProps = getStatusBarProps();
-    const shouldAddGapToContents = shouldUseNarrowLayout && shouldShowAnyButton && (!!statusBarProps || shouldShowNextStep);
+    const shouldAddGapToContents =
+        shouldUseNarrowLayout &&
+        (isDuplicate || shouldShowSettlementButton || !!shouldShowExportIntegrationButton || shouldShowSubmitButton || shouldShowMarkAsCashButton) &&
+        (!!statusBarProps || shouldShowNextStep);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
