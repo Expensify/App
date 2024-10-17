@@ -143,7 +143,6 @@ const SCREENS = {
         ROOT: 'SaveTheWorld_Root',
     },
     LEFT_MODAL: {
-        CHAT_FINDER: 'ChatFinder',
         WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
     },
     RIGHT_MODAL: {
@@ -331,6 +330,8 @@ const SCREENS = {
             QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS: 'Policy_Accounting_Quickbooks_Desktop_Import_Chart_Of_Accounts',
             QUICKBOOKS_DESKTOP_CLASSES: 'Policy_Accounting_Quickbooks_Desktop_Import_Classes',
             QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Desktop_Import_Classes_Dipslayed_As',
+            QUICKBOOKS_DESKTOP_CUSTOMERS: 'Policy_Accounting_Quickbooks_Desktop_Import_Customers',
+            QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Desktop_Import_Customers_Dipslayed_As',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
             XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
             XERO_CHART_OF_ACCOUNTS: 'Policy_Accounting_Xero_Import_Chart_Of_Accounts',
