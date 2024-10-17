@@ -228,8 +228,10 @@ function ReportActionsList({
     }, [report.reportID]);
 
     const wasMessageReceivedWhileOffline = useCallback(
-        (m: OnyxTypes.ReportAction) => !ReportActionsUtils.wasActionTakenByCurrentUser && wasMessageCreatedWhileOffline(m, lastOfflineAt, lastOnlineAt, preferredLocale),
-        [lastOfflineAt, lastOnlineAt, preferredLocale],
+        (message: OnyxTypes.ReportAction) => !ReportActionsUtils.wasActionTakenByCurrentUser(message) && wasMessageCreatedWhileOffline(message, lastOfflineAt, lastOnlineAt, preferredLocale),
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [lastOfflineAt, lastOnlineAt],
     );
 
     /**
@@ -241,19 +243,18 @@ function ReportActionsList({
 
             const nextMessage = sortedVisibleReportActions.at(index + 1);
 
-            const isCurrentMessageUnread = isMessageUnread(message, unreadMarkerTime);
-            const isNextMessageUnread = nextMessage ? isMessageUnread(nextMessage, unreadMarkerTime) : false;
-
             // If the user recevied new messages while being offline, we want to display the unread marker above the first offline message.
             const isCurrentMessageOffline = wasMessageReceivedWhileOffline(message);
-            const isNextMessageOffline = nextMessage ? wasMessageReceivedWhileOffline(nextMessage) : false;
+            const isNextMessageOffline = !!nextMessage && wasMessageReceivedWhileOffline(nextMessage);
+
+            const isCurrentMessageUnread = isMessageUnread(message, unreadMarkerTime);
+            const isNextMessageUnread = !!nextMessage && isMessageUnread(nextMessage, unreadMarkerTime);
 
             const shouldDisplayForNextMessage = isNextMessageUnread || isNextMessageOffline;
-            const shouldDisplayBecauseUnread = isCurrentMessageUnread && !isNextMessageUnread && !ReportActionsUtils.shouldHideNewMarker(message) && isWithinVisibleThreshold;
-            const shouldDisplayBecauseOffline = isCurrentMessageOffline && !isNextMessageOffline;
-            const shouldDisplay = shouldDisplayBecauseOffline || shouldDisplayBecauseUnread;
+            const shouldDisplayBecauseOffline = isCurrentMessageOffline && !shouldDisplayForNextMessage;
+            const shouldDisplayBecauseUnread = isCurrentMessageUnread && !shouldDisplayForNextMessage && !ReportActionsUtils.shouldHideNewMarker(message) && isWithinVisibleThreshold;
 
-            return shouldDisplay;
+            return shouldDisplayBecauseOffline || shouldDisplayBecauseUnread;
         };
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
