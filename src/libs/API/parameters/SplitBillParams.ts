@@ -1,3 +1,5 @@
+import type {Receipt} from '@src/types/onyx/Transaction';
+
 type SplitBillParams = {
     reportID: string;
     amount: number;
@@ -17,6 +19,7 @@ type SplitBillParams = {
     splitPayerAccountIDs: number[];
     taxCode: string;
     taxAmount: number;
+    receipt: Receipt;
 };
 
 export default SplitBillParams;
