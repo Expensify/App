@@ -53,7 +53,7 @@ function save(requestToPersist: Request) {
     });
 }
 
-function remove(requestToRemove: Request) {
+function endRequestAndRemoveFromQueue(requestToRemove: Request) {
     ongoingRequest = null;
     /**
      * We only remove the first matching request because the order of requests matters.
@@ -73,6 +73,19 @@ function remove(requestToRemove: Request) {
         [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
     }).then(() => {
         Log.info(`[SequentialQueue] '${requestToRemove.command}' removed from the queue. Queue length is ${getLength()}`);
+    });
+}
+
+function deleteRequestsByIndices(indices: number[]) {
+    // Create a Set from the indices array for efficient lookup
+    const indicesSet = new Set(indices);
+
+    // Create a new array excluding elements at the specified indices
+    persistedRequests = persistedRequests.filter((_, index) => !indicesSet.has(index));
+
+    // Update the persisted requests in storage or state as necessary
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests).then(() => {
+        Log.info(`Multiple (${indices.length}) requests removed from the queue. Queue length is ${persistedRequests.length}`);
     });
 }
 
@@ -131,4 +144,4 @@ function getOngoingRequest(): Request | null {
     return ongoingRequest;
 }
 
-export {clear, save, getAll, remove, update, getLength, getOngoingRequest, processNextRequest, updateOngoingRequest, rollbackOngoingRequest};
+export {clear, save, getAll, endRequestAndRemoveFromQueue, update, getLength, getOngoingRequest, processNextRequest, updateOngoingRequest, rollbackOngoingRequest, deleteRequestsByIndices};
