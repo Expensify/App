@@ -4300,6 +4300,10 @@ const translations = {
                 title: 'No hay nada que ver aquí',
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
             },
+            emptyExpenseResults: {
+                title: 'Aún no has creado ningún gasto',
+                subtitle: 'Usa el botón verde de abajo para crear un gasto o haz un tour por Expensify para aprender más.',
+            },
             emptyTripResults: {
                 title: 'No tienes viajes',
                 subtitle: 'Reserva tu primer viaje a continuación.',
@@ -5607,6 +5611,9 @@ const translations = {
             hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
             hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
         },
+    },
+    emptySearchView: {
+        takeATour: 'Haz un tour',
     },
 };
 
