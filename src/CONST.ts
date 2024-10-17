@@ -754,8 +754,8 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     NAVATTIC: {
-        ADMIN_TOUR: 'http://expensify.navattic.com/kh204a7',
-        EMPLOYEE_TOUR: 'http://expensify.navattic.com/35609gb',
+        ADMIN_TOUR: 'https://expensify.navattic.com/kh204a7',
+        EMPLOYEE_TOUR: 'https://expensify.navattic.com/35609gb',
     },
 
     OLDDOT_URLS: {

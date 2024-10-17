@@ -4292,8 +4292,8 @@ const translations = {
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
             },
             emptyExpenseResults: {
-                title: "You haven't created any expenses yet",
-                subtitle: 'Use the green button below to create an expense or take a tour of Expensify to learn more.',
+                title: 'Aún no has creado ningún gasto',
+                subtitle: 'Usa el botón verde de abajo para crear un gasto o realiza un recorrido por Expensify para aprender más.',
             },
             emptyTripResults: {
                 title: 'No tienes viajes',
@@ -5598,7 +5598,7 @@ const translations = {
         },
     },
     emptySearchView: {
-        takeATour: 'Take a tour',
+        takeATour: 'Realiza un recorrido',
     },
 };
 

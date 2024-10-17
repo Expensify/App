@@ -113,7 +113,6 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                         },
                     ],
                 };
-            case CONST.SEARCH.DATA_TYPES.CHAT:
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 return {
                     headerMedia: LottieAnimations.GenericEmptyState,
@@ -130,6 +129,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     ],
                     headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
+            case CONST.SEARCH.DATA_TYPES.CHAT:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
             default:
                 return {
