@@ -24,16 +24,21 @@ function SelectBankStep() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>>();
     const [hasError, setHasError] = useState(false);
+    const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
 
     const submit = () => {
         if (!bankSelected) {
             setHasError(true);
         } else {
-            // TODO: https://github.com/Expensify/App/issues/50447 - update the navigation when new screen exists
+            if (addNewCard?.data.selectedBank !== bankSelected) {
+                CompanyCards.clearAddNewCardFlow();
+            }
             CompanyCards.setAddNewCompanyCardStepAndData({
-                step: bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER ? CONST.COMPANY_CARDS.STEP.CARD_TYPE : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                step: CardUtils.getCorrectStepForSelectedBank(bankSelected),
                 data: {
                     selectedBank: bankSelected,
+                    cardTitle: !isOtherBankSelected ? bankSelected : undefined,
+                    cardType: bankSelected === CONST.COMPANY_CARDS.BANKS.STRIPE ? CONST.COMPANY_CARDS.CARD_TYPE.STRIPE : undefined,
                 },
                 isEditing: false,
             });

@@ -75,7 +75,6 @@ const ROUTES = {
         route: 'flag/:reportID/:reportActionID',
         getRoute: (reportID: string, reportActionID: string, backTo?: string) => getUrlWithBackToParam(`flag/${reportID}/${reportActionID}` as const, backTo),
     },
-    CHAT_FINDER: 'chat-finder',
     PROFILE: {
         route: 'a/:accountID',
         getRoute: (accountID?: string | number, backTo?: string, login?: string) => {
@@ -671,6 +670,18 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/date-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/date-select` as const,
     },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/advanced',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/date-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/date-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/preferred-exporter',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/preferred-exporter` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/out-of-pocket-expense',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense` as const,
@@ -702,6 +713,26 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/accounts',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/accounts` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/classes',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/classes` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/classes/displayed_as',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/classes/displayed_as` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/customers',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/customers` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/customers/displayed_as',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/customers/displayed_as` as const,
     },
     WORKSPACE_PROFILE_NAME: {
         route: 'settings/workspaces/:policyID/profile/name',
@@ -1221,8 +1252,10 @@ const ROUTES = {
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
-        getRoute: (reportID: string, transactionID: string, readonly = false) => `r/${reportID}/transaction/${transactionID}/receipt${readonly ? '?readonly=true' : ''}` as const,
+        getRoute: (reportID: string, transactionID: string, readonly = false, isFromReviewDuplicates = false) =>
+            `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''}` as const,
     },
+
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {
         route: 'r/:threadReportID/duplicates/review',
         getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo),

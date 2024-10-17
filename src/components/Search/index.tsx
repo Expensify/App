@@ -93,7 +93,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading, lastSearchType, setLastSearchType} =
         useSearchContext();
-    const {selectionMode} = useMobileSelectionMode();
+    const {selectionMode} = useMobileSelectionMode(false);
     const [offset, setOffset] = useState(0);
 
     const {type, status, sortBy, sortOrder, hash} = queryJSON;
@@ -400,6 +400,12 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                     />
                 )
             }
+            isSelected={(item) =>
+                status !== CONST.SEARCH.STATUS.EXPENSE.ALL && SearchUtils.isReportListItemType(item)
+                    ? item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
+                    : !!item.isSelected
+            }
+            shouldAutoTurnOff={false}
             onScroll={onSearchListScroll}
             canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
             customListHeaderHeight={searchHeaderHeight}

@@ -1,6 +1,8 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 type AddressLineParams = {
@@ -257,6 +259,7 @@ type ViolationsRterParams = {
     email?: string;
     isTransactionOlderThan7Days: boolean;
     member?: string;
+    rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
 };
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
@@ -278,8 +281,6 @@ type LogSizeParams = {size: number};
 type LogSizeAndDateParams = {size: number; date: string};
 
 type HeldRequestParams = {comment: string};
-
-type ReimbursementRateParams = {unit: Unit};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
@@ -652,7 +653,6 @@ export type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
-    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
