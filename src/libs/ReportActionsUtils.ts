@@ -581,6 +581,22 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
     return currentAction.actorAccountID === previousAction.actorAccountID;
 }
 
+function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportAction>, isChronosReport: boolean): boolean {
+    const isAutomaticStartTimerAction = () => /start(?:ed|ing)?(?:\snow)?/i.test(getReportActionText(reportAction));
+    const isAutomaticStopTimerAction = () => /stop(?:ped|ping)?(?:\snow)?/i.test(getReportActionText(reportAction));
+    return isChronosReport && (isAutomaticStartTimerAction() || isAutomaticStopTimerAction());
+}
+
+/**
+ * If the user sends consecutive actions to Chronos to automatically start/stop the timer,
+ * then detect that and show each individually so that the user can easily see when they were sent.
+ */
+function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[], actionIndex: number, isChronosReport: boolean): boolean {
+    const previousAction = findPreviousAction(reportActions, actionIndex);
+    const currentAction = reportActions?.at(actionIndex);
+    return isChronosAutomaticTimerAction(currentAction, isChronosReport) && isChronosAutomaticTimerAction(previousAction, isChronosReport);
+}
+
 /**
  * Checks if a reportAction is deprecated.
  */
@@ -1834,6 +1850,7 @@ export {
     isChronosOOOListAction,
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
+    isConsecutiveChronosAutomaticTimerAction,
     isCreatedAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
