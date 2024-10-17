@@ -279,7 +279,11 @@ function ReportActionsList({
 
     const lastActionIndex = sortedVisibleReportActions.at(0)?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedVisibleReportActions.at(0)?.created === report.lastVisibleActionCreated;
+    const lastVisibleActionCreated =
+        (transactionThreadReport?.lastVisibleActionCreated ?? '') > (report.lastVisibleActionCreated ?? '')
+            ? transactionThreadReport?.lastVisibleActionCreated
+            : report.lastVisibleActionCreated;
+    const hasNewestReportAction = sortedVisibleReportActions.at(0)?.created === lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
