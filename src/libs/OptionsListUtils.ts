@@ -2265,7 +2265,7 @@ function getFilteredOptions(params: FilteredOptionsParamsWithDefaultSearchValue 
         recentlyUsedPolicyReportFieldOptions = [],
         includeInvoiceRooms = false,
         action,
-        sortByReportTypeInSearch,
+        sortByReportTypeInSearch = false,
     } = params;
     return getOptions(
         {reports, personalDetails},

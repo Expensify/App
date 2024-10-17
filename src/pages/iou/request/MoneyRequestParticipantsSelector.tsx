@@ -133,6 +133,7 @@ function MoneyRequestParticipantsSelector({
             action,
             sortByReportTypeInSearch: isPaidGroupPolicy,
             searchValue: '',
+            maxRecentReportsToShow: 0,
         });
 
         return optionList;
