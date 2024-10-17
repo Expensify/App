@@ -1494,6 +1494,7 @@ const CONST = {
             CLASSES: 'classes',
             CUSTOMERS: 'customers',
         },
+        IMPORT_ITEMS: 'importItems',
     },
 
     QUICKBOOKS_CONFIG: {

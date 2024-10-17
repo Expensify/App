@@ -2465,6 +2465,7 @@ const translations = {
                 createEntitiesDescription:
                     "Expensify will automatically create vendors in QuickBooks Desktop if they don't exist already, and auto-create customers when exporting invoices.",
             },
+            itemsDescription: 'Choose how to handle QuickBooks Desktop items in Expensify.',
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
