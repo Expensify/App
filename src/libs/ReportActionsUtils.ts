@@ -384,15 +384,16 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
 
     const sortedActions = reportActions?.filter(Boolean).sort((first, second) => {
-        // First sort by timestamp
+        // First sort by action type, ensuring that `CREATED` actions always come first if they have the same or even a later timestamp as another action type
+        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
+            return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
+        }
+
+        // Then sort by timestamp
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
         }
 
-        // Then by action type, ensuring that `CREATED` actions always come first if they have the same timestamp as another action type
-        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
-            return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
-        }
         // Ensure that `REPORT_PREVIEW` actions always come after if they have the same timestamp as another action type
         if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) && first.actionName !== second.actionName) {
             return (first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? 1 : -1) * invertedMultiplier;
@@ -403,6 +404,8 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
         // will be consistent across all users and devices
         return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
     });
+
+    console.log('reportActions', reportActions, 'sortedActions', sortedActions);
 
     return sortedActions;
 }
