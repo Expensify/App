@@ -116,6 +116,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           text: translate('workspace.accounting.reinstall'),
                           onSelected: () => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBD}),
                           shouldCallAfterModalHide: true,
+                          disabled: isOffline,
                           iconRight: Expensicons.NewWindow,
                       },
                   ]
