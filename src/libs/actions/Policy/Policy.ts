@@ -4827,9 +4827,6 @@ function updateInvoiceCompanyName(policyID: string, companyName: string) {
         companyName,
     };
 
-    // TODO: Remove dev log
-    console.debug('[TEST] Updating invoice company name', parameters, {optimisticData, successData, failureData});
-
     API.write(WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_NAME, parameters, {optimisticData, successData, failureData});
 }
 
@@ -4891,9 +4888,6 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string) {
         policyID,
         companyWebsite,
     };
-
-    // TODO: Remove dev log
-    console.debug('[TEST] Updating invoice company website', parameters, {optimisticData, successData, failureData});
 
     API.write(WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_WEBSITE, parameters, {optimisticData, successData, failureData});
 }
