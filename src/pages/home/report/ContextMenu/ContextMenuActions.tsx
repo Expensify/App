@@ -263,26 +263,16 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.unhold',
         icon: Expensicons.Stopwatch,
-        shouldShow: ({type}) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-        onPress: (closePopover) => {
-            if (closePopover) {
-                return;
-            }
-        },
+        shouldShow: ({type}) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+        onPress: () => {},
         getDescription: () => {},
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'iou.hold',
         icon: Expensicons.Stopwatch,
-        shouldShow: ({type}) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-        onPress: (closePopover) => {
-            if (closePopover) {
-                return;
-            }
-        },
+        shouldShow: ({type}) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+        onPress: () => {},
         getDescription: () => {},
     },
     {
