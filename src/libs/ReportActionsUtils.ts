@@ -405,8 +405,6 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
         return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
     });
 
-    console.log('reportActions', reportActions, 'sortedActions', sortedActions);
-
     return sortedActions;
 }
 
