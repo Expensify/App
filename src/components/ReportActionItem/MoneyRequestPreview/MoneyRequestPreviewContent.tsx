@@ -289,6 +289,7 @@ function MoneyRequestPreviewContent({
 
     const navigateToReviewFields = () => {
         const backTo = route.params.backTo;
+        Transaction.abandonReviewDuplicateTransactions();
         const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID ?? '');
         Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID ?? '', reportID: transaction?.reportID});
 
