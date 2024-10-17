@@ -97,6 +97,11 @@ function ProfilePage() {
             pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
         },
         {
+            description: translate('common.phoneNumber'),
+            title: privateDetails.phoneNumber ?? '',
+            pageRoute: ROUTES.SETTINGS_PHONE_NUMBER,
+        },
+        {
             description: translate('privatePersonalDetails.address'),
             title: PersonalDetailsUtils.getFormattedAddress(privateDetails),
             pageRoute: ROUTES.SETTINGS_ADDRESS,

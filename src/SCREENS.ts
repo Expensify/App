@@ -85,6 +85,7 @@ const SCREENS = {
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
             LEGAL_NAME: 'Settings_LegalName',
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
+            PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
             ADDRESS_COUNTRY: 'Settings_Address_Country',
             ADDRESS_STATE: 'Settings_Address_State',
