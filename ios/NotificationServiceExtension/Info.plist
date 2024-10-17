@@ -13,7 +13,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>9.0.50</string>
 	<key>CFBundleVersion</key>
-	<string>9.0.50.1</string>
+	<string>9.0.50.4</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionPointIdentifier</key>
