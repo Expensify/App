@@ -3973,12 +3973,78 @@ function resolveActionableReportMentionWhisper(
         },
     ];
 
+    const successData: OnyxUpdate[] = [];
+
+    const reportIDList = [];
+
+    if (resolution === CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE) {
+        const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>);
+        originalMessage?.reportNames?.forEach((roomName: string) => {
+            const optimisticRoom = ReportUtils.buildOptimisticChatReport(
+                report?.participantAccountIDs ?? [],
+                roomName,
+                CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                report?.policyID ?? '',
+                CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+                false,
+                '',
+                report?.visibility,
+                report?.writeCapability,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                '',
+                '',
+                '',
+            );
+
+            reportIDList.push(optimisticRoom.reportID);
+            const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticRoom.reportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticRoom.reportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: null},
+            });
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticRoom.reportID}`,
+                value: {
+                    ...optimisticRoom,
+                    pendingFields: {
+                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                    isOptimisticReport: true,
+                },
+            });
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticRoom.reportID}`,
+                value: {
+                    pendingFields: null,
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticRoom.reportID}`,
+                value: null,
+            });
+        });
+    }
+
     const parameters: ResolveActionableReportMentionWhisperParams = {
         reportActionID: reportAction.reportActionID,
         resolution,
     };
 
-    API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER, parameters, {optimisticData, successData, failureData});
 }
 
 function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
