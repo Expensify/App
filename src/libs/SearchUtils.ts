@@ -407,20 +407,20 @@ function isSearchResultsEmpty(searchResults: SearchResults) {
 }
 
 function getQueryHash(query: SearchQueryJSON): number {
-    let hashedString = '';
+    let stringToHash = '';
     if (query.policyID) {
-        hashedString += `policyID ${query.policyID}`;
+        stringToHash += `policyID ${query.policyID} `;
     }
-    hashedString += `type ${query.type} `;
-    hashedString += `status ${query.status} `;
-    hashedString += `sortBy ${query.sortBy} `;
-    hashedString += `sortOrder ${query.sortOrder} `;
+    stringToHash += `type ${query.type} `;
+    stringToHash += `status ${query.status} `;
+    stringToHash += `sortBy ${query.sortBy} `;
+    stringToHash += `sortOrder ${query.sortOrder} `;
 
     Object.keys(query.flatFilters)
         .sort()
         .forEach((key) => {
             const objectToIterate = query.flatFilters?.[key as AdvancedFiltersKeys];
-            hashedString += key;
+            stringToHash += key;
             objectToIterate
                 ?.sort((queryFilter1, queryFilter2) => {
                     if (queryFilter1.value > queryFilter2.value) {
@@ -429,12 +429,11 @@ function getQueryHash(query: SearchQueryJSON): number {
                     return -1;
                 })
                 ?.forEach((queryFilter) => {
-                    hashedString += ` ${queryFilter.operator} ${queryFilter.value}`;
+                    stringToHash += ` ${queryFilter.operator} ${queryFilter.value}`;
                 });
         });
 
-    console.log('%%%%%\n', 'hashedString', hashedString);
-    return UserUtils.hashText(hashedString, 2 ** 32);
+    return UserUtils.hashText(stringToHash, 2 ** 32);
 }
 
 function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
