@@ -18,9 +18,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
-import * as ReportUtils from '@libs/ReportUtils';
+import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
@@ -28,17 +26,16 @@ import * as Welcome from '@userActions/Welcome';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsProps} from './types';
 
-function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles}: BaseOnboardingPersonalDetailsProps) {
+function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, route}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
-    const {isSmallScreenWidth, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isOffline} = useNetwork();
@@ -63,10 +60,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             Report.completeOnboarding(
                 onboardingPurposeSelected,
                 CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
-                {
-                    firstName,
-                    lastName,
-                },
+                firstName,
+                lastName,
                 onboardingAdminsChatReportID ?? undefined,
                 onboardingPolicyID,
             );
@@ -74,22 +69,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             Welcome.setOnboardingAdminsChatReportID();
             Welcome.setOnboardingPolicyID();
 
-            Navigation.dismissModal();
-
-            // When hasCompletedGuidedSetupFlow is true, OnboardingModalNavigator in AuthScreen is removed from the navigation stack.
-            // On small screens, this removal redirects navigation to HOME. Dismissing the modal doesn't work properly,
-            // so we need to specifically navigate to the last accessed report.
-            if (!isSmallScreenWidth) {
-                return;
-            }
-            const lastAccessedReportID = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID)?.reportID;
-            if (!lastAccessedReportID) {
-                return;
-            }
-            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');
-            Navigation.navigate(lastAccessedReportRoute);
+            navigateAfterOnboarding(isSmallScreenWidth, shouldUseNarrowLayout, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, route.params?.backTo);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, route.params?.backTo, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth, shouldUseNarrowLayout],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {

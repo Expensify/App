@@ -1,6 +1,6 @@
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 type AddressLineParams = {
@@ -279,8 +279,6 @@ type LogSizeAndDateParams = {size: number; date: string};
 
 type HeldRequestParams = {comment: string};
 
-type ReimbursementRateParams = {unit: Unit};
-
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
 type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
@@ -316,7 +314,7 @@ type UnshareParams = {to: string};
 
 type StripePaidParams = {amount: string; currency: string};
 
-type UnapprovedParams = {amount: string; currency: string};
+type UnapprovedParams = {amount: string};
 
 type RemoveMembersWarningPrompt = {
     memberName: string;
@@ -648,7 +646,6 @@ export type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
-    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
