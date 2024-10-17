@@ -182,7 +182,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             <OfflineWithFeedback
                 pendingAction={loginData.pendingFields?.deletedLogin}
                 errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
-                errorRowStyles={[themeStyles.mt6, themeStyles.ph5 ]}
+                errorRowStyles={[themeStyles.mt6, themeStyles.ph5]}
                 onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
             >
                 <MenuItem
@@ -240,12 +240,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
                 {!loginData.validatedDate && !isFailedAddContactMethod && (
                     <View style={[themeStyles.flex1, themeStyles.ph5, themeStyles.mt3]}>
-                        <DotIndicatorMessage
-                            type="success"
-                            style={[themeStyles.mb3]}
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}}
-                        />
+                        <Text style={[themeStyles.mb3]}>{translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}</Text>
 
                         <ValidateCodeForm
                             contactMethod={contactMethod}
