@@ -285,12 +285,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         preferredLocale,
         onPressAutoReportingFrequency,
         approvalWorkflows,
-        theme.spinner,
         addApprovalAction,
         isOffline,
+        theme.spinner,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
         route.params.policyID,
+        isDevelopment,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
