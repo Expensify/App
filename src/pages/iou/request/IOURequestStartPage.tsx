@@ -27,6 +27,7 @@ import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
 
@@ -41,7 +42,8 @@ function IOURequestStartPage({
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const policy = usePolicy(report?.policyID);
-    const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
+    const [selectedTab = CONST.TAB_REQUEST.SCAN, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
+    const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || -1}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -57,16 +59,16 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
-    const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
+    const transactionRequestType = useMemo(() => transaction?.iouRequestType ?? selectedTab, [transaction?.iouRequestType, selectedTab]);
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
     useEffect(() => {
-        if (transaction?.reportID === reportID) {
+        if (transaction?.reportID === reportID || isLoadingSelectedTab) {
             return;
         }
-        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
-    }, [transaction, policy, reportID, iouType, isFromGlobalCreate]);
+        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
+    }, [transaction, policy, reportID, iouType, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]);
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
@@ -82,7 +84,7 @@ function IOURequestStartPage({
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
-            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIOUType);
+            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, newIOUType);
         },
         [policy, reportID, isFromGlobalCreate, transaction],
     );
