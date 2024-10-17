@@ -2,46 +2,34 @@
 
 #import <React/RCTUtils.h>
 
-#if RCT_NEW_ARCH_ENABLED
 #import <React/RCTSurfaceHostingProxyRootView.h>
 #import <React/RCTSurfaceHostingView.h>
-#else
 #import <React/RCTRootView.h>
-#endif
 
-static NSMutableArray<RCTPromiseResolveBlock> *_resolveQueue = nil;
+static RCTSurfaceHostingProxyRootView *_rootView = nil;
+
 static UIView *_loadingView = nil;
-static UIView *_rootView = nil;
-static float _duration = 0;
+static NSMutableArray<RCTPromiseResolveBlock> *_resolveQueue = [[NSMutableArray alloc] init];
+static bool _fade = false;
 static bool _nativeHidden = false;
-static bool _transitioning = false;
 
 @implementation RCTBootSplash
 
 RCT_EXPORT_MODULE();
 
++ (BOOL)requiresMainQueueSetup {
+  return NO;
+}
+
 - (dispatch_queue_t)methodQueue {
   return dispatch_get_main_queue();
 }
 
-+ (void)invalidateBootSplash {
-    _resolveQueue = nil;
-    _rootView = nil;
-    _nativeHidden = false;
-}
-
-+ (bool)isLoadingViewHidden {
-  return _loadingView == nil || [_loadingView isHidden];
-}
-
-+ (bool)hasResolveQueue {
-  return _resolveQueue != nil;
++ (bool)isLoadingViewVisible {
+  return _loadingView != nil && ![_loadingView isHidden];
 }
 
 + (void)clearResolveQueue {
-  if (![self hasResolveQueue])
-    return;
-
   while ([_resolveQueue count] > 0) {
     RCTPromiseResolveBlock resolve = [_resolveQueue objectAtIndex:0];
     [_resolveQueue removeObjectAtIndex:0];
@@ -49,19 +37,15 @@ RCT_EXPORT_MODULE();
   }
 }
 
-+ (void)hideLoadingView {
-  if ([self isLoadingViewHidden])
++ (void)hideAndClearPromiseQueue {
+  if (![self isLoadingViewVisible]) {
     return [RCTBootSplash clearResolveQueue];
+  }
 
-  if (_duration > 0) {
+  if (_fade) {
     dispatch_async(dispatch_get_main_queue(), ^{
-      _transitioning = true;
-      
-      if (_rootView == nil)
-        return;
-
       [UIView transitionWithView:_rootView
-                        duration:_duration / 1000.0
+                        duration:0.250
                          options:UIViewAnimationOptionTransitionCrossDissolve
                       animations:^{
         _loadingView.hidden = YES;
@@ -70,7 +54,6 @@ RCT_EXPORT_MODULE();
         [_loadingView removeFromSuperview];
         _loadingView = nil;
 
-        _transitioning = false;
         return [RCTBootSplash clearResolveQueue];
       }];
     });
@@ -85,30 +68,9 @@ RCT_EXPORT_MODULE();
 
 + (void)initWithStoryboard:(NSString * _Nonnull)storyboardName
                   rootView:(UIView * _Nullable)rootView {
-  if (rootView == nil
-#ifdef RCT_NEW_ARCH_ENABLED
-      || ![rootView isKindOfClass:[RCTSurfaceHostingProxyRootView class]]
-#else
-      || ![rootView isKindOfClass:[RCTRootView class]]
-#endif
-      || _rootView != nil
-      || [self hasResolveQueue] // hide has already been called, abort init
-      || RCTRunningInAppExtension())
+  if (RCTRunningInAppExtension()) {
     return;
-
-#ifdef RCT_NEW_ARCH_ENABLED
-  RCTSurfaceHostingProxyRootView *proxy = (RCTSurfaceHostingProxyRootView *)rootView;
-  _rootView = (RCTSurfaceHostingView *)proxy.surface.view;
-#else
-  _rootView = (RCTRootView *)rootView;
-#endif
-
-  UIStoryboard *storyboard = [UIStoryboard storyboardWithName:storyboardName bundle:nil];
-
-  _loadingView = [[storyboard instantiateInitialViewController] view];
-  _loadingView.hidden = NO;
-
-  [_rootView addSubview:_loadingView];
+  }
 
   [NSTimer scheduledTimerWithTimeInterval:0.35
                                   repeats:NO
@@ -117,19 +79,43 @@ RCT_EXPORT_MODULE();
     _nativeHidden = true;
 
     // hide has been called before native launch screen fade out
-    if ([self hasResolveQueue])
-      [self hideLoadingView];
+    if ([_resolveQueue count] > 0) {
+      [self hideAndClearPromiseQueue];
+    }
   }];
 
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(onJavaScriptDidLoad)
-                                               name:RCTJavaScriptDidLoadNotification
-                                             object:nil];
+  if (rootView != nil) {
+#ifdef RCT_NEW_ARCH_ENABLED
+    _rootView = (RCTSurfaceHostingProxyRootView *)rootView;
+#else
+    _rootView = (RCTRootView *)rootView;
+#endif
 
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(onJavaScriptDidFailToLoad)
-                                               name:RCTJavaScriptDidFailToLoadNotification
-                                             object:nil];
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:storyboardName bundle:nil];
+
+    _loadingView = [[storyboard instantiateInitialViewController] view];
+    _loadingView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    _loadingView.frame = _rootView.bounds;
+    _loadingView.center = (CGPoint){CGRectGetMidX(_rootView.bounds), CGRectGetMidY(_rootView.bounds)};
+    _loadingView.hidden = NO;
+
+#if RCT_NEW_ARCH_ENABLED
+    [_rootView disableActivityIndicatorAutoHide:YES];
+    [_rootView setLoadingView:_loadingView];
+#else
+    [_rootView addSubview:_loadingView];
+#endif
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(onJavaScriptDidLoad)
+                                                 name:RCTJavaScriptDidLoadNotification
+                                               object:nil];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(onJavaScriptDidFailToLoad)
+                                                 name:RCTJavaScriptDidFailToLoadNotification
+                                               object:nil];
+  }
 }
 
 + (void)onJavaScriptDidLoad {
@@ -137,50 +123,49 @@ RCT_EXPORT_MODULE();
 }
 
 + (void)onJavaScriptDidFailToLoad {
-  [self hideLoadingView];
+  [self hideAndClearPromiseQueue];
   [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-- (void)hide:(double)duration
-     resolve:(RCTPromiseResolveBlock)resolve
-      reject:(RCTPromiseRejectBlock)reject {
-  if (_resolveQueue == nil)
-    _resolveQueue = [[NSMutableArray alloc] init];
+- (NSDictionary *)constantsToExport {
+  UIWindow *window = RCTKeyWindow();
+  __block bool darkModeEnabled = false;
+
+  RCTUnsafeExecuteOnMainQueueSync(^{
+    darkModeEnabled = window != nil && window.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark;
+  });
+
+  return @{
+    @"darkModeEnabled": @(darkModeEnabled)
+  };
+}
+
+- (void)hideImpl:(BOOL)fade
+         resolve:(RCTPromiseResolveBlock)resolve {
+  if (RCTRunningInAppExtension()) {
+    return resolve(@(true));
+  }
 
   [_resolveQueue addObject:resolve];
+  _fade = fade;
 
-  if ([RCTBootSplash isLoadingViewHidden] || RCTRunningInAppExtension())
-    return [RCTBootSplash clearResolveQueue];
-
-  _duration = lroundf((float)duration);
-
-  if (_nativeHidden)
-    return [RCTBootSplash hideLoadingView];
+  if (_nativeHidden) {
+    return [RCTBootSplash hideAndClearPromiseQueue];
+  }
 }
 
-- (void)getVisibilityStatus:(RCTPromiseResolveBlock)resolve
-                     reject:(RCTPromiseRejectBlock)reject {
-  if ([RCTBootSplash isLoadingViewHidden])
-    return resolve(@"hidden");
-  else if (_transitioning)
-    return resolve(@"transitioning");
-  else
-    return resolve(@"visible");
+- (void)isVisibleImpl:(RCTPromiseResolveBlock)resolve {
+  resolve(@([RCTBootSplash isLoadingViewVisible]));
 }
 
-RCT_REMAP_METHOD(hide,
-                 resolve:(RCTPromiseResolveBlock)resolve
-                 rejecte:(RCTPromiseRejectBlock)reject) {
-  [self hide:0
-     resolve:resolve
-      reject:reject];
+RCT_EXPORT_METHOD(hide:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+  [self hideImpl:0 resolve:resolve];
 }
 
-RCT_REMAP_METHOD(getVisibilityStatus,
-                 getVisibilityStatusWithResolve:(RCTPromiseResolveBlock)resolve
-                 rejecte:(RCTPromiseRejectBlock)reject) {
-  [self getVisibilityStatus:resolve
-                     reject:reject];
+RCT_EXPORT_METHOD(isVisible:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+  [self isVisibleImpl:resolve];
 }
 
 @end
