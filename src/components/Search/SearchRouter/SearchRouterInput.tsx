@@ -1,14 +1,14 @@
 import type {ReactNode, RefObject} from 'react';
 import React, {useState} from 'react';
-import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -76,7 +76,6 @@ function SearchRouterInput({
     const {translate} = useLocalize();
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {isOffline} = useNetwork();
-    const {inputCallbackRef} = useAutoFocusInput();
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const onChangeText = (text: string) => {
@@ -91,15 +90,11 @@ function SearchRouterInput({
             <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
                 <View style={styles.flex1}>
                     <TextInput
-                        ref={(textInputRef) => {
-                            if (!autoFocus) {
-                                return;
-                            }
-                            inputCallbackRef(textInputRef as RNTextInput | null);
-                        }}
                         testID="search-router-text-input"
                         value={value}
                         onChangeText={onChangeText}
+                        autoFocus={autoFocus}
+                        shouldDelayFocus={shouldDelayFocus}
                         loadingSpinnerStyle={[styles.mt0, styles.mr2]}
                         role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
