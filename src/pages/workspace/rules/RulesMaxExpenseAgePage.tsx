@@ -60,7 +60,7 @@ function RulesMaxExpenseAgePage({
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.pt3, styles.ph5]}
+                    style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM}
                     onSubmit={({maxExpenseAge}) => {
                         PolicyActions.setPolicyMaxExpenseAge(policyID, maxExpenseAge);

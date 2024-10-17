@@ -2,6 +2,7 @@ import type {NavigationState, PartialState, Route} from '@react-navigation/nativ
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import type {TupleToUnion} from 'type-fest';
+import type {TopTabScreen} from '@components/FocusTrap/TOP_TAB_SCREENS';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
@@ -29,7 +30,10 @@ const RHP_SCREENS_OPENED_FROM_LHN = [
     SCREENS.SETTINGS.EXIT_SURVEY.REASON,
     SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE,
     SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM,
-] satisfies Screen[];
+    CONST.TAB_REQUEST.DISTANCE,
+    CONST.TAB_REQUEST.MANUAL,
+    CONST.TAB_REQUEST.SCAN,
+] satisfies Array<Screen | TopTabScreen>;
 
 type RHPScreenOpenedFromLHN = TupleToUnion<typeof RHP_SCREENS_OPENED_FROM_LHN>;
 
@@ -117,11 +121,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
             // If there is rhpNavigator in the state generated for backTo url, we want to get root route matching to this rhp screen.
             const rhpNavigator = stateForBackTo.routes.find((rt) => rt.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
             if (rhpNavigator && rhpNavigator.state) {
-                const isRHPinState = stateForBackTo.routes.at(0)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-
-                if (isRHPinState) {
-                    return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
-                }
+                return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
             }
 
             // If we know that backTo targets the root route (full screen) we want to use it.
