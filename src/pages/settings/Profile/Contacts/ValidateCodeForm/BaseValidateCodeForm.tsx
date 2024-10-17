@@ -245,8 +245,8 @@ function BaseValidateCodeForm({
                             <DotIndicatorMessage
                                 type="success"
                                 style={[styles.mt6, styles.flex0]}
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
                                 messages={{
+                                    // eslint-disable-next-line @typescript-eslint/naming-convention
                                     0: pendingContact?.validateCodeSent ? translate('validateCodeModal.successfulNewCodeRequest') : translate('resendValidationForm.linkHasBeenResent'),
                                 }}
                             />
