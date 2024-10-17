@@ -24,7 +24,7 @@ final class HybridContactsModule: HybridContactsModuleSpec {
         try? FileManager.default.createDirectory(at: imageDirectory, withIntermediateDirectories: true)
     }
     
-    func getAll(keys: [ContactFields]) throws -> Promise<[ContactData]> {
+    func getAll(keys: [ContactFields]) throws -> Promise<[Contact]> {
         Promise.async { [unowned self] in
             let keysSet = Set(keys)
             let keysToFetch = keys.compactMap { self.fieldToKeyDescriptor[$0] }
@@ -43,7 +43,7 @@ final class HybridContactsModule: HybridContactsModuleSpec {
     }
     
     @inline(__always)
-    private func processContact(_ contact: CNContact, keysSet: Set<ContactFields>) -> ContactData {
+    private func processContact(_ contact: CNContact, keysSet: Set<ContactFields>) -> Contact {
         ContactData(
             firstName: keysSet.contains(.firstName) ? contact.givenName : nil,
             lastName: keysSet.contains(.lastName) ? contact.familyName : nil,
