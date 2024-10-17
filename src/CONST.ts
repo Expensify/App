@@ -5,18 +5,11 @@ import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
 import type {Video} from './libs/actions/Report';
+import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
-import type {Unit} from './types/onyx/Policy';
-
-type RateAndUnit = {
-    unit: Unit;
-    rate: number;
-    currency: string;
-};
-type CurrencyDefaultMileageRate = Record<string, RateAndUnit>;
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -204,6 +197,10 @@ const CONST = {
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
+    },
+    POPOVER_ACCOUNT_SWITCHER_POSITION: {
+        horizontal: 12,
+        vertical: 80,
     },
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
@@ -741,6 +738,9 @@ const CONST = {
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_HELP: 'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds',
+    COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
+    COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL:
+        'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds#what-is-the-difference-between-commercial-card-feeds-and-your-direct-bank-connections',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
@@ -818,6 +818,7 @@ const CONST = {
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
+                CARD_ASSIGNED: 'CARDASSIGNED',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
@@ -1102,7 +1103,7 @@ const CONST = {
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        CHAT_FINDER_RENDER: 'search_render',
+        SEARCH_ROUTER_RENDER: 'search_router_render',
         CHAT_RENDER: 'chat_render',
         OPEN_REPORT: 'open_report',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
@@ -1124,6 +1125,9 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
+        SEARCH_CONVERT_SEARCH_VALUES: 'search_convert_search_values',
+        SEARCH_MAKE_TREE: 'search_make_tree',
+        SEARCH_BUILD_TREE: 'search_build_tree',
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
     },
@@ -1481,9 +1485,18 @@ const CONST = {
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
     QUICKBOOKS_DESKTOP_CONFIG: {
+        EXPORT_DATE: 'exportDate',
+        EXPORTER: 'exporter',
         MARK_CHECKS_TO_BE_PRINTED: 'markChecksToBePrinted',
         REIMBURSABLE_ACCOUNT: 'reimbursableAccount',
         REIMBURSABLE: 'reimbursable',
+        AUTO_SYNC: 'autoSync',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SHOULD_AUTO_CREATE_VENDOR: 'shouldAutoCreateVendor',
+        MAPPINGS: {
+            CLASSES: 'classes',
+            CUSTOMERS: 'customers',
+        },
     },
 
     QUICKBOOKS_CONFIG: {
@@ -2450,6 +2463,8 @@ const CONST = {
         DEFAULT_RATE: 'Default Rate',
         RATE_DECIMALS: 3,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
+        MILES_TO_KILOMETERS: 1.609344,
+        KILOMETERS_TO_MILES: 0.621371,
     },
 
     TERMS: {
@@ -2493,6 +2508,7 @@ const CONST = {
             MASTER_CARD: 'cdf',
             VISA: 'vcf',
             AMEX: 'gl1025',
+            STRIPE: 'stripe',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
@@ -2551,15 +2567,23 @@ const CONST = {
         CONNECTION_ERROR: 'connectionError',
         STEP: {
             SELECT_BANK: 'SelectBank',
+            SELECT_FEED_TYPE: 'SelectFeedType',
             CARD_TYPE: 'CardType',
             CARD_INSTRUCTIONS: 'CardInstructions',
             CARD_NAME: 'CardName',
             CARD_DETAILS: 'CardDetails',
+            BANK_CONNECTION: 'BankConnection',
+            AMEX_CUSTOM_FEED: 'AmexCustomFeed',
         },
         CARD_TYPE: {
             AMEX: 'amex',
             VISA: 'visa',
             MASTERCARD: 'mastercard',
+            STRIPE: 'stripe',
+        },
+        FEED_TYPE: {
+            CUSTOM: 'customFeed',
+            DIRECT: 'directFeed',
         },
         BANKS: {
             AMEX: 'American Express',
@@ -2571,6 +2595,10 @@ const CONST = {
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
             OTHER: 'Other',
+        },
+        AMEX_CUSTOM_FEED: {
+            CORPORATE: 'American Express Corporate Cards',
+            BUSINESS: 'American Express Business Cards',
         },
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
@@ -5497,7 +5525,7 @@ const CONST = {
             "rate": 2377,
             "unit": "km"
         }
-    }`) as CurrencyDefaultMileageRate,
+    }`) as Record<string, MileageRate>,
 
     EXIT_SURVEY: {
         REASONS: {
@@ -5891,7 +5919,6 @@ export type {
     Country,
     IOUAction,
     IOUType,
-    RateAndUnit,
     OnboardingPurposeType,
     OnboardingCompanySizeType,
     IOURequestType,

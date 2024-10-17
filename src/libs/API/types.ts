@@ -257,10 +257,17 @@ const WRITE_COMMANDS = {
     UPDATE_QUICKBOOKS_ONLINE_SYNC_PEOPLE: 'UpdateQuickbooksOnlineSyncPeople',
     UPDATE_QUICKBOOKS_ONLINE_REIMBURSEMENT_ACCOUNT_ID: 'UpdateQuickbooksOnlineReimbursementAccountID',
     UPDATE_QUICKBOOKS_ONLINE_EXPORT: 'UpdateQuickbooksOnlineExport',
+    UPDATE_QUICKBOOKS_DESKTOP_EXPORT_DATE: 'UpdateQuickbooksDesktopExportDate',
     UPDATE_MANY_POLICY_CONNECTION_CONFIGS: 'UpdateManyPolicyConnectionConfigurations',
+    UPDATE_QUICKBOOKS_DESKTOP_AUTO_CREATE_VENDOR: 'UpdateQuickbooksDesktopAutoCreateVendor',
+    UPDATE_QUICKBOOKS_DESKTOP_AUTO_SYNC: 'UpdateQuickbooksDesktopAutoSync',
+    UPDATE_QUICKBOOKS_DESKTOP_EXPORT: 'UpdateQuickbooksDesktopExport',
     UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_ACCOUNT: 'UpdateQuickbooksDesktopReimbursableExpensesAccount',
     UPDATE_QUICKBOOKS_DESKTOP_MARK_CHECKS_TO_BE_PRINTED: 'UpdateQuickbooksDesktopMarkChecksToBePrinted',
     UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateQuickbooksDesktopReimbursableExpensesExportDestination',
+    UPDATE_QUICKBOOKS_DESKTOP_ENABLE_NEW_CATEGORIES: 'UpdateQuickbooksDesktopEnableNewCategories',
+    UPDATE_QUICKBOOKS_DESKTOP_SYNC_CLASSES: 'UpdateQuickbooksDesktopSyncClasses',
+    UPDATE_QUICKBOOKS_DESKTOP_SYNC_CUSTOMERS: 'UpdateQuickbooksDesktopSyncCustomers',
     REMOVE_POLICY_CONNECTION: 'RemovePolicyConnection',
     SET_POLICY_TAXES_ENABLED: 'SetPolicyTaxesEnabled',
     DELETE_POLICY_TAXES: 'DeletePolicyTaxes',
@@ -406,9 +413,11 @@ const WRITE_COMMANDS = {
     UPDATE_XERO_SYNC_INVOICE_COLLECTIONS_ACCOUNT_ID: 'UpdateXeroSyncInvoiceCollectionsAccountID',
     UPDATE_XERO_SYNC_SYNC_REIMBURSED_REPORTS: 'UpdateXeroSyncSyncReimbursedReports',
     UPDATE_XERO_SYNC_REIMBURSEMENT_ACCOUNT_ID: 'UpdateXeroSyncReimbursementAccountID',
+    REQUEST_FEED_SETUP: 'RequestFeedSetup',
     SET_COMPANY_CARD_FEED_NAME: 'SetFeedName',
     DELETE_COMPANY_CARD_FEED: 'RemoveFeed',
     SET_COMPANY_CARD_TRANSACTION_LIABILITY: 'SetFeedTransactionLiability',
+    ASSIGN_COMPANY_CARD: 'AssignCard',
     UNASSIGN_COMPANY_CARD: 'UnassignCard',
     UPDATE_COMPANY_CARD: 'SyncCard',
     UPDATE_COMPANY_CARD_NAME: 'SetCardName',
@@ -473,8 +482,10 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_STATUS]: Parameters.UpdateStatusParams;
     [WRITE_COMMANDS.CLEAR_STATUS]: null;
     [WRITE_COMMANDS.UPDATE_PERSONAL_DETAILS_FOR_WALLET]: Parameters.UpdatePersonalDetailsForWalletParams;
+    [WRITE_COMMANDS.REQUEST_FEED_SETUP]: Parameters.RequestFeedSetupParams;
     [WRITE_COMMANDS.SET_COMPANY_CARD_FEED_NAME]: Parameters.SetCompanyCardFeedName;
     [WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED]: Parameters.DeleteCompanyCardFeed;
+    [WRITE_COMMANDS.ASSIGN_COMPANY_CARD]: Parameters.AssignCompanyCardParams;
     [WRITE_COMMANDS.UNASSIGN_COMPANY_CARD]: Parameters.UnassignCompanyCard;
     [WRITE_COMMANDS.UPDATE_COMPANY_CARD]: Parameters.UpdateCompanyCard;
     [WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME]: Parameters.UpdateCompanyCardNameParams;
@@ -692,9 +703,16 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT_DATE]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_EXPENSES_ACCOUNT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT_DATE]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_MARK_CHECKS_TO_BE_PRINTED]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_AUTO_CREATE_VENDOR]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_AUTO_SYNC]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_ACCOUNT]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: Parameters.UpdateQuickbooksDesktopExpensesExportDestinationTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_ENABLE_NEW_CATEGORIES]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_SYNC_CLASSES]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_SYNC_CUSTOMERS]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG]: Parameters.UpdatePolicyConnectionConfigParams;
     [WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS]: Parameters.UpdateManyPolicyConnectionConfigurationsParams;
     [WRITE_COMMANDS.REMOVE_POLICY_CONNECTION]: Parameters.RemovePolicyConnectionParams;
@@ -882,6 +900,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_TAXES_PAGE: 'OpenPolicyTaxesPage',
     OPEN_POLICY_REPORT_FIELDS_PAGE: 'OpenPolicyReportFieldsPage',
     OPEN_POLICY_EXPENSIFY_CARDS_PAGE: 'OpenPolicyExpensifyCardsPage',
+    OPEN_POLICY_COMPANY_CARDS_FEED: 'OpenPolicyCompanyCardsFeed',
     OPEN_POLICY_COMPANY_CARDS_PAGE: 'OpenPolicyCompanyCardsPage',
     OPEN_POLICY_EDIT_CARD_LIMIT_TYPE_PAGE: 'OpenPolicyEditCardLimitTypePage',
     OPEN_WORKSPACE_INVITE_PAGE: 'OpenWorkspaceInvitePage',
@@ -947,6 +966,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE]: Parameters.OpenPolicyAccountingPageParams;
     [READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE]: Parameters.OpenPolicyExpensifyCardsPageParams;
     [READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE]: Parameters.OpenPolicyExpensifyCardsPageParams;
+    [READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED]: Parameters.OpenPolicyCompanyCardsFeedParams;
     [READ_COMMANDS.OPEN_POLICY_EDIT_CARD_LIMIT_TYPE_PAGE]: Parameters.OpenPolicyEditCardLimitTypePageParams;
     [READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE]: Parameters.OpenPolicyProfilePageParams;
     [READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE]: Parameters.OpenPolicyInitialPageParams;

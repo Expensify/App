@@ -27,16 +27,15 @@ type WorkspaceCompanyCardEditCardNamePageProps = StackScreenProps<SettingsNaviga
 function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditCardNamePageProps) {
     const {policyID, cardID, bank} = route.params;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const defaultValue = customCardNames?.[cardID];
 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
 
-    const [allBankCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`);
-    const card = allBankCards?.[cardID];
-
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
-        Policy.updateCompanyCardName(workspaceAccountID, cardID, values[INPUT_IDS.NAME], bank);
+        Policy.updateCompanyCardName(workspaceAccountID, cardID, values[INPUT_IDS.NAME], bank, defaultValue);
         Navigation.goBack();
     };
 
@@ -72,7 +71,7 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
                         hint={translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}
                         aria-label={translate('workspace.moreFeatures.companyCards.cardName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={card?.nameValuePairs?.cardTitle}
+                        defaultValue={defaultValue}
                         maxLength={CONST.EXPENSIFY_CARD.CARD_TITLE_INPUT_LIMIT}
                         ref={inputCallbackRef}
                     />

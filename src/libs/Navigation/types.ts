@@ -20,6 +20,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
+import type {CompanyCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -436,6 +437,15 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ADVANCED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT]: {
         policyID: string;
     };
@@ -455,6 +465,21 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CLASSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CUSTOMERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {
@@ -788,6 +813,11 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
+        policyID: string;
+        feed: CompanyCardFeed;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
         policyID: string;
@@ -1261,7 +1291,6 @@ type TransactionDuplicateNavigatorParamList = {
 };
 
 type LeftModalNavigatorParamList = {
-    [SCREENS.LEFT_MODAL.CHAT_FINDER]: undefined;
     [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: undefined;
 };
 
@@ -1323,10 +1352,6 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
-    };
-    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
-        policyID: string;
-        feed: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
@@ -1500,7 +1525,8 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [SCREENS.TRANSACTION_RECEIPT]: {
             reportID: string;
             transactionID: string;
-            readonly?: boolean;
+            readonly?: string;
+            isFromReviewDuplicates?: string;
         };
         [SCREENS.CONNECTION_COMPLETE]: undefined;
     };
