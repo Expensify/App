@@ -143,7 +143,6 @@ const SCREENS = {
         ROOT: 'SaveTheWorld_Root',
     },
     LEFT_MODAL: {
-        CHAT_FINDER: 'ChatFinder',
         WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
     },
     RIGHT_MODAL: {
@@ -317,6 +316,7 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_ADVANCED: 'Policy_Accounting_Quickbooks_Online_Advanced',
             QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
             QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
+            QUICKBOOKS_DESKTOP_ADVANCED: 'Policy_Accounting_Quickbooks_Desktop_Advanced',
             QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Date_Select',
             QUICKBOOKS_DESKTOP_EXPORT_PREFERRED_EXPORTER: 'Workspace_Accounting_Quickbooks_Desktop_Export_Preferred_Exporter',
             QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES: 'Workspace_Accounting_Quickbooks_Desktop_Export_Out_Of_Pocket_Expenses',
@@ -330,6 +330,8 @@ const SCREENS = {
             QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS: 'Policy_Accounting_Quickbooks_Desktop_Import_Chart_Of_Accounts',
             QUICKBOOKS_DESKTOP_CLASSES: 'Policy_Accounting_Quickbooks_Desktop_Import_Classes',
             QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Desktop_Import_Classes_Dipslayed_As',
+            QUICKBOOKS_DESKTOP_CUSTOMERS: 'Policy_Accounting_Quickbooks_Desktop_Import_Customers',
+            QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Desktop_Import_Customers_Dipslayed_As',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
             XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
             XERO_CHART_OF_ACCOUNTS: 'Policy_Accounting_Xero_Import_Chart_Of_Accounts',
