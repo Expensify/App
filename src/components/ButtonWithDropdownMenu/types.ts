@@ -25,6 +25,7 @@ type DropdownOption<TValueType> = {
     iconWidth?: number;
     iconHeight?: number;
     iconDescription?: string;
+    additionalIconStyles?: StyleProp<ViewStyle>;
     onSelected?: () => void;
     disabled?: boolean;
     iconFill?: string;
