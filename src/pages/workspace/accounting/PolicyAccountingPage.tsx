@@ -100,7 +100,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     );
 
     const hasSyncError = PolicyUtils.hasSyncError(policy, isSyncInProgress);
-    const hasUnsupportedNDIntegration = PolicyUtils.hasUnsupportedIntegration(policy, accountingIntegrations);
+    const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && PolicyUtils.hasUnsupportedIntegration(policy, accountingIntegrations);
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
@@ -385,7 +385,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
-        if (isEmptyObject(policy?.connections) && !isSyncInProgress && !(hasUnsupportedNDIntegration && hasSyncError)) {
+        if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return;
         }
         const otherIntegrations = accountingIntegrations.filter(
@@ -442,8 +442,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
-        hasUnsupportedNDIntegration,
-        hasSyncError,
     ]);
 
     return (
@@ -473,7 +471,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             titleStyles={styles.accountSettingsSectionTitle}
                             childrenStyles={styles.pt5}
                         >
-                            {!(hasUnsupportedNDIntegration && hasSyncError) &&
+                            {!hasUnsupportedNDIntegration &&
                                 connectionsMenuItems.map((menuItem) => (
                                     <OfflineWithFeedback
                                         pendingAction={menuItem.pendingAction}
@@ -491,7 +489,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             {hasUnsupportedNDIntegration && hasSyncError && (
                                 <FormHelpMessage
                                     isError
-                                    shouldShowRedDotIndicator
                                     style={styles.menuItemError}
                                 >
                                     <Text style={[{color: theme.textError}]}>
@@ -503,6 +500,20 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                             }}
                                         >
                                             {translate('workspace.accounting.goToODToFix')}
+                                        </TextLink>
+                                    </Text>
+                                </FormHelpMessage>
+                            )}
+                            {hasUnsupportedNDIntegration && !hasSyncError && (
+                                <FormHelpMessage shouldShowRedDotIndicator={false}>
+                                    <Text>
+                                        <TextLink
+                                            onPress={() => {
+                                                // Go to Expensify Classic.
+                                                Link.openOldDotLink(CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL(policyID));
+                                            }}
+                                        >
+                                            {translate('workspace.accounting.goToODToSettings')}
                                         </TextLink>
                                     </Text>
                                 </FormHelpMessage>
