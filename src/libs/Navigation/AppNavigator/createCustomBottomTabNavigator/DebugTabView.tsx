@@ -63,7 +63,7 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
 function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAccount: OnyxEntry<ReimbursementAccount>, policyIDWithErrors = ''): Route | undefined {
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
-            return ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithErrors);
+            return ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyIDWithErrors);
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return ROUTES.WORKSPACE_MEMBERS.getRoute(policyIDWithErrors);
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
@@ -157,7 +157,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
                     src={Expensicons.DotIndicator}
                     fill={indicator}
                 />
-                {message && <Text style={[styles.textWhite, styles.lh20]}>{translate(message)}</Text>}
+                {message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
             </View>
             <Button
                 text="View"
