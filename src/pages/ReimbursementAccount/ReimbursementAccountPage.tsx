@@ -12,6 +12,7 @@ import {useSession} from '@components/OnyxProvider';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -52,6 +53,8 @@ const ROUTE_NAMES = {
     ENABLE: 'enable',
     NEW: 'new',
 };
+
+const SUPPORTED_FOREIGN_CURRENCIES: string[] = [CONST.CURRENCY.EUR, CONST.CURRENCY.GBP, CONST.CURRENCY.CAD, CONST.CURRENCY.AUD];
 
 /**
  * We can pass stepToOpen in the URL to force which step to show.
@@ -143,6 +146,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const requestorStepRef = useRef(null);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
+    const {isDevelopment} = useEnvironment();
 
     /**
      The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
@@ -372,13 +376,33 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     let errorText;
     const userHasPhonePrimaryEmail = Str.endsWith(session?.email ?? '', CONST.SMS.DOMAIN);
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
-    const hasUnsupportedCurrency = (policy?.outputCurrency ?? '') !== CONST.CURRENCY.USD;
+
+    const policyCurrency = policy?.outputCurrency ?? '';
+    // TODO once nonUSD flow is complete update the flag below to reflect all supported currencies, this will be updated in - https://github.com/Expensify/App/issues/50912
+    const hasUnsupportedCurrency = policyCurrency !== CONST.CURRENCY.USD;
+    // TODO remove isDevelopment flag once nonUSD flow is complete, this will be updated in - https://github.com/Expensify/App/issues/50912
+    const hasForeignCurrency = SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency) && isDevelopment;
 
     if (userHasPhonePrimaryEmail) {
         errorText = translate('bankAccount.hasPhoneLoginError');
     } else if (throttledDate) {
         errorText = translate('bankAccount.hasBeenThrottledError');
     } else if (hasUnsupportedCurrency) {
+        if (hasForeignCurrency) {
+            // TODO This will be replaced with proper component in next issue - https://github.com/Expensify/App/issues/50893
+            return (
+                <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+                    <HeaderWithBackButton
+                        title={translate('workspace.common.connectBankAccount')}
+                        subtitle={policyName}
+                        onBackButtonPress={() => Navigation.goBack()}
+                    />
+                    <View style={[styles.m5, styles.mv3, styles.flex1]}>
+                        <Text>Non USD flow</Text>
+                    </View>
+                </ScreenWrapper>
+            );
+        }
         errorText = translate('bankAccount.hasCurrencyError');
     }
 
