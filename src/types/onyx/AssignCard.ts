@@ -6,14 +6,14 @@ type AssignCardStep = ValueOf<typeof CONST.COMPANY_CARD.STEP>;
 
 /** Data required to be sent to issue a new card */
 type AssignCardData = {
-    /** The email address of the asignee */
+    /** The email address of the assignee */
     email: string;
 
     /** Number of the selected card */
-    cardNumber: string;
+    encryptedCardNumber: string;
 
     /** The name of the feed */
-    feed: string;
+    bankName: string;
 
     /** The name of the card */
     cardName: string;

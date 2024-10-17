@@ -1,5 +1,6 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
+import lodashSet from 'lodash/set';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
@@ -2026,6 +2027,7 @@ function getMoneyRequestInformation(
     payeeEmail = currentUserEmail,
     moneyRequestReportID = '',
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
+    existingTransaction: OnyxEntry<OnyxTypes.Transaction> | undefined = undefined,
 ): MoneyRequestInformation {
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
@@ -2078,7 +2080,6 @@ function getMoneyRequestInformation(
     }
 
     // STEP 3: Build an optimistic transaction with the receipt
-    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
         ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
@@ -2098,6 +2099,9 @@ function getMoneyRequestInformation(
         ReportUtils.isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
         billable,
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+        undefined,
+        existingTransaction,
+        policy,
     );
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
@@ -2336,6 +2340,8 @@ function getTrackExpenseInformation(
         billable,
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
         false,
+        existingTransaction,
+        policy,
     );
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
@@ -2478,7 +2484,7 @@ function getUpdateMoneyRequestParams(
     transactionID: string,
     transactionThreadReportID: string,
     transactionChanges: TransactionChanges,
-    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyCategories>,
     onlyIncludeChangedFields: boolean,
@@ -2489,7 +2495,6 @@ function getUpdateMoneyRequestParams(
 
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
-    const clearedPendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, null]));
     const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]));
 
     const allReports = ReportConnection.getAllReports();
@@ -2499,9 +2504,7 @@ function getUpdateMoneyRequestParams(
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    let updatedTransaction: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Transaction> = transaction
-        ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport)
-        : null;
+    let updatedTransaction: OnyxEntry<OnyxTypes.Transaction> = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : undefined;
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
 
     if (transactionDetails?.waypoints) {
@@ -2526,6 +2529,9 @@ function getUpdateMoneyRequestParams(
             ...updatedTransaction,
             ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(updatedTransaction, transactionChanges, policy, ReportUtils.isExpenseReport(iouReport)),
         };
+
+        // Update the distanceUnit
+        lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy}));
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
@@ -2725,6 +2731,8 @@ function getUpdateMoneyRequestParams(
         }
     }
 
+    const clearedPendingFields = Object.fromEntries(Object.keys(updatedTransaction?.pendingFields ?? transactionChanges).map((key) => [key, null]));
+
     // Clear out the error fields and loading states on success
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -2813,7 +2821,6 @@ function getUpdateTrackExpenseParams(
 
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
-    const clearedPendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, null]));
     const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]));
 
     const allReports = ReportConnection.getAllReports();
@@ -2938,6 +2945,8 @@ function getUpdateTrackExpenseParams(
             },
         });
     }
+
+    const clearedPendingFields = Object.fromEntries(Object.keys(updatedTransaction?.pendingFields ?? transactionChanges).map((key) => [key, null]));
 
     // Clear out the error fields and loading states on success
     successData.push({
@@ -3993,6 +4002,8 @@ function createSplitsAndOnyxData(
         taxAmount,
         billable,
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+        undefined,
+        existingTransaction,
     );
 
     // Important data is set on the draft distance transaction, such as the iouRequestType marking it as a distance request, so merge it into the optimistic split transaction
@@ -5124,6 +5135,7 @@ function createDistanceRequest(
     currentUserAccountID = -1,
     splitShares: SplitShares = {},
     iouType: ValueOf<typeof CONST.IOU.TYPE> = CONST.IOU.TYPE.SUBMIT,
+    existingTransaction: OnyxEntry<OnyxTypes.Transaction> | undefined = undefined,
 ) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -5217,6 +5229,8 @@ function createDistanceRequest(
             userAccountID,
             currentUserEmail,
             moneyRequestReportID,
+            undefined,
+            existingTransaction,
         );
         onyxData = moneyRequestOnyxData;
 
@@ -5583,7 +5597,7 @@ function updateMoneyRequestAmountAndCurrency({
     if (ReportUtils.isTrackExpenseReport(transactionThreadReport) && ReportUtils.isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true, policy ?? null);
     } else {
-        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy ?? null, policyTagList ?? null, policyCategories ?? null, true);
+        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList ?? null, policyCategories ?? null, true);
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);

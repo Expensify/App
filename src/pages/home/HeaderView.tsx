@@ -23,7 +23,8 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import isReportOpenInRHP from '@libs/Navigation/isReportOpenInRHP';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import FreeTrialBadge from '@pages/settings/Subscription/FreeTrialBadge';
@@ -139,6 +140,9 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report?.reportID || !title;
+
+    const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
+    const shouldDisplaySearchRouter = !isReportInRHP;
 
     return (
         <View
@@ -280,7 +284,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
-                            <SearchButton style={styles.ml4} />
+                            {shouldDisplaySearchRouter && <SearchButton style={styles.ml4} />}
                         </View>
                         <ConfirmModal
                             isVisible={isDeleteTaskConfirmModalVisible}
