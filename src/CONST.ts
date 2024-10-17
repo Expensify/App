@@ -2907,6 +2907,7 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
+        DOWNLOAD: 'download',
         EXPORT: 'export',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
