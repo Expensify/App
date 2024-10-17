@@ -22,6 +22,7 @@ type VerifyAccountPageProps = StackScreenProps<SettingsNavigatorParamList, typeo
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [user] = useOnyx(ONYXKEYS.USER);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const contactMethod = account?.primaryLogin ?? '';
     const themeStyles = useThemeStyles();
@@ -31,10 +32,13 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const loginData = loginList?.[contactMethod];
     const styles = useThemeStyles();
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
-
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+
+    // We store validated state in two places so this is a bit of a workaround to check both
+    const isUserValidated = user?.validated ?? false;
+    const isAccountValidated = account?.validated ?? false;
+    const isValidated = isUserValidated || isAccountValidated;
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_WALLET;
 
@@ -55,11 +59,11 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     }, [contactMethod]);
 
     useEffect(() => {
-        if (!isUserValidated) {
+        if (!isValidated) {
             return;
         }
         Navigation.navigate(navigateBackTo);
-    }, [isUserValidated, navigateBackTo]);
+    }, [isValidated, navigateBackTo]);
 
     return (
         <ScreenWrapper
