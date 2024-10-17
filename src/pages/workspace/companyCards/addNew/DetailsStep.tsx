@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as CompanyCards from '@userActions/CompanyCards';
@@ -21,18 +22,22 @@ function DetailsStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-
+    const {canUseDirectFeeds} = usePermissions();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const feedProvider = addNewCard?.data?.cardType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.STRIPE;
+    const bank = addNewCard?.data?.selectedBank;
+    const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
+
+    // TODO: add submit function
     const submit = () => {};
 
     const handleBackButtonPress = () => {
-        if (feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX) {
-            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS});
+        if (!canUseDirectFeeds || isOtherBankSelected) {
+            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_NAME});
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_NAME});
+        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS});
     };
 
     const validate = useCallback(

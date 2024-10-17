@@ -32,8 +32,10 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
 
     const data = addNewCard?.data;
     const feedProvider = data?.cardType;
+    const bank = data?.selectedBank;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.STRIPE;
     const isAmexFeedProvider = feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX;
+    const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
 
     const buttonTranslation = isStripeFeedProvider ? translate('common.submit') : translate('common.next');
 
@@ -43,8 +45,14 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
             Navigation.goBack();
             return;
         }
+        if (!canUseDirectFeeds || isOtherBankSelected) {
+            CompanyCards.setAddNewCompanyCardStepAndData({
+                step: CONST.COMPANY_CARDS.STEP.CARD_NAME,
+            });
+            return;
+        }
         CompanyCards.setAddNewCompanyCardStepAndData({
-            step: isAmexFeedProvider ? CONST.COMPANY_CARDS.STEP.CARD_DETAILS : CONST.COMPANY_CARDS.STEP.CARD_NAME,
+            step: CONST.COMPANY_CARDS.STEP.CARD_DETAILS,
         });
     };
 
