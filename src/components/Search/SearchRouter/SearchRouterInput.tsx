@@ -105,7 +105,7 @@ function SearchRouterInput({
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
                         textInputContainerStyles={[styles.borderNone, styles.pb0]}
-                        inputStyle={[styles.searchInputStyle, inputWidth, styles.pl3, styles.pr3]}
+                        inputStyle={[inputWidth, styles.pl3, styles.pr3]}
                         onFocus={() => {
                             setIsFocused(true);
                             routerListRef?.current?.updateExternalTextInputFocus(true);
