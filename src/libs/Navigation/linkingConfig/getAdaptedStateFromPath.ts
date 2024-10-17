@@ -2,6 +2,7 @@ import type {NavigationState, PartialState, Route} from '@react-navigation/nativ
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import type {TupleToUnion} from 'type-fest';
+import type {TopTabScreen} from '@components/FocusTrap/TOP_TAB_SCREENS';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
@@ -29,7 +30,10 @@ const RHP_SCREENS_OPENED_FROM_LHN = [
     SCREENS.SETTINGS.EXIT_SURVEY.REASON,
     SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE,
     SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM,
-] satisfies Screen[];
+    CONST.TAB_REQUEST.DISTANCE,
+    CONST.TAB_REQUEST.MANUAL,
+    CONST.TAB_REQUEST.SCAN,
+] satisfies Array<Screen | TopTabScreen>;
 
 type RHPScreenOpenedFromLHN = TupleToUnion<typeof RHP_SCREENS_OPENED_FROM_LHN>;
 
@@ -336,7 +340,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - matching central pane on desktop layout
 
         // We want to make sure that the bottom tab search page is always pushed with matching central pane page. Even on the narrow layout.
-        if (isNarrowLayout && bottomTabNavigator.state?.routes[0].name !== SCREENS.SEARCH.BOTTOM_TAB) {
+        if (isNarrowLayout && bottomTabNavigator.state?.routes.at(0)?.name !== SCREENS.SEARCH.BOTTOM_TAB) {
             return {
                 adaptedState: state,
                 metainfo,

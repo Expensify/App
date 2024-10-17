@@ -18,7 +18,7 @@ function getTagViolationsForSingleLevelTags(
     policyTagList: PolicyTagLists,
 ): TransactionViolation[] {
     const policyTagKeys = Object.keys(policyTagList);
-    const policyTagListName = policyTagKeys[0];
+    const policyTagListName = policyTagKeys.at(0) ?? '';
     const policyTags = policyTagList[policyTagListName]?.tags;
     const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
     const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG);
@@ -80,7 +80,7 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transac
  */
 function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transactionViolations: TransactionViolation[], transaction: Transaction) {
     const policyTagKeys = getSortedTagKeys(policyTagList);
-    const selectedTags = transaction.tag?.split(CONST.COLON) ?? [];
+    const selectedTags = TransactionUtils.getTagArrayFromName(transaction?.tag ?? '');
     let newTransactionViolations = [...transactionViolations];
 
     newTransactionViolations = newTransactionViolations.filter(
@@ -92,8 +92,8 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
     const errorIndexes = [];
     for (let i = 0; i < policyTagKeys.length; i++) {
         const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
-        const isTagSelected = !!selectedTags[i];
-        if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags[0] === ''))) {
+        const isTagSelected = !!selectedTags.at(i);
+        if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags.at(0) === ''))) {
             errorIndexes.push(i);
         }
     }
@@ -108,7 +108,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
     } else {
         let hasInvalidTag = false;
         for (let i = 0; i < policyTagKeys.length; i++) {
-            const selectedTag = selectedTags[i];
+            const selectedTag = selectedTags.at(i);
             const tags = policyTagList[policyTagKeys[i]].tags;
             const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && !!tag.enabled);
             if (!isTagInPolicy && selectedTag) {
@@ -116,7 +116,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
                     data: {
-                        tagName: policyTagKeys[i],
+                        tagName: policyTagKeys.at(i),
                     },
                 });
                 hasInvalidTag = true;
@@ -253,6 +253,7 @@ const ViolationsUtils = {
             tagName,
             taxName,
             type,
+            rterType,
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -316,6 +317,7 @@ const ViolationsUtils = {
                     email,
                     isTransactionOlderThan7Days,
                     member,
+                    rterType,
                 });
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed');

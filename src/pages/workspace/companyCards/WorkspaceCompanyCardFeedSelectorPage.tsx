@@ -35,6 +35,7 @@ const mockedData: CardFeeds = {
             asrEnabled: true,
             forceReimbursable: 'force_no',
             liabilityType: 'corporate',
+            errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR},
             preferredPolicy: '',
             reportTitleFormat: '{report:card}{report:bank}{report:submit:from}{report:total}{report:enddate:MMMM}',
             statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
@@ -57,14 +58,16 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
 
     const cardFeeds = mockedData;
-    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {})[0];
-    const selectedFeed = lastSelectedFeed ?? defaultFeed;
+    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {}).at(0);
+    const selectedFeed = lastSelectedFeed ?? defaultFeed ?? '';
 
     const feeds: CardFeedListItem[] = Object.entries(cardFeeds?.companyCardNicknames ?? {}).map(([key, value]) => ({
         value: key,
         text: value,
         keyForList: key,
         isSelected: key === selectedFeed,
+        brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+        canShowSeveralIndicators: !!cardFeeds?.companyCards?.[selectedFeed]?.errors,
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(key)}
