@@ -302,8 +302,11 @@ describe('ReportActionsUtils', () => {
                 },
             ];
 
+            // Expected output should have the `CREATED` action at top
+            const expectedOutput: ReportAction[] = [input[1], ...input.slice(0, 1), ...input.slice(2)];
+
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
-            expect(result).toStrictEqual(input);
+            expect(result).toStrictEqual(expectedOutput);
         });
 
         it('should filter out closed actions', () => {
@@ -392,9 +395,13 @@ describe('ReportActionsUtils', () => {
                     ],
                 },
             ];
+
+            // Expected output should have the `CREATED` action at top
+            const expectedOutput: ReportAction[] = [input[1], ...input.slice(0, 1), ...input.slice(2)];
+
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
             input.pop();
-            expect(result).toStrictEqual(input);
+            expect(result).toStrictEqual(expectedOutput);
         });
 
         it('should filter out deleted, non-pending comments', () => {
