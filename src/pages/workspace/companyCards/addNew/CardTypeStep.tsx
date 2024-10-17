@@ -24,17 +24,17 @@ import type {CompanyCardFeed} from '@src/types/onyx';
 type AvailableCompanyCardTypes = {
     isAmexAvailable?: boolean;
     translate: LocaleContextProps['translate'];
-    typeSelected?: ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
+    typeSelected?: CompanyCardFeed;
     styles: StyleProp<ViewStyle>;
 };
 
 function getAvailableCompanyCardTypes({isAmexAvailable, translate, typeSelected, styles}: AvailableCompanyCardTypes) {
     const defaultTypes = [
         {
-            value: CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.mastercard'),
-            keyForList: CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
-            isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
+            value: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+            text: translate('workspace.companyCards.addNewCard.cardProviders.cdf'),
+            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
             leftElement: (
                 <Icon
                     src={Illustrations.MasterCardCompanyCardDetail}
@@ -45,10 +45,10 @@ function getAvailableCompanyCardTypes({isAmexAvailable, translate, typeSelected,
             ),
         },
         {
-            value: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.visa'),
-            keyForList: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
-            isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.VISA,
+            value: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            text: translate('workspace.companyCards.addNewCard.cardProviders.vcf'),
+            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
             leftElement: (
                 <Icon
                     src={Illustrations.VisaCompanyCardDetail}
@@ -66,10 +66,10 @@ function getAvailableCompanyCardTypes({isAmexAvailable, translate, typeSelected,
 
     return [
         {
-            value: CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.amex'),
-            keyForList: CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
-            isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
+            value: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            text: translate('workspace.companyCards.addNewCard.cardProviders.gl1025'),
+            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
             leftElement: (
                 <Icon
                     src={Illustrations.AmexCardCompanyCardDetail}
@@ -100,7 +100,6 @@ function CardTypeStep() {
                 step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
                 data: {
                     feedType: typeSelected,
-                    cardType: typeSelected,
                 },
                 isEditing: false,
             });
@@ -118,51 +117,6 @@ function CardTypeStep() {
             Navigation.goBack();
         }
     };
-
-    const data = [
-        {
-            value: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.gl1025'),
-            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
-            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
-            leftElement: (
-                <Icon
-                    src={Illustrations.AmexCardCompanyCardDetail}
-                    height={variables.iconSizeExtraLarge}
-                    width={variables.iconSizeExtraLarge}
-                    additionalStyles={styles.mr3}
-                />
-            ),
-        },
-        {
-            value: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.cdf'),
-            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
-            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
-            leftElement: (
-                <Icon
-                    src={Illustrations.MasterCardCompanyCardDetail}
-                    height={variables.iconSizeExtraLarge}
-                    width={variables.iconSizeExtraLarge}
-                    additionalStyles={styles.mr3}
-                />
-            ),
-        },
-        {
-            value: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.vcf'),
-            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-            leftElement: (
-                <Icon
-                    src={Illustrations.VisaCompanyCardDetail}
-                    height={variables.iconSizeExtraLarge}
-                    width={variables.iconSizeExtraLarge}
-                    additionalStyles={styles.mr3}
-                />
-            ),
-        },
-    ];
 
     return (
         <ScreenWrapper

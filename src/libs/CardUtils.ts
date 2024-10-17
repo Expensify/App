@@ -210,6 +210,7 @@ function getCardFeedName(feedType: CompanyCardFeed): string {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'Mastercard',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: 'American Express',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: 'Stripe',
     };
 
     return feedNamesMapping[feedType];

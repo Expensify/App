@@ -3086,6 +3086,7 @@ const translations = {
                     gl1025: 'Tarjetas de empresa American Express',
                     cdf: 'Tarjetas comerciales Mastercard',
                     vcf: 'Tarjetas comerciales Visa',
+                    stripe: 'Tarjetas comerciales Stripe',
                 },
                 yourCardProvider: `¿Quién es su proveedor de tarjetas?`,
                 whoIsYourBankAccount: '¿Cuál es tu banco?',

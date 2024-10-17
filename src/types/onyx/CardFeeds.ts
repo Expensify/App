@@ -52,8 +52,8 @@ type AddNewCardFeedData = {
     /** Card feed provider */
     feedType: CompanyCardFeed;
 
-    /** Card type */
-    cardType: ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
+    /** Name of the card */
+    cardTitle: string;
 
     /** Selected bank */
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;

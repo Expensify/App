@@ -2510,6 +2510,7 @@ const CONST = {
             MASTER_CARD: 'cdf',
             VISA: 'vcf',
             AMEX: 'gl1025',
+            STRIPE: 'stripe',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
