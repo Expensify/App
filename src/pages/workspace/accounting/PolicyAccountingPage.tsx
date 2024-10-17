@@ -109,18 +109,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
-            ...(shouldShowEnterCredentials
-                ? [
-                      {
-                          icon: Expensicons.Key,
-                          text: translate('workspace.accounting.enterCredentials'),
-                          onSelected: () => startIntegrationFlow({name: connectedIntegration}),
-                          shouldCallAfterModalHide: true,
-                          disabled: isOffline,
-                          iconRight: Expensicons.NewWindow,
-                      },
-                  ]
-                : []),
             ...(shouldShowReinstallConnectorMenuItem
                 ? [
                       {
@@ -132,16 +120,25 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                       },
                   ]
                 : []),
-            ...(!shouldShowEnterCredentials && !shouldShowReinstallConnectorMenuItem
+            ...(shouldShowEnterCredentials
                 ? [
+                      {
+                          icon: Expensicons.Key,
+                          text: translate('workspace.accounting.enterCredentials'),
+                          onSelected: () => startIntegrationFlow({name: connectedIntegration}),
+                          shouldCallAfterModalHide: true,
+                          disabled: isOffline,
+                          iconRight: Expensicons.NewWindow,
+                      },
+                  ]
+                : [
                       {
                           icon: Expensicons.Sync,
                           text: translate('workspace.accounting.syncNow'),
                           onSelected: () => syncConnection(policyID, connectedIntegration),
                           disabled: isOffline,
                       },
-                  ]
-                : []),
+                  ]),
             {
                 icon: Expensicons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
