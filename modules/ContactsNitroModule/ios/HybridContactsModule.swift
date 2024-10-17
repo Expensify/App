@@ -2,9 +2,9 @@ import NitroModules
 import Contacts
 import Foundation
 
-final class HybridContactsNitroModule: HybridContactsNitroModuleSpec {
+final class HybridContactsModule: HybridContactsModuleSpec {
     public var hybridContext = margelo.nitro.HybridContext()
-    public var memorySize: Int { MemoryLayout<HybridContactsNitroModule>.size }
+    public var memorySize: Int { MemoryLayout<HybridContactsModule>.size }
     
   
     func getAll() -> Void {

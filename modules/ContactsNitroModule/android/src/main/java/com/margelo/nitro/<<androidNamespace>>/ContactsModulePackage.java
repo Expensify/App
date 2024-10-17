@@ -14,7 +14,7 @@ import com.margelo.nitro.core.HybridObjectRegistry;
 import java.util.HashMap;
 import java.util.function.Supplier;
 
-public class ContactsNitroModulePackage extends TurboReactPackage {
+public class ContactsModulePackage extends TurboReactPackage {
   @Nullable
   @Override
   public NativeModule getModule(String name, ReactApplicationContext reactContext) {
@@ -29,6 +29,6 @@ public class ContactsNitroModulePackage extends TurboReactPackage {
   }
 
   static {
-    System.loadLibrary("ContactsNitroModule");
+    System.loadLibrary("ContactsModule");
   }
 }

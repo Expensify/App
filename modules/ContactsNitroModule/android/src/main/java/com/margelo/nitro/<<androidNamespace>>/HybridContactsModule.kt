@@ -10,7 +10,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.margelo.nitro.NitroModules
 import com.margelo.nitro.core.Promise
 
-class HybridContactsNitroModule : HybridContactsNitroModuleSpec() {
+class HybridContactsModule : HybridContactsModuleSpec() {
     override val memorySize: Long
         get() = estimateMemorySize()
 
