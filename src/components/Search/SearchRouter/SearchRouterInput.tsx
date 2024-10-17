@@ -1,6 +1,6 @@
 import type {ReactNode, RefObject} from 'react';
 import React, {useState} from 'react';
-import type {StyleProp, TextInput as TextInputRef, ViewStyle} from 'react-native';
+import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
@@ -95,7 +95,7 @@ function SearchRouterInput({
                             if (!autoFocus) {
                                 return;
                             }
-                            inputCallbackRef(textInputRef as TextInputRef | null);
+                            inputCallbackRef(textInputRef as RNTextInput | null);
                         }}
                         testID="search-router-text-input"
                         value={value}
