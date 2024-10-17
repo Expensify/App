@@ -1508,16 +1508,10 @@ describe('DebugUtils', () => {
                 expect(reason).toBe('debug.reasonRBR.hasViolations');
             });
             it('returns correct reason when there are transaction thread violations', async () => {
-                const threadReport: Report = {
-                    reportID: '1',
-                    type: CONST.REPORT.TYPE.CHAT,
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                    reportName: 'My first chat',
-                    lastMessageText: 'Hello World!',
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                    parentReportID: '0',
-                    parentReportActionID: '0',
+                const report: Report = {
+                    reportID: '0',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: 1234,
                 };
                 const reportActions: ReportActions = {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -1533,19 +1527,21 @@ describe('DebugUtils', () => {
                             text: '',
                         },
                         created: '2024-07-13 06:02:11.111',
+                        childReportID: '1',
                     },
                 };
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: {
                         accountID: 1234,
                     },
-                    [`${ONYXKEYS.COLLECTION.REPORT}0` as const]: {
-                        reportID: '0',
-                        type: CONST.REPORT.TYPE.EXPENSE,
-                        ownerAccountID: 1234,
+                    [`${ONYXKEYS.COLLECTION.REPORT}0` as const]: report,
+                    [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: {
+                        reportID: '1',
+                        parentReportActionID: '0',
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     },
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}0` as const]: reportActions,
-                    [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: threadReport,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}0` as const]: [
                         {
                             type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -1553,7 +1549,8 @@ describe('DebugUtils', () => {
                         },
                     ],
                 });
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(threadReport, reportActions, false) ?? {};
+                debugger;
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, false) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
             });
         });
