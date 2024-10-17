@@ -310,7 +310,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
     ];
 
     const reportsToArchive = Object.values(ReportConnection.getAllReports() ?? {}).filter(
-        (report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
+        (report) => ReportUtils.isPolicyRelatedReport(report, policyID) && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
     );
     const finallyData: OnyxUpdate[] = [];
     const currentTime = DateUtils.getDBTime();
@@ -4542,6 +4542,17 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                companyCards: {
+                    [bankName]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
     ];
 
     const finallyData: OnyxUpdate[] = [
@@ -4571,6 +4582,17 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                     },
                     errorFields: {
                         lastUpdated: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                companyCards: {
+                    [bankName]: {
+                        errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR},
                     },
                 },
             },

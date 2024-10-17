@@ -436,6 +436,15 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ADVANCED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT]: {
         policyID: string;
     };
@@ -455,6 +464,21 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CLASSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CUSTOMERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {
@@ -1265,7 +1289,6 @@ type TransactionDuplicateNavigatorParamList = {
 };
 
 type LeftModalNavigatorParamList = {
-    [SCREENS.LEFT_MODAL.CHAT_FINDER]: undefined;
     [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: undefined;
 };
 
@@ -1476,6 +1499,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
             source: string;
             type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
             accountID: string;
+            isAuthTokenRequired?: string;
         };
         [SCREENS.PROFILE_AVATAR]: {
             accountID: string;
@@ -1503,7 +1527,8 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [SCREENS.TRANSACTION_RECEIPT]: {
             reportID: string;
             transactionID: string;
-            readonly?: boolean;
+            readonly?: string;
+            isFromReviewDuplicates?: string;
         };
         [SCREENS.CONNECTION_COMPLETE]: undefined;
     };
