@@ -2721,9 +2721,26 @@ PODS:
   - SocketRocket (0.7.0)
   - Turf (2.8.0)
   - VisionCamera (4.0.0-beta.13):
-    - React
-    - React-callinvoker
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -3292,7 +3309,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
-  VisionCamera: 9f26224fce1233ffdad9fa4e56863e3de2190dc0
+  VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
   Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
 
 PODFILE CHECKSUM: a07e55247056ec5d84d1af31d694506efff3cfe2

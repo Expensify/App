@@ -12,10 +12,11 @@ import com.margelo.nitro.core.Promise
 
 class HybridContactsModule : HybridContactsModuleSpec() {
     override val memorySize: Long
-        get() = estimateMemorySize()
+        get() = 0
 
     private val context: ReactApplicationContext? = NitroModules.applicationContext
 
-    override fun getAll(): Void{
+    override fun getAll() {
+        Log.d("some", "Nitro hi")
     }
 }

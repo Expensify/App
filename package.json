@@ -151,7 +151,7 @@
         "react-native-localize": "^2.2.6",
         "react-native-modal": "^13.0.0",
         "react-native-nitro-modules": "^0.11.0",
-        "react-native-nitro-template": "./modules/contact",
+        "react-native-nitro-template": "./modules/contactsNitroModule",
         "react-native-onyx": "2.0.73",
         "react-native-pager-view": "6.4.1",
         "react-native-pdf": "6.7.3",
