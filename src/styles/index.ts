@@ -1181,7 +1181,6 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderBottomWidth: 2,
             borderColor: theme.border,
-            paddingBottom: 8,
         },
 
         optionRowAmountInput: {
@@ -3616,8 +3615,8 @@ const styles = (theme: ThemeColors) =>
 
         searchInputStyle: {
             color: theme.textSupporting,
-            fontSize: 13,
-            lineHeight: 16,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
         },
 
         searchRouterTextInputContainer: {
@@ -3636,6 +3635,7 @@ const styles = (theme: ThemeColors) =>
         searchRouterInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
+            backgroundColor: theme.appBG,
         },
 
         searchTableHeaderActive: {
@@ -5270,6 +5270,7 @@ const styles = (theme: ThemeColors) =>
             top: 80,
             left: 12,
         },
+
         qbdSetupLinkBox: {
             backgroundColor: theme.hoverComponentBG,
             borderRadius: variables.componentBorderRadiusMedium,
