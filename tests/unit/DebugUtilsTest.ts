@@ -1549,7 +1549,6 @@ describe('DebugUtils', () => {
                         },
                     ],
                 });
-                debugger;
                 const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, false) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
             });
