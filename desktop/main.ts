@@ -19,7 +19,10 @@ import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 
 const windowSizePath: string = path.join(app.getPath('userData'), 'windowSize.json');
-
+type WindowSize = {
+    width: number;
+    height: number;
+};
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
 const port = process.env.PORT ?? 8082;
@@ -111,7 +114,7 @@ process.argv.forEach((arg) => {
         return;
     }
 
-    expectedUpdateVersion = arg.substr(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
+    expectedUpdateVersion = arg.slice(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
 });
 
 // Add the listeners and variables required to ensure that auto-updating
@@ -293,9 +296,9 @@ const mainWindow = (): Promise<void> => {
                 let width = 1200;
                 let height = 900;
                 try {
-                    const data = fs.readFileSync(windowSizePath, 'utf-8');
-                    const size = JSON.parse(data);
-                    if (size) {
+                    const data: string = fs.readFileSync(windowSizePath, 'utf-8');
+                    const size: WindowSize = JSON.parse(data);
+                    if (typeof size.width === 'number' && typeof size.height === 'number') {
                         width = size.width;
                         height = size.height;
                     }
@@ -523,7 +526,7 @@ const mainWindow = (): Promise<void> => {
                     const denial = {action: 'deny'} as const;
 
                     // Make sure local urls stay in electron perimeter
-                    if (url.substr(0, 'file://'.length).toLowerCase() === 'file://') {
+                    if (url.slice(0, 'file://'.length).toLowerCase() === 'file://') {
                         return denial;
                     }
 
@@ -538,8 +541,8 @@ const mainWindow = (): Promise<void> => {
                 // Closing the chat window should just hide it (vs. fully quitting the application)
                 browserWindow.on('close', (evt) => {
                     if (quitting || hasUpdate) {
-                        const [newWidth, newHeight] = browserWindow.getSize();
-                        const windowSize = {width: newWidth, height: newHeight};
+                        const [newWidth, newHeight]: number[] = browserWindow.getSize();
+                        const windowSize: WindowSize = {width: newWidth, height: newHeight};
 
                         try {
                             fs.writeFileSync(windowSizePath, JSON.stringify(windowSize), 'utf-8');
