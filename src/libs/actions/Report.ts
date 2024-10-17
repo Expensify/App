@@ -4136,13 +4136,11 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
 
-type Params = Record<string, ExportReportCSVParams>;
-
 function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_REPORT_TO_CSV, {
         reportID,
         transactionIDList,
-    }) as Params;
+    });
 
     const formData = new FormData();
     Object.entries(finalParameters).forEach(([key, value]) => {
