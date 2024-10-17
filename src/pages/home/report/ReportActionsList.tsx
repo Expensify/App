@@ -229,7 +229,9 @@ function ReportActionsList({
 
     const isMessageOffline = useCallback(
         (m: OnyxTypes.ReportAction) => wasMessageReceivedWhileOffline(m, lastOfflineAt, lastOnlineAt, preferredLocale),
-        [lastOfflineAt, lastOnlineAt, preferredLocale],
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [lastOfflineAt, lastOnlineAt],
     );
 
     /**
@@ -239,18 +241,17 @@ function ReportActionsList({
         const shouldDisplayNewMarker = (message: OnyxTypes.ReportAction, index: number): boolean => {
             const nextMessage = sortedVisibleReportActions.at(index + 1);
 
-            // If the user recevied new messages while being offline, we want to display the unread marker above the first offline message.
-            if (!ReportActionsUtils.wasActionTakenByCurrentUser(message)) {
-                const isCurrentMessageOffline = isMessageOffline(message);
-                const isNextMessageOffline = nextMessage && !ReportActionsUtils.wasActionTakenByCurrentUser(nextMessage) && isMessageOffline(nextMessage);
-                if (isCurrentMessageOffline && !isNextMessageOffline) {
-                    return true;
-                }
-            }
-
             const isCurrentMessageUnread = isMessageUnread(message, unreadMarkerTime);
-            const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
-            const shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(message);
+            const isNextMessageUnread = nextMessage ? isMessageUnread(nextMessage, unreadMarkerTime) : false;
+
+            // If the user recevied new messages while being offline, we want to display the unread marker above the first offline message.
+            const wasCurrentMessageReceivedWhileOffline = !ReportActionsUtils.wasActionTakenByCurrentUser(message) && isMessageOffline(message);
+            const wasNextMessageReceivedWhileOffline = nextMessage && !ReportActionsUtils.wasActionTakenByCurrentUser(nextMessage) && isMessageOffline(nextMessage);
+
+            const shouldDisplayForCurrentMessage = isCurrentMessageUnread || wasCurrentMessageReceivedWhileOffline;
+            const shouldDisplayForNextMessage = isNextMessageUnread || wasNextMessageReceivedWhileOffline;
+            const shouldDisplay = shouldDisplayForCurrentMessage && !shouldDisplayForNextMessage && !ReportActionsUtils.shouldHideNewMarker(message);
+
             const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? message.created < (userActiveSince.current ?? '') : true;
             return shouldDisplay && isWithinVisibleThreshold;
         };
