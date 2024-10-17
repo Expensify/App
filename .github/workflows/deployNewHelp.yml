@@ -103,7 +103,7 @@ jobs:
       - name: Update vector embeddings for updated help site files
         if: ${{ github.event_name == 'push' }}
         run: |
-          gh pr diff --name-only ${{ steps.getMergedPullRequest.outputs.number }} | grep '\.md$' | xargs -I {} curl -F "{}=@{}" http://expensify.com/api.php?command=UpdateHelpSiteDocumentation
+          gh pr diff --name-only ${{ steps.getMergedPullRequest.outputs.number }} | grep '\.md$' | xargs -I {} curl -F "{}=@{}" https://www.expensify.com/api.php?command=UpdateHelpSiteDocumentation
 
       # Use the Cloudflare CLI...
       - name: Setup Cloudflare CLI
