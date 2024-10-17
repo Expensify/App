@@ -75,10 +75,22 @@ public class HybridContactsModuleSpecCxx {
 
   // Methods
   @inline(__always)
-  public func getAll() -> Void {
+  public func getAll(keys: bridge.std__vector_ContactFields_) -> bridge.PromiseHolder_std__vector_Contact__ {
     do {
-      try self.implementation.getAll()
-      return 
+      let result = try self.implementation.getAll(keys: keys.map({ val in margelo.nitro.contacts.ContactFields(rawValue: val)! }))
+      return { () -> bridge.PromiseHolder_std__vector_Contact__ in
+        let promiseHolder = bridge.create_PromiseHolder_std__vector_Contact__()
+        result
+          .then({ __result in promiseHolder.resolve({ () -> bridge.std__vector_Contact_ in
+        var vector = bridge.create_std__vector_Contact_(__result.count)
+        for item in __result {
+          vector.push_back(item)
+        }
+        return vector
+      }()) })
+          .catch({ __error in promiseHolder.reject(std.string(String(describing: __error))) })
+        return promiseHolder
+      }()
     } catch {
       let message = "\(error.localizedDescription)"
       fatalError("Swift errors can currently not be propagated to C++! See https://github.com/swiftlang/swift/issues/75290 (Error: \(message))")

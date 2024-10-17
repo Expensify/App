@@ -13,9 +13,15 @@
 #error NitroModules cannot be found! Are you sure you installed NitroModules properly?
 #endif
 
+// Forward declaration of `Contact` to properly resolve imports.
+namespace margelo::nitro::contacts { struct Contact; }
+// Forward declaration of `ContactFields` to properly resolve imports.
+namespace margelo::nitro::contacts { enum class ContactFields; }
 
-
-
+#include <future>
+#include <vector>
+#include "Contact.hpp"
+#include "ContactFields.hpp"
 
 namespace margelo::nitro::contacts {
 
@@ -48,7 +54,7 @@ namespace margelo::nitro::contacts {
 
     public:
       // Methods
-      virtual void getAll() = 0;
+      virtual std::future<std::vector<Contact>> getAll(const std::vector<ContactFields>& keys) = 0;
 
     protected:
       // Hybrid Setup

@@ -12,9 +12,21 @@
 // Forward declaration of `HybridContactsModuleSpecCxx` to properly resolve imports.
 namespace ContactsModule { class HybridContactsModuleSpecCxx; }
 
+// Forward declaration of `Contact` to properly resolve imports.
+namespace margelo::nitro::contacts { struct Contact; }
+// Forward declaration of `StringHolder` to properly resolve imports.
+namespace margelo::nitro::contacts { struct StringHolder; }
+// Forward declaration of `ContactFields` to properly resolve imports.
+namespace margelo::nitro::contacts { enum class ContactFields; }
 
-
-
+#include <future>
+#include <vector>
+#include "Contact.hpp"
+#include <NitroModules/PromiseHolder.hpp>
+#include <optional>
+#include <string>
+#include "StringHolder.hpp"
+#include "ContactFields.hpp"
 
 #if __has_include(<NitroModules/HybridContext.hpp>)
 #include <NitroModules/HybridContext.hpp>
@@ -59,8 +71,9 @@ namespace margelo::nitro::contacts {
 
   public:
     // Methods
-    inline void getAll() override {
-      _swiftPart.getAll();
+    inline std::future<std::vector<Contact>> getAll(const std::vector<ContactFields>& keys) override {
+      auto __result = _swiftPart.getAll(keys);
+      return __result.getFuture();
     }
 
   private:

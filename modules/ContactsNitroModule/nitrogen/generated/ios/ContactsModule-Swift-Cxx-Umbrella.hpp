@@ -8,12 +8,25 @@
 #pragma once
 
 // Forward declarations of C++ defined types
+// Forward declaration of `ContactFields` to properly resolve imports.
+namespace margelo::nitro::contacts { enum class ContactFields; }
+// Forward declaration of `Contact` to properly resolve imports.
+namespace margelo::nitro::contacts { struct Contact; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::contacts { class HybridContactsModuleSpec; }
+// Forward declaration of `StringHolder` to properly resolve imports.
+namespace margelo::nitro::contacts { struct StringHolder; }
 
 // Include C++ defined types
+#include "Contact.hpp"
+#include "ContactFields.hpp"
 #include "HybridContactsModuleSpec.hpp"
+#include "StringHolder.hpp"
+#include <future>
 #include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 // C++ helpers for Swift
 #include "ContactsModule-Swift-Cxx-Bridge.hpp"
