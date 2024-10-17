@@ -58,6 +58,8 @@ function WorkspaceReportFieldsPage({
         params: {policyID},
     },
 }: WorkspaceReportFieldsPageProps) {
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for the small screen selection mode
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();

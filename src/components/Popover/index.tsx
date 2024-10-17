@@ -31,6 +31,7 @@ function Popover(props: PopoverProps) {
     } = props;
 
     // We need to use isSmallScreenWidth to apply the correct modal type and popoverAnchorPosition
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const withoutOverlayRef = useRef(null);
     const {close, popover} = React.useContext(PopoverContext);

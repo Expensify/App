@@ -61,6 +61,7 @@ function BaseModal(
     const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const keyboardStateContextValue = useKeyboardState();
 

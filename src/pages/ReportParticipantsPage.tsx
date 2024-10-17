@@ -50,6 +50,9 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const selectionListRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<TextInput>(null);
