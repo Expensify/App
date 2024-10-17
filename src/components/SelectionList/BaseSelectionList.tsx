@@ -105,6 +105,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldIgnoreFocus = false,
         scrollEventThrottle,
         contentContainerStyle,
+        shouldHighlightSelectedItem = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -476,6 +477,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         setFocusedIndex(normalizedIndex);
                     }}
                     shouldSyncFocus={!isTextInputFocusedRef.current}
+                    shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     wrapperStyle={listItemWrapperStyle}
                 />
                 {item.footerContent && item.footerContent}
