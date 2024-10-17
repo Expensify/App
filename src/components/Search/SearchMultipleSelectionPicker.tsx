@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type SearchMultipleSelectionPickerItem = {
@@ -28,6 +29,17 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
 
+    const sortOptionsWithEmptyValue = (a: SearchMultipleSelectionPickerItem, b: SearchMultipleSelectionPickerItem) => {
+        // Always show `No category` and `No tag` as the first option
+        if (a.value === CONST.SEARCH.EMPTY_VALUE) {
+            return -1;
+        }
+        if (b.value === CONST.SEARCH.EMPTY_VALUE) {
+            return 1;
+        }
+        return localeCompare(a.name, b.name);
+    };
+
     useEffect(() => {
         setSelectedItems(initiallySelectedItems ?? []);
     }, [initiallySelectedItems]);
@@ -35,7 +47,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const {sections, noResultsFound} = useMemo(() => {
         const selectedItemsSection = selectedItems
             .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => localeCompare(a.name, b.name))
+            .sort((a, b) => sortOptionsWithEmptyValue(a, b))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
@@ -44,7 +56,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             }));
         const remainingItemsSection = items
             .filter((item) => selectedItems.some((selectedItem) => selectedItem.value === item.value) === false && item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => localeCompare(a.name, b.name))
+            .sort((a, b) => sortOptionsWithEmptyValue(a, b))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,

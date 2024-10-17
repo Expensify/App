@@ -139,6 +139,17 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
         .join(', ');
 }
 
+const sortOptionsWithEmptyValue = (a: string, b: string) => {
+    // Always show `No category` and `No tag` as the first option
+    if (a === CONST.SEARCH.EMPTY_VALUE) {
+        return -1;
+    }
+    if (b === CONST.SEARCH.EMPTY_VALUE) {
+        return 1;
+    }
+    return localeCompare(a, b);
+};
+
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
         // the value of date filter is a combination of dateBefore + dateAfter values
@@ -175,12 +186,25 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return;
     }
 
-    if (
-        (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) &&
-        filters[fieldName]
-    ) {
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && filters[fieldName]) {
         const filterArray = filters[fieldName] ?? [];
         return filterArray.sort(localeCompare).join(', ');
+    }
+
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[fieldName]) {
+        const filterArray = filters[fieldName] ?? [];
+        return filterArray
+            .sort(sortOptionsWithEmptyValue)
+            .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noCategory') : value))
+            .join(', ');
+    }
+
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters[fieldName]) {
+        const filterArray = filters[fieldName] ?? [];
+        return filterArray
+            .sort(sortOptionsWithEmptyValue)
+            .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noTag') : value))
+            .join(', ');
     }
 
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
