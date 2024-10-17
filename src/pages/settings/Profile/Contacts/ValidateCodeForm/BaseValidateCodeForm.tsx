@@ -210,49 +210,53 @@ function BaseValidateCodeForm({
 
     return (
         <View style={[styles.flex1]}>
-            <MagicCodeInput
-                autoComplete={autoComplete}
-                ref={inputValidateCodeRef}
-                name="validateCode"
-                value={validateCode}
-                onChangeText={onTextInput}
-                errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
-                hasError={!isEmptyObject(validateLoginError)}
-                onFulfill={validateAndSubmitForm}
-                autoFocus={false}
-            />
-            <OfflineWithFeedback
-                pendingAction={pendingContact?.pendingFields?.validateCodeSent ?? loginData?.pendingFields?.validateCodeSent}
-                errors={ErrorUtils.getLatestErrorField(pendingContact ?? loginData, pendingContact ? 'actionVerified' : 'validateCodeSent')}
-                errorRowStyles={[styles.mt2]}
-                onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
-            >
-                <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
-                    <PressableWithFeedback
-                        disabled={shouldDisableResendValidateCode}
-                        style={[styles.mr1]}
-                        onPress={resendValidateCode}
-                        underlayColor={theme.componentBG}
-                        hoverDimmingValue={1}
-                        pressDimmingValue={0.2}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
-                    >
-                        <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
-                    </PressableWithFeedback>
-                    {showDotIndicator && isInitialCodeSent.current && (
-                        <DotIndicatorMessage
-                            type="success"
-                            style={[styles.mt6, styles.flex0]}
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: pendingContact?.validateCodeSent ? translate('validateCodeModal.successfulNewCodeRequest') : translate('resendValidationForm.linkHasBeenResent')}}
-                        />
-                    )}
-                </View>
-            </OfflineWithFeedback>
+            <View style={styles.ph5}>
+                <MagicCodeInput
+                    autoComplete={autoComplete}
+                    ref={inputValidateCodeRef}
+                    name="validateCode"
+                    value={validateCode}
+                    onChangeText={onTextInput}
+                    errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
+                    hasError={!isEmptyObject(validateLoginError)}
+                    onFulfill={validateAndSubmitForm}
+                    autoFocus={false}
+                />
+                <OfflineWithFeedback
+                    pendingAction={pendingContact?.pendingFields?.validateCodeSent ?? loginData?.pendingFields?.validateCodeSent}
+                    errors={ErrorUtils.getLatestErrorField(pendingContact ?? loginData, pendingContact ? 'actionVerified' : 'validateCodeSent')}
+                    errorRowStyles={[styles.mt2]}
+                    onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
+                >
+                    <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
+                        <PressableWithFeedback
+                            disabled={shouldDisableResendValidateCode}
+                            style={[styles.mr1]}
+                            onPress={resendValidateCode}
+                            underlayColor={theme.componentBG}
+                            hoverDimmingValue={1}
+                            pressDimmingValue={0.2}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                        >
+                            <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                        </PressableWithFeedback>
+                        {showDotIndicator && isInitialCodeSent.current && (
+                            <DotIndicatorMessage
+                                type="success"
+                                style={[styles.mt6, styles.flex0]}
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                messages={{
+                                    0: pendingContact?.validateCodeSent ? translate('validateCodeModal.successfulNewCodeRequest') : translate('resendValidationForm.linkHasBeenResent'),
+                                }}
+                            />
+                        )}
+                    </View>
+                </OfflineWithFeedback>
+            </View>
             {renderComponent ? renderComponent() : null}
 
-            <View style={[styles.flex1, styles.justifyContentEnd, safePaddingBottomStyle]}>
+            <View style={[styles.flex1, styles.justifyContentEnd, safePaddingBottomStyle, styles.ph5]}>
                 <OfflineWithFeedback
                     pendingAction={loginData?.pendingFields?.validateLogin}
                     errors={validateLoginError}
