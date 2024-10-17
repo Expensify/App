@@ -276,7 +276,6 @@ const translations = {
         close: 'Close',
         download: 'Download',
         downloading: 'Downloading',
-        uploading: 'Uploading',
         pin: 'Pin',
         unPin: 'Unpin',
         back: 'Back',
