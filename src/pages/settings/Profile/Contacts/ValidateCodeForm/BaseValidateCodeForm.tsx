@@ -210,7 +210,7 @@ function BaseValidateCodeForm({
 
     return (
         <View style={[styles.flex1]}>
-            <View style={styles.ph5}>
+            <View style={[styles.ph5, styles.mb5]}>
                 <MagicCodeInput
                     autoComplete={autoComplete}
                     ref={inputValidateCodeRef}
