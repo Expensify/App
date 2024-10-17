@@ -12,7 +12,6 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Timing from '@libs/actions/Timing';
 import FastSearch from '@libs/FastSearch';
 import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
