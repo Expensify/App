@@ -88,7 +88,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
             const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
 
             // We only want integers to be sent as the limit
-            if (!Number.isInteger(Number(values.limit))) {
+            if (!Number.isInteger(Number(values.limit)) || Number(values.limit) > CONST.EXPENSIFY_CARD.LIMIT_VALUE) {
                 errors.limit = translate('iou.error.invalidAmount');
             }
 
