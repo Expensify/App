@@ -727,8 +727,12 @@ function buildFilterFormValuesFromQuery(
             filtersForm[FILTER_KEYS.DATE_AFTER] = filterList.find((filter) => filter.operator === 'gt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString();
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-            filtersForm[FILTER_KEYS.LESS_THAN] = filterList?.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 2))?.value.toString();
-            filtersForm[FILTER_KEYS.GREATER_THAN] = filterList?.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 2))?.value.toString();
+            filtersForm[FILTER_KEYS.LESS_THAN] = filterList
+                ?.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                ?.value.toString();
+            filtersForm[FILTER_KEYS.GREATER_THAN] = filterList
+                ?.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                ?.value.toString();
         }
     }
 
@@ -777,7 +781,8 @@ function getDisplayValue(filterName: string, filter: string, personalDetails: On
         return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]) || filter;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-        return CurrencyUtils.convertToFrontendAmountAsString(Number(filter));
+        const frontendAmount = CurrencyUtils.convertToFrontendAmountAsInteger(Number(filter));
+        return Number.isNaN(frontendAmount) ? filter : frontendAmount.toString();
     }
     return filter;
 }
@@ -925,9 +930,13 @@ function findIDFromDisplayValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_F
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         if (typeof filter === 'string') {
-            return CurrencyUtils.convertToBackendAmount(Number(filter)).toString();
+            const backendAmount = CurrencyUtils.convertToBackendAmount(Number(filter));
+            return Number.isNaN(backendAmount) ? filter : backendAmount.toString();
         }
-        return filter.map((amount) => CurrencyUtils.convertToBackendAmount(Number(amount)).toString());
+        return filter.map((amount) => {
+            const backendAmount = CurrencyUtils.convertToBackendAmount(Number(amount));
+            return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
+        });
     }
     return filter;
 }
