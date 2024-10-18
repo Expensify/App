@@ -93,7 +93,7 @@ describe('ReportActionsUtils', () => {
     });
 
     test('[ReportActionsUtils] getMostRecentIOURequestActionID on 10k ReportActions', async () => {
-        const reportActionsArray = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
+        const reportActionsArray = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, reportId);
 
         await waitForBatchedUpdates();
         await measureFunction(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActionsArray));
@@ -132,7 +132,7 @@ describe('ReportActionsUtils', () => {
 
     test('[ReportActionsUtils] getSortedReportActionsForDisplay on 10k ReportActions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions));
+        await measureFunction(() => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, reportId));
     });
 
     test('[ReportActionsUtils] getLastClosedReportAction on 10k ReportActions', async () => {

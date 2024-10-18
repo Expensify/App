@@ -39,7 +39,7 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
         <PressableWithoutFeedback
             onPress={() => {
                 const parentAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '-1');
-                const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? '-1');
+                const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? '-1', parentReportID);
                 // Pop the thread report screen before navigating to the chat report.
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
                 if (isVisibleAction && !isOffline) {

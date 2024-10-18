@@ -302,7 +302,7 @@ describe('ReportActionsUtils', () => {
                 },
             ];
 
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, '1');
             expect(result).toStrictEqual(input);
         });
 
@@ -392,7 +392,7 @@ describe('ReportActionsUtils', () => {
                     ],
                 },
             ];
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, '1');
             input.pop();
             expect(result).toStrictEqual(input);
         });
@@ -437,7 +437,7 @@ describe('ReportActionsUtils', () => {
                     message: [{html: '', type: 'Action type', text: 'Action text'}],
                 },
             ];
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, '1');
             input.pop();
             expect(result).toStrictEqual(input);
         });
