@@ -222,6 +222,7 @@ export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTax
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
 export type {default as UpdateQuickbooksOnlineGenericTypeParams} from './UpdateQuickbooksOnlineGenericTypeParams';
+export type {default as UpdateQuickbooksDesktopGenericTypeParams} from './UpdateQuickbooksDesktopGenericTypeParams';
 export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicyConnectionConfigParams';
 export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
@@ -272,6 +273,7 @@ export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIn
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';
 export type {default as ExportSearchItemsToCSVParams} from './ExportSearchItemsToCSVParams';
+export type {default as ExportReportCSVParams} from './ExportReportCSVParams';
 export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyCardLimitParams';
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
@@ -296,6 +298,7 @@ export type {default as ConfigureExpensifyCardsForPolicyParams} from './Configur
 export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardParams';
 export type {default as UpdateExpensifyCardTitleParams} from './UpdateExpensifyCardTitleParams';
 export type {default as AddDelegateParams} from './AddDelegateParams';
+export type {default as UpdateDelegateRoleParams} from './UpdateDelegateRoleParams';
 export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPageParams';
 export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetPolicyCategoryDescriptionRequiredParams';
 export type {default as SetPolicyCategoryApproverParams} from './SetPolicyCategoryApproverParams';
@@ -306,6 +309,7 @@ export type {default as EnablePolicyCompanyCardsParams} from './EnablePolicyComp
 export type {default as ToggleCardContinuousReconciliationParams} from './ToggleCardContinuousReconciliationParams';
 export type {default as CardDeactivateParams} from './CardDeactivateParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
+export type {default as RemoveDelegateParams} from './RemoveDelegateParams';
 export type {default as SetPolicyTagApproverParams} from './SetPolicyTagApproverParams';
 export type {default as SaveSearchParams} from './SaveSearch';
 export type {default as DeleteSavedSearchParams} from './DeleteSavedSearch';
@@ -324,10 +328,15 @@ export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSet
 export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
 export type {default as DeleteCompanyCardFeed} from './DeleteCompanyCardFeed';
 export type {default as SetCompanyCardTransactionLiability} from './SetCompanyCardTransactionLiability';
+export type {default as OpenPolicyCompanyCardsFeedParams} from './OpenPolicyCompanyCardsFeedParams';
+export type {default as AssignCompanyCardParams} from './AssignCompanyCardParams';
 export type {default as UnassignCompanyCard} from './UnassignCompanyCard';
 export type {default as UpdateCompanyCard} from './UpdateCompanyCard';
 export type {default as UpdateCompanyCardNameParams} from './UpdateCompanyCardNameParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
+export type {default as RequestFeedSetupParams} from './RequestFeedSetupParams';
 export type {default as SetMissingPersonalDetailsAndShipExpensifyCardParams} from './SetMissingPersonalDetailsAndShipExpensifyCardParams';
 export type {default as SetInvoicingTransferBankAccountParams} from './SetInvoicingTransferBankAccountParams';
 export type {default as ConnectPolicyToQuickBooksDesktopParams} from './ConnectPolicyToQuickBooksDesktopParams';
+export type {default as UpdateQuickbooksDesktopExpensesExportDestinationTypeParams} from './UpdateQuickbooksDesktopExpensesExportDestinationTypeParams';
+export type {default as UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams} from './UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams';

@@ -29,21 +29,21 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
     const sections: QBDSectionType[] = [
         {
             description: translate('workspace.accounting.accounts'),
-            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49703
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS.getRoute(policyID)),
             title: translate('workspace.accounting.importAsCategory'),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES],
+            subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES],
         },
         {
             description: translate('workspace.qbd.classes'),
-            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49704
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES.getRoute(policyID)),
             title: translate(`workspace.accounting.importTypes.${mappings?.classes ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES],
+            subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES],
         },
         {
             description: translate('workspace.qbd.customers'),
-            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49705
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS.getRoute(policyID)),
             title: translate(`workspace.accounting.importTypes.${mappings?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS],
+            subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS],
         },
         {
             description: translate('workspace.qbd.items'),

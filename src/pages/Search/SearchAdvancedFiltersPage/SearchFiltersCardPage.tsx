@@ -35,6 +35,7 @@ function SearchFiltersCardPage() {
 
                 return {
                     lastFourPAN: card.lastFourPAN,
+                    isVirtual: card?.nameValuePairs?.isVirtual,
                     text: card.bank,
                     keyForList: card.cardID.toString(),
                     isSelected: newCards.includes(card.cardID.toString()),

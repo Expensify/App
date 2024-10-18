@@ -64,7 +64,7 @@ function adaptOnboardingRouteState() {
     }
 
     let adaptedOnboardingModalNavigatorState = {} as Readonly<PartialState<NavigationState>>;
-    if (currentRoute?.name === SCREENS.ONBOARDING.PERSONAL_DETAILS && selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+    if (currentRoute?.name === SCREENS.ONBOARDING.ACCOUNTING && selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
         adaptedOnboardingModalNavigatorState = {
             index: 2,
             routes: [
@@ -73,7 +73,7 @@ function adaptOnboardingRouteState() {
                     params: currentRoute?.params,
                 },
                 {
-                    name: SCREENS.ONBOARDING.WORK,
+                    name: SCREENS.ONBOARDING.EMPLOYEES,
                     params: currentRoute?.params,
                 },
                 {...currentRoute},
@@ -110,7 +110,11 @@ function startOnboardingFlow() {
     if (focusedRoute?.name === currentRoute?.name) {
         return;
     }
-    navigationRef.resetRoot(adaptedState);
+    navigationRef.resetRoot({
+        ...navigationRef.getRootState(),
+        ...adaptedState,
+        stale: true,
+    } as PartialState<NavigationState>);
 }
 
 function getOnboardingInitialPath(): string {
@@ -119,7 +123,7 @@ function getOnboardingInitialPath(): string {
 
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-        return `/${ROUTES.ONBOARDING_WORK.route}`;
+        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
     }
     const isIndividual = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
     if (isIndividual) {

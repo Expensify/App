@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
@@ -25,6 +26,7 @@ function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     // const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
 
     useEffect(() => {
@@ -41,6 +43,8 @@ function BaseSidebarScreen() {
     //     updateLastAccessedWorkspace(undefined);
     // }, [activeWorkspace, activeWorkspaceID]);
 
+    const shouldDisplaySearch = shouldUseNarrowLayout;
+
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -52,6 +56,7 @@ function BaseSidebarScreen() {
                     <TopBar
                         breadcrumbLabel={translate('common.inbox')}
                         activeWorkspaceID={activeWorkspaceID}
+                        shouldDisplaySearch={shouldDisplaySearch}
                     />
                     <View style={[styles.flex1]}>
                         <SidebarLinksData

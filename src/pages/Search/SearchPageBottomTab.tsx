@@ -83,6 +83,8 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
         );
     }
 
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !SearchUtils.isCannedSearchQuery(queryJSON);
+
     return (
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
@@ -94,43 +96,31 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
                         <TopBar
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
-                            shouldDisplaySearch={false}
-                            shouldDisplaySearchRouter={shouldUseNarrowLayout}
-                            isCustomSearchQuery={shouldUseNarrowLayout && !SearchUtils.isCannedSearchQuery(queryJSON)}
+                            shouldDisplaySearch={shouldUseNarrowLayout}
+                            shouldDisplayCancelSearch={shouldDisplayCancelSearch}
                         />
                     </View>
-                    {shouldUseNarrowLayout ? (
-                        <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
-                            <SearchTypeMenu
-                                queryJSON={queryJSON}
-                                searchName={searchName}
-                            />
-                            <SearchStatusBar
-                                type={queryJSON.type}
-                                status={queryJSON.status}
-                                policyID={queryJSON.policyID}
-                                onStatusChange={() => {
-                                    topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
-                                }}
-                            />
-                        </Animated.View>
-                    ) : (
+                    <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
                         <SearchTypeMenu
                             queryJSON={queryJSON}
                             searchName={searchName}
                         />
-                    )}
+                        <SearchStatusBar
+                            queryJSON={queryJSON}
+                            onStatusChange={() => {
+                                topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
+                            }}
+                        />
+                    </Animated.View>
                 </>
             ) : (
                 <SearchSelectionModeHeader queryJSON={queryJSON} />
             )}
-            {shouldUseNarrowLayout && (
-                <Search
-                    queryJSON={queryJSON}
-                    onSearchListScroll={scrollHandler}
-                    contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
-                />
-            )}
+            <Search
+                queryJSON={queryJSON}
+                onSearchListScroll={scrollHandler}
+                contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
+            />
             <BottomTabBar selectedTab={SCREENS.SEARCH.CENTRAL_PANE} />
         </ScreenWrapper>
     );

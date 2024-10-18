@@ -1,12 +1,11 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import {findFocusedRoute, getPathFromState, StackActions, StackRouter} from '@react-navigation/native';
+import {findFocusedRoute, StackActions, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import getPolicyIDFromState from '@libs/Navigation/getPolicyIDFromState';
 import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
-import linkingConfig from '@libs/Navigation/linkingConfig';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import * as SearchUtils from '@libs/SearchUtils';
@@ -14,6 +13,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import syncBrowserHistory from './syncBrowserHistory';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
 
 const MODAL_ROUTES_TO_DISMISS: string[] = [
@@ -41,13 +41,10 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
         Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
-
-        // We reset the URL as the browser sets it in a way that doesn't match the navigation state
-        // @TODO is it working? Maybe we should split it for platforms.
-        // eslint-disable-next-line no-restricted-globals
-        history.replaceState({}, '', getPathFromState(state, linkingConfig.config));
         return true;
     }
+
+    return false;
 }
 
 function shouldDismissSideModalNavigator(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
@@ -131,6 +128,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
 
             // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.
             if (shouldPreventReset(state, action)) {
+                syncBrowserHistory(state);
                 return state;
             }
 

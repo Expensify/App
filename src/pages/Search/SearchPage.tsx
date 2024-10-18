@@ -42,6 +42,9 @@ function SearchPage({route}: SearchPageProps) {
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
     const {clearSelectedTransactions} = useSearchContext();
 
+    const isSearchNameModified = name === q;
+    const searchName = isSearchNameModified ? undefined : name;
+
     // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
     // To avoid calling hooks in the Search component when this page isn't visible, we return null here.
     if (shouldUseNarrowLayout) {
@@ -49,7 +52,7 @@ function SearchPage({route}: SearchPageProps) {
             <SearchPageBottomTab
                 queryJSON={queryJSON}
                 policyID={policyID}
-                searchName={name}
+                searchName={searchName}
             />
         );
     }
@@ -74,7 +77,7 @@ function SearchPage({route}: SearchPageProps) {
                                 />
                                 <SearchTypeMenu
                                     queryJSON={queryJSON}
-                                    searchName={name}
+                                    searchName={searchName}
                                 />
                             </View>
                         ) : (
@@ -97,11 +100,7 @@ function SearchPage({route}: SearchPageProps) {
                             queryJSON={queryJSON}
                             hash={queryJSON.hash}
                         />
-                        <SearchStatusBar
-                            type={queryJSON.type}
-                            status={queryJSON.status}
-                            policyID={queryJSON.policyID}
-                        />
+                        <SearchStatusBar queryJSON={queryJSON} />
                         <Search queryJSON={queryJSON} />
                     </ScreenWrapper>
                 </View>

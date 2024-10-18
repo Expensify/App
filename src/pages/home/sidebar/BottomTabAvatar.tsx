@@ -3,7 +3,6 @@ import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -106,20 +105,18 @@ function BottomTabAvatar({isSelected = false}: BottomTabAvatarProps) {
     }
 
     return (
-        <Tooltip text={translate('initialSettingsPage.accountSettings')}>
-            <PressableWithFeedback
-                onPress={showSettingsPage}
-                role={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-                wrapperStyle={styles.flex1}
-                style={[styles.bottomTabBarItem]}
-            >
-                {children}
-                <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.bottomTabBarLabel]}>
-                    {translate('common.settings')}
-                </Text>
-            </PressableWithFeedback>
-        </Tooltip>
+        <PressableWithFeedback
+            onPress={showSettingsPage}
+            role={CONST.ROLE.BUTTON}
+            accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
+            wrapperStyle={styles.flex1}
+            style={[styles.bottomTabBarItem]}
+        >
+            {children}
+            <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.bottomTabBarLabel]}>
+                {translate('common.settings')}
+            </Text>
+        </PressableWithFeedback>
     );
 }
 
