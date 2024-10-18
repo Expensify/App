@@ -6,18 +6,17 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import LoadingPage from '@pages/LoadingPage';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -47,7 +46,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const {isOffline} = useNetwork({
+    useNetwork({
         onReconnect: () => {
             if (codatSetupLink) {
                 return;
@@ -55,11 +54,6 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
             fetchSetupLink();
         },
     });
-    const prevIsOffline = usePrevious(isOffline);
-
-    if (isLoading || (prevIsOffline && !isOffline && !codatSetupLink)) {
-        return <LoadingPage title={translate('workspace.qbd.qbdSetup')} />;
-    }
 
     return (
         <ScreenWrapper
@@ -73,29 +67,33 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 onBackButtonPress={() => Navigation.dismissModal()}
             />
             <ContentWrapper>
-                <View style={[styles.flex1, styles.ph5]}>
-                    <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer, styles.pv6]}>
-                        <ImageSVG src={Computer} />
-                    </View>
+                {isLoading || !codatSetupLink ? (
+                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                ) : (
+                    <View style={[styles.flex1, styles.ph5]}>
+                        <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer, styles.pv6]}>
+                            <ImageSVG src={Computer} />
+                        </View>
 
-                    <Text style={[styles.textHeadlineH1, styles.pt5]}>{translate('workspace.qbd.setupPage.title')}</Text>
-                    <Text style={[styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.setupPage.body')}</Text>
-                    <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
-                        <CopyTextToClipboard
-                            text={codatSetupLink}
-                            textStyles={[styles.textSupporting]}
-                        />
+                        <Text style={[styles.textHeadlineH1, styles.pt5]}>{translate('workspace.qbd.setupPage.title')}</Text>
+                        <Text style={[styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.setupPage.body')}</Text>
+                        <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
+                            <CopyTextToClipboard
+                                text={codatSetupLink}
+                                textStyles={[styles.textSupporting]}
+                            />
+                        </View>
+                        <FixedFooter style={[styles.mtAuto, styles.ph0]}>
+                            <Button
+                                success
+                                text={translate('common.done')}
+                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC.getRoute(policyID))}
+                                pressOnEnter
+                                large
+                            />
+                        </FixedFooter>
                     </View>
-                    <FixedFooter style={[styles.mtAuto, styles.ph0]}>
-                        <Button
-                            success
-                            text={translate('common.done')}
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC.getRoute(policyID))}
-                            pressOnEnter
-                            large
-                        />
-                    </FixedFooter>
-                </View>
+                )}
             </ContentWrapper>
         </ScreenWrapper>
     );
