@@ -409,28 +409,24 @@ function isSearchResultsEmpty(searchResults: SearchResults) {
 function getQueryHash(query: SearchQueryJSON): number {
     let orderedQuery = '';
     if (query.policyID) {
-        orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID} ${query.policyID} `;
+        orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${query.policyID} `;
     }
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}: ${query.type} `;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}: ${query.status}`;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}: ${query.sortBy} `;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}: ${query.sortOrder} `;
+    orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${query.status}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
 
     Object.keys(query.flatFilters)
         .sort()
         .forEach((key) => {
             const filterValues = query.flatFilters?.[key as AdvancedFiltersKeys];
-            orderedQuery += ` ${key}:`;
-            filterValues
-                ?.sort((queryFilter1, queryFilter2) => {
-                    if (queryFilter1.value > queryFilter2.value) {
-                        return 1;
-                    }
-                    return -1;
-                })
-                ?.forEach((queryFilter) => {
-                    orderedQuery += ` ${queryFilter.operator} ${queryFilter.value}`;
-                });
+            const sortedFilterValues = filterValues?.sort((queryFilter1, queryFilter2) => {
+                if (queryFilter1.value > queryFilter2.value) {
+                    return 1;
+                }
+                return -1;
+            });
+            orderedQuery += `${buildFilterString(key, sortedFilterValues ?? [])}`;
         });
 
     return UserUtils.hashText(orderedQuery, 2 ** 32);
