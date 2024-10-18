@@ -9,8 +9,7 @@ static NSString * const ErrorPaymentPassUnsupported = @"payment_pass_unsupported
 static NSString * const ErrorRootViewController = @"root_view_controller_error";
 static NSString * const ErrorCompletionHandler = @"completion_handler_error";
 
-// Token service providers. Add more if necessary
-static PKPaymentNetwork const CardNetwork = PKPaymentNetworkVisa;
+static PKPaymentNetwork CardNetwork;
 
 typedef void (^CompletedPaymentProcessHandler)(PKAddPaymentPassRequest *request);
 
@@ -19,6 +18,13 @@ typedef void (^CompletedPaymentProcessHandler)(PKAddPaymentPassRequest *request)
 @end
 
 @implementation ApplePushProvisioning
+
++ (void)initialize {
+    if (self == [ApplePushProvisioning class]) {
+        // Initialize the payment network. Add more networks if necessary.
+        CardNetwork = PKPaymentNetworkVisa;
+    }
+}
 
 RCT_EXPORT_MODULE()
 
