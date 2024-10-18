@@ -302,8 +302,8 @@ describe('ReportActionsUtils', () => {
                 },
             ];
 
-            // Expected output should have the `CREATED` action at top
-            const expectedOutput: ReportAction[] = [input.at(1)!, ...input.slice(0, 1), ...input.slice(2)];
+            // Expected output should have the `CREATED` action at last
+            const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2), input[1]];
 
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
             expect(result).toStrictEqual(expectedOutput);
@@ -396,11 +396,10 @@ describe('ReportActionsUtils', () => {
                 },
             ];
 
-            // Expected output should have the `CREATED` action at top
-            const expectedOutput: ReportAction[] = [input.at(1)!, ...input.slice(0, 1), ...input.slice(2)];
+            // Expected output should have the `CREATED` action at last and `CLOSED` action removed
+            const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2, -1), input[1]];
 
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
-            input.pop();
             expect(result).toStrictEqual(expectedOutput);
         });
 
