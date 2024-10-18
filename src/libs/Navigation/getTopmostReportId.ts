@@ -1,5 +1,5 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
-import {isCentralPaneName} from '@libs/NavigationUtils';
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {RootStackParamList} from './types';
 
@@ -16,23 +16,29 @@ function getTopmostReportId(state: NavigationState | NavigationState<RootStackPa
         return;
     }
 
-    const topmostCentralPane = state.routes?.filter((route) => isCentralPaneName(route.name)).at(-1);
-    if (!topmostCentralPane) {
+    const topmostReportsSplitNavigator = state.routes?.filter((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR).at(-1);
+
+    if (!topmostReportsSplitNavigator) {
         return;
     }
 
-    const directReportParams = topmostCentralPane.params;
-    const directReportIdParam = directReportParams && 'reportID' in directReportParams && directReportParams?.reportID;
+    const topmostReport = topmostReportsSplitNavigator.state?.routes.filter((route) => route.name === SCREENS.REPORT).at(-1);
 
-    if (!topmostCentralPane.state && !directReportIdParam) {
+    if (!topmostReport) {
         return;
     }
 
-    if (directReportIdParam) {
-        return directReportIdParam;
-    }
+    // const directReportParams = topmostCentralPane.params;
+    // const directReportIdParam = directReportParams && 'reportID' in directReportParams && directReportParams?.reportID;
 
-    const topmostReport = topmostCentralPane.state?.routes.filter((route) => route.name === SCREENS.REPORT).at(-1);
+    // if (!topmostCentralPane.state && !directReportIdParam) {
+    //     return;
+    // }
+
+    // if (directReportIdParam) {
+    //     return directReportIdParam;
+    // }
+
     if (!topmostReport) {
         return;
     }

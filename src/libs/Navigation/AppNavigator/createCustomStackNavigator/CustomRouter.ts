@@ -1,14 +1,14 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import {findFocusedRoute, getPathFromState, StackRouter} from '@react-navigation/native';
+import {findFocusedRoute, StackActions, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import * as Localize from '@libs/Localize';
-import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
-import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import linkingConfig from '@libs/Navigation/linkingConfig';
-import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
-import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
-import {isCentralPaneName, isOnboardingFlowName} from '@libs/NavigationUtils';
+import Log from '@libs/Log';
+import getPolicyIDFromState from '@libs/Navigation/getPolicyIDFromState';
+import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
+import {isOnboardingFlowName} from '@libs/NavigationUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -16,94 +16,20 @@ import SCREENS from '@src/SCREENS';
 import syncBrowserHistory from './syncBrowserHistory';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
 
-function insertRootRoute(state: State<RootStackParamList>, routeToInsert: NavigationPartialRoute) {
-    const nonModalRoutes = state.routes.filter(
-        (route) => route.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.LEFT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
-    );
-    const modalRoutes = state.routes.filter(
-        (route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR || route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
-    );
-
-    // It's safe to modify this state before returning in getRehydratedState.
-
-    // @ts-expect-error Updating read only property
-    // noinspection JSConstantReassignment
-    state.routes = [...nonModalRoutes, routeToInsert, ...modalRoutes]; // eslint-disable-line
-
-    // @ts-expect-error Updating read only property
-    // noinspection JSConstantReassignment
-    state.index = state.routes.length - 1; // eslint-disable-line
-
-    // @ts-expect-error Updating read only property
-    // noinspection JSConstantReassignment
-    state.stale = true; // eslint-disable-line
-}
-
-function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
-    // If the state of the last path is not defined the getPathFromState won't work correctly.
-    if (!state?.routes.at(-1)?.state) {
-        return;
-    }
-
-    // We need to be sure that the bottom tab state is defined.
-    const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
-    const isNarrowLayout = getIsNarrowLayout();
-
-    // This solutions is heuristics and will work for our cases. We may need to improve it in the future if we will have more cases to handle.
-    if (topmostBottomTabRoute && !isNarrowLayout) {
-        const fullScreenRoute = state.routes.find((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
-
-        // If there is fullScreenRoute we don't need to add anything.
-        if (fullScreenRoute) {
-            return;
-        }
-
-        // We will generate a template state and compare the current state with it.
-        // If there is a difference in the screens that should be visible under the overlay, we will add the screen from templateState to the current state.
-        const pathFromCurrentState = getPathFromState(state, linkingConfig.config);
-        const {adaptedState: templateState} = getAdaptedStateFromPath(pathFromCurrentState, linkingConfig.config);
-
-        if (!templateState) {
-            return;
-        }
-
-        const templateFullScreenRoute = templateState.routes.find((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
-
-        // If templateFullScreenRoute is defined, and full screen route is not in the state, we need to add it.
-        if (templateFullScreenRoute) {
-            insertRootRoute(state, templateFullScreenRoute);
-            return;
-        }
-
-        const topmostCentralPaneRoute = state.routes.filter((route) => isCentralPaneName(route.name)).at(-1);
-        const templateCentralPaneRoute = templateState.routes.find((route) => isCentralPaneName(route.name));
-
-        const topmostCentralPaneRouteExtracted = getTopmostCentralPaneRoute(state);
-        const templateCentralPaneRouteExtracted = getTopmostCentralPaneRoute(templateState as State<RootStackParamList>);
-
-        // If there is no templateCentralPaneRoute, we don't have anything to add.
-        if (!templateCentralPaneRoute) {
-            return;
-        }
-
-        // If there is no topmostCentralPaneRoute in the state and template state has one, we need to add it.
-        if (!topmostCentralPaneRoute) {
-            insertRootRoute(state, templateCentralPaneRoute);
-            return;
-        }
-
-        // If there is central pane route in state and template state has one, we need to check if they are the same.
-        if (topmostCentralPaneRouteExtracted && templateCentralPaneRouteExtracted && topmostCentralPaneRouteExtracted.name !== templateCentralPaneRouteExtracted.name) {
-            // Not every RHP screen has matching central pane defined. In that case we use the REPORT screen as default for initial screen.
-            // But we don't want to override the central pane for those screens as they may be opened with different central panes under the overlay.
-            // e.g. i-know-a-teacher may be opened with different central panes under the overlay
-            if (templateCentralPaneRouteExtracted.name === SCREENS.REPORT) {
-                return;
-            }
-            insertRootRoute(state, templateCentralPaneRoute);
-        }
-    }
-}
+const MODAL_ROUTES_TO_DISMISS: string[] = [
+    NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+    NAVIGATORS.LEFT_MODAL_NAVIGATOR,
+    NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+    NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+    NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR,
+    SCREENS.NOT_FOUND,
+    SCREENS.ATTACHMENTS,
+    SCREENS.TRANSACTION_RECEIPT,
+    SCREENS.PROFILE_AVATAR,
+    SCREENS.WORKSPACE_AVATAR,
+    SCREENS.REPORT_AVATAR,
+    SCREENS.CONCIERGE,
+];
 
 function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
     if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
@@ -121,24 +47,159 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
     return false;
 }
 
+function shouldDismissSideModalNavigator(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
+    if (action.type !== CONST.NAVIGATION.ACTION_TYPE.PUSH) {
+        return false;
+    }
+
+    const lastRoute = state.routes.at(-1);
+
+    // If the last route is a side modal navigator and the generated minimal action want's to push a new side modal navigator that means they are different ones.
+    // We want to dismiss the one that is currently on the top.
+    if (isSideModalNavigator(lastRoute?.name) && isSideModalNavigator(action.payload.name)) {
+        return true;
+    }
+
+    return false;
+}
+
+type CustomRootStackActionType =
+    | {
+          type: 'SWITCH_POLICY_ID';
+          payload: {
+              policyID: string;
+          };
+      }
+    | {type: 'DISMISS_MODAL'};
+
 function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
+    const {setActiveWorkspaceID} = useActiveWorkspace();
 
+    // @TODO: Make sure that everything works fine without compareAndAdaptState function. Probably with getMatchingFullScreenRoute.
     return {
         ...stackRouter,
-        getRehydratedState(partialState: StackNavigationState<RootStackParamList>, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
-            compareAndAdaptState(partialState);
-            const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList, routeGetIdList});
-            return state;
-        },
-        getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType, configOptions: RouterConfigOptions) {
+        getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType | CustomRootStackActionType, configOptions: RouterConfigOptions) {
+            if (action.type === CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID) {
+                const lastRoute = state.routes.at(-1);
+                if (lastRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
+                    const currentParams = lastRoute.params as RootStackParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+                    const queryJSON = SearchUtils.buildSearchQueryJSON(currentParams.q);
+                    if (!queryJSON) {
+                        return null;
+                    }
+
+                    if (action.payload.policyID) {
+                        queryJSON.policyID = action.payload.policyID;
+                    } else {
+                        delete queryJSON.policyID;
+                    }
+
+                    const newAction = StackActions.push(SCREENS.SEARCH.CENTRAL_PANE, {
+                        ...currentParams,
+                        q: SearchUtils.buildSearchQueryString(queryJSON),
+                    });
+
+                    setActiveWorkspaceID(action.payload.policyID);
+                    return stackRouter.getStateForAction(state, newAction, configOptions);
+                }
+                if (lastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                    const newAction = StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {policyID: action.payload.policyID});
+
+                    setActiveWorkspaceID(action.payload.policyID);
+                    return stackRouter.getStateForAction(state, newAction, configOptions);
+                }
+
+                // We don't have other navigators that should handle switch policy action.
+                return null;
+            }
+
+            if (action.type === 'DISMISS_MODAL') {
+                const lastRoute = state.routes.at(-1);
+                const newAction = StackActions.pop();
+
+                if (!lastRoute?.name || !MODAL_ROUTES_TO_DISMISS.includes(lastRoute?.name)) {
+                    Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
+                    return null;
+                }
+
+                return stackRouter.getStateForAction(state, newAction, configOptions);
+            }
+
+            // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.
             if (shouldPreventReset(state, action)) {
                 syncBrowserHistory(state);
                 return state;
             }
+
+            if (action.type === 'PUSH' && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                const haveParamsPolicyID = action.payload.params && 'policyID' in action.payload.params;
+                let policyID;
+
+                if (haveParamsPolicyID) {
+                    policyID = (action.payload.params as Record<string, string | undefined>)?.policyID;
+                    setActiveWorkspaceID(policyID);
+                } else {
+                    policyID = getPolicyIDFromState(state as State<RootStackParamList>);
+                }
+
+                const modifiedAction = {
+                    ...action,
+                    payload: {
+                        ...action.payload,
+                        params: {
+                            ...action.payload.params,
+                            policyID,
+                        },
+                    },
+                };
+
+                return stackRouter.getStateForAction(state, modifiedAction, configOptions);
+            }
+
+            if (action.type === 'PUSH' && action.payload.name === SCREENS.SEARCH.CENTRAL_PANE) {
+                const currentParams = action.payload.params as RootStackParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+                const queryJSON = SearchUtils.buildSearchQueryJSON(currentParams.q);
+
+                if (!queryJSON) {
+                    return null;
+                }
+
+                if (!queryJSON.policyID) {
+                    const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
+
+                    if (policyID) {
+                        queryJSON.policyID = policyID;
+                    } else {
+                        delete queryJSON.policyID;
+                    }
+                } else {
+                    setActiveWorkspaceID(queryJSON.policyID);
+                }
+
+                const modifiedAction = {
+                    ...action,
+                    payload: {
+                        ...action.payload,
+                        params: {
+                            ...action.payload.params,
+                            q: SearchUtils.buildSearchQueryString(queryJSON),
+                        },
+                    },
+                };
+
+                return stackRouter.getStateForAction(state, modifiedAction, configOptions);
+            }
+
+            if (shouldDismissSideModalNavigator(state, action)) {
+                const modifiedState = {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0};
+                return stackRouter.getStateForAction(modifiedState, action, configOptions);
+            }
+
             return stackRouter.getStateForAction(state, action, configOptions);
         },
     };
 }
 
 export default CustomRouter;
+export type {CustomRootStackActionType};

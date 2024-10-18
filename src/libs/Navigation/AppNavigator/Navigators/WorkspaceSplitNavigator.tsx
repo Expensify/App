@@ -1,20 +1,13 @@
 import React from 'react';
-import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import createCustomFullScreenNavigator from '@libs/Navigation/AppNavigator/createCustomFullScreenNavigator';
-import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
+type Screens = Partial<Record<keyof WorkspaceSplitNavigatorParamList, () => React.ComponentType>>;
+
 const loadWorkspaceInitialPage = () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInitialPage').default;
-
-const RootStack = createCustomFullScreenNavigator();
-
-type Screens = Partial<Record<keyof FullScreenNavigatorParamList, () => React.ComponentType>>;
 
 const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.PROFILE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceProfilePage').default,
@@ -33,35 +26,32 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.RULES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/PolicyRulesPage').default,
 } satisfies Screens;
 
-function FullScreenNavigator() {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
+const Stack = createSplitStackNavigator<WorkspaceSplitNavigatorParamList>();
 
+function WorkspaceNavigator() {
     return (
         <FocusTrapForScreens>
-            <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
-                <RootStack.Navigator screenOptions={screenOptions.centralPaneNavigator}>
-                    <RootStack.Screen
-                        name={SCREENS.WORKSPACE.INITIAL}
-                        options={screenOptions.homeScreen}
-                        getComponent={loadWorkspaceInitialPage}
+            <Stack.Navigator
+                sidebarScreen={SCREENS.WORKSPACE.INITIAL}
+                defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
+            >
+                <Stack.Screen
+                    name={SCREENS.WORKSPACE.INITIAL}
+                    getComponent={loadWorkspaceInitialPage}
+                />
+                {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (
+                    <Stack.Screen
+                        key={screenName}
+                        name={screenName as keyof Screens}
+                        getComponent={componentGetter}
                     />
-                    {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (
-                        <RootStack.Screen
-                            key={screenName}
-                            name={screenName as keyof Screens}
-                            getComponent={componentGetter}
-                        />
-                    ))}
-                </RootStack.Navigator>
-            </View>
+                ))}
+            </Stack.Navigator>
         </FocusTrapForScreens>
     );
 }
 
-FullScreenNavigator.displayName = 'FullScreenNavigator';
+WorkspaceNavigator.displayName = 'WorkspaceNavigator';
 
 export {CENTRAL_PANE_WORKSPACE_SCREENS};
-export default FullScreenNavigator;
+export default WorkspaceNavigator;
