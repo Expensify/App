@@ -747,6 +747,11 @@ const CONST = {
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
+    NAVATTIC: {
+        ADMIN_TOUR: 'https://expensify.navattic.com/kh204a7',
+        EMPLOYEE_TOUR: 'https://expensify.navattic.com/35609gb',
+    },
+
     OLDDOT_URLS: {
         ADMIN_POLICIES_URL: 'admin_policies',
         ADMIN_DOMAINS_URL: 'admin_domains',
