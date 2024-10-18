@@ -1450,6 +1450,9 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
         backTo?: string;
     };
+    [SCREENS.ONBOARDING.PRIVATE_DOMAIN]: {
+        backTo?: string;
+    };
     [SCREENS.ONBOARDING.PURPOSE]: {
         backTo?: string;
     };

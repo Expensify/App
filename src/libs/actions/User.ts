@@ -20,7 +20,7 @@ import type {
     ValidateLoginParams,
     ValidateSecondaryLoginParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -49,6 +49,7 @@ import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import * as Link from './Link';
 import * as Report from './Report';
 import * as Session from './Session';
+import ValidateUserAndGetAccessiblePoliciesParams from '@libs/API/parameters/ValidateUserAndGetAccessiblePolicies';
 
 let currentUserAccountID = -1;
 let currentEmail = '';
@@ -1339,6 +1340,57 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.merge(ONYXKEYS.USER, {isDebugModeEnabled});
 }
 
+/**
+ * Check which policies the user can join
+ */
+function validateUserAndGetAccessiblePolicies(validateCode: string) {
+    return new Promise((resolve, reject) => {
+        const parameters: ValidateUserAndGetAccessiblePoliciesParams = {validateCode: validateCode};
+
+        const optimisticData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.KEY_JOINABLE_POLICIES,
+                value: {isLoading: true},
+            },
+        ];
+
+        const successData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.KEY_JOINABLE_POLICIES,
+                value: {isLoading: false},
+            },
+        ];
+
+        const failureData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.KEY_JOINABLE_POLICIES,
+                value: {isLoading: false},
+            },
+        ];
+
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.VALIDATE_LOGIN_AND_SHOW_WORKSPACES, parameters, {optimisticData, successData, failureData})
+            .then((response) => {
+                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
+                        // eslint-disable-next-line prefer-promise-reject-errors
+                        reject(`validateCodeForm.error.incorrectMagicCode`);
+                        return;
+                    } else {
+                        reject('validateUserAndGetAccessiblePolicies error'); // TODO add as const 
+                    return;
+                    }
+                }
+                resolve(response); // TODO add type
+            })
+            // eslint-disable-next-line prefer-promise-reject-errors
+            .catch(() => reject('validateUserAndGetAccessiblePolicies error')); // TODO add as const 
+    });
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
@@ -1380,4 +1432,5 @@ export {
     subscribeToActiveGuides,
     dismissGBRTooltip,
     setIsDebugModeEnabled,
+    validateUserAndGetAccessiblePolicies
 };

@@ -185,6 +185,7 @@ import type {
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceYouMayJoin,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
 } from './params';
@@ -467,6 +468,7 @@ const translations = {
         links: 'Links',
         days: 'days',
         rename: 'Rename',
+        skip: 'Skip',
     },
     location: {
         useCurrent: 'Use current location',
@@ -1724,6 +1726,10 @@ const translations = {
         },
         getStarted: 'Get started',
         whatsYourName: "What's your name?",
+        peopleYouMayKnow: "People you may know are already here! Verify your email to join them.",
+        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin ) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
+        joinAWorkspace: "Join a workspace",
+        listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
         whereYouWork: 'Where do you work?',
         errorSelection: 'Please make a selection to continue.',
         purpose: {

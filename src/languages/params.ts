@@ -538,6 +538,11 @@ type ImportedTypesParams = {
     importedTypes: string[];
 };
 
+type WorkspaceYouMayJoin = {
+    domain: string;
+    email: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -735,4 +740,5 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    WorkspaceYouMayJoin
 };
