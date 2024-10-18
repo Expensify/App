@@ -3,6 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,21 +24,23 @@ function SearchButton({style}: SearchButtonProps) {
     const {openSearchRouter} = useSearchRouterContext();
 
     return (
-        <PressableWithoutFeedback
-            accessibilityLabel={translate('common.search')}
-            style={[styles.flexRow, styles.touchableButtonImage, style]}
-            onPress={Session.checkIfActionIsAllowed(() => {
-                Timing.start(CONST.TIMING.SEARCH_ROUTER_RENDER);
-                Performance.markStart(CONST.TIMING.SEARCH_ROUTER_RENDER);
+        <Tooltip text={translate('common.search')}>
+            <PressableWithoutFeedback
+                accessibilityLabel={translate('common.search')}
+                style={[styles.flexRow, styles.touchableButtonImage, style]}
+                onPress={Session.checkIfActionIsAllowed(() => {
+                    Timing.start(CONST.TIMING.SEARCH_ROUTER_RENDER);
+                    Performance.markStart(CONST.TIMING.SEARCH_ROUTER_RENDER);
 
-                openSearchRouter();
-            })}
-        >
-            <Icon
-                src={Expensicons.MagnifyingGlass}
-                fill={theme.icon}
-            />
-        </PressableWithoutFeedback>
+                    openSearchRouter();
+                })}
+            >
+                <Icon
+                    src={Expensicons.MagnifyingGlass}
+                    fill={theme.icon}
+                />
+            </PressableWithoutFeedback>
+        </Tooltip>
     );
 }
 
