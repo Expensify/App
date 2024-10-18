@@ -1,10 +1,10 @@
 import React from 'react';
+import {View} from 'react-native';
 import type {ListRenderItemInfo} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FlatList from '@components/FlatList';
 import {PressableWithFeedback} from '@components/Pressable';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,10 +37,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
         </PressableWithFeedback>
     );
     return (
-        <ScrollView
-            style={styles.mt5}
-            contentContainerStyle={styles.pb5}
-        >
+        <View style={[styles.mv5, styles.flex1]}>
             <Button
                 success
                 large
@@ -52,7 +49,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 data={sortedAllReportActions}
                 renderItem={renderItem}
             />
-        </ScrollView>
+        </View>
     );
 }
 
