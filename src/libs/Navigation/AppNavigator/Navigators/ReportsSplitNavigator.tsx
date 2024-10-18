@@ -1,5 +1,5 @@
-import {useNavigation, useRoute} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
+import {useNavigationState, useRoute} from '@react-navigation/native';
+import React, {useRef} from 'react';
 import {Freeze} from 'react-freeze';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -8,7 +8,8 @@ import memoize from '@libs/memoize';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
-import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {NavigationPartialRoute, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import {isFullScreenRoute} from '@libs/NavigationUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
@@ -43,29 +44,10 @@ function ReportsSplitNavigator() {
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
 
-    const [isScreenBlurred, setIsScreenBlurred] = useState(false);
-
     let initialReportID: string | undefined;
     const isInitialRender = useRef(true);
 
-    const screenIndexRef = useRef<number | null>(null);
-    const navigation = useNavigation();
     const currentRoute = useRoute();
-
-    useEffect(() => {
-        const index = navigation.getState()?.routes.findIndex((route) => route.key === currentRoute.key) ?? 0;
-        screenIndexRef.current = index;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('state', () => {
-            const modalNavigatorsCount = navigation.getState()?.routes?.filter((route) => route.name.endsWith('ModalNavigator'))?.length ?? 0;
-            const navigationIndex = (navigation.getState()?.index ?? 0) - (screenIndexRef.current ?? 0) - modalNavigatorsCount;
-            setIsScreenBlurred(navigationIndex >= 1);
-        });
-        return () => unsubscribe();
-    }, [navigation]);
 
     if (isInitialRender.current) {
         const currentURL = getCurrentUrl();
@@ -81,25 +63,32 @@ function ReportsSplitNavigator() {
         isInitialRender.current = false;
     }
 
-    const getSidebarScreen = freezeScreenWithLazyLoading(() => require<ReactComponentModule>('@pages/home/sidebar/SidebarScreen').default, isScreenBlurred);
+    const shouldFreeze = useNavigationState((state) => {
+        const lastFullScreenRoute = state.routes.findLast((route) => isFullScreenRoute(route as NavigationPartialRoute));
+        return lastFullScreenRoute?.key !== currentRoute.key;
+    });
+
+    const getSidebarScreen = freezeScreenWithLazyLoading(() => require<ReactComponentModule>('@pages/home/sidebar/SidebarScreen').default, shouldFreeze);
 
     return (
-        <FocusTrapForScreens>
-            <Stack.Navigator
-                sidebarScreen={SCREENS.HOME}
-                defaultCentralScreen={SCREENS.REPORT}
-            >
-                <Stack.Screen
-                    name={SCREENS.HOME}
-                    getComponent={getSidebarScreen}
-                />
-                <Stack.Screen
-                    name={SCREENS.REPORT}
-                    initialParams={{reportID: initialReportID, openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined}}
-                    getComponent={loadReportScreen}
-                />
-            </Stack.Navigator>
-        </FocusTrapForScreens>
+        <Freeze freeze={shouldFreeze}>
+            <FocusTrapForScreens>
+                <Stack.Navigator
+                    sidebarScreen={SCREENS.HOME}
+                    defaultCentralScreen={SCREENS.REPORT}
+                >
+                    <Stack.Screen
+                        name={SCREENS.HOME}
+                        getComponent={getSidebarScreen}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.REPORT}
+                        initialParams={{reportID: initialReportID, openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined}}
+                        getComponent={loadReportScreen}
+                    />
+                </Stack.Navigator>
+            </FocusTrapForScreens>
+        </Freeze>
     );
 }
 

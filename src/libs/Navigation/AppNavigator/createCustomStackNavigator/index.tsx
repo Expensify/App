@@ -3,11 +3,14 @@ import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/na
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
+import {isFullScreenRoute} from '@libs/NavigationUtils';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
 
 function getStateToRender(state: StackNavigationState<ParamListBase>): StackNavigationState<ParamListBase> {
-    const routes = state.routes.slice(-2);
+    // @ts-expect-error TODO: Fix this utility function types.
+    const lastSplitIndex = state.routes.findLastIndex((route) => isFullScreenRoute(route));
+    const routes = state.routes.slice(Math.max(0, lastSplitIndex - 1), state.routes.length);
 
     return {
         ...state,

@@ -33,18 +33,12 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
     return route.params !== undefined && 'reportID' in route.params && typeof route.params.reportID === 'string';
 }
 
-function getMatchingFullScreenRouteForState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string) {
-    const focusedRoute = findFocusedRoute(state);
-
+function getMatchingFullScreenRouteForRoute(route: NavigationPartialRoute, policyID?: string) {
     const reportSplitParams = policyID ? {policyID} : undefined;
 
-    if (!focusedRoute) {
-        return undefined;
-    }
-
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
-    if (isRouteWithBackToParam(focusedRoute)) {
-        const stateForBackTo = getStateFromPath(focusedRoute.params.backTo, config);
+    if (isRouteWithBackToParam(route)) {
+        const stateForBackTo = getStateFromPath(route.params.backTo, config);
 
         // This may happen if the backTo url is invalid.
         const lastRoute = stateForBackTo?.routes.at(-1);
@@ -59,24 +53,29 @@ function getMatchingFullScreenRouteForState(state: PartialState<NavigationState<
             return lastRoute;
         }
 
+        const focusedStateForBackToRoute = findFocusedRoute(stateForBackTo);
+
+        if (!focusedStateForBackToRoute) {
+            return undefined;
+        }
         // If not, get the matching full screen route for the back to state.
-        return getMatchingFullScreenRouteForState(stateForBackTo as PartialState<NavigationState<RootStackParamList>>, policyID);
+        return getMatchingFullScreenRouteForRoute(focusedStateForBackToRoute, policyID);
     }
 
-    if (RELATIONS.SEARCH_TO_RHP.includes(focusedRoute.name)) {
+    if (RELATIONS.SEARCH_TO_RHP.includes(route.name)) {
         const paramsFromRoute = getParamsFromRoute(SCREENS.SEARCH.CENTRAL_PANE);
 
         return {
             name: SCREENS.SEARCH.CENTRAL_PANE,
-            params: pick(focusedRoute.params, paramsFromRoute),
+            params: pick(route.params, paramsFromRoute),
         };
     }
 
-    if (RELATIONS.RHP_TO_SIDEBAR[focusedRoute.name]) {
+    if (RELATIONS.RHP_TO_SIDEBAR[route.name]) {
         // @TODO: Figure out better types for this.
         return createSplitNavigator(
             {
-                name: RELATIONS.RHP_TO_SIDEBAR[focusedRoute.name] as typeof SCREENS.HOME,
+                name: RELATIONS.RHP_TO_SIDEBAR[route.name] as typeof SCREENS.HOME,
             },
             undefined,
             reportSplitParams,
@@ -84,7 +83,7 @@ function getMatchingFullScreenRouteForState(state: PartialState<NavigationState<
     }
 
     // @TODO We can think about handling it in one condition.
-    if (RELATIONS.RHP_TO_WORKSPACE[focusedRoute.name]) {
+    if (RELATIONS.RHP_TO_WORKSPACE[route.name]) {
         const paramsFromRoute = getParamsFromRoute(SCREENS.SEARCH.CENTRAL_PANE);
 
         return createSplitNavigator(
@@ -92,15 +91,15 @@ function getMatchingFullScreenRouteForState(state: PartialState<NavigationState<
                 name: SCREENS.WORKSPACE.INITIAL,
             },
             {
-                name: RELATIONS.RHP_TO_WORKSPACE[focusedRoute.name] as keyof WorkspaceSplitNavigatorParamList,
+                name: RELATIONS.RHP_TO_WORKSPACE[route.name] as keyof WorkspaceSplitNavigatorParamList,
                 params: {
-                    ...pick(focusedRoute.params, paramsFromRoute),
+                    ...pick(route.params, paramsFromRoute),
                 },
             },
         );
     }
 
-    if (RELATIONS.RHP_TO_SETTINGS[focusedRoute.name]) {
+    if (RELATIONS.RHP_TO_SETTINGS[route.name]) {
         const paramsFromRoute = getParamsFromRoute(SCREENS.SEARCH.CENTRAL_PANE);
 
         return createSplitNavigator(
@@ -108,17 +107,17 @@ function getMatchingFullScreenRouteForState(state: PartialState<NavigationState<
                 name: SCREENS.SETTINGS.ROOT,
             },
             {
-                name: RELATIONS.RHP_TO_SETTINGS[focusedRoute.name] as keyof SettingsSplitNavigatorParamList,
+                name: RELATIONS.RHP_TO_SETTINGS[route.name] as keyof SettingsSplitNavigatorParamList,
                 params: {
-                    ...pick(focusedRoute.params, paramsFromRoute),
+                    ...pick(route.params, paramsFromRoute),
                 },
             },
         );
     }
 
     // @TODO should we push this route on narrow layout?
-    if (isRouteWithReportID(focusedRoute)) {
-        const reportID = focusedRoute.params.reportID;
+    if (isRouteWithReportID(route)) {
+        const reportID = route.params.reportID;
         const paramsFromRoute = getParamsFromRoute(SCREENS.REPORT);
 
         if (!ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
@@ -133,7 +132,7 @@ function getMatchingFullScreenRouteForState(state: PartialState<NavigationState<
                 name: SCREENS.REPORT,
                 params: {
                     reportID: '-1',
-                    ...pick(focusedRoute.params, paramsFromRoute),
+                    ...pick(route.params, paramsFromRoute),
                 },
             },
             reportSplitParams,
@@ -161,12 +160,16 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 
     // If there is no full screen route in the root, we want to add it.
     if (!fullScreenRoute) {
-        const matchingRootRoute = getMatchingFullScreenRouteForState(state, policyID);
-        // If there is a matching root route, add it to the state.
-        if (matchingRootRoute) {
-            return {
-                adaptedState: getRoutesWithIndex([matchingRootRoute, ...state.routes]),
-            };
+        const focusedRoute = findFocusedRoute(state);
+
+        if (focusedRoute) {
+            const matchingRootRoute = getMatchingFullScreenRouteForRoute(focusedRoute, policyID);
+            // If there is a matching root route, add it to the state.
+            if (matchingRootRoute) {
+                return {
+                    adaptedState: getRoutesWithIndex([matchingRootRoute, ...state.routes]),
+                };
+            }
         }
 
         const reportSplitParams = policyID ? {policyID} : undefined;
@@ -207,3 +210,4 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
 };
 
 export default getAdaptedStateFromPath;
+export {getMatchingFullScreenRouteForRoute, isFullScreenRoute};

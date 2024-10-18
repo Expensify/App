@@ -1,12 +1,14 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef, NavigationState, PartialState, StackActionType} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
+import {findFocusedRoute, StackActions} from '@react-navigation/native';
+import {getMatchingFullScreenRouteForRoute, isFullScreenRoute} from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import getStateFromPath from '@navigation/getStateFromPath';
 import linkingConfig from '@navigation/linkingConfig';
 import type {RootStackParamList, StackNavigationAction} from '@navigation/types';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import getMinimalAction from './getMinimalAction';
 
@@ -39,6 +41,10 @@ function shouldDispatchAction(currentState: NavigationState<RootStackParamList>,
     }
 
     return true;
+}
+
+function shouldCheckFullScreenRouteMatching(action: StackNavigationAction): action is StackNavigationAction & {type: 'PUSH'; payload: {name: typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR}} {
+    return action !== undefined && action.type === 'PUSH' && action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 }
 
 export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string) {
@@ -82,6 +88,21 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
         navigation.dispatch(actionWithPolicyID);
         return;
+    }
+
+    // If we deeplink to a RHP page, we want to make sure we have the correct full screen route under the overlay.
+    if (shouldCheckFullScreenRouteMatching(action)) {
+        const newFocusedRoute = findFocusedRoute(stateFromPath);
+        if (newFocusedRoute) {
+            const matchingFullScreenRoute = getMatchingFullScreenRouteForRoute(newFocusedRoute);
+
+            // @ts-expect-error: fix this utility function types.
+            const lastFullScreenRoute = currentState.routes.findLast(isFullScreenRoute);
+            if (matchingFullScreenRoute && lastFullScreenRoute && matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
+                const additionalAction = StackActions.push(matchingFullScreenRoute.name, {screen: matchingFullScreenRoute.state?.routes?.at(-1)?.name});
+                navigation.dispatch(additionalAction);
+            }
+        }
     }
 
     const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
