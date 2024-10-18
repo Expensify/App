@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useState} from 'react';
 import {View} from 'react-native';
 import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
