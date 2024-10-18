@@ -38,11 +38,12 @@ function IOURequestStartPage({
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const policy = usePolicy(report?.policyID);
     const [selectedTab = CONST.TAB_REQUEST.SCAN, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
-    const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
+    const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || -1}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -58,7 +59,7 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
-    const transactionRequestType = useMemo(() => transaction?.iouRequestType ?? selectedTab, [transaction?.iouRequestType, selectedTab]);
+    const transactionRequestType = useMemo(() => (transaction?.iouRequestType ?? shouldUseTab ? selectedTab : CONST.IOU.REQUEST_TYPE.MANUAL), [transaction?.iouRequestType, selectedTab]);
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
@@ -134,7 +135,7 @@ function IOURequestStartPage({
                                 />
                             </FocusTrapContainerElement>
 
-                            {iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE ? (
+                            {shouldUseTab ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
                                     defaultSelectedTab={CONST.TAB_REQUEST.SCAN}
