@@ -9,6 +9,7 @@ type CompleteGuidedSetupParams = {
     paymentSelected?: string;
     companySize?: OnboardingCompanySizeType;
     userReportedIntegration?: OnboardingAccountingType;
+    policyID?: string;
 };
 
 export default CompleteGuidedSetupParams;
