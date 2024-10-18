@@ -79,7 +79,27 @@ function adaptOnboardingRouteState() {
                 {...currentRoute},
             ],
         } as Readonly<PartialState<NavigationState>>;
-    } // TODO change stack for isPrivateDomain && !selectedPurpose 
+    }
+    else if (currentRoute?.name === SCREENS.ONBOARDING.PRIVATE_DOMAIN && !selectedPurpose) {
+        adaptedOnboardingModalNavigatorState = {
+            index: 3,
+            routes: [
+                {
+                    name: SCREENS.ONBOARDING.PERSONAL_DETAILS,
+                    params: currentRoute?.params,
+                },  
+                {
+                    name: SCREENS.ONBOARDING.PRIVATE_DOMAIN,
+                    params: currentRoute?.params,
+                },        
+                {
+                    name: SCREENS.ONBOARDING.WORKSPACES,
+                    params: currentRoute?.params,
+                },  
+                {...currentRoute},
+            ],
+        } as Readonly<PartialState<NavigationState>>;
+    }
     else {
         adaptedOnboardingModalNavigatorState = {
             index: 1,
