@@ -13,10 +13,13 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import Performance from '@libs/Performance';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -47,6 +50,11 @@ type SearchRouterListProps = {
     closeAndClearRouter: () => void;
 };
 
+const setPerformanceTimersEnd = () => {
+    Timing.end(CONST.TIMING.SEARCH_ROUTER_RENDER);
+    Performance.markEnd(CONST.TIMING.SEARCH_ROUTER_RENDER);
+};
+
 function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
     if ('singleIcon' in item && item.singleIcon && 'query' in item && item.query) {
         return true;
@@ -72,7 +80,6 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     return (
         <UserListItem
             pressableStyle={[styles.br2]}
-            wrapperStyle={[styles.pr3, styles.pl3]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
@@ -91,7 +98,6 @@ function SearchRouterList(
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const contextualQuery = `in:${reportForContextualSearch?.reportID}`;
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
 
     if (currentQuery?.inputQuery) {
@@ -108,7 +114,7 @@ function SearchRouterList(
         });
     }
 
-    if (reportForContextualSearch && !currentQuery?.inputQuery?.includes(contextualQuery)) {
+    if (reportForContextualSearch && !currentQuery?.inputQuery) {
         sections.push({
             data: [
                 {
@@ -137,7 +143,7 @@ function SearchRouterList(
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
-    const styledRecentReports = recentReports.map((item) => ({...item, pressableStyle: styles.br2}));
+    const styledRecentReports = recentReports.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
     sections.push({title: translate('search.recentChats'), data: styledRecentReports});
 
     const onSelectRow = useCallback(
@@ -159,9 +165,9 @@ function SearchRouterList(
             // Handle selection of "Recent chat"
             closeAndClearRouter();
             if ('reportID' in item && item?.reportID) {
-                Navigation.closeAndNavigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
-                Report.navigateToAndOpenReport(item?.login ? [item.login] : []);
+                Report.navigateToAndOpenReport(item.login ? [item.login] : [], false);
             }
         },
         [closeAndClearRouter, onSearchSubmit, currentQuery, updateUserSearchQuery],
@@ -174,8 +180,12 @@ function SearchRouterList(
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
             sectionListStyle={[isSmallScreenWidth ? styles.ph5 : styles.ph2, styles.pb2]}
+            listItemWrapperStyle={[styles.pr3, styles.pl3]}
+            onLayout={setPerformanceTimersEnd}
             ref={ref}
             showScrollIndicator={!isSmallScreenWidth}
+            sectionTitleStyles={styles.mhn2}
+            shouldSingleExecuteRowSelect
         />
     );
 }

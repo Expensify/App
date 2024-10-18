@@ -320,6 +320,7 @@ function IOURequestStepDistance({
                     currentUserPersonalDetails.accountID,
                     transaction?.splitShares,
                     iouType,
+                    transaction,
                 );
                 return;
             }

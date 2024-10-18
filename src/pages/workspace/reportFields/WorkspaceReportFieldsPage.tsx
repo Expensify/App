@@ -3,6 +3,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -29,6 +30,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isConnectionInProgress} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
@@ -40,6 +42,7 @@ import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as ReportField from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyReportField} from '@src/types/onyx/Policy';
@@ -76,6 +79,9 @@ function WorkspaceReportFieldsPage({
     const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
     const [deleteReportFieldsConfirmModalVisible, setDeleteReportFieldsConfirmModalVisible] = useState(false);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
+    const hasSyncError = PolicyUtils.hasSyncError(policy, isSyncInProgress);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
 
@@ -220,7 +226,7 @@ function WorkspaceReportFieldsPage({
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            {isConnectedToAccounting ? (
+            {!hasSyncError && isConnectedToAccounting ? (
                 <Text>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.reportFields.importedFromAccountingSoftware')} `}</Text>
                     <TextLink
