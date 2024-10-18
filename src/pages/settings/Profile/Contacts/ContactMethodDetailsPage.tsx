@@ -5,7 +5,6 @@ import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -142,7 +141,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
 
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
@@ -168,6 +167,35 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
 
+    const contactMethodRemoveButton = () => {
+        return (
+            <OfflineWithFeedback
+                pendingAction={loginData.pendingFields?.deletedLogin}
+                errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
+                errorRowStyles={[themeStyles.mt6, themeStyles.ph5]}
+                onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
+            >
+                <MenuItem
+                    title={translate('common.remove')}
+                    icon={Expensicons.Trashcan}
+                    iconFill={theme.danger}
+                    onPress={() => toggleDeleteModal(true)}
+                />
+            </OfflineWithFeedback>
+        );
+    };
+
+    const defaultContactDescription = () => (
+        <OfflineWithFeedback
+            pendingAction={loginData.pendingFields?.defaultLogin}
+            errors={ErrorUtils.getLatestErrorField(loginData, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
+            errorRowStyles={[themeStyles.ml8, themeStyles.mr5]}
+            onClose={() => User.clearContactMethodErrors(contactMethod, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
+        >
+            <Text style={[!isFailedRemovedContactMethod && themeStyles.ph5, themeStyles.mv3]}>{translate('contacts.yourDefaultContactMethod')}</Text>
+        </OfflineWithFeedback>
+    );
+
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => validateCodeFormRef.current?.focus?.()}
@@ -177,7 +205,11 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 title={formattedContactMethod}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
             />
-            <ScrollView keyboardShouldPersistTaps="handled">
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                style={[themeStyles.flex1]}
+                contentContainerStyle={themeStyles.flexGrow1}
+            >
                 <ConfirmModal
                     title={translate('contacts.removeContactMethod')}
                     onConfirm={confirmDeleteAndHideModal}
@@ -207,19 +239,15 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 )}
 
                 {!loginData.validatedDate && !isFailedAddContactMethod && (
-                    <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
-                        <DotIndicatorMessage
-                            type="success"
-                            style={[themeStyles.mb3]}
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}}
-                        />
+                    <View style={[themeStyles.flex1, themeStyles.mt3, themeStyles.pb5]}>
+                        <Text style={[themeStyles.mb3, themeStyles.ph5]}>{translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}</Text>
 
                         <ValidateCodeForm
                             contactMethod={contactMethod}
                             hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                             loginList={loginList ?? {}}
                             ref={validateCodeFormRef}
+                            renderComponent={() => (isDefaultContactMethod ? defaultContactDescription() : contactMethodRemoveButton())}
                         />
                     </View>
                 )}
@@ -233,33 +261,12 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                             title={translate('contacts.setAsDefault')}
                             icon={Expensicons.Star}
                             onPress={setAsDefault}
+                            wrapperStyle={themeStyles.ph0}
                         />
                     </OfflineWithFeedback>
                 ) : null}
-                {isDefaultContactMethod ? (
-                    <OfflineWithFeedback
-                        pendingAction={loginData.pendingFields?.defaultLogin}
-                        errors={ErrorUtils.getLatestErrorField(loginData, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
-                        errorRowStyles={[themeStyles.ml8, themeStyles.mr5]}
-                        onClose={() => User.clearContactMethodErrors(contactMethod, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
-                    >
-                        <Text style={[themeStyles.ph5, themeStyles.mv3]}>{translate('contacts.yourDefaultContactMethod')}</Text>
-                    </OfflineWithFeedback>
-                ) : (
-                    <OfflineWithFeedback
-                        pendingAction={loginData.pendingFields?.deletedLogin}
-                        errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
-                        errorRowStyles={[themeStyles.mt6, themeStyles.ph5]}
-                        onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
-                    >
-                        <MenuItem
-                            title={translate('common.remove')}
-                            icon={Expensicons.Trashcan}
-                            iconFill={theme.danger}
-                            onPress={() => toggleDeleteModal(true)}
-                        />
-                    </OfflineWithFeedback>
-                )}
+                {isDefaultContactMethod && loginData.validatedDate ? defaultContactDescription() : null}
+                {isFailedAddContactMethod ? contactMethodRemoveButton() : null}
             </ScrollView>
         </ScreenWrapper>
     );
