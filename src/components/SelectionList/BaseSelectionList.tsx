@@ -105,6 +105,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldIgnoreFocus = false,
         scrollEventThrottle,
         contentContainerStyle,
+        CellRendererComponent,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -758,6 +759,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 onEndReachedThreshold={onEndReachedThreshold}
                                 scrollEventThrottle={scrollEventThrottle}
                                 contentContainerStyle={contentContainerStyle}
+                                CellRendererComponent={CellRendererComponent}
                             />
                             {children}
                         </>

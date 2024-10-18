@@ -1,12 +1,23 @@
 import React, {forwardRef, useEffect, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {Keyboard} from 'react-native';
+import type {FocusEventHandler, ForwardedRef} from 'react';
+import {Keyboard, View} from 'react-native';
+import type {CellRendererProps} from 'react-native';
 import * as Browser from '@libs/Browser';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseSelectionList from './BaseSelectionList';
 import type {BaseSelectionListProps, ListItem, SelectionListHandle} from './types';
 
-function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
+function FocusAwareCellRenderer<TItem extends ListItem>({onFocusCapture, ...rest}: CellRendererProps<TItem>) {
+    return (
+        <View
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
+            onFocus={onFocusCapture as unknown as FocusEventHandler | undefined}
+        />
+    );
+}
+
+function SelectionList<TItem extends ListItem>({onScroll, shouldPreventActiveCellVirtualization, ...props}: BaseSelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);
@@ -46,6 +57,8 @@ function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelecti
             // Ignore the focus if it's caused by a touch event on mobile chrome.
             // For example, a long press will trigger a focus event on mobile chrome.
             shouldIgnoreFocus={Browser.isMobileChrome() && isScreenTouched}
+            // Customize the cell renderer so the VirtualizedList can receive focus events and avoid virtualizing the active cell.
+            CellRendererComponent={shouldPreventActiveCellVirtualization ? FocusAwareCellRenderer : undefined}
         />
     );
 }

@@ -78,6 +78,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 showScrollIndicator
                 shouldShowTooltips={false}
                 ListItem={RadioListItem}
+                shouldPreventActiveCellVirtualization
             />
         </ScreenWrapper>
     );
