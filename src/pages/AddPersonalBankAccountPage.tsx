@@ -10,12 +10,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {NavigationPartialRoute} from '@libs/Navigation/types';
+import {isFullScreenRoute} from '@libs/NavigationUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 function AddPersonalBankAccountPage() {
@@ -26,21 +28,22 @@ function AddPersonalBankAccountPage() {
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
-    const topMostCentralPane = Navigation.getTopMostCentralPaneRouteFromRootState();
+    const topmostFullScreenRoute = navigationRef.current?.getRootState().routes.findLast((route) => isFullScreenRoute(route as NavigationPartialRoute));
 
+    // @TODO: Verify if this methods works correctly
     const goBack = useCallback(() => {
-        switch (topMostCentralPane?.name) {
-            case SCREENS.SETTINGS.WALLET.ROOT:
-                Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
+        switch (topmostFullScreenRoute?.name) {
+            case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
+                Navigation.goBack(ROUTES.SETTINGS_WALLET);
                 break;
-            case SCREENS.REPORT:
+            case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
                 Navigation.closeRHPFlow();
                 break;
             default:
                 Navigation.goBack();
                 break;
         }
-    }, [topMostCentralPane]);
+    }, [topmostFullScreenRoute]);
 
     const submitBankAccountForm = useCallback(() => {
         const bankAccounts = plaidData?.bankAccounts ?? [];

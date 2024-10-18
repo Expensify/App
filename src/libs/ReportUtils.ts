@@ -4096,6 +4096,7 @@ function navigateBackAfterDeleteTransaction(backRoute: Route | undefined, isFrom
     if (!backRoute) {
         return;
     }
+    // @TODO: Refactor this method
     const topmostCentralPaneRoute = Navigation.getTopMostCentralPaneRouteFromRootState();
     if (topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
         Navigation.dismissModal();
