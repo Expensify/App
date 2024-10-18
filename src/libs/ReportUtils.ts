@@ -7677,26 +7677,37 @@ function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEn
 /**
  * Return held and full amount formatted with used currency
  */
-function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): string[] {
+function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReimbursableOnly: boolean): string[] {
     const reportTransactions = reportsTransactions[iouReport?.reportID ?? ''] ?? [];
     const hasPendingTransaction = reportTransactions.some((transaction) => !!transaction.pendingAction);
 
     // if the report is an expense report, the total amount should be negated
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
 
-    if (hasUpdatedTotal(iouReport, policy) && hasPendingTransaction) {
-        const unheldTotal = reportTransactions.reduce((currentVal, transaction) => currentVal + (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
-
-        return [
-            CurrencyUtils.convertToDisplayString(unheldTotal * coefficient, iouReport?.currency),
-            CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency),
-        ];
+    let total = iouReport?.total ?? 0;
+    if (isReimbursableOnly) {
+        total -= iouReport?.nonReimbursableTotal ?? 0;
     }
 
-    return [
-        CurrencyUtils.convertToDisplayString((iouReport?.unheldTotal ?? 0) * coefficient, iouReport?.currency),
-        CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency),
-    ];
+    if (hasUpdatedTotal(iouReport, policy) && hasPendingTransaction) {
+        const unheldNonReimbursableTotal = reportTransactions.reduce(
+            (currentVal, transaction) => currentVal + (!TransactionUtils.isOnHold(transaction) && !transaction.reimbursable ? transaction.amount : 0),
+            0,
+        );
+        let unheldTotal = reportTransactions.reduce((currentVal, transaction) => currentVal + (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
+
+        if (isReimbursableOnly) {
+            unheldTotal -= unheldNonReimbursableTotal;
+        }
+
+        return [CurrencyUtils.convertToDisplayString(unheldTotal * coefficient, iouReport?.currency), CurrencyUtils.convertToDisplayString(total * coefficient, iouReport?.currency)];
+    }
+
+    let unheldTotal = iouReport?.unheldTotal ?? 0;
+    if (isReimbursableOnly) {
+        unheldTotal -= iouReport?.unheldNonReimbursableTotal ?? 0;
+    }
+    return [CurrencyUtils.convertToDisplayString(unheldTotal * coefficient, iouReport?.currency), CurrencyUtils.convertToDisplayString(total * coefficient, iouReport?.currency)];
 }
 
 /**

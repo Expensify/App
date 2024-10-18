@@ -54,7 +54,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {getCurrency, getTransaction} from '@libs/TransactionUtils';
+import {getTransaction} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -6514,8 +6514,8 @@ function getReportFromHoldRequestsOnyxData(
         chatReport.reportID,
         chatReport.policyID ?? iouReport?.policyID ?? '',
         recipient.accountID ?? 1,
-        holdTransactions.reduce((acc, transaction) => acc + TransactionUtils.getAmount(transaction), 0),
-        getCurrency(firstHoldTransaction),
+        ((iouReport?.total ?? 0) - (iouReport?.unheldTotal ?? 0)) * (ReportUtils.isIOUReport(iouReport) ? 1 : -1),
+        iouReport?.currency ?? '',
         false,
         newParentReportActionID,
     );
