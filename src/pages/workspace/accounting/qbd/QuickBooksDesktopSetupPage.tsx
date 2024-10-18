@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
@@ -12,16 +13,18 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import LoadingPage from '@pages/LoadingPage';
-import withPolicy from '@pages/workspace/withPolicy';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import * as PolicyAction from '@userActions/Policy/Policy';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
-function RequireQuickBooksDesktopModal({policy}: WithPolicyProps) {
+type RequireQuickBooksDesktopModalProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL>;
+
+function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID: string = route.params.policyID;
     const [isLoading, setIsLoading] = useState(true);
     const [codatSetupLink, setCodatSetupLink] = useState<string>('');
 
@@ -35,9 +38,7 @@ function RequireQuickBooksDesktopModal({policy}: WithPolicyProps) {
         };
 
         // Since QBD doesn't support Taxes, we should disable them from the LHN when connecting to QBD
-        if (policy?.tax?.trackingEnabled) {
-            PolicyAction.enablePolicyTaxes(policyID, false);
-        }
+        PolicyAction.enablePolicyTaxes(policyID, false);
 
         fetchSetupLink();
         // disabling this rule, as we want this to run only on the first render
@@ -88,4 +89,4 @@ function RequireQuickBooksDesktopModal({policy}: WithPolicyProps) {
 
 RequireQuickBooksDesktopModal.displayName = 'RequireQuickBooksDesktopModal';
 
-export default withPolicy(RequireQuickBooksDesktopModal);
+export default RequireQuickBooksDesktopModal;
