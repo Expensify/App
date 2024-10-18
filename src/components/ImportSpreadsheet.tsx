@@ -167,7 +167,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('spreadsheet.importSpreadsheet')}
-                            onBackButtonPress={() => Navigation.navigate(backTo)}
+                            onBackButtonPress={() => Navigation.goBack(backTo)}
                         />
 
                         <View style={[styles.flex1, styles.uploadFileView(isSmallScreenWidth)]}>
