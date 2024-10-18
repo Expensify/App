@@ -61,7 +61,8 @@
     "e2e-test-runner-build": "node --max-old-space-size=8192 node_modules/.bin/ncc build tests/e2e/testRunner.ts -o tests/e2e/dist/",
     "react-compiler-healthcheck": "react-compiler-healthcheck --verbose",
     "react-compiler-healthcheck-test": "react-compiler-healthcheck --verbose &> react-compiler-output.txt",
-    "generate-search-parser": "peggy --format es -o src/libs/SearchParser/searchParser.js src/libs/SearchParser/searchParser.peggy ",
+    "generate-search-parser": "peggy --format es -o src/libs/SearchParser/searchParser.js src/libs/SearchParser/searchParser.peggy  src/libs/SearchParser/baseRules.peggy",
+    "generate-autocomplete-parser": "peggy --format es -o src/libs/SearchParser/autocompleteParser.js src/libs/SearchParser/autocompleteParser.peggy ",
     "web:prod": "http-server ./dist --cors"
   },
   "dependencies": {
