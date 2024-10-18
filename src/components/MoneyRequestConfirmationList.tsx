@@ -14,7 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import type {MileageRate} from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
@@ -37,7 +36,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {SplitShares} from '@src/types/onyx/Transaction';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import FormHelpMessage from './FormHelpMessage';
@@ -180,9 +178,6 @@ function MoneyRequestConfirmationList({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
-    const [mileageRatesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
-        selector: (selectedPolicy) => DistanceRequestUtils.getMileageRates(selectedPolicy),
-    });
     const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
         selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
     });
@@ -191,10 +186,6 @@ function MoneyRequestConfirmationList({
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
-    const [mileageRatesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID || '-1'}`, {
-        selector: (selectedPolicy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(selectedPolicy),
-    });
-    const mileageRates = isEmptyObject(mileageRatesReal) ? mileageRatesDraft : mileageRatesReal;
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -222,15 +213,11 @@ function MoneyRequestConfirmationList({
         IOU.setCustomUnitRateID(transactionID, rateID);
     }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID, isDistanceRequest]);
 
-    const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
-
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency) : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
-
-    const {unit, rate} = mileageRate ?? {};
-
+    const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
+    const rate = mileageRate.rate;
     const prevRate = usePrevious(rate);
-
-    const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
+    const unit = mileageRate.unit;
+    const currency = mileageRate.currency ?? CONST.CURRENCY.USD;
     const prevCurrency = usePrevious(currency);
 
     // A flag for showing the categories field
