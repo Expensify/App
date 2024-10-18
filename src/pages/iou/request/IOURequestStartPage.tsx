@@ -59,7 +59,7 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
-    const transactionRequestType = useMemo(() => (transaction?.iouRequestType ?? shouldUseTab ? selectedTab : CONST.IOU.REQUEST_TYPE.MANUAL), [transaction?.iouRequestType, selectedTab]);
+    const transactionRequestType = useMemo(() => (transaction?.iouRequestType ?? shouldUseTab ? selectedTab : CONST.IOU.REQUEST_TYPE.MANUAL), [transaction?.iouRequestType, shouldUseTab, selectedTab]);
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
