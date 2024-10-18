@@ -100,6 +100,7 @@ import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuit
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticPolicyCategories} from './Category';
+import execPolicyWriteCommand from './execPolicyWriteCommand';
 
 type ReportCreationData = Record<
     string,
@@ -468,7 +469,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
     ];
 
     const params: SetWorkspaceAutoReportingFrequencyParams = {policyID, frequency};
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY, params, {optimisticData, failureData, successData});
+    execPolicyWriteCommand(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY, params, {optimisticData, failureData, successData});
 }
 
 function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
@@ -509,7 +510,7 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
     ];
 
     const params: SetWorkspaceAutoReportingMonthlyOffsetParams = {policyID, value};
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET, params, {optimisticData, failureData, successData});
+    execPolicyWriteCommand(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET, params, {optimisticData, failureData, successData});
 }
 
 function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
@@ -562,7 +563,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             isAutoApprovalEnabled: false,
         }),
     };
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
+    execPolicyWriteCommand(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
 }
 
 function setWorkspacePayer(policyID: string, reimburserEmail: string) {
@@ -605,7 +606,7 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
 
     const params: SetWorkspacePayerParams = {policyID, reimburserEmail};
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_PAYER, params, {optimisticData, failureData, successData});
+    execPolicyWriteCommand(WRITE_COMMANDS.SET_WORKSPACE_PAYER, params, {optimisticData, failureData, successData});
 }
 
 function clearPolicyErrorField(policyID: string, fieldName: string) {
@@ -703,7 +704,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
 
     const params: SetWorkspaceReimbursementParams = {policyID, reimbursementChoice};
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
+    execPolicyWriteCommand(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
 }
 
 function clearWorkspaceReimbursementErrors(policyID: string) {
@@ -1068,7 +1069,7 @@ function updateWorkspaceAvatar(policyID: string, file: File) {
         file,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_AVATAR, params, {optimisticData, finallyData, failureData});
+    execPolicyWriteCommand(WRITE_COMMANDS.UPDATE_WORKSPACE_AVATAR, params, {optimisticData, finallyData, failureData});
 }
 
 /**
@@ -1285,7 +1286,7 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
         return;
     }
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, {
+    execPolicyWriteCommand(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, {
         optimisticData,
         finallyData,
         failureData,
@@ -1341,7 +1342,7 @@ function updateWorkspaceDescription(policyID: string, description: string, curre
         description: parsedDescription,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION, params, {
+    execPolicyWriteCommand(WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION, params, {
         optimisticData,
         finallyData,
         failureData,
@@ -1424,7 +1425,7 @@ function updateAddress(policyID: string, newAddress: CompanyAddress) {
         },
     ];
 
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_ADDRESS, parameters, {
+    execPolicyWriteCommand(WRITE_COMMANDS.UPDATE_POLICY_ADDRESS, parameters, {
         optimisticData,
         finallyData,
     });
@@ -2621,7 +2622,7 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyConnectionsParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         navigateWhenEnableFeature(policyID);
@@ -2678,7 +2679,7 @@ function enableExpensifyCard(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyExpensifyCardsParams = {authToken, policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         navigateWhenEnableFeature(policyID);
@@ -2776,7 +2777,7 @@ function enablePolicyReportFields(policyID: string, enabled: boolean, disableRed
 
     const parameters: EnablePolicyReportFieldsParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && !disableRedirect) {
         navigateWhenEnableFeature(policyID);
@@ -2890,7 +2891,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
     if (shouldAddDefaultTaxRatesData) {
         parameters.taxFields = JSON.stringify(defaultTaxRates);
     }
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         navigateWhenEnableFeature(policyID);
@@ -2981,7 +2982,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyWorkflowsParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         navigateWhenEnableFeature(policyID);
@@ -3110,7 +3111,7 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
             attributes,
         }),
     };
-    API.write(WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX, params, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX, params, onyxData);
 }
 
 function enablePolicyInvoicing(policyID: string, enabled: boolean) {
@@ -3228,7 +3229,7 @@ function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
         customTaxName,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CUSTOM_TAX_NAME, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.SET_POLICY_CUSTOM_TAX_NAME, parameters, onyxData);
 }
 
 function setWorkspaceCurrencyDefault(policyID: string, taxCode: string) {
@@ -3280,7 +3281,7 @@ function setWorkspaceCurrencyDefault(policyID: string, taxCode: string) {
         taxCode,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_TAXES_CURRENCY_DEFAULT, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.SET_POLICY_TAXES_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
 function setForeignCurrencyDefault(policyID: string, taxCode: string) {
@@ -3332,7 +3333,7 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
         taxCode,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
 function upgradeToCorporate(policyID: string, featureName: string) {
@@ -3389,7 +3390,7 @@ function upgradeToCorporate(policyID: string, featureName: string) {
 
     const parameters: UpgradeToCorporateParams = {policyID, featureName};
 
-    API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
+    execPolicyWriteCommand(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
 
 function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, category: string) {
