@@ -119,6 +119,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             setFilteredEmojis(allEmojis);
             setHeaderIndices(headerRowIndices);
             setFocusedIndex(-1);
+            setHighlightFirstEmoji(false);
             setHighlightEmoji(false);
             return;
         }
@@ -136,14 +137,6 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                     keyBoardEvent.preventDefault();
                 }
 
-                return;
-            }
-
-            if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
-                // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
-                keyBoardEvent.preventDefault();
-                // On mWeb, avoid propagating this Enter keystroke to Pressable child component; otherwise, it will trigger the onEmojiSelected callback again.
-                keyBoardEvent.stopPropagation();
                 return;
             }
 
@@ -182,9 +175,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             if ('types' in item || 'name' in item) {
                 const emoji = typeof preferredSkinTone === 'number' && preferredSkinTone !== -1 && item?.types?.at(preferredSkinTone) ? item.types.at(preferredSkinTone) : item.code;
                 onEmojiSelected(emoji ?? '', item);
+                // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
+                keyBoardEvent.preventDefault();
+                // On mWeb, avoid propagating this Enter keystroke to Pressable child component; otherwise, it will trigger the onEmojiSelected callback again.
+                keyBoardEvent.stopPropagation();
             }
         },
-        {shouldPreventDefault: true, shouldStopPropagation: true},
+        {shouldPreventDefault: false},
     );
 
     /**
