@@ -1,0 +1,52 @@
+diff --git a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
+index 6fb49e0..1f7c859 100644
+--- a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
++++ b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
+@@ -114,6 +114,16 @@ const getRouteConfigsFromChildren = (children, groupKey, groupOptions) => {
+   return configs;
+ };
+ 
++const useFullyMountedRef = () => {
++  const isFullyMountedRef = React.useRef(false);
++
++  React.useEffect(() => {
++    isFullyMountedRef.current = true;
++  }, []);
++
++  return isFullyMountedRef;
++};
++
+ /**
+  * Hook for building navigators.
+  *
+@@ -122,6 +132,7 @@ const getRouteConfigsFromChildren = (children, groupKey, groupOptions) => {
+  * @returns An object containing `state`, `navigation`, `descriptors` objects.
+  */
+ export default function useNavigationBuilder(createRouter, options) {
++  const isFullyMountedRef = useFullyMountedRef();
+   const navigatorKey = useRegisterNavigator();
+   const route = React.useContext(NavigationRouteContext);
+   const {
+@@ -298,10 +309,18 @@ export default function useNavigationBuilder(createRouter, options) {
+       setState(nextState);
+     }
+     return () => {
+-      // We need to clean up state for this navigator on unmount
+-      if (getCurrentState() !== undefined && getKey() === navigatorKey) {
+-        setCurrentState(undefined);
+-        stateCleanedUp.current = true;
++      const cleanup = () => {
++        // We need to clean up state for this navigator on unmount
++        if (getCurrentState() !== undefined && getKey() === navigatorKey) {
++          setCurrentState(undefined);
++          stateCleanedUp.current = true;
++        }
++      }
++
++      if (!isFullyMountedRef.current) {
++        cleanup();
++      } else {
++        setTimeout(cleanup, 0);
+       }
+     };
+     // eslint-disable-next-line react-hooks/exhaustive-deps
