@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useLayoutEffect, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
 import {View} from 'react-native';
 import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -40,13 +40,13 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         });
     }, [policyID]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         fetchSetupLink();
         // disabling this rule, as we want this to run only on the first render
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    useNetwork({
+    const {isOffline} = useNetwork({
         onReconnect: () => {
             if (codatSetupLink) {
                 return;
@@ -54,6 +54,13 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
             fetchSetupLink();
         },
     });
+
+    useLayoutEffect(() => {
+        if (codatSetupLink && isOffline) {
+            return;
+        }
+        setIsLoading(true);
+    }, [isOffline, codatSetupLink]);
 
     if (isLoading) {
         return <LoadingPage title={translate('workspace.qbd.qbdSetup')} />;
