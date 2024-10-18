@@ -19,12 +19,12 @@ import variables from '@styles/variables';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
 
 type AvailableCompanyCardTypes = {
     isAmexAvailable?: boolean;
     translate: LocaleContextProps['translate'];
-    typeSelected?: CompanyCardFeed;
+    typeSelected?: CardFeedProvider;
     styles: StyleProp<ViewStyle>;
 };
 
@@ -87,7 +87,7 @@ function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [typeSelected, setTypeSelected] = useState<CompanyCardFeed>();
+    const [typeSelected, setTypeSelected] = useState<CardFeedProvider>();
     const {canUseDirectFeeds} = usePermissions();
     const [isError, setIsError] = useState(false);
     const data = getAvailableCompanyCardTypes({isAmexAvailable: !canUseDirectFeeds, translate, typeSelected, styles: styles.mr3});
