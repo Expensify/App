@@ -24,6 +24,7 @@
     - [Refs](#refs)
     - [Other Expensify Resources on TypeScript](#other-expensify-resources-on-typescript)
     - [Default value for inexistent IDs](#default-value-for-inexistent-IDs)
+    - [Extract complex types](#extract-complex-types)
 - [Naming Conventions](#naming-conventions)
     - [Type names](#type-names)
     - [Prop callbacks](#prop-callbacks)
@@ -490,6 +491,30 @@ report ? report.reportID : '';
 const foo = report?.reportID ?? '-1';
 
 report ? report.reportID : '-1';
+```
+
+### Extract complex types
+
+All complex types, such as objects and callbacks in function parameters, should be extracted into separate type definitions.
+
+``` ts
+// BAD
+function foo(param1: string, param2: {id: string}) {...};
+
+// BAD
+function foo(param1: string, param2: (value: string) => void) {...};
+
+// GOOD
+type Data = {
+    id: string;
+};
+
+function foo(param1: string, param2: Data) {...};
+
+// GOOD 
+type Callback = (value: string) => void
+
+function foo(param1: string, param2: Callback) {...};
 ```
 
 ## Naming Conventions
