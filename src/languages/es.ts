@@ -2180,7 +2180,7 @@ const translations = {
         companyAddress: 'Dirección de la empresa',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en la',
-        businessInfoTitle: 'Business info',
+        businessInfoTitle: 'Información del negocio',
     },
     beneficialOwnerInfoStep: {
         doYouOwn25percent: '¿Posees el 25% o más de',
@@ -2264,12 +2264,12 @@ const translations = {
         confirmCurrency: 'Confirmar moneda y país',
     },
     signerInfoStep: {
-        signerInfo: 'Signer info',
+        signerInfo: 'Información del firmante',
     },
     agreementsStep: {
-        agreements: 'Agreements',
+        agreements: 'Acuerdos',
         pleaseConfirm: 'Por favor confirme los acuerdos a continuación',
-        accept: 'Accept and add bank account',
+        accept: 'Aceptar y añadir cuenta bancaria',
     },
     finishStep: {
         connect: 'Conectar cuenta bancaria',
