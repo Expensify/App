@@ -16,6 +16,7 @@ import * as CardUtils from '@libs/CardUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
@@ -36,7 +37,9 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
-    const feedName = cardFeeds?.settings?.companyCardNicknames?.[selectedFeed] ?? translate(`workspace.companyCards.addNewCard.cardProviders.${selectedFeed}`);
+    const feedName = cardFeeds?.settings?.companyCardNicknames?.[selectedFeed] ?? CardUtils.getCardFeedName(selectedFeed);
+    const isCustomFeed =
+        CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD === selectedFeed || CONST.COMPANY_CARD.FEED_BANK_NAME.VISA === selectedFeed || CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX === selectedFeed;
 
     return (
         <OfflineWithFeedback
@@ -67,7 +70,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                                 />
                             )}
                         </View>
-                        <Text style={styles.textLabelSupporting}>{translate('workspace.companyCards.customFeed')}</Text>
+                        <Text style={styles.textLabelSupporting}>{translate(isCustomFeed ? 'workspace.companyCards.customFeed' : 'workspace.companyCards.directFeed')}</Text>
                     </View>
                 </PressableWithFeedback>
 
