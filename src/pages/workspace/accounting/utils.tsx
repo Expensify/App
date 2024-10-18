@@ -15,7 +15,6 @@ import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
 import {getTrackingCategories} from '@userActions/connections/Xero';
-import * as PolicyAction from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
@@ -284,13 +283,6 @@ function getAccountingIntegrationData(
                 subscribedAdvancedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.quickbooksDesktop.alias,
-                    preNavigationEvent: () => {
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        if (isSmallScreenWidth || integrationToDisconnect) {
-                            return;
-                        }
-                        PolicyAction.enablePolicyTaxes(policyID, false);
-                    },
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForQBD(),
                 },
             };

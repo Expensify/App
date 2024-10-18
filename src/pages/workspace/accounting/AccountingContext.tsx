@@ -74,8 +74,6 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             );
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
             if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
-                workspaceUpgradeNavigationDetails.preNavigationEvent?.();
-
                 Navigation.navigate(
                     ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, workspaceUpgradeNavigationDetails.integrationAlias, workspaceUpgradeNavigationDetails.backToAfterWorkspaceUpgradeRoute),
                 );
