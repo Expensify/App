@@ -1,7 +1,6 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
-import lodashOmit from 'lodash/omit';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -32,8 +31,6 @@ import getMinimalAction from './linkTo/getMinimalAction';
 import navigationRef from './navigationRef';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, SplitNavigatorLHNScreen, SplitNavigatorParamListType, State} from './types';
-
-const PARAMS_TO_OMIT_WHEN_COMPARING_ROUTES = ['path', 'initial', 'params', 'state', 'screen', 'policyID'] as const;
 
 const SPLIT_NAVIGATOR_TO_SIDEBAR_MAP: Record<keyof SplitNavigatorParamListType, SplitNavigatorLHNScreen> = {
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: SCREENS.HOME,
@@ -210,6 +207,11 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
     linkTo(navigationRef.current, route, type);
 }
 
+function getRouteParamsToCompare(routeParams: Record<string, string | undefined>) {
+    const {path, initial, params, state, screen, policyID, ...routeParamsToCompare} = routeParams;
+    return routeParamsToCompare;
+}
+
 function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | NavigationPartialRoute, minimalAction: Writable<NavigationAction>) {
     if (!minimalAction.payload) {
         return false;
@@ -229,8 +231,8 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
         return false;
     }
 
-    const routeParams = lodashOmit(route.params ?? {}, PARAMS_TO_OMIT_WHEN_COMPARING_ROUTES) as Record<string, string | undefined>;
-    const minimalActionParams = lodashOmit(minimalAction.payload.params ?? {}, PARAMS_TO_OMIT_WHEN_COMPARING_ROUTES) as Record<string, string | undefined>;
+    const routeParams = getRouteParamsToCompare(route.params as Record<string, string | undefined>);
+    const minimalActionParams = getRouteParamsToCompare(minimalAction.payload.params as Record<string, string | undefined>);
 
     return shallowCompare(routeParams, minimalActionParams);
 }
@@ -273,10 +275,9 @@ function goUp(fallbackRoute: Route) {
 
 /**
  * @param fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
- * @param shouldEnforceFallback - Enforces navigation to fallback route
  * @param shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopToTop = false) {
+function goBack(fallbackRoute?: Route, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
         return;
     }
