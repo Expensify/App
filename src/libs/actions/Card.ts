@@ -223,7 +223,11 @@ function revealVirtualCardDetails(cardID: number, validateCode: string): Promise
         ];
 
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS, parameters, {optimisticData, successData, failureData})
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS, parameters, {
+            optimisticData,
+            successData,
+            failureData,
+        })
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
@@ -336,7 +340,7 @@ function getCardDefaultName(userName?: string) {
 }
 
 function setIssueNewCardStepAndData({data, isEditing, step}: IssueNewCardFlowData) {
-    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, isEditing, currentStep: step});
+    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, isEditing, currentStep: step, errors: null});
 }
 
 function clearIssueNewCardFlow() {
@@ -625,6 +629,40 @@ function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueN
 
     const {assigneeEmail, limit, limitType, cardTitle, cardType} = data;
 
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            value: {
+                isLoading: true,
+                errors: null,
+                isSuccessful: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            value: {
+                isLoading: false,
+                isSuccessful: true,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            value: {
+                isLoading: false,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
+    ];
+
     const parameters = {
         policyID,
         assigneeEmail,
@@ -634,14 +672,30 @@ function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueN
     };
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
-        API.write(WRITE_COMMANDS.CREATE_EXPENSIFY_CARD, {...parameters, feedCountry});
+        API.write(
+            WRITE_COMMANDS.CREATE_EXPENSIFY_CARD,
+            {...parameters, feedCountry},
+            {
+                optimisticData,
+                successData,
+                failureData,
+            },
+        );
         return;
     }
 
     const domainAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
-    API.write(WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD, {...parameters, domainAccountID});
+    API.write(
+        WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,
+        {...parameters, domainAccountID},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 function openCardDetailsPage(cardID: number) {
