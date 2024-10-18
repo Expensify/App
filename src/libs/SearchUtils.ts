@@ -426,7 +426,7 @@ function getQueryHash(query: SearchQueryJSON): number {
                 }
                 return -1;
             });
-            orderedQuery += `${buildFilterString(key, sortedFilterValues ?? [])}`;
+            orderedQuery += ` ${buildFilterString(key, sortedFilterValues ?? [])}`;
         });
 
     return UserUtils.hashText(orderedQuery, 2 ** 32);
