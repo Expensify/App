@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
-index e137def..c3e5054 100644
+index 1f52b73..53b1a83 100644
 --- a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
 +++ b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
-@@ -285,7 +285,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -287,7 +287,7 @@ class VirtualizedList extends StateSafePureComponent {
    // REACT-NATIVE-WEB patch to preserve during future RN merges: Support inverted wheel scroller.
  
    constructor(_props) {
@@ -11,7 +11,7 @@ index e137def..c3e5054 100644
      super(_props);
      this._getScrollMetrics = () => {
        return this._scrollMetrics;
-@@ -520,6 +520,11 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -522,6 +522,11 @@ class VirtualizedList extends StateSafePureComponent {
          visibleLength,
          zoomScale
        };
@@ -23,7 +23,7 @@ index e137def..c3e5054 100644
        this._updateViewableItems(this.props, this.state.cellsAroundViewport);
        if (!this.props) {
          return;
-@@ -569,7 +574,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -571,7 +576,7 @@ class VirtualizedList extends StateSafePureComponent {
      this._updateCellsToRender = () => {
        this._updateViewableItems(this.props, this.state.cellsAroundViewport);
        this.setState((state, props) => {
@@ -32,7 +32,7 @@ index e137def..c3e5054 100644
          var renderMask = VirtualizedList._createRenderMask(props, cellsAroundViewport, this._getNonViewportRenderRegions(props));
          if (cellsAroundViewport.first === state.cellsAroundViewport.first && cellsAroundViewport.last === state.cellsAroundViewport.last && renderMask.equals(state.renderMask)) {
            return null;
-@@ -589,7 +594,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -591,7 +596,7 @@ class VirtualizedList extends StateSafePureComponent {
        return {
          index,
          item,
@@ -41,7 +41,7 @@ index e137def..c3e5054 100644
          isViewable
        };
      };
-@@ -621,12 +626,10 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -623,12 +628,10 @@ class VirtualizedList extends StateSafePureComponent {
      };
      this._getFrameMetrics = (index, props) => {
        var data = props.data,
@@ -55,7 +55,7 @@ index e137def..c3e5054 100644
        if (!frame || frame.index !== index) {
          if (getItemLayout) {
            /* $FlowFixMe[prop-missing] (>=0.63.0 site=react_native_fb) This comment
-@@ -650,7 +653,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -652,7 +655,7 @@ class VirtualizedList extends StateSafePureComponent {
  
        // The last cell we rendered may be at a new index. Bail if we don't know
        // where it is.
@@ -64,7 +64,7 @@ index e137def..c3e5054 100644
          return [];
        }
        var first = focusedCellIndex;
-@@ -690,9 +693,15 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -692,9 +695,15 @@ class VirtualizedList extends StateSafePureComponent {
        }
      }
      var initialRenderRegion = VirtualizedList._initialRenderRegion(_props);
@@ -81,7 +81,7 @@ index e137def..c3e5054 100644
      };
  
      // REACT-NATIVE-WEB patch to preserve during future RN merges: Support inverted wheel scroller.
-@@ -748,6 +757,26 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -750,6 +759,26 @@ class VirtualizedList extends StateSafePureComponent {
        }
      }
    }
@@ -108,7 +108,7 @@ index e137def..c3e5054 100644
    static _createRenderMask(props, cellsAroundViewport, additionalRegions) {
      var itemCount = props.getItemCount(props.data);
      invariant(cellsAroundViewport.first >= 0 && cellsAroundViewport.last >= cellsAroundViewport.first - 1 && cellsAroundViewport.last < itemCount, "Invalid cells around viewport \"[" + cellsAroundViewport.first + ", " + cellsAroundViewport.last + "]\" was passed to VirtualizedList._createRenderMask");
-@@ -796,7 +825,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -798,7 +827,7 @@ class VirtualizedList extends StateSafePureComponent {
        }
      }
    }
@@ -117,7 +117,7 @@ index e137def..c3e5054 100644
      var data = props.data,
        getItemCount = props.getItemCount;
      var onEndReachedThreshold = onEndReachedThresholdOrDefault(props.onEndReachedThreshold);
-@@ -819,17 +848,9 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -821,17 +850,9 @@ class VirtualizedList extends StateSafePureComponent {
          last: Math.min(cellsAroundViewport.last + renderAhead, getItemCount(data) - 1)
        };
      } else {
@@ -138,7 +138,7 @@ index e137def..c3e5054 100644
          return cellsAroundViewport.last >= getItemCount(data) ? VirtualizedList._constrainToItemCount(cellsAroundViewport, props) : cellsAroundViewport;
        }
        newCellsAroundViewport = computeWindowedRenderLimits(props, maxToRenderPerBatchOrDefault(props.maxToRenderPerBatch), windowSizeOrDefault(props.windowSize), cellsAroundViewport, this.__getFrameMetricsApprox, this._scrollMetrics);
-@@ -902,16 +923,36 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -904,16 +925,36 @@ class VirtualizedList extends StateSafePureComponent {
      }
    }
    static getDerivedStateFromProps(newProps, prevState) {
@@ -177,7 +177,7 @@ index e137def..c3e5054 100644
      };
    }
    _pushCells(cells, stickyHeaderIndices, stickyIndicesFromProps, first, last, inversionStyle) {
-@@ -934,7 +975,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -936,7 +977,7 @@ class VirtualizedList extends StateSafePureComponent {
      last = Math.min(end, last);
      var _loop = function _loop() {
        var item = getItem(data, ii);
@@ -186,7 +186,7 @@ index e137def..c3e5054 100644
        _this._indicesToKeys.set(ii, key);
        if (stickyIndicesFromProps.has(ii + stickyOffset)) {
          stickyHeaderIndices.push(cells.length);
-@@ -969,20 +1010,23 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -971,20 +1012,23 @@ class VirtualizedList extends StateSafePureComponent {
    }
    static _constrainToItemCount(cells, props) {
      var itemCount = props.getItemCount(props.data);
@@ -216,8 +216,8 @@ index e137def..c3e5054 100644
      if (props.keyExtractor != null) {
        return props.keyExtractor(item, index);
      }
-@@ -1022,7 +1066,12 @@ class VirtualizedList extends StateSafePureComponent {
-       cells.push( /*#__PURE__*/React.createElement(VirtualizedListCellContextProvider, {
+@@ -1024,7 +1068,12 @@ class VirtualizedList extends StateSafePureComponent {
+       cells.push(/*#__PURE__*/React.createElement(VirtualizedListCellContextProvider, {
          cellKey: this._getCellKey() + '-header',
          key: "$header"
 -      }, /*#__PURE__*/React.createElement(View, {
@@ -230,7 +230,7 @@ index e137def..c3e5054 100644
          onLayout: this._onLayoutHeader,
          style: [inversionStyle, this.props.ListHeaderComponentStyle]
        },
-@@ -1124,7 +1173,11 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1126,7 +1175,11 @@ class VirtualizedList extends StateSafePureComponent {
        // TODO: Android support
        invertStickyHeaders: this.props.invertStickyHeaders !== undefined ? this.props.invertStickyHeaders : this.props.inverted,
        stickyHeaderIndices,
@@ -243,7 +243,7 @@ index e137def..c3e5054 100644
      });
      this._hasMore = this.state.cellsAroundViewport.last < itemCount - 1;
      var innerRet = /*#__PURE__*/React.createElement(VirtualizedListContextProvider, {
-@@ -1317,8 +1370,12 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1319,8 +1372,12 @@ class VirtualizedList extends StateSafePureComponent {
        onStartReached = _this$props8.onStartReached,
        onStartReachedThreshold = _this$props8.onStartReachedThreshold,
        onEndReached = _this$props8.onEndReached,
@@ -258,7 +258,7 @@ index e137def..c3e5054 100644
      var _this$_scrollMetrics2 = this._scrollMetrics,
        contentLength = _this$_scrollMetrics2.contentLength,
        visibleLength = _this$_scrollMetrics2.visibleLength,
-@@ -1358,16 +1415,10 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1360,16 +1417,10 @@ class VirtualizedList extends StateSafePureComponent {
      // and call onStartReached only once for a given content length,
      // and only if onEndReached is not being executed
      else if (onStartReached != null && this.state.cellsAroundViewport.first === 0 && isWithinStartThreshold && this._scrollMetrics.contentLength !== this._sentStartForContentLength) {
@@ -279,7 +279,7 @@ index e137def..c3e5054 100644
      }
  
      // If the user scrolls away from the start or end and back again,
-@@ -1433,6 +1484,11 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1435,6 +1486,11 @@ class VirtualizedList extends StateSafePureComponent {
     */
  
    _updateViewableItems(props, cellsAroundViewport) {
