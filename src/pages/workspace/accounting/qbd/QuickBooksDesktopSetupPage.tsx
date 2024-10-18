@@ -17,6 +17,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import LoadingPage from '@pages/LoadingPage';
+import * as PolicyAction from '@userActions/Policy/Policy';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -41,6 +43,9 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     }, [policyID]);
 
     useEffect(() => {
+        // Since QBD doesn't support Taxes, we should disable them from the LHN when connecting to QBD
+        PolicyAction.enablePolicyTaxes(policyID, false);
+
         fetchSetupLink();
         // disabling this rule, as we want this to run only on the first render
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
