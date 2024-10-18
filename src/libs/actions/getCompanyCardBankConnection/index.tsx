@@ -9,6 +9,7 @@ type CompanyCardBankConnection = {
     isCorporate: string;
 };
 
+// TODO remove this when BE will support bank UI callbacks
 const bankUrl = 'https://secure.chase.com/web/auth/#/logon/logon/chaseOnline?redirect_url=';
 
 export default function getCompanyCardBankConnection(bankName?: string, domainName?: string, scrapeMinDate?: string) {
