@@ -161,7 +161,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
 
     /** Add or remove all users passed from the selectedMembers list */
     const toggleAllUsers = (memberList: ListItem[]) => {
-        const enabledAccounts = memberList.filter((member) => !member.isDisabled);
+        const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
         const everyoneSelected = enabledAccounts.every((member) => {
             if (!member.accountID) {
                 return false;
@@ -216,19 +216,20 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                 return;
             }
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            const isAdmin = !!(policy && policy.employeeList && details.login && policy.employeeList[details.login]?.role === CONST.POLICY.ROLE.ADMIN);
-            const isDisabled =
+            const isAdmin = PolicyUtils.isUserPolicyAdmin(policy, details.login);
+            const isDisabled = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details.isOptimisticPersonalDetail;
+            const isDisabledCheckbox =
                 (isPolicyExpenseChat && isAdmin) ||
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                details.accountID === report.ownerAccountID ||
-                details.isOptimisticPersonalDetail;
+                details.accountID === report.ownerAccountID;
 
             result.push({
                 keyForList: String(accountID),
                 accountID,
                 isSelected: selectedMembers.includes(accountID),
                 isDisabled,
+                isDisabledCheckbox,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [

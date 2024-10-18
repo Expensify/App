@@ -38,6 +38,7 @@ type WorkspaceCompanyCardDetailsPageProps = StackScreenProps<SettingsNavigatorPa
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
     const {policyID, cardID, backTo, bank} = route.params;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const policy = usePolicy(policyID);
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
@@ -48,7 +49,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [allBankCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`);
+    const [allBankCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
     const card = allBankCards?.[cardID];
 
     const cardholder = personalDetails?.[card?.accountID ?? -1];
@@ -113,7 +114,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.moreFeatures.companyCards.cardName')}
-                                    title={card?.nameValuePairs?.cardTitle}
+                                    title={customCardNames?.[cardID] ?? ''}
                                     shouldShowRightIcon
                                     brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, bank))}
@@ -143,26 +144,26 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                     />
                                 }
                                 description={translate('workspace.moreFeatures.companyCards.lastUpdated')}
-                                title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : card?.lastUpdated}
+                                title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : card?.lastScrape}
                                 interactive={false}
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                                title={card?.startDate ? format(card.startDate, CONST.DATE.FNS_FORMAT_STRING) : ''}
+                                title={card?.scrapeMinDate ? format(card.scrapeMinDate, CONST.DATE.FNS_FORMAT_STRING) : ''}
                                 interactive={false}
                             />
                             <OfflineWithFeedback
-                                pendingAction={card?.pendingFields?.lastUpdated}
+                                pendingAction={card?.pendingFields?.lastScrape}
                                 errorRowStyles={[styles.ph5, styles.mb3]}
-                                errors={ErrorUtils.getLatestErrorField(card ?? {}, 'lastUpdated')}
-                                onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'lastUpdated', true)}
+                                errors={ErrorUtils.getLatestErrorField(card ?? {}, 'lastScrape')}
+                                onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'lastScrape', true)}
                             >
                                 <MenuItem
                                     icon={Expensicons.Sync}
                                     iconFill={theme.success}
                                     title={translate('workspace.moreFeatures.companyCards.updateCard')}
                                     style={styles.mv1}
-                                    brickRoadIndicator={card?.errorFields?.lastUpdated ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    brickRoadIndicator={card?.errorFields?.lastScrape ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     onPress={updateCard}
                                 />
                             </OfflineWithFeedback>
