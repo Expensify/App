@@ -26,7 +26,7 @@ function Confirmation({onNext}: SubStepProps) {
                         style={[styles.flexGrow1]}
                         submitButtonStyles={[styles.mh5, styles.pb0, styles.mbn1]}
                     >
-                        <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('countryStep.confirmBusinessBank')}</Text>{' '}
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('countryStep.confirmBusinessBank')}</Text>
                     </FormProvider>
                 </ScrollView>
             )}
