@@ -1,6 +1,5 @@
-import type {ComponentType, MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {
-    CellRendererProps,
     GestureResponderEvent,
     InputModeOptions,
     LayoutChangeEvent,
