@@ -1447,12 +1447,24 @@ describe('DebugUtils', () => {
                         reportActionID: '0',
                         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                         created: '2024-08-08 18:40:44.171',
+                        message: [
+                            {
+                                type: 'TEXT',
+                                text: 'Hello world!',
+                            },
+                        ],
                     },
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1': {
                         reportActionID: '1',
                         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                         created: '2024-08-08 18:42:44.171',
+                        message: [
+                            {
+                                type: 'TEXT',
+                                text: 'Hello world!',
+                            },
+                        ],
                         errors: {
                             randomError: 'Random error',
                         },
@@ -1462,6 +1474,12 @@ describe('DebugUtils', () => {
                         reportActionID: '2',
                         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                         created: '2024-08-08 18:44:44.171',
+                        message: [
+                            {
+                                type: 'TEXT',
+                                text: 'Hello world!',
+                            },
+                        ],
                     },
                 };
                 const {reportAction} =
@@ -1487,6 +1505,12 @@ describe('DebugUtils', () => {
                                 reportActionID: '1',
                                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                                 created: '2024-09-20 13:11:11.122',
+                                message: [
+                                    {
+                                        type: 'TEXT',
+                                        text: 'Hello world!',
+                                    },
+                                ],
                                 errors: {
                                     randomError: 'Something went wrong',
                                 },
