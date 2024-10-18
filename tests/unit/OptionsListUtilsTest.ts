@@ -2789,7 +2789,6 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return any options but should return an user to invite if no matching options exist and the search value is a potential email (getFilteredOptions)', () => {
-            // const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
             const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, 'marc@expensify.com');
 
@@ -2837,7 +2836,6 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return any options or user to invite if contact number contains alphabet characters (getFilteredOptions)', () => {
-            // const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
             const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, '998243aaaa');
 
