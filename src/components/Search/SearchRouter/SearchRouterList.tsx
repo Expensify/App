@@ -92,7 +92,7 @@ function SearchRouterList(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -179,11 +179,11 @@ function SearchRouterList(
             onSelectRow={onSelectRow}
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
-            sectionListStyle={[isSmallScreenWidth ? styles.ph5 : styles.ph2, styles.pb2]}
+            sectionListStyle={[shouldUseNarrowLayout ? styles.ph5 : styles.ph2, styles.pb2]}
             listItemWrapperStyle={[styles.pr3, styles.pl3]}
             onLayout={setPerformanceTimersEnd}
             ref={ref}
-            showScrollIndicator={!isSmallScreenWidth}
+            showScrollIndicator={!shouldUseNarrowLayout}
             sectionTitleStyles={styles.mhn2}
             shouldSingleExecuteRowSelect
         />

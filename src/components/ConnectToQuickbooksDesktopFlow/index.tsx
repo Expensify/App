@@ -5,6 +5,7 @@ import ROUTES from '@src/ROUTES';
 import type {ConnectToQuickbooksDesktopFlowProps} from './types';
 
 function ConnectToQuickbooksDesktopFlow({policyID}: ConnectToQuickbooksDesktopFlowProps) {
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     useEffect(() => {
