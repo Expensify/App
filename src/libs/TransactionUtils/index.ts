@@ -1014,9 +1014,9 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
             const firstTransaction = transactions.at(0);
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
             const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
+            const policy = PolicyUtils.getPolicy(report?.policyID);
 
             const areAllFieldsEqualForKey = areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|'));
-
             if (fieldName === 'description') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
                 const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => getDescription(item) === '');
@@ -1032,12 +1032,13 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
                     processChanges(fieldName, transactions, keys);
                 }
             } else if (fieldName === 'taxCode') {
-                const policy = PolicyUtils.getPolicy(report?.policyID);
                 const differentValues = getDifferentValues(transactions, keys);
                 const validTaxes = differentValues?.filter((taxID) => PolicyUtils.getTaxByID(policy, (taxID as string) ?? '')?.name);
 
                 if (!areAllFieldsEqualForKey && validTaxes.length > 1) {
                     change[fieldName] = validTaxes;
+                } else {
+                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'category') {
                 const differentValues = getDifferentValues(transactions, keys);
@@ -1046,14 +1047,16 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
                     .filter((category) => differentValues.includes(category.name) && firstTransaction?.category !== category.name)
                     .map((e) => e.name);
 
-                if (!areAllFieldsEqualForKey && (availableCategories.length > 1 || (availableCategories.length === 1 && differentValues.includes('')))) {
+                if (!areAllFieldsEqualForKey && policy?.areCategoriesEnabled && (availableCategories.length > 1 || (availableCategories.length === 1 && differentValues.includes('')))) {
                     change[fieldName] = [...availableCategories, ...(differentValues.includes('') ? [''] : [])];
+                } else {
+                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'tag') {
                 const policyTags = getPolicyTagsData(report?.policyID ?? '-1');
                 const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
                 if (isMultiLevelTags) {
-                    if (areAllFieldsEqualForKey) {
+                    if (areAllFieldsEqualForKey || !policy?.areTagsEnabled) {
                         keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                     } else {
                         processChanges(fieldName, transactions, keys);
@@ -1062,8 +1065,10 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
                     const differentValues = getDifferentValues(transactions, keys);
                     const policyTagsObj = Object.values(Object.values(policyTags).at(0)?.tags ?? {});
                     const availableTags = policyTagsObj.filter((tag) => differentValues.includes(tag.name) && firstTransaction?.tag !== tag.name).map((e) => e.name);
-                    if (!areAllFieldsEqualForKey && (availableTags.length > 1 || (availableTags.length === 1 && differentValues.includes('')))) {
+                    if (!areAllFieldsEqualForKey && policy?.areTagsEnabled && (availableTags.length > 1 || (availableTags.length === 1 && differentValues.includes('')))) {
                         change[fieldName] = [...availableTags, ...(differentValues.includes('') ? [''] : [])];
+                    } else {
+                        keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                     }
                 }
             } else if (areAllFieldsEqualForKey) {
