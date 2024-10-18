@@ -17,7 +17,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@libs/actions/Policy/Policy';
 import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -27,6 +26,7 @@ import {getConnectedIntegration} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -58,12 +58,12 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
-        Policy.unassignWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
+        CompanyCards.unassignWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
         Navigation.goBack();
     };
 
     const updateCard = () => {
-        Policy.updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
+        CompanyCards.updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
     };
 
     return (
@@ -110,7 +110,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
                                 errorRowStyles={[styles.ph5, styles.mb3]}
                                 errors={ErrorUtils.getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
-                                onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'cardTitle')}
+                                onClose={() => CompanyCards.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'cardTitle')}
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.moreFeatures.companyCards.cardName')}
@@ -125,7 +125,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                     pendingAction={card?.nameValuePairs?.pendingFields?.exportAccountDetails}
                                     errorRowStyles={[styles.ph5, styles.mb3]}
                                     errors={ErrorUtils.getLatestErrorField(card?.nameValuePairs ?? {}, 'exportAccountDetails')}
-                                    onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'exportAccountDetails')}
+                                    onClose={() => CompanyCards.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'exportAccountDetails')}
                                 >
                                     <MenuItemWithTopDescription
                                         description={exportMenuItem.description}
@@ -156,7 +156,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 pendingAction={card?.pendingFields?.lastScrape}
                                 errorRowStyles={[styles.ph5, styles.mb3]}
                                 errors={ErrorUtils.getLatestErrorField(card ?? {}, 'lastScrape')}
-                                onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'lastScrape', true)}
+                                onClose={() => CompanyCards.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'lastScrape', true)}
                             >
                                 <MenuItem
                                     icon={Expensicons.Sync}

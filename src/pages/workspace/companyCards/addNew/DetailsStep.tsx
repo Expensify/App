@@ -12,7 +12,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@libs/actions/Policy/Policy';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import * as CompanyCards from '@userActions/CompanyCards';
@@ -49,7 +48,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
             .map(([key, value]) => `${key}: ${value}`)
             .join(', ');
 
-        Policy.addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails);
+        CompanyCards.addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails);
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
     };
 

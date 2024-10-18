@@ -12,7 +12,7 @@ import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import * as Policy from '@userActions/Policy/Policy';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -42,7 +42,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const isFeedAdded = !isPending && !isNoFeed;
 
     const fetchCompanyCards = useCallback(() => {
-        Policy.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
+        CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
 
     useFocusEffect(fetchCompanyCards);
@@ -52,7 +52,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             return;
         }
 
-        Policy.openPolicyCompanyCardsFeed(policyID, selectedFeed);
+        CompanyCards.openPolicyCompanyCardsFeed(policyID, selectedFeed);
     }, [selectedFeed, isLoading, policyID, isPending]);
 
     return (
