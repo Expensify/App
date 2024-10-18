@@ -212,9 +212,8 @@ There is no minimal action for deeplinking directly to the `Profile` screen. But
 ### Tests
 
 #### There should be a proper report under attachment screen after reload
-narrow layout:
 
-1. Open any report with image attachment.
+1. Open any report with image attachment on narrow layout.
 2. Open attachment.
 3. Reload the page.
 4. Verify that after pressing back arrow in the header you are on the report where you sent the attachment.
@@ -222,14 +221,14 @@ narrow layout:
 
 #### There is a proper split navigator under RHP with a sidebar screen only for screens that can be opened from the sidebar
 
-1. Open the browser on narrow layout with url /settings/profile/status.
+1. Open the browser on narrow layout with url `/settings/profile/status`.
 2. Reload the page.
 3. Verify that after pressing back arrow in the header you are on the settings root page.
 
 
 #### There is a proper split navigator under the overlay after refreshing page with RHP/LHP on wide screen
 
-1. Open the browser on wide screen with url /settings/profile/details.
+1. Open the browser on wide screen with url `/settings/profile/display-name`.
 2. Verify that you can see settings profile page under the overlay of RHP.
 
 
@@ -237,16 +236,19 @@ narrow layout:
 
 1. Open the browser on wide screen.
 2. Open any report.
-3. Send message with url /settings/profile/details.
+3. Send message with url `/settings/profile/display-name`.
 4. Press the sent link
 5. Verify that the settings profile screen is now visible under the overlay
 
-
 #### The Workspace list page is displayed (SCREENS.SETTINGS.WORKSPACES) after clicking the Settings tab from the Workspace settings screen
 
-1. Open the workspace settings (use a link in format: https://dev.new.expensify.com:8082/settings/workspaces/:policyID:/profile or open it using this flow Settings → Workspaces → Select any workspace)
+1. Open any workspace settings (Settings → Workspaces → Select any workspace)
 2. Click the Settings button on the bottom tab.
-3. Verify that the Workspace list is displayed (https://dev.new.expensify.com:8082/settings/workspaces)
+3. Verify that the Workspace list is displayed (`/settings/workspaces`)
+4. Select any workspace again.
+5. Reload the page.
+6. Click the Settings button on the bottom tab.
+7. Verify that the Workspace list is displayed (`/settings/workspaces`)
 
 
 #### The last visited screen in the settings tab is saved when switching between tabs 
@@ -274,13 +276,13 @@ narrow layout:
 1. Open the Inbox tab.
 2. Change the workspace using the workspace switcher.
 3. Switch to the Search tab and verify if the workspace selected in the second step is also selected in the Search.
-4. Repeat the second step.
+4. Change the workspace once again.
 5. Go back to the Inbox.
 6. Verify if the workspace selected in the fourth step is also selected in the Inbox tab.
 
 #### Going up to the workspace list page after refreshing on the workspace settings and pressing the up button
 
-1. Open the workspace settings from the deep link (use a link in format: https://dev.new.expensify.com:8082/settings/workspaces/:policyID:/profile)
+1. Open the workspace settings from the deep link (use a link in format: `/settings/workspaces/:policyID:/profile`)
 2. Click the app’s back button.
 3. Verify if the workspace list is displayed.
 
@@ -292,7 +294,7 @@ narrow layout:
 4. Click the Country button.
 5. Reload the page.
 6. Click the app’s back button.
-7. Verify if the Profile address page is displayed (https://dev.new.expensify.com:8082/settings/profile/address)
+7. Verify if the Profile address page is displayed (`/settings/profile/address`)
 
 #### There is proper split navigator under the overlay after refreshing page in RHP that includes valid reportID in params
 
@@ -330,7 +332,7 @@ Linked issue: https://github.com/Expensify/App/pull/44138
 
 #### Navigating back from the Search page with invalid query parameters 
 
-1. Open the search page with invalid query parameters (e.g https://dev.new.expensify.com:8082/search?q=from%3a)
+1. Open the search page with invalid query parameters (e.g `/search?q=from%3a`)
 2. Press the app's back button on the not found page.
 3. Verify that the Search page with default query parameters is displayed.
 
@@ -338,6 +340,6 @@ Linked issue: https://github.com/Expensify/App/pull/44138
 
 1. Open any chat.
 2. If there are no messages in the chat, send a message.
-3. Reply to the message you created in the thread.
-4. After being redirected to the thread screen, click on the link displayed in the header.
+3. Press reply in thread. 
+4. Press the "From" link in the displayed header.
 5. Verify if the link correctly redirects to the chat opened in the first step.
