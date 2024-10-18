@@ -34,7 +34,7 @@ At this time, we are not hiring contractors in Crimea, North Korea, Russia, Iran
 ## Slack channels
 We have a shared Slack channel called #expensify-open-source — this channel is used to ask general questions, facilitate discussions, and make feature requests.
 
-That said, we have a small issue with adding users at the moment and we’re working with Slack to try and get this resolved. If you would like to join, [fill out this form]([url](https://forms.gle/Q7hnhUJPnQCK7Fe56)) with your email and Upwork profile link. Once resolved, we’ll add you.
+That said, we have a small issue with adding users at the moment and we’re working with Slack to try and get this resolved. If you would like to join, [fill out this form](https://forms.gle/Q7hnhUJPnQCK7Fe56) with your email and Upwork profile link. Once resolved, we’ll add you.
 
 Note: Do not send direct messages to the Expensify team in Slack or Expensify Chat, they will not be able to respond. 
 
