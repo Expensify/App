@@ -2234,6 +2234,13 @@ type FilteredOptionsParams = {
     sortByReportTypeInSearch?: boolean;
 };
 
+// It is not recommended to pass a search value to getFilteredOptions when passing reports and personalDetails.
+// If a search value is passed, the search value should be passed to filterOptions.
+// When it is necessary to pass a search value when passing reports and personalDetails, follow these steps:
+// 1. Use getFilteredOptions with reports and personalDetails only, without the search value.
+// 2. Pass the returned options from getFilteredOptions to filterOptions along with the search value.
+// The above constraints are enforced with TypeScript.
+
 type FilteredOptionsParamsWithDefaultSearchValue = Omit<FilteredOptionsParams, 'searchValue'> & {searchValue?: ''};
 
 type FilteredOptionsParamsWithoutOptions = Omit<FilteredOptionsParams, 'reports' | 'personalDetails'> & {reports?: []; personalDetails?: []};
@@ -2521,6 +2528,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         preferPolicyExpenseChat = false,
         preferRecentExpenseReports = false,
     } = config ?? {};
+    // Remove the personal details for the DMs that are already in the recent reports so that we don't show duplicates
     function filteredPersonalDetailsOfRecentReports(recentReports: ReportUtils.OptionData[], personalDetails: ReportUtils.OptionData[]) {
         const excludedLogins = new Set(recentReports.map((report) => report.login));
         return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
