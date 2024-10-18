@@ -24,7 +24,7 @@ function PublicScreens() {
             <RootStack.Screen
                 name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
                 options={defaultScreenOptions}
-                component={NativeModules.HybridAppModule ? SessionExpiredPage : SignInPage}
+                component={SignInPage}
             />
             <RootStack.Screen
                 name={SCREENS.TRANSITION_BETWEEN_APPS}

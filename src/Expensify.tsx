@@ -98,6 +98,7 @@ function Expensify({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
+    const [useNewDotSignInPage] = useOnyx(ONYXKEYS.USE_NEWDOT_SIGN_IN_PAGE);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
 
     useEffect(() => {
@@ -122,7 +123,9 @@ function Expensify({
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash =
         shouldInit &&
-        (NativeModules.HybridAppModule ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
+        (NativeModules.HybridAppModule
+            ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && (isAuthenticated || useNewDotSignInPage)
+            : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
