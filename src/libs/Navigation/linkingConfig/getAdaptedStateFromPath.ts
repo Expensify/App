@@ -3,6 +3,7 @@ import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import {isAnonymousUser} from '@libs/actions/Session';
 import type {NavigationPartialRoute, RootStackParamList, SettingsSplitNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {isFullScreenRoute} from '@libs/NavigationUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import extractPolicyIDFromQuery from '@navigation/extractPolicyIDFromQuery';
@@ -32,8 +33,10 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
     return route.params !== undefined && 'reportID' in route.params && typeof route.params.reportID === 'string';
 }
 
-function getMatchingFullScreenRouteForState(state: PartialState<NavigationState<RootStackParamList>>) {
+function getMatchingFullScreenRouteForState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string) {
     const focusedRoute = findFocusedRoute(state);
+
+    const reportSplitParams = policyID ? {policyID} : undefined;
 
     if (!focusedRoute) {
         return undefined;
@@ -57,7 +60,7 @@ function getMatchingFullScreenRouteForState(state: PartialState<NavigationState<
         }
 
         // If not, get the matching full screen route for the back to state.
-        return getMatchingFullScreenRouteForState(stateForBackTo as PartialState<NavigationState<RootStackParamList>>);
+        return getMatchingFullScreenRouteForState(stateForBackTo as PartialState<NavigationState<RootStackParamList>>, policyID);
     }
 
     if (RELATIONS.SEARCH_TO_RHP.includes(focusedRoute.name)) {
@@ -71,9 +74,13 @@ function getMatchingFullScreenRouteForState(state: PartialState<NavigationState<
 
     if (RELATIONS.RHP_TO_SIDEBAR[focusedRoute.name]) {
         // @TODO: Figure out better types for this.
-        return createSplitNavigator({
-            name: RELATIONS.RHP_TO_SIDEBAR[focusedRoute.name] as typeof SCREENS.HOME,
-        });
+        return createSplitNavigator(
+            {
+                name: RELATIONS.RHP_TO_SIDEBAR[focusedRoute.name] as typeof SCREENS.HOME,
+            },
+            undefined,
+            reportSplitParams,
+        );
     }
 
     // @TODO We can think about handling it in one condition.
@@ -129,16 +136,11 @@ function getMatchingFullScreenRouteForState(state: PartialState<NavigationState<
                     ...pick(focusedRoute.params, paramsFromRoute),
                 },
             },
+            reportSplitParams,
         );
     }
 
     return undefined;
-}
-
-const FULL_SCREEN_ROUTES: string[] = [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SEARCH.CENTRAL_PANE];
-
-function isFullScreenRoute(route: NavigationPartialRoute): boolean {
-    return FULL_SCREEN_ROUTES.includes(route.name);
 }
 
 function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string): GetAdaptedStateReturnType {
@@ -159,8 +161,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 
     // If there is no full screen route in the root, we want to add it.
     if (!fullScreenRoute) {
-        const matchingRootRoute = getMatchingFullScreenRouteForState(state);
-
+        const matchingRootRoute = getMatchingFullScreenRouteForState(state, policyID);
         // If there is a matching root route, add it to the state.
         if (matchingRootRoute) {
             return {
@@ -168,9 +169,11 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             };
         }
 
+        const reportSplitParams = policyID ? {policyID} : undefined;
+
         // If not, add the default full screen route.
         return {
-            adaptedState: getRoutesWithIndex([{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, ...state.routes]),
+            adaptedState: getRoutesWithIndex([{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, params: reportSplitParams}, ...state.routes]),
         };
     }
 

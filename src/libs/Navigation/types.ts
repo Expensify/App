@@ -1581,7 +1581,11 @@ type CentralPaneName = keyof CentralPaneScreensParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
 
+type SplitNavigatorName = keyof SplitNavigatorParamListType;
+
 type SplitNavigatorScreenName = keyof (WorkspaceSplitNavigatorParamList & SettingsSplitNavigatorParamList & ReportsSplitNavigatorParamList);
+
+type FullScreenName = SplitNavigatorName | typeof SCREENS.SEARCH.CENTRAL_PANE;
 
 type SwitchPolicyIDParams = {
     policyID?: string;
@@ -1657,7 +1661,9 @@ export type {
     RestrictedActionParamList,
     MissingPersonalDetailsParamList,
     DebugParamList,
+    SplitNavigatorName,
     SplitNavigatorScreenName,
+    FullScreenName,
     SplitNavigatorLHNScreen,
     SplitNavigatorParamListType,
     SplitNavigatorByLHN,
