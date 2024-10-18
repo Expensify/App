@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import Navigation from '@libs/Navigation/Navigation';
@@ -54,15 +55,9 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
             fetchSetupLink();
         },
     });
+    const prevIsOffline = usePrevious(isOffline);
 
-    useLayoutEffect(() => {
-        if (codatSetupLink && isOffline) {
-            return;
-        }
-        setIsLoading(true);
-    }, [isOffline, codatSetupLink]);
-
-    if (isLoading) {
+    if (isLoading || (prevIsOffline && !isOffline && !codatSetupLink)) {
         return <LoadingPage title={translate('workspace.qbd.qbdSetup')} />;
     }
 
