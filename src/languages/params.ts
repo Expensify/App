@@ -537,6 +537,10 @@ type ImportedTypesParams = {
     importedTypes: string[];
 };
 
+type FileLimitParams = {
+    fileLimit: number;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -551,6 +555,7 @@ export type {
     DefaultAmountParams,
     AutoPayApprovedReportsLimitErrorParams,
     FeatureNameParams,
+    FileLimitParams,
     SpreadSheetColumnParams,
     SpreadFieldNameParams,
     AssignedYouCardParams,
