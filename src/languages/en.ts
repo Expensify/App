@@ -2342,7 +2342,7 @@ const translations = {
             topLevel: 'Top level',
             appliedOnExport: 'Not imported into Expensify, applied on export',
             shareNote: {
-                header: 'Easily share your workspace with other members.',
+                header: 'Share your workspace with other members',
                 content: {
                     firstPart:
                         'Share this QR code or copy the link below to make it easy for members to request access to your workspace. All requests to join the workspace will show up in the',
@@ -2422,6 +2422,8 @@ const translations = {
                 [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Journal entry',
                 [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Check',
 
+                [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}Description`]:
+                    "We'll create an itemized check for each Expensify report and send it from the bank account below.",
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
                     "We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.",
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
@@ -2429,6 +2431,7 @@ const translations = {
 
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Choose where to export credit card transactions.',
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Choose a vendor to apply to all credit card transactions.',
+                [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK}AccountDescription`]: 'Choose where to send checks from.',
 
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
                     'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
@@ -2452,6 +2455,8 @@ const translations = {
             classes: 'Classes',
             items: 'Items',
             customers: 'Customers/projects',
+            exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Desktop.',
+            defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
             accountsDescription: 'Your QuickBooks Desktop chart of accounts will import into Expensify as categories.',
             accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
@@ -3046,9 +3051,10 @@ const translations = {
             addNewCard: {
                 other: 'Other',
                 cardProviders: {
-                    amex: 'American Express Corporate Cards',
-                    mastercard: 'Mastercard Commercial Cards',
-                    visa: 'Visa Commercial Cards',
+                    gl1025: 'American Express Corporate Cards',
+                    cdf: 'Mastercard Commercial Cards',
+                    vcf: 'Visa Commercial Cards',
+                    stripe: 'Stripe Cards',
                 },
                 yourCardProvider: `Who's your card provider?`,
                 whoIsYourBankAccount: 'Who’s your bank?',
@@ -3062,25 +3068,25 @@ const translations = {
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
                     heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
-                    visa: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructionson how to set up your Visa Commercial Cards.\n\n2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them toenable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
-                    amex: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) to find out if American Express can enable a custom feed for your program.\n\n2. Once the feed is enabled, Amex will send you a production letter.\n\n3. *Once you have the feed information, continue to the next screen.*`,
-                    mastercard: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructions on how to set up your Mastercard Commercial Cards.\n\n 2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
+                    vcf: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructionson how to set up your Visa Commercial Cards.\n\n2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them toenable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
+                    gl1025: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) to find out if American Express can enable a custom feed for your program.\n\n2. Once the feed is enabled, Amex will send you a production letter.\n\n3. *Once you have the feed information, continue to the next screen.*`,
+                    cdf: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructions on how to set up your Mastercard Commercial Cards.\n\n 2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
                     stripe: `1. Visit Stripe’s Dashboard, and go to [Settings](${CONST.COMPANY_CARDS_STRIPE_HELP}).\n\n2. Under Product Integrations, click Enable next to Expensify.\n\n3. Once the feed is enabled, click Submit below and we’ll work on adding it.`,
                 },
                 whatBankIssuesCard: 'What bank issues these cards?',
                 enterNameOfBank: 'Enter name of bank',
                 feedDetails: {
-                    visa: {
+                    vcf: {
                         title: 'What are the Visa feed details?',
                         processorLabel: 'Processor ID',
                         bankLabel: 'Financial institution (bank) ID',
                         companyLabel: 'Company ID',
                     },
-                    amex: {
+                    gl1025: {
                         title: `What's the Amex delivery file name?`,
                         fileNameLabel: 'Delivery file name',
                     },
-                    mastercard: {
+                    cdf: {
                         title: `What's the Mastercard distribution ID?`,
                         distributionLabel: 'Distribution ID',
                     },
@@ -3116,7 +3122,8 @@ const translations = {
             brokenConnectionErrorFirstPart: `Card feed connection is broken. Please `,
             brokenConnectionErrorLink: 'log into your bank ',
             brokenConnectionErrorSecondPart: 'so we can establish the connection again.',
-            assignedYouCard: ({assigner}: AssignedYouCardParams) => `${assigner} assigned you a company card! Imported transactions will appear in this chat.`,
+            assignedYouCard: ({link}: AssignedYouCardParams) => `assigned you a ${link}! Imported transactions will appear in this chat.`,
+            companyCard: 'company card',
             chooseCardFeed: 'Choose card feed',
         },
         expensifyCard: {
@@ -4252,6 +4259,10 @@ const translations = {
                 title: 'Nothing to show',
                 subtitle: 'Try creating something using the green + button.',
             },
+            emptyExpenseResults: {
+                title: "You haven't created any expenses yet",
+                subtitle: 'Use the green button below to create an expense or take a tour of Expensify to learn more.',
+            },
             emptyTripResults: {
                 title: 'No trips to display',
                 subtitle: 'Get started by booking your first trip below.',
@@ -5107,6 +5118,9 @@ const translations = {
             theresAProblemWithYourWallet: "There's a problem with your wallet",
             theresAProblemWithYourWalletTerms: "There's a problem with your wallet terms",
         },
+    },
+    emptySearchView: {
+        takeATour: 'Take a tour',
     },
 };
 
