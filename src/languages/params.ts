@@ -538,6 +538,10 @@ type ImportedTypesParams = {
     importedTypes: string[];
 };
 
+type CompanyCardBankName = {
+    bankName: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -729,6 +733,7 @@ export type {
     DateParams,
     FiltersAmountBetweenParams,
     StatementPageTitleParams,
+    CompanyCardBankName,
     DisconnectPromptParams,
     DisconnectTitleParams,
     CharacterLengthLimitParams,

@@ -6,6 +6,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AmexCustomFeed from './AmexCustomFeed';
+import BankConnection from './BankConnection';
 import CardInstructionsStep from './CardInstructionsStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
@@ -28,6 +29,8 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                 return <SelectFeedType />;
             case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
                 return <CardTypeStep />;
+            case CONST.COMPANY_CARDS.STEP.BANK_CONNECTION:
+                return <BankConnection />;
             case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
                 return <CardInstructionsStep policyID={policyID} />;
             case CONST.COMPANY_CARDS.STEP.CARD_NAME:
