@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -18,7 +18,7 @@ type AddressValues = {
     zipCode: string;
 };
 
-type AddressStepProps<TFormID extends FormOnyxKeys> = SubStepProps & {
+type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
     /** The ID of the form */
     formID: TFormID;
 
@@ -35,7 +35,7 @@ type AddressStepProps<TFormID extends FormOnyxKeys> = SubStepProps & {
     onSubmit: (values: FormOnyxValues<TFormID>) => void;
 
     /** Fields list of the form */
-    stepFields: Array<FormOnyxKeys<keyof OnyxFormValuesMapping>>;
+    stepFields: Array<FormOnyxKeys<TFormID>>;
 
     /* The IDs of the input fields */
     inputFieldsIDs: AddressValues;
@@ -47,7 +47,7 @@ type AddressStepProps<TFormID extends FormOnyxKeys> = SubStepProps & {
     shouldShowHelpLinks?: boolean;
 };
 
-function AddressStep<TFormID extends FormOnyxKeys>({
+function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     formID,
     formTitle,
     formPOBoxDisclaimer,
@@ -66,12 +66,14 @@ function AddressStep<TFormID extends FormOnyxKeys>({
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
 
-            if (values[inputFieldsIDs.street] && !ValidationUtils.isValidAddress(values[inputFieldsIDs.street])) {
+            const street = values[inputFieldsIDs.street as keyof typeof values];
+            if (street && !ValidationUtils.isValidAddress(street as FormValue)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.street] = translate('bankAccount.error.addressStreet');
             }
 
-            if (values[inputFieldsIDs.zipCode] && !ValidationUtils.isValidZipCode(values[inputFieldsIDs.zipCode])) {
+            const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
+            if (zipCode && !ValidationUtils.isValidZipCode(zipCode as string)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.street] = translate('bankAccount.error.zipCode');
             }
