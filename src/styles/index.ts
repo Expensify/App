@@ -4310,8 +4310,8 @@ const styles = (theme: ThemeColors) =>
                 marginLeft: 8,
                 ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
                 color: isSelected ? theme.text : theme.textSupporting,
-                lineHeight: variables.lineHeightNormal,
-                fontSize: variables.fontSizeNormal,
+                lineHeight: variables.lineHeightLarge,
+                fontSize: variables.fontSizeLabel,
             } satisfies TextStyle),
 
         tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
