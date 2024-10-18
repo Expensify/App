@@ -48,7 +48,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -64,8 +64,8 @@ import * as SessionUtils from './actions/Session';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
+import * as ErrorUtils from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
-import getIsSmallScreenWidth from './getIsSmallScreenWidth';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -265,6 +265,11 @@ type OptimisticEditedTaskReportAction = Pick<
 
 type OptimisticClosedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>,
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'pendingAction' | 'person' | 'reportActionID' | 'shouldShow'
+>;
+
+type OptimisticCardAssignedReportAction = Pick<
+    ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED>,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'pendingAction' | 'person' | 'reportActionID' | 'shouldShow'
 >;
 
@@ -1369,12 +1374,6 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
         });
     }
 
-    // if the user hasn't completed the onboarding flow, whether the user should be in the concierge chat or system chat
-    // should be consistent with what chat the user will land after onboarding flow
-    if (!getIsSmallScreenWidth() && !Array.isArray(onboarding) && !onboarding?.hasCompletedGuidedSetupFlow) {
-        return reportsValues.find(isChatUsedForOnboarding);
-    }
-
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldFilter = excludeReportID || ignoreDomainRooms;
     if (shouldFilter) {
@@ -1384,7 +1383,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
             }
 
             // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
-            // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
+            // Check where findLastAccessedReport is called in MainDrawerNavigator.js for more context.
             // Domain rooms are now the only type of default room that are on the defaultRooms beta.
             if (ignoreDomainRooms && isDomainRoom(report) && !hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number))) {
                 return false;
@@ -5635,6 +5634,27 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
     };
 }
 
+function buildOptimisticCardAssignedReportAction(assigneeAccountID: number): OptimisticCardAssignedReportAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        originalMessage: {assigneeAccountID, cardID: -1},
+        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: '', html: ''}],
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+    };
+}
+
 function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number): OptimisticEditedTaskReportAction {
     const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
 
@@ -6265,6 +6285,112 @@ function shouldAdminsRoomBeVisible(report: OnyxEntry<Report>): boolean {
         return false;
     }
     return true;
+}
+
+/**
+ * Check whether report has violations
+ */
+function shouldShowViolations(report: Report, transactionViolations: OnyxCollection<TransactionViolation[]>) {
+    const {parentReportID, parentReportActionID} = report ?? {};
+    const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
+    if (!canGetParentReport) {
+        return false;
+    }
+    const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
+    const parentReportAction = parentReportActions[parentReportActionID] ?? null;
+    if (!parentReportAction) {
+        return false;
+    }
+    return shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
+}
+
+type ReportErrorsAndReportActionThatRequiresAttention = {
+    errors: ErrorFields;
+    reportAction?: OnyxEntry<ReportAction>;
+};
+
+function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): ReportErrorsAndReportActionThatRequiresAttention {
+    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !ReportActionsUtils.isDeletedAction(action));
+    const reportActionErrors: ErrorFields = {};
+    let reportAction: OnyxEntry<ReportAction>;
+
+    for (const action of reportActionsArray) {
+        if (action && !isEmptyObject(action.errors)) {
+            Object.assign(reportActionErrors, action.errors);
+
+            if (!reportAction) {
+                reportAction = action;
+            }
+        }
+    }
+    const parentReportAction: OnyxEntry<ReportAction> =
+        !report?.parentReportID || !report?.parentReportActionID ? undefined : allReportActions?.[report.parentReportID ?? '-1']?.[report.parentReportActionID ?? '-1'];
+
+    if (ReportActionsUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
+        const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID : null;
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !isSettled(transaction?.reportID)) {
+            reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+            reportAction = undefined;
+        }
+    } else if ((isIOUReport(report) || isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
+        if (shouldShowRBRForMissingSmartscanFields(report?.reportID ?? '-1') && !isSettled(report?.reportID)) {
+            reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+            reportAction = getReportActionWithMissingSmartscanFields(report?.reportID ?? '-1');
+        }
+    } else if (hasSmartscanError(reportActionsArray)) {
+        reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+        reportAction = getReportActionWithSmartscanError(reportActionsArray);
+    }
+
+    return {
+        errors: reportActionErrors,
+        reportAction,
+    };
+}
+
+/**
+ * Get an object of error messages keyed by microtime by combining all error objects related to the report.
+ */
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): Errors {
+    const reportErrors = report?.errors ?? {};
+    const reportErrorFields = report?.errorFields ?? {};
+    const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+    // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
+    const errorSources = {
+        reportErrors,
+        ...reportErrorFields,
+        ...reportActionErrors,
+    };
+
+    // Combine all error messages keyed by microtime into one object
+    const errorSourcesArray = Object.values(errorSources ?? {});
+    const allReportErrors = {};
+
+    for (const errors of errorSourcesArray) {
+        if (!isEmptyObject(errors)) {
+            Object.assign(allReportErrors, errors);
+        }
+    }
+    return allReportErrors;
+}
+
+function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveViolations: boolean, transactionViolations: OnyxCollection<TransactionViolation[]>) {
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
+    const allReportErrors = getAllReportErrors(report, reportActions) ?? {};
+    const transactionReportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, transactionReportActions, undefined);
+    let doesTransactionThreadReportHasViolations = false;
+    if (oneTransactionThreadReportID) {
+        const transactionReport = getReport(oneTransactionThreadReportID);
+        doesTransactionThreadReportHasViolations = !!transactionReport && shouldShowViolations(transactionReport, transactionViolations);
+    }
+    return (
+        doesTransactionThreadReportHasViolations ||
+        doesReportHaveViolations ||
+        Object.values(allReportErrors).some((error) => error?.[0] !== Localize.translateLocal('iou.error.genericSmartscanFailureMessage'))
+    );
 }
 
 type ShouldReportBeInOptionListParams = {
@@ -8204,6 +8330,7 @@ export {
     buildOptimisticUnHoldReportAction,
     buildOptimisticAnnounceChat,
     buildOptimisticWorkspaceChats,
+    buildOptimisticCardAssignedReportAction,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
     canAccessReport,
@@ -8487,6 +8614,10 @@ export {
     reasonForReportToBeInOptionList,
     getReasonAndReportActionThatRequiresAttention,
     isPolicyRelatedReport,
+    hasReportErrorsOtherThanFailedReceipt,
+    shouldShowViolations,
+    getAllReportErrors,
+    getAllReportActionsErrorsAndReportActionThatRequiresAttention,
 };
 
 export type {

@@ -24,15 +24,21 @@ function SelectBankStep() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>>();
     const [hasError, setHasError] = useState(false);
+    const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
 
     const submit = () => {
         if (!bankSelected) {
             setHasError(true);
         } else {
+            if (addNewCard?.data.selectedBank !== bankSelected) {
+                CompanyCards.clearAddNewCardFlow();
+            }
             CompanyCards.setAddNewCompanyCardStepAndData({
                 step: CardUtils.getCorrectStepForSelectedBank(bankSelected),
                 data: {
                     selectedBank: bankSelected,
+                    cardTitle: !isOtherBankSelected ? bankSelected : undefined,
+                    feedType: bankSelected === CONST.COMPANY_CARDS.BANKS.STRIPE ? CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE : undefined,
                 },
                 isEditing: false,
             });

@@ -124,6 +124,7 @@ function ExportWithDropdownMenu({
                 onOptionSelected={({value}) => savePreferredExportMethod(value)}
                 options={dropdownOptions}
                 style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                wrapperStyle={styles.flex1}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             />
             <ConfirmModal
