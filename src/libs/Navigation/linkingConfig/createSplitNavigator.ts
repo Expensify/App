@@ -10,7 +10,7 @@ const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<Navi
 function createSplitNavigator<T extends SplitNavigatorLHNScreen>(
     splitNavigatorLHN: NavigationPartialRoute<T>,
     route?: NavigationPartialRoute<ExtractRouteType<T>>,
-    splitNavigatorParams?: SplitNavigatorParamListType[SplitNavigatorByLHN<T>],
+    splitNavigatorParams?: Record<string, string>,
 ): NavigationPartialRoute<SplitNavigatorByLHN<T>> {
     const routes = [];
 

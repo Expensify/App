@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+import {isSplitNavigatorRoute} from '@libs/NavigationUtils';
 import {shallowCompare} from '@libs/ObjectUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import * as ReportConnection from '@libs/ReportConnection';
@@ -300,7 +301,7 @@ function goBack(fallbackRoute?: Route, shouldPopToTop = false) {
 
     const canGoBack = navigationRef.current?.canGoBack();
 
-    if (!canGoBack && lastRoute?.name.endsWith('SplitNavigator') && lastRoute?.state?.routes?.length === 1) {
+    if (!canGoBack && isSplitNavigatorRoute(lastRoute as NavigationPartialRoute) && lastRoute?.state?.routes?.length === 1) {
         const splitNavigatorName = lastRoute?.name as keyof SplitNavigatorParamListType;
         const name = SPLIT_NAVIGATOR_TO_SIDEBAR_MAP[splitNavigatorName];
         const params = getSidebarScreenParams(lastRoute);
