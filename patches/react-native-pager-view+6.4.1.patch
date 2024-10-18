@@ -1,0 +1,73 @@
+--- a/node_modules/react-native-pager-view/ios/Fabric/RNCPagerViewComponentView.mm
++++ b/node_modules/react-native-pager-view/ios/Fabric/RNCPagerViewComponentView.mm
+@@ -195,13 +195,10 @@ -(void)scrollViewDidScroll:(UIScrollView *)scrollView {
+     
+     strongEventEmitter.onPageScroll(RNCViewPagerEventEmitter::OnPageScroll{.position =  static_cast<double>(position), .offset = offset});
+     
+-    //This is temporary workaround to allow animations based on onPageScroll event
+-    //until Fabric implements proper NativeAnimationDriver
+-    RCTBridge *bridge = [RCTBridge currentBridge];
+-    
+-    if (bridge) {
+-        [bridge.eventDispatcher sendEvent:[[RCTOnPageScrollEvent alloc] initWithReactTag:[NSNumber numberWithInt:self.tag] position:@(position) offset:@(offset)]];
+-    }
++    NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:[[RCTOnPageScrollEvent alloc] initWithReactTag:[NSNumber numberWithInt:self.tag] position:@(position) offset:@(offset)], @"event", nil];
++    [[NSNotificationCenter defaultCenter] postNotificationName:@"RCTNotifyEventDispatcherObserversOfEvent_DEPRECATED"
++                                                        object:nil
++                                                      userInfo:userInfo];
+ }
+ 
+ #pragma mark - Internal methods
+diff --git a/node_modules/react-native-pager-view/ios/LEGACY/Fabric/LEGACY_RNCPagerViewComponentView.mm b/node_modules/react-native-pager-view/ios/LEGACY/Fabric/LEGACY_RNCPagerViewComponentView.mm
+index 7608645..84f6f60 100644
+--- a/node_modules/react-native-pager-view/ios/LEGACY/Fabric/LEGACY_RNCPagerViewComponentView.mm
++++ b/node_modules/react-native-pager-view/ios/LEGACY/Fabric/LEGACY_RNCPagerViewComponentView.mm
+@@ -363,14 +363,10 @@ - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+     int eventPosition = (int) position;
+     strongEventEmitter.onPageScroll(LEGACY_RNCViewPagerEventEmitter::OnPageScroll{.position =  static_cast<double>(eventPosition), .offset = interpolatedOffset});
+ 
+-    //This is temporary workaround to allow animations based on onPageScroll event
+-    //until Fabric implements proper NativeAnimationDriver
+-    RCTBridge *bridge = [RCTBridge currentBridge];
+-    
+-    if (bridge) {
+-        [bridge.eventDispatcher sendEvent:[[RCTOnPageScrollEvent alloc] initWithReactTag:[NSNumber numberWithInt:self.tag] position:@(position) offset:@(interpolatedOffset)]];
+-    }
+-    
++    NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:[[RCTOnPageScrollEvent alloc] initWithReactTag:[NSNumber numberWithInt:self.tag] position:@(position) offset:@(interpolatedOffset)], @"event", nil];
++    [[NSNotificationCenter defaultCenter] postNotificationName:@"RCTNotifyEventDispatcherObserversOfEvent_DEPRECATED"
++                                                        object:nil
++                                                      userInfo:userInfo];
+ }
+ 
+ 
+diff --git a/node_modules/react-native-pager-view/ios/LEGACY/LEGACY_RNCPagerView.m b/node_modules/react-native-pager-view/ios/LEGACY/LEGACY_RNCPagerView.m
+index 5f6c535..fd6c2a1 100644
+--- a/node_modules/react-native-pager-view/ios/LEGACY/LEGACY_RNCPagerView.m
++++ b/node_modules/react-native-pager-view/ios/LEGACY/LEGACY_RNCPagerView.m
+@@ -1,5 +1,5 @@
+ #import "LEGACY_RNCPagerView.h"
+-#import "React/RCTLog.h"
++#import <React/RCTLog.h>
+ #import <React/RCTViewManager.h>
+ 
+ #import "UIViewController+CreateExtension.h"
+diff --git a/node_modules/react-native-pager-view/ios/RNCPagerView.m b/node_modules/react-native-pager-view/ios/RNCPagerView.m
+index 584aada..978496f 100644
+--- a/node_modules/react-native-pager-view/ios/RNCPagerView.m
++++ b/node_modules/react-native-pager-view/ios/RNCPagerView.m
+@@ -1,12 +1,12 @@
+ 
+ #import "RNCPagerView.h"
+-#import "React/RCTLog.h"
++#import <React/RCTLog.h>
+ #import <React/RCTViewManager.h>
+ 
+ #import "UIViewController+CreateExtension.h"
+ #import "RCTOnPageScrollEvent.h"
+ #import "RCTOnPageScrollStateChanged.h"
+-#import "React/RCTUIManagerObserverCoordinator.h"
++#import <React/RCTUIManagerObserverCoordinator.h>
+ #import "RCTOnPageSelected.h"
+ #import <math.h>
+ 

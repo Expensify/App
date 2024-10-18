@@ -1,0 +1,50 @@
+diff --git a/node_modules/@react-native-firebase/app/ios/RNFBApp/RNFBVersion.m b/node_modules/@react-native-firebase/app/ios/RNFBApp/RNFBVersion.m
+index f980834..8937cdf 100644
+--- a/node_modules/@react-native-firebase/app/ios/RNFBApp/RNFBVersion.m
++++ b/node_modules/@react-native-firebase/app/ios/RNFBApp/RNFBVersion.m
+@@ -15,7 +15,7 @@
+  *
+  */
+ 
+-#import "RCTVersion.h"
++#import <React/RCTVersion.h>
+ 
+ // generated file - do not modify or commit
+ NSString* const RNFBVersionString = @"12.9.3";
+diff --git a/node_modules/@react-native-firebase/app/lib/internal/registry/nativeModule.js b/node_modules/@react-native-firebase/app/lib/internal/registry/nativeModule.js
+index 03f001c..cf8410a 100644
+--- a/node_modules/@react-native-firebase/app/lib/internal/registry/nativeModule.js
++++ b/node_modules/@react-native-firebase/app/lib/internal/registry/nativeModule.js
+@@ -64,15 +64,15 @@ function nativeModuleWrapped(namespace, NativeModule, argToPrepend) {
+   if (!NativeModule) {
+     return NativeModule;
+   }
+-
+-  const properties = Object.keys(NativeModule);
+-
+-  for (let i = 0, len = properties.length; i < len; i++) {
+-    const property = properties[i];
+-    if (typeof NativeModule[property] === 'function') {
+-      native[property] = nativeModuleMethodWrapped(namespace, NativeModule[property], argToPrepend);
+-    } else {
+-      native[property] = NativeModule[property];
++  const moduleMethods = ["metaGetAll","jsonGetAll","preferencesSetBool","preferencesSetString","preferencesGetAll","preferencesClearAll","eventsNotifyReady","eventsGetListeners","eventsPing","eventsAddListener","eventsRemoveListener","addListener","removeListeners","initializeApp","setLogLevel","setAutomaticDataCollectionEnabled","deleteApp","getConstants","NATIVE_FIREBASE_APPS","FIREBASE_RAW_JSON","checkForUnsentReports","crash","crashWithStackPromise","deleteUnsentReports","didCrashOnPreviousExecution","log","logPromise","sendUnsentReports","setAttribute","setAttributes","setUserId","recordError","recordErrorPromise","setCrashlyticsCollectionEnabled","isErrorGenerationOnJSCrashEnabled","isCrashlyticsJavascriptExceptionHandlerChainingEnabled","isCrashlyticsCollectionEnabled","getConstants"];
++  for (let i = 0, len = moduleMethods.length; i < len; i++) {
++    const method = moduleMethods[i];
++    if (NativeModule[method]) {
++      if (typeof NativeModule[method] === 'function') {
++        native[method] = nativeModuleMethodWrapped(namespace, NativeModule[method], argToPrepend);
++      } else {
++        native[method] = NativeModule[method];
++      }
+     }
+   }
+ 
+@@ -133,7 +133,6 @@ function initialiseNativeModule(module) {
+   }
+ 
+   Object.freeze(multiModuleRoot);
+-
+   NATIVE_MODULE_REGISTRY[key] = multiModuleRoot;
+ 
+   return NATIVE_MODULE_REGISTRY[key];
