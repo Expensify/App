@@ -4,7 +4,7 @@ const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 // add your test name here …
 const TEST_NAMES = {
     AppStartTime: 'App start time',
-    OpenChatFinderPage: 'Open chat finder page TTI',
+    OpenSearchRouter: 'Open search router TTI',
     ReportTyping: 'Report typing',
     ChatOpening: 'Chat opening',
     Linking: 'Linking',
@@ -52,7 +52,7 @@ export default {
     LOG_FILE: `${OUTPUT_DIR}/debug.log`,
 
     // The time in milliseconds after which an operation fails due to timeout
-    INTERACTION_TIMEOUT: 300000,
+    INTERACTION_TIMEOUT: 150 * 1000,
 
     // Period we wait between each test runs, to let the device cool down
     BOOT_COOL_DOWN: 90 * 1000,
@@ -73,8 +73,8 @@ export default {
             name: TEST_NAMES.AppStartTime,
             // ... any additional config you might need
         },
-        [TEST_NAMES.OpenChatFinderPage]: {
-            name: TEST_NAMES.OpenChatFinderPage,
+        [TEST_NAMES.OpenSearchRouter]: {
+            name: TEST_NAMES.OpenSearchRouter,
         },
         [TEST_NAMES.ReportTyping]: {
             name: TEST_NAMES.ReportTyping,

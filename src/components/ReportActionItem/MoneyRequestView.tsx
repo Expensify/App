@@ -56,6 +56,9 @@ type MoneyRequestViewProps = {
     /** Whether we should show Money Request with disabled all fields */
     readonly?: boolean;
 
+    /** whether or not this report is from review duplicates */
+    isFromReviewDuplicates?: boolean;
+
     /** Updated transaction to show in duplicate transaction flow  */
     updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 };
@@ -75,7 +78,7 @@ const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActio
     return originalMessage?.IOUTransactionID ?? -1;
 };
 
-function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction}: MoneyRequestViewProps) {
+function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const session = useSession();
@@ -90,12 +93,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     });
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const targetPolicyID = updatedTransaction?.reportID ? ReportUtils.getReport(updatedTransaction?.reportID)?.policyID : policyID;
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
-    });
-    const [distanceRates = {}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        selector: () => DistanceRequestUtils.getMileageRates(policy, true),
     });
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(report, parentReportActions)}`);
 
@@ -198,14 +199,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     let amountDescription = `${translate('iou.amount')}`;
 
     const hasRoute = TransactionUtils.hasRoute(transactionBackup ?? transaction, isDistanceRequest);
-    const rateID = TransactionUtils.getRateID(transaction) ?? '-1';
-
-    const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
-
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[rateID] ?? {};
-    const {unit} = mileageRate;
-    const rate = transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate;
-
+    const {unit, rate, currency} = DistanceRequestUtils.getRate({transaction, policy});
     const distance = TransactionUtils.getDistanceInMeters(transactionBackup ?? transaction, unit);
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
@@ -507,7 +501,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     filename={receiptURIs?.filename}
                                     transaction={updatedTransaction ?? transaction}
                                     enablePreviewModal
-                                    readonly={readonly}
+                                    readonly={readonly || !canEditReceipt}
+                                    isFromReviewDuplicates={isFromReviewDuplicates}
                                 />
                             </View>
                         )}

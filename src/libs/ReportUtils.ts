@@ -48,7 +48,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -64,8 +64,8 @@ import * as SessionUtils from './actions/Session';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
+import * as ErrorUtils from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
-import getIsSmallScreenWidth from './getIsSmallScreenWidth';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -265,6 +265,11 @@ type OptimisticEditedTaskReportAction = Pick<
 
 type OptimisticClosedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>,
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'pendingAction' | 'person' | 'reportActionID' | 'shouldShow'
+>;
+
+type OptimisticCardAssignedReportAction = Pick<
+    ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED>,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'pendingAction' | 'person' | 'reportActionID' | 'shouldShow'
 >;
 
@@ -1253,12 +1258,21 @@ function findSelfDMReportID(): string | undefined {
 }
 
 /**
+ * Checks if the supplied report is from a policy or is an invoice report from a policy
+ */
+function isPolicyRelatedReport(report: OnyxEntry<Report>, policyID?: string) {
+    return report?.policyID === policyID || !!(report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID);
+}
+
+/**
  * Checks if the supplied report belongs to workspace based on the provided params. If the report's policyID is _FAKE_ or has no value, it means this report is a DM.
  * In this case report and workspace members must be compared to determine whether the report belongs to the workspace.
  */
 function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyMemberAccountIDs: number[], policyID?: string) {
-    const isPolicyRelatedReport = report?.policyID === policyID || !!(report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID);
-    return isConciergeChatReport(report) || (report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : isPolicyRelatedReport);
+    return (
+        isConciergeChatReport(report) ||
+        (report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : isPolicyRelatedReport(report, policyID))
+    );
 }
 
 /**
@@ -1360,12 +1374,6 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
         });
     }
 
-    // if the user hasn't completed the onboarding flow, whether the user should be in the concierge chat or system chat
-    // should be consistent with what chat the user will land after onboarding flow
-    if (!getIsSmallScreenWidth() && !Array.isArray(onboarding) && !onboarding?.hasCompletedGuidedSetupFlow) {
-        return reportsValues.find(isChatUsedForOnboarding);
-    }
-
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldFilter = excludeReportID || ignoreDomainRooms;
     if (shouldFilter) {
@@ -1375,7 +1383,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
             }
 
             // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
-            // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
+            // Check where findLastAccessedReport is called in MainDrawerNavigator.js for more context.
             // Domain rooms are now the only type of default room that are on the defaultRooms beta.
             if (ignoreDomainRooms && isDomainRoom(report) && !hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number))) {
                 return false;
@@ -2634,6 +2642,78 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
     return !!('isUnreadWithMention' in reportOrOption && reportOrOption.isUnreadWithMention) || lastReadTime < lastMentionedTime;
 }
 
+type ReasonAndReportActionThatRequiresAttention = {
+    reason: ValueOf<typeof CONST.REQUIRES_ATTENTION_REASONS>;
+    reportAction?: OnyxEntry<ReportAction>;
+};
+
+function getReasonAndReportActionThatRequiresAttention(
+    optionOrReport: OnyxEntry<Report> | OptionData,
+    parentReportAction?: OnyxEntry<ReportAction>,
+): ReasonAndReportActionThatRequiresAttention | null {
+    if (!optionOrReport) {
+        return null;
+    }
+
+    const reportActions = ReportActionsUtils.getAllReportActions(optionOrReport.reportID);
+
+    if (isJoinRequestInAdminRoom(optionOrReport)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_JOIN_REQUEST,
+            reportAction: ReportActionsUtils.getActionableJoinRequestPendingReportAction(optionOrReport.reportID),
+        };
+    }
+
+    if (
+        isArchivedRoom(optionOrReport, getReportNameValuePairs(optionOrReport?.reportID)) ||
+        isArchivedRoom(getReportOrDraftReport(optionOrReport.parentReportID), getReportNameValuePairs(optionOrReport?.reportID))
+    ) {
+        return null;
+    }
+
+    if (isUnreadWithMention(optionOrReport)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION,
+        };
+    }
+
+    if (isWaitingForAssigneeToCompleteAction(optionOrReport, parentReportAction)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+            reportAction: Object.values(reportActions).find((action) => action.childType === CONST.REPORT.TYPE.TASK),
+        };
+    }
+
+    // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
+    if (optionOrReport.hasOutstandingChildRequest) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
+            reportAction: IOU.getIOUReportActionToApproveOrPay(optionOrReport, optionOrReport.reportID),
+        };
+    }
+
+    if (hasMissingInvoiceBankAccount(optionOrReport.reportID)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_MISSING_INVOICE_BANK_ACCOUNT,
+        };
+    }
+
+    if (isInvoiceRoom(optionOrReport)) {
+        const reportAction = Object.values(reportActions).find(
+            (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && action.childReportID && hasMissingInvoiceBankAccount(action.childReportID),
+        );
+
+        return reportAction
+            ? {
+                  reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_MISSING_INVOICE_BANK_ACCOUNT,
+                  reportAction,
+              }
+            : null;
+    }
+
+    return null;
+}
+
 /**
  * Determines if the option requires action from the current user. This can happen when it:
  *  - is unread and the user was mentioned in one of the unread comments
@@ -2645,47 +2725,7 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
  * @param parentReportAction (the report action the current report is a thread of)
  */
 function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction?: OnyxEntry<ReportAction>) {
-    if (!optionOrReport) {
-        return false;
-    }
-
-    if (isJoinRequestInAdminRoom(optionOrReport)) {
-        return true;
-    }
-
-    if (
-        isArchivedRoom(optionOrReport, getReportNameValuePairs(optionOrReport?.reportID)) ||
-        isArchivedRoom(getReportOrDraftReport(optionOrReport.parentReportID), getReportNameValuePairs(optionOrReport?.reportID))
-    ) {
-        return false;
-    }
-
-    if (isUnreadWithMention(optionOrReport)) {
-        return true;
-    }
-
-    if (isWaitingForAssigneeToCompleteAction(optionOrReport, parentReportAction)) {
-        return true;
-    }
-
-    // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
-    if (optionOrReport.hasOutstandingChildRequest) {
-        return true;
-    }
-
-    if (hasMissingInvoiceBankAccount(optionOrReport.reportID)) {
-        return true;
-    }
-
-    if (isInvoiceRoom(optionOrReport)) {
-        const invoiceRoomReportActions = ReportActionsUtils.getAllReportActions(optionOrReport.reportID);
-
-        return Object.values(invoiceRoomReportActions).some(
-            (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.childReportID && hasMissingInvoiceBankAccount(reportAction.childReportID),
-        );
-    }
-
-    return false;
+    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, parentReportAction);
 }
 
 /**
@@ -3149,6 +3189,13 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
         return {canHoldRequest: false, canUnholdRequest: false};
     }
 
+    if (isInvoiceReport(moneyRequestReport)) {
+        return {
+            canHoldRequest: false,
+            canUnholdRequest: false,
+        };
+    }
+
     const isRequestSettled = isSettled(moneyRequestReport?.reportID);
     const isApproved = isReportApproved(moneyRequestReport);
     const transactionID = moneyRequestReport ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID : 0;
@@ -3262,11 +3309,11 @@ function hasMissingSmartscanFields(iouReportID: string): boolean {
 }
 
 /**
- * Check if iouReportID has required missing fields
+ * Get report action which is missing smartscan fields
  */
-function shouldShowRBRForMissingSmartscanFields(iouReportID: string): boolean {
+function getReportActionWithMissingSmartscanFields(iouReportID: string): ReportAction | undefined {
     const reportActions = Object.values(ReportActionsUtils.getAllReportActions(iouReportID));
-    return reportActions.some((action) => {
+    return reportActions.find((action) => {
         if (!ReportActionsUtils.isMoneyRequestAction(action)) {
             return false;
         }
@@ -3279,6 +3326,13 @@ function shouldShowRBRForMissingSmartscanFields(iouReportID: string): boolean {
         }
         return TransactionUtils.hasMissingSmartscanFields(transaction);
     });
+}
+
+/**
+ * Check if iouReportID has required missing fields
+ */
+function shouldShowRBRForMissingSmartscanFields(iouReportID: string): boolean {
+    return !!getReportActionWithMissingSmartscanFields(iouReportID);
 }
 
 /**
@@ -3319,7 +3373,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
     const report = getReportOrDraftReport(transaction?.reportID);
     const amount = TransactionUtils.getAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, TransactionUtils.getCurrency(transaction)) ?? '';
-    const comment = (!TransactionUtils.isMerchantMissing(transaction) ? TransactionUtils.getMerchant(transaction) : TransactionUtils.getDescription(transaction)) ?? '';
+    const comment = TransactionUtils.getMerchantOrDescription(transaction);
     if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
         return Localize.translateLocal('iou.threadTrackReportName', {formattedAmount, comment});
     }
@@ -3370,7 +3424,7 @@ function getReportPreviewMessage(
 
             const amount = TransactionUtils.getAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
             const formattedAmount = CurrencyUtils.convertToDisplayString(amount, TransactionUtils.getCurrency(linkedTransaction)) ?? '';
-            return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment: TransactionUtils.getDescription(linkedTransaction) ?? ''});
+            return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment: TransactionUtils.getMerchantOrDescription(linkedTransaction)});
         }
     }
 
@@ -3392,7 +3446,7 @@ function getReportPreviewMessage(
 
             const amount = TransactionUtils.getAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
             const formattedAmount = CurrencyUtils.convertToDisplayString(amount, TransactionUtils.getCurrency(linkedTransaction)) ?? '';
-            return Localize.translateLocal('iou.trackedAmount', {formattedAmount, comment: TransactionUtils.getDescription(linkedTransaction) ?? ''});
+            return Localize.translateLocal('iou.trackedAmount', {formattedAmount, comment: TransactionUtils.getMerchantOrDescription(linkedTransaction)});
         }
     }
 
@@ -3468,7 +3522,7 @@ function getReportPreviewMessage(
         linkedTransaction = getLinkedTransaction(iouReportAction);
     }
 
-    let comment = !isEmptyObject(linkedTransaction) ? TransactionUtils.getDescription(linkedTransaction) : undefined;
+    let comment = !isEmptyObject(linkedTransaction) ? TransactionUtils.getMerchantOrDescription(linkedTransaction) : undefined;
     if (!isEmptyObject(originalReportAction) && ReportActionsUtils.isReportPreviewAction(originalReportAction) && ReportActionsUtils.getNumberOfMoneyRequests(originalReportAction) !== 1) {
         comment = undefined;
     }
@@ -3780,16 +3834,31 @@ function getReportName(
         ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
         ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
     ) {
+        const {harvesting} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
+        if (harvesting) {
+            return Parser.htmlToText(getReportAutomaticallySubmittedMessage(parentReportAction));
+        }
         return getIOUSubmittedMessage(parentReportAction);
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+    if (ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
+        const {automaticAction} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
+        if (automaticAction) {
+            return Parser.htmlToText(getReportAutomaticallyForwardedMessage(parentReportAction, reportID));
+        }
         return getIOUForwardedMessage(parentReportAction, report);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         return getRejectedReportMessage();
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
+    if (ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
+        const {automaticAction} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
+        if (automaticAction) {
+            return Parser.htmlToText(getReportAutomaticallyApprovedMessage(parentReportAction));
+        }
         return getIOUApprovedMessage(parentReportAction);
+    }
+    if (ReportActionsUtils.isUnapprovedAction(parentReportAction)) {
+        return getIOUUnapprovedMessage(parentReportAction);
     }
 
     if (isChatThread(report)) {
@@ -4441,6 +4510,35 @@ function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, re
 }
 
 /**
+ * Returns the stateNum and statusNum for an expense report based on the policy settings
+ * @param policy
+ */
+function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>) {
+    const isInstantSubmitEnabled = PolicyUtils.isInstantSubmitEnabled(policy);
+    const isSubmitAndClose = PolicyUtils.isSubmitAndClose(policy);
+    const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
+    if (isInstantSubmitEnabled && arePaymentsDisabled && isSubmitAndClose) {
+        return {
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+        };
+    }
+
+    if (isInstantSubmitEnabled) {
+        return {
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+    }
+
+    return {
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+    };
+}
+
+/**
  * Builds an optimistic Expense report with a randomly generated reportID
  *
  * @param chatReportID - Report ID of the PolicyExpenseChat where the Expense Report is
@@ -4466,10 +4564,7 @@ function buildOptimisticExpenseReport(
     const formattedTotal = CurrencyUtils.convertToDisplayString(storedTotal, currency);
     const policy = getPolicy(policyID);
 
-    const isInstantSubmitEnabled = PolicyUtils.isInstantSubmitEnabled(policy);
-
-    const stateNum = isInstantSubmitEnabled ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.OPEN;
-    const statusNum = isInstantSubmitEnabled ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.OPEN;
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
 
     const expenseReport: OptimisticExpenseReport = {
         reportID: generateReportID(),
@@ -4515,6 +4610,7 @@ function getFormattedAmount(reportAction: ReportAction) {
         !ReportActionsUtils.isSubmittedAction(reportAction) &&
         !ReportActionsUtils.isForwardedAction(reportAction) &&
         !ReportActionsUtils.isApprovedAction(reportAction) &&
+        !ReportActionsUtils.isUnapprovedAction(reportAction) &&
         !ReportActionsUtils.isSubmittedAndClosedAction(reportAction)
     ) {
         return '';
@@ -4534,7 +4630,15 @@ function getIOUSubmittedMessage(reportAction: ReportAction<typeof CONST.REPORT.A
     return Localize.translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
 }
 
-function getIOUApprovedMessage(reportAction: ReportAction) {
+function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
+    return Localize.translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction)});
+}
+
+function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>) {
+    return Localize.translateLocal('iou.unapprovedAmount', {amount: getFormattedAmount(reportAction)});
+}
+
+function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
     return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
 }
 
@@ -4542,7 +4646,26 @@ function getIOUApprovedMessage(reportAction: ReportAction) {
  * We pass the reportID as older FORWARDED actions do not have the amount & currency stored in the message
  * so we retrieve the amount from the report instead
  */
-function getIOUForwardedMessage(reportAction: ReportAction, reportOrID: OnyxInputOrEntry<Report> | string) {
+function getReportAutomaticallyForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string) {
+    const expenseReport = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
+    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageIOU;
+    let formattedAmount;
+
+    // Older FORWARDED action might not have the amount stored in the original message, we'll fallback to getting the amount from the report instead.
+    if (originalMessage?.amount) {
+        formattedAmount = getFormattedAmount(reportAction);
+    } else {
+        formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(expenseReport).totalDisplaySpend, expenseReport?.currency);
+    }
+
+    return Localize.translateLocal('iou.automaticallyForwardedAmount', {amount: formattedAmount});
+}
+
+/**
+ * We pass the reportID as older FORWARDED actions do not have the amount & currency stored in the message
+ * so we retrieve the amount from the report instead
+ */
+function getIOUForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string) {
     const expenseReport = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageIOU;
     let formattedAmount;
@@ -5511,6 +5634,27 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
     };
 }
 
+function buildOptimisticCardAssignedReportAction(assigneeAccountID: number): OptimisticCardAssignedReportAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        originalMessage: {assigneeAccountID, cardID: -1},
+        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: '', html: ''}],
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+    };
+}
+
 function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number): OptimisticEditedTaskReportAction {
     const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
 
@@ -6144,24 +6288,112 @@ function shouldAdminsRoomBeVisible(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
- * for reports or the reports shown in the LHN).
- *
- * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
- * filter out the majority of reports before filtering out very specific minority of reports.
+ * Check whether report has violations
  */
-function shouldReportBeInOptionList({
-    report,
-    currentReportId,
-    isInFocusMode,
-    betas,
-    policies,
-    excludeEmptyChats,
-    doesReportHaveViolations,
-    includeSelfDM = false,
-    login,
-    includeDomainEmail = false,
-}: {
+function shouldShowViolations(report: Report, transactionViolations: OnyxCollection<TransactionViolation[]>) {
+    const {parentReportID, parentReportActionID} = report ?? {};
+    const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
+    if (!canGetParentReport) {
+        return false;
+    }
+    const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
+    const parentReportAction = parentReportActions[parentReportActionID] ?? null;
+    if (!parentReportAction) {
+        return false;
+    }
+    return shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
+}
+
+type ReportErrorsAndReportActionThatRequiresAttention = {
+    errors: ErrorFields;
+    reportAction?: OnyxEntry<ReportAction>;
+};
+
+function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): ReportErrorsAndReportActionThatRequiresAttention {
+    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !ReportActionsUtils.isDeletedAction(action));
+    const reportActionErrors: ErrorFields = {};
+    let reportAction: OnyxEntry<ReportAction>;
+
+    for (const action of reportActionsArray) {
+        if (action && !isEmptyObject(action.errors)) {
+            Object.assign(reportActionErrors, action.errors);
+
+            if (!reportAction) {
+                reportAction = action;
+            }
+        }
+    }
+    const parentReportAction: OnyxEntry<ReportAction> =
+        !report?.parentReportID || !report?.parentReportActionID ? undefined : allReportActions?.[report.parentReportID ?? '-1']?.[report.parentReportActionID ?? '-1'];
+
+    if (ReportActionsUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
+        const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID : null;
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !isSettled(transaction?.reportID)) {
+            reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+            reportAction = undefined;
+        }
+    } else if ((isIOUReport(report) || isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
+        if (shouldShowRBRForMissingSmartscanFields(report?.reportID ?? '-1') && !isSettled(report?.reportID)) {
+            reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+            reportAction = getReportActionWithMissingSmartscanFields(report?.reportID ?? '-1');
+        }
+    } else if (hasSmartscanError(reportActionsArray)) {
+        reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+        reportAction = getReportActionWithSmartscanError(reportActionsArray);
+    }
+
+    return {
+        errors: reportActionErrors,
+        reportAction,
+    };
+}
+
+/**
+ * Get an object of error messages keyed by microtime by combining all error objects related to the report.
+ */
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): Errors {
+    const reportErrors = report?.errors ?? {};
+    const reportErrorFields = report?.errorFields ?? {};
+    const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+    // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
+    const errorSources = {
+        reportErrors,
+        ...reportErrorFields,
+        ...reportActionErrors,
+    };
+
+    // Combine all error messages keyed by microtime into one object
+    const errorSourcesArray = Object.values(errorSources ?? {});
+    const allReportErrors = {};
+
+    for (const errors of errorSourcesArray) {
+        if (!isEmptyObject(errors)) {
+            Object.assign(allReportErrors, errors);
+        }
+    }
+    return allReportErrors;
+}
+
+function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveViolations: boolean, transactionViolations: OnyxCollection<TransactionViolation[]>) {
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
+    const allReportErrors = getAllReportErrors(report, reportActions) ?? {};
+    const transactionReportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, transactionReportActions, undefined);
+    let doesTransactionThreadReportHasViolations = false;
+    if (oneTransactionThreadReportID) {
+        const transactionReport = getReport(oneTransactionThreadReportID);
+        doesTransactionThreadReportHasViolations = !!transactionReport && shouldShowViolations(transactionReport, transactionViolations);
+    }
+    return (
+        doesTransactionThreadReportHasViolations ||
+        doesReportHaveViolations ||
+        Object.values(allReportErrors).some((error) => error?.[0] !== Localize.translateLocal('iou.error.genericSmartscanFailureMessage'))
+    );
+}
+
+type ShouldReportBeInOptionListParams = {
     report: OnyxEntry<Report>;
     currentReportId: string;
     isInFocusMode: boolean;
@@ -6172,7 +6404,20 @@ function shouldReportBeInOptionList({
     includeSelfDM?: boolean;
     login?: string;
     includeDomainEmail?: boolean;
-}) {
+};
+
+function reasonForReportToBeInOptionList({
+    report,
+    currentReportId,
+    isInFocusMode,
+    betas,
+    policies,
+    excludeEmptyChats,
+    doesReportHaveViolations,
+    includeSelfDM = false,
+    login,
+    includeDomainEmail = false,
+}: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
     const isInDefaultMode = !isInFocusMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
@@ -6199,34 +6444,34 @@ function shouldReportBeInOptionList({
             !isSystemChat(report) &&
             !isGroupChat(report))
     ) {
-        return false;
+        return null;
     }
 
     // We used to use the system DM for A/B testing onboarding tasks, but now only create them in the Concierge chat. We
     // still need to allow existing users who have tasks in the system DM to see them, but otherwise we don't need to
     // show that chat
     if (report?.participants?.[CONST.ACCOUNT_ID.NOTIFICATIONS] && isEmptyReport(report)) {
-        return false;
+        return null;
     }
 
     if (!canAccessReport(report, policies, betas)) {
-        return false;
+        return null;
     }
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
     if (isOneTransactionThread(report.reportID, report.parentReportID ?? '-1', parentReportAction)) {
-        return false;
+        return null;
     }
 
     if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
-        return false;
+        return null;
     }
 
     // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
     if (report.reportID === currentReportId) {
-        return true;
+        return CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED;
     }
 
     // Retrieve the draft comment for the report and convert it to a boolean
@@ -6234,8 +6479,12 @@ function shouldReportBeInOptionList({
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (hasDraftComment || requiresAttentionFromCurrentUser(report)) {
-        return true;
+    if (hasDraftComment) {
+        return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
+    }
+
+    if (requiresAttentionFromCurrentUser(report)) {
+        return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
     }
 
     const isEmptyChat = isEmptyReport(report);
@@ -6243,53 +6492,53 @@ function shouldReportBeInOptionList({
 
     // Include reports if they are pinned
     if (report.isPinned) {
-        return true;
+        return CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER;
     }
 
     const reportIsSettled = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
     // Always show IOU reports with violations unless they are reimbursed
     if (isExpenseRequest(report) && doesReportHaveViolations && !reportIsSettled) {
-        return true;
+        return CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS;
     }
 
     // Hide only chat threads that haven't been commented on (other threads are actionable)
     if (isChatThread(report) && canHideReport && isEmptyChat) {
-        return false;
+        return null;
     }
 
     // Show #admins room only when it has some value to the user.
     if (isAdminRoom(report) && !shouldAdminsRoomBeVisible(report)) {
-        return false;
+        return null;
     }
 
     // Include reports that have errors from trying to add a workspace
     // If we excluded it, then the red-brock-road pattern wouldn't work for the user to resolve the error
     if (report.errorFields?.addWorkspaceRoom) {
-        return true;
+        return CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS;
     }
 
     // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
     if (isInFocusMode) {
-        return isUnread(report) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+        return isUnread(report) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? CONST.REPORT_IN_LHN_REASONS.IS_UNREAD : null;
     }
 
     // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
     if (isInDefaultMode && isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
-        return true;
+        return CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED;
     }
 
     // Hide chats between two users that haven't been commented on from the LNH
     if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report) && !isSystemChat(report) && !isGroupChat(report) && canHideReport) {
-        return false;
+        return null;
     }
 
     if (isSelfDM(report)) {
-        return includeSelfDM;
+        return includeSelfDM ? CONST.REPORT_IN_LHN_REASONS.IS_SELF_DM : null;
     }
 
     if (Str.isDomainEmail(login ?? '') && !includeDomainEmail) {
-        return false;
+        return null;
     }
 
     // Hide chat threads where the parent message is pending removal
@@ -6298,10 +6547,21 @@ function shouldReportBeInOptionList({
         ReportActionsUtils.isPendingRemove(parentReportAction) &&
         ReportActionsUtils.isThreadParentMessage(parentReportAction, report?.reportID ?? '')
     ) {
-        return false;
+        return null;
     }
 
-    return true;
+    return CONST.REPORT_IN_LHN_REASONS.DEFAULT;
+}
+
+/**
+ * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
+ * for reports or the reports shown in the LHN).
+ *
+ * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
+ * filter out the majority of reports before filtering out very specific minority of reports.
+ */
+function shouldReportBeInOptionList(params: ShouldReportBeInOptionListParams) {
+    return reasonForReportToBeInOptionList(params) !== null;
 }
 
 /**
@@ -6856,7 +7116,7 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
         return true;
     }
 
-    if (isInvoiceRoom(report)) {
+    if (isInvoiceRoom(report) || isInvoiceReport(report)) {
         return true;
     }
 
@@ -7183,7 +7443,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
 
     const amount = TransactionUtils.getAmount(transaction, !isEmptyObject(iouReport) && isExpenseReport(iouReport)) ?? 0;
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, TransactionUtils.getCurrency(transaction)) ?? '';
-    const isRequestSettled = isSettled(originalMessage?.IOUReportID);
+    const isRequestSettled = isSettled(IOUReportID);
     const isApproved = isReportApproved(iouReport);
     if (isRequestSettled) {
         return Localize.translateLocal('iou.payerSettled', {
@@ -7204,7 +7464,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     }
     return Localize.translateLocal(translationKey, {
         formattedAmount,
-        comment: TransactionUtils.getDescription(transaction) ?? '',
+        comment: TransactionUtils.getMerchantOrDescription(transaction),
     });
 }
 
@@ -7304,11 +7564,8 @@ function canEditPolicyDescription(policy: OnyxEntry<Policy>): boolean {
     return PolicyUtils.isPolicyAdmin(policy);
 }
 
-/**
- * Checks if report action has error when smart scanning
- */
-function hasSmartscanError(reportActions: ReportAction[]) {
-    return reportActions.some((action) => {
+function getReportActionWithSmartscanError(reportActions: ReportAction[]): ReportAction | undefined {
+    return reportActions.find((action) => {
         const isReportPreview = ReportActionsUtils.isReportPreviewAction(action);
         const isSplitReportAction = ReportActionsUtils.isSplitBillAction(action);
         if (!isSplitReportAction && !isReportPreview) {
@@ -7326,6 +7583,13 @@ function hasSmartscanError(reportActions: ReportAction[]) {
 
         return isSplitBillError;
     });
+}
+
+/**
+ * Checks if report action has error when smart scanning
+ */
+function hasSmartscanError(reportActions: ReportAction[]): boolean {
+    return !!getReportActionWithSmartscanError(reportActions);
 }
 
 function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
@@ -8059,6 +8323,7 @@ export {
     buildOptimisticUnHoldReportAction,
     buildOptimisticAnnounceChat,
     buildOptimisticWorkspaceChats,
+    buildOptimisticCardAssignedReportAction,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
     canAccessReport,
@@ -8119,7 +8384,10 @@ export {
     getGroupChatName,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
+    getReportAutomaticallyApprovedMessage,
+    getIOUUnapprovedMessage,
     getIOUApprovedMessage,
+    getReportAutomaticallyForwardedMessage,
     getIOUForwardedMessage,
     getRejectedReportMessage,
     getWorkspaceNameUpdatedMessage,
@@ -8188,6 +8456,7 @@ export {
     hasOnlyHeldExpenses,
     hasOnlyTransactionsWithPendingRoutes,
     hasReportNameError,
+    getReportActionWithSmartscanError,
     hasSmartscanError,
     hasUpdatedTotal,
     hasViolations,
@@ -8296,6 +8565,7 @@ export {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    getReportActionWithMissingSmartscanFields,
     shouldShowRBRForMissingSmartscanFields,
     shouldUseFullTitleToDisplay,
     updateOptimisticParentReportAction,
@@ -8334,6 +8604,13 @@ export {
     isIndividualInvoiceRoom,
     isAuditor,
     hasMissingInvoiceBankAccount,
+    reasonForReportToBeInOptionList,
+    getReasonAndReportActionThatRequiresAttention,
+    isPolicyRelatedReport,
+    hasReportErrorsOtherThanFailedReceipt,
+    shouldShowViolations,
+    getAllReportErrors,
+    getAllReportActionsErrorsAndReportActionThatRequiresAttention,
 };
 
 export type {
