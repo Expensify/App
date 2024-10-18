@@ -77,7 +77,6 @@ public class GooglePushProvisioningModule extends ReactContextBaseJavaModule {
   @Override
   public void initialize() {
     super.initialize();
-    tapAndPayClient = TapAndPay.getClient(this.getCurrentActivity());
   }
 
   @Override
@@ -85,8 +84,23 @@ public class GooglePushProvisioningModule extends ReactContextBaseJavaModule {
     return MODULE_NAME;
   }
 
+  // Lazy initialization of tapAndPayClient
+  private boolean ensureTapAndPayClientInitialized(Promise promise) {
+      if (tapAndPayClient == null && getCurrentActivity() != null) {
+          tapAndPayClient = TapAndPay.getClient(getCurrentActivity());
+      }
+      if (tapAndPayClient == null) {
+          promise.reject("TAP_AND_PAY_CLIENT_ERROR", "TapAndPay client is not initialized");
+          return false;
+      }
+      return true;
+  }
+
+
   @ReactMethod
   public void getTokenStatus(String tsp, String tokenReferenceId, Promise promise) {
+    if (!ensureTapAndPayClientInitialized(promise)) return;
+
     int tokenServiceProvider = getTokenServiceProvider(tsp);
     tapAndPayClient.getTokenStatus(tokenServiceProvider, tokenReferenceId)
       .addOnCompleteListener(new OnCompleteListener<TokenStatus>() {
@@ -116,6 +130,8 @@ public class GooglePushProvisioningModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void getActiveWalletID(Promise promise) {
+    if (!ensureTapAndPayClientInitialized(promise)) return;
+
     tapAndPayClient.getActiveWalletId()
       .addOnCompleteListener(new OnCompleteListener<String>() {
         @Override
@@ -156,6 +172,8 @@ public class GooglePushProvisioningModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void getStableHardwareId(Promise promise) {
+    if (!ensureTapAndPayClientInitialized(promise)) return;
+
     tapAndPayClient.getStableHardwareId()
       .addOnCompleteListener(new OnCompleteListener<String>() {
         @Override
@@ -183,6 +201,8 @@ public class GooglePushProvisioningModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void getEnvironment(Promise promise) {
+    if (!ensureTapAndPayClientInitialized(promise)) return;
+
     tapAndPayClient.getEnvironment()
       .addOnCompleteListener(new OnCompleteListener<String>() {
         @Override
@@ -210,6 +230,8 @@ public class GooglePushProvisioningModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void pushProvision(String opc, String tsp, String clientName, String lastDigits, String addressJson, Promise promise) {
+    if (!ensureTapAndPayClientInitialized(promise)) return;
+
     try {
       this.promise = promise;
       JSONObject address = new JSONObject(addressJson);
