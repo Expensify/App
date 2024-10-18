@@ -536,6 +536,7 @@ const SCREENS = {
         PRIVATE_DOMAIN: "Onboarding_Private_Domain",
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
+        WORKSPACES: 'Onboarding_Workspaces'
     },
 
     WELCOME_VIDEO: {

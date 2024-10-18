@@ -30,6 +30,7 @@ import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseOnboardingPurposeProps} from './types';
 import * as Report from '@userActions/Report';
+import * as LoginUtils from '@libs/LoginUtils';
 
 const selectableOnboardingChoices = Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES);
 
@@ -67,8 +68,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [customChoices = []] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
 
     const onboardingChoices = getOnboardingChoices(customChoices);
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const isPrivateDomain = true; //!!credentials?.login && !LoginUtils.isEmailPublicDomain(credentials?.login);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isPrivateDomain = !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
 
     const menuItems: MenuItemProps[] = onboardingChoices.map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
@@ -94,8 +95,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
                 }
-                // If user is joining a private domain, finish the onboarding here 
-                // TODO move to workspace list page 
+                // If user is joining a private domain but pressed "skip", finish the onboarding at this page
                 if (isPrivateDomain) {
                     Report.completeOnboarding(
                         choice,
@@ -139,7 +139,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         <HeaderWithBackButton
                             shouldShowBackButton={false}
                             iconFill={theme.iconColorfulBackground}
-                            progressBarPercentage={25}
+                            progressBarPercentage={isPrivateDomain ? 20 : 25} // TODO adjust if skipped for private domain
                         />
                     </View>
                     <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>

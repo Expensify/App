@@ -79,14 +79,15 @@ function adaptOnboardingRouteState() {
                 {...currentRoute},
             ],
         } as Readonly<PartialState<NavigationState>>;
-    } else {
+    } // TODO change stack for isPrivateDomain && !selectedPurpose 
+    else {
         adaptedOnboardingModalNavigatorState = {
             index: 1,
             routes: [
                 {
                     name: SCREENS.ONBOARDING.PURPOSE,
                     params: currentRoute?.params,
-                },
+                },        
                 {...currentRoute},
             ],
         } as Readonly<PartialState<NavigationState>>;
@@ -103,9 +104,9 @@ function adaptOnboardingRouteState() {
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
-function startOnboardingFlow() {
+function startOnboardingFlow(isPrivateDomain?: boolean) {
     const currentRoute = navigationRef.getCurrentRoute();
-    const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config, false);
+    const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootStackParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
@@ -113,7 +114,7 @@ function startOnboardingFlow() {
     navigationRef.resetRoot(adaptedState);
 }
 
-function getOnboardingInitialPath(): string {
+function getOnboardingInitialPath(isPrivateDomain?: boolean): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const isVsb = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
@@ -122,7 +123,6 @@ function getOnboardingInitialPath(): string {
         return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
     }
     const isIndividual = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
-    const isPrivateDomain = true; // TODO fix this and below
     if (isPrivateDomain) {
         return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }

@@ -39,8 +39,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isOffline} = useNetwork();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const isPrivateDomain = true; //!!credentials?.login && !LoginUtils.isEmailPublicDomain(credentials?.login);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isPrivateDomain = !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
 
     useEffect(() => {
         Welcome.setOnboardingErrorMessage('');
@@ -128,7 +128,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         >
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={75}
+                progressBarPercentage={isPrivateDomain ? 40 : 75}
                 onBackButtonPress={OnboardingFlow.goBack}
             />
             <FormProvider

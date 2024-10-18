@@ -62,6 +62,9 @@ type ValidateCodeFormProps = {
 
     /** Function to clear error of the form */
     clearError: () => void;
+
+    /** Whether to show the "verify" button (hidden in private domain onboarding)  */
+    hideButton?: boolean;
 };
 
 function BaseValidateCodeForm({
@@ -74,6 +77,7 @@ function BaseValidateCodeForm({
     handleSubmitForm,
     clearError,
     buttonStyles,
+    hideButton,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -227,6 +231,7 @@ function BaseValidateCodeForm({
                 onClose={() => clearError()}
                 style={buttonStyles}
             >
+                {!hideButton &&
                 <Button
                     isDisabled={isOffline}
                     text={translate('common.verify')}
@@ -236,7 +241,7 @@ function BaseValidateCodeForm({
                     pressOnEnter
                     large
                     isLoading={account?.isLoading}
-                />
+                />}
             </OfflineWithFeedback>
         </>
     );
