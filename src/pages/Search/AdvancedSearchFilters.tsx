@@ -263,7 +263,8 @@ function AdvancedSearchFilters() {
             return;
         }
 
-        if (isEmptyObject(savedSearches)) {
+        // We only want to show the tooltip once, the NVP will be empty if the user has not saved a search yet
+        if (!savedSearches) {
             SearchActions.showSavedSearchRenameTooltip();
         }
 
