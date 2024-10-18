@@ -10,6 +10,7 @@ import type {
     UpdateDisplayNameParams,
     UpdateHomeAddressParams,
     UpdateLegalNameParams,
+    UpdatePhoneNumberParams,
     UpdatePronounsParams,
     UpdateSelectedTimezoneParams,
     UpdateUserAvatarParams,
@@ -155,6 +156,21 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
     });
 
     Navigation.goBack();
+}
+
+function updatePhoneNumber(phoneNumber: string) {
+    const parameters: UpdatePhoneNumberParams = {phoneNumber};
+    API.write(WRITE_COMMANDS.UPDATE_PHONE_NUMBER, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    phoneNumber,
+                },
+            },
+        ],
+    });
 }
 
 function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
@@ -481,6 +497,7 @@ export {
     setDisplayName,
     updateDisplayName,
     updateLegalName,
+    updatePhoneNumber,
     updatePronouns,
     updateSelectedTimezone,
     updatePersonalDetailsAndShipExpensifyCard,
