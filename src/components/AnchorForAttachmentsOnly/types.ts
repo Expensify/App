@@ -9,6 +9,9 @@ type AnchorForAttachmentsOnlyProps = {
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether the attachment is deleted */
+    isDeleted?: boolean;
 };
 
 export default AnchorForAttachmentsOnlyProps;

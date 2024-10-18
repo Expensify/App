@@ -25,6 +25,11 @@ type DefaultAttachmentViewProps = {
 
     icon?: IconAsset;
 
+    /** Whether the attachment is deleted */
+    isDeleted?: boolean;
+};
+
+function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles, icon, isDeleted}: DefaultAttachmentViewProps) {
     /** Flag indicating if the attachment is being uploaded. */
     isUploading?: boolean;
 };
@@ -43,7 +48,7 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
                 />
             </View>
 
-            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{fileName}</Text>
+            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100, isDeleted && styles.lineThrough]}>{fileName}</Text>
             {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
                 <Tooltip text={translate('common.download')}>
                     <View style={styles.ml2}>
