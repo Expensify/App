@@ -4,6 +4,7 @@ import pick from 'lodash/pick';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getParamsFromRoute from '@libs/Navigation/linkingConfig/getParamsFromRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
+import SCREENS from '@src/SCREENS';
 import type {SplitStackNavigatorRouterOptions} from './types';
 import {getPreservedSplitNavigatorState} from './usePreserveSplitNavigatorState';
 
@@ -26,6 +27,16 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     // - defaultCentralScreen to cover central pane.
     if (!isAtLeastOneInState(state, sidebarScreen) && !isNarrowLayout) {
         const paramsFromRoute = getParamsFromRoute(sidebarScreen);
+        let params = pick(lastRoute?.params, paramsFromRoute);
+
+        // On a wide screen the backTo param has to be passed to the sidebar screen (SCREENS.WORKSPACE.INITIAL), because the back action is performed from this page
+        if (lastRoute?.name === SCREENS.WORKSPACE.PROFILE) {
+            const hasRouteBackToParam = lastRoute?.params && 'backTo' in lastRoute.params;
+
+            if (hasRouteBackToParam) {
+                params = {...params, backTo: lastRoute.params.backTo};
+            }
+        }
 
         // @ts-expect-error Updating read only property
         // noinspection JSConstantReassignment
@@ -37,7 +48,7 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
             state.routes.unshift({
                 name: sidebarScreen,
                 // This handles the case where the sidebar should have params included in the central screen e.g. policyID for workspace initial.
-                params: pick(lastRoute?.params, paramsFromRoute),
+                params,
             });
         }
     }
