@@ -21,14 +21,16 @@ function useOnboardingFlowRouter() {
         selector: hasCompletedHybridAppOnboardingFlowSelector,
     });
 
+    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+
     useEffect(() => {
-        if (isLoadingOnyxValue(isOnboardingCompletedMetadata, isHybridAppOnboardingCompletedMetadata)) {
+        if (isLoadingOnyxValue(isOnboardingCompletedMetadata, isHybridAppOnboardingCompletedMetadata, isSingleNewDotEntryMetadata)) {
             return;
         }
 
         if (NativeModules.HybridAppModule) {
             // When user is transitioning from OldDot to NewDot, we usually show the explanation modal
-            if (isHybridAppOnboardingCompleted === false) {
+            if (isHybridAppOnboardingCompleted === false && !isSingleNewDotEntry) {
                 Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
             }
 
@@ -43,7 +45,7 @@ function useOnboardingFlowRouter() {
         if (!NativeModules.HybridAppModule && isOnboardingCompleted === false) {
             OnboardingFlow.startOnboardingFlow();
         }
-    }, [isOnboardingCompleted, isHybridAppOnboardingCompleted, isOnboardingCompletedMetadata, isHybridAppOnboardingCompletedMetadata]);
+    }, [isOnboardingCompleted, isHybridAppOnboardingCompleted, isOnboardingCompletedMetadata, isHybridAppOnboardingCompletedMetadata, isSingleNewDotEntryMetadata, isSingleNewDotEntry]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};
 }

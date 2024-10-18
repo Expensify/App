@@ -2363,7 +2363,7 @@ const translations = {
             reportLevel: 'Nivel de informe',
             appliedOnExport: 'No se importa en Expensify, se aplica en la exportación',
             shareNote: {
-                header: 'Comparte fácilmente tu espacio de trabajo con otros miembros.',
+                header: 'Comparte tu espacio de trabajo con otros miembros',
                 content: {
                     firstPart:
                         'Comparte este código QR o copia el enlace de abajo para facilitar que los miembros soliciten acceso a tu espacio de trabajo. Todas las solicitudes para unirse al espacio de trabajo aparecerán en la sala',
@@ -2444,6 +2444,8 @@ const translations = {
                 [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Asiento contable',
                 [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Cheque',
 
+                [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}Description`]:
+                    'Crearemos un cheque desglosado para cada informe de Expensify y lo enviaremos desde la cuenta bancaria a continuación.',
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
                     "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'.",
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
@@ -2452,6 +2454,7 @@ const translations = {
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Elige dónde exportar las transacciones con tarjeta de crédito.',
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]:
                     'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
+                [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK}AccountDescription`]: 'Elige desde dónde enviar los cheques.',
 
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
                     'Las facturas de proveedores no están disponibles cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación.',
@@ -2476,6 +2479,8 @@ const translations = {
             classes: 'Clases',
             items: 'Artículos',
             customers: 'Clientes/proyectos',
+            exportCompanyCardsDescription: 'Establece cómo se exportan las compras con tarjeta de empresa a QuickBooks Desktop.',
+            defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
             accountsDescription: 'Tu plan de cuentas de QuickBooks Desktop se importará a Expensify como categorías.',
             accountsSwitchTitle: 'Elige importar cuentas nuevas como categorías activadas o desactivadas.',
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
@@ -2488,6 +2493,7 @@ const translations = {
                 createEntities: 'Crear entidades automáticamente',
                 createEntitiesDescription: 'Expensify creará automáticamente proveedores en QuickBooks Desktop si aún no existen, y creará automáticamente clientes al exportar facturas.',
             },
+            itemsDescription: 'Elige cómo gestionar los elementos de QuickBooks Desktop en Expensify.',
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -3589,6 +3595,7 @@ const translations = {
             },
             errorODIntegration: 'Hay un error con una conexión que se ha configurado en Expensify Classic. ',
             goToODToFix: 'Ve a Expensify Classic para solucionar este problema.',
+            goToODToSettings: 'Ve a Expensify Classic para gestionar tus configuraciones.',
             setup: 'Configurar',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Recién sincronizado ${relativeDate}`,
             import: 'Importar',
@@ -3597,6 +3604,7 @@ const translations = {
             other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
+            reinstall: 'Reinstalar el conector',
             disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integración';
@@ -3644,14 +3652,18 @@ const translations = {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
+                        case 'quickbooksDesktopImportCustomers':
                             return 'Importando clientes';
                         case 'quickbooksOnlineImportEmployees':
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
+                        case 'quickbooksDesktopImportEmployees':
                             return 'Importando empleados';
                         case 'quickbooksOnlineImportAccounts':
+                        case 'quickbooksDesktopImportAccounts':
                             return 'Importando cuentas';
                         case 'quickbooksOnlineImportClasses':
+                        case 'quickbooksDesktopImportClasses':
                             return 'Importando clases';
                         case 'quickbooksOnlineImportLocations':
                             return 'Importando localidades';
@@ -3670,6 +3682,19 @@ const translations = {
                             return 'Importando datos desde Xero';
                         case 'startingImportQBO':
                             return 'Importando datos desde QuickBooks Online';
+                        case 'startingImportQBD':
+                        case 'quickbooksDesktopImportMore':
+                            return 'Importando datos desde QuickBooks Desktop';
+                        case 'quickbooksDesktopImportTitle':
+                            return 'Importando título';
+                        case 'quickbooksDesktopImportApproveCertificate':
+                            return 'Importando certificado de aprobación';
+                        case 'quickbooksDesktopImportDimensions':
+                            return 'Importando dimensiones';
+                        case 'quickbooksDesktopImportSavePolicy':
+                            return 'Importando política de guardado';
+                        case 'quickbooksDesktopWebConnectorReminder':
+                            return 'Aún sincronizando datos con QuickBooks... Por favor, asegúrate de que el Conector Web esté en funcionamiento';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Sincronizando datos desde QuickBooks Online';
                         case 'quickbooksOnlineSyncLoadData':
@@ -3737,6 +3762,7 @@ const translations = {
                         case 'netSuiteSyncImportSubsidiaries':
                             return 'Importando subsidiarias';
                         case 'netSuiteSyncImportVendors':
+                        case 'quickbooksDesktopImportVendors':
                             return 'Importando proveedores';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marcando facturas y recibos de NetSuite como pagados';
@@ -4299,6 +4325,10 @@ const translations = {
             emptyResults: {
                 title: 'No hay nada que ver aquí',
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
+            },
+            emptyExpenseResults: {
+                title: 'Aún no has creado ningún gasto',
+                subtitle: 'Usa el botón verde de abajo para crear un gasto o haz un tour por Expensify para aprender más.',
             },
             emptyTripResults: {
                 title: 'No tienes viajes',
@@ -5607,6 +5637,9 @@ const translations = {
             hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
             hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
         },
+    },
+    emptySearchView: {
+        takeATour: 'Haz un tour',
     },
 };
 
