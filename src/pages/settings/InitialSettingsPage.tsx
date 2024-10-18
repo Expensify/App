@@ -36,6 +36,7 @@ import * as UserUtils from '@libs/UserUtils';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
+import * as App from '@userActions/App';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Session from '@userActions/Session';
@@ -102,6 +103,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     useEffect(() => {
         Wallet.openInitialSettingsPage();
+        App.confirmReadyToOpenApp();
     }, []);
 
     const toggleSignoutConfirmModal = (value: boolean) => {

@@ -21,6 +21,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isConnectionInProgress} from '@libs/actions/connections';
+import * as App from '@userActions/App';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
@@ -177,6 +178,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             };
         });
     }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
+
+    useEffect(() => {
+        App.confirmReadyToOpenApp();
+    }, []);
 
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
         const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
