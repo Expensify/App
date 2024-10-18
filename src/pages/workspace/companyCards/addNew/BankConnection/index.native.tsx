@@ -27,7 +27,15 @@ function BankConnection() {
 
     const handleBackButtonPress = () => {
         setWebViewOpen(false);
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
+        if (bankName === CONST.COMPANY_CARDS.BANKS.BREX) {
+            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+            return;
+        }
+        if (bankName === CONST.COMPANY_CARDS.BANKS.AMEX) {
+            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED});
+            return;
+        }
+        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
 
     useEffect(() => {
