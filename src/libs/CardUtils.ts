@@ -2,6 +2,7 @@ import groupBy from 'lodash/groupBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -191,7 +192,7 @@ function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: st
     return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? '';
 }
 
-function getCardFeedIcon(cardFeed: CompanyCardFeed): IconAsset {
+function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK): IconAsset {
     const feedIcons = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: Illustrations.VisaCompanyCardDetail,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: Illustrations.AmexCardCompanyCardDetail,
@@ -204,7 +205,12 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed): IconAsset {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: Illustrations.WellsFargoCompanyCardDetail,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: Illustrations.BrexCompanyCardDetail,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: Illustrations.StripeCompanyCardDetail,
+        [CONST.EXPENSIFY_CARD.BANK]: ExpensifyCardImage,
     };
+
+    if (cardFeed.startsWith(CONST.EXPENSIFY_CARD.BANK)) {
+        return ExpensifyCardImage;
+    }
 
     if (feedIcons[cardFeed]) {
         return feedIcons[cardFeed];
