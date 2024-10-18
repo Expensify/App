@@ -586,9 +586,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Additional styles to apply to scrollable content */
     contentContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Custom cell wrapper */
-    CellRendererComponent?: ComponentType<CellRendererProps<TItem>>;
-
     /** Whether to prevent the active cell from being virtualized and losing focus in browsers */
     shouldPreventActiveCellVirtualization?: boolean;
 } & TRightHandSideComponent<TItem>;

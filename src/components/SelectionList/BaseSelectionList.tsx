@@ -30,6 +30,7 @@ import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
+import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
 
@@ -105,7 +106,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldIgnoreFocus = false,
         scrollEventThrottle,
         contentContainerStyle,
-        CellRendererComponent,
+        shouldPreventActiveCellVirtualization = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -759,7 +760,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 onEndReachedThreshold={onEndReachedThreshold}
                                 scrollEventThrottle={scrollEventThrottle}
                                 contentContainerStyle={contentContainerStyle}
-                                CellRendererComponent={CellRendererComponent}
+                                CellRendererComponent={shouldPreventActiveCellVirtualization ? FocusAwareCellRendererComponent : undefined}
                             />
                             {children}
                         </>
