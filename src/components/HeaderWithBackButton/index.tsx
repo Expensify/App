@@ -263,8 +263,8 @@ function HeaderWithBackButton({
                             </PressableWithoutFeedback>
                         </Tooltip>
                     )}
-                    {shouldDisplaySearchRouter && <SearchButton />}
                 </View>
+                {shouldDisplaySearchRouter && <SearchButton />}
             </View>
         </View>
     );
