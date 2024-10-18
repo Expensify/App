@@ -55,7 +55,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         },
     });
 
-    if (isLoading) {
+    if (isLoading && !codatSetupLink) {
         return <LoadingPage title={translate('workspace.qbd.qbdSetup')} />;
     }
 
