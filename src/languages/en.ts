@@ -3589,6 +3589,7 @@ const translations = {
             },
             errorODIntegration: "There's an error with a connection that's been set up in Expensify Classic. ",
             goToODToFix: 'Go to Expensify Classic to fix this issue.',
+            goToODToSettings: 'Go to Expensify Classic to manage your settings.',
             setup: 'Connect',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Last synced ${relativeDate}`,
             import: 'Import',
