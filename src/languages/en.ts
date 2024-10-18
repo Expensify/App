@@ -3596,6 +3596,7 @@ const translations = {
             other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
+            reinstall: 'Reinstall connector',
             disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integration';
@@ -3644,14 +3645,18 @@ const translations = {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
+                        case 'quickbooksDesktopImportCustomers':
                             return 'Importing customers';
                         case 'quickbooksOnlineImportEmployees':
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
+                        case 'quickbooksDesktopImportEmployees':
                             return 'Importing employees';
                         case 'quickbooksOnlineImportAccounts':
+                        case 'quickbooksDesktopImportAccounts':
                             return 'Importing accounts';
                         case 'quickbooksOnlineImportClasses':
+                        case 'quickbooksDesktopImportClasses':
                             return 'Importing classes';
                         case 'quickbooksOnlineImportLocations':
                             return 'Importing locations';
@@ -3670,6 +3675,19 @@ const translations = {
                             return 'Importing Xero data';
                         case 'startingImportQBO':
                             return 'Importing QuickBooks Online data';
+                        case 'startingImportQBD':
+                        case 'quickbooksDesktopImportMore':
+                            return 'Importing QuickBooks Desktop data';
+                        case 'quickbooksDesktopImportTitle':
+                            return 'Importing title';
+                        case 'quickbooksDesktopImportApproveCertificate':
+                            return 'Importing approve ceritificate';
+                        case 'quickbooksDesktopImportDimensions':
+                            return 'Importing dimensions';
+                        case 'quickbooksDesktopImportSavePolicy':
+                            return 'Importing save policy';
+                        case 'quickbooksDesktopWebConnectorReminder':
+                            return 'Still syncing data with QuickBooks... Please make sure the Web Connector is running';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Syncing QuickBooks Online data';
                         case 'quickbooksOnlineSyncLoadData':
@@ -3743,6 +3761,7 @@ const translations = {
                         case 'netSuiteSyncImportSubsidiaries':
                             return 'Importing subsidiaries';
                         case 'netSuiteSyncImportVendors':
+                        case 'quickbooksDesktopImportVendors':
                             return 'Importing vendors';
                         case 'intacctCheckConnection':
                             return 'Checking Sage Intacct connection';

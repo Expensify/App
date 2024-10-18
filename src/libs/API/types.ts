@@ -875,6 +875,7 @@ const READ_COMMANDS = {
     SYNC_POLICY_TO_XERO: 'SyncPolicyToXero',
     SYNC_POLICY_TO_NETSUITE: 'SyncPolicyToNetSuite',
     SYNC_POLICY_TO_SAGE_INTACCT: 'SyncPolicyToSageIntacct',
+    SYNC_POLICY_TO_QUICKBOOKS_DESKTOP: 'SyncPolicyToQuickbooksDesktop',
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',
@@ -934,6 +935,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SYNC_POLICY_TO_XERO]: Parameters.SyncPolicyToXeroParams;
     [READ_COMMANDS.SYNC_POLICY_TO_NETSUITE]: Parameters.SyncPolicyToNetSuiteParams;
     [READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT]: Parameters.SyncPolicyToNetSuiteParams;
+    [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.SyncPolicyToQuickbooksDesktopParams;
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;
