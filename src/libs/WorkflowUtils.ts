@@ -125,6 +125,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
             email,
             avatar: personalDetailsByEmail[email]?.avatar,
             displayName: personalDetailsByEmail[email]?.displayName ?? email,
+            pendingFields: personalDetailsByEmail[email]?.pendingFields,
         };
 
         if (!approvalWorkflows[submitsTo]) {
@@ -234,6 +235,9 @@ function convertApprovalWorkflowToPolicyEmployees({
             email: approver.email,
             forwardsTo,
             pendingAction,
+            pendingFields: {
+                forwardsTo: pendingAction,
+            },
         };
     });
 
@@ -250,6 +254,9 @@ function convertApprovalWorkflowToPolicyEmployees({
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             submitsTo,
             pendingAction,
+            pendingFields: {
+                submitsTo: pendingAction,
+            },
         };
     });
 
