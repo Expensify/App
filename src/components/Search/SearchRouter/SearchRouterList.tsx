@@ -167,7 +167,7 @@ function SearchRouterList(
             if ('reportID' in item && item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
-                Report.navigateToAndOpenReport(item?.login ? [item.login] : []);
+                Report.navigateToAndOpenReport(item.login ? [item.login] : [], false);
             }
         },
         [closeAndClearRouter, onSearchSubmit, currentQuery, updateUserSearchQuery],

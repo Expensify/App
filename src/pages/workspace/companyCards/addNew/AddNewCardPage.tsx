@@ -36,7 +36,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             case CONST.COMPANY_CARDS.STEP.CARD_NAME:
                 return <CardNameStep />;
             case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
-                return <DetailsStep />;
+                return <DetailsStep policyID={policy?.id ?? '-1'} />;
             case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
                 return <AmexCustomFeed />;
             default:
@@ -51,7 +51,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             case CONST.COMPANY_CARDS.STEP.CARD_NAME:
                 return <CardNameStep />;
             case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
-                return <DetailsStep />;
+                return <DetailsStep policyID={policy?.id ?? '-1'} />;
             default:
                 return <CardTypeStep />;
         }

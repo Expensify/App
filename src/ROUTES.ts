@@ -670,6 +670,22 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/date-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/date-select` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/account-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/account-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/card-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/card-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/default-vendor-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/default-vendor-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account` as const,
+    },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/advanced',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const,
@@ -1073,7 +1089,7 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
-        getRoute: (policyID: string, feed: string) => `settings/workspaces/${policyID}/company-cards/${feed}/assign-card` as const,
+        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card`, backTo),
     },
     WORKSPACE_COMPANY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID',
