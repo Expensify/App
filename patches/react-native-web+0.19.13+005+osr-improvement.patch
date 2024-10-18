@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
-index bede95b..2aef4c6 100644
+index 5689220..df40877 100644
 --- a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
 +++ b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
-@@ -332,7 +332,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -334,7 +334,7 @@ class VirtualizedList extends StateSafePureComponent {
        zoomScale: 1
      };
      this._scrollRef = null;
@@ -11,7 +11,7 @@ index bede95b..2aef4c6 100644
      this._sentEndForContentLength = 0;
      this._totalCellLength = 0;
      this._totalCellsMeasured = 0;
-@@ -684,16 +684,18 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -686,16 +686,18 @@ class VirtualizedList extends StateSafePureComponent {
          });
        }
      }
@@ -32,7 +32,7 @@ index bede95b..2aef4c6 100644
      };
  
      // REACT-NATIVE-WEB patch to preserve during future RN merges: Support inverted wheel scroller.
-@@ -919,13 +921,13 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -921,13 +923,13 @@ class VirtualizedList extends StateSafePureComponent {
      // first and last could be stale (e.g. if a new, shorter items props is passed in), so we make
      // sure we're rendering a reasonable range here.
      var itemCount = newProps.getItemCount(newProps.data);
@@ -48,7 +48,7 @@ index bede95b..2aef4c6 100644
      if (newProps.maintainVisibleContentPosition != null && prevFirstVisibleItemKey != null && newFirstVisibleItemKey != null) {
        if (newFirstVisibleItemKey !== prevFirstVisibleItemKey) {
          // Fast path if items were added at the start of the list.
-@@ -944,7 +946,8 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -946,7 +948,8 @@ class VirtualizedList extends StateSafePureComponent {
        cellsAroundViewport: constrainedCells,
        renderMask: VirtualizedList._createRenderMask(newProps, constrainedCells),
        firstVisibleItemKey: newFirstVisibleItemKey,
@@ -58,7 +58,7 @@ index bede95b..2aef4c6 100644
      };
    }
    _pushCells(cells, stickyHeaderIndices, stickyIndicesFromProps, first, last, inversionStyle) {
-@@ -1220,7 +1223,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1222,7 +1225,7 @@ class VirtualizedList extends StateSafePureComponent {
        return ret;
      }
    }
@@ -67,7 +67,7 @@ index bede95b..2aef4c6 100644
      var _this$props7 = this.props,
        data = _this$props7.data,
        extraData = _this$props7.extraData;
-@@ -1244,6 +1247,11 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1246,6 +1249,11 @@ class VirtualizedList extends StateSafePureComponent {
      if (hiPriInProgress) {
        this._hiPriInProgress = false;
      }
@@ -79,7 +79,7 @@ index bede95b..2aef4c6 100644
    }
  
    // Used for preventing scrollToIndex from being called multiple times for initialScrollIndex
-@@ -1407,8 +1415,8 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1409,8 +1417,8 @@ class VirtualizedList extends StateSafePureComponent {
      // Next check if the user just scrolled within the start threshold
      // and call onStartReached only once for a given content length,
      // and only if onEndReached is not being executed
@@ -90,7 +90,7 @@ index bede95b..2aef4c6 100644
        onStartReached({
          distanceFromStart
        });
-@@ -1417,7 +1425,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1419,7 +1427,7 @@ class VirtualizedList extends StateSafePureComponent {
      // If the user scrolls away from the start or end and back again,
      // cause onStartReached or onEndReached to be triggered again
      else {
@@ -100,7 +100,7 @@ index bede95b..2aef4c6 100644
      }
    }
 diff --git a/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
-index 459f017..d20115c 100644
+index 459f017..fb2d269 100644
 --- a/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
 +++ b/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
 @@ -79,6 +79,7 @@ type State = {
