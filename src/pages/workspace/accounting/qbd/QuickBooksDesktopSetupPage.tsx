@@ -17,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import LoadingPage from '@pages/LoadingPage';
 import * as PolicyAction from '@userActions/Policy/Policy';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
