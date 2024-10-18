@@ -3715,6 +3715,7 @@ function completeOnboarding(
         paymentSelected,
         companySize,
         userReportedIntegration,
+        policyID: onboardingPolicyID,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
