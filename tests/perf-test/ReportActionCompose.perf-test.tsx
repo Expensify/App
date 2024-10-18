@@ -3,7 +3,7 @@ import type {ComponentType, EffectCallback} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -23,6 +23,11 @@ jest.mock('@gorhom/portal');
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     useAnimatedRef: jest.fn(),
+}));
+
+jest.mock('../../src/libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    getReportRHPActiveRoute: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -105,7 +110,7 @@ test('[ReportActionCompose] should render Composer with text input interactions'
     };
 
     await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
+    await measureRenders(<ReportActionComposeWrapper />, {scenario});
 });
 
 test('[ReportActionCompose] should scroll to hide suggestions', async () => {
@@ -118,7 +123,7 @@ test('[ReportActionCompose] should scroll to hide suggestions', async () => {
     };
 
     await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
+    await measureRenders(<ReportActionComposeWrapper />, {scenario});
 });
 
 test('[ReportActionCompose] should press to block suggestions', async () => {
@@ -131,7 +136,7 @@ test('[ReportActionCompose] should press to block suggestions', async () => {
     };
 
     await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
+    await measureRenders(<ReportActionComposeWrapper />, {scenario});
 });
 
 test('[ReportActionCompose] should press add attachemnt button', async () => {
@@ -144,7 +149,7 @@ test('[ReportActionCompose] should press add attachemnt button', async () => {
     };
 
     await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
+    await measureRenders(<ReportActionComposeWrapper />, {scenario});
 });
 
 test('[ReportActionCompose] should press add emoji button', async () => {
@@ -157,7 +162,7 @@ test('[ReportActionCompose] should press add emoji button', async () => {
     };
 
     await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
+    await measureRenders(<ReportActionComposeWrapper />, {scenario});
 });
 
 test('[ReportActionCompose] should press send message button', async () => {
@@ -170,7 +175,7 @@ test('[ReportActionCompose] should press send message button', async () => {
     };
 
     await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
+    await measureRenders(<ReportActionComposeWrapper />, {scenario});
 });
 
 test('[ReportActionCompose] press add attachment button', async () => {
@@ -182,7 +187,7 @@ test('[ReportActionCompose] press add attachment button', async () => {
     };
 
     await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
+    await measureRenders(<ReportActionComposeWrapper />, {scenario});
 });
 
 test('[ReportActionCompose] should press split bill button', async () => {
@@ -193,7 +198,7 @@ test('[ReportActionCompose] should press split bill button', async () => {
     };
 
     await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
+    await measureRenders(<ReportActionComposeWrapper />, {scenario});
 });
 
 test('[ReportActionCompose] should press assign task button', async () => {
@@ -204,5 +209,5 @@ test('[ReportActionCompose] should press assign task button', async () => {
     };
 
     await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
+    await measureRenders(<ReportActionComposeWrapper />, {scenario});
 });
