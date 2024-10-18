@@ -87,6 +87,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`);
     const hasSyncError = PolicyUtils.hasSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const waitForNavigate = useWaitForNavigation();
@@ -317,11 +318,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
     const enabledItem = protectedCollectPolicyMenuItems.find((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.routeName === prevItem.routeName));
 
+    const shouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
+    const prevShouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(prevPolicy, isOffline, currentUserLogin), [prevPolicy, isOffline, currentUserLogin]);
+    // We check shouldShowPolicy and prevShouldShowPolicy to prevent the NotFound view from showing right after we delete the workspace
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage =
-        isEmptyObject(policy) ||
-        // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
-        (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
+    const shouldShowNotFoundPage = isEmptyObject(policy) || (!shouldShowPolicy && !prevShouldShowPolicy);
 
     useEffect(() => {
         if (isEmptyObject(prevPolicy) || PolicyUtils.isPendingDeletePolicy(prevPolicy) || !PolicyUtils.isPendingDeletePolicy(policy)) {
@@ -371,7 +372,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 onBackButtonPress={Navigation.dismissModal}
                 onLinkPress={Navigation.resetToHome}
                 shouldShow={shouldShowNotFoundPage}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
             >
                 <HeaderWithBackButton
                     title={policyName}
