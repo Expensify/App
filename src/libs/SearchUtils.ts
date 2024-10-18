@@ -409,12 +409,12 @@ function isSearchResultsEmpty(searchResults: SearchResults) {
 function getQueryHash(query: SearchQueryJSON): number {
     let orderedQuery = '';
     if (query.policyID) {
-        orderedQuery += `policyID ${query.policyID} `;
+        orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID} ${query.policyID} `;
     }
-    orderedQuery += `type ${query.type} `;
-    orderedQuery += ` status ${query.status}`;
-    orderedQuery += ` sortBy ${query.sortBy} `;
-    orderedQuery += ` sortOrder ${query.sortOrder} `;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE} ${query.type} `;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS} ${query.status}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY} ${query.sortBy} `;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER} ${query.sortOrder} `;
 
     Object.keys(query.flatFilters)
         .sort()
@@ -567,7 +567,6 @@ function getFilters(queryJSON: SearchQueryJSON) {
 function buildSearchQueryJSON(query: SearchQueryString) {
     try {
         const result = searchParser.parse(query) as SearchQueryJSON;
-        // console.log('%%%%%\n', 'result', result);
         const flatFilters = getFilters(result);
 
         // Add the full input and hash to the results
