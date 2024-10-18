@@ -17,15 +17,17 @@ import usePreserveSplitNavigatorState from './usePreserveSplitNavigatorState';
 
 function getStateToRender(state: StackNavigationState<ParamListBase>, isSmallScreenWidth: boolean): StackNavigationState<ParamListBase> {
     const sidebarScreenRoute = state.routes.at(0);
+
+    if (!sidebarScreenRoute) {
+        return state;
+    }
+
     const centralScreenRoutes = state.routes.slice(1);
     const routes = isSmallScreenWidth ? state.routes.slice(-2) : [sidebarScreenRoute, ...centralScreenRoutes.slice(-2)];
 
-    // Routes passed to the state have to be defined
-    const definedRoutes = routes.filter((route) => route !== undefined);
-
     return {
         ...state,
-        routes: definedRoutes,
+        routes,
         index: routes.length - 1,
     };
 }
