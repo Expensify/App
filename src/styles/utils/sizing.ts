@@ -118,4 +118,7 @@ export default {
     wAuto: {
         width: 'auto',
     },
+    wFitContent: {
+        width: 'fit-content',
+    },
 } satisfies Record<string, ViewStyle>;

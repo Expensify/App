@@ -56,7 +56,6 @@ function SearchFiltersTagPage() {
             />
             <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
-                    pickerTitle={translate('common.tag')}
                     items={tagItems}
                     initiallySelectedItems={selectedTagsItems}
                     onSaveSelection={updateTagFilter}
