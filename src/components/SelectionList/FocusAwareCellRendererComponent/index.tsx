@@ -1,6 +1,6 @@
 import React from 'react';
-import {View} from 'react-native';
 import type {FocusEventHandler} from 'react';
+import {View} from 'react-native';
 import type {CellRendererProps} from 'react-native';
 import type {ListItem} from '@components/SelectionList/types';
 
