@@ -303,6 +303,7 @@ describe('ReportActionsUtils', () => {
             ];
 
             // Expected output should have the `CREATED` action at last
+            // eslint-disable-next-line rulesdir/prefer-at
             const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2), input[1]];
 
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
@@ -397,6 +398,7 @@ describe('ReportActionsUtils', () => {
             ];
 
             // Expected output should have the `CREATED` action at last and `CLOSED` action removed
+            // eslint-disable-next-line rulesdir/prefer-at
             const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2, -1), input[1]];
 
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
