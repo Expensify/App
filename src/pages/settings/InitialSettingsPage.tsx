@@ -28,6 +28,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
@@ -237,7 +238,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                               },
                           }
                         : {
-                              routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                              action() {
+                                  resetExitSurveyForm(() => Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON));
+                              },
                           }),
                 },
                 {

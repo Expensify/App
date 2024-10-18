@@ -18,8 +18,7 @@ function EmptyStateComponent({
     SkeletonComponent,
     headerMediaType,
     headerMedia,
-    buttonText,
-    buttonAction,
+    buttons,
     containerStyles,
     title,
     titleStyles,
@@ -99,15 +98,22 @@ function EmptyStateComponent({
                     <View style={shouldUseNarrowLayout ? styles.p5 : styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
                         {typeof subtitle === 'string' ? <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text> : subtitle}
-                        {!!buttonText && !!buttonAction && (
-                            <Button
-                                success
-                                onPress={buttonAction}
-                                text={buttonText}
-                                style={[styles.mt5]}
-                                large
-                            />
-                        )}
+                        <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : undefined]}>
+                            {buttons?.map(({buttonText, buttonAction, success}, index) => (
+                                <View
+                                    // eslint-disable-next-line react/no-array-index-key
+                                    key={index}
+                                    style={styles.flex1}
+                                >
+                                    <Button
+                                        success={success}
+                                        onPress={buttonAction}
+                                        text={buttonText}
+                                        large
+                                    />
+                                </View>
+                            ))}
+                        </View>
                     </View>
                 </View>
             </View>

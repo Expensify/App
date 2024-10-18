@@ -1,10 +1,8 @@
 import {trace} from '@firebase/performance';
 import * as Environment from '@libs/Environment/Environment';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as ReportConnection from '@libs/ReportConnection';
-import * as SessionUtils from '@libs/SessionUtils';
 import {firebasePerfWeb} from './firebaseWebConfig';
-import type {FirebaseAttributes, Log, StartTrace, StopTrace, TraceMap} from './types';
+import type {Log, StartTrace, StopTrace, TraceMap} from './types';
+import utils from './utils';
 
 const traceMap: TraceMap = {};
 
@@ -21,7 +19,7 @@ const startTrace: StartTrace = (customEventName) => {
 
     const perfTrace = trace(firebasePerfWeb, customEventName);
 
-    const attributes = getAttributes();
+    const attributes = utils.getAttributes();
 
     Object.entries(attributes).forEach(([name, value]) => {
         perfTrace.putAttribute(name, value);
@@ -54,20 +52,6 @@ const stopTrace: StopTrace = (customEventName) => {
 const log: Log = () => {
     // crashlytics is not supported on WEB
 };
-
-function getAttributes(): FirebaseAttributes {
-    const session = SessionUtils.getSession();
-
-    const accountId = session?.accountID?.toString() ?? 'N/A';
-    const reportsLength = ReportConnection.getAllReportsLength().toString();
-    const personalDetailsLength = PersonalDetailsUtils.getPersonalDetailsLength().toString();
-
-    return {
-        accountId,
-        reportsLength,
-        personalDetailsLength,
-    };
-}
 
 export default {
     startTrace,
