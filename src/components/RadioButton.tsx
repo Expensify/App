@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -36,17 +35,16 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
             pressDimmingValue={1}
             accessibilityLabel={accessibilityLabel}
             role={CONST.ROLE.RADIO}
+            style={[styles.radioButtonContainer, hasError && styles.borderColorDanger, disabled && styles.cursorDisabled]}
         >
-            <View style={[styles.radioButtonContainer, hasError && styles.borderColorDanger, disabled && styles.cursorDisabled]}>
-                {isChecked && (
-                    <Icon
-                        src={Expensicons.Checkmark}
-                        fill={theme.checkBox}
-                        height={14}
-                        width={14}
-                    />
-                )}
-            </View>
+            {isChecked && (
+                <Icon
+                    src={Expensicons.Checkmark}
+                    fill={theme.checkBox}
+                    height={14}
+                    width={14}
+                />
+            )}
         </PressableWithFeedback>
     );
 }
