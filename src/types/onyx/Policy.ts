@@ -1247,10 +1247,10 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
     autoSync: {
-        /** TODO: Will be handled in another issue */
+        /** Job ID of the synchronization */
         jobID: string;
 
-        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
+        /** Whether changes made in QuickBooks Desktop should be reflected into the app automatically */
         enabled: boolean;
     };
 
@@ -1292,6 +1292,9 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** How QuickBooks Desktop customers displayed as */
         customers: IntegrationEntityMap;
     };
+
+    /** Whether new categories are enabled in chart of accounts */
+    enableNewCategories: boolean;
 
     /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;
@@ -1841,6 +1844,7 @@ export type {
     Tenant,
     Account,
     QBONonReimbursableExportAccountType,
+    QBDNonReimbursableExportAccountType,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
     XeroTrackingCategory,

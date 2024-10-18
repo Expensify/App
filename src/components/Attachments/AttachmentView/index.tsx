@@ -36,6 +36,7 @@ type AttachmentViewProps = Attachment & {
     /** Function for handle on press */
     onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
 
+    /** Whether the attachment is used in attachment modal */
     isUsedInAttachmentModal?: boolean;
 
     /** Flag to show/hide download icon */
@@ -73,6 +74,9 @@ type AttachmentViewProps = Attachment & {
 
     /** Whether the attachment is deleted */
     isDeleted?: boolean;
+
+    /** Flag indicating if the attachment is being uploaded. */
+    isUploading?: boolean;
 };
 
 function AttachmentView({
@@ -91,6 +95,7 @@ function AttachmentView({
     isWorkspaceAvatar,
     maybeIcon,
     fallbackSource,
+    transactionID = '-1',
     reportActionID,
     isHovered,
     duration,
@@ -98,11 +103,15 @@ function AttachmentView({
     isUploaded = true,
     isDeleted,
     transactionID,
+    isUploading = false,
 }: AttachmentViewProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -286,9 +295,11 @@ function AttachmentView({
         <DefaultAttachmentView
             fileName={file?.name}
             shouldShowDownloadIcon={shouldShowDownloadIcon}
-            shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon || isUploading}
             containerStyles={containerStyles}
             isDeleted={isDeleted}
+            isUploading={isUploading}
         />
     );
 }

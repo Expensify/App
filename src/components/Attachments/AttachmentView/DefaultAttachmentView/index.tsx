@@ -30,6 +30,11 @@ type DefaultAttachmentViewProps = {
 };
 
 function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles, icon, isDeleted}: DefaultAttachmentViewProps) {
+    /** Flag indicating if the attachment is being uploaded. */
+    isUploading?: boolean;
+};
+
+function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles, icon, isUploading}: DefaultAttachmentViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -56,7 +61,7 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
             )}
             {shouldShowLoadingSpinnerIcon && (
                 <View style={styles.ml2}>
-                    <Tooltip text={translate('common.downloading')}>
+                    <Tooltip text={isUploading ? translate('common.uploading') : translate('common.downloading')}>
                         <ActivityIndicator
                             size="small"
                             color={theme.textSupporting}

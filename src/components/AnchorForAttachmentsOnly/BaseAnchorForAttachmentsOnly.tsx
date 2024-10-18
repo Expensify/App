@@ -25,7 +25,9 @@ type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
 function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onPressIn, onPressOut, isDeleted}: BaseAnchorForAttachmentsOnlyProps) {
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
+
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
 
@@ -35,7 +37,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
         <ShowContextMenuContext.Consumer>
             {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <PressableWithoutFeedback
-                    style={[style, isOffline && styles.cursorDefault]}
+                    style={[style, (isOffline || !sourceID) && styles.cursorDefault]}
                     onPress={() => {
                         if (isDownloading || isOffline || !sourceID) {
                             return;
@@ -62,6 +64,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                         shouldShowLoadingSpinnerIcon={isDownloading}
                         isUsedAsChatAttachment
                         isDeleted={!!isDeleted}
+                        isUploading={!sourceID}
                     />
                 </PressableWithoutFeedback>
             )}
