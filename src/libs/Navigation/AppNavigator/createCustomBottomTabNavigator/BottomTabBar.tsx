@@ -65,6 +65,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const [user] = useOnyx(ONYXKEYS.USER);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -112,11 +113,13 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
 
     return (
         <>
-            <DebugTabView
-                selectedTab={selectedTab}
-                chatTabBrickRoad={chatTabBrickRoad}
-                activeWorkspaceID={activeWorkspaceID}
-            />
+            {user?.isDebugModeEnabled && (
+                <DebugTabView
+                    selectedTab={selectedTab}
+                    chatTabBrickRoad={chatTabBrickRoad}
+                    activeWorkspaceID={activeWorkspaceID}
+                />
+            )}
             <View style={styles.bottomTabBarContainer}>
                 <PressableWithFeedback
                     onPress={navigateToChats}
