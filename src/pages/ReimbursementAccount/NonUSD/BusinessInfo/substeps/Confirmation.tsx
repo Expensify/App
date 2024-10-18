@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
