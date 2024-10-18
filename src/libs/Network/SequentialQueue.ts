@@ -96,7 +96,7 @@ function process(): Promise<void> {
                 pause();
             }
 
-            PersistedRequests.remove(requestToProcess);
+            PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
             RequestThrottle.clear();
             return process();
         })
@@ -104,7 +104,7 @@ function process(): Promise<void> {
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
-                PersistedRequests.remove(requestToProcess);
+                PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
                 RequestThrottle.clear();
                 return process();
             }
@@ -113,7 +113,7 @@ function process(): Promise<void> {
                 .then(process)
                 .catch(() => {
                     Onyx.update(requestToProcess.failureData ?? []);
-                    PersistedRequests.remove(requestToProcess);
+                    PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
                     RequestThrottle.clear();
                     return process();
                 });
@@ -220,6 +220,11 @@ function push(newRequest: OnyxRequest) {
             PersistedRequests.save(newRequest);
         } else if (conflictAction.type === 'replace') {
             PersistedRequests.update(conflictAction.index, newRequest);
+        } else if (conflictAction.type === 'delete') {
+            PersistedRequests.deleteRequestsByIndices(conflictAction.indices);
+            if (conflictAction.pushNewRequest) {
+                PersistedRequests.save(newRequest);
+            }
         } else {
             Log.info(`[SequentialQueue] No action performed to command ${newRequest.command} and it will be ignored.`);
         }
