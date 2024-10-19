@@ -6510,15 +6510,20 @@ function getReportFromHoldRequestsOnyxData(
     const firstHoldTransaction = holdTransactions.at(0);
     const newParentReportActionID = rand64();
 
-    const optimisticExpenseReport = ReportUtils.buildOptimisticExpenseReport(
-        chatReport.reportID,
-        chatReport.policyID ?? iouReport?.policyID ?? '',
-        recipient.accountID ?? 1,
-        holdTransactions.reduce((acc, transaction) => acc + TransactionUtils.getAmount(transaction), 0),
-        getCurrency(firstHoldTransaction),
-        false,
-        newParentReportActionID,
-    );
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+    const holdTransactionAmount = holdTransactions.reduce((acc, transaction) => acc + TransactionUtils.getAmount(transaction), 0);
+    const optimisticExpenseReport = isPolicyExpenseChat
+        ? ReportUtils.buildOptimisticExpenseReport(
+              chatReport.reportID,
+              chatReport.policyID ?? iouReport?.policyID ?? '',
+              recipient.accountID ?? 1,
+              holdTransactionAmount,
+              getCurrency(firstHoldTransaction),
+              false,
+              newParentReportActionID,
+          )
+        : ReportUtils.buildOptimisticIOUReport(recipient.accountID ?? 1, iouReport?.managerID ?? 1, holdTransactionAmount, chatReport.reportID, getCurrency(firstHoldTransaction), false);
+
     const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(
         chatReport,
         optimisticExpenseReport,
