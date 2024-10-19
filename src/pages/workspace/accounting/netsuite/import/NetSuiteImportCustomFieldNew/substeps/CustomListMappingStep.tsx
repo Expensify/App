@@ -31,17 +31,11 @@ function CustomListMappingStep({importCustomField, customSegmentType, onNext, is
         return errors;
     }, []);
 
-    const handleSubmit = isCustomlist
-        ? useNetSuiteImportAddCustomListFormSubmit({
+    const handleSubmit = useNetSuiteImportAddCustomListFormSubmit({
               fieldIds: STEP_FIELDS,
               onNext,
               shouldSaveDraft: true,
           })
-        : useNetSuiteImportAddCustomSegmentFormSubmit({
-              fieldIds: STEP_FIELDS,
-              onNext,
-              shouldSaveDraft: true,
-          });
 
     let titleKey;
     if (importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS) {
