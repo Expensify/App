@@ -715,6 +715,7 @@ function MoneyRequestConfirmationList({
             }
 
             if (selectedParticipants.length === 0) {
+                setFormError('iou.error.noParticipantSelected');
                 return;
             }
             if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)))) {
@@ -801,12 +802,10 @@ function MoneyRequestConfirmationList({
         }
 
         const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.PAY;
-        const shouldDisableButton = selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
                 pressOnEnter
-                isDisabled={shouldDisableButton}
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
@@ -829,7 +828,6 @@ function MoneyRequestConfirmationList({
             <ButtonWithDropdownMenu
                 success
                 pressOnEnter
-                isDisabled={shouldDisableButton}
                 onPress={(event, value) => confirm(value as PaymentMethodType)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
@@ -855,7 +853,6 @@ function MoneyRequestConfirmationList({
         isReadOnly,
         isTypeSplit,
         iouType,
-        selectedParticipants.length,
         confirm,
         bankAccountRoute,
         iouCurrencyCode,
@@ -926,6 +923,7 @@ function MoneyRequestConfirmationList({
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={false}
                 shouldPreventDefaultFocusOnSelectRow
+                shouldShowListEmptyContent={false}
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
                 containerStyle={[styles.flexBasisAuto]}
