@@ -441,7 +441,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                     />
                 ) : undefined
             }
-            contentContainerStyle={contentContainerStyle}
+            contentContainerStyle={[contentContainerStyle, styles.pb3]}
             scrollEventThrottle={1}
         />
     );

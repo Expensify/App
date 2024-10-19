@@ -32,7 +32,7 @@ type SearchRouterListProps = {
     currentQuery: SearchQueryJSON | undefined;
 
     /** Recent searches */
-    recentSearches: ItemWithQuery[] | undefined;
+    recentSearches: Array<ItemWithQuery & {timestamp: string}> | undefined;
 
     /** Recent reports */
     recentReports: OptionData[];
@@ -129,13 +129,13 @@ function SearchRouterList(
         });
     }
 
-    const recentSearchesData = recentSearches?.map(({query}) => {
+    const recentSearchesData = recentSearches?.map(({query, timestamp}) => {
         const searchQueryJSON = SearchUtils.buildSearchQueryJSON(query);
         return {
             text: searchQueryJSON ? SearchUtils.getSearchHeaderTitle(searchQueryJSON, personalDetails, cardList, reports, taxRates) : query,
             singleIcon: Expensicons.History,
             query,
-            keyForList: query,
+            keyForList: timestamp,
         };
     });
 
@@ -167,7 +167,7 @@ function SearchRouterList(
             if ('reportID' in item && item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
-                Report.navigateToAndOpenReport(item?.login ? [item.login] : []);
+                Report.navigateToAndOpenReport(item.login ? [item.login] : [], false);
             }
         },
         [closeAndClearRouter, onSearchSubmit, currentQuery, updateUserSearchQuery],
