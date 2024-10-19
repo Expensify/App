@@ -5646,7 +5646,7 @@ const translations = {
             hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
         },
         reasonRBR: {
-            hasErrors: 'Tiene errores en los datos del informe o de las acciones del informe',
+            hasErrors: 'Tiene errores en los datos o las acciones del informe',
             hasViolations: 'Tiene violaciones',
             hasTransactionThreadViolations: 'Tiene violaciones de hilo de transacciones',
         },
