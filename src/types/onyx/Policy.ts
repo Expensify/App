@@ -1260,6 +1260,9 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Determines if a vendor should be automatically created */
     shouldAutoCreateVendor: boolean;
 
+    /** Whether items is imported */
+    importItems: boolean;
+
     /** Configuration of the export */
     export: {
         /** E-mail of the exporter */
@@ -1844,6 +1847,7 @@ export type {
     Tenant,
     Account,
     QBONonReimbursableExportAccountType,
+    QBDNonReimbursableExportAccountType,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
     XeroTrackingCategory,

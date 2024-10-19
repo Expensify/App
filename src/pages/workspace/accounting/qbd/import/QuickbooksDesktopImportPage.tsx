@@ -41,14 +41,14 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.qbd.customers'),
-            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49705
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS.getRoute(policyID)),
             title: translate(`workspace.accounting.importTypes.${mappings?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS],
+            subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS],
         },
         {
             description: translate('workspace.qbd.items'),
-            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49706
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS],
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ITEMS.getRoute(policyID)),
+            subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.IMPORT_ITEMS],
         },
     ];
 
