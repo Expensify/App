@@ -17,7 +17,7 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 const STEP_FIELDS = [INPUT_IDS.MAPPING];
 
-function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext, isEditing, netSuiteCustomFieldFormValues, isCustomlist}: CustomFieldSubStepWithPolicy) {
+function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext, isEditing, netSuiteCustomFieldFormValues}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

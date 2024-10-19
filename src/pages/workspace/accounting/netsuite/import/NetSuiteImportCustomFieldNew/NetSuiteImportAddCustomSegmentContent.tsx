@@ -10,6 +10,7 @@ import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSu
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
+import * as FormActions from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
@@ -44,7 +45,6 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
     const [customSegmentType, setCustomSegmentType] = useState<ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES> | undefined>();
 
     const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
-    console.log('values', values);
     const startFrom = useMemo(() => getCustomSegmentInitialSubstep(values), [values]);
 
     const handleFinishStep = useCallback(() => {
@@ -61,7 +61,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
         screenIndex,
         moveTo,
         goToTheLastStep,
-    } = useSubStep<CustomFieldSubStepWithPolicy>({bodyContent: formSteps, startFrom: CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.SEGMENT_TYPE, onFinished: handleFinishStep});
+    } = useSubStep<CustomFieldSubStepWithPolicy>({bodyContent: formSteps, startFrom: startFrom, onFinished: handleFinishStep});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -71,6 +71,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
 
         // Clicking back on the first screen should go back to listing
         if (screenIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.SEGMENT_TYPE) {
+            FormActions.clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM);
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
             return;
         }
@@ -187,7 +188,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     ref={ref}
-                    startStepIndex={CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.SEGMENT_TYPE}
+                    startStepIndex={startFrom}
                     stepNames={CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES}
                 />
             </View>
@@ -202,7 +203,6 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
                     importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS}
                     customSegmentType={customSegmentType}
                     setCustomSegmentType={setCustomSegmentType}
-                    isCustomlist={false}
                     netSuiteCustomFieldFormValues={values}
                 />
             </View>

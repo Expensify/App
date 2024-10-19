@@ -3,7 +3,7 @@ import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {OnyxEntry} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
-import type {FormOnyxValues, FormRef} from '@components/Form/types';
+import type {FormRef} from '@components/Form/types';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import useSubStep from '@hooks/useSubStep';
@@ -38,7 +38,6 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
 
     const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
     const startFrom = useMemo(() => getCustomListInitialSubstep(values), [values]);
-    console.log('values', values);
 
     const config = policy?.connections?.netsuite?.options?.config;
     const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);
@@ -75,7 +74,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
         goToTheLastStep,
     } = useSubStep<CustomFieldSubStepWithPolicy>({
         bodyContent: formSteps,
-        startFrom,
+        startFrom: startFrom,
         onFinished: handleFinishStep,
     });
 
@@ -136,7 +135,6 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
                     policy={policy}
                     importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}
                     netSuiteCustomFieldFormValues={values}
-                    isCustomlist={true}
                 />
             </View>
         </ConnectionLayout>
