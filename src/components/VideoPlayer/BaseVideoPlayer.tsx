@@ -358,6 +358,16 @@ function BaseVideoPlayer({
 
     useEffect(() => {
         videoPlayerRef.current?.setStatusAsync({volume: 0});
+        if (videoPlayerElementParentRef.current && 'addEventListener' in videoPlayerElementParentRef.current) {
+            // When the video is in fullscreen, we don't want the scroll to be captured by the InvertedFlatList of report screen.
+            // This will also allow the user to scroll the video playback speed.
+            videoPlayerElementParentRef.current.addEventListener('wheel', (ev) => {
+                if (!isFullScreenRef.current) {
+                    return;
+                }
+                ev.stopPropagation();
+            });
+        }
     }, []);
 
     return (
