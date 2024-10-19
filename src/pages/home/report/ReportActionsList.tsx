@@ -266,7 +266,7 @@ function ReportActionsList({
      * the latest report action. When new report actions are received and the user is not viewing them (they're above
      * the MSG_VISIBLE_THRESHOLD), the unread marker will display over those new messages rather than the initial
      * lastReadTime.
-     * 
+     *
      * However, if the new message is from the current user, we want to always push the unreadMarkerTime down to the timestamp of
      * the latest report action, only if there is no existing unread marker. This is achieved by setting the lastActionAddedByCurrentUser
      * whenever a new action from the current user is received (and there is no existing unread marker) which will avoid
