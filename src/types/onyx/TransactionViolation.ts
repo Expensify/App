@@ -97,5 +97,5 @@ type TransactionViolation = {
 /** Collection of transaction violations */
 type TransactionViolations = TransactionViolation[];
 
-export type {TransactionViolation, ViolationName, ViolationDataType};
+export type {TransactionViolation, ViolationName, ViolationDataType, TransactionViolationData};
 export default TransactionViolations;

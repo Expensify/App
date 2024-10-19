@@ -5630,6 +5630,7 @@ const translations = {
         false: 'falso',
         viewReport: 'Ver informe',
         viewTransaction: 'Ver transacción',
+        createTransactionViolation: 'Crear infracción de transacción',
         reasonVisibleInLHN: {
             hasDraftComment: 'Tiene comentario en borrador',
             hasGBR: 'Tiene GBR',

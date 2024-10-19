@@ -1599,7 +1599,7 @@ type DebugParamList = {
     [SCREENS.DEBUG.TRANSACTION]: {
         transactionID: string;
     };
-    [SCREENS.DEBUG.TRANSACTION]: {
+    [SCREENS.DEBUG.TRANSACTION_VIOLATION_CREATE]: {
         transactionID: string;
     };
 };

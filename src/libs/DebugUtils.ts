@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, RecentWaypoint, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Comment, Receipt, SplitShare, TaxRate} from '@src/types/onyx/Transaction';
+import type {TransactionViolationData} from '@src/types/onyx/TransactionViolation';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 
@@ -129,6 +130,8 @@ const TRANSACTION_BOOLEAN_PROPERTIES: Array<keyof Transaction> = [
     'shouldShowOriginalAmount',
     'managedCard',
 ] satisfies Array<keyof Transaction>;
+
+const TRANSACTION_VIOLATION_REQUIRED_PROPERTIES: Array<keyof TransactionViolation> = ['type', 'name'] satisfies Array<keyof TransactionViolation>;
 
 let isInFocusMode: OnyxEntry<boolean>;
 Onyx.connect({
@@ -761,6 +764,45 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
     validateString(value);
 }
 
+function validateTransactionViolationDraftProperty(key: keyof TransactionViolation, value: string) {
+    if (TRANSACTION_VIOLATION_REQUIRED_PROPERTIES.includes(key) && value === 'undefined') {
+        throw SyntaxError('debug.missingValue');
+    }
+    if (key === 'type') {
+        return validateConstantEnum(value, CONST.VIOLATION_TYPES);
+    }
+    if (key === 'name') {
+        return validateConstantEnum(value, CONST.VIOLATIONS);
+    }
+    if (key === 'data') {
+        return validateObject<TransactionViolationData>(value, {
+            rejectedBy: 'string',
+            rejectReason: 'string',
+            formattedLimit: 'string',
+            surcharge: 'number',
+            invoiceMarkup: 'number',
+            maxAge: 'number',
+            tagName: 'string',
+            category: 'string',
+            brokenBankConnection: 'boolean',
+            isAdmin: 'boolean',
+            email: 'string',
+            isTransactionOlderThan7Days: 'boolean',
+            member: 'string',
+            taxName: 'string',
+            tagListIndex: 'number',
+            tagListName: 'string',
+            errorIndexes: 'array',
+            pendingPattern: 'string',
+            type: CONST.MODIFIED_AMOUNT_VIOLATION_DATA,
+            displayPercentVariance: 'number',
+            duplicates: 'array',
+            rterType: CONST.RTER_VIOLATION_TYPES,
+        });
+    }
+    validateString(value);
+}
+
 /**
  * Validates if the ReportAction JSON that the user provided is of the expected type
  */
@@ -779,6 +821,25 @@ function validateReportActionJSON(json: string) {
                 throw new NumberError();
             }
             validateReportActionDraftProperty(key as keyof ReportAction, onyxDataToString(val));
+        } catch (e) {
+            const {cause} = e as SyntaxError & {cause: {expectedValues: string}};
+            throw new SyntaxError('debug.invalidProperty', {cause: {propertyName: key, expectedType: cause.expectedValues}});
+        }
+    });
+}
+
+function validateTransactionViolationJSON(json: string) {
+    const parsedTransactionViolation = parseJSON(json) as TransactionViolation;
+    TRANSACTION_VIOLATION_REQUIRED_PROPERTIES.forEach((key) => {
+        if (parsedTransactionViolation[key] !== undefined) {
+            return;
+        }
+
+        throw new SyntaxError('debug.missingProperty', {cause: {propertyName: key}});
+    });
+    Object.entries(parsedTransactionViolation).forEach(([key, val]) => {
+        try {
+            validateTransactionViolationDraftProperty(key as keyof TransactionViolation, onyxDataToString(val));
         } catch (e) {
             const {cause} = e as SyntaxError & {cause: {expectedValues: string}};
             throw new SyntaxError('debug.invalidProperty', {cause: {propertyName: key, expectedType: cause.expectedValues}});
@@ -876,6 +937,7 @@ const DebugUtils = {
     validateReportActionDraftProperty,
     validateTransactionDraftProperty,
     validateReportActionJSON,
+    validateTransactionViolationJSON,
     getReasonForShowingRowInLHN,
     getReasonAndReportActionForGBRInLHNRow,
     getRBRReportAction,

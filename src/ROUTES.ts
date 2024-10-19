@@ -1687,6 +1687,10 @@ const ROUTES = {
         route: 'debug/transaction/:transactionID/violations',
         getRoute: (transactionID: string) => `debug/transaction/${transactionID}/violations` as const,
     },
+    DEBUG_TRANSACTION_VIOLATION_CREATE: {
+        route: 'debug/transaction/:transactionID/violations/create',
+        getRoute: (transactionID: string) => `debug/transaction/${transactionID}/violations/create` as const,
+    },
 } as const;
 
 /**

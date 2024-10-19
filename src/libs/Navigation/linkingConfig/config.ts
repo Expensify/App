@@ -1337,6 +1337,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 },
                             },
                         },
+                        [SCREENS.DEBUG.TRANSACTION_VIOLATION_CREATE]: {
+                            path: ROUTES.DEBUG_TRANSACTION_VIOLATION_CREATE.route,
+                            exact: true,
+                        },
                     },
                 },
             },

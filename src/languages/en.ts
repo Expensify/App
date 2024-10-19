@@ -5113,6 +5113,7 @@ const translations = {
         false: 'false',
         viewReport: 'View report',
         viewTransaction: 'View transaction',
+        createTransactionViolation: 'Create transaction violation',
         reasonVisibleInLHN: {
             hasDraftComment: 'Has draft comment',
             hasGBR: 'Has GBR',
