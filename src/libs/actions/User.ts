@@ -902,6 +902,17 @@ function subscribeToUserEvents() {
                 return;
             }
 
+            // Notify the subscriber that a new action has been received. This code was previously placed inside triggerNotifications,
+            // but it's actually unrelated to app notifications. We want to notify ReportActionsList before updating the onyx that a new action has been added,
+            // allowing us to avoid displaying an unread marker for messages from the current user.
+            pushJSON.forEach((update) => {
+                if (!update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+                    return;
+                }
+                const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+                const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
+                reportActions.forEach((action) => action && Report.notifyNewAction(reportID, action.actorAccountID, action.reportActionID));
+            });
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
                 triggerNotifications(pushJSON);
             });

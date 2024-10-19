@@ -198,6 +198,7 @@ function ReportActionsList({
             ),
         [sortedReportActions, isOffline],
     );
+    const lastAction = sortedVisibleReportActions.at(0);
 
     /**
      * The timestamp for the unread marker.
@@ -214,20 +215,6 @@ function ReportActionsList({
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
-
-    const lastAction = sortedVisibleReportActions.at(0);
-    useEffect(() => {
-        if (!lastActionAddedByCurrentUser.current || lastAction?.reportActionID !== lastActionAddedByCurrentUser.current) {
-            return;
-        }
-        setUnreadMarkerTime(lastAction.created);
-
-        if (lastAction.isOptimisticAction) {
-            return;
-        }
-
-        lastActionAddedByCurrentUser.current = undefined;
-    }, [lastAction]);
 
     /**
      * The reportActionID the unread marker should display above
@@ -279,13 +266,25 @@ function ReportActionsList({
      * the latest report action. When new report actions are received and the user is not viewing them (they're above
      * the MSG_VISIBLE_THRESHOLD), the unread marker will display over those new messages rather than the initial
      * lastReadTime.
+     * 
+     * However, if the new message is from the current user, we want to always push the unreadMarkerTime down to the timestamp of
+     * the latest report action, only if there is no existing unread marker. This is achieved by setting the lastActionAddedByCurrentUser
+     * whenever a new action from the current user is received (and there is no existing unread marker) which will avoid
+     * the new action to be marked as unread.
      */
     useEffect(() => {
         if (unreadMarkerReportActionID) {
             return;
         }
 
-        const mostRecentReportActionCreated = sortedVisibleReportActions.at(0)?.created ?? '';
+        // We only want to update the unread marker time to be the same as the new current user message once,
+        // but if the action is still an optimistic action, we want to keep lastActionAddedByCurrentUser because
+        // the action created value from the BE will be different.
+        if (!lastAction?.isOptimisticAction) {
+            lastActionAddedByCurrentUser.current = undefined;
+        }
+
+        const mostRecentReportActionCreated = lastAction?.created ?? '';
         if (mostRecentReportActionCreated <= unreadMarkerTime) {
             return;
         }
@@ -293,15 +292,15 @@ function ReportActionsList({
         setUnreadMarkerTime(mostRecentReportActionCreated);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [sortedVisibleReportActions]);
+    }, [lastAction?.created]);
 
-    const lastActionIndex = sortedVisibleReportActions.at(0)?.reportActionID;
+    const lastActionIndex = lastAction?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
     const lastVisibleActionCreated =
         (transactionThreadReport?.lastVisibleActionCreated ?? '') > (report.lastVisibleActionCreated ?? '')
             ? transactionThreadReport?.lastVisibleActionCreated
             : report.lastVisibleActionCreated;
-    const hasNewestReportAction = sortedVisibleReportActions.at(0)?.created === lastVisibleActionCreated;
+    const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
@@ -368,6 +367,8 @@ function ReportActionsList({
                 return;
             }
             if (!unreadMarkerReportActionID) {
+                // This tells the component that the unread marker time needs to be updated with the last action created time,
+                // but only if there is no existing unread marker so we don't override it.
                 lastActionAddedByCurrentUser.current = reportActionID;
             }
             if (!hasNewestReportActionRef.current) {
@@ -496,7 +497,7 @@ function ReportActionsList({
 
         if (!isVisible || !isFocused) {
             if (!lastMessageTime.current) {
-                lastMessageTime.current = sortedVisibleReportActions.at(0)?.created ?? '';
+                lastMessageTime.current = lastAction?.created ?? '';
             }
             return;
         }

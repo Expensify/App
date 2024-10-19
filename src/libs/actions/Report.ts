@@ -2494,8 +2494,6 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     } else {
         LocalNotification.showCommentNotification(report, reportAction, onClick);
     }
-
-    notifyNewAction(reportID, reportAction.actorAccountID, reportAction.reportActionID);
 }
 
 /** Clear the errors associated with the IOUs of a given report. */
