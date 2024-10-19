@@ -1,4 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -24,11 +25,11 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
-import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
+import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
 
@@ -106,6 +107,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldIgnoreFocus = false,
         scrollEventThrottle,
         contentContainerStyle,
+        shouldDebounceScrolling = false,
         shouldPreventActiveCellVirtualization = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
@@ -275,6 +277,8 @@ function BaseSelectionList<TItem extends ListItem>(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [flattenedSections.disabledArrowKeyOptionsIndexes]);
 
+    const debouncedScrollToIndex = useMemo(() => lodashDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true}), [scrollToIndex]);
+
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
@@ -282,7 +286,7 @@ function BaseSelectionList<TItem extends ListItem>(
         disabledIndexes: disabledArrowKeyIndexes,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
-            scrollToIndex(index, true);
+            (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
         },
         isFocused,
     });
@@ -297,36 +301,50 @@ function BaseSelectionList<TItem extends ListItem>(
      * @param item - the list item
      * @param indexToFocus - the list item index to focus
      */
-    const selectRow = (item: TItem, indexToFocus?: number) => {
-        // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
-        if (canSelectMultiple) {
-            if (sections.length > 1) {
-                // If the list has only 1 section (e.g. Workspace Members list), we do nothing.
-                // If the list has multiple sections (e.g. Workspace Invite list), and `shouldUnfocusRow` is false,
-                // we focus the first one after all the selected (selected items are always at the top).
-                const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
+    const selectRow = useCallback(
+        (item: TItem, indexToFocus?: number) => {
+            // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
+            if (canSelectMultiple) {
+                if (sections.length > 1) {
+                    // If the list has only 1 section (e.g. Workspace Members list), we do nothing.
+                    // If the list has multiple sections (e.g. Workspace Invite list), and `shouldUnfocusRow` is false,
+                    // we focus the first one after all the selected (selected items are always at the top).
+                    const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
 
-                if (!item.isSelected) {
-                    // If we're selecting an item, scroll to it's position at the top, so we can see it
-                    scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
+                    if (!item.isSelected) {
+                        // If we're selecting an item, scroll to it's position at the top, so we can see it
+                        scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
+                    }
+                }
+
+                if (shouldShowTextInput) {
+                    clearInputAfterSelect();
                 }
             }
 
-            if (shouldShowTextInput) {
-                clearInputAfterSelect();
+            if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
+                setFocusedIndex(indexToFocus);
             }
-        }
 
-        if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
-            setFocusedIndex(indexToFocus);
-        }
+            onSelectRow(item);
 
-        onSelectRow(item);
-
-        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
-            innerTextInputRef.current.focus();
-        }
-    };
+            if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
+                innerTextInputRef.current.focus();
+            }
+        },
+        [
+            canSelectMultiple,
+            sections.length,
+            flattenedSections.selectedOptions.length,
+            scrollToIndex,
+            shouldShowTextInput,
+            clearInputAfterSelect,
+            shouldUpdateFocusedIndex,
+            setFocusedIndex,
+            onSelectRow,
+            shouldPreventDefaultFocusOnSelectRow,
+        ],
+    );
 
     const selectAllRow = () => {
         onSelectAll?.();
@@ -438,50 +456,32 @@ function BaseSelectionList<TItem extends ListItem>(
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
-        const handleOnCheckboxPress = () => {
-            if (SearchUtils.isReportListItemType(item)) {
-                return onCheckboxPress;
-            }
-            return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
-        };
-
         return (
-            <>
-                <ListItem
-                    item={item}
-                    isFocused={isItemFocused}
-                    isDisabled={isDisabled}
-                    showTooltip={showTooltip}
-                    canSelectMultiple={canSelectMultiple}
-                    onLongPressRow={onLongPressRow}
-                    onSelectRow={() => {
-                        if (shouldSingleExecuteRowSelect) {
-                            singleExecution(() => selectRow(item, index))();
-                        } else {
-                            selectRow(item, index);
-                        }
-                    }}
-                    onCheckboxPress={handleOnCheckboxPress()}
-                    onDismissError={() => onDismissError?.(item)}
-                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
-                    shouldPreventEnterKeySubmit
-                    rightHandSideComponent={rightHandSideComponent}
-                    keyForList={item.keyForList ?? ''}
-                    isMultilineSupported={isRowMultilineSupported}
-                    isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
-                    alternateTextNumberOfLines={alternateTextNumberOfLines}
-                    onFocus={() => {
-                        if (shouldIgnoreFocus || isDisabled) {
-                            return;
-                        }
-                        setFocusedIndex(normalizedIndex);
-                    }}
-                    shouldSyncFocus={!isTextInputFocusedRef.current}
-                    wrapperStyle={listItemWrapperStyle}
-                />
-                {item.footerContent && item.footerContent}
-            </>
+            <BaseSelectionListItemRenderer
+                ListItem={ListItem}
+                item={item}
+                index={index}
+                isFocused={isItemFocused}
+                isDisabled={isDisabled}
+                showTooltip={showTooltip}
+                canSelectMultiple={canSelectMultiple}
+                onLongPressRow={onLongPressRow}
+                shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                selectRow={selectRow}
+                onCheckboxPress={onCheckboxPress}
+                onDismissError={onDismissError}
+                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                rightHandSideComponent={rightHandSideComponent}
+                isMultilineSupported={isRowMultilineSupported}
+                isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
+                alternateTextNumberOfLines={alternateTextNumberOfLines}
+                shouldIgnoreFocus={shouldIgnoreFocus}
+                setFocusedIndex={setFocusedIndex}
+                normalizedIndex={normalizedIndex}
+                shouldSyncFocus={!isTextInputFocusedRef.current}
+                wrapperStyle={listItemWrapperStyle}
+                singleExecution={singleExecution}
+            />
         );
     };
 

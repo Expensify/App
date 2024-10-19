@@ -1135,6 +1135,7 @@ const CONST = {
         SEARCH_BUILD_TREE: 'search_build_tree',
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
+        LIST_SCROLLING_DEBOUNCE_TIME: 200,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
