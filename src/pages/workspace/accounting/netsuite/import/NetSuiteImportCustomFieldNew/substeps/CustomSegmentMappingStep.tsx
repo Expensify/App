@@ -20,7 +20,7 @@ const STEP_FIELDS = [INPUT_IDS.MAPPING];
 function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext, isEditing, netSuiteCustomFieldFormValues}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
+    // reminder to change the validation logic at the last phase of PR
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> = {};
 
@@ -61,7 +61,6 @@ function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext,
                 InputComponent={NetSuiteCustomFieldMappingPicker}
                 inputID={INPUT_IDS.MAPPING}
                 defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.MAPPING]}
-                shouldSaveDraft
             />
         </FormProvider>
     );
