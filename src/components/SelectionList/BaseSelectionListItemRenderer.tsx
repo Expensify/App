@@ -4,6 +4,15 @@ import type useSingleExecution from '@hooks/useSingleExecution';
 import * as SearchUtils from '@libs/SearchUtils';
 import type {BaseListItemProps, BaseSelectionListProps, ListItem} from './types';
 
+type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
+    Pick<BaseSelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
+        index: number;
+        selectRow: (item: TItem, indexToFocus?: number) => void;
+        setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
+        normalizedIndex: number;
+        singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
+    };
+
 function BaseSelectionListItemRenderer<TItem extends ListItem>({
     ListItem,
     item,
@@ -28,14 +37,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     singleExecution,
-}: Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
-    Pick<BaseSelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
-        index: number;
-        selectRow: (item: TItem, indexToFocus?: number) => void;
-        setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
-        normalizedIndex: number;
-        singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
-    }) {
+}: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (SearchUtils.isReportListItemType(item)) {
             return onCheckboxPress;
