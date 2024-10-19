@@ -5,18 +5,11 @@ import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
 import type {Video} from './libs/actions/Report';
+import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
-import type {Unit} from './types/onyx/Policy';
-
-type RateAndUnit = {
-    unit: Unit;
-    rate: number;
-    currency: string;
-};
-type CurrencyDefaultMileageRate = Record<string, RateAndUnit>;
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -745,6 +738,7 @@ const CONST = {
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_HELP: 'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds',
+    COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL:
         'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds#what-is-the-difference-between-commercial-card-feeds-and-your-direct-bank-connections',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
@@ -753,6 +747,11 @@ const CONST = {
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
+    NAVATTIC: {
+        ADMIN_TOUR: 'https://expensify.navattic.com/kh204a7',
+        EMPLOYEE_TOUR: 'https://expensify.navattic.com/35609gb',
+    },
+
     OLDDOT_URLS: {
         ADMIN_POLICIES_URL: 'admin_policies',
         ADMIN_DOMAINS_URL: 'admin_domains',
@@ -824,6 +823,7 @@ const CONST = {
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
+                CARD_ASSIGNED: 'CARDASSIGNED',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
@@ -1108,7 +1108,7 @@ const CONST = {
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        CHAT_FINDER_RENDER: 'search_render',
+        SEARCH_ROUTER_RENDER: 'search_router_render',
         CHAT_RENDER: 'chat_render',
         OPEN_REPORT: 'open_report',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
@@ -1130,6 +1130,9 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
+        SEARCH_CONVERT_SEARCH_VALUES: 'search_convert_search_values',
+        SEARCH_MAKE_TREE: 'search_make_tree',
+        SEARCH_BUILD_TREE: 'search_build_tree',
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
     },
@@ -1491,10 +1494,18 @@ const CONST = {
         EXPORTER: 'exporter',
         MARK_CHECKS_TO_BE_PRINTED: 'markChecksToBePrinted',
         REIMBURSABLE_ACCOUNT: 'reimbursableAccount',
+        NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        SHOULD_AUTO_CREATE_VENDOR: 'shouldAutoCreateVendor',
+        NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'nonReimbursableBillDefaultVendor',
+        AUTO_SYNC: 'autoSync',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         MAPPINGS: {
             CLASSES: 'classes',
+            CUSTOMERS: 'customers',
         },
+        IMPORT_ITEMS: 'importItems',
     },
 
     QUICKBOOKS_CONFIG: {
@@ -1609,7 +1620,6 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
         CHECK: 'CHECK',
         JOURNAL_ENTRY: 'JOURNAL_ENTRY',
-        NOTHING: 'NOTHING',
     },
 
     SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE: {
@@ -1884,7 +1894,7 @@ const CONST = {
 
     QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE: {
         CREDIT_CARD: 'CREDIT_CARD_CHARGE',
-        JOURNAL_ENTRY: 'JOURNAL_ENTRY',
+        CHECK: 'CHECK',
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
@@ -2377,6 +2387,7 @@ const CONST = {
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
                 STARTING_IMPORT_XERO: 'startingImportXero',
+                STARTING_IMPORT_QBD: 'startingImportQBD',
                 QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
                 QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
                 QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',
@@ -2393,6 +2404,17 @@ const CONST = {
                 QBO_SYNC_APPLY_CUSTOMERS: 'quickbooksOnlineSyncApplyCustomers',
                 QBO_SYNC_APPLY_PEOPLE: 'quickbooksOnlineSyncApplyEmployees',
                 QBO_SYNC_APPLY_CLASSES_LOCATIONS: 'quickbooksOnlineSyncApplyClassesLocations',
+                QBD_IMPORT_TITLE: 'quickbooksDesktopImportTitle',
+                QBD_IMPORT_ACCOUNTS: 'quickbooksDesktopImportAccounts',
+                QBD_IMPORT_APPROVE_CERTIFICATE: 'quickbooksDesktopImportApproveCertificate',
+                QBD_IMPORT_DIMENSIONS: 'quickbooksDesktopImportDimensions',
+                QBD_IMPORT_CLASSES: 'quickbooksDesktopImportClasses',
+                QBD_IMPORT_CUSTOMERS: 'quickbooksDesktopImportCustomers',
+                QBD_IMPORT_VENDORS: 'quickbooksDesktopImportVendors',
+                QBD_IMPORT_EMPLOYEES: 'quickbooksDesktopImportEmployees',
+                QBD_IMPORT_MORE: 'quickbooksDesktopImportMore',
+                QBD_IMPORT_GENERIC: 'quickbooksDesktopImportSavePolicy',
+                QBD_WEB_CONNECTOR_REMINDER: 'quickbooksDesktopWebConnectorReminder',
                 JOB_DONE: 'jobDone',
                 XERO_SYNC_STEP: 'xeroSyncStep',
                 XERO_SYNC_XERO_REIMBURSED_REPORTS: 'xeroSyncXeroReimbursedReports',
@@ -2461,6 +2483,8 @@ const CONST = {
         DEFAULT_RATE: 'Default Rate',
         RATE_DECIMALS: 3,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
+        MILES_TO_KILOMETERS: 1.609344,
+        KILOMETERS_TO_MILES: 0.621371,
     },
 
     TERMS: {
@@ -2504,6 +2528,7 @@ const CONST = {
             MASTER_CARD: 'cdf',
             VISA: 'vcf',
             AMEX: 'gl1025',
+            STRIPE: 'stripe',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
@@ -2567,11 +2592,14 @@ const CONST = {
             CARD_INSTRUCTIONS: 'CardInstructions',
             CARD_NAME: 'CardName',
             CARD_DETAILS: 'CardDetails',
+            BANK_CONNECTION: 'BankConnection',
+            AMEX_CUSTOM_FEED: 'AmexCustomFeed',
         },
         CARD_TYPE: {
             AMEX: 'amex',
             VISA: 'visa',
             MASTERCARD: 'mastercard',
+            STRIPE: 'stripe',
         },
         FEED_TYPE: {
             CUSTOM: 'customFeed',
@@ -2587,6 +2615,10 @@ const CONST = {
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
             OTHER: 'Other',
+        },
+        AMEX_CUSTOM_FEED: {
+            CORPORATE: 'American Express Corporate Cards',
+            BUSINESS: 'American Express Business Cards',
         },
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
@@ -2895,6 +2927,7 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
+        DOWNLOAD: 'download',
         EXPORT: 'export',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
@@ -5513,7 +5546,7 @@ const CONST = {
             "rate": 2377,
             "unit": "km"
         }
-    }`) as CurrencyDefaultMileageRate,
+    }`) as Record<string, MileageRate>,
 
     EXIT_SURVEY: {
         REASONS: {
@@ -5755,6 +5788,14 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.description` as const,
                 icon: 'IntacctSquare',
             },
+            [this.POLICY.CONNECTIONS.NAME.QBD]: {
+                id: this.POLICY.CONNECTIONS.NAME.QBD,
+                alias: 'qbd',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.QBD}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.QBD}.description` as const,
+                icon: 'QBDSquare',
+            },
             approvals: {
                 id: 'approvals' as const,
                 alias: 'approvals' as const,
@@ -5907,7 +5948,6 @@ export type {
     Country,
     IOUAction,
     IOUType,
-    RateAndUnit,
     OnboardingPurposeType,
     OnboardingCompanySizeType,
     IOURequestType,

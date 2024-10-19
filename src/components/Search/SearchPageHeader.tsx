@@ -67,7 +67,7 @@ function HeaderWrapper({icon, children, text, value, isCannedQuery, onSubmit, se
                         />
                     )}
                     <Header subtitle={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{text}</Text>} />
-                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>{children}</View>
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap2]}>{children}</View>
                 </View>
             ) : (
                 <View style={styles.pr5}>
@@ -373,7 +373,6 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                     <Button
                         innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
                         text={translate('search.filtersHeader')}
-                        textStyles={!isCannedQuery && styles.textSupporting}
                         icon={Expensicons.Filters}
                         onPress={onPress}
                     />
