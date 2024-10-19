@@ -8,7 +8,6 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
@@ -67,7 +66,6 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const fileType = FileUtils.getFileType(attachmentSourceAttribute);
     const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
     const [hasLoadFailed, setHasLoadFailed] = useState(true);
-    const {isOffline} = useNetwork();
     const theme = useTheme();
 
     const thumbnailImageComponent = (
@@ -112,7 +110,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                             shouldUseHapticsOnLongPress
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                            disabled={!isOffline && hasLoadFailed}
+                            disabled={hasLoadFailed}
                         >
                             {thumbnailImageComponent}
                         </PressableWithoutFocus>
