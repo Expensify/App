@@ -4,22 +4,22 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useStepFormSubmit from './useStepFormSubmit';
 import type {SubStepProps} from './useSubStep/types';
 
-type useNetSuiteCustomListFormSubmitParams = Pick<SubStepProps, 'onNext'> & {
+type UseNetSuiteImportAddCustomSegmentFormSubmitParams = Pick<SubStepProps, 'onNext'> & {
     formId?: OnyxFormKey;
-    fieldIds: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>>;
+    fieldIds: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>>;
     shouldSaveDraft: boolean;
 };
 
 /**
- * Hook for handling submit method in Missing Personal Details substeps.
+ * Hook for handling submit method in NetSuite Custom Segment substeps.
  * When user is in editing mode, we should save values only when user confirms the change
  * @param onNext - callback
  * @param fieldIds - field IDs for particular step
  * @param shouldSaveDraft - if we should save draft values
  */
-export default function useNetSuiteCustomListFormSubmit({onNext, fieldIds, shouldSaveDraft}: useNetSuiteCustomListFormSubmitParams) {
-    return useStepFormSubmit<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>({
-        formId: ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM,
+export default function useNetSuiteImportAddCustomSegmentFormSubmit({onNext, fieldIds, shouldSaveDraft}: UseNetSuiteImportAddCustomSegmentFormSubmitParams) {
+    return useStepFormSubmit<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>({
+        formId: ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM,
         onNext,
         fieldIds,
         shouldSaveDraft,

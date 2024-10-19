@@ -68,7 +68,9 @@ type CustomFieldSubStepWithPolicy = SubStepProps & {
     netSuiteCustomFieldFormValues: NetSuiteCustomFieldForm;
 
     /** Whether we are saving list or segment  */
-    isCustomlist: boolean
+    isCustomlist: boolean;
+
+    
 };
 
 type CustomListSelectorType = SelectorType & {

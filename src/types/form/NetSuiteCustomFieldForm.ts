@@ -6,6 +6,7 @@ const INPUT_IDS = {
     INTERNAL_ID: 'internalID',
     MAPPING: 'mapping',
     LIST_NAME: 'listName',
+    SEGMENT_TYPE: 'segmentType',
     SEGMENT_NAME: 'segmentName',
     TRANSACTION_FIELD_ID: 'transactionFieldID',
     SCRIPT_ID: 'scriptID',
@@ -19,6 +20,7 @@ type NetSuiteCustomFieldForm = Form<
         [INPUT_IDS.INTERNAL_ID]: string;
         [INPUT_IDS.MAPPING]: NetSuiteCustomFieldMapping;
         [INPUT_IDS.LIST_NAME]: string;
+        [INPUT_IDS.SEGMENT_TYPE]: string;
         [INPUT_IDS.SEGMENT_NAME]: string;
         [INPUT_IDS.TRANSACTION_FIELD_ID]: string;
         [INPUT_IDS.SCRIPT_ID]: string;

@@ -20,7 +20,7 @@ import {Policy} from '@src/types/onyx';
 import {getCustomListInitialSubstep, getSubstepValues} from './customListUtils';
 import ChooseCustomListStep from './substeps/ChooseCustomListStep';
 import ConfirmCustomListStep from './substeps/ConfirmCustomListStep';
-import MappingStep from './substeps/MappingStep';
+import CustomListMappingStep from './substeps/CustomListMappingStep';
 import TransactionFieldIDStep from './substeps/TransactionFieldIDStep';
 
 type NetSuiteImportAddCustomListContentProps = {
@@ -28,7 +28,7 @@ type NetSuiteImportAddCustomListContentProps = {
     draftValues: OnyxEntry<NetSuiteCustomFieldForm>;
 };
 
-const formSteps = [ChooseCustomListStep, TransactionFieldIDStep, MappingStep, ConfirmCustomListStep];
+const formSteps = [ChooseCustomListStep, TransactionFieldIDStep, CustomListMappingStep, ConfirmCustomListStep];
 
 function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImportAddCustomListContentProps) {
     const policyID = policy?.id ?? '-1';
@@ -38,15 +38,32 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
 
     const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
     const startFrom = useMemo(() => getCustomListInitialSubstep(values), [values]);
+    console.log('values', values);
 
     const config = policy?.connections?.netsuite?.options?.config;
     const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);
 
     const handleFinishStep = useCallback(() => {
         InteractionManager.runAfterInteractions(() => {
+            const updatedCustomLists = customLists.concat([
+                {
+                    listName: values[INPUT_IDS.LIST_NAME],
+                    internalID: values[INPUT_IDS.INTERNAL_ID],
+                    transactionFieldID: values[INPUT_IDS.TRANSACTION_FIELD_ID],
+                    mapping: values[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                },
+            ]);
+            Connections.updateNetSuiteCustomLists(
+                policyID,
+                updatedCustomLists,
+                customLists,
+                `${CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}_${customLists.length}`,
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            );
+            FormActions.clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM);
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
         });
-    }, [policyID]);
+    }, [values]);
 
     const {
         componentToRender: SubStep,
@@ -88,29 +105,6 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
         nextScreen();
     }, [goToTheLastStep, isEditing, nextScreen]);
 
-    const updateNetSuiteCustomLists = useCallback(
-        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>) => {
-            const updatedCustomLists = customLists.concat([
-                {
-                    listName: formValues[INPUT_IDS.LIST_NAME],
-                    internalID: formValues[INPUT_IDS.INTERNAL_ID],
-                    transactionFieldID: formValues[INPUT_IDS.TRANSACTION_FIELD_ID],
-                    mapping: formValues[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                },
-            ]);
-            Connections.updateNetSuiteCustomLists(
-                policyID,
-                updatedCustomLists,
-                customLists,
-                `${CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}_${customLists.length}`,
-                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            );
-            FormActions.clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM);
-            nextScreen();
-        },
-        [customLists, nextScreen, policyID],
-    );
-
     return (
         <ConnectionLayout
             displayName={NetSuiteImportAddCustomListContent.displayName}
@@ -142,6 +136,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
                     policy={policy}
                     importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}
                     netSuiteCustomFieldFormValues={values}
+                    isCustomlist={true}
                 />
             </View>
         </ConnectionLayout>

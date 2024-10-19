@@ -5,6 +5,7 @@ import {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetSuiteImportAddCustomListFormSubmit from '@hooks/useNetSuiteImportAddCustomListForm';
+import useNetSuiteImportAddCustomSegmentFormSubmit from '@hooks/useNetSuiteImportAddCustomSegmentForm';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
@@ -16,7 +17,7 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 const STEP_FIELDS = [INPUT_IDS.MAPPING];
 
-function MappingStep({importCustomField, customSegmentType, onNext, isEditing, netSuiteCustomFieldFormValues}: CustomFieldSubStepWithPolicy) {
+function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext, isEditing, netSuiteCustomFieldFormValues, isCustomlist}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -30,13 +31,11 @@ function MappingStep({importCustomField, customSegmentType, onNext, isEditing, n
         return errors;
     }, []);
 
-    const handleSubmit = useNetSuiteImportAddCustomListFormSubmit({
+    const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: true,
     });
-
-    console.log('netSuiteCustomFieldFormValues[INPUT_IDS.MAPPING]', netSuiteCustomFieldFormValues[INPUT_IDS.MAPPING]);
 
     let titleKey;
     if (importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS) {
@@ -48,7 +47,7 @@ function MappingStep({importCustomField, customSegmentType, onNext, isEditing, n
 
     return (
         <FormProvider
-            formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM}
+            formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmit}
             validate={validate}
@@ -62,10 +61,11 @@ function MappingStep({importCustomField, customSegmentType, onNext, isEditing, n
                 InputComponent={NetSuiteCustomFieldMappingPicker}
                 inputID={INPUT_IDS.MAPPING}
                 defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.MAPPING]}
+                shouldSaveDraft
             />
         </FormProvider>
     );
 }
 
-MappingStep.displayName = 'MappingStep';
-export default MappingStep;
+CustomSegmentMappingStep.displayName = 'CustomSegmentMappingStep';
+export default CustomSegmentMappingStep;
