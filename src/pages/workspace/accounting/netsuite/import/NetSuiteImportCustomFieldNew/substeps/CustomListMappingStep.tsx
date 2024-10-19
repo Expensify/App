@@ -32,10 +32,10 @@ function CustomListMappingStep({importCustomField, customSegmentType, onNext, is
     }, []);
 
     const handleSubmit = useNetSuiteImportAddCustomListFormSubmit({
-              fieldIds: STEP_FIELDS,
-              onNext,
-              shouldSaveDraft: true,
-          })
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: true,
+    });
 
     let titleKey;
     if (importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS) {
