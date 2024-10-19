@@ -34,25 +34,25 @@ const addCSS = (css: string, styleId: string) => {
  * Chrome on iOS does not support the autofill pseudo class because it is a non-standard webkit feature.
  * We should rely on the chrome-autofilled property being added to the input when users use auto-fill
  */
-const getAutofilledInputStyle = (inputTextColor: string, topSelectors = '') => `
-   ${topSelectors} input[chrome-autofilled],
-    ${topSelectors} input[chrome-autofilled]:hover,
-    ${topSelectors} input[chrome-autofilled]:focus,
-    ${topSelectors} textarea[chrome-autofilled],
-    ${topSelectors}  textarea[chrome-autofilled]:hover,
-    ${topSelectors} textarea[chrome-autofilled]:focus,
-    ${topSelectors} select[chrome-autofilled],
-    ${topSelectors} select[chrome-autofilled]:hover,
-    ${topSelectors} select[chrome-autofilled]:focus,
-    ${topSelectors} input:-webkit-autofill,
-    ${topSelectors} input:-webkit-autofill:hover,
-    ${topSelectors} input:-webkit-autofill:focus,
-    ${topSelectors} textarea:-webkit-autofill,
-    ${topSelectors} textarea:-webkit-autofill:hover,
-    ${topSelectors} textarea:-webkit-autofill:focus,
-    ${topSelectors} select:-webkit-autofill,
-    ${topSelectors} select:-webkit-autofill:hover,
-    ${topSelectors} select:-webkit-autofill:focus {
+const getAutofilledInputStyle = (inputTextColor: string, cssSelector = '') => `
+   ${cssSelector} input[chrome-autofilled],
+    ${cssSelector} input[chrome-autofilled]:hover,
+    ${cssSelector} input[chrome-autofilled]:focus,
+    ${cssSelector} textarea[chrome-autofilled],
+    ${cssSelector}  textarea[chrome-autofilled]:hover,
+    ${cssSelector} textarea[chrome-autofilled]:focus,
+    ${cssSelector} select[chrome-autofilled],
+    ${cssSelector} select[chrome-autofilled]:hover,
+    ${cssSelector} select[chrome-autofilled]:focus,
+    ${cssSelector} input:-webkit-autofill,
+    ${cssSelector} input:-webkit-autofill:hover,
+    ${cssSelector} input:-webkit-autofill:focus,
+    ${cssSelector} textarea:-webkit-autofill,
+    ${cssSelector} textarea:-webkit-autofill:hover,
+    ${cssSelector} textarea:-webkit-autofill:focus,
+    ${cssSelector} select:-webkit-autofill,
+    ${cssSelector} select:-webkit-autofill:hover,
+    ${cssSelector} select:-webkit-autofill:focus {
         -webkit-background-clip: text;
         -webkit-text-fill-color: ${inputTextColor};
         caret-color: ${inputTextColor};
