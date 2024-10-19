@@ -30,6 +30,7 @@ import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsProps} from './types';
 import ROUTES from '@src/ROUTES';
 import * as LoginUtils from '@libs/LoginUtils';
+import Navigation from '@libs/Navigation/Navigation';
 
 function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, route}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
