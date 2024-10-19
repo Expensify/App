@@ -136,6 +136,8 @@ function BaseVideoPlayer({
         debouncedHideControl();
     }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible, canUseTouchScreen]);
 
+    const stopWheelPropagation = useCallback((ev: WheelEvent) => ev.stopPropagation(), []);
+
     const toggleControl = useCallback(() => {
         if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
             hideControl();
@@ -233,7 +235,18 @@ function BaseVideoPlayer({
         (event: VideoFullscreenUpdateEvent) => {
             onFullscreenUpdate?.(event);
 
+            if (event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_PRESENT) {
+                // When the video is in fullscreen, we don't want the scroll to be captured by the InvertedFlatList of report screen.
+                // This will also allow the user to scroll the video playback speed.
+                if (videoPlayerElementParentRef.current && 'addEventListener' in videoPlayerElementParentRef.current) {
+                    videoPlayerElementParentRef.current.addEventListener('wheel', stopWheelPropagation);
+                }
+            }
+
             if (event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
+                if (videoPlayerElementParentRef.current && 'removeEventListener' in videoPlayerElementParentRef.current) {
+                    videoPlayerElementParentRef.current.removeEventListener('wheel', stopWheelPropagation);
+                }
                 isFullScreenRef.current = false;
 
                 // Sync volume updates in full screen mode after leaving it
@@ -358,16 +371,6 @@ function BaseVideoPlayer({
 
     useEffect(() => {
         videoPlayerRef.current?.setStatusAsync({volume: 0});
-        if (videoPlayerElementParentRef.current && 'addEventListener' in videoPlayerElementParentRef.current) {
-            // When the video is in fullscreen, we don't want the scroll to be captured by the InvertedFlatList of report screen.
-            // This will also allow the user to scroll the video playback speed.
-            videoPlayerElementParentRef.current.addEventListener('wheel', (ev) => {
-                if (!isFullScreenRef.current) {
-                    return;
-                }
-                ev.stopPropagation();
-            });
-        }
     }, []);
 
     return (
