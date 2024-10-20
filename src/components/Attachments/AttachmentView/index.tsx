@@ -102,15 +102,12 @@ function AttachmentView({
     isUsedAsChatAttachment,
     isUploaded = true,
     isDeleted,
-    transactionID,
     isUploading = false,
 }: AttachmentViewProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
     const theme = useTheme();
     const styles = useThemeStyles();

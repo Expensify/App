@@ -27,14 +27,12 @@ type DefaultAttachmentViewProps = {
 
     /** Whether the attachment is deleted */
     isDeleted?: boolean;
-};
 
-function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles, icon, isDeleted}: DefaultAttachmentViewProps) {
     /** Flag indicating if the attachment is being uploaded. */
     isUploading?: boolean;
 };
 
-function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles, icon, isUploading}: DefaultAttachmentViewProps) {
+function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles, icon, isUploading, isDeleted}: DefaultAttachmentViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
