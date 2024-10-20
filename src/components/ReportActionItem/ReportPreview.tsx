@@ -139,7 +139,7 @@ function ReportPreview({
     const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
 
     const isApproved = ReportUtils.isReportApproved(iouReport, action);
-    const thumbsUpScale = useSharedValue(isApproved ? 1 : 0.25);
+    const thumbsUpScale = useSharedValue(isApproved ? 1 : 0);
     const thumbsUpStyle = useAnimatedStyle(() => ({
         ...styles.defaultCheckmarkWrapper,
         transform: [{scale: thumbsUpScale.value}],
@@ -483,7 +483,7 @@ function ReportPreview({
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={styles.flexRow}>
                                         <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, previewMessageStyle]}>
-                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{previewMessage}</Text>
+                                            <Text style={[styles.textLabelSupporting, styles.lh20]}>{previewMessage}</Text>
                                         </Animated.View>
                                         {shouldShowRBR && (
                                             <Icon
