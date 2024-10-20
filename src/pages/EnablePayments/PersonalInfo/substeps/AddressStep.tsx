@@ -1,16 +1,9 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import React from 'react';
 import {useOnyx} from 'react-native-onyx';
-import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
+import CommonAddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
-import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 
@@ -25,9 +18,8 @@ const INPUT_KEYS = {
 
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.STREET, PERSONAL_INFO_STEP_KEY.CITY, PERSONAL_INFO_STEP_KEY.STATE, PERSONAL_INFO_STEP_KEY.ZIP_CODE];
 
-function AddressStep({onNext, isEditing}: SubStepProps) {
+function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
 
@@ -38,23 +30,6 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
         zipCode: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.ZIP_CODE] ?? '',
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-            if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
-                errors.addressStreet = translate('bankAccount.error.addressStreet');
-            }
-
-            if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-                errors.addressZipCode = translate('bankAccount.error.zipCode');
-            }
-
-            return errors;
-        },
-        [translate],
-    );
-
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
@@ -62,28 +37,21 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
     });
 
     return (
-        <FormProvider
+        <CommonAddressStep<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
             formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS}
-            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-            validate={validate}
+            formTitle={translate('personalInfoStep.whatsYourAddress')}
+            formPOBoxDisclaimer={translate('personalInfoStep.noPOBoxesPlease')}
             onSubmit={handleSubmit}
-            style={[styles.mh5, styles.flexGrow1]}
-        >
-            <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('personalInfoStep.whatsYourAddress')}</Text>
-                <Text style={[styles.textSupporting]}>{translate('personalInfoStep.noPOBoxesPlease')}</Text>
-                <AddressFormFields
-                    inputKeys={INPUT_KEYS}
-                    streetTranslationKey="common.streetAddress"
-                    defaultValues={defaultValues}
-                    shouldSaveDraft={!isEditing}
-                />
-                <HelpLinks containerStyles={[styles.mt6]} />
-            </View>
-        </FormProvider>
+            stepFields={STEP_FIELDS}
+            inputFieldsIDs={INPUT_KEYS}
+            defaultValues={defaultValues}
+        />
     );
 }
 
-AddressStep.displayName = 'AddressStep';
+AddressStep.defaultName = 'AddressStep';
 
 export default AddressStep;
