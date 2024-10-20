@@ -62,6 +62,8 @@ type ValidateCodeFormProps = {
 
     /** Function to clear error of the form */
     clearError: () => void;
+
+    sendValidateCode: () => void;
 };
 
 function BaseValidateCodeForm({
@@ -73,6 +75,7 @@ function BaseValidateCodeForm({
     validateError,
     handleSubmitForm,
     clearError,
+    sendValidateCode,
     buttonStyles,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
@@ -126,10 +129,6 @@ function BaseValidateCodeForm({
     );
 
     useEffect(() => {
-        clearError();
-    }, [clearError]);
-
-    useEffect(() => {
         if (!hasMagicCodeBeenSent) {
             return;
         }
@@ -140,7 +139,7 @@ function BaseValidateCodeForm({
      * Request a validate code / magic code be sent to verify this contact method
      */
     const resendValidateCode = () => {
-        User.requestValidateCodeAction();
+        sendValidateCode();
         inputValidateCodeRef.current?.clear();
     };
 
@@ -189,7 +188,7 @@ function BaseValidateCodeForm({
                 errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
                 hasError={!isEmptyObject(validateError)}
                 onFulfill={validateAndSubmitForm}
-                autoFocus={false}
+                autoFocus
             />
             <OfflineWithFeedback
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
