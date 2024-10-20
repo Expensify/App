@@ -749,9 +749,9 @@ const CONST = {
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     NAVATTIC: {
         ADMIN_TOUR_PRODUCTION: 'https://expensify.navattic.com/kh204a7',
-        ADMIN_TOUR_STAGING: 'https://expensify.navattic.com/stagingAdmin',
+        ADMIN_TOUR_STAGING: 'https://expensify.navattic.com/3i300k18',
         EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
-        EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/stagingEmployee',
+        EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
     },
 
     OLDDOT_URLS: {
