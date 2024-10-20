@@ -3,7 +3,7 @@ import React, {useCallback} from 'react';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -13,30 +13,39 @@ import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-type DateOfBirthStepProps = SubStepProps & {
+type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
     /** The ID of the form */
-    formID: keyof OnyxFormValuesMapping;
+    formID: TFormID;
 
     /** The title of the form */
     formTitle: string;
 
     /** The validation function to call when the form is submitted */
-    customValidate?: (values: FormOnyxValues<keyof OnyxFormValuesMapping>) => Partial<Record<never, string | undefined>>;
+    customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
     /** A function to call when the form is submitted */
-    onSubmit: (values: FormOnyxValues<keyof OnyxFormValuesMapping>) => void;
+    onSubmit: (values: FormOnyxValues<TFormID>) => void;
 
     /** Fields list of the form */
-    stepFields: Array<FormOnyxKeys<keyof OnyxFormValuesMapping>>;
+    stepFields: Array<FormOnyxKeys<TFormID>>;
 
     /** The ID of the date of birth input */
-    dobInputID: keyof FormOnyxValues;
+    dobInputID: string;
 
     /** The default value for the date of birth input */
     dobDefaultValue: string;
 };
 
-function DateOfBirthStep({formID, formTitle, customValidate, onSubmit, stepFields, dobInputID, dobDefaultValue, isEditing}: DateOfBirthStepProps) {
+function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
+    formID,
+    formTitle,
+    customValidate,
+    onSubmit,
+    stepFields,
+    dobInputID,
+    dobDefaultValue,
+    isEditing,
+}: DateOfBirthStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -44,14 +53,15 @@ function DateOfBirthStep({formID, formTitle, customValidate, onSubmit, stepField
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof formID>): Partial<Record<never, string | undefined>> => {
+        (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
 
-            if (values[dobInputID]) {
-                if (!ValidationUtils.isValidPastDate(values[dobInputID]) || !ValidationUtils.meetsMaximumAgeRequirement(values[dobInputID])) {
+            const valuesToValidate = values[dobInputID as keyof FormOnyxValues<TFormID>] as string;
+            if (valuesToValidate) {
+                if (!ValidationUtils.isValidPastDate(valuesToValidate) || !ValidationUtils.meetsMaximumAgeRequirement(valuesToValidate)) {
                     // @ts-expect-error type mismatch to be fixed
                     errors[dobInputID] = translate('bankAccount.error.dob');
-                } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[dobInputID])) {
+                } else if (!ValidationUtils.meetsMinimumAgeRequirement(valuesToValidate)) {
                     // @ts-expect-error type mismatch to be fixed
                     errors[dobInputID] = translate('bankAccount.error.age');
                 }

@@ -1,14 +1,12 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 
 const DOB = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.DOB;
@@ -30,18 +28,18 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, onMove, isEditing, b
         fieldIds: [dobInputID],
         onNext,
         shouldSaveDraft: isEditing,
-    }) as (values: FormOnyxValues<keyof OnyxFormValuesMapping>) => void;
+    });
 
     return (
-        <DateOfBirthStep
+        <DateOfBirthStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
             isEditing={isEditing}
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={translate('beneficialOwnerInfoStep.enterTheDateOfBirthOfTheOwner')}
             onSubmit={handleSubmit}
-            stepFields={[dobInputID] as Array<FormOnyxKeys<keyof OnyxFormValuesMapping>>}
-            dobInputID={dobInputID as keyof FormOnyxValues}
+            stepFields={[dobInputID]}
+            dobInputID={dobInputID}
             dobDefaultValue={dobDefaultValue}
         />
     );

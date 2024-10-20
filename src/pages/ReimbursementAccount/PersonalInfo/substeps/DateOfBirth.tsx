@@ -23,7 +23,7 @@ type DateOfBirthOnyxProps = {
 type DateOfBirthProps = DateOfBirthOnyxProps & SubStepProps;
 
 const PERSONAL_INFO_DOB_KEY = INPUT_IDS.PERSONAL_INFO_STEP.DOB;
-const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY] as Array<FormOnyxKeys<keyof OnyxFormValuesMapping>>;
+const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY];
 
 function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, onMove, isEditing}: DateOfBirthProps) {
     const {translate} = useLocalize();
@@ -34,10 +34,10 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, o
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
-    }) as (values: FormOnyxValues<keyof OnyxFormValuesMapping>) => void;
+    });
 
     return (
-        <DateOfBirthStep
+        <DateOfBirthStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
             isEditing={isEditing}
             onNext={onNext}
             onMove={onMove}
@@ -45,7 +45,7 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, o
             formTitle={translate('personalInfoStep.enterYourDateOfBirth')}
             onSubmit={handleSubmit}
             stepFields={STEP_FIELDS}
-            dobInputID={PERSONAL_INFO_DOB_KEY as keyof FormOnyxValues}
+            dobInputID={PERSONAL_INFO_DOB_KEY}
             dobDefaultValue={dobDefaultValue}
         />
     );
