@@ -11,7 +11,7 @@ import * as ValidationUtils from "@libs/ValidationUtils";
 import CONST from "@src/CONST";
 import * as ErrorUtils from "@libs/ErrorUtils";
 
-const STEP_FIELDS = [INPUT_IDS.LEGAL_FIRST_NAME, INPUT_IDS.LEGAL_LAST_NAME] as Array<FormOnyxKeys<keyof OnyxFormValuesMapping>>;
+const STEP_FIELDS = [INPUT_IDS.LEGAL_FIRST_NAME, INPUT_IDS.LEGAL_LAST_NAME];
 
 function LegalName({isEditing, onNext, onMove, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
@@ -59,20 +59,20 @@ function LegalName({isEditing, onNext, onMove, personalDetailsValues}: CustomSub
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: true,
-    }) as (values: FormOnyxValues<keyof OnyxFormValuesMapping>) => void;
+    });
 
     return (
-        <FullNameStep
+        <FullNameStep<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>
             isEditing={isEditing}
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
             formTitle={translate('privatePersonalDetails.enterLegalName')}
             onSubmit={handleSubmit}
-            customValidate={validate as (values: FormOnyxValues<keyof OnyxFormValuesMapping>) => Partial<Record<never, string | undefined>>}
+            customValidate={validate}
             stepFields={STEP_FIELDS}
-            firstNameInputID={INPUT_IDS.LEGAL_FIRST_NAME as keyof FormOnyxValues}
-            lastNameInputID={INPUT_IDS.LEGAL_LAST_NAME as keyof FormOnyxValues}
+            firstNameInputID={INPUT_IDS.LEGAL_FIRST_NAME}
+            lastNameInputID={INPUT_IDS.LEGAL_LAST_NAME}
             defaultValues={defaultValues}
             shouldShowHelpLinks={false}
         />

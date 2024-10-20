@@ -9,31 +9,31 @@ import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import FormProvider from '../Form/FormProvider';
 import InputWrapper from '../Form/InputWrapper';
-import type {FormOnyxKeys, FormOnyxValues} from '../Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '../Form/types';
 import Text from '../Text';
 import TextInput from '../TextInput';
 
-type FullNameStepProps = SubStepProps & {
+type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
     /** The ID of the form */
-    formID: keyof OnyxFormValuesMapping;
+    formID: TFormID;
 
     /** The title of the form */
     formTitle: string;
 
     /** The validation function to call when the form is submitted */
-    customValidate?: (values: FormOnyxValues<keyof OnyxFormValuesMapping>) => Partial<Record<never, string | undefined>>;
+    customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
     /** A function to call when the form is submitted */
-    onSubmit: (values: FormOnyxValues<keyof OnyxFormValuesMapping>) => void;
+    onSubmit: (values: FormOnyxValues<TFormID>) => void;
 
     /** Fields list of the form */
-    stepFields: Array<FormOnyxKeys<keyof OnyxFormValuesMapping>>;
+    stepFields: Array<FormOnyxKeys<TFormID>>;
 
     /** The ID of the first name input */
-    firstNameInputID: keyof FormOnyxValues;
+    firstNameInputID: string;
 
     /** The ID of the last name input */
-    lastNameInputID: keyof FormOnyxValues;
+    lastNameInputID: string;
 
     /** The default values for the form */
     defaultValues: {
@@ -44,19 +44,33 @@ type FullNameStepProps = SubStepProps & {
     shouldShowHelpLinks?: boolean;
 };
 
-function FullNameStep({formID, formTitle, customValidate, onSubmit, stepFields, firstNameInputID, lastNameInputID, defaultValues, isEditing, shouldShowHelpLinks = true}: FullNameStepProps) {
+function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
+    formID,
+    formTitle,
+    customValidate,
+    onSubmit,
+    stepFields,
+    firstNameInputID,
+    lastNameInputID,
+    defaultValues,
+    isEditing,
+    shouldShowHelpLinks = true,
+}: FullNameStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof formID>): Partial<Record<never, string | undefined>> => {
-            const errors: Partial<Record<never, string | undefined>> = ValidationUtils.getFieldRequiredErrors(values, stepFields);
-            if (values[firstNameInputID] && !ValidationUtils.isValidLegalName(values[firstNameInputID])) {
+        (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
+
+            const firstName = values[firstNameInputID as keyof FormOnyxValues<TFormID>] as string;
+            if (firstName && !ValidationUtils.isValidLegalName(firstName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[firstNameInputID] = translate('common.error.fieldRequired');
             }
 
-            if (values[lastNameInputID] && !ValidationUtils.isValidLegalName(values[lastNameInputID])) {
+            const lastName = values[lastNameInputID as keyof FormOnyxValues<TFormID>] as string;
+            if (lastName && !ValidationUtils.isValidLegalName(lastName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[lastNameInputID] = translate('common.error.fieldRequired');
             }

@@ -8,7 +8,6 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 
 const {FIRST_NAME, LAST_NAME} = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
@@ -35,10 +34,10 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, onMove, isEditing, ben
         fieldIds: stepFields,
         onNext,
         shouldSaveDraft: isEditing,
-    }) as (values: FormOnyxValues<keyof OnyxFormValuesMapping>) => void;
+    });
 
     return (
-        <FullNameStep
+        <FullNameStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
             isEditing={isEditing}
             onNext={onNext}
             onMove={onMove}
