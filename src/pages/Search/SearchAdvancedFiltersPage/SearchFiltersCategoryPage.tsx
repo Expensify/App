@@ -50,7 +50,6 @@ function SearchFiltersCategoryPage() {
             />
             <View style={[styles.flex1, safePaddingBottomStyle]}>
                 <SearchMultipleSelectionPicker
-                    pickerTitle={translate('common.category')}
                     items={categoryItems}
                     initiallySelectedItems={selectedCategoriesItems}
                     onSaveSelection={onSaveSelection}
