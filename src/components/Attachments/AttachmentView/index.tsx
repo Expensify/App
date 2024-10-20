@@ -228,7 +228,7 @@ function AttachmentView({
                         src={fallbackSource}
                         width={variables.iconSizeSuperLarge}
                         height={variables.iconSizeSuperLarge}
-                        fill={theme.border}
+                        fill={theme.icon}
                     />
                     <View>
                         <Text style={[styles.notFoundTextHeader]}>{translate('attachmentView.attachmentNotFound')}</Text>
