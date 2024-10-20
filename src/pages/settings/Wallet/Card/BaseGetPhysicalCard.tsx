@@ -150,22 +150,23 @@ function BaseGetPhysicalCard({
     }, [cardList, currentRoute, domain, domainCards.length, draftValues, loginList, cardToBeIssued, privatePersonalDetails]);
 
     const onSubmit = useCallback(() => {
-        setActionCodeModalVisible(true);
-    }, []);
+        const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
+        if (isConfirmation) {
+            setActionCodeModalVisible(true);
+            return;
+        }
+        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails);
+    }, [isConfirmation, domain]);
 
     const handleIssuePhysicalCard = useCallback(
         (validateCode: string) => {
             const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
             // If the current step of the get physical card flow is the confirmation page
-            if (isConfirmation) {
-                Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? -1, session?.authToken ?? '', updatedPrivatePersonalDetails, validateCode);
-                // Form draft data needs to be erased when the flow is complete,
-                // so that no stale data is left on Onyx
-                FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
-                Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID.toString()));
-                return;
-            }
-            GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails);
+            Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? -1, session?.authToken ?? '', updatedPrivatePersonalDetails, validateCode);
+            // Form draft data needs to be erased when the flow is complete,
+            // so that no stale data is left on Onyx
+            FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID.toString()));
         },
         [cardID, cardToBeIssued?.cardID, domain, draftValues, isConfirmation, session?.authToken, privatePersonalDetails],
     );
@@ -179,7 +180,7 @@ function BaseGetPhysicalCard({
         }
 
         User.requestValidateCodeAction();
-    }, [account]);
+    }, [account, loginList]);
 
     return (
         <ScreenWrapper
