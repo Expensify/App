@@ -3647,7 +3647,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchListContentContainerStyles: {
-            marginTop: variables.searchListContentMarginTop,
+            paddingTop: variables.searchListContentMarginTop,
         },
 
         searchTopBarStyle: {
