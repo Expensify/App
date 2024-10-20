@@ -105,23 +105,11 @@ function getOrderedReportIDs(
         if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
             return;
         }
-        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-        const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, transactionViolations);
+        const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
         const isHidden = ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
-        const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
-        const transactionReportActions = ReportActionsUtils.getAllReportActions(report.reportID);
-        const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, transactionReportActions, undefined);
-        let doesTransactionThreadReportHasViolations = false;
-        if (oneTransactionThreadReportID) {
-            const transactionReport = ReportUtils.getReport(oneTransactionThreadReportID);
-            doesTransactionThreadReportHasViolations = !!transactionReport && OptionsListUtils.shouldShowViolations(transactionReport, transactionViolations);
-        }
-        const hasErrorsOtherThanFailedReceipt =
-            doesTransactionThreadReportHasViolations ||
-            doesReportHaveViolations ||
-            Object.values(allReportErrors).some((error) => error?.[0] !== Localize.translateLocal('iou.error.genericSmartscanFailureMessage'));
+        const hasErrorsOtherThanFailedReceipt = ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations);
         const isReportInAccessible = report?.errorFields?.notFound;
         if (ReportUtils.isOneTransactionThread(report.reportID, report.parentReportID ?? '0', parentReportAction)) {
             return;
@@ -235,7 +223,7 @@ function getOrderedReportIDs(
 }
 
 function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, transactionViolations?: OnyxCollection<TransactionViolation[]>) {
-    const hasErrors = Object.keys(OptionsListUtils.getAllReportErrors(report, reportActions)).length !== 0;
+    const hasErrors = Object.keys(ReportUtils.getAllReportErrors(report, reportActions)).length !== 0;
 
     const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, ReportActionsUtils.getAllReportActions(report.reportID));
     if (oneTransactionThreadReportID) {
@@ -291,7 +279,7 @@ function getOptionData({
     const result: ReportUtils.OptionData = {
         text: '',
         alternateText: undefined,
-        allReportErrors: OptionsListUtils.getAllReportErrors(report, reportActions),
+        allReportErrors: ReportUtils.getAllReportErrors(report, reportActions),
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: undefined,

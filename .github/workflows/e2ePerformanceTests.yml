@@ -46,7 +46,7 @@ jobs:
         uses: ./.github/actions/javascript/getArtifactInfo
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-          ARTIFACT_NAME: baseline-${{ steps.getMostRecentRelease.outputs.VERSION }}-android-artifact-apk
+          ARTIFACT_NAME: baseline-${{ steps.getMostRecentRelease.outputs.VERSION }}android-artifact-apk
 
       - name: Skip build if there's already an existing artifact for the baseline
         if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
