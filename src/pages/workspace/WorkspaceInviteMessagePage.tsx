@@ -82,7 +82,8 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         if (isEmptyObject(policy)) {
             return;
         }
-        Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
+        // @TODO: Check if this method works the same as on the main branch
+        Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID));
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
