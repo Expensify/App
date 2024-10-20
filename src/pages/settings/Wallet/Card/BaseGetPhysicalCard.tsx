@@ -156,7 +156,7 @@ function BaseGetPhysicalCard({
             return;
         }
         GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails);
-    }, [isConfirmation, domain]);
+    }, [isConfirmation, domain, draftValues, privatePersonalDetails]);
 
     const handleIssuePhysicalCard = useCallback(
         (validateCode: string) => {
@@ -168,7 +168,7 @@ function BaseGetPhysicalCard({
             FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID.toString()));
         },
-        [cardID, cardToBeIssued?.cardID, domain, draftValues, isConfirmation, session?.authToken, privatePersonalDetails],
+        [cardID, cardToBeIssued?.cardID, draftValues, session?.authToken, privatePersonalDetails],
     );
 
     const sendValidateCode = useCallback(() => {
