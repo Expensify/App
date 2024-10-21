@@ -106,7 +106,7 @@
     "date-fns-tz": "^3.2.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "2.0.94",
+    "expensify-common": "2.0.100",
     "expo": "51.0.31",
     "expo-av": "14.0.7",
     "expo-image": "1.12.15",
