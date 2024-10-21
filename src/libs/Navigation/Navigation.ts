@@ -435,10 +435,6 @@ function waitForProtectedRoutes() {
     });
 }
 
-function getTopMostCentralPaneRouteFromRootState() {
-    return getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-}
-
 function switchPolicyID(policyID?: string) {
     navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID, payload: {policyID}});
 }
@@ -517,7 +513,6 @@ export default {
     resetToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
-    getTopMostCentralPaneRouteFromRootState,
     navigateToReportWithPolicyCheck,
     goUp,
 };
