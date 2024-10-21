@@ -39,7 +39,7 @@ function getSubstepValues(NetSuitCustomFieldDraft: OnyxEntry<NetSuiteCustomField
     return {
         [INPUT_IDS.LIST_NAME]: NetSuitCustomFieldDraft?.[INPUT_IDS.LIST_NAME] ?? '',
         [INPUT_IDS.TRANSACTION_FIELD_ID]: NetSuitCustomFieldDraft?.[INPUT_IDS.TRANSACTION_FIELD_ID] ?? '',
-        [INPUT_IDS.MAPPING]: NetSuitCustomFieldDraft?.[INPUT_IDS.MAPPING] ?? 'TAG',
+        [INPUT_IDS.MAPPING]: NetSuitCustomFieldDraft?.[INPUT_IDS.MAPPING] ?? '',
         [INPUT_IDS.INTERNAL_ID]: NetSuitCustomFieldDraft?.[INPUT_IDS.INTERNAL_ID] ?? '',
         [INPUT_IDS.SCRIPT_ID]: NetSuitCustomFieldDraft?.[INPUT_IDS.SCRIPT_ID] ?? '',
         [INPUT_IDS.SEGMENT_TYPE]: NetSuitCustomFieldDraft?.[INPUT_IDS.SEGMENT_TYPE] ?? '',

@@ -63,7 +63,6 @@ function CustomListMappingStep({importCustomField, customSegmentType, onNext, is
                 InputComponent={NetSuiteCustomFieldMappingPicker}
                 inputID={INPUT_IDS.MAPPING}
                 defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.MAPPING]}
-                shouldSaveDraft
             />
         </FormProvider>
     );
