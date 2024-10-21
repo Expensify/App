@@ -9,11 +9,13 @@ type ImportTagsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof S
 
 function ImportTagsPage({route}: ImportTagsPageProps) {
     const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
+    const isQuickSettingsFlow = !!backTo;
 
     return (
         <ImportSpreedsheet
-            backTo={ROUTES.WORKSPACE_TAGS.getRoute(policyID)}
-            goTo={ROUTES.WORKSPACE_TAGS_IMPORTED.getRoute(policyID)}
+            backTo={isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID)}
+            goTo={isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORTED.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORTED.getRoute(policyID)}
         />
     );
 }
