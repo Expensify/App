@@ -2,6 +2,9 @@ import Log from '@libs/Log';
 import type {GoogleTagManagerEvent} from './types';
 import type GoogleTagManagerModule from './types';
 
+/**
+ * The dataLayer is added with a js snippet from Google in web/thirdPartyScripts.js
+ */
 type WindowWithDataLayer = Window & {
     dataLayer: {
         push: (params: DataLayerPushParams) => void;
