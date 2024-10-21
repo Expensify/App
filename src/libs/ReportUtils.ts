@@ -3966,7 +3966,7 @@ function getReportName({
         }
 
         if (ReportActionsUtils.isCardIssuedAction(parentReportAction)) {
-            return ReportActionsUtils.getCardIssuedMessage(parentReportAction, false, personalDetails);
+            return ReportActionsUtils.getCardIssuedMessage(parentReportAction, false);
         }
         return reportActionMessage;
     }
