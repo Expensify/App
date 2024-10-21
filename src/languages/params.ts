@@ -477,7 +477,7 @@ type SpreadCategoriesParams = {
 };
 
 type AssignedYouCardParams = {
-    assigner: string;
+    link: string;
 };
 
 type FeatureNameParams = {
@@ -536,6 +536,10 @@ type AuthenticationErrorParams = {
 
 type ImportedTypesParams = {
     importedTypes: string[];
+};
+
+type CompanyCardBankName = {
+    bankName: string;
 };
 
 export type {
@@ -729,6 +733,7 @@ export type {
     DateParams,
     FiltersAmountBetweenParams,
     StatementPageTitleParams,
+    CompanyCardBankName,
     DisconnectPromptParams,
     DisconnectTitleParams,
     CharacterLengthLimitParams,

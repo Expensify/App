@@ -93,6 +93,7 @@ import FlagLevelTwo from '@assets/images/flag_level_02.svg';
 import FlagLevelThree from '@assets/images/flag_level_03.svg';
 import Folder from '@assets/images/folder.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
+import GalleryNotFound from '@assets/images/gallery-not-found.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
 import Globe from '@assets/images/globe.svg';
@@ -404,4 +405,5 @@ export {
     Bookmark,
     Star,
     QBDSquare,
+    GalleryNotFound,
 };

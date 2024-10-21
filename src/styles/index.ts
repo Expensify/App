@@ -3647,7 +3647,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchListContentContainerStyles: {
-            marginTop: variables.searchListContentMarginTop,
+            paddingTop: variables.searchListContentMarginTop,
         },
 
         searchTopBarStyle: {
@@ -5155,6 +5155,11 @@ const styles = (theme: ThemeColors) =>
         computerIllustrationContainer: {
             width: 272,
             height: 188,
+        },
+
+        pendingBankCardIllustration: {
+            width: 217,
+            height: 150,
         },
 
         cardIcon: {
