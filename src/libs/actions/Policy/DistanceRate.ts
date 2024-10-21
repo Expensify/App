@@ -13,7 +13,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -128,10 +128,10 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
 
     if (!enabled) {
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-        const customUnitID = Object.keys(policy?.customUnits ?? {}).at(0) ?? '';
-        const customUnit = customUnitID ? policy?.customUnits?.[customUnitID] : undefined;
+        const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
+        const customUnitID = distanceRateCustomUnit?.customUnitID ?? '';
 
-        const rateEntries = Object.entries(customUnit?.rates ?? {});
+        const rateEntries = Object.entries(distanceRateCustomUnit?.rates ?? {});
         // find the rate to be enabled after disabling the distance rate feature
         const rateEntryToBeEnabled = rateEntries.at(0);
 
