@@ -36,8 +36,7 @@ import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getTransactionDetails} from './ReportUtils';
-import {getAllReportTransactions} from './TransactionUtils';
+import {getAllReportTransactions, getCategory, getTag} from './TransactionUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -527,7 +526,9 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     const allTransactions = getAllReportTransactions(expenseReport?.reportID).sort((transA, transB) => (transA.created < transB.created ? -1 : 1));
 
     for (let i = 0; i < allTransactions.length; i++) {
-        const {tag = '', category = ''} = getTransactionDetails(allTransactions.at(i)) ?? {};
+        const transaction = allTransactions.at(i);
+        const tag = getTag(transaction);
+        const category = getCategory(transaction);
         categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
         if (categoryAppover) {
             return getAccountIDsByLogins([categoryAppover]).at(0) ?? -1;
