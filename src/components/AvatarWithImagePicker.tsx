@@ -35,7 +35,7 @@ type ErrorData = {
 };
 
 type OpenPickerParams = {
-    onPicked: (image: FileObject) => void;
+    onPicked: (image: FileObject[]) => void;
 };
 type OpenPicker = (args: OpenPickerParams) => void;
 
@@ -278,7 +278,7 @@ function AvatarWithImagePicker({
                         return;
                     }
                     openPicker({
-                        onPicked: showAvatarCropModal,
+                        onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                     });
                 },
                 shouldCallAfterModalHide: true,
@@ -324,7 +324,7 @@ function AvatarWithImagePicker({
             }
             if (isUsingDefaultAvatar) {
                 openPicker({
-                    onPicked: showAvatarCropModal,
+                    onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                 });
                 return;
             }
@@ -426,7 +426,7 @@ function AvatarWithImagePicker({
                                                 // by the user on Safari.
                                                 if (index === 0 && Browser.isSafari()) {
                                                     openPicker({
-                                                        onPicked: showAvatarCropModal,
+                                                        onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                                                     });
                                                 }
                                             }}

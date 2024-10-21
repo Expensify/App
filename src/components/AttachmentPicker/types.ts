@@ -5,7 +5,7 @@ import type CONST from '@src/CONST';
 
 type PickerOptions = {
     /** A callback that will be called with the selected attachment. */
-    onPicked: (file: FileObject) => void;
+    onPicked: (files: FileObject[]) => void;
     /** A callback that will be called without a selected attachment. */
     onCanceled?: () => void;
 };
@@ -49,6 +49,12 @@ type AttachmentPickerProps = {
 
     /** Whether to validate the image and show the alert or not. */
     shouldValidateImage?: boolean;
+
+    /** Whether to allow multiple files to be selected. */
+    fileLimit?: number;
+
+    /** The total size limit of the files that can be selected. */
+    totalFilesSizeLimitInMB?: number;
 };
 
 export default AttachmentPickerProps;

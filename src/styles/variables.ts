@@ -75,6 +75,7 @@ export default {
     iconSizeXXSmall: 8,
     iconSizeXSmall: 10,
     iconSizeExtraSmall: 12,
+    iconSizeSemiSmall: 14,
     iconSizeSmall: 16,
     iconSizeMedium: 18,
     iconSizeNormal: 20,

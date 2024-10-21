@@ -623,7 +623,7 @@ function IOURequestStepScan({
                             style={[styles.alignItemsStart]}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: setReceiptAndNavigate,
+                                    onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
                                 });
                             }}
                         >
