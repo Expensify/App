@@ -48,9 +48,6 @@ type ReportFooterProps = {
     /** Whether to show educational tooltip in workspace chat for first-time user */
     workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
 
-    /** Whether the chat is empty */
-    isEmptyChat?: boolean;
-
     /** The pending action when we are adding a chat */
     pendingAction?: PendingAction;
 
@@ -73,7 +70,6 @@ function ReportFooter({
     report = {reportID: '-1'},
     reportMetadata,
     policy,
-    isEmptyChat = true,
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
     workspaceTooltip,
@@ -224,7 +220,6 @@ function ReportFooter({
                             onComposerBlur={onComposerBlur}
                             reportID={report.reportID}
                             report={report}
-                            isEmptyChat={isEmptyChat}
                             lastReportAction={lastReportAction}
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
@@ -246,7 +241,6 @@ export default memo(
         lodashIsEqual(prevProps.report, nextProps.report) &&
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
-        prevProps.isEmptyChat === nextProps.isEmptyChat &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
         prevProps.workspaceTooltip?.shouldShow === nextProps.workspaceTooltip?.shouldShow &&

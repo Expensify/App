@@ -74,6 +74,9 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
 
     /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
     isGroupPolicyReport?: boolean;
+
+    /** Whether the soft keyboard is open */
+    showSoftInputOnFocus?: boolean;
 };
 
 export type {TextSelection, ComposerProps, CustomSelectionChangeEvent};
