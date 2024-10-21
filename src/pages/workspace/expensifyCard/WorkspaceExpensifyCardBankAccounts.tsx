@@ -35,13 +35,16 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+
+    const isLoading = cardSettings?.isLoading;
+
     const handleAddBankAccount = () => {
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
 
     const handleSelectBankAccount = (value?: number) => {
         Card.configureExpensifyCardsForPolicy(policyID, value);
-        Card.updateSettlementAccount(workspaceAccountID, policyID, value);
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
     };
 
@@ -91,15 +94,19 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                     onBackButtonPress={() => Navigation.goBack()}
                     title={translate('workspace.expensifyCard.chooseBankAccount')}
                 />
-                <View style={styles.flex1}>
-                    <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
-                    {renderBankOptions()}
-                    <MenuItem
-                        icon={Expensicons.Plus}
-                        title={translate('workspace.expensifyCard.addNewBankAccount')}
-                        onPress={handleAddBankAccount}
-                    />
-                </View>
+                {isLoading ? (
+                    <Text style={[styles.mh5, styles.mb3]}>Loading</Text>
+                ) : (
+                    <View style={styles.flex1}>
+                        <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
+                        {renderBankOptions()}
+                        <MenuItem
+                            icon={Expensicons.Plus}
+                            title={translate('workspace.expensifyCard.addNewBankAccount')}
+                            onPress={handleAddBankAccount}
+                        />
+                    </View>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

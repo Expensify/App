@@ -22,6 +22,9 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
+
+    /** Error message */
+    errors?: OnyxCommon.Errors;
 }>;
 
 export default ExpensifyCardSettings;
