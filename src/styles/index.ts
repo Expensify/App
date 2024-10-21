@@ -3615,8 +3615,8 @@ const styles = (theme: ThemeColors) =>
 
         searchInputStyle: {
             color: theme.textSupporting,
-            fontSize: 13,
-            lineHeight: 16,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
         },
 
         searchRouterTextInputContainer: {
@@ -3635,6 +3635,7 @@ const styles = (theme: ThemeColors) =>
         searchRouterInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
+            backgroundColor: theme.appBG,
         },
 
         searchTableHeaderActive: {
@@ -3646,7 +3647,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchListContentContainerStyles: {
-            marginTop: variables.searchListContentMarginTop,
+            paddingTop: variables.searchListContentMarginTop,
         },
 
         searchTopBarStyle: {
@@ -4537,6 +4538,10 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
+        onboardingSmallIcon: {
+            padding: 10,
+        },
+
         sidebarStatusAvatarContainer: {
             height: 40,
             width: 40,
@@ -5152,6 +5157,11 @@ const styles = (theme: ThemeColors) =>
             height: 188,
         },
 
+        pendingBankCardIllustration: {
+            width: 217,
+            height: 150,
+        },
+
         cardIcon: {
             overflow: 'hidden',
             borderRadius: variables.cardBorderRadius,
@@ -5265,6 +5275,7 @@ const styles = (theme: ThemeColors) =>
             top: 80,
             left: 12,
         },
+
         qbdSetupLinkBox: {
             backgroundColor: theme.hoverComponentBG,
             borderRadius: variables.componentBorderRadiusMedium,

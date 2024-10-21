@@ -1,4 +1,4 @@
-import type {OnboardingPurposeType} from '@src/CONST';
+import type {OnboardingAccountingType, OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
 
 type CompleteGuidedSetupParams = {
     firstName: string;
@@ -7,6 +7,8 @@ type CompleteGuidedSetupParams = {
     guidedSetupData: string;
     engagementChoice: OnboardingPurposeType;
     paymentSelected?: string;
+    companySize?: OnboardingCompanySizeType;
+    userReportedIntegration?: OnboardingAccountingType;
 };
 
 export default CompleteGuidedSetupParams;

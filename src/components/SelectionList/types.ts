@@ -102,6 +102,9 @@ type ListItem = {
     /** Whether this option is selected */
     isSelected?: boolean;
 
+    /** Whether the option can show both selected and error indicators */
+    canShowSeveralIndicators?: boolean;
+
     /** Whether the checkbox should be disabled */
     isDisabledCheckbox?: boolean;
 
@@ -572,6 +575,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the empty list content */
     shouldShowListEmptyContent?: boolean;
+
+    /** The style is applied for the wrap component of list item */
+    listItemWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Scroll event throttle for preventing onScroll callbacks to be fired too often */
     scrollEventThrottle?: number;
