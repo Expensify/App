@@ -125,7 +125,7 @@ function IOURequestStepDistance({
             const mileageRates = DistanceRequestUtils.getMileageRates(IOUpolicy);
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
             const mileageRate: MileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
-                ? DistanceRequestUtils.getRateForP2P(policyCurrency)
+                ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
                 : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
 
             const {unit, rate} = mileageRate ?? {};
