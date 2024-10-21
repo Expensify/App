@@ -1,48 +1,43 @@
-{
-  const defaults = {
-    autocomplete: null,
-  };
+// This file defines the grammar that's used by [Peggy](https://peggyjs.org/) to generate the autocompleteParser.js file.
+// The autocompleteParser is setup to parse our custom search syntax and output information needed for autocomplete and syntax highlighting to work.
+//
+// Here's the general grammar structure:
+//
+// query: the entry point for the parser and rule to process the values returned by the filterList rule. It takes filters as an argument and returns the final ranges and autocomplete objects.
+// filterList: a rule to process information returned by filter rule.
+// filter: an abstract rule to simplify the filterList rule. It takes all filter types.
+// defaultFilter: a rule to process the default values returned by the defaultKey autocompleteKey. It updates the autocomplete field.
+// freeTextFilter: a rule to process text that isn't a filter that needs autocomplete. It resets the autocomplete field (it means the user started a new filter).
+// autocompleteKey: a rule to match pre-defined search syntax fields that need autocomplete, e.g. tag, currency, etc.
+//
+// filter, logicalAnd, operator, alphanumeric, quotedString are defined in baseRule.peggy grammar.
+//
+// per-parser initializer (code executed before every parse).
+{ let autocomplete = null; }
 
-  function applyAutocomplete(ranges) {
-    return {
-      ...defaults,
-      ranges,
-    };
-  }
-
-  function updateAutocomplete(value) {
-    defaults.autocomplete = value;
-  }
-}
-
-query = _ filters:filterList? _ { return applyAutocomplete(filters); }
+query = _ ranges:filterList? _ { return { autocomplete, ranges }; }
 
 filterList
-  = head:filter tail:(logicalAnd filter)* {
-      const allFilters = [head, ...tail.map(([_, filter]) => filter)].filter(
-        Boolean
-      );
-      return allFilters.flat();
-    }
+  = filters:filter|.., logicalAnd| { return filters.filter(Boolean).flat(); }
 
 filter = @(defaultFilter / freeTextFilter)
 
 defaultFilter
   = _ key:autocompleteKey _ op:operator _ value:identifier? {
       if (!value) {
-        updateAutocomplete({
+        autocomplete = {
           key,
           value: null,
           start: location().end.offset,
           length: 0,
-        });
+        };
         return;
-      } else {
-        updateAutocomplete({
-          key,
-          ...value[value.length - 1],
-        });
       }
+
+      autocomplete = {
+        key,
+        ...value[value.length - 1],
+      };
 
       return value.map(({ start, length }) => ({
         key,
@@ -51,7 +46,7 @@ defaultFilter
       }));
     }
 
-freeTextFilter = _ value:identifier _ { updateAutocomplete(null); }
+freeTextFilter = _ value:identifier _ { autocomplete = null; }
 
 autocompleteKey "key"
   = @(
@@ -66,3 +61,20 @@ autocompleteKey "key"
       / "type"
       / "status"
     )
+
+identifier
+  = parts:(quotedString / alphanumeric)+ {
+      const ends = location();
+      const value = parts.flat();
+      let count = ends.start.offset;
+      const result = [];
+      value.forEach((filter) => {
+        result.push({
+          value: filter,
+          start: count,
+          length: filter.length,
+        });
+        count += filter.length + 1;
+      });
+      return result;
+    }

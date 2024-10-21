@@ -9,14 +9,11 @@
 // defaultFilter: rule to process the default values returned by the defaultKey rule. It updates the default values object.
 // freeTextFilter: rule to process the free text search values returned by the identifier rule. It builds filter Object.
 // standardFilter: rule to process the values returned by the key rule. It builds filter Object.
-// operator: rule to match pre-defined search syntax operators, e.g. !=, >, etc
 // key: rule to match pre-defined search syntax fields, e.g. amount, merchant, etc
 // defaultKey: rule to match pre-defined search syntax fields that are used to update default values, e.g. type, status, etc
 // identifier: composite rule to match patterns defined by the quotedString and alphanumeric rules
-// quotedString: rule to match a quoted string pattern, e.g. "this is a quoted string"
-// alphanumeric: rule to match unquoted alphanumeric characters, e.g. a-z, 0-9, _, @, etc
-// logicalAnd: rule to match whitespace and return it as a logical 'and' operator
-// whitespace: rule to match whitespaces
+
+// filter, logicalAnd, operator, alphanumeric, quotedStrig are defined in baseRule.peggy grammar
 
 // global initializer (code executed only once)
 {{
@@ -116,3 +113,12 @@ key "key"
 
 defaultKey "default key"
   = @("type" / "status" / "sortBy" / "sortOrder" / "policyID")
+
+identifier
+  = parts:(quotedString / alphanumeric)+ {
+      const value = parts.flat();
+      if (value.length > 1) {
+        return value;
+      }
+      return value[0];
+    }
