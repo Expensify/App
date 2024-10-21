@@ -71,9 +71,11 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
 
                     const totalSize = files.reduce((sum, file) => sum + (file.size ?? 0), 0);
 
-                    if (totalSize > totalFilesSizeLimitInBytes) {
-                        alert(translate('attachmentPicker.filesTooBigMessage'));
-                        return;
+                    if (totalFilesSizeLimitInMB) {
+                        if (totalSize > totalFilesSizeLimitInBytes) {
+                            alert(translate('attachmentPicker.filesTooBigMessage'));
+                            return;
+                        }
                     }
 
                     if (fileLimit) {
