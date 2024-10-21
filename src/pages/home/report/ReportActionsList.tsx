@@ -228,10 +228,11 @@ function ReportActionsList({
     }, [report.reportID]);
 
     const wasMessageReceivedWhileOffline = useCallback(
-        (message: OnyxTypes.ReportAction) => !ReportActionsUtils.wasActionTakenByCurrentUser(message) && wasMessageCreatedWhileOffline(message, lastOfflineAt, lastOnlineAt, preferredLocale),
+        (message: OnyxTypes.ReportAction) =>
+            !ReportActionsUtils.wasActionTakenByCurrentUser(message) && wasMessageCreatedWhileOffline(message, lastOfflineAt.current, lastOnlineAt.current, preferredLocale),
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [lastOfflineAt, lastOnlineAt],
+        [],
     );
 
     /**
