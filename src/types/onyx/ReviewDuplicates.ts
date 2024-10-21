@@ -8,6 +8,9 @@ type ReviewDuplicates = {
     /** ID of transaction we want to keep */
     transactionID: string;
 
+    /** ID of the transaction report we want to keep */
+    reportID: string;
+
     /** Merchant which user want to keep */
     merchant: string;
 
