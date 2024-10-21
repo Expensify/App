@@ -480,6 +480,8 @@ function IOURequestStepScan({
             return;
         }
 
+        setDidCapturePhoto(true);
+
         camera?.current
             ?.takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
@@ -495,7 +497,7 @@ function IOURequestStepScan({
                         updateScanAndNavigate(file, source);
                         return;
                     }
-                    setDidCapturePhoto(true);
+
                     if (shouldSkipConfirmation) {
                         setFileResize(file);
                         setFileSource(source);
@@ -509,6 +511,10 @@ function IOURequestStepScan({
                         }
                     }
                     navigateToConfirmationStep(file, source, false);
+                }, () => {
+                    setDidCapturePhoto(false);
+                    showCameraAlert();
+                    Log.warn('Error reading photo');
                 });
             })
             .catch((error: string) => {
