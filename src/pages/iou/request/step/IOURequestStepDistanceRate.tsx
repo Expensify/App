@@ -17,7 +17,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -37,9 +36,11 @@ function IOURequestStepDistanceRate({
     transaction,
 }: IOURequestStepDistanceRateProps) {
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft) ?? '-1'}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`);
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID || '-1'}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID || '-1'}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID || '-1'}`);
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const policy = policyReal ?? policyDraft;
 
@@ -63,9 +64,9 @@ function IOURequestStepDistanceRate({
     const sections = Object.values(rates)
         .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
         .map((rate) => {
+            const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
             const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE;
-
-            const rateForDisplay = DistanceRequestUtils.getRateForDisplay(rate.unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
+            const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
             return {
                 text: rate.name ?? rateForDisplay,
                 alternateText: rate.name ? rateForDisplay : '',
@@ -76,8 +77,6 @@ function IOURequestStepDistanceRate({
             };
         });
 
-    const unit = (Object.values(rates).at(0)?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer')) as Unit;
-
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
@@ -86,6 +85,7 @@ function IOURequestStepDistanceRate({
         if (shouldShowTax) {
             const policyCustomUnitRate = getCustomUnitRate(policy, customUnitRateID);
             taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID ?? '-1';
+            const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistanceInMeters(transaction, unit));
             const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
             taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, rates[customUnitRateID].currency ?? CONST.CURRENCY.USD));

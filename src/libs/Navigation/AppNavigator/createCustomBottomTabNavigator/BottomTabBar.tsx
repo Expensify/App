@@ -6,7 +6,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchQueryString} from '@components/Search/types';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -110,61 +109,53 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
 
     return (
         <View style={styles.bottomTabBarContainer}>
-            <Tooltip text={translate('common.inbox')}>
-                <PressableWithFeedback
-                    onPress={navigateToChats}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.inbox')}
-                    wrapperStyle={styles.flex1}
-                    style={styles.bottomTabBarItem}
+            <PressableWithFeedback
+                onPress={navigateToChats}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.inbox')}
+                wrapperStyle={styles.flex1}
+                style={styles.bottomTabBarItem}
+            >
+                <View>
+                    <Icon
+                        src={Expensicons.Inbox}
+                        fill={selectedTab === SCREENS.HOME ? theme.iconMenu : theme.icon}
+                        width={variables.iconBottomBar}
+                        height={variables.iconBottomBar}
+                    />
+                    {chatTabBrickRoad && <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />}
+                </View>
+                <Text style={[styles.textSmall, styles.textAlignCenter, styles.mt1Half, selectedTab === SCREENS.HOME ? styles.textBold : styles.textSupporting, styles.bottomTabBarLabel]}>
+                    {translate('common.inbox')}
+                </Text>
+            </PressableWithFeedback>
+            <PressableWithFeedback
+                onPress={navigateToSearch}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.search')}
+                wrapperStyle={styles.flex1}
+                style={styles.bottomTabBarItem}
+            >
+                <View>
+                    <Icon
+                        src={Expensicons.MoneySearch}
+                        fill={selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? theme.iconMenu : theme.icon}
+                        width={variables.iconBottomBar}
+                        height={variables.iconBottomBar}
+                    />
+                </View>
+                <Text
+                    style={[
+                        styles.textSmall,
+                        styles.textAlignCenter,
+                        styles.mt1Half,
+                        selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? styles.textBold : styles.textSupporting,
+                        styles.bottomTabBarLabel,
+                    ]}
                 >
-                    <View>
-                        <Icon
-                            src={Expensicons.Inbox}
-                            fill={selectedTab === SCREENS.HOME ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                        {chatTabBrickRoad && (
-                            <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
-                        )}
-                    </View>
-                    <Text
-                        style={[styles.textSmall, styles.textAlignCenter, styles.mt1Half, selectedTab === SCREENS.HOME ? styles.textBold : styles.textSupporting, styles.bottomTabBarLabel]}
-                    >
-                        {translate('common.inbox')}
-                    </Text>
-                </PressableWithFeedback>
-            </Tooltip>
-            <Tooltip text={translate('common.search')}>
-                <PressableWithFeedback
-                    onPress={navigateToSearch}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.search')}
-                    wrapperStyle={styles.flex1}
-                    style={styles.bottomTabBarItem}
-                >
-                    <View>
-                        <Icon
-                            src={Expensicons.MoneySearch}
-                            fill={selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                    </View>
-                    <Text
-                        style={[
-                            styles.textSmall,
-                            styles.textAlignCenter,
-                            styles.mt1Half,
-                            selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? styles.textBold : styles.textSupporting,
-                            styles.bottomTabBarLabel,
-                        ]}
-                    >
-                        {translate('common.search')}
-                    </Text>
-                </PressableWithFeedback>
-            </Tooltip>
+                    {translate('common.search')}
+                </Text>
+            </PressableWithFeedback>
             <BottomTabAvatar isSelected={selectedTab === SCREENS.SETTINGS.ROOT} />
             <View style={[styles.flex1, styles.bottomTabBarItem]}>
                 <BottomTabBarFloatingActionButton />

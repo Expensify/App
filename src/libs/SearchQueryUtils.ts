@@ -1,7 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {ASTNode, QueryFilter, QueryFilters, SearchQueryJSON, SearchQueryString, SearchStatus} from '@components/Search/types';
+import type {AdvancedFiltersKeys, ASTNode, QueryFilter, QueryFilters, SearchQueryJSON, SearchQueryString, SearchStatus} from '@components/Search/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -203,6 +203,32 @@ function findIDFromDisplayValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_F
     return filter;
 }
 
+function getQueryHash(query: SearchQueryJSON): number {
+    let orderedQuery = '';
+    if (query.policyID) {
+        orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${query.policyID} `;
+    }
+    orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${query.status}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
+
+    Object.keys(query.flatFilters)
+        .sort()
+        .forEach((key) => {
+            const filterValues = query.flatFilters?.[key as AdvancedFiltersKeys];
+            const sortedFilterValues = filterValues?.sort((queryFilter1, queryFilter2) => {
+                if (queryFilter1.value > queryFilter2.value) {
+                    return 1;
+                }
+                return -1;
+            });
+            orderedQuery += ` ${buildFilterValuesString(key, sortedFilterValues ?? [])}`;
+        });
+
+    return UserUtils.hashText(orderedQuery, 2 ** 32);
+}
+
 /**
  * Parses a given search query string into a structured `SearchQueryJSON` format.
  * This format of query is most commonly shared between components and also sent to backend to retrieve search results.
@@ -215,11 +241,9 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         const flatFilters = getFilters(result);
 
         // Add the full input and hash to the results
-        const queryHash = UserUtils.hashText(query, 2 ** 32);
-
-        result.hash = queryHash;
         result.inputQuery = query;
         result.flatFilters = flatFilters;
+        result.hash = getQueryHash(result);
 
         return result;
     } catch (e) {
@@ -274,6 +298,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
     const {type, status, policyID, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
+
+    filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
+    filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${CONST.SEARCH.SORT_ORDER.DESC}`);
 
     if (type) {
         const sanitizedType = sanitizeSearchValue(type);
