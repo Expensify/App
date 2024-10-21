@@ -121,7 +121,7 @@ function ReportPreview({
     const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
+    const {nonHeldAmount, fullAmount, isNonHeldAmountNegative} = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [invoiceReceiverPolicy] = useOnyx(
@@ -230,7 +230,7 @@ function ReportPreview({
             return '';
         }
 
-        if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement) {
+        if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement && !isNonHeldAmountNegative) {
             return nonHeldAmount;
         }
 
@@ -582,7 +582,7 @@ function ReportPreview({
 
             {isHoldMenuVisible && iouReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
+                    nonHeldAmount={!hasOnlyHeldExpenses && !isNonHeldAmountNegative ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
                     onClose={() => setIsHoldMenuVisible(false)}

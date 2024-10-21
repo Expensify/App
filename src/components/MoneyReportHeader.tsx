@@ -158,9 +158,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         shouldShowExportIntegrationButton;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport?.currency);
-    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
+    const {nonHeldAmount, fullAmount, isNonHeldAmountNegative} = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
     const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport?.reportID);
-    const displayedAmount = isAnyTransactionOnHold && canAllowSettlement ? nonHeldAmount : formattedAmount;
+    const displayedAmount = isAnyTransactionOnHold && canAllowSettlement && !isNonHeldAmountNegative ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
@@ -468,7 +468,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             )}
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
+                    nonHeldAmount={!hasOnlyHeldExpenses && !isNonHeldAmountNegative ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
                     onClose={() => setIsHoldMenuVisible(false)}
