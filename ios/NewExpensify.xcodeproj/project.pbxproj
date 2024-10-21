@@ -681,7 +681,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/FullStory/tools/FullStoryCommandLine\" \"${CONFIGURATION_BUILD_DIR}/${WRAPPER_NAME}\"\n";
+			shellScript = "if [ \"$CONFIGURATION\" != \"DebugDevelopment\" ]; then\n  \"${PODS_ROOT}/FullStory/tools/FullStoryCommandLine\" \"${CONFIGURATION_BUILD_DIR}/${WRAPPER_NAME}\"\nelse\n  echo \"Skipping FullStory Asset Uploader phase for DebugDevelopment scheme.\"\nfi\n";
 		};
 		5CF45ABA52C0BB0D7B9D139A /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
