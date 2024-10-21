@@ -17,7 +17,7 @@ import * as User from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Subscription from '@userActions/Subscription';
@@ -61,7 +61,7 @@ function CardSection() {
     }, []);
 
     const viewPurchases = useCallback(() => {
-        const query = SearchUtils.buildQueryStringFromFilterFormValues({merchant: CONST.EXPENSIFY_MERCHANT});
+        const query = SearchQueryUtils.buildQueryStringFromFilterFormValues({merchant: CONST.EXPENSIFY_MERCHANT});
         Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
     }, []);
 

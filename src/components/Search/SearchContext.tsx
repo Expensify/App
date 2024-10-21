@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchUIUtils from '@libs/SearchUIUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {SearchContext, SelectedTransactions} from './types';
 
@@ -23,8 +23,8 @@ function getReportsFromSelectedTransactions(data: TransactionListItemType[] | Re
     return (data ?? [])
         .filter(
             (item) =>
-                !SearchUtils.isTransactionListItemType(item) &&
-                !SearchUtils.isReportActionListItemType(item) &&
+                !SearchUIUtils.isTransactionListItemType(item) &&
+                !SearchUIUtils.isReportActionListItemType(item) &&
                 item.reportID &&
                 item?.transactions?.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
         )
