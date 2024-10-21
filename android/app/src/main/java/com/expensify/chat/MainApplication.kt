@@ -11,9 +11,11 @@ import com.expensify.chat.bootsplash.BootSplashPackage
 import com.expensify.chat.shortcutManagerModule.ShortcutManagerPackage
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
+import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
+import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.modules.i18nmanager.I18nUtil
 import com.facebook.soloader.SoLoader
@@ -44,6 +46,9 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             get() = BuildConfig.IS_HERMES_ENABLED
     })
 
+    override val reactHost: ReactHost
+        get() = getDefaultReactHost(applicationContext, reactNativeHost)
+
     override fun onCreate() {
         super.onCreate()
         ReactFontManager.getInstance().addCustomFont(this, "Expensify New Kansas", R.font.expensify_new_kansas)
@@ -59,7 +64,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         SoLoader.init(this,  /* native exopackage */false)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
-            load(bridgelessEnabled = false)
+            load()
         }
         if (BuildConfig.DEBUG) {
             FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false)
