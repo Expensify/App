@@ -47,10 +47,12 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, onMove, isE
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={translate('beneficialOwnerInfoStep.enterTheLast4')}
+            formDisclaimer={translate('beneficialOwnerInfoStep.dontWorry')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={ssnLast4InputID}
             inputLabel={translate('beneficialOwnerInfoStep.last4SSN')}
+            inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultSsnLast4}
             shouldShowHelpLinks={false}
         />

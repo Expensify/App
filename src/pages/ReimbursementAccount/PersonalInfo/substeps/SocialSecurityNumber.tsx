@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
@@ -57,6 +58,7 @@ function SocialSecurityNumber({reimbursementAccount, onNext, onMove, isEditing}:
             onSubmit={handleSubmit}
             inputId={PERSONAL_INFO_STEP_KEY.SSN_LAST_4}
             inputLabel={translate('personalInfoStep.last4SSN')}
+            inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultSsnLast4}
         />
     );
