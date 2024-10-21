@@ -50,7 +50,7 @@ function FullName({reimbursementAccount, onNext, onMove, isEditing}: FullNamePro
     );
 }
 
-FullName.defaultName = 'FullName';
+FullName.displayName = 'FullName';
 
 export default withOnyx<FullNameProps, FullNameOnyxProps>({
     // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM

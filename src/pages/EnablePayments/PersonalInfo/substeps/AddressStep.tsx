@@ -52,6 +52,6 @@ function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-AddressStep.defaultName = 'AddressStep';
+AddressStep.displayName = 'AddressStep';
 
 export default AddressStep;

@@ -62,7 +62,7 @@ function SocialSecurityNumber({reimbursementAccount, onNext, onMove, isEditing}:
     );
 }
 
-SocialSecurityNumber.defaultName = 'SocialSecurityNumber';
+SocialSecurityNumber.displayName = 'SocialSecurityNumber';
 
 export default withOnyx<SocialSecurityNumberProps, SocialSecurityNumberOnyxProps>({
     // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM

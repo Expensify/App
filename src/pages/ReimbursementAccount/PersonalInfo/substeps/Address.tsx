@@ -59,7 +59,7 @@ function Address({reimbursementAccount, onNext, onMove, isEditing}: AddressProps
     );
 }
 
-Address.defaultName = 'Address';
+Address.displayName = 'Address';
 
 export default withOnyx<AddressProps, AddressOnyxProps>({
     // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM

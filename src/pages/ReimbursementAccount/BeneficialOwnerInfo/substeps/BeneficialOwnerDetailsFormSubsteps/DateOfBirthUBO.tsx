@@ -45,7 +45,7 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, onMove, isEditing, b
     );
 }
 
-DateOfBirthUBO.defaultName = 'DateOfBirthUBO';
+DateOfBirthUBO.displayName = 'DateOfBirthUBO';
 
 export default withOnyx<DateOfBirthUBOProps, DateOfBirthUBOOnyxProps>({
     reimbursementAccountDraft: {

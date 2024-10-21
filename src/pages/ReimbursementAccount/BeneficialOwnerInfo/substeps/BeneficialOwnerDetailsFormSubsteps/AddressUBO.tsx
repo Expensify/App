@@ -60,7 +60,7 @@ function AddressUBO({reimbursementAccountDraft, onNext, onMove, isEditing, benef
     );
 }
 
-AddressUBO.defaultName = 'AddressUBO';
+AddressUBO.displayName = 'AddressUBO';
 
 export default withOnyx<AddressUBOProps, AddressUBOOnyxProps>({
     reimbursementAccountDraft: {

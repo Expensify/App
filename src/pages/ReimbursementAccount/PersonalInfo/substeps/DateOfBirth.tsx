@@ -51,7 +51,7 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, o
     );
 }
 
-DateOfBirth.defaultName = 'DateOfBirth';
+DateOfBirth.displayName = 'DateOfBirth';
 
 export default withOnyx<DateOfBirthProps, DateOfBirthOnyxProps>({
     // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM

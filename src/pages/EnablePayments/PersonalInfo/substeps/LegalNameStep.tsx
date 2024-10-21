@@ -41,6 +41,6 @@ function LegalNameStep({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-LegalNameStep.defaultName = 'LegalNameStep';
+LegalNameStep.displayName = 'LegalNameStep';
 
 export default LegalNameStep;

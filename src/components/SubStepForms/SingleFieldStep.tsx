@@ -93,6 +93,6 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-SingleFieldStep.defaultName = 'SingleFieldStep';
+SingleFieldStep.displayName = 'SingleFieldStep';
 
 export default SingleFieldStep;

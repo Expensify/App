@@ -52,7 +52,7 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, onMove, isEditing, ben
     );
 }
 
-LegalNameUBO.defaultName = 'LegalNameUBO';
+LegalNameUBO.displayName = 'LegalNameUBO';
 
 export default withOnyx<LegalNameUBOProps, LegalNameUBOOnyxProps>({
     reimbursementAccountDraft: {

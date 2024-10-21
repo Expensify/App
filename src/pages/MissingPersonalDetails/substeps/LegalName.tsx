@@ -79,6 +79,6 @@ function LegalName({isEditing, onNext, onMove, personalDetailsValues}: CustomSub
     );
 }
 
-LegalName.defaultName = 'LegalName';
+LegalName.displayName = 'LegalName';
 
 export default LegalName;

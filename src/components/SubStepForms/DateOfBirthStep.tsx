@@ -97,6 +97,6 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-DateOfBirthStep.defaultName = 'DateOfBirthStep';
+DateOfBirthStep.displayName = 'DateOfBirthStep';
 
 export default DateOfBirthStep;
