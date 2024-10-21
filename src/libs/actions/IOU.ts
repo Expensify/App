@@ -6989,8 +6989,9 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, 
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(iouReport?.reportID);
     const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);
     const unheldTotalIsZero = iouReport && iouReport.unheldTotal === 0;
+    const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allTransactionViolations);
 
-    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !unheldTotalIsZero;
+    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !unheldTotalIsZero && !hasViolations;
 }
 
 function canIOUBePaid(
