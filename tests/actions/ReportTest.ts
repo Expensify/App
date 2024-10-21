@@ -759,10 +759,11 @@ describe('actions/Report', () => {
             });
     });
 
-    it('it should only store the last sequential UpdateComment request in Onyx', () => {
+    it('it should only send the last sequential UpdateComment request to BE', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
         const reportID = '123';
 
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         const action: OnyxEntry<OnyxTypes.ReportAction> = {
             reportID,
@@ -780,5 +781,9 @@ describe('actions/Report', () => {
         expect(requests.length).toBe(1);
         expect(requests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
         expect(requests?.at(0)?.data?.reportComment).toBe('value3');
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
     });
 });
