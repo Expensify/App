@@ -8,8 +8,8 @@ import memoize from '@libs/memoize';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
-import type {NavigationPartialRoute, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {isFullScreenRoute} from '@libs/NavigationUtils';
+import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import {isFullScreenName} from '@libs/NavigationUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
@@ -64,7 +64,7 @@ function ReportsSplitNavigator() {
     }
 
     const shouldFreeze = useNavigationState((state) => {
-        const lastFullScreenRoute = state.routes.findLast((route) => isFullScreenRoute(route as NavigationPartialRoute));
+        const lastFullScreenRoute = state.routes.findLast((route) => isFullScreenName(route.name));
         return lastFullScreenRoute?.key !== currentRoute.key;
     });
 

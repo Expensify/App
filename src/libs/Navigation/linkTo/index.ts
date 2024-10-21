@@ -1,7 +1,7 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef, NavigationState, PartialState, StackActionType} from '@react-navigation/native';
 import {findFocusedRoute, StackActions} from '@react-navigation/native';
-import {getMatchingFullScreenRouteForRoute, isFullScreenRoute} from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
+import {getMatchingFullScreenRouteForRoute, isFullScreenName} from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import getStateFromPath from '@navigation/getStateFromPath';
@@ -96,8 +96,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         if (newFocusedRoute) {
             const matchingFullScreenRoute = getMatchingFullScreenRouteForRoute(newFocusedRoute);
 
-            // @ts-expect-error: fix this utility function types.
-            const lastFullScreenRoute = currentState.routes.findLast(isFullScreenRoute);
+            const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
             if (matchingFullScreenRoute && lastFullScreenRoute && matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
                 const additionalAction = StackActions.push(matchingFullScreenRoute.name, {screen: matchingFullScreenRoute.state?.routes?.at(-1)?.name});
                 navigation.dispatch(additionalAction);

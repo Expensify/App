@@ -3,7 +3,7 @@ import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import {isAnonymousUser} from '@libs/actions/Session';
 import type {NavigationPartialRoute, RootStackParamList, SettingsSplitNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {isFullScreenRoute} from '@libs/NavigationUtils';
+import {isFullScreenName} from '@libs/NavigationUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import extractPolicyIDFromQuery from '@navigation/extractPolicyIDFromQuery';
@@ -46,7 +46,7 @@ function getMatchingFullScreenRouteForRoute(route: NavigationPartialRoute, polic
             return undefined;
         }
 
-        const isLastRouteFullScreen = isFullScreenRoute(lastRoute);
+        const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
 
         // If the state for back to last route is a full screen route, we can use it
         if (isLastRouteFullScreen) {
@@ -143,7 +143,7 @@ function getMatchingFullScreenRouteForRoute(route: NavigationPartialRoute, polic
 }
 
 function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string): GetAdaptedStateReturnType {
-    const fullScreenRoute = state.routes.find(isFullScreenRoute);
+    const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
     const reportsSplitNavigator = state.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
     // If policyID is defined, it should be passed to the reportNavigator params.
@@ -210,4 +210,4 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
 };
 
 export default getAdaptedStateFromPath;
-export {getMatchingFullScreenRouteForRoute, isFullScreenRoute};
+export {getMatchingFullScreenRouteForRoute, isFullScreenName};

@@ -11,8 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {NavigationPartialRoute} from '@libs/Navigation/types';
-import {isFullScreenRoute} from '@libs/NavigationUtils';
+import {isFullScreenName} from '@libs/NavigationUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -28,9 +27,9 @@ function AddPersonalBankAccountPage() {
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
-    const topmostFullScreenRoute = navigationRef.current?.getRootState().routes.findLast((route) => isFullScreenRoute(route as NavigationPartialRoute));
+    const topmostFullScreenRoute = navigationRef.current?.getRootState().routes.findLast((route) => isFullScreenName(route.name));
 
-    // @TODO: Verify if this methods works correctly
+    // @TODO: Verify if this method works correctly
     const goBack = useCallback(() => {
         switch (topmostFullScreenRoute?.name) {
             case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
