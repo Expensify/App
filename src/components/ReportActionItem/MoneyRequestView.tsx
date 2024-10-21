@@ -98,9 +98,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
     });
-    const [distanceRates = {}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        selector: () => DistanceRequestUtils.getMileageRates(policy, true),
-    });
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(report, parentReportActions)}`);
 
     const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
@@ -202,14 +199,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     let amountDescription = `${translate('iou.amount')}`;
 
     const hasRoute = TransactionUtils.hasRoute(transactionBackup ?? transaction, isDistanceRequest);
-    const rateID = TransactionUtils.getRateID(transaction) ?? '-1';
-
-    const currency = transactionCurrency ?? CONST.CURRENCY.USD;
-
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[rateID] ?? {};
-    const {unit} = mileageRate;
-    const rate = transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate;
-
+    const {unit, rate, currency} = DistanceRequestUtils.getRate({transaction, policy});
     const distance = TransactionUtils.getDistanceInMeters(transactionBackup ?? transaction, unit);
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);

@@ -1057,6 +1057,10 @@ function hasPolicyFeedsError(feeds: Record<string, CardFeedData>, feedToSkip?: s
     return Object.entries(feeds).filter(([feedName, feedData]) => feedName !== feedToSkip && !!feedData.errors).length > 0;
 }
 
+function getAllPoliciesLength() {
+    return Object.keys(allPolicies ?? {}).length;
+}
+
 function isPolicyAccessible(policy: OnyxEntry<Policy>) {
     return !isLoadingReportData && !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && policy?.id;
 }
@@ -1176,6 +1180,7 @@ export {
     hasUnsupportedIntegration,
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
+    getAllPoliciesLength,
     isPolicyAccessible,
 };
 

@@ -89,11 +89,11 @@ function IOURequestStepConfirmation({
     const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
     const payeePersonalDetails = useMemo(() => {
-        if (personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1]) {
-            return personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1];
+        if (personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1]) {
+            return personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1];
         }
 
-        const participant = transaction?.participants?.find((val) => val.accountID === (transaction?.splitPayerAccountIDs?.at(0) ?? -1));
+        const participant = transaction?.participants?.find((val) => val.accountID === (transaction?.splitPayerAccountIDs?.[0] ?? -1));
 
         return {
             login: participant?.login ?? '',
@@ -346,6 +346,7 @@ function IOURequestStepConfirmation({
                 currentUserPersonalDetails.accountID,
                 transaction.splitShares,
                 iouType,
+                transaction,
             );
         },
         [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],
