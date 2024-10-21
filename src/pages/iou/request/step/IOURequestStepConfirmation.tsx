@@ -386,7 +386,7 @@ function IOURequestStepConfirmation({
             }
 
             // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
-            if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
+            if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile && transaction?.amount === 0) {
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.startSplitBill({
                         participants: selectedParticipants,
@@ -428,6 +428,7 @@ function IOURequestStepConfirmation({
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        receipt: receiptFile,
                     });
                 }
                 return;
@@ -453,6 +454,7 @@ function IOURequestStepConfirmation({
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        receipt: receiptFile,
                     });
                 }
                 return;
@@ -615,7 +617,9 @@ function IOURequestStepConfirmation({
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
                         shouldShowThreeDotsButton={
-                            requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense
+                            requestType === CONST.IOU.REQUEST_TYPE.MANUAL &&
+                            (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.SPLIT) &&
+                            !isMovingTransactionFromTrackExpense
                         }
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
