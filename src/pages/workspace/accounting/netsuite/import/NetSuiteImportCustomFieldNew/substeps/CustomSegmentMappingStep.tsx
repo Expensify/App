@@ -30,7 +30,7 @@ function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext,
             }
             return errors;
         },
-        [customSegmentType, translate],
+        [translate],
     );
 
     const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({

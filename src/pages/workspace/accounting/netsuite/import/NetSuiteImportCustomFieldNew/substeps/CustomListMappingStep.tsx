@@ -29,7 +29,7 @@ function CustomListMappingStep({importCustomField, customSegmentType, onNext, is
         }
 
         return errors;
-    }, []);
+    }, [translate]);
 
     const handleSubmit = useNetSuiteImportAddCustomListFormSubmit({
         fieldIds: STEP_FIELDS,

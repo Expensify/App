@@ -22,7 +22,7 @@ function ChooseCustomListStep({policy, onNext, isEditing, netSuiteCustomFieldFor
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
             return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIST_NAME]);
         },
-        [translate],
+        [],
     );
 
     const handleSubmit = useNetSuiteImportAddCustomListFormSubmit({

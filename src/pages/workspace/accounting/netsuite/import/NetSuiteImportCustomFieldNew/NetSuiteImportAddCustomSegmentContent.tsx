@@ -1,10 +1,10 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
-import type {FormOnyxValues, FormRef} from '@components/Form/types';
+import type {FormRef} from '@components/Form/types';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import useSubStep from '@hooks/useSubStep';
@@ -17,8 +17,9 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS, {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
-import {Policy} from '@src/types/onyx';
+import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
+import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
+import type {Policy} from '@src/types/onyx';
 import {getCustomSegmentInitialSubstep, getSubstepValues} from './customListUtils';
 import ChooseSegmentTypeStep from './substeps/ChooseSegmentTypeStep';
 import ConfirmCustomSegmentStep from './substeps/ConfirmCustomSegmentList';
@@ -67,7 +68,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
 
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
         });
-    }, [values]);
+    }, [values, customSegments, policyID]);
 
     const {
         componentToRender: SubStep,
@@ -77,7 +78,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
         screenIndex,
         moveTo,
         goToTheLastStep,
-    } = useSubStep<CustomFieldSubStepWithPolicy>({bodyContent: formSteps, startFrom: startFrom, onFinished: handleFinishStep});
+    } = useSubStep<CustomFieldSubStepWithPolicy>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep});
 
     const handleBackButtonPress = () => {
         if (isEditing) {

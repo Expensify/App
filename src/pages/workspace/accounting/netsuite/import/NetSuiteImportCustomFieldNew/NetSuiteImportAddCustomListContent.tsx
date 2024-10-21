@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {FormRef} from '@components/Form/types';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -15,8 +15,9 @@ import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/net
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS, {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
-import {Policy} from '@src/types/onyx';
+import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
+import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
+import type {Policy} from '@src/types/onyx';
 import {getCustomListInitialSubstep, getSubstepValues} from './customListUtils';
 import ChooseCustomListStep from './substeps/ChooseCustomListStep';
 import ConfirmCustomListStep from './substeps/ConfirmCustomListStep';
@@ -62,7 +63,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
             FormActions.clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM);
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
         });
-    }, [values]);
+    }, [values, customLists, policyID]);
 
     const {
         componentToRender: SubStep,
@@ -74,7 +75,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
         goToTheLastStep,
     } = useSubStep<CustomFieldSubStepWithPolicy>({
         bodyContent: formSteps,
-        startFrom: startFrom,
+        startFrom,
         onFinished: handleFinishStep,
     });
 

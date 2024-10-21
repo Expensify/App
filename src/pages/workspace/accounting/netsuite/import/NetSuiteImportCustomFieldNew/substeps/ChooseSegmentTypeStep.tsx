@@ -12,36 +12,20 @@ import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/net
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import NetSuiteCustomSegmentMappingPicker from '../NetSuiteCustomSegmentMappingPicker';
+import NetSuiteCustomSegmentMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomSegmentMappingPicker';
 
 const STEP_FIELDS = [INPUT_IDS.SEGMENT_TYPE];
 
-function ChooseSegmentTypeStep({onNext, customSegmentType, setCustomSegmentType, isEditing, netSuiteCustomFieldFormValues}: CustomFieldSubStepWithPolicy) {
+function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuiteCustomFieldFormValues}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [selectedType, setSelectedType] = useState(customSegmentType);
-    const [isError, setIsError] = useState(false);
 
-    const selectionData = [
-        {
-            text: translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentTitle`),
-            keyForList: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT,
-            isSelected: selectedType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT,
-            value: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT,
-        },
-        {
-            text: translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.recordTitle`),
-            keyForList: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD,
-            isSelected: selectedType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD,
-            value: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD,
-        },
-    ];
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> => {
             return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.SEGMENT_TYPE]);
         },
-        [translate],
+        [],
     );
 
     const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({
