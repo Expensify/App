@@ -59,14 +59,9 @@ function ReportVirtualCardFraudPage({
     };
 
     const handleValidateCodeEntered = (validateCode: string) => {
-        Card.reportVirtualExpensifyCardFraud(virtualCard.cardID, validateCode)
-            .then((value) => {})
-            .catch((error) => {
-                console.log('error ', error);
-            })
-            .finally(() => {
-                setIsValidateCodeActionModalVisible(false);
-            });
+        Card.reportVirtualExpensifyCardFraud(virtualCard.cardID, validateCode).finally(() => {
+            setIsValidateCodeActionModalVisible(false);
+        });
     };
 
     return (
