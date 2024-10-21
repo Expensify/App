@@ -5674,6 +5674,11 @@ const translations = {
             hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
             hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
         },
+        reasonRBR: {
+            hasErrors: 'Tiene errores en los datos o las acciones del informe',
+            hasViolations: 'Tiene violaciones',
+            hasTransactionThreadViolations: 'Tiene violaciones de hilo de transacciones',
+        },
         indicatorStatus: {
             theresAReportAwaitingAction: 'Hay un informe pendiente de acción',
             theresAReportWithErrors: 'Hay un informe con errores',

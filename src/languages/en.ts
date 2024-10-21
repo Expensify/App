@@ -5158,6 +5158,11 @@ const translations = {
             hasChildReportAwaitingAction: 'Has child report awaiting action',
             hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
         },
+        reasonRBR: {
+            hasErrors: 'Has errors in report or report actions data',
+            hasViolations: 'Has violations',
+            hasTransactionThreadViolations: 'Has transaction thread violations',
+        },
         indicatorStatus: {
             theresAReportAwaitingAction: "There's a report awaiting action",
             theresAReportWithErrors: "There's a report with errors",
