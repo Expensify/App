@@ -45,7 +45,7 @@ function CustomSegmentInternalIdStep({customSegmentType, onNext, isEditing, netS
             }
             return errors;
         },
-        [customSegmentType, customSegments, translate, fieldLabel],
+        [customSegments, translate, fieldLabel],
     );
 
     return (

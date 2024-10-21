@@ -46,7 +46,7 @@ function CustomSegmentNameStep({customSegmentType, onNext, isEditing, customSegm
             }
             return errors;
         },
-        [customSegmentType, customSegments, translate, customSegmentRecordType, fieldLabel],
+        [customSegments, translate, customSegmentRecordType, fieldLabel],
     );
 
     return (

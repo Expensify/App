@@ -18,7 +18,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
 import type {Policy} from '@src/types/onyx';
-import {getCustomListInitialSubstep, getSubstepValues} from './customListUtils';
+import {getCustomListInitialSubstep, getSubstepValues} from './customUtils';
 import ChooseCustomListStep from './substeps/ChooseCustomListStep';
 import ConfirmCustomListStep from './substeps/ConfirmCustomListStep';
 import CustomListMappingStep from './substeps/CustomListMappingStep';

@@ -42,9 +42,8 @@ function CustomSegmentScriptIdStep({customSegmentType, onNext, isEditing, custom
                 errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel});
             }
             return errors;
-            return errors;
         },
-        [customSegmentType, customSegments, translate, fieldLabel],
+        [customSegments, translate, fieldLabel],
     );
 
     const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({

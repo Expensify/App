@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
 import type {Policy} from '@src/types/onyx';
-import {getCustomSegmentInitialSubstep, getSubstepValues} from './customListUtils';
+import {getCustomSegmentInitialSubstep, getSubstepValues} from './customUtils';
 import ChooseSegmentTypeStep from './substeps/ChooseSegmentTypeStep';
 import ConfirmCustomSegmentStep from './substeps/ConfirmCustomSegmentList';
 import CustomSegmentInternalIdStep from './substeps/CustomSegmentInternalIdStep';
