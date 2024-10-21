@@ -27,7 +27,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
 import * as PersistedRequests from './PersistedRequests';
 import * as Policy from './Policy/Policy';
-import {filterRequestByCommand, resolveDuplicationConflictAction} from './RequestConflictUtils';
+import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import * as Session from './Session';
 import Timing from './Timing';
 
@@ -257,7 +257,7 @@ function openApp() {
     return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
         const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
         return API.write(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true), {
-            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, filterRequestByCommand(WRITE_COMMANDS.OPEN_APP)),
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_APP),
         });
     });
 }
@@ -287,7 +287,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         }
 
         API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(), {
-            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, filterRequestByCommand(WRITE_COMMANDS.RECONNECT_APP)),
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.RECONNECT_APP),
         });
     });
 }
