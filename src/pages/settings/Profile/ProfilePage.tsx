@@ -40,7 +40,6 @@ function ProfilePage() {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const getPronouns = (): string => {
@@ -100,6 +99,7 @@ function ProfilePage() {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
             pageRoute: ROUTES.SETTINGS_PHONE_NUMBER,
+            brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             description: translate('privatePersonalDetails.address'),
@@ -200,6 +200,7 @@ function ProfilePage() {
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
                                             onPress={() => Navigation.navigate(detail.pageRoute)}
+                                            brickRoadIndicator={detail.brickRoadIndicator}
                                         />
                                     ))}
                                 </>

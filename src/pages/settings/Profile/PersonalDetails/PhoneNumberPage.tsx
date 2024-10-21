@@ -7,10 +7,12 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PhoneNumberUtils from '@libs/PhoneNumber';
@@ -28,8 +30,11 @@ function PhoneNumberPage() {
     const {translate} = useLocalize();
     const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
+    const validateLoginError = ErrorUtils.getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
+    const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
+
     const updatePhoneNumber = (values: PrivatePersonalDetails) => {
-        PersonalDetails.updatePhoneNumber(values?.phoneNumber ?? '');
+        PersonalDetails.updatePhoneNumber(values?.phoneNumber ?? '', currenPhoneNumber);
         Navigation.goBack();
     };
 
@@ -70,7 +75,11 @@ function PhoneNumberPage() {
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
-                    <View style={[styles.mb4]}>
+                    <OfflineWithFeedback
+                        errors={validateLoginError}
+                        style={styles.mb4}
+                        onClose={() => PersonalDetails.clearPhoneNumberError()}
+                    >
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PHONE_NUMBER}
@@ -81,7 +90,7 @@ function PhoneNumberPage() {
                             defaultValue={phoneNumber}
                             spellCheck={false}
                         />
-                    </View>
+                    </OfflineWithFeedback>
                 </FormProvider>
             )}
         </ScreenWrapper>
