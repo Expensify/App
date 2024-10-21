@@ -52,6 +52,13 @@ type Options<Fn extends IsomorphicFn, MaxArgs extends number, Key> = {
      * @returns Key to use for caching
      */
     transformKey?: (truncatedArgs: TakeFirst<IsomorphicParameters<Fn>, MaxArgs>) => Key;
+
+    /**
+     * Checks if the cache should be skipped for the given arguments.
+     * @param args Tuple of arguments passed to the memoized function. Does not work with constructable (see description).
+     * @returns boolean to whether to skip cache lookup and execute the function if true
+     */
+    keyFilter?: (args: IsomorphicParameters<Fn>) => boolean;
 } & InternalOptions;
 
 type ClientOptions<Fn extends IsomorphicFn, MaxArgs extends number, Key> = Partial<Omit<Options<Fn, MaxArgs, Key>, keyof InternalOptions>>;
