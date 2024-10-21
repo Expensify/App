@@ -25,12 +25,15 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CompanyCardFeed} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getExportMenuItem} from './utils';
 
 type WorkspaceCompanyCardDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
@@ -49,9 +52,10 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [allBankCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [allBankCards, allBankCardsMetadata] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
     const card = allBankCards?.[cardID];
 
+    const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? -1];
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
@@ -65,6 +69,10 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const updateCard = () => {
         Policy.updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
     };
+
+    if (!card && !isLoadingOnyxValue(allBankCardsMetadata)) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -85,7 +93,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             <View style={[styles.walletCard, styles.mb3]}>
                                 <ImageSVG
                                     contentFit="contain"
-                                    src={CardUtils.getCardDetailsImage(card?.bank ?? '')}
+                                    src={CardUtils.getCardFeedIcon(cardBank as CompanyCardFeed)}
                                     pointerEvents="none"
                                     height={variables.cardPreviewHeight}
                                     width={variables.cardPreviewWidth}
