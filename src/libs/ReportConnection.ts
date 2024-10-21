@@ -48,4 +48,13 @@ function getAllReportsLength() {
     return Object.keys(allReports ?? {}).length;
 }
 
-export {getAllReports, getAllReportsNameMap, getAllReportsLength};
+function updateReportLastReadTime(reportID: string, lastReadTime?: string) {
+    if (!allReports || !allReports[reportID]) {
+        return;
+    }
+    allReports[reportID] = {
+        ...allReports[reportID],
+        lastReadTime,
+    };
+}
+export {getAllReports, getAllReportsNameMap, getAllReportsLength, updateReportLastReadTime};
