@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -23,14 +24,18 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
+import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
+import {getNavatticURL} from '@libs/TourUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
+import * as Link from '@userActions/Link';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -189,6 +194,12 @@ function FloatingActionButtonAndPopover(
 
     const {canUseSpotnanaTravel, canUseCombinedTrackSubmit} = usePermissions();
     const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
+    const {environment} = useEnvironment();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const navatticURL = getNavatticURL(environment, introSelected?.choice);
+    const [hasSeenTour = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
 
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
@@ -454,7 +465,24 @@ function FloatingActionButtonAndPopover(
                               },
                           ]
                         : []),
-                    ...(!isLoading && !Policy.hasActiveChatEnabledPolicies(allPolicies)
+                    ...(!hasSeenTour
+                        ? [
+                              {
+                                  icon: Expensicons.Tour,
+                                  displayInDefaultIconColor: true,
+                                  contentFit: 'contain' as ImageContentFit,
+                                  iconWidth: 46,
+                                  iconHeight: 40,
+                                  text: translate('tour.takeATwoMinuteTour'),
+                                  description: translate('tour.exploreExpensify'),
+                                  onSelected: () => {
+                                      Welcome.setSelfTourViewed();
+                                      Link.openExternalLink(navatticURL);
+                                  },
+                              },
+                          ]
+                        : []),
+                    ...(!isLoading && !Policy.hasActiveChatEnabledPolicies(allPolicies) && hasSeenTour
                         ? [
                               {
                                   displayInDefaultIconColor: true,

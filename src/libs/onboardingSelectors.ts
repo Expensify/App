@@ -35,4 +35,19 @@ function hasCompletedHybridAppOnboardingFlowSelector(tryNewDotData: OnyxValue<ty
     return completedHybridAppOnboarding;
 }
 
-export {hasCompletedGuidedSetupFlowSelector, hasCompletedHybridAppOnboardingFlowSelector};
+/**
+ * Selector to get the value of selfTourViewed from the Onyx store
+ *
+ * `undefined` means the value is not loaded yet
+ * `true` means the user has completed the NewDot onboarding flow
+ * `false` means the user has not completed the NewDot onboarding flow
+ */
+function hasSeenTourSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
+    if (Array.isArray(onboarding)) {
+        return true;
+    }
+
+    return onboarding?.selfTourViewed;
+}
+
+export {hasCompletedGuidedSetupFlowSelector, hasCompletedHybridAppOnboardingFlowSelector, hasSeenTourSelector};
