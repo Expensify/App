@@ -1,10 +1,10 @@
 import React from 'react';
 import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
+import type {TextSelection} from '@components/Composer/types';
+import TextInput from '@components/TextInput';
+import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
-import type {TextSelection} from './Composer/types';
-import TextInput from './TextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 type AmountTextInputProps = {
     /** Formatted amount in local currency  */
