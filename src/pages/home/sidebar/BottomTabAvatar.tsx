@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitStackNavigator/usePreserveSplitNavigatorState';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
@@ -53,7 +54,8 @@ function BottomTabAvatar({isSelected = false}: BottomTabAvatarProps) {
 
             // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
             if (lastSettingsOrWorkspaceNavigatorRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                const params = lastSettingsOrWorkspaceNavigatorRoute.state?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
+                const state = lastSettingsOrWorkspaceNavigatorRoute.state ?? getPreservedSplitNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key);
+                const params = state?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
                 // Screens of this navigator should always have policyID
                 if (params.policyID) {
                     Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(params.policyID));
