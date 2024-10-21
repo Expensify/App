@@ -1,6 +1,8 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+// eslint-disable-next-line you-dont-need-lodash-underscore/omit
+import omit from 'lodash/omit';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -208,9 +210,11 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
     linkTo(navigationRef.current, route, type);
 }
 
+const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID'];
+
+// If we use destructuring, we will get an error if any of the ignored properties are not present in the object.
 function getRouteParamsToCompare(routeParams: Record<string, string | undefined>) {
-    const {path, initial, params, state, screen, policyID, ...routeParamsToCompare} = routeParams;
-    return routeParamsToCompare;
+    return omit(routeParams, routeParamsIgnore);
 }
 
 function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | NavigationPartialRoute, minimalAction: Writable<NavigationAction>) {
