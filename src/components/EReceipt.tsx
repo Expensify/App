@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,7 +45,7 @@ function EReceipt({transaction, transactionID}: EReceiptProps) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
-    const cardDescription = transactionCardID ? CardUtils.getCardDescription(transactionCardID) : '';
+    const cardDescription = TransactionUtils.getCardName(transaction) ?? (transactionCardID ? CardUtils.getCardDescription(transactionCardID) : '');
 
     const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor) : undefined;
 

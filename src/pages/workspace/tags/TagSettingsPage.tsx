@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -12,7 +11,9 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -27,73 +28,73 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyTagLists} from '@src/types/onyx';
 
-type TagSettingsPageOnyxProps = {
-    /** All policy tags */
-    policyTags: OnyxEntry<PolicyTagLists>;
-};
+type TagSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>;
 
-type TagSettingsPageProps = TagSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>;
-
-function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) {
+function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`);
+    const {orderWeight, policyID, tagName} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
-    const policy = usePolicy(route.params.policyID);
-
+    const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, orderWeight), [policyTags, orderWeight]);
+    const policy = usePolicy(policyID);
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const {canUseCategoryAndTagApprovers} = usePermissions();
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
 
-    const currentPolicyTag = policyTag.tags[route.params.tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === route.params.tagName);
+    const currentPolicyTag = policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
 
     useEffect(() => {
-        if (currentPolicyTag?.name === route.params.tagName || !currentPolicyTag) {
+        if (currentPolicyTag?.name === tagName || !currentPolicyTag) {
             return;
         }
         navigation.setParams({tagName: currentPolicyTag?.name});
-    }, [route.params.tagName, currentPolicyTag, navigation]);
+    }, [tagName, currentPolicyTag, navigation]);
 
     if (!currentPolicyTag) {
         return <NotFoundPage />;
     }
 
     const deleteTagAndHideModal = () => {
-        Tag.deletePolicyTags(route.params.policyID, [currentPolicyTag.name]);
+        Tag.deletePolicyTags(policyID, [currentPolicyTag.name]);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
-        setWorkspaceTagEnabled(route.params.policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
+        setWorkspaceTagEnabled(policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
     };
 
     const navigateToEditTag = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, route.params.orderWeight, currentPolicyTag.name));
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name));
     };
 
     const navigateToEditGlCode = () => {
         if (!PolicyUtils.isControlPolicy(policy)) {
             Navigation.navigate(
-                ROUTES.WORKSPACE_UPGRADE.getRoute(
-                    route.params.policyID,
-                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
-                    ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policy?.id ?? '', route.params.orderWeight, route.params.tagName),
-                ),
+                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias, ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policy?.id ?? '', orderWeight, tagName)),
             );
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(route.params.policyID, route.params.orderWeight, currentPolicyTag.name));
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name));
+    };
+
+    const navigateToEditTagApprover = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name));
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
+    const tagApprover = PolicyUtils.getTagApproverRule(policyID, route.params.tagName)?.approver;
 
     const shouldShowDeleteMenuItem = !isThereAnyAccountingConnection && !isMultiLevelTags;
+    const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
+    const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={route.params.policyID}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
@@ -102,7 +103,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                 testID={TagSettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={PolicyUtils.getCleanedTagName(route.params.tagName)}
+                    title={PolicyUtils.getCleanedTagName(tagName)}
                     shouldSetModalVisibility={false}
                 />
                 <ConfirmModal
@@ -121,7 +122,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                         errors={ErrorUtils.getLatestErrorMessageField(currentPolicyTag)}
                         pendingAction={currentPolicyTag.pendingFields?.enabled}
                         errorRowStyles={styles.mh5}
-                        onClose={() => Tag.clearPolicyTagErrors(route.params.policyID, route.params.tagName, route.params.orderWeight)}
+                        onClose={() => Tag.clearPolicyTagErrors(policyID, tagName, orderWeight)}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -147,9 +148,39 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                             title={currentPolicyTag['GL Code']}
                             description={translate(`workspace.tags.glCode`)}
                             onPress={navigateToEditGlCode}
+                            iconRight={hasAccountingConnections ? Expensicons.Lock : undefined}
+                            interactive={!hasAccountingConnections}
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
+
+                    {policy?.areRulesEnabled && canUseCategoryAndTagApprovers && (
+                        <>
+                            <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
+                                <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
+                            </View>
+                            <MenuItemWithTopDescription
+                                title={tagApprover ?? ''}
+                                description={translate(`workspace.tags.approverDescription`)}
+                                onPress={navigateToEditTagApprover}
+                                shouldShowRightIcon
+                                disabled={approverDisabled}
+                            />
+                            {approverDisabled && (
+                                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
+                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
+                                    <TextLink
+                                        style={[styles.link, styles.label]}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
+                                    >
+                                        {translate('workspace.common.moreFeatures')}
+                                    </TextLink>{' '}
+                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.andEnableWorkflows')}</Text>
+                                </Text>
+                            )}
+                        </>
+                    )}
+
                     {shouldShowDeleteMenuItem && (
                         <MenuItem
                             icon={Expensicons.Trashcan}
@@ -165,8 +196,4 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
 
 TagSettingsPage.displayName = 'TagSettingsPage';
 
-export default withOnyx<TagSettingsPageProps, TagSettingsPageOnyxProps>({
-    policyTags: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`,
-    },
-})(TagSettingsPage);
+export default TagSettingsPage;

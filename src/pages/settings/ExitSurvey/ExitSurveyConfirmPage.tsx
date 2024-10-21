@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components//Icon';
@@ -28,12 +28,11 @@ import ExitSurveyOffline from './ExitSurveyOffline';
 
 type ExitSurveyConfirmPageOnyxProps = {
     exitReason?: ExitReason | null;
-    isLoading: OnyxEntry<boolean>;
 };
 
 type ExitSurveyConfirmPageProps = ExitSurveyConfirmPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM>;
 
-function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitSurveyConfirmPageProps) {
+function ExitSurveyConfirmPage({exitReason, route, navigation}: ExitSurveyConfirmPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -84,18 +83,10 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
                     large
                     text={translate('exitSurvey.goToExpensifyClassic')}
                     onPress={() => {
-                        const promise = ExitSurvey.switchToOldDot();
-                        if (NativeModules.HybridAppModule) {
-                            promise.then(() => {
-                                Navigation.resetToHome();
-                                NativeModules.HybridAppModule.closeReactNativeApp(false);
-                            });
-                            return;
-                        }
+                        ExitSurvey.switchToOldDot();
                         Navigation.dismissModal();
                         Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                     }}
-                    isLoading={isLoading ?? false}
                     isDisabled={isOffline}
                 />
             </FixedFooter>
@@ -109,8 +100,5 @@ export default withOnyx<ExitSurveyConfirmPageProps, ExitSurveyConfirmPageOnyxPro
     exitReason: {
         key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM,
         selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null,
-    },
-    isLoading: {
-        key: ONYXKEYS.IS_SWITCHING_TO_OLD_DOT,
     },
 })(ExitSurveyConfirmPage);

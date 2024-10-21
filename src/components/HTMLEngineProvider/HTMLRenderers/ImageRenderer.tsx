@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
@@ -80,7 +80,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive}) => (
+            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
@@ -90,14 +90,15 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     return;
                                 }
 
-                                if (reportID) {
-                                    const route = ROUTES.ATTACHMENTS?.getRoute(reportID, type, source, accountID);
-                                    Navigation.navigate(route);
-                                }
+                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, source, accountID, isAttachmentOrReceipt);
+                                Navigation.navigate(route);
                             }}
-                            onLongPress={(event) =>
-                                showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs))
-                            }
+                            onLongPress={(event) => {
+                                if (isDisabled) {
+                                    return;
+                                }
+                                showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
+                            }}
                             shouldUseHapticsOnLongPress
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
@@ -113,13 +114,20 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
 ImageRenderer.displayName = 'ImageRenderer';
 
-export default withOnyx<ImageRendererProps, ImageRendererWithOnyxProps>({
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(
-    memo(
-        ImageRenderer,
-        (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.user?.shouldUseStagingServer === nextProps.user?.shouldUseStagingServer,
-    ),
+const ImageRendererMemorize = memo(
+    ImageRenderer,
+    (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.user?.shouldUseStagingServer === nextProps.user?.shouldUseStagingServer,
 );
+
+function ImageRendererWrapper(props: CustomRendererProps<TBlock>) {
+    const [user] = useOnyx(ONYXKEYS.USER);
+    return (
+        <ImageRendererMemorize
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            user={user}
+        />
+    );
+}
+
+export default ImageRendererWrapper;

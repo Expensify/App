@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import type {AVPlaybackStatus, VideoFullscreenUpdateEvent} from 'expo-av';
 import {ResizeMode, Video, VideoFullscreenUpdate} from 'expo-av';
-import {debounce} from 'lodash';
+import debounce from 'lodash/debounce';
 import type {MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
@@ -441,7 +441,7 @@ function BaseVideoPlayer({
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
-                            {((isLoading && !isOffline) || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                            {((isLoading && !isOffline) || (isBuffering && !isPlaying)) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                             {isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls

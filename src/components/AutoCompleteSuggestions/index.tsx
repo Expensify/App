@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import useKeyboardState from '@hooks/useKeyboardState';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -53,7 +54,8 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const isSuggestionMenuAboveRef = React.useRef<boolean>(false);
     const leftValue = React.useRef<number>(0);
     const prevLeftValue = React.useRef<number>(0);
-    const {windowHeight, windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowHeight, windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [suggestionHeight, setSuggestionHeight] = React.useState(0);
     const [containerState, setContainerState] = React.useState(initialContainerState);
     const StyleUtils = useStyleUtils();
@@ -96,12 +98,12 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
             let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
-            const widthValue = isSmallScreenWidth ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
+            const widthValue = shouldUseNarrowLayout ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
             const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight: contentMaxHeight, topInset});
             const isEnoughSpaceToRenderMenuAboveForSmall = isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight: contentMinHeight, topInset});
 
-            const newLeftOffset = isSmallScreenWidth ? x : bigScreenLeftOffset;
+            const newLeftOffset = shouldUseNarrowLayout ? x : bigScreenLeftOffset;
             // If the suggested word is longer than 150 (approximately half the width of the suggestion popup), then adjust a new position of popup
             const isAdjustmentNeeded = Math.abs(prevLeftValue.current - bigScreenLeftOffset) > 150;
             if (isInitialRender.current || isAdjustmentNeeded) {
@@ -131,7 +133,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 cursorCoordinates,
             });
         });
-    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, isSmallScreenWidth, suggestionsLength, bottomInset, topInset]);
+    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, shouldUseNarrowLayout, suggestionsLength, bottomInset, topInset]);
 
     if ((containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) || (containerState.cursorCoordinates.x === 0 && containerState.cursorCoordinates.y === 0)) {
         return null;

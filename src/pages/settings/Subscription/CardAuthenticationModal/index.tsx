@@ -7,14 +7,17 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type CardAuthenticationModalProps = {
     /** Title shown in the header of the modal */
     headerTitle?: string;
+
+    policyID?: string;
 };
-function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
+function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModalProps) {
     const styles = useThemeStyles();
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -37,11 +40,15 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
         (event: MessageEvent<string>) => {
             const message = event.data;
             if (message === CONST.GBP_AUTHENTICATION_COMPLETE) {
-                PaymentMethods.verifySetupIntent(session?.accountID ?? -1, true);
+                if (policyID) {
+                    PolicyActions.verifySetupIntentAndRequestPolicyOwnerChange(policyID);
+                } else {
+                    PaymentMethods.verifySetupIntent(session?.accountID ?? -1, true);
+                }
                 onModalClose();
             }
         },
-        [onModalClose, session?.accountID],
+        [onModalClose, policyID, session?.accountID],
     );
 
     useEffect(() => {

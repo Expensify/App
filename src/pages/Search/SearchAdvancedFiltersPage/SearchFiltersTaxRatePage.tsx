@@ -57,7 +57,6 @@ function SearchFiltersTaxRatePage() {
             />
             <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
-                    pickerTitle={translate('workspace.taxes.taxRate')}
                     items={taxItems}
                     initiallySelectedItems={selectedTaxesItems}
                     onSaveSelection={updateTaxRateFilters}
@@ -67,6 +66,6 @@ function SearchFiltersTaxRatePage() {
     );
 }
 
-SearchFiltersTaxRatePage.displayName = 'SearchFiltersCategoryPage';
+SearchFiltersTaxRatePage.displayName = 'SearchFiltersTaxRatePage';
 
 export default SearchFiltersTaxRatePage;

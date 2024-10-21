@@ -57,28 +57,13 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return defaultListOptions;
         }
 
-        return OptionsListUtils.getFilteredOptions(
-            options.reports,
-            options.personalDetails,
-            undefined,
-            '',
+        return OptionsListUtils.getFilteredOptions({
+            reports: options.reports,
+            personalDetails: options.personalDetails,
             selectedOptions,
-            CONST.EXPENSIFY_EMAILS,
-            false,
-            true,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            true,
-            false,
-            false,
-            0,
-            undefined,
-            false,
-        );
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            maxRecentReportsToShow: 0,
+        });
     }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
 
     const chatOptions = useMemo(() => {
@@ -104,18 +89,19 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             true,
         );
 
-        const isCurrentUserSelected = selectedOptions.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
+        const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
+
+        if (chatOptions.currentUserOption) {
+            const formattedName = ReportUtils.getDisplayNameForParticipant(chatOptions.currentUserOption.accountID, false, true, true, personalDetails);
+            if (selectedCurrentUser) {
+                selectedCurrentUser.text = formattedName;
+            } else {
+                chatOptions.currentUserOption.text = formattedName;
+                chatOptions.recentReports = [chatOptions.currentUserOption, ...chatOptions.recentReports];
+            }
+        }
 
         newSections.push(formattedResults.section);
-
-        if (chatOptions.currentUserOption && !isCurrentUserSelected) {
-            const formattedName = ReportUtils.getDisplayNameForParticipant(chatOptions.currentUserOption.accountID, false, true, true, personalDetails);
-            newSections.push({
-                title: '',
-                data: [{...chatOptions.currentUserOption, text: formattedName}],
-                shouldShow: true,
-            });
-        }
 
         newSections.push({
             title: '',
@@ -136,7 +122,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions.recentReports, chatOptions.personalDetails, chatOptions.currentUserOption, personalDetails, translate]);
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, translate]);
 
     // This effect handles setting initial selectedOptions based on accountIDs saved in onyx form
     useEffect(() => {

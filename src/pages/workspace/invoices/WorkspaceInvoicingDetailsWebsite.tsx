@@ -63,8 +63,7 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            // TODO: uncomment when CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED is supported
-            // featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
             <ScreenWrapper
                 testID={WorkspaceInvoicingDetailsWebsite.displayName}

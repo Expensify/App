@@ -34,7 +34,7 @@ function BaseGenericTooltip({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
     shouldUseOverlay = false,
-    onPressOverlay = () => {},
+    onHideTooltip = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -50,8 +50,17 @@ function BaseGenericTooltip({
     useLayoutEffect(() => {
         // Calculate the tooltip width and height before the browser repaints the screen to prevent flicker
         // because of the late update of the width and the height from onLayout.
+        const rootWrapperStyle = rootWrapper?.current?.style;
+        const isScaled = rootWrapperStyle?.transform === 'scale(0)';
+        if (isScaled) {
+            // Temporarily reset the scale caused by animation to get the untransformed size.
+            rootWrapperStyle.transform = 'scale(1)';
+        }
         setContentMeasuredWidth(contentRef.current?.getBoundingClientRect().width);
         setWrapperMeasuredHeight(rootWrapper.current?.getBoundingClientRect().height);
+        if (isScaled) {
+            rootWrapperStyle.transform = 'scale(0)';
+        }
     }, []);
 
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
@@ -119,7 +128,7 @@ function BaseGenericTooltip({
 
     return ReactDOM.createPortal(
         <>
-            {shouldUseOverlay && <TransparentOverlay onPress={onPressOverlay} />}
+            {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
             <Animated.View
                 ref={viewRef(rootWrapper)}
                 style={[rootWrapperStyle, animationStyle]}

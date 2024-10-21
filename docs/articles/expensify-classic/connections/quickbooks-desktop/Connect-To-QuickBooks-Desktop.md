@@ -18,17 +18,15 @@ To connect QuickBooks Desktop to Expensify, you must log into QuickBooks Desktop
 4. Click **Connect to QuickBooks Desktop**. 
 5. Click Copy to copy the link, then paste the link into the computer where QuickBooks Desktop is running.
 
-![QuickBooks Desktop Setup pop-up link, containing the URL to paste](https://help.expensify.com/assets/images/QBO_desktop_01.png){:width="100%"}
+     ![QuickBooks Desktop Setup pop-up link, containing the URL to paste](https://help.expensify.com/assets/images/QBO_desktop_01.png){:width="100%"}
 
 6. Select the version of QuickBooks Desktop that you currently have.
 
-![The Web Connnector Pop-up to allow you to select the type of QuickBooks Desktop you have](https://help.expensify.com/assets/images/QBO_desktop_02.png){:width="100%"}
+    ![The Web Connnector Pop-up to allow you to select the type of QuickBooks Desktop you have](https://help.expensify.com/assets/images/QBO_desktop_02.png){:width="100%"}
 
 7. Download the Web Connector and go through the guided installation process.
 8. Open the Web Connector. 
-9. Click on **Add an Application**. 
-
-![The Web Connnector Pop-up where you will need to click on Add an Application](https://help.expensify.com/assets/images/QBO_desktop_03.png){:width="100%"}
+9. Download the config file when prompted during the setup process, then open it using your File Explorer. This will automatically load the application into the QuickBooks Web Connector. 
 
 {% include info.html %}
 For this step, it is key to ensure that the correct company file is open in QuickBooks Desktop and that it is the only one open.
@@ -36,23 +34,23 @@ For this step, it is key to ensure that the correct company file is open in Quic
 
 10. In QuickBooks Desktop, select **"Yes, always allow access, even when QuickBooks is not running"** and click **Continue**. 
 
-![The QuickBooks Desktop pop-up, where you will need to select "Yes, always allow access, even when QuickBooks is not running"](https://help.expensify.com/assets/images/QBO_desktop_04.png){:width="100%"}
+    ![The QuickBooks Desktop pop-up, where you will need to select "Yes, always allow access, even when QuickBooks is not running"](https://help.expensify.com/assets/images/QBO_desktop_04.png){:width="100%"}
 
 11. Click **OK**, then click **Yes**.
 
-![The QuickBooks Desktop pop-up, where you will need to click "Ok" then select "Yes"](https://help.expensify.com/assets/images/QBO_desktop_05.png){:width="100%"}
+    ![The QuickBooks Desktop pop-up, where you will need to click "Ok" then select "Yes"](https://help.expensify.com/assets/images/QBO_desktop_05.png){:width="100%"}
 
 12. Click **Copy** to copy the password.
 
-![The Web Connector pop-up, where you will need to click "Copy"](https://help.expensify.com/assets/images/QBO_desktop_06.png){:width="100%"}
+    ![The Web Connector pop-up, where you will need to click "Copy"](https://help.expensify.com/assets/images/QBO_desktop_06.png){:width="100%"}
 
 13. Paste the password into the Password field of the Web Connector and press **Enter**.
 
-![The Web Connector pop-up, where you will need to paste the password into the password field](https://help.expensify.com/assets/images/QBO_desktop_08.png){:width="100%"}
+    ![The Web Connector pop-up, where you will need to paste the password into the password field](https://help.expensify.com/assets/images/QBO_desktop_08.png){:width="100%"}
 
 14. Click **Yes** to save the password. The new connection now appears in the Web Connector.
 
-![The Web Connector pop-up, where you will need to click "Yes"](https://help.expensify.com/assets/images/QBO_desktop_07.png){:width="100%"}
+    ![The Web Connector pop-up, where you will need to click "Yes"](https://help.expensify.com/assets/images/QBO_desktop_07.png){:width="100%"}
 
 # FAQ
 

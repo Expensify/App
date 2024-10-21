@@ -46,9 +46,7 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
 
     if (name === SCREENS.SEARCH.CENTRAL_PANE) {
         name = SCREENS.SEARCH.BOTTOM_TAB;
-    }
-
-    if (!params) {
+    } else if (!params) {
         params = {policyID};
     } else {
         params.policyID = policyID;
@@ -109,19 +107,19 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     // If the layout is wide we need to push matching central pane route to the stack.
     if (shouldAddToCentralPane) {
         const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
+
         if (isOpeningSearchFromBottomTab && params.q) {
+            delete params.policyID;
+            const queryJSON = SearchUtils.buildSearchQueryJSON(params.q);
+
             if (policyID) {
-                const queryJSON = SearchUtils.buildSearchQueryJSON(params.q);
                 if (queryJSON) {
                     queryJSON.policyID = policyID;
                     params.q = SearchUtils.buildSearchQueryString(queryJSON);
                 }
-            } else {
-                const queryJSON = SearchUtils.buildSearchQueryJSON(params.q);
-                if (queryJSON) {
-                    delete queryJSON.policyID;
-                    params.q = SearchUtils.buildSearchQueryString(queryJSON);
-                }
+            } else if (queryJSON) {
+                delete queryJSON.policyID;
+                params.q = SearchUtils.buildSearchQueryString(queryJSON);
             }
         }
 

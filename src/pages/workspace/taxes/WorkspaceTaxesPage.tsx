@@ -19,10 +19,12 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isConnectionInProgress} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -31,8 +33,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import {openPolicyTaxesPage} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,11 +57,14 @@ function WorkspaceTaxesPage({
     const {environmentURL} = useEnvironment();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {selectionMode} = useMobileSelectionMode();
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const isFocused = useIsFocused();
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
+    const hasSyncError = PolicyUtils.hasSyncError(policy, isSyncInProgress);
 
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
@@ -150,7 +155,7 @@ function WorkspaceTaxesPage({
     };
 
     const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9, !canSelectMultiple && styles.m5]}>
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr8, !canSelectMultiple && styles.m5]}>
             <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
             <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
         </View>
@@ -222,7 +227,6 @@ function WorkspaceTaxesPage({
         <View style={[styles.w100, styles.flexRow, shouldUseNarrowLayout && styles.mb3]}>
             {!hasAccountingConnections && (
                 <Button
-                    medium
                     success
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
                     icon={Expensicons.Plus}
@@ -231,7 +235,6 @@ function WorkspaceTaxesPage({
                 />
             )}
             <Button
-                medium
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID))}
                 icon={Expensicons.Gear}
                 text={translate('common.settings')}
@@ -243,7 +246,7 @@ function WorkspaceTaxesPage({
             onPress={() => {}}
             options={dropdownMenuOptions}
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-            customText={translate('workspace.common.selected', {selectedNumber: selectedTaxesIDs.length})}
+            customText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
             shouldAlwaysShowDropdownMenu
             pressOnEnter
             isSplitButton={false}
@@ -253,8 +256,8 @@ function WorkspaceTaxesPage({
     );
 
     const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-            {isConnectedToAccounting ? (
+        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            {!hasSyncError && isConnectedToAccounting ? (
                 <Text>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
                     <TextLink

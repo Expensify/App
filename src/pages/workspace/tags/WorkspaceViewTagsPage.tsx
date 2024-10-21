@@ -16,6 +16,7 @@ import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -54,7 +55,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const policyID = route.params.policyID ?? '-1';
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {selectionMode} = useMobileSelectionMode();
     const currentTagListName = useMemo(() => PolicyUtils.getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
 
@@ -223,7 +224,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 pressOnEnter
                 isSplitButton={false}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
+                customText={translate('workspace.common.selected', {count: selectedTagsArray.length})}
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedTagsArray.length}
@@ -231,8 +232,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         );
     };
 
+    if (!!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
+        Tag.setPolicyTagsRequired(policyID, false, route.params.orderWeight);
+    }
+
     const navigateToEditTag = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight));
+        Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0));
     };
 
     const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;

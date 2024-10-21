@@ -8,7 +8,12 @@ const ReactCompilerConfig = {
         enableTreatRefLikeIdentifiersAsRefs: true,
     },
 };
-const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow', '@babel/preset-typescript'];
+/**
+ * Setting targets to node 20 to reduce JS bundle size
+ * It is also recommended by babel:
+ * https://babeljs.io/docs/options#no-targets
+ */
+const defaultPresets = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
 const defaultPlugins = [
     ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
@@ -16,10 +21,11 @@ const defaultPlugins = [
 
     '@babel/transform-runtime',
     '@babel/plugin-proposal-class-properties',
+    ['@babel/plugin-transform-object-rest-spread', {useBuiltIns: true, loose: true}],
 
-    // We use `transform-class-properties` for transforming ReactNative libraries and do not use it for our own
+    // We use `@babel/plugin-transform-class-properties` for transforming ReactNative libraries and do not use it for our own
     // source code transformation as we do not use class property assignment.
-    'transform-class-properties',
+    '@babel/plugin-transform-class-properties',
 
     // Keep it last
     'react-native-reanimated/plugin',

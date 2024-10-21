@@ -40,6 +40,7 @@ function PreferencesPage() {
                 title={translate('common.preferences')}
                 icon={Illustrations.Gears}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView contentContainerStyle={styles.pt3}>

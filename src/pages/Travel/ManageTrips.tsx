@@ -5,17 +5,16 @@ import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import * as TripsResevationUtils from '@libs/TripReservationUtils';
 import colors from '@styles/theme/colors';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const tripsFeatures: FeatureListItem[] = [
@@ -33,7 +32,6 @@ function ManageTrips() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const policy = usePolicy(activePolicyID);
 
@@ -42,9 +40,6 @@ function ManageTrips() {
     if (isEmptyObject(policy)) {
         return <FullScreenLoadingIndicator />;
     }
-
-    const hasAcceptedTravelTerms = travelSettings?.hasAcceptedTerms;
-    const hasPolicyAddress = !isEmptyObject(policy?.address);
 
     const navigateToBookTravelDemo = () => {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
@@ -60,24 +55,11 @@ function ManageTrips() {
                     ctaText={translate('travel.bookTravel')}
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {
-                        if (!hasPolicyAddress) {
-                            Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1'));
-                            return;
-                        }
-                        if (!hasAcceptedTravelTerms) {
-                            Navigation.navigate(ROUTES.TRAVEL_TCS);
-                            return;
-                        }
-                        if (ctaErrorMessage) {
-                            setCtaErrorMessage('');
-                        }
-                        Link.openTravelDotLink(activePolicyID)?.catch(() => {
-                            setCtaErrorMessage(translate('travel.errorMessage'));
-                        });
+                        TripsResevationUtils.bookATrip(translate, setCtaErrorMessage, ctaErrorMessage);
                     }}
                     ctaErrorMessage={ctaErrorMessage}
-                    illustration={Illustrations.EmptyStateTravel}
-                    illustrationStyle={[styles.mv4, styles.tripIllustrationSize]}
+                    illustration={LottieAnimations.TripsEmptyState}
+                    illustrationStyle={[styles.mv4]}
                     secondaryButtonText={translate('travel.bookDemo')}
                     secondaryButtonAccessibilityLabel={translate('travel.bookDemo')}
                     onSecondaryButtonPress={navigateToBookTravelDemo}

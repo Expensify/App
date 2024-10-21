@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -27,25 +26,20 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 import CategorySelector from './CategorySelector';
 import UnitSelector from './UnitSelector';
 
-type PolicyDistanceRatesSettingsPageOnyxProps = {
-    /** Policy details */
-    policy: OnyxEntry<OnyxTypes.Policy>;
+type PolicyDistanceRatesSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
 
-    /** Policy categories */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-};
-
-type PolicyDistanceRatesSettingsPageProps = PolicyDistanceRatesSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
-
-function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: PolicyDistanceRatesSettingsPageProps) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
+function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPageProps) {
     const policyID = route.params.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+
+    const styles = useThemeStyles();
+    const [isCategoryPickerVisible, setIsCategoryPickerVisible] = useState(false);
+    const {translate} = useLocalize();
     const customUnits = policy?.customUnits ?? {};
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const customUnitID = customUnit?.customUnitID ?? '';
@@ -96,7 +90,10 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <FullPageBlockingView style={customUnit ? styles.flexGrow1 : []}>
-                    <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    <ScrollView
+                        contentContainerStyle={styles.flexGrow1}
+                        keyboardShouldPersistTaps="always"
+                    >
                         <View>
                             {defaultUnit && (
                                 <OfflineWithFeedback
@@ -126,6 +123,9 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                                         defaultValue={defaultCategory}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
                                         setNewCategory={setNewCategory}
+                                        isPickerVisible={isCategoryPickerVisible}
+                                        showPickerModal={() => setIsCategoryPickerVisible(true)}
+                                        hidePickerModal={() => setIsCategoryPickerVisible(false)}
                                     />
                                 </OfflineWithFeedback>
                             )}
@@ -172,11 +172,4 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
 
 PolicyDistanceRatesSettingsPage.displayName = 'PolicyDistanceRatesSettingsPage';
 
-export default withOnyx<PolicyDistanceRatesSettingsPageProps, PolicyDistanceRatesSettingsPageOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-    },
-    policyCategories: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
-    },
-})(PolicyDistanceRatesSettingsPage);
+export default PolicyDistanceRatesSettingsPage;

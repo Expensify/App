@@ -42,6 +42,10 @@ The following steps help you determine the advanced settings for your connection
 1. Click **Advanced** under the QuickBooks Desktop connection.
 2. **Enable or disable Auto-Sync**: If enabled, QuickBooks Desktop automatically communicates changes with Expensify to ensure that the data shared between the two systems is up to date. New report approvals/reimbursements will be synced during the next auto-sync period.
 
+{% include info.html %}
+Please note that Auto-Sync will queue information to be added to your QuickBooks Company File the next time both your QuickBooks Company File and QuickBooks Web Connector are open.
+{% include end-info.html %}
+
 # FAQ
 
 ## **How do I manually sync my QuickBooks Desktop if I have Auto-Sync disabled?**

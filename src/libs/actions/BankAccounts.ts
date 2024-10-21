@@ -73,10 +73,13 @@ function setPlaidEvent(eventName: string | null) {
 /**
  * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
  */
-function openPersonalBankAccountSetupView(exitReportID?: string) {
+function openPersonalBankAccountSetupView(exitReportID?: string, isUserValidated = true) {
     clearPlaid().then(() => {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
+        }
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
         }
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
     });
@@ -124,14 +127,14 @@ function updateAddPersonalBankAccountDraft(bankData: Partial<PersonalBankAccount
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  */
-function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
+function getVBBADataForOnyx(currentStep?: BankAccountStep, shouldShowLoading = true): OnyxData {
     return {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
-                    isLoading: true,
+                    isLoading: shouldShowLoading,
                     errors: null,
                 },
             },
@@ -294,7 +297,7 @@ function updatePersonalInformationForBankAccount(bankAccountID: number, params: 
             policyID,
             confirm: isConfirmPage,
         },
-        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR),
+        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR, isConfirmPage),
     );
 }
 
@@ -407,7 +410,7 @@ function updateCompanyInformationForBankAccount(bankAccountID: number, params: P
             policyID,
             confirm: isConfirmPage,
         },
-        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY),
+        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY, isConfirmPage),
     );
 }
 

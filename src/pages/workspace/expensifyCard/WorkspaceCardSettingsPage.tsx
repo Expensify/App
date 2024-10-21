@@ -32,11 +32,9 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
-    // const isMonthlySettlementAllowed = cardSettings?.isMonthlySettlementAllowed ?? true;
+    const isMonthlySettlementAllowed = cardSettings?.isMonthlySettlementAllowed ?? false;
     const settlementFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
-    // TODO: replace this line with the following line and uncomment the previous comment
-    const isSettlementFrequencyBlocked = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
-    // const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
+    const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID.toString()]?.accountData?.accountNumber ?? '';
 
     return (
@@ -66,7 +64,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                 description={translate('workspace.expensifyCard.settlementFrequency')}
                                 title={translate(`workspace.expensifyCard.frequency.${settlementFrequency}`)}
                                 shouldShowRightIcon={settlementFrequency !== CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY}
-                                // interactive={!isSettlementFrequencyBlocked}
+                                interactive={!isSettlementFrequencyBlocked}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID))}
                                 hintText={
                                     isSettlementFrequencyBlocked ? (

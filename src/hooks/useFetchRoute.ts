@@ -1,4 +1,4 @@
-import {isEqual} from 'lodash';
+import isEqual from 'lodash/isEqual';
 import {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as IOUUtils from '@libs/IOUUtils';

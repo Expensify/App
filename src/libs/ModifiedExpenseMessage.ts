@@ -6,6 +6,7 @@ import type {PolicyTagLists, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
+import Log from './Log';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
@@ -94,13 +95,32 @@ function getMessageLine(prefix: string, messageFragments: string[]): string {
     }, prefix);
 }
 
-function getForDistanceRequest(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string): string {
-    if (!oldDistance) {
-        return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
+function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmount: string, oldAmount: string): string {
+    let changedField: 'distance' | 'rate' = 'distance';
+
+    if (CONST.REGEX.DISTANCE_MERCHANT.test(newMerchant) && CONST.REGEX.DISTANCE_MERCHANT.test(oldMerchant)) {
+        const oldValues = oldMerchant.split('@');
+        const oldDistance = oldValues.at(0)?.trim() ?? '';
+        const oldRate = oldValues.at(1)?.trim() ?? '';
+        const newValues = newMerchant.split('@');
+        const newDistance = newValues.at(0)?.trim() ?? '';
+        const newRate = newValues.at(1)?.trim() ?? '';
+
+        if (oldDistance === newDistance && oldRate !== newRate) {
+            changedField = 'rate';
+        }
+    } else {
+        Log.hmmm("Distance request merchant doesn't match NewDot format. Defaulting to showing as distance changed.", {newMerchant, oldMerchant});
     }
-    return Localize.translateLocal('iou.updatedTheDistance', {
-        newDistanceToDisplay: newDistance,
-        oldDistanceToDisplay: oldDistance,
+
+    const translatedChangedField = Localize.translateLocal(`common.${changedField}`).toLowerCase();
+    if (!oldMerchant.length) {
+        return Localize.translateLocal('iou.setTheDistanceMerchant', {translatedChangedField, newMerchant, newAmountToDisplay: newAmount});
+    }
+    return Localize.translateLocal('iou.updatedTheDistanceMerchant', {
+        translatedChangedField,
+        newMerchant,
+        oldMerchant,
         newAmountToDisplay: newAmount,
         oldAmountToDisplay: oldAmount,
     });
@@ -215,8 +235,8 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         sortedTagKeys.forEach((policyTagKey, index) => {
             const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
 
-            const newTag = splittedTag[index] ?? '';
-            const oldTag = splittedOldTag[index] ?? '';
+            const newTag = splittedTag.at(index) ?? '';
+            const oldTag = splittedOldTag.at(index) ?? '';
 
             if (newTag !== oldTag) {
                 buildMessageFragmentForValue(

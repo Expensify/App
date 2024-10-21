@@ -1,9 +1,9 @@
-import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Keyboard, PanResponder, View} from 'react-native';
+import {Keyboard, NativeModules, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useEnvironment from '@hooks/useEnvironment';
@@ -22,6 +22,7 @@ import CustomDevMenu from './CustomDevMenu';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from './HeaderGap';
+import ImportedStateIndicator from './ImportedStateIndicator';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
 import OfflineIndicator from './OfflineIndicator';
 import SafeAreaConsumer from './SafeAreaConsumer';
@@ -160,6 +161,15 @@ function ScreenWrapper(
 
     isKeyboardShownRef.current = keyboardState?.isKeyboardShown ?? false;
 
+    const route = useRoute();
+    const shouldReturnToOldDot = useMemo(() => {
+        return !!route?.params && 'singleNewDotEntry' in route.params && route.params.singleNewDotEntry === 'true';
+    }, [route]);
+
+    UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
+        NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
+    });
+
     const panResponder = useRef(
         PanResponder.create({
             onStartShouldSetPanResponderCapture: (_e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
@@ -285,12 +295,22 @@ function ScreenWrapper(
                                                       })
                                                     : children
                                             }
-                                            {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                            {isSmallScreenWidth && shouldShowOfflineIndicator && (
+                                                <>
+                                                    <OfflineIndicator style={offlineIndicatorStyle} />
+                                                    {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                                    <ImportedStateIndicator />
+                                                </>
+                                            )}
                                             {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
-                                                <OfflineIndicator
-                                                    containerStyles={[]}
-                                                    style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
-                                                />
+                                                <>
+                                                    <OfflineIndicator
+                                                        containerStyles={[]}
+                                                        style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                                    />
+                                                    {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                                    <ImportedStateIndicator />
+                                                </>
                                             )}
                                         </ScreenWrapperStatusContext.Provider>
                                     </PickerAvoidingView>

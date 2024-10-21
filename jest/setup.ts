@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import '@shopify/flash-list/jestSetup';
 import 'react-native-gesture-handler/jestSetup';
 import type * as RNKeyboardController from 'react-native-keyboard-controller';
@@ -34,7 +35,7 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
 
 // Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
 jest.spyOn(console, 'debug').mockImplementation((...params: string[]) => {
-    if (params[0].startsWith('Timing:')) {
+    if (params.at(0)?.startsWith('Timing:')) {
         return;
     }
 
@@ -78,3 +79,22 @@ jest.mock('@src/libs/actions/Timing', () => ({
     start: jest.fn(),
     end: jest.fn(),
 }));
+
+// This makes FlatList render synchronously for easier testing.
+jest.mock(
+    '@react-native/virtualized-lists/Interaction/Batchinator',
+    () =>
+        class SyncBachinator {
+            #callback: () => void;
+
+            constructor(callback: () => void) {
+                this.#callback = callback;
+            }
+
+            schedule() {
+                this.#callback();
+            }
+
+            dispose() {}
+        },
+);

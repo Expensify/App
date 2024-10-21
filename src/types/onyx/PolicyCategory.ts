@@ -1,5 +1,8 @@
 import type * as OnyxCommon from './OnyxCommon';
 
+/** The type of policy category expense limit */
+type PolicyCategoryExpenseLimitType = 'expense' | 'daily';
+
 /** Model of policy category */
 type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of a category */
@@ -33,9 +36,21 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** A list of errors keyed by microtime */
     errors?: OnyxCommon.Errors | null;
+
+    /** A description hint related to the category */
+    commentHint?: string;
+
+    /** Maximum amount allowed for an expense in this category */
+    maxExpenseAmount?: number;
+
+    /** The type of expense limit associated with this category */
+    expenseLimitType?: PolicyCategoryExpenseLimitType;
+
+    /** Max expense amount with no receipt violation */
+    maxExpenseAmountNoReceipt?: number | null;
 }>;
 
 /** Record of policy categories, indexed by their name */
 type PolicyCategories = Record<string, PolicyCategory>;
 
-export type {PolicyCategory, PolicyCategories};
+export type {PolicyCategory, PolicyCategories, PolicyCategoryExpenseLimitType};

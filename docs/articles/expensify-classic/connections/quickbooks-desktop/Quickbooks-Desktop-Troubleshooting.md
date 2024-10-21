@@ -89,3 +89,15 @@ If the problem persists, download the QuickBooks Desktop log file via the Web Co
 {% include info.html %}
 If you’re using a remote server (e.g. RightNetworks), you may need to contact that support team to request your logs.
 {% include end-info.html %}
+
+# Reports not exporting to QuickBooks Desktop
+
+Generally, this is the result of not having both the QuickBooks Web Connector and the Company File open, since the Report was exported.
+
+## How to resolve
+
+1. Make sure that the Web Connector and QuickBooks Desktop Company File are both open.
+2. In the Web Connector, check that the Last Status is “Ok”.
+3. Check the Report Comments in Expensify to confirm that the report has been successfully exported to QuickBooks Desktop.
+
+If these general troubleshooting steps don’t work, reach out to Concierge with your Expensify Report ID and a screenshot of your QuickBooks Web Connector.

@@ -19,10 +19,16 @@ function SearchFiltersExpenseTypePage() {
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const selectedExpenseTypes = searchAdvancedFiltersForm?.expenseType?.map((expenseType) => {
-        const expenseTypeName = translate(getExpenseTypeTranslationKey(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
-        return {name: expenseTypeName, value: expenseType};
-    });
+    const initiallySelectedItems = useMemo(
+        () =>
+            searchAdvancedFiltersForm?.expenseType
+                ?.filter((expenseType) => Object.values(CONST.SEARCH.TRANSACTION_TYPE).includes(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>))
+                .map((expenseType) => {
+                    const expenseTypeName = translate(getExpenseTypeTranslationKey(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
+                    return {name: expenseTypeName, value: expenseType};
+                }),
+        [searchAdvancedFiltersForm, translate],
+    );
     const allExpenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
 
     const expenseTypesItems = useMemo(() => {
@@ -50,9 +56,8 @@ function SearchFiltersExpenseTypePage() {
             />
             <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
-                    pickerTitle={translate('search.expenseType')}
                     items={expenseTypesItems}
-                    initiallySelectedItems={selectedExpenseTypes}
+                    initiallySelectedItems={initiallySelectedItems}
                     onSaveSelection={updateExpenseTypeFilter}
                     shouldShowTextInput={false}
                 />
@@ -61,6 +66,6 @@ function SearchFiltersExpenseTypePage() {
     );
 }
 
-SearchFiltersExpenseTypePage.displayName = 'SearchFiltersCategoryPage';
+SearchFiltersExpenseTypePage.displayName = 'SearchFiltersExpenseTypePage';
 
 export default SearchFiltersExpenseTypePage;

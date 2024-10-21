@@ -9,11 +9,14 @@ import navigationRef from './Navigation/navigationRef';
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
 const composerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
-const editComposerRef = React.createRef<TextInput>();
+
 // There are two types of composer: general composer (edit composer) and main composer.
 // The general composer callback will take priority if it exists.
+const editComposerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
+// There are two types of focus callbacks: priority and general
+// Priority callback would take priority if it existed
+let priorityFocusCallback: FocusCallback | null = null;
 let focusCallback: FocusCallback | null = null;
-let mainComposerFocusCallback: FocusCallback | null = null;
 
 /**
  * Register a callback to be called when focus is requested.
@@ -21,9 +24,9 @@ let mainComposerFocusCallback: FocusCallback | null = null;
  *
  * @param callback callback to register
  */
-function onComposerFocus(callback: FocusCallback | null, isMainComposer = false) {
-    if (isMainComposer) {
-        mainComposerFocusCallback = callback;
+function onComposerFocus(callback: FocusCallback | null, isPriorityCallback = false) {
+    if (isPriorityCallback) {
+        priorityFocusCallback = callback;
     } else {
         focusCallback = callback;
     }
@@ -39,24 +42,27 @@ function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
         return;
     }
 
-    if (typeof focusCallback !== 'function') {
-        if (typeof mainComposerFocusCallback !== 'function') {
-            return;
-        }
-
-        mainComposerFocusCallback(shouldFocusForNonBlurInputOnTapOutside);
+    if (typeof priorityFocusCallback !== 'function' && typeof focusCallback !== 'function') {
         return;
     }
 
-    focusCallback();
+    if (typeof priorityFocusCallback === 'function') {
+        priorityFocusCallback(shouldFocusForNonBlurInputOnTapOutside);
+        return;
+    }
+
+    if (typeof focusCallback === 'function') {
+        focusCallback();
+    }
 }
 
 /**
  * Clear the registered focus callback
  */
-function clear(isMainComposer = false) {
-    if (isMainComposer) {
-        mainComposerFocusCallback = null;
+function clear(isPriorityCallback = false) {
+    if (isPriorityCallback) {
+        editComposerRef.current = null;
+        priorityFocusCallback = null;
     } else {
         focusCallback = null;
     }
@@ -76,6 +82,14 @@ function isEditFocused(): boolean {
     return !!editComposerRef.current?.isFocused();
 }
 
+/**
+ * Utility function to blur both main composer and edit composer.
+ */
+function blurAll(): void {
+    composerRef.current?.blur();
+    editComposerRef.current?.blur();
+}
+
 export default {
     composerRef,
     onComposerFocus,
@@ -84,4 +98,5 @@ export default {
     isFocused,
     editComposerRef,
     isEditFocused,
+    blurAll,
 };

@@ -117,15 +117,16 @@ const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
         }
     } else if (dom instanceof Element) {
         domName = dom.name;
+        const child = dom.children.at(0);
         if (dom.attribs?.[tagAttribute]) {
             // If it's a markdown element, rename it according to the value of data-testid, so ExpensiMark can parse it
             if (markdownElements.includes(dom.attribs[tagAttribute])) {
                 domName = dom.attribs[tagAttribute];
             }
-        } else if (dom.name === 'div' && dom.children.length === 1 && isChildOfEditorElement) {
+        } else if (dom.name === 'div' && dom.children.length === 1 && isChildOfEditorElement && child) {
             // We are excluding divs that are children of our editor element and have only one child to prevent
             // additional newlines from being added in the HTML to Markdown conversion process.
-            return replaceNodes(dom.children[0], isChildOfEditorElement);
+            return replaceNodes(child, isChildOfEditorElement);
         }
 
         // We need to preserve href attribute in order to copy links.
