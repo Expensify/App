@@ -72,8 +72,8 @@ KAYAK for Business will now forward bookings made by each employee into Expensif
 1. Email receiptintegration@expensify.com and include:
    - **Subject**: Use “Receipt Integration Request" as the subject line
    - **Body**: List all email addresses the merchant sends email receipts from
-2. Once you receive your email confirmation (within approximately 2 weeks) that the email addresses have been whitelisted, you’ll then be able to Cc “receipts@expensify.com” on receipt emails to users, and transactions will be created in the users’ Expensify account.
-3. Test the integration by sending a receipt email to the email address you used to create your Expensify account and Cc “receipts@expensify.com”. Wait for the receipt to be SmartScanned. Then you will see the merchant, date, and amount added to the transaction. 
+2. Once you receive your email confirmation (within approximately 2 weeks) that the email addresses have been whitelisted, you’ll then be able to Cc receipts@expensify.com on receipt emails to users, and transactions will be created in the users’ Expensify account.
+3. Test the integration by sending a receipt email to the email address you used to create your Expensify account and Cc receipts@expensify.com. Wait for the receipt to be SmartScanned. Then you will see the merchant, date, and amount added to the transaction. 
 
 ### Using the integration
 
