@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOptimisticRateName, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
+import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -32,8 +33,8 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const customUnits = policy?.customUnits ?? {};
-    const customUnitID = customUnits[Object.keys(customUnits)[0]]?.customUnitID ?? '';
+    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
+    const customUnitID = distanceRateCustomUnit?.customUnitID ?? '';
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -47,7 +48,7 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         const newRate: Rate = {
             currency,
-            name: getOptimisticRateName(customUnits[customUnitID]?.rates),
+            name: getOptimisticRateName(distanceRateCustomUnit?.rates ?? {}),
             rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             customUnitRateID,
             enabled: true,

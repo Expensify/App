@@ -13,6 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateRateValue} from '@libs/PolicyDistanceRatesUtils';
+import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -32,9 +33,8 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const policy = usePolicy(policyID);
-    const customUnits = policy?.customUnits ?? {};
-    const customUnit = customUnits[Object.keys(customUnits)[0]];
-    const rate = customUnit?.rates[rateID];
+    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
+    const rate = distanceRateCustomUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const currentRateValue = (parseFloat((rate?.rate ?? 0).toString()) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES);
 
@@ -43,7 +43,10 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
             Navigation.goBack();
             return;
         }
-        DistanceRate.updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
+        if (!distanceRateCustomUnit) {
+            return;
+        }
+        DistanceRate.updatePolicyDistanceRateValue(policyID, distanceRateCustomUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
         Keyboard.dismiss();
         Navigation.goBack();
     };
