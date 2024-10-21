@@ -2184,6 +2184,7 @@ const translations = {
         companyAddress: 'Dirección de la empresa',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en la',
+        businessInfoTitle: 'Información del negocio',
     },
     beneficialOwnerInfoStep: {
         doYouOwn25percent: '¿Posees el 25% o más de',
@@ -2261,6 +2262,21 @@ const translations = {
         enable2FATitle: '¡Evita fraudes, activa la autenticación de dos factores!',
         enable2FAText: 'Tu seguridad es importante para nosotros. Por favor, configura ahora la autenticación de dos factores para añadir una capa adicional de protección a tu cuenta.',
         secureYourAccount: 'Asegura tu cuenta',
+    },
+    countryStep: {
+        confirmBusinessBank: 'Confirmar moneda y país de la cuenta bancaria comercial',
+        confirmCurrency: 'Confirmar moneda y país',
+    },
+    signerInfoStep: {
+        signerInfo: 'Información del firmante',
+    },
+    agreementsStep: {
+        agreements: 'Acuerdos',
+        pleaseConfirm: 'Por favor confirme los acuerdos a continuación',
+        accept: 'Aceptar y añadir cuenta bancaria',
+    },
+    finishStep: {
+        connect: 'Conectar cuenta bancaria',
     },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un momento',
