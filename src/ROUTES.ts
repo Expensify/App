@@ -21,6 +21,7 @@ const PUBLIC_SCREENS_ROUTES = {
     ROOT: '',
     TRANSITION_BETWEEN_APPS: 'transition',
     CONNECTION_COMPLETE: 'connection-complete',
+    BANK_CONNECTION_COMPLETE: 'bank-connection-complete',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     UNLINK_LOGIN: 'u/:accountID/:validateCode',
     APPLE_SIGN_IN: 'sign-in-with-apple',
