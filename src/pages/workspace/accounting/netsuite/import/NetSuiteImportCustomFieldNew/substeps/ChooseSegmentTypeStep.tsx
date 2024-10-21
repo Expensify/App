@@ -1,11 +1,13 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetSuiteImportAddCustomSegmentFormSubmit from '@hooks/useNetSuiteImportAddCustomSegmentForm';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,14 +37,12 @@ function ChooseSegmentTypeStep({onNext, customSegmentType, setCustomSegmentType,
         },
     ];
 
-    const onConfirm = () => {
-        if (!selectedType) {
-            setIsError(true);
-        } else {
-            setCustomSegmentType?.(selectedType);
-            onNext();
-        }
-    };
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> => {
+            return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.SEGMENT_TYPE]);
+        },
+        [translate],
+    );
 
     const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -58,10 +58,10 @@ function ChooseSegmentTypeStep({onNext, customSegmentType, setCustomSegmentType,
             formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmit}
+            validate={validate}
             style={[styles.flexGrow1, styles.mt3]}
             submitButtonStyles={[styles.ph5, styles.mb0]}
             enabledWhenOffline
-            submitFlexEnabled
             shouldUseScrollView
         >
             <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>

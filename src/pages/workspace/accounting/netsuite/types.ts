@@ -7,6 +7,7 @@ import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/Toggl
 import type CONST from '@src/CONST';
 import type {NetSuiteCustomFieldForm} from '@src/types/form';
 import type {Policy} from '@src/types/onyx';
+import {NetSuiteCustomSegment} from '@src/types/onyx/Policy';
 
 type MenuItem = MenuItemProps & {
     /** Type of the item */
@@ -66,6 +67,8 @@ type CustomFieldSubStepWithPolicy = SubStepProps & {
 
     /** NetSuiteCustFieldForm values */
     netSuiteCustomFieldFormValues: NetSuiteCustomFieldForm;
+
+    customSegments?: NetSuiteCustomSegment[];
 };
 
 type CustomListSelectorType = SelectorType & {

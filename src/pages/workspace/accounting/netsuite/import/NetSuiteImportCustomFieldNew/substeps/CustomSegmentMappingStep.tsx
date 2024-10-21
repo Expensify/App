@@ -21,15 +21,17 @@ function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext,
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // reminder to change the validation logic at the last phase of PR
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> = {};
 
-        if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
-            errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
-        }
-
-        return errors;
-    }, []);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> = {};
+            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
+                errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
+            }
+            return errors;
+        },
+        [customSegmentType, translate],
+    );
 
     const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -54,6 +56,7 @@ function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext,
             style={[styles.flexGrow1, styles.mt3]}
             submitButtonStyles={[styles.ph5, styles.mb0]}
             enabledWhenOffline
+            shouldUseScrollView={false}
         >
             <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate(titleKey as TranslationPaths)}</Text>
             <Text style={[styles.ph5, styles.mb3]}>{translate(`workspace.netsuite.import.importCustomFields.chooseOptionBelow`)}</Text>

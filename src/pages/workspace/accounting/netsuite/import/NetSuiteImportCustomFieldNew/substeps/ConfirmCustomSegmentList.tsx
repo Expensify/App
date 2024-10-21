@@ -1,20 +1,23 @@
 import React from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
-function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFieldFormValues: values}: CustomFieldSubStepWithPolicy) {
+function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFieldFormValues: values, onNext}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const fieldNames = [INPUT_IDS.SEGMENT_NAME, INPUT_IDS.INTERNAL_ID, INPUT_IDS.SCRIPT_ID, INPUT_IDS.MAPPING];
+    const {isOffline} = useNetwork();
 
     if (!values.mapping) {
         return <FullScreenLoadingIndicator />;
@@ -32,13 +35,23 @@ function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFiel
                                 : `${fieldName}`
                         }` as TranslationPaths,
                     )}
-                    title={values[fieldName]}
+                    title={fieldName === INPUT_IDS.MAPPING ? translate(`workspace.netsuite.import.importTypes.${values[fieldName]}.label` as TranslationPaths) : values[fieldName]}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(index + 1);
                     }}
                 />
             ))}
+            <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
+                <Button
+                    isDisabled={isOffline}
+                    success
+                    large
+                    style={[styles.w100]}
+                    onPress={onNext}
+                    text={translate('common.confirm')}
+                />
+            </View>
         </View>
     );
 }
