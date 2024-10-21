@@ -35,6 +35,7 @@ function IOURequestStartPage({
     route: {
         params: {iouType, reportID},
     },
+    navigation,
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -153,6 +154,7 @@ function IOURequestStartPage({
                                                 <IOURequestStepAmount
                                                     shouldKeepUserInput
                                                     route={route}
+                                                    navigation={navigation}
                                                 />
                                             </TabScreenWithFocusTrapWrapper>
                                         )}
@@ -160,7 +162,10 @@ function IOURequestStartPage({
                                     <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>
-                                                <IOURequestStepScan route={route} />
+                                                <IOURequestStepScan
+                                                    route={route}
+                                                    navigation={navigation}
+                                                />
                                             </TabScreenWithFocusTrapWrapper>
                                         )}
                                     </TopTab.Screen>
@@ -168,7 +173,10 @@ function IOURequestStartPage({
                                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
                                             {() => (
                                                 <TabScreenWithFocusTrapWrapper>
-                                                    <IOURequestStepDistance route={route} />
+                                                    <IOURequestStepDistance
+                                                        route={route}
+                                                        navigation={navigation}
+                                                    />
                                                 </TabScreenWithFocusTrapWrapper>
                                             )}
                                         </TopTab.Screen>
@@ -181,6 +189,7 @@ function IOURequestStartPage({
                                 >
                                     <IOURequestStepAmount
                                         route={route}
+                                        navigation={navigation}
                                         shouldKeepUserInput
                                     />
                                 </FocusTrapContainerElement>

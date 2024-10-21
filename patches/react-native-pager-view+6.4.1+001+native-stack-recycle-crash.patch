@@ -1,0 +1,29 @@
+diff --git a/node_modules/react-native-pager-view/android/src/main/java/com/reactnativepagerview/PagerViewViewManagerImpl.kt b/node_modules/react-native-pager-view/android/src/main/java/com/reactnativepagerview/PagerViewViewManagerImpl.kt
+index 0abf668..0bfca0a 100644
+--- a/node_modules/react-native-pager-view/android/src/main/java/com/reactnativepagerview/PagerViewViewManagerImpl.kt
++++ b/node_modules/react-native-pager-view/android/src/main/java/com/reactnativepagerview/PagerViewViewManagerImpl.kt
+@@ -151,10 +151,20 @@ object PagerViewViewManagerImpl {
+ 
+     private fun refreshViewChildrenLayout(view: View) {
+         view.post {
+-            view.measure(
++            try {
++                view.measure(
+                     View.MeasureSpec.makeMeasureSpec(view.width, View.MeasureSpec.EXACTLY),
+-                    View.MeasureSpec.makeMeasureSpec(view.height, View.MeasureSpec.EXACTLY))
+-            view.layout(view.left, view.top, view.right, view.bottom)
++                    View.MeasureSpec.makeMeasureSpec(view.height, View.MeasureSpec.EXACTLY)
++                )
++                view.layout(view.left, view.top, view.right, view.bottom)
++            } catch (e: Exception) {
++                // no-op
++                // fixes a crash: java.lang.IllegalArgumentException:  Scrapped or attached views may not be recycled. isScrap:false isAttached:true
++                // It looks like we can not force layout on a recycled views. The safer solution would be simply call .requestLayout(), but I believe that
++                // force layouting was added intentionally and fixes some issues, so we simply wrap the operation with try/catch to not crash the app
++                // patch can be removed when https://github.com/callstack/react-native-pager-view/issues/882 or https://github.com/callstack/react-native-pager-view/issues/859
++                // will be fixed
++            }
+         }
+     }
+ }
+\ No newline at end of file
