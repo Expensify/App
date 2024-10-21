@@ -28,7 +28,7 @@ type ApplePushProvisioningType = NativeModule & {
 };
 
 const ApplePushProvisioning = (NativeModules.ApplePushProvisioning as ApplePushProvisioningType) ?? null;
-if (!ApplePushProvisioning) {
+if (Platform.OS === 'ios' && !ApplePushProvisioning) {
     throw new Error('ApplePushProvisioning module is not linked. Please ensure it is properly installed and linked.');
 }
 
