@@ -16,6 +16,7 @@ import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {DebugParamList} from '@libs/Navigation/types';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,6 +33,10 @@ function DebugTransactionPage({
     const {translate} = useLocalize();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const styles = useThemeStyles();
+
+    if (!transaction) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper

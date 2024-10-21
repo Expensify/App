@@ -5633,6 +5633,7 @@ const translations = {
         report: 'Report',
         transaction: 'Transacción',
         violations: 'Violaciones',
+        transactionViolation: 'Violación de transacción',
         hint: 'Los cambios de datos no se enviarán al backend',
         textFields: 'Campos de texto',
         numberFields: 'Campos numéricos',

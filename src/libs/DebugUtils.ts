@@ -378,7 +378,7 @@ function validateArray<T extends 'string' | 'number' | 'boolean' | Record<string
  * Validates if a string is a valid representation of an object.
  */
 function validateObject<T extends Record<string, unknown>>(value: string, type: ObjectType<T>, collectionIndexType?: 'string' | 'number') {
-    if (value === 'undefined') {
+    if (value === 'undefined' || value === 'null') {
         return;
     }
 
@@ -936,6 +936,7 @@ const DebugUtils = {
     validateReportDraftProperty,
     validateReportActionDraftProperty,
     validateTransactionDraftProperty,
+    validateTransactionViolationDraftProperty,
     validateReportActionJSON,
     validateTransactionViolationJSON,
     getReasonForShowingRowInLHN,

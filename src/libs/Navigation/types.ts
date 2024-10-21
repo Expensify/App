@@ -1598,6 +1598,10 @@ type DebugParamList = {
     [SCREENS.DEBUG.TRANSACTION_VIOLATION_CREATE]: {
         transactionID: string;
     };
+    [SCREENS.DEBUG.TRANSACTION_VIOLATION]: {
+        transactionID: string;
+        index: string;
+    };
 };
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;

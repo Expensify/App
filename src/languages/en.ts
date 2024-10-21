@@ -5117,6 +5117,7 @@ const translations = {
         report: 'Report',
         transaction: 'Transaction',
         violations: 'Violations',
+        transactionViolation: 'Transaction Violation',
         hint: "Data changes won't be sent to the backend",
         textFields: 'Text fields',
         numberFields: 'Number fields',

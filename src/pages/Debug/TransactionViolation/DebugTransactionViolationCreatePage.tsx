@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,6 +14,7 @@ import DebugUtils from '@libs/DebugUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {DebugParamList} from '@libs/Navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import Debug from '@userActions/Debug';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -60,8 +62,13 @@ function DebugTransactionViolationCreatePage({
 }: DebugTransactionViolationCreatePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const [draftTransactionViolation, setDraftTransactionViolation] = useState<string>(getInitialTransactionViolation());
     const [error, setError] = useState<string>();
+
+    if (!transactionID) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper
@@ -107,7 +114,7 @@ function DebugTransactionViolationCreatePage({
                             isDisabled={!draftTransactionViolation || !!error}
                             onPress={() => {
                                 const parsedTransactionViolation = DebugUtils.stringToOnyxData(draftTransactionViolation, 'object') as TransactionViolation;
-                                Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [parsedTransactionViolation]);
+                                Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [...(transactionViolations ?? []), parsedTransactionViolation]);
                                 Navigation.navigate(ROUTES.DEBUG_TRANSACTION_TAB_VIOLATIONS.getRoute(transactionID));
                             }}
                         />

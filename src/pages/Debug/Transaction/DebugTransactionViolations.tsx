@@ -1,9 +1,9 @@
 import React from 'react';
 import type {ListRenderItemInfo} from 'react-native';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FlatList from '@components/FlatList';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -18,21 +18,26 @@ type DebugTransactionViolationsProps = {
 };
 
 function DebugTransactionViolations({transactionID}: DebugTransactionViolationsProps) {
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, {});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const renderItem = ({item}: ListRenderItemInfo<TransactionViolation>) => (
-        <View>
+    const renderItem = ({item, index}: ListRenderItemInfo<TransactionViolation>) => (
+        <PressableWithFeedback
+            accessibilityLabel={translate('common.details')}
+            onPress={() => Navigation.navigate(ROUTES.DEBUG_TRANSACTION_VIOLATION.getRoute(transactionID, String(index)))}
+            style={({pressed}) => [styles.flexRow, styles.justifyContentBetween, pressed && styles.hoveredComponentBG, styles.p4]}
+            hoverStyle={styles.hoveredComponentBG}
+        >
             <Text>{item.type}</Text>
             <Text>{item.name}</Text>
-        </View>
+        </PressableWithFeedback>
     );
 
     return (
         <ScrollView
             style={styles.mt5}
-            contentContainerStyle={[styles.pb5, styles.ph5, styles.gap5]}
+            contentContainerStyle={styles.pb5}
         >
             <Button
                 success

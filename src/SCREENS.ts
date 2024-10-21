@@ -595,6 +595,7 @@ const SCREENS = {
         DETAILS_DATE_TIME_PICKER_PAGE: 'Debug_Details_Date_Time_Picker_Page',
         TRANSACTION: 'Debug_Transaction',
         TRANSACTION_VIOLATION_CREATE: 'Debug_Transaction_Violation_Create',
+        TRANSACTION_VIOLATION: 'Debug_Transaction_Violation',
     },
 } as const;
 

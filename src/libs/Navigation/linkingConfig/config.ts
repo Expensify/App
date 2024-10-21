@@ -1332,6 +1332,20 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.DEBUG_TRANSACTION_VIOLATION_CREATE.route,
                             exact: true,
                         },
+                        [SCREENS.DEBUG.TRANSACTION_VIOLATION]: {
+                            path: ROUTES.DEBUG_TRANSACTION_VIOLATION.route,
+                            exact: true,
+                            screens: {
+                                details: {
+                                    path: ROUTES.DEBUG_TRANSACTION_VIOLATION_TAB_DETAILS.route,
+                                    exact: true,
+                                },
+                                json: {
+                                    path: ROUTES.DEBUG_TRANSACTION_VIOLATION_TAB_JSON.route,
+                                    exact: true,
+                                },
+                            },
+                        },
                     },
                 },
             },

@@ -1687,6 +1687,18 @@ const ROUTES = {
         route: 'debug/transaction/:transactionID/violations/create',
         getRoute: (transactionID: string) => `debug/transaction/${transactionID}/violations/create` as const,
     },
+    DEBUG_TRANSACTION_VIOLATION: {
+        route: 'debug/transaction/:transactionID/violations/:index',
+        getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}` as const,
+    },
+    DEBUG_TRANSACTION_VIOLATION_TAB_DETAILS: {
+        route: 'debug/transaction/:transactionID/violations/:index/details',
+        getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}/details` as const,
+    },
+    DEBUG_TRANSACTION_VIOLATION_TAB_JSON: {
+        route: 'debug/transaction/:transactionID/violations/:index/json',
+        getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}/json` as const,
+    },
 } as const;
 
 /**
