@@ -58,6 +58,8 @@ import DateUtils from '@libs/DateUtils';
 import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
+import getEnvironment from '@libs/Environment/getEnvironment';
+import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import HttpUtils from '@libs/HttpUtils';
@@ -83,6 +85,7 @@ import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
+import {getNavatticURL} from '@libs/TourUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccountingType, OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
@@ -102,6 +105,7 @@ import type {
     ReportActionReactions,
     ReportUserIsTyping,
 } from '@src/types/onyx';
+import type IntroSelected from '@src/types/onyx/IntroSelected';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -269,8 +273,20 @@ Onyx.connect({
     callback: (value) => (allReportDraftComments = value),
 });
 
+let introSelected: IntroSelected | undefined = {};
+
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (val) => (introSelected = val),
+});
+
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
+
+let environment: EnvironmentType;
+getEnvironment().then((env) => {
+    environment = env;
+});
 
 registerPaginationConfig({
     initialCommand: WRITE_COMMANDS.OPEN_REPORT,
@@ -3359,7 +3375,6 @@ function completeOnboarding(
             reportComment: videoComment.commentText,
         };
     }
-
     const tasksData = data.tasks.map((task, index) => {
         const taskDescription =
             typeof task.description === 'function'
@@ -3368,6 +3383,7 @@ function completeOnboarding(
                       workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID ?? '-1')}`,
                       workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID ?? '-1')}`,
                       workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID ?? '-1')}`,
+                      navatticURL: getNavatticURL(environment, introSelected?.choice),
                   })
                 : task.description;
         const currentTask = ReportUtils.buildOptimisticTaskReport(

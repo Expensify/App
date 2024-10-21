@@ -83,6 +83,13 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
+const selfGuidedTourTask: OnboardingTaskType = {
+    type: 'viewTour',
+    autoCompleted: false,
+    title: 'Take a 2-minute tour',
+    description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
+};
+
 const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     video: {
@@ -93,6 +100,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
         height: 960,
     },
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -149,11 +157,15 @@ const onboardingCompanySize = {
 
 type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
 
+type Description =
+    | string
+    | ((params: Partial<{adminsRoomLink: string; workspaceCategoriesLink: string; workspaceMoreFeaturesLink: string; workspaceMembersLink: string; navatticURL: string}>) => string);
+
 type OnboardingTaskType = {
     type: string;
     autoCompleted: boolean;
     title: string;
-    description: string | ((params: Partial<{adminsRoomLink: string; workspaceCategoriesLink: string; workspaceMoreFeaturesLink: string; workspaceMembersLink: string}>) => string);
+    description: Description;
 };
 
 type OnboardingMessageType = {
@@ -748,8 +760,10 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     NAVATTIC: {
-        ADMIN_TOUR: 'https://expensify.navattic.com/kh204a7',
-        EMPLOYEE_TOUR: 'https://expensify.navattic.com/35609gb',
+        ADMIN_TOUR_PRODUCTION: 'https://expensify.navattic.com/kh204a7',
+        ADMIN_TOUR_STAGING: 'https://expensify.navattic.com/3i300k18',
+        EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
+        EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
     },
 
     OLDDOT_URLS: {
@@ -4657,6 +4671,7 @@ const CONST = {
                         '\n' +
                         '*Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.*',
                 },
+                selfGuidedTourTask,
                 {
                     type: 'meetGuide',
                     autoCompleted: false,
@@ -4753,6 +4768,7 @@ const CONST = {
                 height: 960,
             },
             tasks: [
+                selfGuidedTourTask,
                 {
                     type: 'trackExpense',
                     autoCompleted: false,
@@ -4781,6 +4797,7 @@ const CONST = {
                 height: 960,
             },
             tasks: [
+                selfGuidedTourTask,
                 {
                     type: 'startChat',
                     autoCompleted: false,

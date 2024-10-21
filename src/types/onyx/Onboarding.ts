@@ -11,6 +11,9 @@ type Onboarding = {
 
     /** A string that informs which qualifier the user selected during sign up */
     signupQualifier: ValueOf<typeof CONST.ONBOARDING_SIGNUP_QUALIFIERS>;
+
+    /** A Boolean that tells whether the user has seen navattic tour  */
+    selfTourViewed?: boolean;
 };
 
 export default Onboarding;
