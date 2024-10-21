@@ -61,7 +61,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, styles.mt5]}
+                    style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM}
                     validate={validateLimit}
                     onSubmit={({maxExpenseAutoPayAmount}) => {

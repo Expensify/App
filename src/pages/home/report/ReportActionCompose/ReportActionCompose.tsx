@@ -408,7 +408,7 @@ function ReportActionCompose({
                         shouldRender={!shouldHideEducationalTooltip && shouldShowEducationalTooltip}
                         renderTooltipContent={renderWorkspaceChatTooltip}
                         shouldUseOverlay
-                        onHideTooltip={() => User.dismissWorkspaceTooltip()}
+                        onHideTooltip={User.dismissWorkspaceTooltip}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -432,6 +432,7 @@ function ReportActionCompose({
                                 onConfirm={addAttachment}
                                 onModalShow={() => setIsAttachmentPreviewActive(true)}
                                 onModalHide={onAttachmentPreviewClose}
+                                shouldDisableSendButton={hasExceededMaxCommentLength}
                             >
                                 {({displayFileInModal}) => (
                                     <>
@@ -451,6 +452,7 @@ function ReportActionCompose({
                                             onAddActionPressed={onAddActionPressed}
                                             onItemSelected={onItemSelected}
                                             actionButtonRef={actionButtonRef}
+                                            shouldDisableAttachmentItem={hasExceededMaxCommentLength}
                                         />
                                         <ComposerWithSuggestions
                                             ref={(ref) => {
