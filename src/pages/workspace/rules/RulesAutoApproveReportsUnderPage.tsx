@@ -52,7 +52,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, styles.mt5]}
+                    style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM}
                     onSubmit={({maxExpenseAutoApprovalAmount}) => {
                         PolicyActions.setPolicyAutomaticApprovalLimit(policyID, maxExpenseAutoApprovalAmount);
