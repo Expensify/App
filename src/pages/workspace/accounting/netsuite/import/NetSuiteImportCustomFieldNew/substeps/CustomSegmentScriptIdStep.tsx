@@ -44,7 +44,7 @@ function CustomSegmentScriptIdStep({customSegmentType, onNext, isEditing, custom
             return errors;
             return errors;
         },
-        [customSegmentType, customSegments, translate],
+        [customSegmentType, customSegments, translate, fieldLabel],
     );
 
     const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({
