@@ -42,10 +42,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_WALLET;
 
-    useEffect(() => {
-        User.requestValidateCodeAction();
-        return () => User.clearUnvalidatedNewContactMethodAction();
-    }, []);
+    useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
@@ -79,6 +76,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7, styles.flex1]}>
                 <Text style={[themeStyles.mb3]}>{translate('contacts.featureRequiresValidate')}</Text>
                 <ValidateCodeForm
+                    sendValidateCode={() => User.requestValidateCodeAction()}
                     validateCodeAction={validateCodeAction}
                     validateError={validateLoginError}
                     handleSubmitForm={handleSubmitForm}

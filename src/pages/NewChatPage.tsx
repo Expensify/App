@@ -52,28 +52,15 @@ function useOptions({isGroupChat}: NewChatPageProps) {
     });
 
     const defaultOptions = useMemo(() => {
-        const filteredOptions = OptionsListUtils.getFilteredOptions(
-            listOptions.reports ?? [],
-            listOptions.personalDetails ?? [],
-            betas ?? [],
-            '',
+        const filteredOptions = OptionsListUtils.getFilteredOptions({
+            reports: listOptions.reports ?? [],
+            personalDetails: listOptions.personalDetails ?? [],
+            betas: betas ?? [],
             selectedOptions,
-            isGroupChat ? excludedGroupEmails : [],
-            false,
-            true,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            true,
-            undefined,
-            undefined,
-            0,
-            undefined,
-            true,
-        );
+            excludeLogins: isGroupChat ? excludedGroupEmails : [],
+            maxRecentReportsToShow: 0,
+            includeSelfDM: true,
+        });
         return filteredOptions;
     }, [betas, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
@@ -259,9 +246,12 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                         disabled={item.isDisabled}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={CONST.ROLE.BUTTON}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
                     >
-                        <SelectCircle isChecked={item.isSelected} />
+                        <SelectCircle
+                            isChecked={item.isSelected}
+                            selectCircleStyles={styles.ml0}
+                        />
                     </PressableWithFeedback>
                 );
             }

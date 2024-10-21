@@ -1,5 +1,16 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
+
+/** Card feed */
+type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
+
+/** Card feed provider */
+type CardFeedProvider =
+    | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD
+    | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.VISA
+    | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX
+    | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
 
 /** Card feed data */
 type CardFeedData = {
@@ -23,15 +34,21 @@ type CardFeedData = {
 
     /** Indicates the day when the statement period for this card ends */
     statementPeriodEndDay: string;
+
+    /** Broken connection errors */
+    errors?: OnyxCommon.Errors;
 };
 
 /** Card feeds model */
 type CardFeeds = {
-    /** Company cards feeds */
-    companyCards: Record<string, CardFeedData>;
+    /** Feed settings */
+    settings: {
+        /** User-friendly feed nicknames */
+        companyCardNicknames: Record<string, string>;
 
-    /** User-friendly feed nicknames */
-    companyCardNicknames: Record<string, string>;
+        /** Company cards feeds */
+        companyCards: Record<string, CardFeedData>;
+    };
 
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
@@ -39,17 +56,23 @@ type CardFeeds = {
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
-    /** The email address of the cardholder */
-    assigneeEmail: string;
+    /** Card feed provider */
+    feedType: CardFeedProvider;
 
-    /** Card type */
-    cardType: ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
+    /** Name of the card */
+    cardTitle: string;
 
     /** Selected bank */
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
 
-    /** Name of the card */
-    cardTitle: string;
+    /** Selected feed type */
+    selectedFeedType: ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
+
+    /** Selected Amex bank custom feed */
+    selectedAmexCustomFeed: ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>;
+
+    /** Name of the bank */
+    bankName?: string;
 };
 
 /** Issue new card flow steps */
@@ -68,4 +91,4 @@ type AddNewCompanyCardFeed = {
 };
 
 export default CardFeeds;
-export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData};
+export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData, CompanyCardFeed, CardFeedProvider};
