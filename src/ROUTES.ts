@@ -1667,6 +1667,38 @@ const ROUTES = {
         route: 'debug/details/datetime/:fieldName',
         getRoute: (fieldName: string, fieldValue?: string, backTo?: string) => getUrlWithBackToParam(`debug/details/datetime/${fieldName}?fieldValue=${fieldValue}`, backTo),
     },
+    DEBUG_TRANSACTION: {
+        route: 'debug/transaction/:transactionID',
+        getRoute: (transactionID: string) => `debug/transaction/${transactionID}` as const,
+    },
+    DEBUG_TRANSACTION_TAB_DETAILS: {
+        route: 'debug/transaction/:transactionID/details',
+        getRoute: (transactionID: string) => `debug/transaction/${transactionID}/details` as const,
+    },
+    DEBUG_TRANSACTION_TAB_JSON: {
+        route: 'debug/transaction/:transactionID/json',
+        getRoute: (transactionID: string) => `debug/transaction/${transactionID}/json` as const,
+    },
+    DEBUG_TRANSACTION_TAB_VIOLATIONS: {
+        route: 'debug/transaction/:transactionID/violations',
+        getRoute: (transactionID: string) => `debug/transaction/${transactionID}/violations` as const,
+    },
+    DEBUG_TRANSACTION_VIOLATION_CREATE: {
+        route: 'debug/transaction/:transactionID/violations/create',
+        getRoute: (transactionID: string) => `debug/transaction/${transactionID}/violations/create` as const,
+    },
+    DEBUG_TRANSACTION_VIOLATION: {
+        route: 'debug/transaction/:transactionID/violations/:index',
+        getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}` as const,
+    },
+    DEBUG_TRANSACTION_VIOLATION_TAB_DETAILS: {
+        route: 'debug/transaction/:transactionID/violations/:index/details',
+        getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}/details` as const,
+    },
+    DEBUG_TRANSACTION_VIOLATION_TAB_JSON: {
+        route: 'debug/transaction/:transactionID/violations/:index/json',
+        getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}/json` as const,
+    },
 } as const;
 
 /**
