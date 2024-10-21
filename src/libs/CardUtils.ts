@@ -2,12 +2,13 @@ import groupBy from 'lodash/groupBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardList, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -172,7 +173,8 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
 }
 
 function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
-    return Object.values(cardsList ?? {}).sort((cardA: Card, cardB: Card) => {
+    const {cardList, ...cards} = cardsList ?? {};
+    return Object.values(cards).sort((cardA: Card, cardB: Card) => {
         const userA = personalDetails?.[cardA.accountID ?? '-1'] ?? {};
         const userB = personalDetails?.[cardB.accountID ?? '-1'] ?? {};
 
@@ -181,6 +183,14 @@ function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, per
 
         return localeCompare(aName, bName);
     });
+}
+
+function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: string): string {
+    if (!lastFourPAN) {
+        return '';
+    }
+
+    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? '';
 }
 
 function getCardFeedIcon(cardFeed: string): IconAsset {
@@ -195,6 +205,17 @@ function getCardFeedIcon(cardFeed: string): IconAsset {
     return Illustrations.AmexCompanyCards;
 }
 
+function getCardFeedName(feedType: CompanyCardFeed): string {
+    const feedNamesMapping = {
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'Mastercard',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: 'American Express',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: 'Stripe',
+    };
+
+    return feedNamesMapping[feedType];
+}
+
 function getCardDetailsImage(cardFeed: string): IconAsset {
     if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD)) {
         return Illustrations.MasterCardCompanyCardDetail;
@@ -204,17 +225,20 @@ function getCardDetailsImage(cardFeed: string): IconAsset {
         return Illustrations.VisaCompanyCardDetail;
     }
 
+    if (cardFeed.startsWith(CONST.EXPENSIFY_CARD.BANK)) {
+        return ExpensifyCardImage;
+    }
+
     return Illustrations.AmexCardCompanyCardDetail;
 }
 
 function getMemberCards(policy: OnyxEntry<Policy>, allCardsList: OnyxCollection<WorkspaceCardsList>, accountID?: number) {
     const workspaceId = policy?.workspaceAccountID ? policy.workspaceAccountID.toString() : '';
     const cards: WorkspaceCardsList = {};
-    const mockedCardsList = allCardsList ?? {};
-    Object.keys(mockedCardsList)
+    Object.keys(allCardsList ?? {})
         .filter((key) => key !== `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceId}_${CONST.EXPENSIFY_CARD.BANK}` && key.includes(workspaceId))
         .forEach((key) => {
-            const feedCards = mockedCardsList?.[key];
+            const feedCards = allCardsList?.[key];
             if (feedCards && Object.keys(feedCards).length > 0) {
                 Object.keys(feedCards).forEach((feedCardKey) => {
                     if (feedCards?.[feedCardKey].accountID !== accountID) {
@@ -253,18 +277,15 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
     ];
 
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
-        // TODO https://github.com/Expensify/App/issues/50450
-        return;
+        return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
     }
 
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.AMEX) {
-        // TODO https://github.com/Expensify/App/issues/50451
-        return;
+        return CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED;
     }
 
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.BREX) {
-        // TODO Skip the step to submit
-        return;
+        return CONST.COMPANY_CARDS.STEP.BANK_CONNECTION;
     }
 
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER) {
@@ -277,6 +298,11 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
 
     return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
 };
+
+function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed {
+    const defaultFeed = Object.keys(cardFeeds?.settings?.companyCards ?? {}).at(0) as CompanyCardFeed;
+    return lastSelectedFeed ?? defaultFeed;
+}
 
 export {
     isExpensifyCard,
@@ -293,9 +319,12 @@ export {
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
+    getCompanyCardNumber,
     getCardFeedIcon,
+    getCardFeedName,
     getCardDetailsImage,
     getMemberCards,
     getBankCardDetailsImage,
+    getSelectedFeed,
     getCorrectStepForSelectedBank,
 };

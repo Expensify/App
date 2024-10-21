@@ -25,9 +25,12 @@ function SelectFeedType() {
     const submit = () => {
         if (!typeSelected) {
             setHasError(true);
-        } else {
-            // TODO: https://github.com/Expensify/App/issues/50448 - update the navigation when new screen exists
+            return;
         }
+        CompanyCards.setAddNewCompanyCardStepAndData({
+            step: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+            data: {selectedFeedType: typeSelected},
+        });
     };
 
     useEffect(() => {

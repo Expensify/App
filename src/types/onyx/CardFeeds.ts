@@ -2,6 +2,9 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Card feed provider */
+type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
+
 /** Card feed data */
 type CardFeedData = {
     /** Whether any actions are pending */
@@ -31,11 +34,14 @@ type CardFeedData = {
 
 /** Card feeds model */
 type CardFeeds = {
-    /** Company cards feeds */
-    companyCards: Record<string, CardFeedData>;
+    /** Feed settings */
+    settings: {
+        /** User-friendly feed nicknames */
+        companyCardNicknames: Record<string, string>;
 
-    /** User-friendly feed nicknames */
-    companyCardNicknames: Record<string, string>;
+        /** Company cards feeds */
+        companyCards: Record<string, CardFeedData>;
+    };
 
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
@@ -43,11 +49,11 @@ type CardFeeds = {
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
-    /** The email address of the cardholder */
-    assigneeEmail: string;
+    /** Card feed provider */
+    feedType: CompanyCardFeed;
 
-    /** Card type */
-    cardType: ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
+    /** Name of the card */
+    cardTitle: string;
 
     /** Selected bank */
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
@@ -55,8 +61,11 @@ type AddNewCardFeedData = {
     /** Selected feed type */
     selectedFeedType: ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
 
-    /** Name of the card */
-    cardTitle: string;
+    /** Selected Amex bank custom feed */
+    selectedAmexCustomFeed: ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>;
+
+    /** Name of the bank */
+    bankName?: string;
 };
 
 /** Issue new card flow steps */
@@ -75,4 +84,4 @@ type AddNewCompanyCardFeed = {
 };
 
 export default CardFeeds;
-export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData};
+export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData, CompanyCardFeed};
