@@ -1,6 +1,7 @@
 import React from 'react';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
+import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import VideoPlayerPreview from '@components/VideoPlayerPreview';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -25,6 +26,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
     const currentReportIDValue = useCurrentReportID();
+    const isDeleted = isDeletedNode(tnode);
 
     return (
         <ShowContextMenuContext.Consumer>
@@ -39,6 +41,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                             thumbnailUrl={thumbnailUrl}
                             videoDimensions={{width, height}}
                             videoDuration={duration}
+                            isDeleted={isDeleted}
                             onShowModalPress={() => {
                                 if (!sourceURL || !type) {
                                     return;
