@@ -383,7 +383,7 @@ function WorkspacesListPage() {
                     title={translate('common.workspaces')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goUp(ROUTES.SETTINGS)}
                     icon={Illustrations.BigRocket}
                 >
                     {!shouldUseNarrowLayout && getHeaderButton()}
@@ -420,7 +420,7 @@ function WorkspacesListPage() {
                     title={translate('common.workspaces')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goUp(ROUTES.SETTINGS)}
                     icon={Illustrations.BigRocket}
                 >
                     {!shouldUseNarrowLayout && getHeaderButton()}

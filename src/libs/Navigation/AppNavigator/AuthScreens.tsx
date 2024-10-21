@@ -250,7 +250,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             return screenOptions.fullScreen;
         }
 
-        const animationEnabled = !Object.keys(SIDEBAR_TO_SPLIT).includes(screenName);
+        // SETTINGS.WORKSPACES has bottom tab bar so we have to disable animations for it as well.
+        const animationEnabled = !Object.keys(SIDEBAR_TO_SPLIT).includes(screenName) && screenName !== SCREENS.SETTINGS.WORKSPACES;
 
         return {
             ...screenOptions.fullScreen,
@@ -566,24 +567,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={screenOptions.fullScreen}
                         component={ConnectionCompletePage}
                     />
-                    {/* {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
-                        const centralPaneName = screenName as CentralPaneName;
-                        const options = {...CentralPaneScreenOptions};
-
-                        if (centralPaneName === SCREENS.SETTINGS.WORKSPACES) {
-                            options.animationEnabled = false;
-                        }
-
-                        return (
-                            <RootStack.Screen
-                                key={centralPaneName}
-                                name={centralPaneName}
-                                initialParams={getCentralPaneScreenInitialParams(centralPaneName, initialReportID)}
-                                getComponent={componentGetter}
-                                options={options}
-                            />
-                        );
-                    })} */}
                 </RootStack.Navigator>
                 <SearchRouterModal />
             </View>
