@@ -2610,7 +2610,6 @@ const CONST = {
             CAPITAL_ONE: 'capitalone',
             CITI_BANK: 'citibank',
             AMEX: 'americanexpressfdx',
-            TESCO_BANK: 'tescobank',
         },
         AMEX_CUSTOM_FEED: {
             CORPORATE: 'American Express Corporate Cards',
