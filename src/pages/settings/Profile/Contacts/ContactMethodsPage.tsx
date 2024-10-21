@@ -18,7 +18,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,9 +29,8 @@ type ContactMethodsPageProps = StackScreenProps<SettingsNavigatorParamList, type
 function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
-    const [loginList] = useOnyx(`${ONYXKEYS.LOGIN_LIST}`);
-    const [session] = useOnyx(`${ONYXKEYS.SESSION}`);
-
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const loginNames = Object.keys(loginList ?? {});
     const navigateBackTo = route?.params?.backTo;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -72,13 +70,6 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
         const partnerUserID = login?.partnerUserID || loginName;
         const menuItemTitle = Str.isSMSLogin(partnerUserID) ? formatPhoneNumber(partnerUserID) : partnerUserID;
 
-        const NavigateToContactMethodDetails = () => {
-            if (!login?.validatedDate && !login?.validateCodeSent) {
-                User.requestContactMethodValidateCode(loginName);
-            }
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID, navigateBackTo));
-        };
-
         return (
             <OfflineWithFeedback
                 pendingAction={pendingAction}
@@ -87,7 +78,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
                 <MenuItem
                     title={menuItemTitle}
                     description={description}
-                    onPress={NavigateToContactMethodDetails}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID, navigateBackTo))}
                     brickRoadIndicator={indicator}
                     shouldShowBasicTitle
                     shouldShowRightIcon
