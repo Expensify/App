@@ -25,7 +25,7 @@ function DateOfBirthStep({onNext, onMove, isEditing}: SubStepProps) {
     }) as (values: FormOnyxValues<keyof OnyxFormValuesMapping>) => void;
 
     return (
-        <CommonDateOfBirthStep
+        <CommonDateOfBirthStep<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>
             isEditing={isEditing}
             onNext={onNext}
             onMove={onMove}
