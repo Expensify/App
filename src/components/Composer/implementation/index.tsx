@@ -281,24 +281,28 @@ function Composer(
         onClear(currentText);
     }, [onClear, onSelectionChange]);
 
-    useImperativeHandle(ref, () => {
-        const textInputRef = textInput.current;
-        if (!textInputRef) {
-            throw new Error('textInputRef is not available. This should never happen and indicates a developer error.');
-        }
+    useImperativeHandle(
+        ref,
+        () => {
+            const textInputRef = textInput.current;
+            if (!textInputRef) {
+                throw new Error('textInputRef is not available. This should never happen and indicates a developer error.');
+            }
 
-        return {
-            ...textInputRef,
-            // Overwrite clear with our custom implementation, which mimics how the native TextInput's clear method works
-            clear,
-            // We have to redefine these methods as they are inherited by prototype chain and are not accessible directly
-            blur: () => textInputRef.blur(),
-            focus: () => textInputRef.focus(),
-            get scrollTop() {
-                return textInputRef.scrollTop;
-            },
-        };
-    }, [clear]);
+            return {
+                ...textInputRef,
+                // Overwrite clear with our custom implementation, which mimics how the native TextInput's clear method works
+                clear,
+                // We have to redefine these methods as they are inherited by prototype chain and are not accessible directly
+                blur: () => textInputRef.blur(),
+                focus: () => textInputRef.focus(),
+                get scrollTop() {
+                    return textInputRef.scrollTop;
+                },
+            };
+        },
+        [clear],
+    );
 
     const handleKeyPress = useCallback(
         (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
