@@ -15,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import DomUtils from '@libs/DomUtils'
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BackgroundImage from './BackgroundImage';
@@ -23,6 +24,7 @@ import SignInPageContent from './SignInPageContent';
 import SignInPageHero from './SignInPageHero';
 import scrollViewContentContainerStyles from './signInPageStyles';
 import type {SignInPageLayoutProps, SignInPageLayoutRef} from './types';
+import dark from "@styles/theme/themes/dark";
 
 function SignInPageLayout(
     {
@@ -80,6 +82,14 @@ function SignInPageLayout(
     const scrollViewStyles = useMemo(() => scrollViewContentContainerStyles(styles), [styles]);
 
     const backgroundImageHeight = Math.max(variables.signInContentMinHeight, containerHeight);
+
+    DomUtils.addCSS(DomUtils.getAutofilledInputStyle(dark.text, '.SignInPageLayout'), 'sign-in-autofill-input');
+    useEffect(() => {
+        document.body.classList.add('SignInPageLayout');
+        return () => {
+            document.body.classList.remove('SignInPageLayout');
+        };
+    }, []);
 
     return (
         <View style={containerStyles}>
