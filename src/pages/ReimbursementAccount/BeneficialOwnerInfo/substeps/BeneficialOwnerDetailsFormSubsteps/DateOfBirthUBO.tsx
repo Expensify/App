@@ -41,6 +41,7 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, onMove, isEditing, b
             stepFields={[dobInputID]}
             dobInputID={dobInputID}
             dobDefaultValue={dobDefaultValue}
+            shouldShowHelpLinks={false}
         />
     );
 }

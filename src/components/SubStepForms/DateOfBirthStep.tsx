@@ -34,6 +34,9 @@ type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
 
     /** The default value for the date of birth input */
     dobDefaultValue: string;
+
+    /** Whether the component should show help links */
+    shouldShowHelpLinks?: boolean;
 };
 
 function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -45,6 +48,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
     dobInputID,
     dobDefaultValue,
     isEditing,
+    shouldShowHelpLinks = true,
 }: DateOfBirthStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -92,7 +96,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 maxDate={maxDate}
                 shouldSaveDraft={!isEditing}
             />
-            <HelpLinks containerStyles={[styles.mt5]} />
+            {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]}/>}
         </FormProvider>
     );
 }

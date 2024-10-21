@@ -56,6 +56,7 @@ function AddressUBO({reimbursementAccountDraft, onNext, onMove, isEditing, benef
             stepFields={stepFields}
             inputFieldsIDs={inputKeys}
             defaultValues={defaultValues}
+            shouldShowHelpLinks={false}
         />
     );
 }
