@@ -165,26 +165,28 @@ jobs:
           aws-region: us-west-2
 
       - name: Schedule AWS Device Farm test run on main branch
-        uses: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
+        uses: Wandalen/wretry.action@v3.5.0
         id: schedule-awsdf-main
         with:
-          name: App E2E Performance Regression Tests
-          project_arn: ${{ secrets.AWS_PROJECT_ARN }}
-          device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
-          app_file: zip/app-e2eRelease.apk
-          app_type: ANDROID_APP
-          test_type: APPIUM_NODE
-          test_package_file: App.zip
-          test_package_type: APPIUM_NODE_TEST_PACKAGE
-          test_spec_file: tests/e2e/TestSpec.yml
-          test_spec_type: APPIUM_NODE_TEST_SPEC
-          remote_src: false
-          file_artifacts: |
-            Customer Artifacts.zip
-            Test spec output.txt
-          log_artifacts: debug.log
-          cleanup: true
-          timeout: 7200
+          action: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
+          with: |
+            name: App E2E Performance Regression Tests
+            project_arn: ${{ secrets.AWS_PROJECT_ARN }}
+            device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
+            app_file: zip/app-e2eRelease.apk
+            app_type: ANDROID_APP
+            test_type: APPIUM_NODE
+            test_package_file: App.zip
+            test_package_type: APPIUM_NODE_TEST_PACKAGE
+            test_spec_file: tests/e2e/TestSpec.yml
+            test_spec_type: APPIUM_NODE_TEST_SPEC
+            remote_src: false
+            file_artifacts: |
+              Customer Artifacts.zip
+              Test spec output.txt
+            log_artifacts: debug.log
+            cleanup: true
+            timeout: 7200
 
       - name: Print logs if run failed
         if: failure()
