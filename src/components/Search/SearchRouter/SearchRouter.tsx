@@ -41,8 +41,6 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
-    // We need to use shouldUseNarrowLayout instead of shouldUseNarrowLayout to apply the correct styles for the search router
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
 
