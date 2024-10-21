@@ -5252,6 +5252,11 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
         },
 
+        integrationIcon: {
+            overflow: 'hidden',
+            borderRadius: variables.buttonBorderRadius,
+        },
+
         colorGreenSuccess: {
             color: colors.green400,
         },
