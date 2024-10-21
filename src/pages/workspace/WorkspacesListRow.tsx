@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -213,12 +214,10 @@ function WorkspacesListRow({
                                 containerStyles={styles.workspaceOwnerAvatarWrapper}
                             />
                             <View style={styles.flex1}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
-                                >
-                                    {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
-                                </Text>
+                                <WorkspacesListRowDisplayName
+                                    isDeleted={isDeleted}
+                                    ownerName={PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
+                                />
                                 <Text
                                     numberOfLines={1}
                                     style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
