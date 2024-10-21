@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "outDir": "./dist",
+        "rootDir": "./src"
+    },
+    "include": ["src", "modules/react-native-wallet/src/**/*", "modules/react-native-wallet/tests/**/*"],
+    "exclude": ["node_modules", "dist"]
+}
