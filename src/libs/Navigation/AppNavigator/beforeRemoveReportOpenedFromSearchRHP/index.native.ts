@@ -26,6 +26,7 @@ function beforeRemoveReportOpenedFromSearchRHP(event: EventArg<'beforeRemove', t
         state.routes?.length >= 3 &&
         state.routes.at(-1)?.name === SCREENS.REPORT &&
         state.routes.at(-2)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR &&
+        state.routes.at(-3)?.name === SCREENS.SEARCH.CENTRAL_PANE &&
         getTopmostBottomTabRoute(state)?.name === SCREENS.HOME;
 
     if (!shouldPopHome) {

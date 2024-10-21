@@ -80,7 +80,7 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transac
  */
 function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transactionViolations: TransactionViolation[], transaction: Transaction) {
     const policyTagKeys = getSortedTagKeys(policyTagList);
-    const selectedTags = transaction.tag?.split(CONST.COLON) ?? [];
+    const selectedTags = TransactionUtils.getTagArrayFromName(transaction?.tag ?? '');
     let newTransactionViolations = [...transactionViolations];
 
     newTransactionViolations = newTransactionViolations.filter(
@@ -253,6 +253,7 @@ const ViolationsUtils = {
             tagName,
             taxName,
             type,
+            rterType,
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -316,6 +317,7 @@ const ViolationsUtils = {
                     email,
                     isTransactionOlderThan7Days,
                     member,
+                    rterType,
                 });
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed');

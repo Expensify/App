@@ -51,6 +51,17 @@ jobs:
           bundler-cache: true
           working-directory: ./help
 
+      # Install Node for _scripts/*.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.15.1'
+
+      # Wil install the _help/package.js
+      - name: Install Node.js Dependencies
+        run: npm install
+        working-directory: ./help  # Install the help dependencies, not App
+
       # Manually run Jekyll, bypassing Github Pages
       - name: Build Jekyll site
         run: bundle exec jekyll build --source ./ --destination ./_site

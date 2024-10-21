@@ -89,7 +89,6 @@ function SuggestionMention(
     const {translate, formatPhoneNumber} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
-    const isInitialFocusRef = useRef(true);
     suggestionValuesRef.current = suggestionValues;
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -354,10 +353,6 @@ function SuggestionMention(
             if (selectionEnd !== selectionStart || !selectionEnd || shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
-                return;
-            }
-            if (isInitialFocusRef.current) {
-                isInitialFocusRef.current = false;
                 return;
             }
 

@@ -3,13 +3,14 @@ import {
     addHours,
     addMilliseconds,
     addMinutes,
+    differenceInDays,
     eachDayOfInterval,
     eachMonthOfInterval,
     endOfDay,
     endOfMonth,
     endOfWeek,
     format,
-    formatDistanceToNow,
+    formatDistance,
     getDate,
     getDay,
     isAfter,
@@ -29,9 +30,9 @@ import {
     subMilliseconds,
     subMinutes,
 } from 'date-fns';
-import {formatInTimeZone, format as tzFormat, utcToZonedTime, zonedTimeToUtc} from 'date-fns-tz';
-import enGB from 'date-fns/locale/en-GB';
-import es from 'date-fns/locale/es';
+import {formatInTimeZone, fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {enGB} from 'date-fns/locale/en-GB';
+import {es} from 'date-fns/locale/es';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -128,9 +129,9 @@ function setLocale(localeString: Locale) {
 function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSelectedTimezone: SelectedTimezone = timezone.selected): Date {
     setLocale(locale);
     if (!datetime) {
-        const res = utcToZonedTime(new Date(), currentSelectedTimezone);
+        const res = toZonedTime(new Date(), currentSelectedTimezone);
         if (Number.isNaN(res.getTime())) {
-            Log.warn('DateUtils.getLocalDateFromDatetime: utcToZonedTime returned an invalid date. Returning current date.', {
+            Log.warn('DateUtils.getLocalDateFromDatetime: toZonedTime returned an invalid date. Returning current date.', {
                 locale,
                 datetime,
                 currentSelectedTimezone,
@@ -148,7 +149,7 @@ function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSele
         parsedDatetime = new Date(datetime);
     }
 
-    return utcToZonedTime(parsedDatetime, currentSelectedTimezone);
+    return toZonedTime(parsedDatetime, currentSelectedTimezone);
 }
 
 /**
@@ -160,7 +161,7 @@ function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSele
  */
 function isToday(date: Date, timeZone: SelectedTimezone): boolean {
     const currentDate = new Date();
-    const currentDateInTimeZone = utcToZonedTime(currentDate, timeZone);
+    const currentDateInTimeZone = toZonedTime(currentDate, timeZone);
     return isSameDay(date, currentDateInTimeZone);
 }
 
@@ -174,7 +175,7 @@ function isToday(date: Date, timeZone: SelectedTimezone): boolean {
 function isTomorrow(date: Date, timeZone: SelectedTimezone): boolean {
     const currentDate = new Date();
     const tomorrow = addDays(currentDate, 1); // Get the date for tomorrow in the current time zone
-    const tomorrowInTimeZone = utcToZonedTime(tomorrow, timeZone);
+    const tomorrowInTimeZone = toZonedTime(tomorrow, timeZone);
     return isSameDay(date, tomorrowInTimeZone);
 }
 
@@ -188,7 +189,7 @@ function isTomorrow(date: Date, timeZone: SelectedTimezone): boolean {
 function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
     const currentDate = new Date();
     const yesterday = subDays(currentDate, 1); // Get the date for yesterday in the current time zone
-    const yesterdayInTimeZone = utcToZonedTime(yesterday, timeZone);
+    const yesterdayInTimeZone = toZonedTime(yesterday, timeZone);
     return isSameDay(date, yesterdayInTimeZone);
 }
 
@@ -248,7 +249,8 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZon
  */
 function datetimeToRelative(locale: Locale, datetime: string): string {
     const date = getLocalDateFromDatetime(locale, datetime);
-    return formatDistanceToNow(date, {addSuffix: true, locale: locale === CONST.LOCALES.EN ? enGB : es});
+    const now = getLocalDateFromDatetime(locale);
+    return formatDistance(date, now, {addSuffix: true, locale: locale === CONST.LOCALES.EN ? enGB : es});
 }
 
 /**
@@ -401,14 +403,14 @@ function getDBTimeWithSkew(timestamp: string | number = ''): string {
 }
 
 function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
-    const date = zonedTimeToUtc(dateTime, 'UTC');
+    const date = fromZonedTime(dateTime, 'UTC');
     const newTimestamp = subMilliseconds(date, milliseconds).valueOf();
 
     return getDBTime(newTimestamp);
 }
 
 function addMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
-    const date = zonedTimeToUtc(dateTime, 'UTC');
+    const date = fromZonedTime(dateTime, 'UTC');
     const newTimestamp = addMilliseconds(date, milliseconds).valueOf();
 
     return getDBTime(newTimestamp);
@@ -616,15 +618,15 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
 /**
  * param {String} dateTime in 'HH:mm:ss.SSS a' format
  * returns {Object}
- * example {hour: '11', minute: '10', seconds: '10', miliseconds: '123', period: 'AM'}
+ * example {hour: '11', minute: '10', seconds: '10', milliseconds: '123', period: 'AM'}
  */
-function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {hour: string; minute: string; seconds: string; miliseconds: string; period: string} {
+function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {hour: string; minute: string; seconds: string; milliseconds: string; period: string} {
     if (!dateTime) {
         return {
             hour: '12',
             minute: '00',
             seconds: '00',
-            miliseconds: '000',
+            milliseconds: '000',
             period: 'PM',
         };
     }
@@ -633,7 +635,7 @@ function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {h
         hour: format(parsedTime, 'hh'),
         minute: format(parsedTime, 'mm'),
         seconds: isFullFormat ? format(parsedTime, 'ss') : '00',
-        miliseconds: isFullFormat ? format(parsedTime, 'SSS') : '000',
+        milliseconds: isFullFormat ? format(parsedTime, 'SSS') : '000',
         period: format(parsedTime, 'a').toUpperCase(),
     };
 }
@@ -699,7 +701,7 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE
     const date = new Date(datetime);
 
     if (isValid(date)) {
-        return tzFormat(utcToZonedTime(date, 'UTC'), dateFormat);
+        return tzFormat(toZonedTime(date, 'UTC'), dateFormat);
     }
 
     return '';
@@ -825,6 +827,25 @@ function isCardExpired(expiryMonth: number, expiryYear: number): boolean {
     return expiryYear < currentYear || (expiryYear === currentYear && expiryMonth < currentMonth);
 }
 
+/**
+ * Returns the difference in the number of days from the provided date to/from now.
+ * @param - The date to compare.
+ * @returns The difference in days as an integer.
+ */
+function getDifferenceInDaysFromNow(date: Date) {
+    return differenceInDays(new Date(), date);
+}
+
+/**
+ * Returns a boolean value indicating whether the provided date string can be parsed as a valid date.
+ * @param dateString string
+ * @returns True if the date string is valid, otherwise false.
+ */
+function isValidDateString(dateString: string) {
+    const date = new Date(dateString);
+    return !Number.isNaN(date.getTime());
+}
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -870,6 +891,8 @@ const DateUtils = {
     getFormattedTransportDate,
     doesDateBelongToAPastYear,
     isCardExpired,
+    getDifferenceInDaysFromNow,
+    isValidDateString,
 };
 
 export default DateUtils;
