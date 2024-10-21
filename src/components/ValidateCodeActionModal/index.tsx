@@ -67,8 +67,8 @@ function ValidateCodeActionModal({
                     onBackButtonPress={hide}
                 />
 
-                <View style={[themeStyles.flex1, themeStyles.ph5, themeStyles.mt3, themeStyles.pb5]}>
-                    <Text style={[themeStyles.mb3]}>{description}</Text>
+                <View style={[themeStyles.flex1, themeStyles.mt3, themeStyles.pb5]}>
+                    <Text style={[themeStyles.ph5, themeStyles.mb3]}>{description}</Text>
                     <ValidateCodeForm
                         validateCodeAction={validateCodeAction}
                         validatePendingAction={validatePendingAction}
@@ -78,9 +78,9 @@ function ValidateCodeActionModal({
                         clearError={clearError}
                         ref={validateCodeFormRef}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        menuItems={footer}
                     />
                 </View>
-                {footer?.()}
             </ScreenWrapper>
         </Modal>
     );

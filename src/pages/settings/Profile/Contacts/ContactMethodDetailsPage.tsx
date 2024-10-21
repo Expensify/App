@@ -194,6 +194,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         title={translate('contacts.setAsDefault')}
                         icon={Expensicons.Star}
                         onPress={setAsDefault}
+                        style = {themeStyles.ph2}
                     />
                 </OfflineWithFeedback>
             ) : null}
@@ -218,6 +219,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         icon={Expensicons.Trashcan}
                         iconFill={theme.danger}
                         onPress={() => toggleDeleteModal(true)}
+                        style = {themeStyles.ph2}
                     />
                 </OfflineWithFeedback>
             )}
