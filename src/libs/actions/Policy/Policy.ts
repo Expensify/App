@@ -89,7 +89,6 @@ import type {
     PolicyCategory,
     ReimbursementAccount,
     Report,
-    ReportAction,
     Request,
     TaxRatesWithDefault,
     Transaction,
@@ -319,8 +318,12 @@ function deleteWorkspace(policyID: string, policyName: string) {
     );
     const finallyData: OnyxUpdate[] = [];
     const currentTime = DateUtils.getDBTime();
+    const reportIDToOptimisticClosedReportActionID: Record<string, string> = {};
     reportsToArchive.forEach((report) => {
-        const {reportID, ownerAccountID} = report ?? {};
+        if (!report) {
+            return;
+        }
+        const {reportID, ownerAccountID} = report;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -351,19 +354,10 @@ function deleteWorkspace(policyID: string, policyName: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [optimisticClosedReportAction.reportActionID]: optimisticClosedReportAction as ReportAction,
+                [optimisticClosedReportAction.reportActionID]: optimisticClosedReportAction,
             },
         });
-
-        // We are temporarily adding this workaround because 'DeleteWorkspace' doesn't
-        // support receiving the optimistic reportActions' ids for the moment.
-        finallyData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [optimisticClosedReportAction.reportActionID]: null,
-            },
-        });
+        reportIDToOptimisticClosedReportActionID[reportID] = optimisticClosedReportAction.reportActionID;
     });
 
     const policy = getPolicy(policyID);
@@ -384,6 +378,15 @@ function deleteWorkspace(policyID: string, policyName: string) {
             },
         },
     ];
+    Object.entries(reportIDToOptimisticClosedReportActionID).forEach(([reportID, optimisticReportActionID]) => {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActionID]: null,
+            },
+        });
+    });
 
     reportsToArchive.forEach((report) => {
         const {reportID, stateNum, statusNum, oldPolicyName} = report ?? {};
@@ -401,7 +404,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
         });
     });
 
-    const params: DeleteWorkspaceParams = {policyID};
+    const params: DeleteWorkspaceParams = {policyID, reportIDToOptimisticClosedReportActionID};
 
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, finallyData, failureData});
 
