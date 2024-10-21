@@ -8,6 +8,12 @@ import type CONST from '@src/CONST';
 type ViolationName = ValueOf<typeof CONST.VIOLATIONS>;
 
 /**
+ * Types of violations.
+ * Derived from `CONST.VIOLATION_TYPES` to maintain a single source of truth.
+ */
+type ViolationType = ValueOf<typeof CONST.VIOLATION_TYPES>;
+
+/**
  * Types for the data in the modifiedAmount violation
  * Derived from CONST.VIOLATION_DATA_TYPES to maintain a single source of truth.
  */
@@ -97,5 +103,5 @@ type TransactionViolation = {
 /** Collection of transaction violations */
 type TransactionViolations = TransactionViolation[];
 
-export type {TransactionViolation, ViolationName, ViolationDataType, TransactionViolationData};
+export type {TransactionViolation, ViolationName, ViolationType, ViolationDataType, TransactionViolationData};
 export default TransactionViolations;

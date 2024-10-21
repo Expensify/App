@@ -799,7 +799,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM]: FormTypes.SearchSavedSearchRenameForm;
     [ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM]: FormTypes.DebugReportForm;
     [ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM]: FormTypes.DebugReportActionForm;
-    [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm;
+    [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm | FormTypes.DebugTransactionForm | FormTypes.DebugTransactionViolationForm;
 };
 
 type OnyxFormDraftValuesMapping = {
