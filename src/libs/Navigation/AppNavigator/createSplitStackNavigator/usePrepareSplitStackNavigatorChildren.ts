@@ -20,7 +20,7 @@ export default function usePrepareSplitStackNavigatorChildren(screensNode: React
                         ...screen,
                         props: {
                             ...screenProps,
-                            options: sidebarScreenOptions,
+                            options: {...sidebarScreenOptions, ...screenProps.options},
                         },
                     };
                 }

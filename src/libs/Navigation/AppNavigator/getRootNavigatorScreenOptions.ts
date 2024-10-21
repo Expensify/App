@@ -84,6 +84,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         homeScreen: {
             title: CONFIG.SITE_TITLE,
             ...commonScreenOptions,
+            animationEnabled: false,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
 
             cardStyle: {
