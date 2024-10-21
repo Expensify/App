@@ -47,6 +47,18 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
 
+    /** Card name */
+    cardName?: string;
+
+    /** Related policy account id */
+    fundID?: string;
+
+    /** Transaction start date */
+    scrapeMinDate?: string;
+
+    /** Last updated time */
+    lastScrape?: string;
+
     /** Card related error messages */
     errors?: OnyxCommon.Errors;
 
@@ -154,10 +166,22 @@ type IssueNewCard = {
 
     /** Whether the user is editing step */
     isEditing: boolean;
+
+    /** Whether the request is being processed */
+    isLoading?: boolean;
+
+    /** Error message */
+    errors?: OnyxCommon.Errors;
+
+    /** Whether the request was successful */
+    isSuccessful?: boolean;
 };
 
 /** List of Expensify cards */
-type WorkspaceCardsList = Record<string, Card>;
+type WorkspaceCardsList = Record<string, Card> & {
+    /** List of cards to assign */
+    cardList?: Record<string, string>;
+};
 
 export default Card;
 export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};

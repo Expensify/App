@@ -263,7 +263,7 @@ function HeaderWithBackButton({
                             </PressableWithoutFeedback>
                         </Tooltip>
                     )}
-                    {shouldDisplaySearchRouter && <SearchButton />}
+                    {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
                 </View>
             </View>
         </View>

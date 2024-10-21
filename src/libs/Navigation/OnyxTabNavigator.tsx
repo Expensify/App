@@ -123,8 +123,12 @@ function OnyxTabNavigator({
                         const state = event.data.state;
                         const index = state.index;
                         const routeNames = state.routeNames;
-                        Tab.setSelectedTab(id, routeNames.at(index) as SelectedTabRequest);
-                        onTabSelected(routeNames.at(index) as IOURequestType);
+                        const newSelectedTab = routeNames.at(index);
+                        if (selectedTab === newSelectedTab) {
+                            return;
+                        }
+                        Tab.setSelectedTab(id, newSelectedTab as SelectedTabRequest);
+                        onTabSelected(newSelectedTab as IOURequestType);
                     },
                     ...(screenListeners ?? {}),
                 }}

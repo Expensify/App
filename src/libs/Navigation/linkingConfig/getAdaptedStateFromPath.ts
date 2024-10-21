@@ -2,6 +2,7 @@ import type {NavigationState, PartialState, Route} from '@react-navigation/nativ
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import type {TupleToUnion} from 'type-fest';
+import type {TopTabScreen} from '@components/FocusTrap/TOP_TAB_SCREENS';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
@@ -29,7 +30,10 @@ const RHP_SCREENS_OPENED_FROM_LHN = [
     SCREENS.SETTINGS.EXIT_SURVEY.REASON,
     SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE,
     SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM,
-] satisfies Screen[];
+    CONST.TAB_REQUEST.DISTANCE,
+    CONST.TAB_REQUEST.MANUAL,
+    CONST.TAB_REQUEST.SCAN,
+] satisfies Array<Screen | TopTabScreen>;
 
 type RHPScreenOpenedFromLHN = TupleToUnion<typeof RHP_SCREENS_OPENED_FROM_LHN>;
 

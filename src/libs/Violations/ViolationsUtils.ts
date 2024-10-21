@@ -253,6 +253,7 @@ const ViolationsUtils = {
             tagName,
             taxName,
             type,
+            rterType,
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -316,6 +317,7 @@ const ViolationsUtils = {
                     email,
                     isTransactionOlderThan7Days,
                     member,
+                    rterType,
                 });
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed');

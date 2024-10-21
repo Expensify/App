@@ -12,10 +12,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +37,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const policy = usePolicy(report?.policyID);
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
@@ -45,6 +49,8 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = details.displayName ?? '';
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
+    const isSelectedMemberOwner = accountID === report.ownerAccountID;
+    const shouldDisableRemoveUser = (ReportUtils.isPolicyExpenseChat(report) && PolicyUtils.isUserPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
     const removeUser = useCallback(() => {
         setIsRemoveMemberConfirmModalVisible(false);
         Report.removeFromRoom(report?.reportID, [accountID]);
@@ -88,7 +94,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                         <Button
                             text={translate('workspace.people.removeRoomMemberButtonTitle')}
                             onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
-                            isDisabled={isSelectedMemberCurrentUser}
+                            isDisabled={shouldDisableRemoveUser}
                             icon={Expensicons.RemoveMembers}
                             iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                             style={styles.mv5}
