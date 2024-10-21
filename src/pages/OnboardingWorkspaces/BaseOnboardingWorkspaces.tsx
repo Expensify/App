@@ -20,6 +20,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as ReportUtils from '@libs/ReportUtils';
 import UserListItem from '@components/SelectionList/UserListItem';
 import * as MemberAction from '@userActions/Policy/Member';
+import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
 
 function BaseOnboardingWorkspaces({ shouldUseNativeStyles, route }: BaseOnboardingWorkspacesProps) {
     const { isOffline } = useNetwork();
@@ -62,7 +63,8 @@ function BaseOnboardingWorkspaces({ shouldUseNativeStyles, route }: BaseOnboardi
 
     const handleJoinWorkspace = (policyID: string, automaticJoiningEnabled: boolean) => {
         if (automaticJoiningEnabled) {
-            // MemberAction.addMemberToPrivateDomainWorkspace(policyID); TODO
+            MemberAction.addMemberToPrivateDomainWorkspace(policyID); //TODO
+            navigateAfterJoinRequest();
         } else {
             // TODO 
         }
@@ -72,7 +74,7 @@ function BaseOnboardingWorkspaces({ shouldUseNativeStyles, route }: BaseOnboardi
         return Object.values(response).map((policyInfo): any => {
             return {
                 text: policyInfo.policyName,
-                alternateText: `${policyInfo.employeeCount} ${translate('common.members').charAt(0).toLowerCase()}· ${policyInfo.policyOwner}`,
+                alternateText: `${policyInfo.employeeCount} ${translate('common.members').charAt(0).toLowerCase() + translate('common.members').slice(1)}· ${policyInfo.policyOwner}`,
                 keyForList: policyInfo.policyID,
                 isSelected: policyInfo.policyID === selectedPolicyID,
                 rightElement: <Button
