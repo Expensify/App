@@ -38,44 +38,59 @@ type IssueNewCardFlowData = {
 };
 
 function reportVirtualExpensifyCardFraud(cardID: number) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
-            value: {
-                isLoading: true,
+    return new Promise((resolve, reject) => {
+        const optimisticData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
+                value: {
+                    isLoading: true,
+                },
             },
-        },
-    ];
+        ];
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
-            value: {
-                isLoading: false,
+        const successData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
+                value: {
+                    isLoading: false,
+                },
             },
-        },
-    ];
+        ];
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
-            value: {
-                isLoading: false,
+        const failureData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
+                value: {
+                    isLoading: false,
+                },
             },
-        },
-    ];
+        ];
 
-    const parameters: ReportVirtualExpensifyCardFraudParams = {
-        cardID,
-    };
+        const parameters: ReportVirtualExpensifyCardFraudParams = {
+            cardID,
+        };
 
-    API.write(WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD, parameters, {
-        optimisticData,
-        successData,
-        failureData,
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD, parameters, {optimisticData, successData, failureData})
+            .then((response) => {
+                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
+                        // eslint-disable-next-line prefer-promise-reject-errors
+                        reject('validateCodeForm.error.incorrectMagicCode');
+                        return;
+                    }
+
+                    // eslint-disable-next-line prefer-promise-reject-errors
+                    reject('cardPage.cardDetailsLoadingFailure');
+                    return;
+                }
+                resolve(response as ExpensifyCardDetails);
+            })
+            // eslint-disable-next-line prefer-promise-reject-errors
+            .catch(() => reject('cardPage.cardDetailsLoadingFailure'));
     });
 }
 

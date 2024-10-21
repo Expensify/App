@@ -1,11 +1,13 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
+import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,6 +32,7 @@ function ReportVirtualCardFraudPage({
     const {translate} = useLocalize();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD);
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const virtualCard = cardList?.[cardID];
     const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard);
@@ -51,6 +54,18 @@ function ReportVirtualCardFraudPage({
         return <NotFoundPage />;
     }
 
+    const openValidateCodeModal = () => {
+        setIsValidateCodeActionModalVisible(true);
+    };
+
+    const handleValidateCodeEntered = (validateCode: string) => {
+        Card.reportVirtualExpensifyCardFraud(virtualCard.cardID)
+            .then((value) => {})
+            .catch((error) => {
+                console.log('error ', error);
+            });
+    };
+
     return (
         <ScreenWrapper testID={ReportVirtualCardFraudPage.displayName}>
             <HeaderWithBackButton
@@ -61,13 +76,21 @@ function ReportVirtualCardFraudPage({
                 <Text style={[styles.webViewStyles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
                 <FormAlertWithSubmitButton
                     isAlertVisible={!!virtualCardError}
-                    onSubmit={() => Card.reportVirtualExpensifyCardFraud(virtualCard.cardID)}
+                    onSubmit={openValidateCodeModal}
                     message={virtualCardError}
                     isLoading={formData?.isLoading}
                     buttonText={translate('reportFraudPage.deactivateCard')}
                     containerStyles={[styles.m5]}
                 />
             </View>
+            <ValidateCodeActionModal
+                handleSubmitForm={handleValidateCodeEntered}
+                clearError={() => {}}
+                onClose={() => setIsValidateCodeActionModalVisible(false)}
+                isVisible={isValidateCodeActionModalVisible}
+                title={translate('cardPage.validateCardTitle')}
+                description=""
+            />
         </ScreenWrapper>
     );
 }
