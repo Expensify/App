@@ -3331,6 +3331,7 @@ function completeOnboarding(
     companySize?: OnboardingCompanySizeType,
     userReportedIntegration?: OnboardingAccountingType,
 ) {
+    const accountingName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
     const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
@@ -3365,7 +3366,7 @@ function completeOnboarding(
         };
     }
 
-    const tasksData = data.tasks.map((task, index) => {
+    let tasksData = data.tasks.map((task, index) => {
         const taskDescription =
             typeof task.description === 'function'
                 ? task.description({
@@ -3373,13 +3374,21 @@ function completeOnboarding(
                       workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID ?? '-1')}`,
                       workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID ?? '-1')}`,
                       workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID ?? '-1')}`,
+                      accountingName,
+                      accountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID ?? '-1')}`,
                   })
                 : task.description;
+        const taskTitle =
+            typeof task.title === 'function'
+                ? task.title({
+                      accountingName,
+                  })
+                : task.title;
         const currentTask = ReportUtils.buildOptimisticTaskReport(
             actorAccountID,
             currentUserAccountID,
             targetChatReportID,
-            task.title,
+            taskTitle,
             taskDescription,
             targetChatPolicyID,
             CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
@@ -3387,9 +3396,9 @@ function completeOnboarding(
         const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.EMAIL.CONCIERGE);
         const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
             currentTask.reportID,
-            task.title,
+            taskTitle,
             0,
-            `task for ${task.title}`,
+            `task for ${taskTitle}`,
             targetChatReportID,
             actorAccountID,
             index + 3,
@@ -3409,6 +3418,10 @@ function completeOnboarding(
             completedTaskReportAction,
         };
     });
+
+    if (!userReportedIntegration) {
+        tasksData = tasksData.filter((tasksDataItem) => tasksDataItem.task.type === 'accounting');
+    }
 
     const tasksForParameters = tasksData.map<TaskForParameters>(({task, currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => ({
         type: 'task',
@@ -3720,6 +3733,7 @@ function completeOnboarding(
         paymentSelected,
         companySize,
         userReportedIntegration,
+        policyID: onboardingPolicyID,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
