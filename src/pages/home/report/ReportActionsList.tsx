@@ -13,7 +13,7 @@ import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInve
 import {usePersonalDetails} from '@components/OnyxProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
+import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -175,7 +175,7 @@ function ReportActionsList({
     const {isInNarrowPaneModal, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {preferredLocale} = useLocalize();
-    const {isOffline, lastOfflineAt, lastOnlineAt} = useNetwork();
+    const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
