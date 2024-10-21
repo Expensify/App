@@ -1,10 +1,11 @@
+import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {ConflictActionData} from '@src/types/onyx/Request';
 
 function filterUpdateCommentRequest(reportActionID: string) {
     return function (request: OnyxRequest) {
-        return request.command === 'UpdateComment' && request.data?.reportActionID === reportActionID;
+        return request.command === WRITE_COMMANDS.UPDATE_COMMENT && request.data?.reportActionID === reportActionID;
     };
 }
 
