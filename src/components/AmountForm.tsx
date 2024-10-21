@@ -237,6 +237,7 @@ function AmountForm(
         const allowedOS: string[] = [CONST.OS.MAC_OS, CONST.OS.IOS];
         forwardDeletePressedRef.current = key === 'delete' || (allowedOS.includes(operatingSystem ?? '') && event.nativeEvent.ctrlKey && key === 'd');
     };
+
     const regex = useMemo(() => MoneyRequestUtils.amountRegex(decimals, amountMaxLength), [decimals, amountMaxLength]);
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
