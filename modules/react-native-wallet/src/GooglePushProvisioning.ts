@@ -31,7 +31,7 @@ type GooglePushProvisioningType = NativeModule & {
 };
 
 const GooglePushProvisioning = (NativeModules.GooglePushProvisioning as GooglePushProvisioningType) ?? null;
-if (!GooglePushProvisioning) {
+if (Platform.OS === 'android' && !GooglePushProvisioning) {
     throw new Error('GooglePushProvisioning module is not linked. Please ensure it is properly installed and linked.');
 }
 
