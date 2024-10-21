@@ -17,7 +17,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {DebugParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
-import SidebarUtils from '@libs/SidebarUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import Debug from '@userActions/Debug';
@@ -62,11 +61,12 @@ function DebugReportPage({
 
         const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
         const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
-        const hasRBR = SidebarUtils.shouldShowRedBrickRoad(report, reportActions, !!shouldDisplayViolations || shouldDisplayReportViolations, transactionViolations);
-        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
+        const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
-        const reportActionRBR = DebugUtils.getRBRReportAction(report, reportActions);
+        const {reason: reasonRBR, reportAction: reportActionRBR} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, hasViolations) ?? {};
+        const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
+        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
 
         return [
             {
@@ -95,6 +95,7 @@ function DebugReportPage({
             {
                 title: translate('debug.RBR'),
                 subtitle: translate(`debug.${hasRBR}`),
+                message: hasRBR ? translate(reasonRBR) : undefined,
                 action:
                     hasRBR && reportActionRBR
                         ? {

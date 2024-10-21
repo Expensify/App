@@ -11,6 +11,7 @@ import type {Comment, Receipt, SplitShare, TaxRate} from '@src/types/onyx/Transa
 import type {TransactionViolationData} from '@src/types/onyx/TransactionViolation';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
+import SidebarUtils from './SidebarUtils';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -904,13 +905,22 @@ function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>): GBRR
     return null;
 }
 
+type RBRReasonAndReportAction = {
+    reason: TranslationPaths;
+    reportAction: OnyxEntry<ReportAction>;
+};
+
 /**
  * Gets the report action that is causing the RBR to show up in LHN
  */
-function getRBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
-    const {reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean): RBRReasonAndReportAction | null {
+    const {reason, reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations) ?? {};
 
-    return reportAction;
+    if (reason) {
+        return {reason: `debug.reasonRBR.${reason}`, reportAction};
+    }
+
+    return null;
 }
 
 function getTransactionID(reportActions: OnyxEntry<ReportActions>) {
@@ -941,7 +951,7 @@ const DebugUtils = {
     validateTransactionViolationJSON,
     getReasonForShowingRowInLHN,
     getReasonAndReportActionForGBRInLHNRow,
-    getRBRReportAction,
+    getReasonAndReportActionForRBRInLHNRow,
     getTransactionID,
     REPORT_ACTION_REQUIRED_PROPERTIES,
     REPORT_REQUIRED_PROPERTIES,
