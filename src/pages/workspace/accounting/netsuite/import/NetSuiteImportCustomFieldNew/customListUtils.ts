@@ -1,4 +1,4 @@
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {NetSuiteCustomFieldForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';

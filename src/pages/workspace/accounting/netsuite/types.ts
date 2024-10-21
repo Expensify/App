@@ -7,7 +7,7 @@ import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/Toggl
 import type CONST from '@src/CONST';
 import type {NetSuiteCustomFieldForm} from '@src/types/form';
 import type {Policy} from '@src/types/onyx';
-import {NetSuiteCustomSegment} from '@src/types/onyx/Policy';
+import type {NetSuiteCustomSegment} from '@src/types/onyx/Policy';
 
 type MenuItem = MenuItemProps & {
     /** Type of the item */

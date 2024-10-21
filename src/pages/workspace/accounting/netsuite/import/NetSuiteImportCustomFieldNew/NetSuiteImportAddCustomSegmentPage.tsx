@@ -1,7 +1,8 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import withPolicyConnections, {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import NetSuiteImportAddCustomSegmentContent from './NetSuiteImportAddCustomSegmentContent';
