@@ -22,9 +22,15 @@ function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuit
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> => {
-            return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.SEGMENT_TYPE]);
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> = {};
+
+            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.SEGMENT_TYPE])) {
+                errors[INPUT_IDS.SEGMENT_TYPE] = translate('common.error.pleaseSelectOne');
+            }
+
+            return errors;
         },
-        [],
+        [translate],
     );
 
     const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({
@@ -46,6 +52,8 @@ function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuit
             submitButtonStyles={[styles.ph5, styles.mb0]}
             enabledWhenOffline
             shouldUseScrollView
+            shouldHideFixErrorsAlert={true}
+            submitFlexEnabled={false}
         >
             <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>
                 {translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentRecordType`)}

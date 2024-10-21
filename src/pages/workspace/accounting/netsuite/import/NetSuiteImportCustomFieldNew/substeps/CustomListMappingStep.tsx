@@ -56,6 +56,8 @@ function CustomListMappingStep({importCustomField, customSegmentType, onNext, is
             style={[styles.flexGrow1, styles.mt3]}
             submitButtonStyles={[styles.ph5, styles.mb0]}
             enabledWhenOffline
+            shouldHideFixErrorsAlert={true}
+            submitFlexEnabled={false}
         >
             <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate(titleKey as TranslationPaths)}</Text>
             <Text style={[styles.ph5, styles.mb3]}>{translate(`workspace.netsuite.import.importCustomFields.chooseOptionBelow`)}</Text>
