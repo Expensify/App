@@ -1,5 +1,6 @@
 import Log from '@libs/Log';
 import type {GoogleTagManagerEvent} from './types';
+import type GoogleTagManagerModule from './types';
 
 type WindowWithDataLayer = Window & {
     dataLayer: {
@@ -19,5 +20,8 @@ function publishEvent(event: GoogleTagManagerEvent, accountID: number) {
     Log.info('[GTM] event published', false, {event, accountID});
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {publishEvent};
+const GoogleTagManager: GoogleTagManagerModule = {
+    publishEvent,
+};
+
+export default GoogleTagManager;
