@@ -139,7 +139,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 : '-1';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
-            const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
+            const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions, reportID);
             const lastReportAction = sortedReportActions.at(0);
 
             // Get the transaction for the last report action
