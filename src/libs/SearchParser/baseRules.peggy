@@ -1,4 +1,4 @@
-// This file includes basic grammar rules that can be used in separate parsers.
+// This file includes basic grammar rules that are used in both search parsers.
 // It is not a complete grammar.
 // Its main purpose is to remove duplicated rules and ensure similar behaviour in parsers.
 //

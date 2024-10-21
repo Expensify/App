@@ -10,7 +10,7 @@
 // freeTextFilter: a rule to process text that isn't a filter that needs autocomplete. It resets the autocomplete field (it means the user started a new filter).
 // autocompleteKey: a rule to match pre-defined search syntax fields that need autocomplete, e.g. tag, currency, etc.
 //
-// filter, logicalAnd, operator, alphanumeric, quotedString are defined in baseRule.peggy grammar.
+// filter, logicalAnd, operator, alphanumeric, quotedString are defined in baseRules.peggy grammar.
 //
 // per-parser initializer (code executed before every parse).
 { let autocomplete = null; }
@@ -46,7 +46,7 @@ defaultFilter
       }));
     }
 
-freeTextFilter = _ value:identifier _ { autocomplete = null; }
+freeTextFilter = _ identifier _ { autocomplete = null; }
 
 autocompleteKey "key"
   = @(

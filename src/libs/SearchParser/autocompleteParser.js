@@ -247,7 +247,7 @@ function peg$parse(input, options) {
         length,
       }));
     };
-  var peg$f3 = function(value) { autocomplete = null; };
+  var peg$f3 = function() { autocomplete = null; };
   var peg$f4 = function(parts) {
       const ends = location();
       const value = parts.flat();
@@ -530,7 +530,7 @@ function peg$parse(input, options) {
     if (s2 !== peg$FAILED) {
       s3 = peg$parse_();
       peg$savedPos = s0;
-      s0 = peg$f3(s2);
+      s0 = peg$f3();
     } else {
       peg$currPos = s0;
       s0 = peg$FAILED;
