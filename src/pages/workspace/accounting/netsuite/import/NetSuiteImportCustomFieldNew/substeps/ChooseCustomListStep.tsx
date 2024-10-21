@@ -18,12 +18,9 @@ function ChooseCustomListStep({policy, onNext, isEditing, netSuiteCustomFieldFor
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
-            return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIST_NAME]);
-        },
-        [],
-    );
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
+        return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIST_NAME]);
+    }, []);
 
     const handleSubmit = useNetSuiteImportAddCustomListFormSubmit({
         fieldIds: STEP_FIELDS,

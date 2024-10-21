@@ -21,15 +21,18 @@ function CustomListMappingStep({importCustomField, customSegmentType, onNext, is
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> = {};
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> = {};
 
-        if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
-            errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
-        }
+            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
+                errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
+            }
 
-        return errors;
-    }, [translate]);
+            return errors;
+        },
+        [translate],
+    );
 
     const handleSubmit = useNetSuiteImportAddCustomListFormSubmit({
         fieldIds: STEP_FIELDS,
