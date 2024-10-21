@@ -55,6 +55,12 @@ type ThumbnailImageProps = {
 
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
+
+    /** Callback fired when the image fails to load */
+    onLoadFailure?: () => void;
+
+    /** Callback fired when the image has been measured */
+    onMeasure?: () => void;
 };
 
 type UpdateImageSizeParams = {
@@ -75,6 +81,8 @@ function ThumbnailImage({
     fallbackIconColor,
     fallbackIconBackground,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
+    onLoadFailure,
+    onMeasure,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -137,8 +145,14 @@ function ThumbnailImage({
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
                     altText={altText}
-                    onMeasure={updateImageSize}
-                    onLoadFailure={() => setFailedToLoad(true)}
+                    onMeasure={(args) => {
+                        updateImageSize(args);
+                        onMeasure?.();
+                    }}
+                    onLoadFailure={() => {
+                        setFailedToLoad(true);
+                        onLoadFailure?.();
+                    }}
                     isAuthTokenRequired={isAuthTokenRequired}
                     objectPosition={objectPosition}
                 />
