@@ -47,7 +47,7 @@ function SecuritySettingsPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {canUseNewDotCopilot} = usePermissions();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -58,8 +58,6 @@ function SecuritySettingsPage() {
     const [selectedDelegate, setSelectedDelegate] = useState<Delegate | undefined>();
 
     const [anchorPosition, setAnchorPosition] = useState({
-        anchorPositionHorizontal: 0,
-        anchorPositionVertical: 0,
         anchorPositionTop: 0,
         anchorPositionRight: 0,
     });
@@ -70,15 +68,12 @@ function SecuritySettingsPage() {
         }
 
         const position = getClickedTargetLocation(delegateButtonRef.current);
-
         setAnchorPosition({
-            anchorPositionTop: position.top + position.height - variables.bankAccountActionPopoverTopSpacing,
+            anchorPositionTop: Math.min(position.top + position.height - variables.bankAccountActionPopoverTopSpacing, windowHeight - variables.delegateAccessLevelModalHeight),
             // We want the position to be 23px to the right of the left border
             anchorPositionRight: windowWidth - position.right + variables.bankAccountActionPopoverRightSpacing,
-            anchorPositionHorizontal: position.x + variables.addBankAccountLeftSpacing,
-            anchorPositionVertical: position.y,
         });
-    }, [windowWidth]);
+    }, [windowWidth, windowHeight, delegateButtonRef]);
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
 
     const delegates = account?.delegatedAccess?.delegates ?? [];
