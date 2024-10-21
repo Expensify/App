@@ -3,6 +3,7 @@ import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/glob
 import {toZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -756,5 +757,28 @@ describe('actions/Report', () => {
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`];
                 expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             });
+    });
+
+    it('it should only store the last sequential UpdateComment request in Onyx', () => {
+        const reportID = '123';
+
+        Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        const action: OnyxEntry<OnyxTypes.ReportAction> = {
+            reportID,
+            reportActionID: '722',
+            actionName: 'ADDCOMMENT',
+            created: '2024-10-21 10:37:59.881',
+        };
+
+        Report.editReportComment(reportID, action, 'value1');
+        Report.editReportComment(reportID, action, 'value2');
+        Report.editReportComment(reportID, action, 'value3');
+
+        const requests = PersistedRequests?.getAll();
+
+        expect(requests.length).toBe(1);
+        expect(requests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
+        expect(requests?.at(0)?.data?.reportComment).toBe('value3');
     });
 });
