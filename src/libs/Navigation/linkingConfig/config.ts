@@ -256,9 +256,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
                             path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.route,
                         },
-                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VALIDATE_ACTION]: {
-                            path: ROUTES.SETINGS_CONTACT_METHOD_VALIDATE_ACTION,
-                        },
                         [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                             exact: true,
@@ -305,12 +302,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
                             path: ROUTES.SETTINGS_DELEGATE_CONFIRM.route,
-                            parse: {
-                                login: (login: string) => decodeURIComponent(login),
-                            },
-                        },
-                        [SCREENS.SETTINGS.DELEGATE.DELEGATE_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.route,
                             parse: {
                                 login: (login: string) => decodeURIComponent(login),
                             },

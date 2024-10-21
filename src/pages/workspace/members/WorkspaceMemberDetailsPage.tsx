@@ -39,7 +39,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {CompanyCardFeed, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {ListItemType} from './WorkspaceMemberDetailsRoleSelectionModal';
 import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberDetailsRoleSelectionModal';
 
@@ -63,6 +63,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [allCardsList] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
 
@@ -80,6 +82,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
     const hasMultipleFeeds = Object.values(cardFeeds?.settings?.companyCards ?? {}).filter((feed) => !feed.pending).length > 0;
+    const paymentAccountID = cardSettings?.paymentBankAccountID ?? 0;
 
     useEffect(() => {
         Policy.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
@@ -204,6 +207,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         return <NotFoundPage />;
     }
 
+    const shouldShowCardsSection = (!!policy?.areExpensifyCardsEnabled && !!paymentAccountID) ?? (!!policy?.areCompanyCardsEnabled && hasMultipleFeeds);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -291,7 +296,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         onRoleChange={changeRole}
                                         onClose={() => setIsRoleSelectionModalVisible(false)}
                                     />
-                                    {(!!policy?.areExpensifyCardsEnabled || (!!policy?.areCompanyCardsEnabled && hasMultipleFeeds)) && (
+                                    {shouldShowCardsSection && (
                                         <>
                                             <View style={[styles.ph5, styles.pv3]}>
                                                 <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
@@ -307,7 +312,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                             ? CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)
                                                             : ''
                                                     }
-                                                    icon={CardUtils.getCardDetailsImage(memberCard?.bank ?? '')}
+                                                    icon={CardUtils.getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
                                                     displayInDefaultIconColor
                                                     iconStyles={styles.cardIcon}
                                                     contentFit="contain"
