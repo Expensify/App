@@ -23,7 +23,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import originalCloseRHPFlow from './closeRHPFlow';
 import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
-import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import isReportOpenInRHP from './isReportOpenInRHP';
@@ -439,10 +438,6 @@ function waitForProtectedRoutes() {
     });
 }
 
-function getTopMostCentralPaneRouteFromRootState() {
-    return getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-}
-
 function switchPolicyID(policyID?: string) {
     navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID, payload: {policyID}});
 }
@@ -521,7 +516,6 @@ export default {
     resetToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
-    getTopMostCentralPaneRouteFromRootState,
     navigateToReportWithPolicyCheck,
     goUp,
 };

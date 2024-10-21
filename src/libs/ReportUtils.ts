@@ -74,7 +74,7 @@ import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
-import Navigation from './Navigation/Navigation';
+import Navigation, {navigationRef} from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
 import Parser from './Parser';
 import Permissions from './Permissions';
@@ -4096,9 +4096,10 @@ function navigateBackAfterDeleteTransaction(backRoute: Route | undefined, isFrom
     if (!backRoute) {
         return;
     }
-    // @TODO: Refactor this method
-    const topmostCentralPaneRoute = Navigation.getTopMostCentralPaneRouteFromRootState();
-    if (topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
+    // @TODO: Verify if this method works correctly
+    const rootState = navigationRef.current?.getRootState();
+    const topmostRoute = rootState?.routes.at(-1);
+    if (topmostRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
         Navigation.dismissModal();
         return;
     }
