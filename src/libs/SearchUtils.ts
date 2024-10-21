@@ -727,6 +727,7 @@ function buildFilterFormValuesFromQuery(
             filtersForm[FILTER_KEYS.DATE_AFTER] = filterList.find((filter) => filter.operator === 'gt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString();
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+            // backend amount is an integer and is 2 digit longer than frontend amount
             filtersForm[FILTER_KEYS.LESS_THAN] = filterList
                 .find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
                 ?.value.toString();
