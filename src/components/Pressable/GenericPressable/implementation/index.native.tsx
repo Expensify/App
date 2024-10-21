@@ -1,7 +1,7 @@
 import React, {forwardRef} from 'react';
+import type {PressableRef} from '@components/Pressable/GenericPressable/types';
+import type PressableProps from '@components/Pressable/GenericPressable/types';
 import GenericPressable from './BaseGenericPressable';
-import type {PressableRef} from './types';
-import type PressableProps from './types';
 
 function NativeGenericPressable(props: PressableProps, ref: PressableRef) {
     return (
