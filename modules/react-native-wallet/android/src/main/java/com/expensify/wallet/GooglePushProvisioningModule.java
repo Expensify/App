@@ -241,7 +241,7 @@ public class GooglePushProvisioningModule extends ReactContextBaseJavaModule {
       UserAddress userAddress = UserAddress.newBuilder()
         .setName(address.getString("name"))
         .setAddress1(address.getString("addressOne"))
-        .setAddress1(address.getString("addressTwo"))
+        .setAddress2(address.getString("addressTwo"))
         .setLocality(address.getString("locality"))
         .setAdministrativeArea(address.getString("administrativeArea"))
         .setCountryCode(address.getString("countryCode"))
