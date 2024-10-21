@@ -49,11 +49,14 @@ function getAllReportsLength() {
 }
 
 function updateReportLastReadTime(reportID: string, lastReadTime?: string) {
-    if (!allReports || !allReports[reportID]) {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+    if (!allReports || !report || !report.reportID) {
         return;
     }
-    allReports[reportID] = {
-        ...allReports[reportID],
+
+    allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
+        ...report,
         lastReadTime,
     };
 }
