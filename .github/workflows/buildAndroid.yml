@@ -53,7 +53,7 @@ on:
 jobs:
   build:
     name: Build Android app
-    runs-on: ubuntu-latest-xl
+    runs-on: ubuntu-latest
     env:
       RUBYOPT: '-rostruct'
     outputs:
@@ -67,8 +67,8 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Configure MapBox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+      #- name: Configure MapBox SDK
+      #  run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
