@@ -2580,6 +2580,10 @@ const translations = {
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again.',
         },
+        workspaceList: {
+            joinNow: 'Join now',
+            askToJoin: 'Ask to join'
+        },
         xero: {
             organization: 'Xero organization',
             organizationDescription: "Choose the Xero organization that you'd like to import data from.",

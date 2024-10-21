@@ -88,7 +88,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
                 }
-                // If user is joining a private domain but pressed "skip", finish the onboarding at this page
+                // TODO differentiate btwn a user joining a private domain but pressed "skip", vs a user on the onboarding purpose screen for the first time
                 if (isPrivateDomain) {
                     Report.completeOnboarding(
                         choice,
@@ -106,7 +106,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     if (!shouldUseNarrowLayout && !route.params?.backTo) {
                         Report.navigateToConciergeChat();
                     }
-
                 }
                 Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
             },

@@ -37,13 +37,19 @@ function BaseOnboardingPrivateDomain({ shouldUseNativeStyles, route }: BaseOnboa
     const email = session?.email || '';
     const domain = email.split('@').at(1);
 
-    // TODO get list of available policies and process them
     const handleSubmitForm = (submitCode: string) => {
         if (accountID) {
-            User.validateUserAndGetAccessiblePolicies(submitCode).then((response) => {
-                console.log(response);
+            // TODO uncomment when finished development
+            /*User.validateUserAndGetAccessiblePolicies(submitCode).then((response) => {
+                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    // TODO
+                } else {
+                    Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
+                }
             });
-            // TODO only navigate if validated
+            */
+
+            // TODO remove when finished
             Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
         }
     }
@@ -67,7 +73,7 @@ function BaseOnboardingPrivateDomain({ shouldUseNativeStyles, route }: BaseOnboa
                 progressBarPercentage={60}
                 onBackButtonPress={OnboardingFlow.goBack}
             />
-            <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
+            <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text style={styles.textHeadlineH1}>{translate('onboarding.peopleYouMayKnow')}</Text>
                 <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workspaceYouMayJoin', { domain: `${domain}`, email: `${email}` })}</Text>
                 <ValidateCodeForm
@@ -76,17 +82,19 @@ function BaseOnboardingPrivateDomain({ shouldUseNativeStyles, route }: BaseOnboa
                     clearError={clearError}
                     hideButton={true}
                 />
+                <View style={[styles.flex2, styles.justifyContentEnd]}>
+                    <Button
+                        isDisabled={isOffline}
+                        success={false}
+                        large
+                        style={[styles.mb5]}
+                        text={translate('common.skip')}
+                        isLoading={isValidateCodeFormSubmitting}
+                        onPress={() => { Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo)); }}
+                    />
+                    {isSmallScreenWidth && <OfflineIndicator />}
+                </View>
             </View>
-            <Button
-                isDisabled={isOffline}
-                success={false}
-                large
-                style={[styles.mb5]}
-                text={translate('common.skip')}
-                isLoading={isValidateCodeFormSubmitting}
-                onPress={() => { Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo)); }}
-            />
-            {isSmallScreenWidth && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }

@@ -238,6 +238,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT: 'SetPolicyForeignCurrencyDefaultTax',
     SET_POLICY_CUSTOM_TAX_NAME: 'SetPolicyCustomTaxName',
     JOIN_POLICY_VIA_INVITE_LINK: 'JoinWorkspaceViaInviteLink',
+    JOIN_ACCESSIBLE_POLICY: 'JoinAccessiblePolicy',
     ACCEPT_JOIN_REQUEST: 'AcceptJoinRequest',
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
     CREATE_POLICY_TAX: 'CreatePolicyTax',
@@ -662,6 +663,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SEARCH]: Parameters.SearchParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX]: Parameters.SetPolicyCategoryTaxParams;
     [WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
+    [WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY]: Parameters.JoinAccessiblePolicyParams;
     [WRITE_COMMANDS.ACCEPT_JOIN_REQUEST]: Parameters.AcceptJoinRequestParams;
     [WRITE_COMMANDS.DECLINE_JOIN_REQUEST]: Parameters.DeclineJoinRequestParams;
     [WRITE_COMMANDS.SET_POLICY_TAXES_CURRENCY_DEFAULT]: Parameters.SetPolicyCurrencyDefaultParams;
