@@ -1,4 +1,4 @@
-import {NativeModules} from 'react-native';
+import {NativeModules, Platform} from 'react-native';
 import type {NativeModule} from 'react-native';
 
 type Tsp = 'VISA' | 'MASTERCARD';
