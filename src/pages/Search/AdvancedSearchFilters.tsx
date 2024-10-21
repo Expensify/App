@@ -221,7 +221,7 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
 function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
     return filters.in
         ? filters.in
-              .map((id) => ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]))
+              .map((id) => ReportUtils.getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]}))
               .filter(Boolean)
               .join(', ')
         : undefined;

@@ -109,7 +109,7 @@ function ReportActionItemSingle({
         actorHint = displayName;
     }
     if (isWorkspaceActor) {
-        displayName = ReportUtils.getPolicyName(report, undefined, policy);
+        displayName = ReportUtils.getPolicyName({report, policy});
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceIcon(report, policy).source;
         avatarId = report?.policyID;

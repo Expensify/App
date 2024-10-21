@@ -174,7 +174,7 @@ function getOrderedReportIDs(
         const report = reportToDisplay;
         const miniReport: MiniReport = {
             reportID: report?.reportID,
-            displayName: ReportUtils.getReportName(report),
+            displayName: ReportUtils.getReportName({report}),
             lastVisibleActionCreated: report?.lastVisibleActionCreated,
         };
 
@@ -513,7 +513,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = ReportUtils.getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
+    const reportName = ReportUtils.getReportName({report, policy, invoiceReceiverPolicy});
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -549,7 +549,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
             welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo');
             welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree');
             welcomeMessage.messageText = `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${ReportUtils.getPolicyName(
-                report,
+                {report},
             )} ${welcomeMessage.phrase3}`;
         }
         return welcomeMessage;
@@ -601,7 +601,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
  */
 function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {showReportName: true};
-    const workspaceName = ReportUtils.getPolicyName(report);
+    const workspaceName = ReportUtils.getPolicyName({report});
 
     if (report?.description) {
         welcomeMessage.messageHtml = report.description;
@@ -632,7 +632,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
                 ? ReportUtils.getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)
                 : PolicyUtils.getPolicy(report?.invoiceReceiver?.policyID)?.name;
-        const receiver = ReportUtils.getPolicyName(report);
+        const receiver = ReportUtils.getPolicyName({report});
         welcomeMessage.messageText = `${welcomeMessage.phrase1}${payer} ${Localize.translateLocal('common.and')} ${receiver}${welcomeMessage.phrase2}`;
         return welcomeMessage;
     } else {
@@ -640,7 +640,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
     }
-    welcomeMessage.messageText = `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`;
+    welcomeMessage.messageText = `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName({report}) : ''} ${welcomeMessage.phrase2 ?? ''}`;
 
     return welcomeMessage;
 }
