@@ -125,7 +125,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
             email,
             avatar: personalDetailsByEmail[email]?.avatar,
             displayName: personalDetailsByEmail[email]?.displayName ?? email,
-            pendingFields: personalDetailsByEmail[email]?.pendingFields,
+            pendingFields: employee.pendingFields,
         };
 
         if (!approvalWorkflows[submitsTo]) {
