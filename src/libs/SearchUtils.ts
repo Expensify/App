@@ -1,7 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
+import type {AdvancedFiltersKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
@@ -406,8 +406,30 @@ function isSearchResultsEmpty(searchResults: SearchResults) {
     return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 }
 
-function getQueryHashFromString(query: SearchQueryString): number {
-    return UserUtils.hashText(query, 2 ** 32);
+function getQueryHash(query: SearchQueryJSON): number {
+    let orderedQuery = '';
+    if (query.policyID) {
+        orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${query.policyID} `;
+    }
+    orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${query.status}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
+
+    Object.keys(query.flatFilters)
+        .sort()
+        .forEach((key) => {
+            const filterValues = query.flatFilters?.[key as AdvancedFiltersKeys];
+            const sortedFilterValues = filterValues?.sort((queryFilter1, queryFilter2) => {
+                if (queryFilter1.value > queryFilter2.value) {
+                    return 1;
+                }
+                return -1;
+            });
+            orderedQuery += ` ${buildFilterString(key, sortedFilterValues ?? [])}`;
+        });
+
+    return UserUtils.hashText(orderedQuery, 2 ** 32);
 }
 
 function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
@@ -545,8 +567,8 @@ function buildSearchQueryJSON(query: SearchQueryString) {
 
         // Add the full input and hash to the results
         result.inputQuery = query;
-        result.hash = getQueryHashFromString(query);
         result.flatFilters = flatFilters;
+        result.hash = getQueryHash(result);
         return result;
     } catch (e) {
         console.error(`Error when parsing SearchQuery: "${query}"`, e);
@@ -591,6 +613,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
     const {type, status, policyID, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
+
+    filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
+    filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${CONST.SEARCH.SORT_ORDER.DESC}`);
 
     if (type) {
         const sanitizedType = sanitizeString(type);
@@ -652,7 +677,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     const amountFilter = buildAmountFilterQuery(filterValues);
     filtersString.push(amountFilter);
-
     return filtersString.join(' ').trim();
 }
 
