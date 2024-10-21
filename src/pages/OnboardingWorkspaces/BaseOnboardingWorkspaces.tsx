@@ -18,6 +18,7 @@ import { ListItem } from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as Report from '@userActions/Report';
 import UserListItem from '@components/SelectionList/UserListItem';
 import * as MemberAction from '@userActions/Policy/Member';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
@@ -63,10 +64,12 @@ function BaseOnboardingWorkspaces({ shouldUseNativeStyles, route }: BaseOnboardi
 
     const handleJoinWorkspace = (policyID: string, automaticJoiningEnabled: boolean) => {
         if (automaticJoiningEnabled) {
-            MemberAction.addMemberToPrivateDomainWorkspace(policyID); //TODO
+            MemberAction.addMemberToPrivateDomainWorkspace(policyID);
             navigateAfterJoinRequest();
+            Report.navigateToConciergeChat();
         } else {
-            // TODO 
+            //TODO
+            Report.navigateToConciergeChat();
         }
     }
 
