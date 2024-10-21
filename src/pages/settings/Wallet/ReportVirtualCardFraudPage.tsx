@@ -6,7 +6,6 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -30,6 +29,7 @@ function ReportVirtualCardFraudPage({
 }: ReportVirtualCardFraudPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
@@ -92,7 +92,7 @@ function ReportVirtualCardFraudPage({
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isVisible={isValidateCodeActionModalVisible}
                 title={translate('cardPage.validateCardTitle')}
-                description=""
+                description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
             />
         </ScreenWrapper>
     );
