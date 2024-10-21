@@ -155,7 +155,6 @@ const WRITE_COMMANDS = {
     REOPEN_TASK: 'ReopenTask',
     REPLACE_RECEIPT: 'ReplaceReceipt',
     REPORT_EXPORT: 'Report_Export',
-    REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD: 'ReportVirtualExpensifyCardFraud',
     REQUEST_ACCOUNT_VALIDATION_LINK: 'RequestAccountValidationLink',
     REQUEST_CONTACT_METHOD_VALIDATE_CODE: 'RequestContactMethodValidateCode',
     REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE: 'RequestExpensifyCardLimitIncrease',
@@ -164,7 +163,6 @@ const WRITE_COMMANDS = {
     REQUEST_NEW_VALIDATE_CODE: 'RequestNewValidateCode',
     REQUEST_PHYSICAL_EXPENSIFY_CARD: 'RequestPhysicalExpensifyCard',
     REQUEST_REFUND: 'User_RefundPurchase',
-    REQUEST_REPLACEMENT_EXPENSIFY_CARD: 'RequestReplacementExpensifyCard',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
     REQUEST_UNLINK_VALIDATION_LINK: 'RequestUnlinkValidationLink',
     REQUEST_WORKSPACE_OWNER_CHANGE: 'RequestWorkspaceOwnerChange',
@@ -580,7 +578,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REOPEN_TASK]: Parameters.ReopenTaskParams;
     [WRITE_COMMANDS.REPLACE_RECEIPT]: Parameters.ReplaceReceiptParams;
     [WRITE_COMMANDS.REPORT_EXPORT]: Parameters.ReportExportParams;
-    [WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD]: Parameters.ReportVirtualExpensifyCardFraudParams;
     [WRITE_COMMANDS.REQUEST_ACCOUNT_VALIDATION_LINK]: Parameters.RequestAccountValidationLinkParams;
     [WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE]: Parameters.RequestContactMethodValidateCodeParams;
     [WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE]: Parameters.RequestExpensifyCardLimitIncreaseParams;
@@ -589,7 +586,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE]: Parameters.RequestNewValidateCodeParams;
     [WRITE_COMMANDS.REQUEST_PHYSICAL_EXPENSIFY_CARD]: Parameters.RequestPhysicalExpensifyCardParams;
     [WRITE_COMMANDS.REQUEST_REFUND]: null;
-    [WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD]: Parameters.RequestReplacementExpensifyCardParams;
     [WRITE_COMMANDS.REQUEST_TAX_EXEMPTION]: null;
     [WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK]: Parameters.RequestUnlinkValidationLinkParams;
     [WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE]: Parameters.RequestWorkspaceOwnerChangeParams;
@@ -991,6 +987,8 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
     OPEN_REPORT: 'OpenReport',
     RECONNECT_APP: 'ReconnectApp',
+    REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD: 'ReportVirtualExpensifyCardFraud',
+    REQUEST_REPLACEMENT_EXPENSIFY_CARD: 'RequestReplacementExpensifyCard',
     REVEAL_EXPENSIFY_CARD_DETAILS: 'RevealExpensifyCardDetails',
     TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
 } as const;
@@ -1011,6 +1009,8 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK]: Parameters.OpenOldDotLinkParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT]: Parameters.OpenReportParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD]: Parameters.ReportVirtualExpensifyCardFraudParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD]: Parameters.RequestReplacementExpensifyCardParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS]: Parameters.RevealExpensifyCardDetailsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE]: Parameters.ValidateTwoFactorAuthParams;
 };
