@@ -226,7 +226,7 @@ function ReportActionsList({
             const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
             const shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
             const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-            return shouldDisplay && isWithinVisibleThreshold && reportAction.reportActionID !== lastActionAddedByCurrentUser.current;
+            return shouldDisplay && isWithinVisibleThreshold && !lastActionAddedByCurrentUser.current;
         };
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
@@ -280,7 +280,7 @@ function ReportActionsList({
         // We only want to update the unread marker time to be the same as the new current user message once,
         // but if the action is still an optimistic action, we want to keep lastActionAddedByCurrentUser because
         // the action created value from the BE will be different.
-        if (!lastAction?.isOptimisticAction) {
+        if (!lastAction?.isOptimisticAction && lastActionAddedByCurrentUser.current === lastAction?.reportActionID) {
             lastActionAddedByCurrentUser.current = undefined;
         }
 
