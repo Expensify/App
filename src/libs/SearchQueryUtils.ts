@@ -203,6 +203,11 @@ function findIDFromDisplayValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_F
     return filter;
 }
 
+/**
+ * @private
+ * Computes and returns a numerical hash for a given queryJSON.
+ * Sorts the query keys and values to ensure that hashes stay consistent.
+ */
 function getQueryHash(query: SearchQueryJSON): number {
     let orderedQuery = '';
     if (query.policyID) {
