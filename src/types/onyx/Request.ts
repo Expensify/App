@@ -71,6 +71,26 @@ type ConflictRequestReplace = {
 };
 
 /**
+ * Model of a conflict request that needs to be deleted from the request queue.
+ */
+type ConflictRequestDelete = {
+    /**
+     * The action to take in case of a conflict.
+     */
+    type: 'delete';
+
+    /**
+     * The indices of the requests in the queue that are to be deleted.
+     */
+    indices: number[];
+
+    /**
+     * A flag to mark if the new request should be pushed into the queue after deleting the conflicting requests.
+     */
+    pushNewRequest: boolean;
+};
+
+/**
  * Model of a conflict request that has to be enqueued at the end of request queue.
  */
 type ConflictRequestPush = {
@@ -97,7 +117,7 @@ type ConflictActionData = {
     /**
      * The action to take in case of a conflict.
      */
-    conflictAction: ConflictRequestReplace | ConflictRequestPush | ConflictRequestNoAction;
+    conflictAction: ConflictRequestReplace | ConflictRequestDelete | ConflictRequestPush | ConflictRequestNoAction;
 };
 
 /**
