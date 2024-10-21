@@ -495,9 +495,9 @@ report ? report.reportID : '-1';
 
 ### Extract complex types
 
-All complex types, such as objects and callbacks in function parameters, should be extracted into separate type definitions.
+Complex types, such as objects in function parameters, should be extracted into separate type definitions. Callbacks in function parameters should be extracted if they have possibility to be reused somewhere else.
 
-``` ts
+```ts
 // BAD
 function foo(param1: string, param2: {id: string}) {...};
 
