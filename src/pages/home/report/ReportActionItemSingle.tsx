@@ -220,7 +220,7 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={Number(actorAccountID ?? -1)}
+                accountID={Number(icon.id ?? -1)}
                 delegateAccountID={Number(action?.delegateAccountID ?? -1)}
                 icon={icon}
             >
@@ -271,7 +271,7 @@ function ReportActionItemSingle({
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={actorAccountID ?? -1}
+                                    accountID={Number(avatarId) ?? -1}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
                                     delegateAccountID={action?.delegateAccountID}
                                     isSingleLine
