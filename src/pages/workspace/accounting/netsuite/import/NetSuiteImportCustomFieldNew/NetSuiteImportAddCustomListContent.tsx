@@ -136,6 +136,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
                     policy={policy}
                     importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}
                     netSuiteCustomFieldFormValues={values}
+                    customLists={customLists}
                 />
             </View>
         </ConnectionLayout>

@@ -28,7 +28,11 @@ function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, o
             {fieldNames.map((fieldName, index) => (
                 <MenuItemWithTopDescription
                     description={translate(`workspace.netsuite.import.importCustomFields.customLists.fields.${fieldName}` as TranslationPaths)}
-                    title={fieldName === INPUT_IDS.MAPPING && values[fieldName] ? translate(`workspace.netsuite.import.importTypes.${values[fieldName]}.label` as TranslationPaths) : values[fieldName]}
+                    title={
+                        fieldName === INPUT_IDS.MAPPING && values[fieldName]
+                            ? translate(`workspace.netsuite.import.importTypes.${values[fieldName]}.label` as TranslationPaths)
+                            : values[fieldName]
+                    }
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(index);

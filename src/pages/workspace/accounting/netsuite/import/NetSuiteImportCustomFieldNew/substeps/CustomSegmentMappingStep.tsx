@@ -52,7 +52,7 @@ function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext,
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmit}
             validate={validate}
-            style={[styles.flexGrow1, styles.mt3]}
+            style={[styles.flexGrow1]}
             submitButtonStyles={[styles.ph5, styles.mb0]}
             enabledWhenOffline
             shouldUseScrollView={false}

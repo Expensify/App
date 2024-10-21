@@ -44,7 +44,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
     const config = policy?.connections?.netsuite?.options?.config;
     const customSegments = useMemo(() => config?.syncOptions?.customSegments ?? [], [config?.syncOptions]);
     const [customSegmentType, setCustomSegmentType] = useState<ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES> | undefined>();
-
+    console.log('customSegmentType', customSegmentType);
     const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
     const startFrom = useMemo(() => getCustomSegmentInitialSubstep(values), [values]);
     const handleFinishStep = useCallback(() => {
@@ -78,7 +78,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
         screenIndex,
         moveTo,
         goToTheLastStep,
-    } = useSubStep<CustomFieldSubStepWithPolicy>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep});
+    } = useSubStep<CustomFieldSubStepWithPolicy>({bodyContent: formSteps, startFrom: startFrom, onFinished: handleFinishStep});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
