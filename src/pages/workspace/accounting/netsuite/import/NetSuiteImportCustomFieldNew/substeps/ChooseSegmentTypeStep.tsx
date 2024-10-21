@@ -52,7 +52,7 @@ function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuit
             submitButtonStyles={[styles.ph5, styles.mb0]}
             enabledWhenOffline
             shouldUseScrollView
-            shouldHideFixErrorsAlert={true}
+            shouldHideFixErrorsAlert
             submitFlexEnabled={false}
         >
             <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>
