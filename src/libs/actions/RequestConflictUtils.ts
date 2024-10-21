@@ -1,5 +1,12 @@
+import {WRITE_COMMANDS} from '@libs/API/types';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {ConflictActionData} from '@src/types/onyx/Request';
+
+function createUpdateCommentMatcher(reportActionID: string) {
+    return function (request: OnyxRequest) {
+        return request.command === WRITE_COMMANDS.UPDATE_COMMENT && request.data?.reportActionID === reportActionID;
+    };
+}
 
 type RequestMatcher = (request: OnyxRequest) => boolean;
 
@@ -10,6 +17,7 @@ type RequestMatcher = (request: OnyxRequest) => boolean;
  * - If no match is found, it suggests adding the request to the list, indicating a 'push' action.
  * - If a match is found, it suggests updating the existing entry, indicating a 'replace' action at the found index.
  */
+
 function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], requestMatcher: RequestMatcher): ConflictActionData {
     const index = persistedRequests.findIndex(requestMatcher);
     if (index === -1) {
@@ -28,4 +36,4 @@ function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], requ
     };
 }
 
-export default resolveDuplicationConflictAction;
+export {resolveDuplicationConflictAction, createUpdateCommentMatcher};
