@@ -3,7 +3,7 @@ import type {WriteCommand} from '@libs/API/types';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {ConflictActionData} from '@src/types/onyx/Request';
 
-function filterUpdateCommentRequest(reportActionID: string) {
+function createUpdateCommentMatcher(reportActionID: string) {
     return function (request: OnyxRequest) {
         return request.command === WRITE_COMMANDS.UPDATE_COMMENT && request.data?.reportActionID === reportActionID;
     };
@@ -44,4 +44,4 @@ function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], requ
     };
 }
 
-export {resolveDuplicationConflictAction, filterUpdateCommentRequest, filterRequestByCommand};
+export {resolveDuplicationConflictAction, createUpdateCommentMatcher, filterRequestByCommand};
