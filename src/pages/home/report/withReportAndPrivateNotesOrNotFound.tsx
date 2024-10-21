@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo} from 'react';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -12,14 +11,13 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import LoadingPage from '@pages/LoadingPage';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './withReportOrNotFound';
 import withReportOrNotFound from './withReportOrNotFound';
 
 type WithReportAndPrivateNotesOrNotFoundOnyxProps = {
-    /** Session of currently logged in user */
-    session: OnyxEntry<Session>;
+    /** ID of the current user */
+    accountID?: number;
 };
 
 type WithReportAndPrivateNotesOrNotFoundProps = WithReportOrNotFoundProps & WithReportAndPrivateNotesOrNotFoundOnyxProps;
@@ -84,7 +82,7 @@ export default function (pageTitle: TranslationPaths) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(props as TProps)}
                     ref={ref}
-                    session={session}
+                    accountID={session?.accountID}
                 />
             );
         }

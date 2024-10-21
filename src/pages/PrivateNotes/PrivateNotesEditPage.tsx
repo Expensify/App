@@ -46,7 +46,7 @@ type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
         report: Report;
     };
 
-function PrivateNotesEditPage({route, personalDetailsList, report, session}: PrivateNotesEditPageProps) {
+function PrivateNotesEditPage({route, personalDetailsList, report, accountID}: PrivateNotesEditPageProps) {
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -117,7 +117,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report, session}: Pri
         >
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
-                onBackButtonPress={() => ReportUtils.goBackFromPrivateNotes(report, session, backTo)}
+                onBackButtonPress={() => ReportUtils.goBackFromPrivateNotes(report, accountID, backTo)}
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
