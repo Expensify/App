@@ -37,7 +37,7 @@ type IssueNewCardFlowData = {
     data?: Partial<IssueNewCardData>;
 };
 
-function reportVirtualExpensifyCardFraud(cardID: number) {
+function reportVirtualExpensifyCardFraud(cardID: number, validateCode: string) {
     return new Promise((resolve, reject) => {
         const optimisticData: OnyxUpdate[] = [
             {
@@ -71,6 +71,7 @@ function reportVirtualExpensifyCardFraud(cardID: number) {
 
         const parameters: ReportVirtualExpensifyCardFraudParams = {
             cardID,
+            validateCode,
         };
 
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
