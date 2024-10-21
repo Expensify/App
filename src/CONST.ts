@@ -2623,6 +2623,14 @@ const CONST = {
             WELLS_FARGO: 'Wells Fargo',
             OTHER: 'Other',
         },
+        BANK_CONNECTIONS: {
+            WELLS_FARGO: 'wellsfargo',
+            CHASE: 'chase',
+            BREX: 'brex',
+            CAPITAL_ONE: 'capitalone',
+            CITI_BANK: 'citibank',
+            AMEX: 'americanexpressfdx',
+        },
         AMEX_CUSTOM_FEED: {
             CORPORATE: 'American Express Corporate Cards',
             BUSINESS: 'American Express Business Cards',
