@@ -218,6 +218,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** For expense reports, this is the total amount requested */
         unheldTotal?: number;
 
+        /** Total amount of unheld and non-reimbursable transactions in an expense report */
+        unheldNonReimbursableTotal?: number;
+
         /** For expense reports, this is the currency of the expense */
         currency?: string;
 
