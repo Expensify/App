@@ -1,13 +1,14 @@
-import React, {useState} from 'react';
 import type {ReactNode, RefObject} from 'react';
-import {View} from 'react-native';
+import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -93,6 +94,7 @@ function SearchRouterInput({
                         value={value}
                         onChangeText={onChangeText}
                         autoFocus={autoFocus}
+                        shouldDelayFocus={shouldDelayFocus}
                         loadingSpinnerStyle={[styles.mt0, styles.mr2]}
                         role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
@@ -105,7 +107,7 @@ function SearchRouterInput({
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
                         textInputContainerStyles={[styles.borderNone, styles.pb0]}
-                        inputStyle={[styles.searchInputStyle, inputWidth, styles.pl3, styles.pr3]}
+                        inputStyle={[inputWidth, styles.pl3, styles.pr3]}
                         onFocus={() => {
                             setIsFocused(true);
                             routerListRef?.current?.updateExternalTextInputFocus(true);
