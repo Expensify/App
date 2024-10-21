@@ -122,27 +122,6 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
 }
 
-function wasMessageCreatedWhileOffline(message: OnyxTypes.ReportAction, offlineLastAt: Date | undefined, onlineLastAt: Date | undefined, locale: OnyxTypes.Locale): boolean {
-    if (!onlineLastAt || !offlineLastAt) {
-        return false;
-    }
-
-    const messageCreatedAt = DateUtils.getLocalDateFromDatetime(locale, message.created);
-
-    if (messageCreatedAt > offlineLastAt && messageCreatedAt <= onlineLastAt) {
-        return true;
-    }
-    return false;
-}
-
-function isMessageUnread(message: OnyxTypes.ReportAction, lastReadTime?: string): boolean {
-    if (!lastReadTime) {
-        return !ReportActionsUtils.isCreatedAction(message);
-    }
-
-    return !!(message && lastReadTime && message.created && lastReadTime < message.created);
-}
-
 const onScrollToIndexFailed = () => {};
 
 function ReportActionsList({
@@ -229,7 +208,8 @@ function ReportActionsList({
 
     const wasMessageReceivedWhileOffline = useCallback(
         (message: OnyxTypes.ReportAction) =>
-            !ReportActionsUtils.wasActionTakenByCurrentUser(message) && wasMessageCreatedWhileOffline(message, lastOfflineAt.current, lastOnlineAt.current, preferredLocale),
+            !ReportActionsUtils.wasActionTakenByCurrentUser(message) &&
+            ReportActionsUtils.wasActionCreatedWhileOffline(message, lastOfflineAt.current, lastOnlineAt.current, preferredLocale),
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
@@ -248,8 +228,8 @@ function ReportActionsList({
             const isCurrentMessageOffline = wasMessageReceivedWhileOffline(message);
             const isNextMessageOffline = !!nextMessage && wasMessageReceivedWhileOffline(nextMessage);
 
-            const isCurrentMessageUnread = isMessageUnread(message, unreadMarkerTime);
-            const isNextMessageUnread = !!nextMessage && isMessageUnread(nextMessage, unreadMarkerTime);
+            const isCurrentMessageUnread = ReportActionsUtils.isReportActionUnread(message, unreadMarkerTime);
+            const isNextMessageUnread = !!nextMessage && ReportActionsUtils.isReportActionUnread(nextMessage, unreadMarkerTime);
 
             const shouldDisplayForNextMessage = isNextMessageUnread || isNextMessageOffline;
             const shouldDisplayBecauseOffline = isCurrentMessageOffline && !shouldDisplayForNextMessage;

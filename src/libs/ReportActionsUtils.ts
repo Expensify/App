@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Locale, OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -126,7 +126,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     const message = reportAction?.message ?? [];
 
     if (!Array.isArray(message)) {
-        return message?.html === '' ?? message?.deleted;
+        return message?.html === '' || !!message?.deleted;
     }
 
     // A legacy deleted comment has either an empty array or an object with html field with empty string as value
@@ -1447,9 +1447,10 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
 }
 
 /**
- * @private
+ * Note: Prefer `ReportActionsUtils.isCurrentActionUnread` over this method, if applicable.
+ * Check whether a specific report action is unread.
  */
-function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime: string) {
+function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime?: string) {
     if (!lastReadTime) {
         return !isCreatedAction(reportAction);
     }
@@ -1800,10 +1801,24 @@ function getReportActionsLength() {
     return Object.keys(allReportActions ?? {}).length;
 }
 
+function wasActionCreatedWhileOffline(action: ReportAction, offlineLastAt: Date | undefined, onlineLastAt: Date | undefined, locale: Locale): boolean {
+    if (!onlineLastAt || !offlineLastAt) {
+        return false;
+    }
+
+    const actionCreatedAt = DateUtils.getLocalDateFromDatetime(locale, action.created);
+
+    if (actionCreatedAt > offlineLastAt && actionCreatedAt <= onlineLastAt) {
+        return true;
+    }
+    return false;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
     formatLastMessageText,
+    isReportActionUnread,
     getActionableMentionWhisperMessage,
     getAllReportActions,
     getCombinedReportActions,
@@ -1911,6 +1926,7 @@ export {
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
     getReportActionsLength,
+    wasActionCreatedWhileOffline,
 };
 
 export type {LastVisibleMessage};
