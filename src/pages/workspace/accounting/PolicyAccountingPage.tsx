@@ -104,9 +104,23 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
+    const shouldShowSynchronizationError = !!synchronizationError;
+    const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
+            ...(shouldShowReinstallConnectorMenuItem
+                ? [
+                      {
+                          icon: Expensicons.CircularArrowBackwards,
+                          text: translate('workspace.accounting.reinstall'),
+                          onSelected: () => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBD}),
+                          shouldCallAfterModalHide: true,
+                          disabled: isOffline,
+                          iconRight: Expensicons.NewWindow,
+                      },
+                  ]
+                : []),
             ...(shouldShowEnterCredentials
                 ? [
                       {
@@ -133,7 +147,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldCallAfterModalHide: true,
             },
         ],
-        [shouldShowEnterCredentials, translate, isOffline, policyID, connectedIntegration, startIntegrationFlow],
+        [shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policyID, connectedIntegration, startIntegrationFlow],
     );
 
     useFocusEffect(
@@ -269,7 +283,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         if (!connectedIntegration) {
             return [];
         }
-        const shouldShowSynchronizationError = !!synchronizationError;
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
         const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, canUseNetSuiteUSATax);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
@@ -364,6 +377,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isSyncInProgress,
         connectedIntegration,
         synchronizationError,
+        shouldShowSynchronizationError,
         policyID,
         translate,
         styles.sectionMenuItemTopDescription,
