@@ -250,7 +250,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             return screenOptions.fullScreen;
         }
 
-        const animationEnabled = !Object.keys(SIDEBAR_TO_SPLIT).includes(screenName);
+        // SETTINGS.WORKSPACES has bottom tab bar so we have to disable animations for it as well.
+        const animationEnabled = !Object.keys(SIDEBAR_TO_SPLIT).includes(screenName) && screenName !== SCREENS.SETTINGS.WORKSPACES;
 
         return {
             ...screenOptions.fullScreen,
