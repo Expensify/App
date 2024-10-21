@@ -65,6 +65,8 @@ type ValidateCodeFormProps = {
 
     /** Whether to show the "verify" button (hidden in private domain onboarding)  */
     hideButton?: boolean;
+    
+    sendValidateCode: () => void;
 };
 
 function BaseValidateCodeForm({
@@ -76,6 +78,7 @@ function BaseValidateCodeForm({
     validateError,
     handleSubmitForm,
     clearError,
+    sendValidateCode,
     buttonStyles,
     hideButton,
 }: ValidateCodeFormProps) {
@@ -130,10 +133,6 @@ function BaseValidateCodeForm({
     );
 
     useEffect(() => {
-        clearError();
-    }, [clearError]);
-
-    useEffect(() => {
         if (!hasMagicCodeBeenSent) {
             return;
         }
@@ -144,7 +143,7 @@ function BaseValidateCodeForm({
      * Request a validate code / magic code be sent to verify this contact method
      */
     const resendValidateCode = () => {
-        User.requestValidateCodeAction();
+        sendValidateCode();
         inputValidateCodeRef.current?.clear();
     };
 
@@ -193,7 +192,7 @@ function BaseValidateCodeForm({
                 errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
                 hasError={!isEmptyObject(validateError)}
                 onFulfill={validateAndSubmitForm}
-                autoFocus={false}
+                autoFocus
             />
             <OfflineWithFeedback
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
