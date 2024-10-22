@@ -759,6 +759,56 @@ describe('actions/Report', () => {
             });
     });
 
+    it.only('should send only one OpenReport, replacing any extra ones with same reportIDs', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        const REPORT_ID = '1';
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        for (let i = 0; i < 5; i++) {
+            Report.openReport(REPORT_ID, undefined, ['test@user.com'], {
+                isOptimisticReport: true,
+                reportID: REPORT_ID,
+            });
+        }
+
+        expect(PersistedRequests.getAll().length).toBe(1);
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+    });
+
+    it.only('should replace duplicate OpenReport commands with the same reportID', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        const REPORT_ID = '1';
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        for (let i = 0; i < 8; i++) {
+            let reportID = REPORT_ID;
+            if (i > 4) {
+                reportID = `${i}`;
+            }
+            Report.openReport(reportID, undefined, ['test@user.com'], {
+                isOptimisticReport: true,
+                reportID: REPORT_ID,
+            });
+        }
+
+        expect(PersistedRequests.getAll().length).toBe(4);
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 4);
+    });
+
     it('it should only send the last sequential UpdateComment request to BE', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         const reportID = '123';
