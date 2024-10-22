@@ -1224,7 +1224,7 @@ function getDefaultNotificationPreferenceForReport(report: OnyxEntry<Report>): V
 /**
  * Get the notification preference given a report
  */
-function getReportNotificationPreference(report: OnyxEntry<Report>, shouldDefaltToHidden = true): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
+function getReportNotificationPreference(report: OnyxEntry<Report>, shouldDefaltToHidden = true, log = ''): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
     if (!shouldDefaltToHidden) {
         return report?.participants?.[currentUserAccountID ?? -1]?.notificationPreference ?? getDefaultNotificationPreferenceForReport(report);
     }
