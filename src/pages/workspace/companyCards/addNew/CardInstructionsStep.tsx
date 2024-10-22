@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -12,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import Parser from '@libs/Parser';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
@@ -31,10 +31,10 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const data = addNewCard?.data;
-    const feedProvider = data?.cardType;
+    const feedProvider = data?.feedType ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
     const bank = data?.selectedBank;
-    const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.STRIPE;
-    const isAmexFeedProvider = feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX;
+    const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
+    const isAmexFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
 
     const buttonTranslation = isStripeFeedProvider ? translate('common.submit') : translate('common.next');
@@ -86,7 +86,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
                 contentContainerStyle={styles.flexGrow1}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
-                    {translate('workspace.companyCards.addNewCard.enableFeed.title', {provider: Str.recapitalize(feedProvider ?? '')})}
+                    {translate('workspace.companyCards.addNewCard.enableFeed.title', {provider: CardUtils.getCardFeedName(feedProvider)})}
                 </Text>
                 <Text style={[styles.ph5, styles.mb3]}>{translate('workspace.companyCards.addNewCard.enableFeed.heading')}</Text>
                 <View style={[styles.ph5]}>

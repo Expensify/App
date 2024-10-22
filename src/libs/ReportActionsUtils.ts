@@ -581,6 +581,22 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
     return currentAction.actorAccountID === previousAction.actorAccountID;
 }
 
+function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportAction>, isChronosReport: boolean): boolean {
+    const isAutomaticStartTimerAction = () => /start(?:ed|ing)?(?:\snow)?/i.test(getReportActionText(reportAction));
+    const isAutomaticStopTimerAction = () => /stop(?:ped|ping)?(?:\snow)?/i.test(getReportActionText(reportAction));
+    return isChronosReport && (isAutomaticStartTimerAction() || isAutomaticStopTimerAction());
+}
+
+/**
+ * If the user sends consecutive actions to Chronos to automatically start/stop the timer,
+ * then detect that and show each individually so that the user can easily see when they were sent.
+ */
+function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[], actionIndex: number, isChronosReport: boolean): boolean {
+    const previousAction = findPreviousAction(reportActions, actionIndex);
+    const currentAction = reportActions?.at(actionIndex);
+    return isChronosAutomaticTimerAction(currentAction, isChronosReport) && isChronosAutomaticTimerAction(previousAction, isChronosReport);
+}
+
 /**
  * Checks if a reportAction is deprecated.
  */
@@ -1723,7 +1739,13 @@ function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction
 }
 
 function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS);
+    return isActionOfType(
+        reportAction,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
+    );
 }
 
 function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1') {
@@ -1742,9 +1764,12 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID));
-    const link = shouldRenderHTML
+    const expensifyCardLink = shouldRenderHTML
         ? `<a href='${environmentURL}/${navigateRoute}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
         : Localize.translateLocal('cardPage.expensifyCard');
+    const companyCardLink = shouldRenderHTML
+        ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${Localize.translateLocal('workspace.companyCards.companyCard')}</a>`
+        : Localize.translateLocal('workspace.companyCards.companyCard');
 
     const missingDetails =
         !privatePersonalDetails?.legalFirstName ||
@@ -1761,12 +1786,18 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
             return Localize.translateLocal('workspace.expensifyCard.issuedCard', {assignee});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
-            return Localize.translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link});
+            return Localize.translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
+        case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
+            return Localize.translateLocal('workspace.companyCards.assignedYouCard', {link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
             return Localize.translateLocal(`workspace.expensifyCard.${shouldShowAddMissingDetailsButton ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, {assignee});
         default:
             return '';
     }
+}
+
+function getReportActionsLength() {
+    return Object.keys(allReportActions ?? {}).length;
 }
 
 export {
@@ -1819,6 +1850,7 @@ export {
     isChronosOOOListAction,
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
+    isConsecutiveChronosAutomaticTimerAction,
     isCreatedAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
@@ -1878,6 +1910,7 @@ export {
     getCardIssuedMessage,
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
+    getReportActionsLength,
 };
 
 export type {LastVisibleMessage};
