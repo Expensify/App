@@ -72,6 +72,7 @@ function IOURequestStepScan({
     const [fileSource, setFileSource] = useState('');
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     // we need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
@@ -795,7 +796,9 @@ function IOURequestStepScan({
 
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScan);
+const IOURequestStepScanWithOnyx = IOURequestStepScan;
+
+const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScanWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails, true);
 // eslint-disable-next-line rulesdir/no-negated-variables
