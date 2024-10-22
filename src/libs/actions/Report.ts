@@ -78,7 +78,7 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
-import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
+import type {OptimisticAddCommentReportAction, OptimisticChatReport} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import Visibility from '@libs/Visibility';
@@ -108,6 +108,8 @@ import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
+import navigateFromNotification from './navigateFromNotification';
+import resolveDuplicationConflictAction from './RequestConflictUtils';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 import * as OnboardingFlow from './Welcome/OnboardingFlow';
@@ -974,7 +976,10 @@ function openReport(
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig);
+        API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig, {
+            checkAndFixConflictingRequest: (persistedRequests) =>
+                resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID),
+        });
     }
 }
 
@@ -1363,6 +1368,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
     if (report?.reportID && report.preexistingReportID) {
         let callback = () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, null);
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, null);
         };
         // Only re-route them if they are still looking at the optimistically created report
@@ -2478,7 +2484,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     const onClick = () =>
         Modal.close(() => {
             const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-            Navigation.navigateToReportWithPolicyCheck({reportID, referrer: CONST.REFERRER.NOTIFICATION, policyIDToCheck: policyID});
+            navigateFromNotification(reportID, policyID);
         });
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
@@ -4117,6 +4123,10 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
 
+function createDraftReportForPolicyExpenseChat(draftReport: OptimisticChatReport) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${draftReport.reportID}`, draftReport);
+}
+
 function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_REPORT_TO_CSV, {
         reportID,
@@ -4224,4 +4234,5 @@ export {
     updateReportName,
     updateRoomVisibility,
     updateWriteCapability,
+    createDraftReportForPolicyExpenseChat,
 };

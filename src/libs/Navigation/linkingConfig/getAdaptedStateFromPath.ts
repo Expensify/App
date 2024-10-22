@@ -195,7 +195,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
 
     const state = getStateFromPath(pathWithoutPolicyID, options) as PartialState<NavigationState<RootStackParamList>>;
     if (shouldReplacePathInNestedState) {
-        replacePathInNestedState(state, path);
+        replacePathInNestedState(state, normalizedPath);
     }
 
     if (state === undefined) {
