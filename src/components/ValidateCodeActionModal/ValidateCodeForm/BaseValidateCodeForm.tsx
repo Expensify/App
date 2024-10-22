@@ -174,7 +174,6 @@ function BaseValidateCodeForm({
         }
 
         setFormError({});
-        console.log('calling addNewContactMethod 2')
         handleSubmitForm(validateCode);
     }, [validateCode, handleSubmitForm]);
 
