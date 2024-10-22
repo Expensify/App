@@ -32,7 +32,7 @@ type SearchRouterListProps = {
     currentQuery: SearchQueryJSON | undefined;
 
     /** Recent searches */
-    recentSearches: ItemWithQuery[] | undefined;
+    recentSearches: Array<ItemWithQuery & {timestamp: string}> | undefined;
 
     /** Recent reports */
     recentReports: OptionData[];
@@ -92,7 +92,7 @@ function SearchRouterList(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -129,13 +129,13 @@ function SearchRouterList(
         });
     }
 
-    const recentSearchesData = recentSearches?.map(({query}) => {
+    const recentSearchesData = recentSearches?.map(({query, timestamp}) => {
         const searchQueryJSON = SearchUtils.buildSearchQueryJSON(query);
         return {
             text: searchQueryJSON ? SearchUtils.getSearchHeaderTitle(searchQueryJSON, personalDetails, cardList, reports, taxRates) : query,
             singleIcon: Expensicons.History,
             query,
-            keyForList: query,
+            keyForList: timestamp,
         };
     });
 
@@ -167,7 +167,7 @@ function SearchRouterList(
             if ('reportID' in item && item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
-                Report.navigateToAndOpenReport(item?.login ? [item.login] : []);
+                Report.navigateToAndOpenReport(item.login ? [item.login] : [], false);
             }
         },
         [closeAndClearRouter, onSearchSubmit, currentQuery, updateUserSearchQuery],
@@ -179,11 +179,11 @@ function SearchRouterList(
             onSelectRow={onSelectRow}
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
-            sectionListStyle={[isSmallScreenWidth ? styles.ph5 : styles.ph2, styles.pb2]}
+            sectionListStyle={[shouldUseNarrowLayout ? styles.ph5 : styles.ph2, styles.pb2]}
             listItemWrapperStyle={[styles.pr3, styles.pl3]}
             onLayout={setPerformanceTimersEnd}
             ref={ref}
-            showScrollIndicator={!isSmallScreenWidth}
+            showScrollIndicator={!shouldUseNarrowLayout}
             sectionTitleStyles={styles.mhn2}
             shouldSingleExecuteRowSelect
         />
