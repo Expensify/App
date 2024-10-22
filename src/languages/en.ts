@@ -39,6 +39,7 @@ import type {
     ChangeTypeParams,
     CharacterLengthLimitParams,
     CharacterLimitParams,
+    CompanyCardBankName,
     CompanyCardFeedNameParams,
     ConfirmThatParams,
     ConnectionNameParams,
@@ -955,6 +956,7 @@ const translations = {
             invalidSplit: 'The sum of splits must equal the total amount.',
             invalidSplitParticipants: 'Please enter an amount greater than zero for at least two participants.',
             invalidSplitYourself: 'Please enter a non-zero amount for your split.',
+            noParticipantSelected: 'Please select a participant.',
             other: 'Unexpected error. Please try again later.',
             genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
             genericCreateInvoiceFailureMessage: 'Unexpected error sending this invoice. Please try again later.',
@@ -2158,6 +2160,7 @@ const translations = {
         companyAddress: 'Company address',
         listOfRestrictedBusinesses: 'list of restricted businesses',
         confirmCompanyIsNot: 'I confirm that this company is not on the',
+        businessInfoTitle: 'Business info',
     },
     beneficialOwnerInfoStep: {
         doYouOwn25percent: 'Do you own 25% or more of',
@@ -2235,6 +2238,21 @@ const translations = {
         enable2FATitle: 'Prevent fraud, enable two-factor authentication (2FA)',
         enable2FAText: 'We take your security seriously. Please set up 2FA now to add an extra layer of protection to your account.',
         secureYourAccount: 'Secure your account',
+    },
+    countryStep: {
+        confirmBusinessBank: 'Confirm business bank account currency and country',
+        confirmCurrency: 'Confirm currency and country',
+    },
+    signerInfoStep: {
+        signerInfo: 'Signer info',
+    },
+    agreementsStep: {
+        agreements: 'Agreements',
+        pleaseConfirm: 'Please confirm the agreements below',
+        accept: 'Accept and add bank account',
+    },
+    finishStep: {
+        connect: 'Connect bank account',
     },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'One moment',
@@ -2467,9 +2485,9 @@ const translations = {
             advancedConfig: {
                 autoSyncDescription: 'Expensify will automatically sync with QuickBooks Desktop every day.',
                 createEntities: 'Auto-create entities',
-                createEntitiesDescription:
-                    "Expensify will automatically create vendors in QuickBooks Desktop if they don't exist already, and auto-create customers when exporting invoices.",
+                createEntitiesDescription: "Expensify will automatically create vendors in QuickBooks Desktop if they don't exist already.",
             },
+            itemsDescription: 'Choose how to handle QuickBooks Desktop items in Expensify.',
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -3313,6 +3331,9 @@ const translations = {
                 emptyAddedFeedDescription: 'Get started by assigning your first card to a member.',
                 pendingFeedTitle: `We're reviewing your request...`,
                 pendingFeedDescription: `We're currently reviewing your feed details. Once that's done we'll reach out to you via`,
+                pendingBankTitle: 'Check your browser window',
+                pendingBankDescription: ({bankName}: CompanyCardBankName) => `Please connect to ${bankName} via your browser window that just opened. If one didn’t open, `,
+                pendingBankLink: 'please click here.',
                 giveItNameInstruction: 'Give the card a name that sets it apart from the others.',
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
@@ -3588,6 +3609,7 @@ const translations = {
             },
             errorODIntegration: "There's an error with a connection that's been set up in Expensify Classic. ",
             goToODToFix: 'Go to Expensify Classic to fix this issue.',
+            goToODToSettings: 'Go to Expensify Classic to manage your settings.',
             setup: 'Connect',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Last synced ${relativeDate}`,
             import: 'Import',
@@ -3596,6 +3618,7 @@ const translations = {
             other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
+            reinstall: 'Reinstall connector',
             disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integration';
@@ -3644,14 +3667,18 @@ const translations = {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
+                        case 'quickbooksDesktopImportCustomers':
                             return 'Importing customers';
                         case 'quickbooksOnlineImportEmployees':
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
+                        case 'quickbooksDesktopImportEmployees':
                             return 'Importing employees';
                         case 'quickbooksOnlineImportAccounts':
+                        case 'quickbooksDesktopImportAccounts':
                             return 'Importing accounts';
                         case 'quickbooksOnlineImportClasses':
+                        case 'quickbooksDesktopImportClasses':
                             return 'Importing classes';
                         case 'quickbooksOnlineImportLocations':
                             return 'Importing locations';
@@ -3670,6 +3697,19 @@ const translations = {
                             return 'Importing Xero data';
                         case 'startingImportQBO':
                             return 'Importing QuickBooks Online data';
+                        case 'startingImportQBD':
+                        case 'quickbooksDesktopImportMore':
+                            return 'Importing QuickBooks Desktop data';
+                        case 'quickbooksDesktopImportTitle':
+                            return 'Importing title';
+                        case 'quickbooksDesktopImportApproveCertificate':
+                            return 'Importing approve ceritificate';
+                        case 'quickbooksDesktopImportDimensions':
+                            return 'Importing dimensions';
+                        case 'quickbooksDesktopImportSavePolicy':
+                            return 'Importing save policy';
+                        case 'quickbooksDesktopWebConnectorReminder':
+                            return 'Still syncing data with QuickBooks... Please make sure the Web Connector is running';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Syncing QuickBooks Online data';
                         case 'quickbooksOnlineSyncLoadData':
@@ -3743,6 +3783,7 @@ const translations = {
                         case 'netSuiteSyncImportSubsidiaries':
                             return 'Importing subsidiaries';
                         case 'netSuiteSyncImportVendors':
+                        case 'quickbooksDesktopImportVendors':
                             return 'Importing vendors';
                         case 'intacctCheckConnection':
                             return 'Checking Sage Intacct connection';
@@ -3968,6 +4009,11 @@ const translations = {
                 title: 'Sage Intacct',
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Sage Intacct integration. Gain in-depth, real-time financial insights with user-defined dimensions, as well as expense coding by department, class, location, customer, and project (job).`,
                 onlyAvailableOnPlan: 'Our Sage Intacct integration is only available on the Control plan, starting at ',
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                title: 'QuickBooks Desktop',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + QuickBooks Desktop integration. Gain ultimate efficiency with a realtime, two-way connection and expense coding by class, item, customer, and project.`,
+                onlyAvailableOnPlan: 'Our QuickBooks Desktop integration is only available on the Control plan, starting at ',
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',
@@ -4303,6 +4349,8 @@ const translations = {
             current: 'Current',
             past: 'Past',
         },
+        noCategory: 'No category',
+        noTag: 'No tag',
         expenseType: 'Expense type',
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
@@ -5101,6 +5149,27 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: 'Is waiting for assignee to complete action',
             hasChildReportAwaitingAction: 'Has child report awaiting action',
             hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
+        },
+        reasonRBR: {
+            hasErrors: 'Has errors in report or report actions data',
+            hasViolations: 'Has violations',
+            hasTransactionThreadViolations: 'Has transaction thread violations',
+        },
+        indicatorStatus: {
+            theresAReportAwaitingAction: "There's a report awaiting action",
+            theresAReportWithErrors: "There's a report with errors",
+            theresAWorkspaceWithCustomUnitsErrors: "There's a workspace with custom units errors",
+            theresAProblemWithAWorkspaceMember: "There's a problem with a workspace member",
+            theresAProblemWithAContactMethod: "There's a problem with a contact method",
+            aContactMethodRequiresVerification: 'A contact method requires verification',
+            theresAProblemWithAPaymentMethod: "There's a problem with a payment method",
+            theresAProblemWithAWorkspace: "There's a problem with a workspace",
+            theresAProblemWithYourReimbursementAccount: "There's a problem with your reimbursement account",
+            theresABillingProblemWithYourSubscription: "There's a billing problem with your subscription",
+            yourSubscriptionHasBeenSuccessfullyRenewed: 'Your subscription has been successfully renewed',
+            theresWasAProblemDuringAWorkspaceConnectionSync: 'There was a problem during a workspace connection sync',
+            theresAProblemWithYourWallet: "There's a problem with your wallet",
+            theresAProblemWithYourWalletTerms: "There's a problem with your wallet terms",
         },
     },
     emptySearchView: {

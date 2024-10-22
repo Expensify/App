@@ -494,6 +494,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ITEMS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {
         policyID: string;
     };
@@ -747,10 +750,6 @@ type SettingsNavigatorParamList = {
         role: string;
     };
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
-        login: string;
-        role: string;
-    };
-    [SCREENS.SETTINGS.DELEGATE.DELEGATE_MAGIC_CODE]: {
         login: string;
         role: string;
     };

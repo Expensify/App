@@ -59,6 +59,12 @@ type ThumbnailImageProps = {
 
     /** Whether the image is deleted */
     isDeleted?: boolean;
+
+    /** Callback fired when the image fails to load */
+    onLoadFailure?: () => void;
+
+    /** Callback fired when the image has been measured */
+    onMeasure?: () => void;
 };
 
 type UpdateImageSizeParams = {
@@ -80,6 +86,8 @@ function ThumbnailImage({
     fallbackIconBackground,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
     isDeleted,
+    onLoadFailure,
+    onMeasure,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -143,8 +151,14 @@ function ThumbnailImage({
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
                     altText={altText}
-                    onMeasure={updateImageSize}
-                    onLoadFailure={() => setFailedToLoad(true)}
+                    onMeasure={(args) => {
+                        updateImageSize(args);
+                        onMeasure?.();
+                    }}
+                    onLoadFailure={() => {
+                        setFailedToLoad(true);
+                        onLoadFailure?.();
+                    }}
                     isAuthTokenRequired={isAuthTokenRequired}
                     objectPosition={objectPosition}
                 />
