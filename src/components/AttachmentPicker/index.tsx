@@ -1,7 +1,6 @@
 import React, {useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
-import useLocalize from '@hooks/useLocalize';
 import * as Browser from '@libs/Browser';
 import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
@@ -44,12 +43,10 @@ function getAcceptableFileTypesFromAList(fileTypes: Array<ValueOf<typeof CONST.A
  * on a Browser we must append a hidden input to the DOM
  * and listen to onChange event.
  */
-function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, acceptedFileTypes, fileLimit = 0, totalFilesSizeLimitInMB = 0}: AttachmentPickerProps): React.JSX.Element {
-    const {translate} = useLocalize();
+function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, acceptedFileTypes, allowMultiple = false}: AttachmentPickerProps): React.JSX.Element {
     const fileInput = useRef<HTMLInputElement>(null);
     const onPicked = useRef<(files: FileObject[]) => void>(() => {});
     const onCanceled = useRef<() => void>(() => {});
-    const totalFilesSizeLimitInBytes = totalFilesSizeLimitInMB * 1024 * 1024;
 
     return (
         <>
@@ -62,37 +59,11 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
                         return;
                     }
 
-                    const files: FileObject[] = [...e.target.files].map((file) => ({
-                        name: file.name,
-                        size: file.size,
-                        type: file.type,
-                        uri: URL.createObjectURL(file),
-                    }));
+                    const file = e.target.files[0];
 
-                    const totalSize = files.reduce((sum, file) => sum + (file.size ?? 0), 0);
-
-                    if (totalFilesSizeLimitInMB) {
-                        if (totalSize > totalFilesSizeLimitInBytes) {
-                            alert(translate('attachmentPicker.filesTooBigMessage'));
-                            return;
-                        }
-                    }
-
-                    if (fileLimit) {
-                        if (files.length > 0) {
-                            if (files.length > fileLimit) {
-                                alert(translate('attachmentPicker.tooManyFiles', {fileLimit}));
-                            } else {
-                                onPicked.current(files);
-                            }
-                        }
-                    } else {
-                        const file = e.target.files[0];
-
-                        if (file) {
-                            file.uri = URL.createObjectURL(file);
-                            onPicked.current([file]);
-                        }
+                    if (file) {
+                        file.uri = URL.createObjectURL(file);
+                        onPicked.current([file]);
                     }
 
                     // Cleanup after selecting a file to start from a fresh state
@@ -127,7 +98,7 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
                     );
                 }}
                 accept={acceptedFileTypes ? getAcceptableFileTypesFromAList(acceptedFileTypes) : getAcceptableFileTypes(type)}
-                multiple={!!fileLimit}
+                multiple={allowMultiple}
             />
             {children({
                 openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {

@@ -114,7 +114,6 @@ function AttachmentPicker({
     shouldValidateImage = true,
     shouldHideGalleryOption = false,
     fileLimit = 1,
-    totalFilesSizeLimitInMB = 0,
 }: AttachmentPickerProps) {
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
@@ -123,7 +122,6 @@ function AttachmentPicker({
     const onModalHide = useRef<() => void>();
     const onCanceled = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
-    const totalFilesSizeLimitInBytes = totalFilesSizeLimitInMB * 1024 * 1024;
 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -134,13 +132,6 @@ function AttachmentPicker({
     const showGeneralAlert = useCallback(
         (message = translate('attachmentPicker.errorWhileSelectingAttachment')) => {
             Alert.alert(translate('attachmentPicker.attachmentError'), message);
-        },
-        [translate],
-    );
-
-    const showFilesTooBigAlert = useCallback(
-        (message = translate('attachmentPicker.filesTooBig')) => {
-            Alert.alert(translate('attachmentPicker.filesTooBigMessage'), message);
         },
         [translate],
     );
@@ -317,19 +308,6 @@ function AttachmentPicker({
                 return Promise.resolve([]);
             }
 
-            if (totalFilesSizeLimitInMB) {
-                const totalFileSize = attachments.reduce((total, fileData) => {
-                    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-                    const size = ('size' in fileData && fileData.size) || ('fileSize' in fileData && fileData.fileSize) || 0;
-                    return total + size;
-                }, 0);
-
-                if (totalFileSize > totalFilesSizeLimitInBytes) {
-                    showFilesTooBigAlert();
-                    return Promise.resolve([]);
-                }
-            }
-
             const filesToProcess = attachments.map((fileData) => {
                 if (!fileData) {
                     onCanceled.current();
@@ -395,7 +373,7 @@ function AttachmentPicker({
 
             return Promise.all(filesToProcess);
         },
-        [totalFilesSizeLimitInMB, totalFilesSizeLimitInBytes, showFilesTooBigAlert, shouldValidateImage, validateAndCompleteAttachmentSelection, showGeneralAlert, showImageCorruptionAlert],
+        [shouldValidateImage, validateAndCompleteAttachmentSelection, showGeneralAlert, showImageCorruptionAlert],
     );
 
     /**

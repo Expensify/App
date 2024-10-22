@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {FileObject} from './AttachmentModal';
@@ -40,14 +41,62 @@ type UploadFileProps = {
 
     /** Function called whenever option changes */
     onInputChange?: (value: FileObject[]) => void;
+
+    /** Function to set error message */
+    setError: (error: string) => void;
+
+    /** Whether to allow multiple files to be selected. */
+    fileLimit?: number;
+
+    /** The total size limit of the files that can be selected. */
+    totalFilesSizeLimit?: number;
 };
 
-function UploadFile({buttonText, uploadedFiles, onUpload, onRemove, acceptedFileTypes, style, errorText = '', onInputChange = () => {}}: UploadFileProps) {
+function UploadFile({
+    buttonText,
+    uploadedFiles,
+    onUpload,
+    onRemove,
+    acceptedFileTypes,
+    style,
+    errorText = '',
+    setError,
+    onInputChange = () => {},
+    totalFilesSizeLimit = 0,
+    fileLimit = 0,
+}: UploadFileProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
 
     const handleFileUpload = (files: FileObject[]) => {
+        const totalSize = files.reduce((sum, file) => sum + (file.size ?? 0), 0);
+
+        if (totalFilesSizeLimit) {
+            if (totalSize > totalFilesSizeLimit) {
+                setError(translate('attachmentPicker.sizeExceededWithValue', {maxUploadSizeInMB: totalFilesSizeLimit / (1024 * 1024)}));
+                return;
+            }
+        }
+
+        if (fileLimit) {
+            if (files.length > 0) {
+                if (files.length > fileLimit) {
+                    setError(translate('attachmentPicker.tooManyFiles', {fileLimit}));
+                    return;
+                }
+            }
+        }
+
+        if (acceptedFileTypes.length > 0) {
+            const filesExtensions = files.map((file) => FileUtils.splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase());
+
+            if (acceptedFileTypes.every((element) => !filesExtensions.includes(element as string))) {
+                setError(translate('attachmentPicker.notAllowedExtension'));
+                return;
+            }
+        }
+
         onInputChange(files);
         onUpload(files);
     };
@@ -56,8 +105,8 @@ function UploadFile({buttonText, uploadedFiles, onUpload, onRemove, acceptedFile
         <View style={[styles.alignItemsStart, style]}>
             <AttachmentPicker
                 acceptedFileTypes={acceptedFileTypes}
-                fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
-                totalFilesSizeLimitInMB={CONST.NON_USD_BANK_ACCOUNT.TOTAL_FILES_SIZE_LIMIT_IN_MB}
+                fileLimit={fileLimit}
+                allowMultiple={!!fileLimit}
             >
                 {({openPicker}) => (
                     <Button

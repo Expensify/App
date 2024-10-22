@@ -503,6 +503,7 @@ const translations = {
         filesTooBig: 'Total files size exceeds the limit',
         filesTooBigMessage: 'The total size of the files you are trying to upload exceeds the limit. Please try again.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `You can only upload up to ${fileLimit} files at a time.`,
+        sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Files exceeds ${maxUploadSizeInMB}MB. Please try again.`,
     },
     filePicker: {
         fileError: 'File error',

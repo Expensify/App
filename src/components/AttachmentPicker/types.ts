@@ -50,11 +50,11 @@ type AttachmentPickerProps = {
     /** Whether to validate the image and show the alert or not. */
     shouldValidateImage?: boolean;
 
+    /** Allow multiple file selection */
+    allowMultiple?: boolean;
+
     /** Whether to allow multiple files to be selected. */
     fileLimit?: number;
-
-    /** The total size limit of the files that can be selected. */
-    totalFilesSizeLimitInMB?: number;
 };
 
 export default AttachmentPickerProps;
