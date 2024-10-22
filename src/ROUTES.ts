@@ -148,7 +148,10 @@ const ROUTES = {
     },
     SETTINGS_DELEGATE_CONFIRM: {
         route: 'settings/security/delegate/:login/role/:role/confirm',
-        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm` as const,
+        getRoute: (login: string, role: string, showValidateActionModal?: boolean) => {
+            const validateActionModalParam = showValidateActionModal ? `?showValidateActionModal=true` : '';
+            return `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm${validateActionModalParam}` as const;
+        },
     },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
