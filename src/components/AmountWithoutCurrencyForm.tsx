@@ -1,5 +1,6 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {ForwardedRef} from 'react';
+import {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {addLeadingZero, amountRegex, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
@@ -21,6 +22,10 @@ function AmountWithoutCurrencyForm(
     const {toLocaleDigit} = useLocalize();
 
     const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
+    const [selection, setSelection] = useState({
+        start: currentAmount.length,
+        end: currentAmount.length,
+    });
     const decimals = 2;
 
     /**
@@ -35,6 +40,9 @@ function AmountWithoutCurrencyForm(
             const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
             const withLeadingZero = addLeadingZero(replacedCommasAmount);
             if (!validateAmount(withLeadingZero, decimals)) {
+                // Use a shallow copy of selection to trigger setSelection
+                // More info: https://github.com/Expensify/App/issues/16385
+                setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
             onInputChange?.(withLeadingZero);
@@ -49,6 +57,10 @@ function AmountWithoutCurrencyForm(
         <TextInput
             value={formattedAmount}
             onChangeText={setNewAmount}
+            selection={selection}
+            onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+                setSelection(e.nativeEvent.selection);
+            }}
             inputID={inputID}
             name={name}
             label={label}
