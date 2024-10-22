@@ -22,9 +22,7 @@ export default function useNetworkWithOfflineStatus(): UseNetworkWithOfflineStat
         } else {
             lastOnlineAt.current = DateUtils.getLocalDateFromDatetime(preferredLocale);
         }
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOffline]);
+    }, [isOffline, preferredLocale]);
 
     return {isOffline, lastOfflineAt, lastOnlineAt};
 }
