@@ -64,20 +64,23 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         if (shouldUseNarrowLayout) {
             const isSearchCentralPane = (route: RouteProp<ParamListBase>) => getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
 
-            const lastRoute = routes[routes.length - 1];
-            const lastSearchCentralPane = isSearchCentralPane(lastRoute) ? lastRoute : undefined;
+            const lastRoute = routes.at(-1);
+            const lastSearchCentralPane = lastRoute && isSearchCentralPane(lastRoute) ? lastRoute : undefined;
             const filteredRoutes = routes.filter((route) => !isSearchCentralPane(route));
 
             // On narrow layout, if we are on /search route we want to hide all central pane routes and show only the bottom tab navigator.
             if (lastSearchCentralPane) {
-                return {
-                    stateToRender: {
-                        ...state,
-                        index: 0,
-                        routes: [filteredRoutes[0]],
-                    },
-                    searchRoute: lastSearchCentralPane,
-                };
+                const filteredRoute = filteredRoutes.at(0);
+                if (filteredRoute) {
+                    return {
+                        stateToRender: {
+                            ...state,
+                            index: 0,
+                            routes: [filteredRoute],
+                        },
+                        searchRoute: lastSearchCentralPane,
+                    };
+                }
             }
 
             return {

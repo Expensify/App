@@ -1,7 +1,7 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
-import {omitBy} from 'lodash';
+import omitBy from 'lodash/omitBy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isReportOpenInRHP from '@libs/Navigation/isReportOpenInRHP';
 import {isCentralPaneName} from '@libs/NavigationUtils';

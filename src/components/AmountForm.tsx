@@ -48,6 +48,9 @@ type AmountFormProps = {
 
     /** Whether the form should use a standard TextInput as a base */
     displayAsTextInput?: boolean;
+
+    /** Number of decimals to display */
+    fixedDecimals?: number;
 } & Pick<TextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
     Pick<BaseTextInputProps, 'autoFocus'>;
 
@@ -75,6 +78,7 @@ function AmountForm(
         displayAsTextInput = false,
         isCurrencyPressable = true,
         label,
+        fixedDecimals,
         ...rest
     }: AmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -84,7 +88,7 @@ function AmountForm(
 
     const textInput = useRef<BaseTextInputRef | null>(null);
 
-    const decimals = CurrencyUtils.getCurrencyDecimals(currency) + extraDecimals;
+    const decimals = fixedDecimals ?? CurrencyUtils.getCurrencyDecimals(currency) + extraDecimals;
     const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
 
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
@@ -256,6 +260,7 @@ function AmountForm(
                 prefixStyle={styles.colorMuted}
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                 inputMode={CONST.INPUT_MODE.DECIMAL}
+                errorText={errorText}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />

@@ -36,14 +36,11 @@ type ImportSpreadsheetColumnsProps = {
     // An optional boolean indicating whether the import button is in a loading state.
     isButtonLoading?: boolean;
 
-    // A string representing the header text to be rendered.
-    headerText: string;
-
     // Link to learn more about the file preparation for import.
     learnMoreLink?: string;
 };
 
-function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles, errors, importFunction, isButtonLoading, headerText, learnMoreLink}: ImportSpreadsheetColumnsProps) {
+function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles, errors, importFunction, isButtonLoading, learnMoreLink}: ImportSpreadsheetColumnsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -55,7 +52,7 @@ function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles
             <ScrollView>
                 <View style={styles.mh5}>
                     <Text>
-                        {headerText}
+                        {translate('spreadsheet.importDescription')}
                         <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>
                     </Text>
 
@@ -73,9 +70,9 @@ function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles
                     {spreadsheetColumns.map((column, index) => {
                         return (
                             <ImportColumn
-                                key={columnNames[index]}
+                                key={columnNames.at(index)}
                                 column={column}
-                                columnName={columnNames[index]}
+                                columnName={columnNames.at(index) ?? ''}
                                 columnRoles={columnRoles}
                                 columnIndex={index}
                             />
@@ -104,6 +101,6 @@ function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles
     );
 }
 
-ImportSpreeadsheetColumns.displayName = 'ImportSpreeadsheetColumns';
+ImportSpreadsheetColumns.displayName = 'ImportSpreadsheetColumns';
 
-export default ImportSpreeadsheetColumns;
+export default ImportSpreadsheetColumns;

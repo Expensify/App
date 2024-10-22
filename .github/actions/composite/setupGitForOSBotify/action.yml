@@ -20,7 +20,7 @@ runs:
     - name: Set up git for OSBotify
       shell: bash
       run: |
-        git config user.signingkey 367811D53E34168C
+        git config user.signingkey AEE1036472A782AB
         git config commit.gpgsign true
         git config user.name OSBotify
         git config user.email infra+osbotify@expensify.com

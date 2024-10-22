@@ -35,7 +35,7 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
 
 // Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
 jest.spyOn(console, 'debug').mockImplementation((...params: string[]) => {
-    if (params[0].startsWith('Timing:')) {
+    if (params.at(0)?.startsWith('Timing:')) {
         return;
     }
 

@@ -2,6 +2,7 @@ import type {PushPayload} from '@ua/react-native-airship';
 import Airship, {EventType} from '@ua/react-native-airship';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
+import ShortcutManager from '@libs/ShortcutManager';
 import * as PushNotificationActions from '@userActions/PushNotification';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ForegroundNotifications from './ForegroundNotifications';
@@ -139,6 +140,7 @@ const deregister: Deregister = () => {
     Airship.removeAllListeners(EventType.PushReceived);
     Airship.removeAllListeners(EventType.NotificationResponse);
     ForegroundNotifications.disableForegroundNotifications();
+    ShortcutManager.removeAllDynamicShortcuts();
 };
 
 /**

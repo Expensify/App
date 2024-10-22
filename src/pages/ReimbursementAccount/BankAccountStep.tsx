@@ -147,10 +147,10 @@ function BankAccountStep({plaidLinkOAuthToken = '', policyID = '', policyName = 
                                     BankAccounts.openPlaidView();
                                 }}
                                 shouldShowRightIcon
-                                wrapperStyle={[styles.cardMenuItem]}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             />
                         </View>
-                        <View style={styles.mv3}>
+                        <View style={styles.mb3}>
                             <MenuItem
                                 icon={Expensicons.Connect}
                                 title={translate('bankAccount.connectManually')}
@@ -160,7 +160,7 @@ function BankAccountStep({plaidLinkOAuthToken = '', policyID = '', policyName = 
                                     BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
                                 }}
                                 shouldShowRightIcon
-                                wrapperStyle={[styles.cardMenuItem]}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             />
                         </View>
                     </Section>

@@ -24,12 +24,12 @@ function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
 }
 
-function canUseWorkspaceFeeds(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.WORKSPACE_FEEDS) || canUseAllBetas(betas);
-}
-
 function canUseCompanyCardFeeds(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.COMPANY_CARD_FEEDS) || canUseAllBetas(betas);
+}
+
+function canUseDirectFeeds(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.DIRECT_FEEDS) || canUseAllBetas(betas);
 }
 
 function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
@@ -44,9 +44,17 @@ function canUseWorkspaceRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKSPACE_RULES) || canUseAllBetas(betas);
 }
 
+function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
+}
+
 function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
     // We don't need to show this to all betas since this will be used for developing a feature for A/B testing.
     return !!betas?.includes(CONST.BETAS.COMBINED_TRACK_SUBMIT);
+}
+
+function canUseNewDotQBD(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEW_DOT_QBD) || canUseAllBetas(betas);
 }
 
 /**
@@ -62,10 +70,12 @@ export default {
     canUseDupeDetection,
     canUseP2PDistanceRequests,
     canUseSpotnanaTravel,
-    canUseWorkspaceFeeds,
     canUseCompanyCardFeeds,
+    canUseDirectFeeds,
     canUseNetSuiteUSATax,
     canUseNewDotCopilot,
     canUseWorkspaceRules,
     canUseCombinedTrackSubmit,
+    canUseCategoryAndTagApprovers,
+    canUseNewDotQBD,
 };

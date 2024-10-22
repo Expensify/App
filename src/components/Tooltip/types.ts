@@ -40,8 +40,8 @@ type SharedTooltipProps = {
     /** Should render a fullscreen transparent overlay */
     shouldUseOverlay?: boolean;
 
-    /** Callback to fire when the transparent overlay is pressed */
-    onPressOverlay?: () => void;
+    /** Handles what to do when hiding the tooltip */
+    onHideTooltip?: () => void;
 };
 
 type GenericTooltipState = {

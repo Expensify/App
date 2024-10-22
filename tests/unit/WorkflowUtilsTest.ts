@@ -319,11 +319,19 @@ describe('WorkflowUtils', () => {
             const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
 
             const defaultWorkflow = buildWorkflow([2, 3, 4], [1, 3, 4], {isDefault: true});
-            defaultWorkflow.approvers[0].forwardsTo = '3@example.com';
-            defaultWorkflow.approvers[1].forwardsTo = '4@example.com';
+            let firstApprover = defaultWorkflow.approvers.at(0);
+            let secondApprover = defaultWorkflow.approvers.at(1);
+            if (firstApprover && secondApprover) {
+                firstApprover.forwardsTo = '3@example.com';
+                secondApprover.forwardsTo = '4@example.com';
+            }
             const secondWorkflow = buildWorkflow([1], [2, 3, 4]);
-            secondWorkflow.approvers[0].forwardsTo = '3@example.com';
-            secondWorkflow.approvers[1].forwardsTo = '4@example.com';
+            firstApprover = secondWorkflow.approvers.at(0);
+            secondApprover = secondWorkflow.approvers.at(1);
+            if (firstApprover && secondApprover) {
+                firstApprover.forwardsTo = '3@example.com';
+                secondApprover.forwardsTo = '4@example.com';
+            }
 
             expect(approvalWorkflows).toEqual([defaultWorkflow, secondWorkflow]);
         });
@@ -367,8 +375,13 @@ describe('WorkflowUtils', () => {
 
             const defaultWorkflow = buildWorkflow([1, 4, 5, 6], [1], {isDefault: true});
             const secondWorkflow = buildWorkflow([2, 3], [4, 5, 6]);
-            secondWorkflow.approvers[0].forwardsTo = '5@example.com';
-            secondWorkflow.approvers[1].forwardsTo = '6@example.com';
+            const firstApprover = secondWorkflow.approvers.at(0);
+            const secondApprover = secondWorkflow.approvers.at(1);
+
+            if (firstApprover && secondApprover) {
+                firstApprover.forwardsTo = '5@example.com';
+                secondApprover.forwardsTo = '6@example.com';
+            }
             expect(approvalWorkflows).toEqual([defaultWorkflow, secondWorkflow]);
         });
     });

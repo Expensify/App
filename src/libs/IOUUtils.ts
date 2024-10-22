@@ -1,11 +1,20 @@
+import Onyx from 'react-native-onyx';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, Report, Transaction} from '@src/types/onyx';
 import type {IOURequestType} from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
+
+let lastLocationPermissionPrompt: string;
+Onyx.connect({
+    key: ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT,
+    callback: (val) => (lastLocationPermissionPrompt = val ?? ''),
+});
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -116,16 +125,9 @@ function isValidMoneyRequestType(iouType: string): boolean {
         CONST.IOU.TYPE.PAY,
         CONST.IOU.TYPE.TRACK,
         CONST.IOU.TYPE.INVOICE,
+        CONST.IOU.TYPE.CREATE,
     ];
-    return moneyRequestType.includes(iouType);
-}
 
-/**
- * Checks if the iou type is one of submit, pay, track, or split.
- */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function temporary_isValidMoneyRequestType(iouType: string): boolean {
-    const moneyRequestType: string[] = [CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE];
     return moneyRequestType.includes(iouType);
 }
 
@@ -141,7 +143,7 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
     const tagArray = TransactionUtils.getTagArrayFromName(transactionTags);
     tagArray[tagIndex] = tag;
 
-    while (tagArray.length > 0 && !tagArray[tagArray.length - 1]) {
+    while (tagArray.length > 0 && !tagArray.at(-1)) {
         tagArray.pop();
     }
 
@@ -160,6 +162,14 @@ function shouldUseTransactionDraft(action: IOUAction | undefined) {
     return action === CONST.IOU.ACTION.CREATE || isMovingTransactionFromTrackExpense(action);
 }
 
+function shouldStartLocationPermissionFlow() {
+    return (
+        !lastLocationPermissionPrompt ||
+        (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') &&
+            DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS)
+    );
+}
+
 export {
     calculateAmount,
     insertTagIntoTransactionTagsString,
@@ -169,5 +179,5 @@ export {
     isValidMoneyRequestType,
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,
-    temporary_isValidMoneyRequestType,
+    shouldStartLocationPermissionFlow,
 };

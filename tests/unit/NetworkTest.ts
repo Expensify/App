@@ -303,9 +303,9 @@ describe('NetworkTests', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                const response = onResolved.mock.calls[0][0];
+                const response = onResolved.mock.calls.at(0)?.at(0);
                 expect(onResolved).toHaveBeenCalled();
-                expect(response.jsonCode).toBe(CONST.JSON_CODE.UNABLE_TO_RETRY);
+                expect(response?.jsonCode).toBe(CONST.JSON_CODE.UNABLE_TO_RETRY);
             });
     });
 

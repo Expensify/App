@@ -15,7 +15,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
@@ -63,7 +62,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {canUseWorkspaceFeeds, canUseWorkspaceRules, canUseCompanyCardFeeds} = usePermissions();
+    const {canUseWorkspaceRules, canUseCompanyCardFeeds} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -72,6 +71,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
     const policyID = policy?.id;
     const workspaceAccountID = policy?.workspaceAccountID ?? -1;
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID.toString()}`);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
@@ -100,17 +100,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 DistanceRate.enablePolicyDistanceRates(policyID, isEnabled);
             },
         },
-    ];
-
-    // TODO remove this when feature will be fully done, and move spend item inside spendItems array
-    if (canUseWorkspaceFeeds) {
-        spendItems.push({
+        {
             icon: Illustrations.HandCard,
             titleTranslationKey: 'workspace.moreFeatures.expensifyCard.title',
             subtitleTranslationKey: 'workspace.moreFeatures.expensifyCard.subtitle',
             isActive: policy?.areExpensifyCardsEnabled ?? false,
             pendingAction: policy?.pendingFields?.areExpensifyCardsEnabled,
-            disabled: CardUtils.shouldExpensifyCardToggleBeDisabled(policy?.workspaceAccountID, policy?.areExpensifyCardsEnabled),
+            disabled: !isEmptyObject(cardsList),
             action: (isEnabled: boolean) => {
                 if (!policyID) {
                     return;
@@ -120,8 +116,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabledAction: () => {
                 setIsDisableExpensifyCardWarningModalOpen(true);
             },
-        });
-    }
+        },
+    ];
 
     if (canUseCompanyCardFeeds) {
         spendItems.push({
@@ -130,7 +126,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
             isActive: policy?.areCompanyCardsEnabled ?? false,
             pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
-            disabled: !isEmptyObject(cardFeeds?.companyCards),
+            disabled: !isEmptyObject(cardFeeds?.settings?.companyCards),
             action: (isEnabled: boolean) => {
                 if (!policyID) {
                     return;
@@ -409,11 +405,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     title={translate('workspace.common.moreFeatures')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />
-                <Text style={[styles.ph5, styles.mb4, styles.mt3, styles.textSupporting, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    {translate('workspace.moreFeatures.subtitle')}
-                </Text>
 
-                <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
+                <ScrollView contentContainerStyle={styles.pb2}>
+                    <Text style={[styles.ph5, styles.mb4, styles.mt3, styles.textSupporting, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        {translate('workspace.moreFeatures.subtitle')}
+                    </Text>
+                    {sections.map(renderSection)}
+                </ScrollView>
 
                 <ConfirmModal
                     title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}

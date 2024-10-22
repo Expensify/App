@@ -3,7 +3,6 @@ import throttle from 'lodash/throttle';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import {scrollTo} from 'react-native-reanimated';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -114,9 +113,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     const filterEmojis = throttle((searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
 
-        if (emojiListRef.current) {
-            scrollTo(emojiListRef, 0, 0, false);
-        }
+        emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
         if (normalizedSearchTerm === '') {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
             setFilteredEmojis(allEmojis);
@@ -178,13 +175,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 indexToSelect = 0;
             }
 
-            const item = filteredEmojis[indexToSelect];
-            if (!item) {
+            const item = filteredEmojis.at(indexToSelect);
+            if (indexToSelect === -1 || !item) {
                 return;
             }
             if ('types' in item || 'name' in item) {
-                const emoji = typeof preferredSkinTone === 'number' && item?.types?.[preferredSkinTone] ? item?.types?.[preferredSkinTone] : item.code;
-                onEmojiSelected(emoji, item);
+                const emoji = typeof preferredSkinTone === 'number' && preferredSkinTone !== -1 && item?.types?.at(preferredSkinTone) ? item.types.at(preferredSkinTone) : item.code;
+                onEmojiSelected(emoji ?? '', item);
             }
         },
         {shouldPreventDefault: true, shouldStopPropagation: true},
@@ -241,7 +238,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             }
 
             const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-            scrollTo(emojiListRef, 0, calculatedOffset, true);
+            emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
         },
         [emojiListRef],
     );
@@ -269,7 +266,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 );
             }
 
-            const emojiCode = typeof preferredSkinTone === 'number' && types?.[preferredSkinTone] ? types[preferredSkinTone] : code;
+            const emojiCode = typeof preferredSkinTone === 'number' && types?.at(preferredSkinTone) && preferredSkinTone !== -1 ? types.at(preferredSkinTone) : code;
 
             const isEmojiFocused = index === focusedIndex && isUsingKeyboardMovement;
             const shouldEmojiBeHighlighted =
@@ -292,7 +289,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                         }
                         setIsUsingKeyboardMovement(false);
                     }}
-                    emoji={emojiCode}
+                    emoji={emojiCode ?? ''}
                     onFocus={() => setFocusedIndex(index)}
                     isFocused={isEmojiFocused}
                     isHighlighted={shouldFirstEmojiBeHighlighted || shouldEmojiBeHighlighted}

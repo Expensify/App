@@ -6,7 +6,7 @@ import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LoginList} from '@src/types/onyx';
+import type {Account, LoginList, Session} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
@@ -17,11 +17,19 @@ type AvatarSource = IconAsset | string;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
-let currentUserLogin: string | undefined;
+let account: OnyxEntry<Account>;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value ?? {};
+    },
+});
+
+let session: OnyxEntry<Session>;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        currentUserLogin = value?.email;
+        session = value ?? {};
     },
 });
 
@@ -224,6 +232,13 @@ function getSecondaryPhoneLogin(loginList: OnyxEntry<Login>): string | undefined
     return parsedLoginList.find((login) => Str.isValidE164Phone(login));
 }
 
+/**
+ * Gets the contact method
+ */
+function getContactMethod(): string {
+    return account?.primaryLogin ?? session?.email ?? '';
+}
+
 export {
     generateAccountID,
     getAvatar,
@@ -237,5 +252,6 @@ export {
     hasLoginListInfo,
     hashText,
     isDefaultAvatar,
+    getContactMethod,
 };
 export type {AvatarSource, LoginListIndicator};

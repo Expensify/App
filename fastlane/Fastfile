@@ -15,14 +15,14 @@ require 'ostruct'
 skip_docs
 opt_out_usage
 
-KEY_GRADLE_APK_PATH = "gradleAPKOutputPath"
-KEY_GRADLE_AAB_PATH = "gradleAABOutputPath"
+KEY_GRADLE_APK_PATH = "apkPath"
+KEY_S3_APK_PATH = "s3APKPath"
+KEY_GRADLE_AAB_PATH = "aabPath"
 KEY_IPA_PATH = "ipaPath"
 KEY_DSYM_PATH = "dsymPath"
 
-# Export environment variables in the parent shell.
-# In a GitHub Actions environment, it will save the environment variables in the GITHUB_ENV file.
-# In any other environment, it will save them to the current shell environment using the `export` command.
+# Export environment variables to GITHUB_ENV
+# If there's no GITHUB_ENV file set in the env, then this is a no-op
 def exportEnvVars(env_vars)
   github_env_path = ENV['GITHUB_ENV']
   if github_env_path && File.exist?(github_env_path)
@@ -32,13 +32,6 @@ def exportEnvVars(env_vars)
         puts "#{key}=#{value}"
         file.puts "#{key}=#{value}"
       end
-    end
-  else
-    puts "Saving environment variables in parent shell..."
-    env_vars.each do |key, value|
-      puts "#{key}=#{value}"
-      command = "export #{key}=#{value}"
-      system(command)
     end
   end
 end
@@ -102,7 +95,7 @@ platform :android do
     setGradleOutputsInEnv()
   end
 
-  lane :build_e2edelta do
+  lane :build_e2eDelta do
     ENV["ENVFILE"]="tests/e2e/.env.e2edelta"
     ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
     ENV["E2E_TESTING"]="true"
@@ -139,7 +132,10 @@ platform :android do
       apk: ENV[KEY_GRADLE_APK_PATH],
       app_directory: "android/#{ENV['PULL_REQUEST_NUMBER']}",
     )
-    sh("echo '{\"apk_path\": \"#{lane_context[SharedValues::S3_APK_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../android_paths.json")
+    puts "Saving S3 outputs in env..."
+    exportEnvVars({
+      KEY_S3_APK_PATH => lane_context[SharedValues::S3_HTML_OUTPUT_PATH],
+    })
   end
 
   desc "Upload app to Google Play for internal testing"

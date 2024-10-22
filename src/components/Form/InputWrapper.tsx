@@ -76,10 +76,16 @@ function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>(p
     const {registerInput} = useContext(FormContext);
 
     const {shouldSetTouchedOnBlurOnly, blurOnSubmit, shouldSubmitForm} = computeComponentSpecificRegistrationParams(props as InputComponentBaseProps);
+    const {key, ...registerInputProps} = registerInput(inputID, shouldSubmitForm, {ref, valueType, ...rest, shouldSetTouchedOnBlurOnly, blurOnSubmit});
 
-    // TODO: Sometimes we return too many props with register input, so we need to consider if it's better to make the returned type more general and disregard the issue, or we would like to omit the unused props somehow.
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return <InputComponent {...registerInput(inputID, shouldSubmitForm, {ref, valueType, ...rest, shouldSetTouchedOnBlurOnly, blurOnSubmit})} />;
+    return (
+        <InputComponent
+            key={key}
+            // TODO: Sometimes we return too many props with register input, so we need to consider if it's better to make the returned type more general and disregard the issue, or we would like to omit the unused props somehow.
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...registerInputProps}
+        />
+    );
 }
 
 InputWrapper.displayName = 'InputWrapper';
