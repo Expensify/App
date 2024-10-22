@@ -5,17 +5,13 @@ import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReportActionPushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
-import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
-import * as ReportConnection from '@libs/ReportConnection';
-import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PushNotification from '..';
 
 let lastVisitedPath: string | undefined;
@@ -76,9 +72,6 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
     Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
 
     const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
-    const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
 
     Navigation.isNavigationReady()
         .then(Navigation.waitForProtectedRoutes)
@@ -96,10 +89,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                     }
 
                     Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                    if (!reportBelongsToWorkspace) {
-                        Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-                    }
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
+                    Navigation.navigateToReportWithPolicyCheck({reportID: String(reportID), policyIDToCheck: policyID});
                 } catch (error) {
                     let errorMessage = String(error);
                     if (error instanceof Error) {

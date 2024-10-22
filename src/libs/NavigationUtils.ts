@@ -1,7 +1,14 @@
 import cloneDeep from 'lodash/cloneDeep';
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import getTopmostBottomTabRoute from './Navigation/getTopmostBottomTabRoute';
-import type {CentralPaneName, OnboardingFlowName, RootStackParamList, State} from './Navigation/types';
+import type {CentralPaneName, FullScreenName, OnboardingFlowName, RootStackParamList, SplitNavigatorName, State} from './Navigation/types';
+
+const SPLIT_NAVIGATORS = [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR];
+
+const SPLIT_NAVIGATORS_SET = new Set(SPLIT_NAVIGATORS);
+
+const FULL_SCREEN_ROUTES_SET = new Set([...SPLIT_NAVIGATORS, SCREENS.SEARCH.CENTRAL_PANE]);
 
 const CENTRAL_PANE_SCREEN_NAMES = new Set([
     SCREENS.SETTINGS.WORKSPACES,
@@ -49,4 +56,20 @@ function isOnboardingFlowName(screen: string | undefined): screen is OnboardingF
     return ONBOARDING_SCREEN_NAMES.has(screen as OnboardingFlowName);
 }
 
-export {isCentralPaneName, removePolicyIDParamFromState, isOnboardingFlowName};
+function isSplitNavigatorName(screen: string | undefined): screen is SplitNavigatorName {
+    if (!screen) {
+        return false;
+    }
+
+    return SPLIT_NAVIGATORS_SET.has(screen as SplitNavigatorName);
+}
+
+function isFullScreenName(screen: string | undefined): screen is FullScreenName {
+    if (!screen) {
+        return false;
+    }
+
+    return FULL_SCREEN_ROUTES_SET.has(screen as FullScreenName);
+}
+
+export {isCentralPaneName, isFullScreenName, isOnboardingFlowName, isSplitNavigatorName, removePolicyIDParamFromState};

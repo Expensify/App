@@ -8,6 +8,6 @@
  * LHN, we have FlashList rendering in the back while we are on
  * Settings screen.
  */
-const shouldSetScreenBlurred = (navigationIndex: number) => navigationIndex >= 1;
+const shouldSetScreenBlurred = (navigationIndex: number) => navigationIndex > 1;
 
 export default shouldSetScreenBlurred;

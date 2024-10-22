@@ -43,7 +43,7 @@ index 7558eb3..b7bb75e 100644
          }) : STATE_TRANSITIONING_OR_BELOW_TOP;
        }
 +      
-+      const isHomeScreenAndNotOnTop = (route.name === 'BottomTabNavigator' || route.name === 'Workspace_Initial')  && isScreenActive !== STATE_ON_TOP;
++      const isHomeScreenAndNotOnTop = (route.name === 'BottomTabNavigator' || route.name === 'Workspace_Initial' || route.name === 'Home' || route.name === 'Search_Bottom_Tab' || route.name === 'Settings_Root')  && isScreenActive !== STATE_ON_TOP;
 +
        const {
          headerShown = true,

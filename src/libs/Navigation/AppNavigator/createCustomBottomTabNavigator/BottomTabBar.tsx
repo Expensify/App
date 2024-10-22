@@ -23,7 +23,6 @@ import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFl
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import DebugTabView from './DebugTabView';
@@ -79,9 +78,9 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         if (selectedTab === SCREENS.HOME) {
             return;
         }
-        const route = activeWorkspaceID ? (`/w/${activeWorkspaceID}/${ROUTES.HOME}` as Route) : ROUTES.HOME;
-        Navigation.navigate(route);
-    }, [activeWorkspaceID, selectedTab]);
+
+        Navigation.navigate(ROUTES.HOME);
+    }, [selectedTab]);
 
     const navigateToSearch = useCallback(() => {
         if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {
@@ -155,7 +154,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                     <View>
                         <Icon
                             src={Expensicons.MoneySearch}
-                            fill={selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? theme.iconMenu : theme.icon}
+                            fill={selectedTab === SCREENS.SEARCH.CENTRAL_PANE ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
@@ -165,7 +164,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                             styles.textSmall,
                             styles.textAlignCenter,
                             styles.mt1Half,
-                            selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? styles.textBold : styles.textSupporting,
+                            selectedTab === SCREENS.SEARCH.CENTRAL_PANE ? styles.textBold : styles.textSupporting,
                             styles.bottomTabBarLabel,
                         ]}
                     >
