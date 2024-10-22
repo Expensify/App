@@ -1025,6 +1025,8 @@ const translations = {
         bookingArchivedDescription: 'Esta reserva está archivada porque la fecha del viaje ha pasado. Agregue un gasto por el monto final si es necesario.',
         paymentComplete: 'Pago completo',
         justTrackIt: 'Solo guardarlo (no enviarlo)',
+        contactPermissionSQuestion: '¿No encuentras a quien buscas? ¿Quieres importar los contactos de tu agenda telefónica?',
+        goToSettings: 'Ir a configuración',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',

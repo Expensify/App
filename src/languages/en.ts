@@ -1030,6 +1030,8 @@ const translations = {
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
         paymentComplete: 'Payment complete',
         justTrackIt: 'Just track it (don’t submit it)',
+        contactPermissionSQuestion: "Not seeing who you're looking for? Want to import your phonebook contacts",
+        goToSettings: 'Go to settings',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
