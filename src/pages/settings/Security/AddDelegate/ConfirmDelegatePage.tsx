@@ -27,7 +27,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const styles = useThemeStyles();
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
-    const showValidateActionModal = route.params.showValidateActionModal;
+    const showValidateActionModal = route.params.showValidateActionModal === 'true';
     const {isOffline} = useNetwork();
 
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(showValidateActionModal ?? false);
