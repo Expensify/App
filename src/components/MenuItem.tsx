@@ -333,6 +333,9 @@ type MenuItemBaseProps = {
 
     /** Handles what to do when hiding the tooltip */
     onHideTooltip?: () => void;
+    
+    /** Should use auto width for the icon container. */
+    shouldUseAutoWidth?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -432,6 +435,7 @@ function MenuItem(
         renderTooltipContent,
         shouldShowSelectedItemCheck = false,
         onHideTooltip,
+        shouldUseAutoWidth = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -623,10 +627,10 @@ function MenuItem(
                                                         />
                                                     )}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (
-                                                        <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]} />
+                                                        <View style={[styles.popoverMenuIcon, iconStyles, shouldUseAutoWidth ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize)]} />
                                                     )}
                                                     {icon && !Array.isArray(icon) && (
-                                                        <View style={[styles.popoverMenuIcon, iconStyles, styles.widthAuto]}>
+                                                        <View style={[styles.popoverMenuIcon, iconStyles, shouldUseAutoWidth ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize)]}>
                                                             {typeof icon !== 'string' &&
                                                                 iconType === CONST.ICON_TYPE_ICON &&
                                                                 (!shouldShowLoadingSpinnerIcon ? (

@@ -254,6 +254,8 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                             wrapperStyle={styles.sectionMenuItem}
                             focused={index === activeItemIndex}
                             onPress={onPress}
+                            shouldUseAutoWidth={true}
+                            style={styles.pv4}
                         />
                     );
                 })}
