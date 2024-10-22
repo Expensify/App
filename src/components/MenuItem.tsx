@@ -333,7 +333,7 @@ type MenuItemBaseProps = {
 
     /** Handles what to do when hiding the tooltip */
     onHideTooltip?: () => void;
-    
+
     /** Should use auto width for the icon container. */
     shouldUseAutoWidth?: boolean;
 };
