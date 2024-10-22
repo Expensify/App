@@ -11,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import * as PerDiem from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ROUTES from '@src/ROUTES';
@@ -40,6 +41,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
                 return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
                 return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
@@ -67,6 +69,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 Policy.enableCompanyCards(policyID, true);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
+                PerDiem.enablePerDiem(policyID, true);
                 break;
             default:
         }

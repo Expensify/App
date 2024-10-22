@@ -4069,6 +4069,11 @@ const translations = {
                 description: `Rules run in the background and keep your spend under control so you don't have to sweat the small stuff.\n\nRequire expense details like receipts and descriptions, set limits and defaults, and automate approvals and payments – all in one place.`,
                 onlyAvailableOnPlan: 'Rules are only available on the Control plan, starting at ',
             },
+            perDiem: {
+                title: 'Per Diem',
+                description: `Rules run in the background and keep your spend under control so you don't have to sweat the small stuff.\n\nRequire expense details like receipts and descriptions, set limits and defaults, and automate approvals and payments – all in one place.`,
+                onlyAvailableOnPlan: 'Per Diem are only available on the Control plan, starting at ',
+            },
             pricing: {
                 amount: '$9 ',
                 perActiveMember: 'per active member per month.',

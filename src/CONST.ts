@@ -5872,6 +5872,14 @@ const CONST = {
                 description: 'workspace.upgrade.rules.description' as const,
                 icon: 'Rules',
             },
+            perDiem: {
+                id: 'perDiem' as const,
+                alias: 'per-diem',
+                name: 'Per Diem',
+                title: 'workspace.upgrade.perDiem.title' as const,
+                description: 'workspace.upgrade.perDiem.description' as const,
+                icon: 'PerDiem',
+            },
         };
     },
     REPORT_FIELD_TYPES: {
