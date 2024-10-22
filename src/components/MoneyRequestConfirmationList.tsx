@@ -1,6 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -174,14 +173,14 @@ function MoneyRequestConfirmationList({
     shouldPlaySound = true,
     isConfirmed,
 }: MoneyRequestConfirmationListProps) {
-    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
-    const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID ?? -1}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID ?? -1}`);
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? -1}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID ?? -1}`);
+    const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID ?? -1}`, {
         selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
     });
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID ?? -1}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
 
@@ -937,35 +936,4 @@ function MoneyRequestConfirmationList({
 
 MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
 
-export default memo(
-    MoneyRequestConfirmationList,
-    (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
-        prevProps.onSendMoney === nextProps.onSendMoney &&
-        prevProps.onConfirm === nextProps.onConfirm &&
-        prevProps.iouType === nextProps.iouType &&
-        prevProps.iouAmount === nextProps.iouAmount &&
-        prevProps.isDistanceRequest === nextProps.isDistanceRequest &&
-        prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
-        prevProps.iouCategory === nextProps.iouCategory &&
-        prevProps.shouldShowSmartScanFields === nextProps.shouldShowSmartScanFields &&
-        prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
-        prevProps.iouCurrencyCode === nextProps.iouCurrencyCode &&
-        prevProps.iouMerchant === nextProps.iouMerchant &&
-        lodashIsEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
-        lodashIsEqual(prevProps.payeePersonalDetails, nextProps.payeePersonalDetails) &&
-        prevProps.isReadOnly === nextProps.isReadOnly &&
-        prevProps.bankAccountRoute === nextProps.bankAccountRoute &&
-        prevProps.policyID === nextProps.policyID &&
-        prevProps.reportID === nextProps.reportID &&
-        prevProps.receiptPath === nextProps.receiptPath &&
-        prevProps.iouComment === nextProps.iouComment &&
-        prevProps.receiptFilename === nextProps.receiptFilename &&
-        prevProps.iouCreated === nextProps.iouCreated &&
-        prevProps.iouIsBillable === nextProps.iouIsBillable &&
-        prevProps.onToggleBillable === nextProps.onToggleBillable &&
-        prevProps.hasSmartScanFailed === nextProps.hasSmartScanFailed &&
-        prevProps.reportActionID === nextProps.reportActionID &&
-        lodashIsEqual(prevProps.action, nextProps.action) &&
-        prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt,
-);
+export default MoneyRequestConfirmationList;
