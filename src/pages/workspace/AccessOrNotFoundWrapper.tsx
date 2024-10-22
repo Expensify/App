@@ -17,6 +17,7 @@ import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
@@ -148,7 +149,7 @@ function AccessOrNotFoundWrapper({
         return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType);
     }, true);
 
-    const isPolicyNotAccessible = isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors)) || !policy?.id;
+    const isPolicyNotAccessible = !PolicyUtils.isPolicyAccessible(policy);
     const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !isPolicyFeatureEnabled || shouldBeBlocked;
 
     // We only update the feature state if it isn't pending.
@@ -162,6 +163,13 @@ function AccessOrNotFoundWrapper({
     }, [pendingField, isOffline, isFeatureEnabled]);
 
     const childrenProps = useMemo(() => ({report, policy, isLoadingReportData}), [report, policy, isLoadingReportData]);
+
+    useEffect(() => {
+        if (isLoadingReportData || !isPolicyNotAccessible) {
+            return;
+        }
+        Navigation.removeScreenFromNavigationState(SCREENS.WORKSPACE.INITIAL);
+    }, [isLoadingReportData, isPolicyNotAccessible]);
 
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;
