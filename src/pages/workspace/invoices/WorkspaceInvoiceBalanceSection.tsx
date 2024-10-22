@@ -23,6 +23,7 @@ function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSecti
             isCentralPane
             titleStyles={styles.accountSettingsSectionTitle}
             childrenStyles={styles.pt5}
+            subtitleMuted
         >
             <Balance balance={policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0} />
         </Section>
