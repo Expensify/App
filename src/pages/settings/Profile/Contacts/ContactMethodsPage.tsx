@@ -38,6 +38,11 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const {delegatorEmail} = useDelegateUserDetails();
 
+    const filteredLoginNames = loginNames.filter((loginName) => {
+        const login = loginList?.[loginName];
+        return login?.partnerUserID === session?.email;
+    });
+
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
     // The default contact method is determined by checking against the session email (the current login).
     const sortedLoginNames = loginNames.sort((loginName) => (loginList?.[loginName].partnerUserID === session?.email ? -1 : 1));
@@ -59,7 +64,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         } else if (!login?.validatedDate && !isDefaultContactMethod) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
-        } else if (!login?.validatedDate && isDefaultContactMethod && sortedLoginNames.length > 1) {
+        } else if (!login?.validatedDate && isDefaultContactMethod && filteredLoginNames.length > 1) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
 

@@ -67,8 +67,9 @@ function hasLoginListInfo(loginList: OnyxEntry<LoginList>): boolean {
     const filteredLoginList = Object.values(loginList ?? {}).filter((login) => {
         return session?.email !== login.partnerUserID;
     });
+
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return !!filteredLoginList.length && filteredLoginList.every((field) => field.validatedDate || session?.email === field.partnerUserID);
+    return !!filteredLoginList.length && !filteredLoginList.every((field) => field.validatedDate);
 }
 
 /**
