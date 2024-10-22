@@ -28,9 +28,8 @@ function WorkspaceInvoicingDetailsSection({policyID}: WorkspaceInvoicingDetailsS
             subtitle={translate('workspace.invoices.invoicingDetailsDescription')}
             containerStyles={[styles.ph0, shouldUseNarrowLayout ? styles.pt5 : styles.pt8]}
             subtitleStyles={horizontalPadding}
-            titleStyles={[styles.textStrong, horizontalPadding]}
+            titleStyles={[styles.accountSettingsSectionTitle, horizontalPadding]}
             childrenStyles={styles.pt5}
-            subtitleMuted
         >
             <MenuItemWithTopDescription
                 key={translate('workspace.invoices.companyName')}

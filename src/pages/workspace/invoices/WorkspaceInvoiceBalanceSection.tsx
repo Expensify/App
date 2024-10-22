@@ -21,9 +21,8 @@ function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSecti
             title={translate('workspace.invoices.invoiceBalance')}
             subtitle={translate('workspace.invoices.invoiceBalanceSubtitle')}
             isCentralPane
-            titleStyles={styles.textStrong}
+            titleStyles={styles.accountSettingsSectionTitle}
             childrenStyles={styles.pt5}
-            subtitleMuted
         >
             <Balance balance={policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0} />
         </Section>
