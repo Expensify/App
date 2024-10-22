@@ -7,6 +7,8 @@ const ReactCompilerConfig = {
     environment: {
         enableTreatRefLikeIdentifiersAsRefs: true,
     },
+    // We exclude 'tests' directory from compilation, but still compile components imported in test files.
+    sources: (filename) => !filename.includes('tests/'),
 };
 /**
  * Setting targets to node 20 to reduce JS bundle size
@@ -52,6 +54,7 @@ const webpack = {
 const metro = {
     presets: [require('@react-native/babel-preset')],
     plugins: [
+        ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
         // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
         // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
         '@babel/plugin-transform-flow-strip-types',
@@ -153,12 +156,6 @@ module.exports = (api) => {
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
     const runningIn = api.caller((args = {}) => args.name);
     console.debug('  - running in: ', runningIn);
-
-    // don't include react-compiler in jest, because otherwise tests will fail
-    if (runningIn !== 'babel-jest') {
-        // must run first!
-        metro.plugins.unshift(['babel-plugin-react-compiler', ReactCompilerConfig]);
-    }
 
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };
