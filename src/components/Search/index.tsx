@@ -1,4 +1,4 @@
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -21,6 +21,7 @@ import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
+import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
@@ -88,8 +89,11 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
+    const isFocused = useIsFocused();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading, lastSearchType, setLastSearchType} =
         useSearchContext();
@@ -245,6 +249,17 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
         }
         turnOffMobileSelectionMode();
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
+
+    useEffect(
+        () => () => {
+            if (isSearchTopmostCentralPane()) {
+                return;
+            }
+            clearSelectedTransactions();
+            turnOffMobileSelectionMode();
+        },
+        [isFocused, clearSelectedTransactions],
+    );
 
     if (shouldShowLoadingState) {
         return (
@@ -439,7 +454,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                     />
                 ) : undefined
             }
-            contentContainerStyle={contentContainerStyle}
+            contentContainerStyle={[contentContainerStyle, styles.pb3]}
             scrollEventThrottle={1}
         />
     );

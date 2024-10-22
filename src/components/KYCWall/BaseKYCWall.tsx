@@ -1,8 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, GestureResponderEvent, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import * as BankAccounts from '@libs/actions/BankAccounts';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
@@ -16,32 +15,12 @@ import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccountList, FundList, ReimbursementAccount, UserWallet, WalletTerms} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import viewRef from '@src/types/utils/viewRef';
 import type {AnchorPosition, DomRect, KYCWallProps, PaymentMethod} from './types';
 
 // This sets the Horizontal anchor position offset for POPOVER MENU.
 const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
-
-type BaseKYCWallOnyxProps = {
-    /** The user's wallet */
-    userWallet: OnyxEntry<UserWallet>;
-
-    /** Information related to the last step of the wallet activation flow */
-    walletTerms: OnyxEntry<WalletTerms>;
-
-    /** List of user's cards */
-    fundList: OnyxEntry<FundList>;
-
-    /** List of bank accounts */
-    bankAccountList: OnyxEntry<BankAccountList>;
-
-    /** The reimbursement account linked to the Workspace */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-};
-
-type BaseKYCWallProps = KYCWallProps & BaseKYCWallOnyxProps;
 
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
@@ -53,22 +32,23 @@ function KYCWall({
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
-    bankAccountList = {},
     chatReportID = '',
     children,
     enablePaymentsRoute,
-    fundList,
     iouReport,
     onSelectPaymentMethod = () => {},
     onSuccessfulKYC,
-    reimbursementAccount,
     shouldIncludeDebitCard = true,
     shouldListenForResize = false,
     source,
-    userWallet,
-    walletTerms,
     shouldShowPersonalBankAccountOption = false,
-}: BaseKYCWallProps) {
+}: KYCWallProps) {
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+
     const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
@@ -270,21 +250,4 @@ function KYCWall({
 
 KYCWall.displayName = 'BaseKYCWall';
 
-export default withOnyx<BaseKYCWallProps, BaseKYCWallOnyxProps>({
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-    walletTerms: {
-        key: ONYXKEYS.WALLET_TERMS,
-    },
-    fundList: {
-        key: ONYXKEYS.FUND_LIST,
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-})(KYCWall);
+export default KYCWall;
