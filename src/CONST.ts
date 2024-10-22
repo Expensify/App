@@ -5937,13 +5937,14 @@ const CONST = {
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
-        HAS_SYNC_ERRORS: 'hasSyncError',
+        HASINDICATOR_STATUS_SYNC_ERRORS: 'hasSyncError',
         HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
         HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
         HAS_LOGIN_LIST_ERROR: 'hasLoginListError',
         HAS_WALLET_TERMS_ERRORS: 'hasWalletTermsErrors',
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
+        HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
     },
 
     DEBUG: {

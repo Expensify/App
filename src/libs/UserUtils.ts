@@ -94,7 +94,6 @@ function getProfilePageBrickRoadIndicator(loginList: OnyxEntry<LoginList>, priva
     return undefined;
 }
 
-
 /**
  * Hashes provided string and returns a value between [0, range)
  */
