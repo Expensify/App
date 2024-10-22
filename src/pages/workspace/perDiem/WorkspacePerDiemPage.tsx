@@ -400,6 +400,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                                     // Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
                                     Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyID));
                                 },
+                                success: true,
                             },
                         ]}
                     />
