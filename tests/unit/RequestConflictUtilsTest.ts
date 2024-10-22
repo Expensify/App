@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {resolveCommentDeletionConflicts, resolveDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
+import {resolveCommentDeletionConflicts, resolveDuplicationConflictAction, resolveEditCommentWithNewAddCommentRequest} from '@libs/actions/RequestConflictUtils';
 import type {WriteCommand} from '@libs/API/types';
 
 describe('RequestConflictUtils', () => {
@@ -65,4 +65,45 @@ describe('RequestConflictUtils', () => {
             expect(result).toEqual({conflictAction: {type: 'delete', indices: [0], pushNewRequest: true}});
         },
     );
+
+    it('resolveEditCommentWithNewAddCommentRequest should return delete and replace when update comment are found and new comment is added', () => {
+        const reportActionID = '2';
+        const persistedRequests = [
+            {command: 'AddComment', data: {reportActionID, reportComment: 'test'}},
+            {command: 'UpdateComment', data: {reportActionID, reportComment: 'test edit'}},
+            {command: 'UpdateComment', data: {reportActionID, reportComment: 'test edit edit'}},
+            {command: 'CloseAccount'},
+            {command: 'OpenReport'},
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'new edit comment'};
+        const addCommentIndex = 0;
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'delete',
+                indices: [1, 2],
+                pushNewRequest: false,
+                nextAction: {
+                    type: 'replace',
+                    index: addCommentIndex,
+                    request: {command: 'AddComment', data: {reportID: '1', reportActionID, reportComment: 'new edit comment'}},
+                },
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should only replace the add comment with the update comment text when no other update comments are found', () => {
+        const reportActionID = '2';
+        const persistedRequests = [{command: 'AddComment', data: {reportActionID, reportComment: 'test'}}, {command: 'CloseAccount'}, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'new edit comment'};
+        const addCommentIndex = 0;
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: addCommentIndex,
+                request: {command: 'AddComment', data: {reportID: '1', reportActionID, reportComment: 'new edit comment'}},
+            },
+        });
+    });
 });

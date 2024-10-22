@@ -8,6 +8,7 @@ import * as QueuedOnyxUpdates from '@userActions/QueuedOnyxUpdates';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
+import {ConflictActionData, ConflictData} from '@src/types/onyx/Request';
 import * as NetworkStore from './NetworkStore';
 
 type RequestError = Error & {
@@ -204,6 +205,24 @@ function isPaused(): boolean {
 // Flush the queue when the connection resumes
 NetworkStore.onReconnection(flush);
 
+function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxRequest) {
+    if (conflictAction.type === 'push') {
+        PersistedRequests.save(newRequest);
+    } else if (conflictAction.type === 'replace') {
+        PersistedRequests.update(conflictAction.index, conflictAction.request ?? newRequest);
+    } else if (conflictAction.type === 'delete') {
+        PersistedRequests.deleteRequestsByIndices(conflictAction.indices);
+        if (conflictAction.pushNewRequest) {
+            PersistedRequests.save(newRequest);
+        }
+        if (conflictAction.nextAction) {
+            handleConflictActions(conflictAction.nextAction, newRequest);
+        }
+    } else {
+        Log.info(`[SequentialQueue] No action performed to command ${newRequest.command} and it will be ignored.`);
+    }
+}
+
 function push(newRequest: OnyxRequest) {
     const {checkAndFixConflictingRequest} = newRequest;
 
@@ -215,19 +234,7 @@ function push(newRequest: OnyxRequest) {
         // don't try to serialize a function.
         // eslint-disable-next-line no-param-reassign
         delete newRequest.checkAndFixConflictingRequest;
-
-        if (conflictAction.type === 'push') {
-            PersistedRequests.save(newRequest);
-        } else if (conflictAction.type === 'replace') {
-            PersistedRequests.update(conflictAction.index, newRequest);
-        } else if (conflictAction.type === 'delete') {
-            PersistedRequests.deleteRequestsByIndices(conflictAction.indices);
-            if (conflictAction.pushNewRequest) {
-                PersistedRequests.save(newRequest);
-            }
-        } else {
-            Log.info(`[SequentialQueue] No action performed to command ${newRequest.command} and it will be ignored.`);
-        }
+        handleConflictActions(conflictAction, newRequest);
     } else {
         // Add request to Persisted Requests so that it can be retried if it fails
         PersistedRequests.save(newRequest);

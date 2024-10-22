@@ -1,5 +1,6 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {UpdateCommentParams} from '@libs/API/parameters';
 import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -98,4 +99,40 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
     };
 }
 
-export {resolveDuplicationConflictAction, resolveCommentDeletionConflicts};
+function resolveEditCommentWithNewAddCommentRequest(persistedRequests: OnyxRequest[], parameters: UpdateCommentParams, reportActionID: string, addCommentIndex: number): ConflictActionData {
+    const indicesToDelete: number[] = [];
+    persistedRequests.forEach((request, index) => {
+        if (request.command !== WRITE_COMMANDS.UPDATE_COMMENT || request.data?.reportActionID !== reportActionID) {
+            return;
+        }
+        indicesToDelete.push(index);
+    });
+
+    const currentAddComment = persistedRequests.at(addCommentIndex);
+    let nextAction = null;
+    if (currentAddComment) {
+        currentAddComment.data = {...currentAddComment.data, ...parameters};
+        nextAction = {
+            type: 'replace',
+            index: addCommentIndex,
+            request: currentAddComment,
+        };
+
+        if (indicesToDelete.length === 0) {
+            return {
+                conflictAction: nextAction,
+            } as ConflictActionData;
+        }
+    }
+
+    return {
+        conflictAction: {
+            type: 'delete',
+            indices: indicesToDelete,
+            pushNewRequest: false,
+            nextAction,
+        },
+    } as ConflictActionData;
+}
+
+export {resolveDuplicationConflictAction, resolveCommentDeletionConflicts, resolveEditCommentWithNewAddCommentRequest};

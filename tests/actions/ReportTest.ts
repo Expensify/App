@@ -787,7 +787,7 @@ describe('actions/Report', () => {
                     Onyx.disconnect(connection);
 
                     expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
-                    expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
+                    expect(persistedRequests?.at(1)?.command).toBeUndefined();
 
                     resolve();
                 },
@@ -1281,5 +1281,48 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
+    });
+
+    it('should update AddComment text with the UpdateComment text, sending just an AddComment request', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        const TEST_USER_ACCOUNT_ID = 1;
+        const REPORT_ID = '1';
+        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
+        const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
+
+        Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        Report.addComment(REPORT_ID, 'Testing a comment');
+        // Need the reportActionID to delete the comments
+        const newComment = PersistedRequests.getAll().at(0);
+        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
+        const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
+        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
+
+        await waitForBatchedUpdates();
+
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.PERSISTED_REQUESTS,
+                callback: (persistedRequests) => {
+                    Onyx.disconnect(connection);
+
+                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
+
+                    resolve();
+                },
+            });
+        });
+
+        await waitForBatchedUpdates();
+        expect(PersistedRequests.getAll().length).toBe(1);
+
+        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+
+        // Checking no requests were or will be made
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
     });
 });

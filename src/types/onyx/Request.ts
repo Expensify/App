@@ -56,6 +56,11 @@ type RequestData = {
 };
 
 /**
+ * Represents the possible actions to take in case of a conflict in the request queue.
+ */
+type ConflictData = ConflictRequestReplace | ConflictRequestDelete | ConflictRequestPush | ConflictRequestNoAction;
+
+/**
  * Model of a conflict request that has to be replaced in the request queue.
  */
 type ConflictRequestReplace = {
@@ -68,6 +73,11 @@ type ConflictRequestReplace = {
      * The index of the request in the queue to update.
      */
     index: number;
+
+    /**
+     * The new request to replace the existing request in the queue.
+     */
+    request?: Request;
 };
 
 /**
@@ -88,6 +98,11 @@ type ConflictRequestDelete = {
      * A flag to mark if the new request should be pushed into the queue after deleting the conflicting requests.
      */
     pushNewRequest: boolean;
+
+    /**
+     * The next action to execute after the current conflict is resolved.
+     */
+    nextAction?: ConflictData;
 };
 
 /**
@@ -117,7 +132,7 @@ type ConflictActionData = {
     /**
      * The action to take in case of a conflict.
      */
-    conflictAction: ConflictRequestReplace | ConflictRequestDelete | ConflictRequestPush | ConflictRequestNoAction;
+    conflictAction: ConflictData;
 };
 
 /**
@@ -167,4 +182,4 @@ type PaginatedRequest = Request &
     };
 
 export default Request;
-export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, ConflictActionData};
+export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, ConflictActionData, ConflictData};
