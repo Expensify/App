@@ -59,7 +59,7 @@ type QueryFilter = {
 type AdvancedFiltersKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 
 type QueryFilters = Array<{
-    key: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
+    key: AdvancedFiltersKeys;
     filters: QueryFilter[];
 }>;
 

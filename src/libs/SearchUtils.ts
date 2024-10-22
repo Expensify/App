@@ -1,7 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {AdvancedFiltersKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
+import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
@@ -18,6 +18,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {validateAmount} from './MoneyRequestUtils';
 import Navigation from './Navigation/Navigation';
@@ -416,18 +417,14 @@ function getQueryHash(query: SearchQueryJSON): number {
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
 
-    Object.keys(query.flatFilters)
+    query.flatFilters.forEach((filter) => {
+        filter.filters.sort((a, b) => localeCompare(a.value.toString(), b.value.toString()));
+    });
+
+    query.flatFilters
+        .map((filter) => buildFilterString(filter.key, filter.filters))
         .sort()
-        .forEach((key) => {
-            const filterValues = query.flatFilters?.[key as AdvancedFiltersKeys];
-            const sortedFilterValues = filterValues?.sort((queryFilter1, queryFilter2) => {
-                if (queryFilter1.value > queryFilter2.value) {
-                    return 1;
-                }
-                return -1;
-            });
-            orderedQuery += ` ${buildFilterString(key, sortedFilterValues ?? [])}`;
-        });
+        .forEach((filterString) => (orderedQuery += ` ${filterString}`));
 
     return UserUtils.hashText(orderedQuery, 2 ** 32);
 }
