@@ -5,7 +5,7 @@ import * as SearchUtils from '@libs/SearchUtils';
 import type {BaseListItemProps, BaseSelectionListProps, ListItem} from './types';
 
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
-    Pick<BaseSelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
+    Pick<BaseSelectionListProps<TItem>, 'ListItem' | 'shouldHighlightSelectedItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
         index: number;
         selectRow: (item: TItem, indexToFocus?: number) => void;
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
@@ -35,6 +35,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     setFocusedIndex,
     normalizedIndex,
     shouldSyncFocus,
+    shouldHighlightSelectedItem,
     wrapperStyle,
     singleExecution,
 }: BaseSelectionListItemRendererProps<TItem>) {
@@ -79,6 +80,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                     setFocusedIndex(normalizedIndex);
                 }}
                 shouldSyncFocus={shouldSyncFocus}
+                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 wrapperStyle={wrapperStyle}
             />
             {item.footerContent && item.footerContent}

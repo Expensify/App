@@ -118,8 +118,6 @@ jest.mock('@react-navigation/native', () => {
         useFocusEffect: jest.fn(),
         useIsFocused: () => true,
         useRoute: () => jest.fn(),
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        UNSTABLE_usePreventRemove: () => jest.fn(),
         useNavigation: () => ({
             navigate: jest.fn(),
             addListener: () => jest.fn(),
@@ -233,6 +231,7 @@ test('[ReportScreen] should render ReportScreen', async () => {
         ...reportCollectionDataSet,
         ...reportActionsCollectionDataSet,
     });
+
     await measureRenders(
         <ReportScreenWrapper
             navigation={navigation}
@@ -312,6 +311,7 @@ test('[ReportScreen] should render report list', async () => {
         ...reportCollectionDataSet,
         ...reportActionsCollectionDataSet,
     });
+
     await measureRenders(
         <ReportScreenWrapper
             navigation={navigation}
