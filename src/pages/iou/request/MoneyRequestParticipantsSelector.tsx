@@ -1,9 +1,10 @@
 import lodashIsEqual from 'lodash/isEqual';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {ContactsNitroModule} from '@modules/ContactsNitroModule/src';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -26,6 +27,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {getAvatarForContact} from '@libs/RandomAvatarUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Policy from '@userActions/Policy/Policy';
@@ -35,6 +37,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
+import {requestContactPermission} from './ContactPermission';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -191,6 +194,7 @@ function MoneyRequestParticipantsSelector({
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, canUseP2PDistanceRequests, iouRequestType, isCategorizeOrShareAction, action]);
 
+    const [contacts, setContacts] = useState<ReportUtils.OptionData[]>([]);
     /**
      * Returns the sections needed for the OptionsSelector
      * @returns {Array}
@@ -218,10 +222,11 @@ function MoneyRequestParticipantsSelector({
             shouldShow: chatOptions.recentReports.length > 0,
         });
 
+        const contactData: ReportUtils.OptionData[] = contacts.concat(chatOptions.personalDetails);
         newSections.push({
             title: translate('common.contacts'),
-            data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0,
+            data: contactData,
+            shouldShow: contactData.length > 0,
         });
 
         if (
@@ -257,7 +262,30 @@ function MoneyRequestParticipantsSelector({
         personalDetails,
         translate,
         cleanSearchTerm,
+        contacts,
     ]);
+
+    useEffect(() => {
+        requestContactPermission().then((response) => {
+
+            if (response === 'granted') {
+                const startTime = performance.now();
+                ContactsNitroModule.getAll(['FIRST_NAME', 'LAST_NAME', 'PHONE_NUMBERS', 'EMAIL_ADDRESSES', 'IMAGE_DATA'])
+                    .then((deviceContacts) => {
+                        setContacts(
+                            deviceContacts.map((contact) => ({
+                                text: `${contact?.firstName} ${contact?.lastName}`,
+                                alternateText: `${contact?.emailAddresses?.[0]?.value}`,
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                icons: [{source: contact?.imageData || getAvatarForContact(`${contact?.firstName}${contact?.lastName}`), type: 'avatar'}],
+                                reportID: '',
+                            })),
+                        );
+                    })
+                    .catch((error) => {});
+            }
+        });
+    }, []);
 
     /**
      * Adds a single participant to the expense
