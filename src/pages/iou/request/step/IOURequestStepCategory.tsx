@@ -47,7 +47,6 @@ function IOURequestStepCategory({
 
     const policyIDForReal = IOU.getIOURequestPolicyID(transaction, reportReal ?? reportDraft);
     const policyIDForDraft = IOU.getIOURequestPolicyID(transaction, reportDraft);
-
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyIDForReal}`);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyIDForDraft}`);
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyIDForReal}`);
