@@ -55,13 +55,17 @@ function IOURequestStepConfirmation({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
-    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
+    const policyIDForReal = IOU.getIOURequestPolicyID(transaction, reportReal ?? reportDraft);
+    const policyIDForDraft = IOU.getIOURequestPolicyID(transaction, reportDraft);
+
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyIDForReal}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyIDForDraft}`);
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyIDForReal}`);
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyIDForDraft}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyIDForReal}`);
 
     const report = reportReal ?? reportDraft;
+    // Check if the real policy exists for either reportReal or reportDraft
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
@@ -89,11 +93,11 @@ function IOURequestStepConfirmation({
     const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
     const payeePersonalDetails = useMemo(() => {
-        if (personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1]) {
-            return personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1];
+        if (personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1]) {
+            return personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1];
         }
 
-        const participant = transaction?.participants?.find((val) => val.accountID === (transaction?.splitPayerAccountIDs?.[0] ?? -1));
+        const participant = transaction?.participants?.find((val) => val.accountID === (transaction?.splitPayerAccountIDs?.at(0) ?? -1));
 
         return {
             login: participant?.login ?? '',
@@ -346,6 +350,7 @@ function IOURequestStepConfirmation({
                 currentUserPersonalDetails.accountID,
                 transaction.splitShares,
                 iouType,
+                transaction,
             );
         },
         [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],
