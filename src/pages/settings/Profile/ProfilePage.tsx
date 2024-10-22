@@ -40,7 +40,7 @@ function ProfilePage() {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    
+
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const getPronouns = (): string => {
