@@ -48,7 +48,7 @@ function getAllReportsLength() {
     return Object.keys(allReports ?? {}).length;
 }
 
-function updateReportLastReadTime(reportID: string, lastReadTime?: string) {
+function updateReportData(reportID: string, reportData?: Partial<Report>) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!allReports || !report || !report.reportID) {
@@ -57,7 +57,7 @@ function updateReportLastReadTime(reportID: string, lastReadTime?: string) {
 
     allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
         ...report,
-        lastReadTime,
+        ...reportData,
     };
 }
-export {getAllReports, getAllReportsNameMap, getAllReportsLength, updateReportLastReadTime};
+export {getAllReports, getAllReportsNameMap, getAllReportsLength, updateReportData};
