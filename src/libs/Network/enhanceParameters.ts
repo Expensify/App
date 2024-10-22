@@ -27,7 +27,7 @@ Onyx.connect({
     callback: (val) => {
         delegate = val?.delegatedAccess?.delegate ?? '';
     },
-})
+});
 
 /**
  * Does this command require an authToken?
