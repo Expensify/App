@@ -38,17 +38,9 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const {delegatorEmail} = useDelegateUserDetails();
 
-    const filteredLoginNames = loginNames.filter((loginName) => {
-        const login = loginList?.[loginName];
-        const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin ?? undefined;
-
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return login?.partnerUserID || pendingAction;
-    });
-
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
     // The default contact method is determined by checking against the session email (the current login).
-    const sortedLoginNames = filteredLoginNames.sort((loginName) => (loginList?.[loginName].partnerUserID === session?.email ? -1 : 1));
+    const sortedLoginNames = loginNames.sort((loginName) => (loginList?.[loginName].partnerUserID === session?.email ? -1 : 1));
     const loginMenuItems = sortedLoginNames.map((loginName) => {
         const login = loginList?.[loginName];
         const isDefaultContactMethod = session?.email === login?.partnerUserID;
