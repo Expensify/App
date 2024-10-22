@@ -33,7 +33,16 @@ function PhoneNumberPage() {
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
     const updatePhoneNumber = (values: PrivatePersonalDetails) => {
-        PersonalDetails.updatePhoneNumber(values?.phoneNumber ?? '', currenPhoneNumber);
+        // Clear the error when the user tries to submit the form
+        if (validateLoginError) {
+            PersonalDetails.clearPhoneNumberError();
+        }
+
+        // Only call the API if the user has changed their phone number
+        if (phoneNumber !== values?.phoneNumber) {
+            PersonalDetails.updatePhoneNumber(values?.phoneNumber ?? '', currenPhoneNumber);
+        }
+
         Navigation.goBack();
     };
 
