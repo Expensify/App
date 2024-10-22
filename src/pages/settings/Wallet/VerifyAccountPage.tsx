@@ -1,8 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
-import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -10,7 +10,6 @@ import * as User from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import ValidateCodeActionModal from "@components/ValidateCodeActionModal";
 
 type VerifyAccountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
@@ -56,7 +55,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             title={translate('contacts.validateAccount')}
             description={translate('contacts.featureRequiresValidate')}
             onClose={() => {
-                setIsValidateCodeActionModalVisible(false)
+                setIsValidateCodeActionModalVisible(false);
                 if (!isUserValidated) {
                     Navigation.navigate(ROUTES.SETTINGS_WALLET);
                 }
