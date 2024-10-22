@@ -2,18 +2,23 @@ import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type SavedSearchItemThreeDotMenuProps = {
     menuItems: PopoverMenuItem[];
+    isDisabledItem: boolean;
 };
 
-function SavedSearchItemThreeDotMenu({menuItems}: SavedSearchItemThreeDotMenuProps) {
+function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem}: SavedSearchItemThreeDotMenuProps) {
     const threeDotsMenuContainerRef = useRef<View>(null);
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState({horizontal: 0, vertical: 0});
-
+    const styles = useThemeStyles();
     return (
-        <View ref={threeDotsMenuContainerRef}>
+        <View
+            ref={threeDotsMenuContainerRef}
+            style={[isDisabledItem && styles.pointerEventsNone]}
+        >
             <ThreeDotsMenu
                 menuItems={menuItems}
                 onIconPress={() => {

@@ -232,26 +232,31 @@ function AvatarWithImagePicker({
                 return;
             }
 
-            isValidResolution(image).then((isValid) => {
-                if (!isValid) {
-                    setError('avatarWithImagePicker.resolutionConstraints', {
-                        minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
-                        minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
-                        maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
-                        maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
-                    });
-                    return;
-                }
+            FileUtils.validateImageForCorruption(image)
+                .then(() => isValidResolution(image))
+                .then((isValid) => {
+                    if (!isValid) {
+                        setError('avatarWithImagePicker.resolutionConstraints', {
+                            minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
+                            minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
+                            maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
+                            maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
+                        });
+                        return;
+                    }
 
-                setIsAvatarCropModalOpen(true);
-                setError(null, {});
-                setIsMenuVisible(false);
-                setImageData({
-                    uri: image.uri ?? '',
-                    name: image.name ?? '',
-                    type: image.type ?? '',
+                    setIsAvatarCropModalOpen(true);
+                    setError(null, {});
+                    setIsMenuVisible(false);
+                    setImageData({
+                        uri: image.uri ?? '',
+                        name: image.name ?? '',
+                        type: image.type ?? '',
+                    });
+                })
+                .catch(() => {
+                    setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
                 });
-            });
         },
         [isValidExtension, isValidSize],
     );
@@ -339,7 +344,11 @@ function AvatarWithImagePicker({
                     maybeIcon={isUsingDefaultAvatar}
                 >
                     {({show}) => (
-                        <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
+                        <AttachmentPicker
+                            type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
+                            // We need to skip the validation in AttachmentPicker because it is handled in this component itself
+                            shouldValidateImage={false}
+                        >
                             {({openPicker}) => {
                                 const menuItems = createMenuItems(openPicker);
 
@@ -383,7 +392,7 @@ function AvatarWithImagePicker({
                                                         {source ? (
                                                             <Avatar
                                                                 containerStyles={avatarStyle}
-                                                                imageStyles={[avatarStyle, styles.alignSelfCenter]}
+                                                                imageStyles={[styles.alignSelfCenter, avatarStyle]}
                                                                 source={source}
                                                                 avatarID={avatarID}
                                                                 fallbackIcon={fallbackIcon}

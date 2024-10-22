@@ -161,8 +161,9 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
 
     const columnValuesString = column.slice(containsHeader ? 1 : 0).join(', ');
 
-    const colName = findColumnName(column[0]);
+    const colName = findColumnName(column.at(0) ?? '');
     const defaultSelectedIndex = columnRoles.findIndex((item) => item.value === colName);
+    const finalIndex = defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0;
 
     useEffect(() => {
         if (defaultSelectedIndex === -1) {
@@ -172,7 +173,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
-    const columnHeader = containsHeader ? column[0] : translate('spreadsheet.column', columnName);
+    const columnHeader = containsHeader ? column.at(0) : translate('spreadsheet.column', {name: columnName});
 
     return (
         <View style={[styles.importColumnCard, styles.mt4]}>
@@ -201,7 +202,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
                         onOptionSelected={(option) => {
                             setColumnName(columnIndex, option.value);
                         }}
-                        defaultSelectedIndex={defaultSelectedIndex}
+                        defaultSelectedIndex={finalIndex}
                         options={options}
                     />
                 </View>

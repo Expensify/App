@@ -13,6 +13,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -37,7 +38,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {translate} = useLocalize();
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, orderWeight), [policyTags, orderWeight]);
     const policy = usePolicy(policyID);
-
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const {canUseCategoryAndTagApprovers} = usePermissions();
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
 
     const currentPolicyTag = policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
@@ -146,11 +148,13 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             title={currentPolicyTag['GL Code']}
                             description={translate(`workspace.tags.glCode`)}
                             onPress={navigateToEditGlCode}
+                            iconRight={hasAccountingConnections ? Expensicons.Lock : undefined}
+                            interactive={!hasAccountingConnections}
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
 
-                    {policy?.areRulesEnabled && (
+                    {policy?.areRulesEnabled && canUseCategoryAndTagApprovers && (
                         <>
                             <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>

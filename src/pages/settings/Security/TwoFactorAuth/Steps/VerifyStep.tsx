@@ -1,11 +1,10 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {useSession} from '@components/OnyxProvider';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import QRCode from '@components/QRCode';
 import ScrollView from '@components/ScrollView';
@@ -14,23 +13,22 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
+import * as UserUtils from '@libs/UserUtils';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import TwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm';
-import type {BaseTwoFactorAuthFormOnyxProps, BaseTwoFactorAuthFormRef} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm/types';
+import type {BaseTwoFactorAuthFormRef} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm/types';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const TROUBLESHOOTING_LINK = 'https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1';
 
-type VerifyStepProps = BaseTwoFactorAuthFormOnyxProps;
-
-function VerifyStep({account}: VerifyStepProps) {
+function VerifyStep() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const session = useSession();
-
+    const contactMethod = UserUtils.getContactMethod();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
     const {setStep} = useTwoFactorAuthContext();
@@ -65,7 +63,7 @@ function VerifyStep({account}: VerifyStepProps) {
      * so it can be detected by authenticator apps
      */
     function buildAuthenticatorUrl() {
-        return `otpauth://totp/Expensify:${account?.primaryLogin ?? session?.email}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
+        return `otpauth://totp/Expensify:${contactMethod}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
     return (
@@ -138,6 +136,4 @@ function VerifyStep({account}: VerifyStepProps) {
 
 VerifyStep.displayName = 'VerifyStep';
 
-export default withOnyx<VerifyStepProps, BaseTwoFactorAuthFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(VerifyStep);
+export default VerifyStep;

@@ -1,6 +1,7 @@
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
@@ -34,9 +35,14 @@ type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus
 type SearchContext = {
     currentSearchHash: number;
     selectedTransactions: SelectedTransactions;
+    selectedReports: Array<SearchReport['reportID']>;
     setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactions: (selectedTransactions: SelectedTransactions) => void;
+    setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[]) => void;
     clearSelectedTransactions: (hash?: number) => void;
+    shouldShowStatusBarLoading: boolean;
+    setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
+    setLastSearchType: (type: string | undefined) => void;
+    lastSearchType: string | undefined;
 };
 
 type ASTNode = {

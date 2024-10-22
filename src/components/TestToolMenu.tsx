@@ -32,6 +32,7 @@ const USER_DEFAULT: UserOnyx = {
 
 function TestToolMenu({network}: TestToolMenuProps) {
     const [user = USER_DEFAULT] = useOnyx(ONYXKEYS.USER);
+    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
     const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
     const isDebugModeEnabled = !!user?.isDebugModeEnabled;
     const styles = useThemeStyles();
@@ -73,6 +74,7 @@ function TestToolMenu({network}: TestToolMenuProps) {
                     accessibilityLabel="Force offline"
                     isOn={!!network?.shouldForceOffline}
                     onToggle={() => Network.setShouldForceOffline(!network?.shouldForceOffline)}
+                    disabled={isUsingImportedState}
                 />
             </TestToolRow>
 

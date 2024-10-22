@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,11 +10,13 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import * as MemberActions from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceOwnerChangeCheck from './WorkspaceOwnerChangeCheck';
@@ -24,10 +27,12 @@ type WorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & StackScreenPro
 function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWrapperPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
+    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
     const policyID = route.params.policyID;
     const accountID = route.params.accountID;
     const error = route.params.error;
+    const isAuthRequired = privateStripeCustomerID?.status === CONST.STRIPE_GBP_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED;
+    const shouldShowPaymentCardForm = error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || isAuthRequired;
 
     useEffect(() => {
         if (!policy || policy?.isLoading) {
@@ -51,7 +56,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
 
         if (changeOwnerErrors && changeOwnerErrors.length > 0) {
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors.at(0) as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
         }
     }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
 
@@ -71,16 +76,18 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
                 />
                 <View style={[styles.containerWithSpaceBetween, error !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.ph5 : styles.ph0, styles.pb0]}>
                     {policy?.isLoading && <FullScreenLoadingIndicator />}
-                    {!policy?.isLoading &&
-                        (error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? (
-                            <WorkspaceOwnerPaymentCardForm policy={policy} />
-                        ) : (
-                            <WorkspaceOwnerChangeCheck
-                                policy={policy}
-                                accountID={accountID}
-                                error={error}
-                            />
-                        ))}
+                    {shouldShowPaymentCardForm && <WorkspaceOwnerPaymentCardForm policy={policy} />}
+                    {!policy?.isLoading && !shouldShowPaymentCardForm && (
+                        <WorkspaceOwnerChangeCheck
+                            policy={policy}
+                            accountID={accountID}
+                            error={error}
+                        />
+                    )}
+                    <CardAuthenticationModal
+                        headerTitle={translate('subscription.authenticatePaymentCard')}
+                        policyID={policyID}
+                    />
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

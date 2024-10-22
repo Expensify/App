@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -8,8 +9,6 @@ import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, 
 import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
 import {isConnectionInProgress} from './actions/connections';
 import * as CurrencyUtils from './CurrencyUtils';
-import type {Phrase, PhraseParameters} from './Localize';
-import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasSyncError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
@@ -60,7 +59,7 @@ Onyx.connect({
  */
 const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection<ReportActions>): BrickRoad => {
     const reportActions = (altReportActions ?? allReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-    const reportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
+    const reportErrors = ReportUtils.getAllReportErrors(report, reportActions);
     const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions);
     let doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
@@ -120,7 +119,7 @@ function hasWorkspaceSettingsRBR(policy: Policy) {
     return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError || taxRateError;
 }
 
-function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
+function getChatTabBrickRoadReport(policyID?: string): OnyxEntry<Report> {
     const allReports = ReportConnection.getAllReports();
     if (!allReports) {
         return undefined;
@@ -129,25 +128,31 @@ function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
     // If policyID is undefined, then all reports are checked whether they contain any brick road
     const policyReports = policyID ? Object.values(allReports).filter((report) => report?.policyID === policyID) : Object.values(allReports);
 
-    let hasChatTabGBR = false;
+    let reportWithGBR: OnyxEntry<Report>;
 
-    const hasChatTabRBR = policyReports.some((report) => {
+    const reportWithRBR = policyReports.find((report) => {
         const brickRoad = report ? getBrickRoadForPolicy(report) : undefined;
-        if (!hasChatTabGBR && brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-            hasChatTabGBR = true;
+        if (!reportWithGBR && brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+            reportWithGBR = report;
+            return false;
         }
         return brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     });
 
-    if (hasChatTabRBR) {
-        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    if (reportWithRBR) {
+        return reportWithRBR;
     }
 
-    if (hasChatTabGBR) {
-        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    if (reportWithGBR) {
+        return reportWithGBR;
     }
 
     return undefined;
+}
+
+function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
+    const report = getChatTabBrickRoadReport(policyID);
+    return report ? getBrickRoadForPolicy(report) : undefined;
 }
 
 /**
@@ -234,7 +239,7 @@ function getUnitTranslationKey(unit: Unit): TranslationPaths {
  */
 function getOwnershipChecksDisplayText(
     error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
-    translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
+    translate: LocaleContextProps['translate'],
     policy: OnyxEntry<Policy>,
     accountLogin: string | undefined,
 ) {
@@ -271,14 +276,14 @@ function getOwnershipChecksDisplayText(
         case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
             title = translate('workspace.changeOwner.duplicateSubscriptionTitle');
             text = translate('workspace.changeOwner.duplicateSubscriptionText', {
-                email: changeOwner?.duplicateSubscription,
-                workspaceName: policy?.name,
+                email: changeOwner?.duplicateSubscription ?? '',
+                workspaceName: policy?.name ?? '',
             });
             buttonText = translate('workspace.changeOwner.duplicateSubscriptionButtonText');
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
             title = translate('workspace.changeOwner.hasFailedSettlementsTitle');
-            text = translate('workspace.changeOwner.hasFailedSettlementsText', {email: accountLogin});
+            text = translate('workspace.changeOwner.hasFailedSettlementsText', {email: accountLogin ?? ''});
             buttonText = translate('workspace.changeOwner.hasFailedSettlementsButtonText');
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE:
@@ -297,6 +302,7 @@ function getOwnershipChecksDisplayText(
 }
 
 export {
+    getChatTabBrickRoadReport,
     getBrickRoadForPolicy,
     getWorkspacesBrickRoads,
     getWorkspacesUnreadStatuses,
