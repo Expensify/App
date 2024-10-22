@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
@@ -44,6 +44,7 @@ const ACCESS_VARIANTS = {
 >;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
+
 type AccessOrNotFoundWrapperChildrenProps = {
     /** The report that holds the transaction */
     report: OnyxEntry<OnyxTypes.Report>;
@@ -116,8 +117,8 @@ function AccessOrNotFoundWrapper({
     featureName,
     ...props
 }: AccessOrNotFoundWrapperProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? '-1'}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? '-1'}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
     const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
@@ -160,6 +161,8 @@ function AccessOrNotFoundWrapper({
         setIsPolicyFeatureEnabled(isFeatureEnabled);
     }, [pendingField, isOffline, isFeatureEnabled]);
 
+    const childrenProps = useMemo(() => ({report, policy, isLoadingReportData}), [report, policy, isLoadingReportData]);
+
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;
     }
@@ -175,7 +178,7 @@ function AccessOrNotFoundWrapper({
         );
     }
 
-    return callOrReturn(props.children, {report, policy, isLoadingReportData});
+    return callOrReturn(props.children, childrenProps);
 }
 
 export type {AccessVariant};

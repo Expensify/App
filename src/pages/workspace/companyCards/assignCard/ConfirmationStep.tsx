@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@libs/actions/Policy/Policy';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import * as CompanyCards from '@userActions/CompanyCards';
@@ -39,7 +38,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const data = assignCard?.data;
 
     const submit = () => {
-        Policy.assignWorkspaceCompanyCard(policyID, data);
+        CompanyCards.assignWorkspaceCompanyCard(policyID, data);
         Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         CompanyCards.clearAssignCardStepAndData();
     };
