@@ -41,32 +41,32 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const styles = useThemeStyles();
     const [isCategoryPickerVisible, setIsCategoryPickerVisible] = useState(false);
     const {translate} = useLocalize();
-    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
-    const customUnitID = distanceRateCustomUnit?.customUnitID ?? '';
-    const isDistanceTrackTaxEnabled = !!distanceRateCustomUnit?.attributes?.taxEnabled;
+    const customUnit = getDistanceRateCustomUnit(policy);
+    const customUnitID = customUnit?.customUnitID ?? '';
+    const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
 
-    const defaultCategory = distanceRateCustomUnit?.defaultCategory;
-    const defaultUnit = distanceRateCustomUnit?.attributes?.unit;
-    const errorFields = distanceRateCustomUnit?.errorFields;
+    const defaultCategory = customUnit?.defaultCategory;
+    const defaultUnit = customUnit?.attributes?.unit;
+    const errorFields = customUnit?.errorFields;
 
-    const FullPageBlockingView = !distanceRateCustomUnit ? FullPageOfflineBlockingView : View;
+    const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
 
     const setNewUnit = (unit: UnitItemType) => {
-        if (!distanceRateCustomUnit) {
+        if (!customUnit) {
             return;
         }
-        const attributes = {...distanceRateCustomUnit?.attributes, unit: unit.value};
-        DistanceRate.setPolicyDistanceRatesUnit(policyID, distanceRateCustomUnit, {...distanceRateCustomUnit, attributes});
+        const attributes = {...customUnit?.attributes, unit: unit.value};
+        DistanceRate.setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes});
     };
 
     const setNewCategory = (category: ListItem) => {
-        if (!category.searchText || !distanceRateCustomUnit) {
+        if (!category.searchText || !customUnit) {
             return;
         }
 
-        Category.setPolicyDistanceRatesDefaultCategory(policyID, distanceRateCustomUnit, {
-            ...distanceRateCustomUnit,
+        Category.setPolicyDistanceRatesDefaultCategory(policyID, customUnit, {
+            ...customUnit,
             defaultCategory: defaultCategory === category.searchText ? '' : category.searchText,
         });
     };
@@ -76,11 +76,11 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     };
 
     const onToggleTrackTax = (isOn: boolean) => {
-        if (!distanceRateCustomUnit) {
+        if (!customUnit) {
             return;
         }
-        const attributes = {...distanceRateCustomUnit?.attributes, taxEnabled: isOn};
-        Policy.enableDistanceRequestTax(policyID, distanceRateCustomUnit?.name, customUnitID, attributes);
+        const attributes = {...customUnit?.attributes, taxEnabled: isOn};
+        Policy.enableDistanceRequestTax(policyID, customUnit?.name, customUnitID, attributes);
     };
 
     return (
@@ -95,7 +95,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                 testID={PolicyDistanceRatesSettingsPage.displayName}
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                <FullPageBlockingView style={distanceRateCustomUnit ? styles.flexGrow1 : []}>
+                <FullPageBlockingView style={customUnit ? styles.flexGrow1 : []}>
                     <ScrollView
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="always"
@@ -103,8 +103,8 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                         <View>
                             {defaultUnit && (
                                 <OfflineWithFeedback
-                                    errors={ErrorUtils.getLatestErrorField(distanceRateCustomUnit ?? {}, 'attributes')}
-                                    pendingAction={distanceRateCustomUnit?.pendingFields?.attributes}
+                                    errors={ErrorUtils.getLatestErrorField(customUnit ?? {}, 'attributes')}
+                                    pendingAction={customUnit?.pendingFields?.attributes}
                                     errorRowStyles={styles.mh5}
                                     onClose={() => clearErrorFields('attributes')}
                                 >
@@ -118,8 +118,8 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             )}
                             {policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
                                 <OfflineWithFeedback
-                                    errors={ErrorUtils.getLatestErrorField(distanceRateCustomUnit ?? {}, 'defaultCategory')}
-                                    pendingAction={distanceRateCustomUnit?.pendingFields?.defaultCategory}
+                                    errors={ErrorUtils.getLatestErrorField(customUnit ?? {}, 'defaultCategory')}
+                                    pendingAction={customUnit?.pendingFields?.defaultCategory}
                                     errorRowStyles={styles.mh5}
                                     onClose={() => clearErrorFields('defaultCategory')}
                                 >
@@ -136,9 +136,9 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 </OfflineWithFeedback>
                             )}
                             <OfflineWithFeedback
-                                errors={ErrorUtils.getLatestErrorField(distanceRateCustomUnit ?? {}, 'taxEnabled')}
+                                errors={ErrorUtils.getLatestErrorField(customUnit ?? {}, 'taxEnabled')}
                                 errorRowStyles={styles.mh5}
-                                pendingAction={distanceRateCustomUnit?.pendingFields?.taxEnabled}
+                                pendingAction={customUnit?.pendingFields?.taxEnabled}
                             >
                                 <View style={[styles.mt2, styles.mh5]}>
                                     <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>

@@ -25,8 +25,8 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
-    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
-    const rate = distanceRateCustomUnit?.rates[rateID];
+    const customUnit = getDistanceRateCustomUnit(policy);
+    const rate = customUnit?.rates[rateID];
     const taxRateExternalID = rate?.attributes?.taxRateExternalID;
     const selectedTaxRate = TransactionUtils.getWorkspaceTaxesSettingsName(policy, taxRateExternalID ?? '');
 
@@ -35,10 +35,10 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
             Navigation.goBack();
             return;
         }
-        if (!distanceRateCustomUnit) {
+        if (!customUnit) {
             return;
         }
-        DistanceRate.updateDistanceTaxRate(policyID, distanceRateCustomUnit, [
+        DistanceRate.updateDistanceTaxRate(policyID, customUnit, [
             {
                 ...rate,
                 attributes: {

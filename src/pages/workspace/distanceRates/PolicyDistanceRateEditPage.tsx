@@ -33,8 +33,8 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const policy = usePolicy(policyID);
-    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
-    const rate = distanceRateCustomUnit?.rates[rateID];
+    const customUnit = getDistanceRateCustomUnit(policy);
+    const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const currentRateValue = (parseFloat((rate?.rate ?? 0).toString()) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES);
 
@@ -43,10 +43,10 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
             Navigation.goBack();
             return;
         }
-        if (!distanceRateCustomUnit) {
+        if (!customUnit) {
             return;
         }
-        DistanceRate.updatePolicyDistanceRateValue(policyID, distanceRateCustomUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
+        DistanceRate.updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
         Keyboard.dismiss();
         Navigation.goBack();
     };

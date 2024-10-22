@@ -33,8 +33,8 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
-    const customUnitID = distanceRateCustomUnit?.customUnitID ?? '';
+    const customUnit = getDistanceRateCustomUnit(policy);
+    const customUnitID = customUnit?.customUnitID ?? '';
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -48,7 +48,7 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         const newRate: Rate = {
             currency,
-            name: getOptimisticRateName(distanceRateCustomUnit?.rates ?? {}),
+            name: getOptimisticRateName(customUnit?.rates ?? {}),
             rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             customUnitRateID,
             enabled: true,

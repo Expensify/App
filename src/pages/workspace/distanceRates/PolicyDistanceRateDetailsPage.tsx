@@ -39,18 +39,18 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
     const rateID = route.params.rateID;
 
-    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
-    const rate = distanceRateCustomUnit?.rates[rateID];
+    const customUnit = getDistanceRateCustomUnit(policy);
+    const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const taxClaimablePercentage = rate?.attributes?.taxClaimablePercentage;
     const taxRateExternalID = rate?.attributes?.taxRateExternalID;
 
-    const isDistanceTrackTaxEnabled = !!distanceRateCustomUnit?.attributes?.taxEnabled;
+    const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
     const taxRate =
         taxRateExternalID && policy?.taxRates?.taxes[taxRateExternalID] ? `${policy?.taxRates?.taxes[taxRateExternalID]?.name} (${policy?.taxRates?.taxes[taxRateExternalID]?.value})` : '';
     // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
-    const canDisableOrDeleteRate = Object.values(distanceRateCustomUnit?.rates ?? {}).some(
+    const canDisableOrDeleteRate = Object.values(customUnit?.rates ?? {}).some(
         (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     const errorFields = rate?.errorFields;
@@ -71,7 +71,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
 
     const toggleRate = () => {
         if (!rate?.enabled || canDisableOrDeleteRate) {
-            DistanceRate.setPolicyDistanceRatesEnabled(policyID, distanceRateCustomUnit, [{...rate, enabled: !rate?.enabled}]);
+            DistanceRate.setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: !rate?.enabled}]);
         } else {
             setIsWarningModalVisible(true);
         }
@@ -79,16 +79,16 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
 
     const deleteRate = () => {
         Navigation.goBack();
-        DistanceRate.deletePolicyDistanceRates(policyID, distanceRateCustomUnit, [rateID]);
+        DistanceRate.deletePolicyDistanceRates(policyID, customUnit, [rateID]);
         setIsDeleteModalVisible(false);
     };
 
     const rateValueToDisplay = CurrencyUtils.convertAmountToDisplayString(rate?.rate, currency);
     const taxClaimableValueToDisplay = taxClaimablePercentage && rate.rate ? CurrencyUtils.convertAmountToDisplayString(taxClaimablePercentage * rate.rate, currency) : '';
-    const unitToDisplay = translate(`common.${distanceRateCustomUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
+    const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
     const clearErrorFields = (fieldName: keyof Rate | keyof TaxRateAttributes) => {
-        DistanceRate.clearPolicyDistanceRateErrorFields(policyID, distanceRateCustomUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
+        DistanceRate.clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
     };
 
     return (
@@ -102,7 +102,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
             >
-                <HeaderWithBackButton title={`${rateValueToDisplay} / ${translate(`common.${distanceRateCustomUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`} />
+                <HeaderWithBackButton title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`} />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <OfflineWithFeedback
                         errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'enabled')}

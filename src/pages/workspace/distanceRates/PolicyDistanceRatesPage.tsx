@@ -57,8 +57,8 @@ function PolicyDistanceRatesPage({
 
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
-    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
-    const customUnitRates: Record<string, Rate> = useMemo(() => distanceRateCustomUnit?.rates ?? {}, [distanceRateCustomUnit]);
+    const customUnit = getDistanceRateCustomUnit(policy);
+    const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
     // Filter out rates that will be deleted
     const allSelectableRates = useMemo(() => Object.values(customUnitRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [customUnitRates]);
     const canDisableOrDeleteSelectedRates = useMemo(
@@ -73,13 +73,13 @@ function PolicyDistanceRatesPage({
     const dismissError = useCallback(
         (item: RateForList) => {
             if (customUnitRates[item.value].errors) {
-                DistanceRate.clearDeleteDistanceRateError(policyID, distanceRateCustomUnit?.customUnitID ?? '', item.value);
+                DistanceRate.clearDeleteDistanceRateError(policyID, customUnit?.customUnitID ?? '', item.value);
                 return;
             }
 
-            DistanceRate.clearCreateDistanceRateItemAndError(policyID, distanceRateCustomUnit?.customUnitID ?? '', item.value);
+            DistanceRate.clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID ?? '', item.value);
         },
-        [distanceRateCustomUnit?.customUnitID, customUnitRates, policyID],
+        [customUnit?.customUnitID, customUnitRates, policyID],
     );
 
     const {isOffline} = useNetwork({onReconnect: fetchDistanceRates});
@@ -104,7 +104,7 @@ function PolicyDistanceRatesPage({
                 .map((value) => ({
                     value: value.customUnitRateID ?? '',
                     text: `${CurrencyUtils.convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
-                        `common.${distanceRateCustomUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
+                        `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
                     )}`,
                     keyForList: value.customUnitRateID ?? '',
                     isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined && canSelectMultiple,
@@ -120,7 +120,7 @@ function PolicyDistanceRatesPage({
                     errors: value.errors ?? undefined,
                     rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                 })),
-        [distanceRateCustomUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, translate, policy?.pendingAction, canSelectMultiple],
+        [customUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, translate, policy?.pendingAction, canSelectMultiple],
     );
 
     const addRate = () => {
@@ -136,39 +136,39 @@ function PolicyDistanceRatesPage({
     };
 
     const disableRates = () => {
-        if (distanceRateCustomUnit === undefined) {
+        if (customUnit === undefined) {
             return;
         }
 
         DistanceRate.setPolicyDistanceRatesEnabled(
             policyID,
-            distanceRateCustomUnit,
+            customUnit,
             selectedDistanceRates.filter((rate) => rate.enabled).map((rate) => ({...rate, enabled: false})),
         );
         setSelectedDistanceRates([]);
     };
 
     const enableRates = () => {
-        if (distanceRateCustomUnit === undefined) {
+        if (customUnit === undefined) {
             return;
         }
 
         DistanceRate.setPolicyDistanceRatesEnabled(
             policyID,
-            distanceRateCustomUnit,
+            customUnit,
             selectedDistanceRates.filter((rate) => !rate.enabled).map((rate) => ({...rate, enabled: true})),
         );
         setSelectedDistanceRates([]);
     };
 
     const deleteRates = () => {
-        if (distanceRateCustomUnit === undefined) {
+        if (customUnit === undefined) {
             return;
         }
 
         DistanceRate.deletePolicyDistanceRates(
             policyID,
-            distanceRateCustomUnit,
+            customUnit,
             selectedDistanceRates.map((rate) => rate.customUnitRateID ?? ''),
         );
         setSelectedDistanceRates([]);
@@ -231,7 +231,7 @@ function PolicyDistanceRatesPage({
         return options;
     };
 
-    const isLoading = !isOffline && distanceRateCustomUnit === undefined;
+    const isLoading = !isOffline && customUnit === undefined;
 
     const headerButtons = (
         <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>

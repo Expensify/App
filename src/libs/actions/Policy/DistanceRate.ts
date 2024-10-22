@@ -128,10 +128,10 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
 
     if (!enabled) {
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-        const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
-        const customUnitID = distanceRateCustomUnit?.customUnitID ?? '';
+        const customUnit = getDistanceRateCustomUnit(policy);
+        const customUnitID = customUnit?.customUnitID ?? '';
 
-        const rateEntries = Object.entries(distanceRateCustomUnit?.rates ?? {});
+        const rateEntries = Object.entries(customUnit?.rates ?? {});
         // find the rate to be enabled after disabling the distance rate feature
         const rateEntryToBeEnabled = rateEntries.at(0);
 

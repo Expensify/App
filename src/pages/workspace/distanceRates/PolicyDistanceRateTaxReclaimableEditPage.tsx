@@ -31,8 +31,8 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
 
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
-    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
-    const rate = distanceRateCustomUnit?.rates[rateID];
+    const customUnit = getDistanceRateCustomUnit(policy);
+    const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const currentTaxReclaimableOnValue =
         rate?.attributes?.taxClaimablePercentage && rate?.rate ? ((rate.attributes.taxClaimablePercentage * rate.rate) / 100).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) : '';
@@ -42,10 +42,10 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
             Navigation.goBack();
             return;
         }
-        if (!distanceRateCustomUnit) {
+        if (!customUnit) {
             return;
         }
-        DistanceRate.updateDistanceTaxClaimableValue(policyID, distanceRateCustomUnit, [
+        DistanceRate.updateDistanceTaxClaimableValue(policyID, customUnit, [
             {
                 ...rate,
                 attributes: {
