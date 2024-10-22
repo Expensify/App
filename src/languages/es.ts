@@ -3247,7 +3247,7 @@ const translations = {
             verifyingHeader: 'Verificando',
             bankAccountVerifiedHeader: 'Cuenta bancaria verificada',
             verifyingBankAccount: 'Verificando cuenta bancaria...',
-            verifyingBankAccountDescription: 'Espera mientras comprobamos que esta cuenta se puede utilizar para emitir tarjetas Expensify.',
+            verifyingBankAccountDescription: 'Por favor, espere mientras confirmamos que esta cuenta se puede utilizar para emitir tarjetas Expensify.',
             bankAccountVerified: '¡Cuenta bancaria verificada!',
             bankAccountVerifiedDescription: 'Ahora puedes emitir tarjetas de Expensify para los miembros de tu espacio de trabajo.',
             oneMoreStep: 'Un paso más',

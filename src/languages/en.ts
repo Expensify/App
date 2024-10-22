@@ -3205,7 +3205,7 @@ const translations = {
             verifyingHeader: 'Verifying',
             bankAccountVerifiedHeader: 'Bank account verified',
             verifyingBankAccount: 'Verifying bank account...',
-            verifyingBankAccountDescription: 'Hold on while we check that this account can be used for issuing Expensify Cards',
+            verifyingBankAccountDescription: 'Please wait while we confirm that this account can be used to issue Expensify Cards.',
             bankAccountVerified: 'Bank account verified!',
             bankAccountVerifiedDescription: 'You can now issue Expensify Cards to your workspace members.',
             oneMoreStep: 'One more step...',

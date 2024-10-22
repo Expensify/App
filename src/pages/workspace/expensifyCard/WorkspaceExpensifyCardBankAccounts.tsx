@@ -2,9 +2,12 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import * as Expensicons from '@components/Icon/Expensicons';
+import Lottie from '@components/Lottie';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -94,7 +97,21 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                     title={translate(isLoading ? 'workspace.expensifyCard.verifyingHeader' : 'workspace.expensifyCard.chooseBankAccount')}
                 />
                 {isLoading ? (
-                    <Text style={[styles.mh5, styles.mb3]}>Loading</Text>
+                    <FullPageOfflineBlockingView>
+                        <View style={[styles.pageWrapper, styles.flex1, styles.justifyContentCenter, styles.mb15]}>
+                            <Lottie
+                                source={LottieAnimations.ReviewingBankInfo}
+                                autoPlay
+                                loop
+                                style={styles.loadingVBAAnimation}
+                                webStyle={styles.loadingVBAAnimationWeb}
+                            />
+                            <View style={styles.ph5}>
+                                <Text style={[styles.textAlignCenter, styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('workspace.expensifyCard.verifyingBankAccount')}</Text>
+                                <Text style={[styles.textAlignCenter, styles.textLabelSupporting]}>{translate('workspace.expensifyCard.verifyingBankAccountDescription')}</Text>
+                            </View>
+                        </View>
+                    </FullPageOfflineBlockingView>
                 ) : (
                     <View style={styles.flex1}>
                         <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
