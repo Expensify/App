@@ -45,7 +45,6 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const handleSelectBankAccount = (value?: number) => {
         Card.configureExpensifyCardsForPolicy(policyID, value);
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
     };
 
     const renderBankOptions = () => {
@@ -92,7 +91,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 <HeaderWithBackButton
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
-                    title={translate('workspace.expensifyCard.chooseBankAccount')}
+                    title={translate(isLoading ? 'workspace.expensifyCard.verifyingHeader' : 'workspace.expensifyCard.chooseBankAccount')}
                 />
                 {isLoading ? (
                     <Text style={[styles.mh5, styles.mb3]}>Loading</Text>
