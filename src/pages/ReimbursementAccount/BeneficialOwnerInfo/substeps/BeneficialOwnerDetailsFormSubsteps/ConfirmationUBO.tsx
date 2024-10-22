@@ -1,14 +1,14 @@
 import React from 'react';
-import ConfirmationStep from "@components/SubStepForms/ConfirmationStep";
-import {OnyxEntry, withOnyx} from "react-native-onyx";
-import type {ReimbursementAccount} from "@src/types/onyx";
-import type {ReimbursementAccountForm} from "@src/types/form";
-import type {SubStepProps} from "@hooks/useSubStep/types";
-import CONST from "@src/CONST";
-import ONYXKEYS from "@src/ONYXKEYS";
-import useLocalize from "@hooks/useLocalize";
-import getValuesForBeneficialOwner from "@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner";
-import * as ErrorUtils from "@libs/ErrorUtils";
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+import useLocalize from '@hooks/useLocalize';
+import type {SubStepProps} from '@hooks/useSubStep/types';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccountForm} from '@src/types/form';
+import type {ReimbursementAccount} from '@src/types/onyx';
 
 type ConfirmationUBOOnyxProps = {
     /** Reimbursement account from ONYX */

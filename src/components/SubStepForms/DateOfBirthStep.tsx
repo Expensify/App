@@ -96,7 +96,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 maxDate={maxDate}
                 shouldSaveDraft={!isEditing}
             />
-            {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]}/>}
+            {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}
         </FormProvider>
     );
 }
