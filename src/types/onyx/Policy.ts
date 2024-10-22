@@ -17,6 +17,18 @@ type TaxRateAttributes = {
     taxRateExternalID?: string;
 };
 
+/** Model of policy subrate */
+type Subrate = {
+    /** Generated ID to identify the subrate */
+    id: string;
+
+    /** Name of the subrate */
+    name: string;
+
+    /** Amount to be reimbursed per unit */
+    rate: number;
+};
+
 /** Model of policy distance rate */
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -43,6 +55,9 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Tax rate attributes of the policy */
         attributes?: TaxRateAttributes;
+
+        /** Subrates of the given rate */
+        subRates?: Subrate[];
     },
     keyof TaxRateAttributes
 >;
@@ -1731,6 +1746,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
+
+        /** Whether the Per Diem feature is enabled */
+        arePerDiemEnabled?: boolean;
 
         /** Whether the Expensify Card feature is enabled */
         areExpensifyCardsEnabled?: boolean;

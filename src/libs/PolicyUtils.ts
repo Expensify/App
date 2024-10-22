@@ -137,6 +137,13 @@ function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | unde
 }
 
 /**
+ * Retrieves the per diem custom unit object for the given policy
+ */
+function getPerDiemCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
+    return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+}
+
+/**
  * Retrieves custom unit rate object from the given customUnitRateID
  */
 function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
@@ -1149,6 +1156,7 @@ export {
     getSageIntacctCreditCards,
     getSageIntacctBankAccounts,
     getDistanceRateCustomUnit,
+    getPerDiemCustomUnit,
     getDistanceRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,

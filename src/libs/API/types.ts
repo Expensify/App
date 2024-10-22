@@ -218,6 +218,7 @@ const WRITE_COMMANDS = {
     ENABLE_POLICY_WORKFLOWS: 'EnablePolicyWorkflows',
     ENABLE_POLICY_REPORT_FIELDS: 'EnablePolicyReportFields',
     ENABLE_POLICY_EXPENSIFY_CARDS: 'EnablePolicyExpensifyCards',
+    ENABLE_POLICY_PER_DIEM: 'EnablePolicyPerDiem',
     ENABLE_POLICY_COMPANY_CARDS: 'EnablePolicyCompanyCards',
     ENABLE_POLICY_INVOICING: 'EnablePolicyInvoicing',
     SET_POLICY_RULES_ENABLED: 'SetPolicyRulesEnabled',
@@ -650,6 +651,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS]: Parameters.EnablePolicyWorkflowsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS]: Parameters.EnablePolicyReportFieldsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS]: Parameters.EnablePolicyExpensifyCardsParams;
+    [WRITE_COMMANDS.ENABLE_POLICY_PER_DIEM]: Parameters.EnablePolicyPerDiemParams;
     [WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS]: Parameters.EnablePolicyCompanyCardsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_INVOICING]: Parameters.EnablePolicyInvoicingParams;
     [WRITE_COMMANDS.SET_POLICY_RULES_ENABLED]: Parameters.SetPolicyRulesEnabledParams;
@@ -918,6 +920,7 @@ const READ_COMMANDS = {
     OPEN_DRAFT_WORKSPACE_REQUEST: 'OpenDraftWorkspaceRequest',
     OPEN_POLICY_WORKFLOWS_PAGE: 'OpenPolicyWorkflowsPage',
     OPEN_POLICY_DISTANCE_RATES_PAGE: 'OpenPolicyDistanceRatesPage',
+    OPEN_POLICY_PER_DIEM_RATES_PAGE: 'OpenPolicyPerDiemRatesPage',
     OPEN_POLICY_MORE_FEATURES_PAGE: 'OpenPolicyMoreFeaturesPage',
     OPEN_POLICY_ACCOUNTING_PAGE: 'OpenPolicyAccountingPage',
     OPEN_POLICY_PROFILE_PAGE: 'OpenPolicyProfilePage',
@@ -974,6 +977,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST]: Parameters.OpenDraftWorkspaceRequestParams;
     [READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE]: Parameters.OpenPolicyWorkflowsPageParams;
     [READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE]: Parameters.OpenPolicyDistanceRatesPageParams;
+    [READ_COMMANDS.OPEN_POLICY_PER_DIEM_RATES_PAGE]: Parameters.OpenPolicyPerDiemRatesPageParams;
     [READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE]: Parameters.OpenPolicyMoreFeaturesPageParams;
     [READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE]: Parameters.OpenPolicyAccountingPageParams;
     [READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE]: Parameters.OpenPolicyExpensifyCardsPageParams;

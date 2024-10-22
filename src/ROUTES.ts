@@ -1198,6 +1198,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/distance-rates/:rateID/tax-rate/edit',
         getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/tax-rate/edit` as const,
     },
+    WORKSPACE_PER_DIEM: {
+        route: 'settings/workspaces/:policyID/per-diem',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem` as const,
+    },
     RULES_CUSTOM_NAME: {
         route: 'settings/workspaces/:policyID/rules/name',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/name` as const,

@@ -2346,6 +2346,7 @@ const translations = {
             rules: 'Reglas',
             plan: 'Plan',
             profile: 'Perfil',
+            perDiem: 'Per Diem',
             bankAccount: 'Cuenta bancaria',
             displayedAs: 'Mostrado como',
             connectBankAccount: 'Conectar cuenta bancaria',
@@ -2410,6 +2411,25 @@ const translations = {
                     default:
                         return 'Miembro';
                 }
+            },
+        },
+        perDiem: {
+            subtitle: 'Set per diem rates to control daily employee spend.',
+            destination: 'Destination',
+            subrate: 'Subrate',
+            amount: 'Amount',
+            deleteRates: () => ({
+                one: 'Delete rate',
+                other: 'Delete rates',
+            }),
+            deletePerDiemRate: 'Delete per diem rate',
+            areYouSureDelete: () => ({
+                one: 'Are you sure you want to delete this rate?',
+                other: 'Are you sure you want to delete these rates?',
+            }),
+            emptyList: {
+                title: 'Per diem',
+                subtitle: 'Set per diem rates to control daily employee spend. Import rates from a spreadsheet to get started.',
             },
         },
         qbd: {
@@ -3305,6 +3325,10 @@ const translations = {
             distanceRates: {
                 title: 'Tasas de distancia',
                 subtitle: 'Añade, actualiza y haz cumplir las tasas.',
+            },
+            perDiem: {
+                title: 'Per Diem',
+                subtitle: 'Set Per diem rates to control daily employee spend.',
             },
             expensifyCard: {
                 title: 'Tarjeta Expensify',

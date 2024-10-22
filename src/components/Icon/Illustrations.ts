@@ -129,6 +129,7 @@ import Workflows from '@assets/images/simple-illustrations/simple-illustration__
 import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__approvedlogo--light.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
+import PerDiem from '@assets/simple-illustrations/simple-illustration__per-diem.svg';
 
 export {
     Abracadabra,
@@ -262,4 +263,5 @@ export {
     OtherCompanyCardDetail,
     StripeCompanyCardDetail,
     WellsFargoCompanyCardDetail,
+    PerDiem,
 };

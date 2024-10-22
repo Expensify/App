@@ -21,6 +21,7 @@ import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import * as Category from '@userActions/Policy/Category';
 import * as DistanceRate from '@userActions/Policy/DistanceRate';
+import * as PerDiem from '@userActions/Policy/PerDiem';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Tag from '@userActions/Policy/Tag';
 import * as Report from '@userActions/Report';
@@ -115,6 +116,19 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
             disabledAction: () => {
                 setIsDisableExpensifyCardWarningModalOpen(true);
+            },
+        },
+        {
+            icon: Illustrations.PerDiem,
+            titleTranslationKey: 'workspace.moreFeatures.perDiem.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.perDiem.subtitle',
+            isActive: policy?.arePerDiemEnabled ?? false,
+            pendingAction: policy?.pendingFields?.arePerDiemEnabled,
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                PerDiem.enablePerDiem(policyID, isEnabled);
             },
         },
     ];

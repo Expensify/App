@@ -2321,6 +2321,7 @@ const CONST = {
             ARE_INVOICES_ENABLED: 'areInvoicesEnabled',
             ARE_TAXES_ENABLED: 'tax',
             ARE_RULES_ENABLED: 'areRulesEnabled',
+            ARE_PER_DIEM_ENABLED: 'arePerDiemEnabled',
         },
         DEFAULT_CATEGORIES: [
             'Advertising',
@@ -2487,6 +2488,7 @@ const CONST = {
 
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
+        NAME_PER_DIEM_INTERNATIONAL: 'Per Diem International',
         DISTANCE_UNIT_MILES: 'mi',
         DISTANCE_UNIT_KILOMETERS: 'km',
         MILEAGE_IRS_RATE: 0.67,
