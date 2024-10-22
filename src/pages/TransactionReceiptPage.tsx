@@ -27,8 +27,8 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const imageSource = tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const isLocalFile = receiptURIs.isLocalFile;
-    const readonly = route.params.readonly ?? false;
-    const isFromReviewDuplicates = route.params.isFromReviewDuplicates ?? false;
+    const readonly = route.params.readonly === 'true';
+    const isFromReviewDuplicates = route.params.isFromReviewDuplicates === 'true';
 
     const parentReportAction = ReportActionUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);

@@ -1,12 +1,13 @@
-import {fireEvent, screen} from '@testing-library/react-native';
+import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import wrapInAct from '../utils/wrapInActHelper';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@libs/Permissions');
@@ -43,7 +44,7 @@ const getMockedReportsMap = (length = 100) => {
     return mockReports;
 };
 
-const mockedResponseMap = getMockedReportsMap(5);
+const mockedResponseMap = getMockedReportsMap(500);
 
 describe('SidebarLinks', () => {
     beforeAll(() => {
@@ -68,8 +69,10 @@ describe('SidebarLinks', () => {
 
     test('[SidebarLinks] should render Sidebar with 500 reports stored', async () => {
         const scenario = async () => {
-            // Query for the sidebar
-            await screen.findByTestId('lhn-options-list');
+            await waitFor(async () => {
+                // Query for the sidebar
+                await screen.findByTestId('lhn-options-list');
+            });
         };
 
         await waitForBatchedUpdates();
@@ -82,16 +85,18 @@ describe('SidebarLinks', () => {
             ...mockedResponseMap,
         });
 
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario, runs: 1});
+        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 
     test('[SidebarLinks] should render list itmes', async () => {
         const scenario = async () => {
-            /**
-             * Query for display names of participants [1, 2].
-             * This will ensure that the sidebar renders a list of items.
-             */
-            await screen.findAllByText('Email Two');
+            await waitFor(async () => {
+                /**
+                 * Query for display names of participants [1, 2].
+                 * This will ensure that the sidebar renders a list of items.
+                 */
+                await screen.findAllByText('Email Two');
+            });
         };
 
         await waitForBatchedUpdates();
@@ -104,7 +109,7 @@ describe('SidebarLinks', () => {
             ...mockedResponseMap,
         });
 
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 
     test('[SidebarLinks] should scroll through the list of items ', async () => {
@@ -127,9 +132,11 @@ describe('SidebarLinks', () => {
                 },
             };
 
-            const lhnOptionsList = await screen.findByTestId('lhn-options-list');
+            await wrapInAct(async () => {
+                const lhnOptionsList = await screen.findByTestId('lhn-options-list');
 
-            fireEvent.scroll(lhnOptionsList, eventData);
+                fireEvent.scroll(lhnOptionsList, eventData);
+            });
         };
 
         await waitForBatchedUpdates();
@@ -142,13 +149,15 @@ describe('SidebarLinks', () => {
             ...mockedResponseMap,
         });
 
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 
     test('[SidebarLinks] should click on list item', async () => {
         const scenario = async () => {
-            const button = await screen.findByTestId('1');
-            fireEvent.press(button);
+            await wrapInAct(async () => {
+                const button = await screen.findByTestId('1');
+                fireEvent.press(button);
+            });
         };
 
         await waitForBatchedUpdates();
@@ -161,6 +170,6 @@ describe('SidebarLinks', () => {
             ...mockedResponseMap,
         });
 
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 });
