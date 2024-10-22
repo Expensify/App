@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
@@ -424,7 +425,7 @@ function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_CO
     for (const node of nodes) {
         if (node.metaData?.code && !matching.find((obj) => obj.name === node.name)) {
             if (matching.length === limit) {
-                return matching;
+                return lodashSortBy(matching, (emoji) => !emoji.name.includes(emojiData[0].toLowerCase().slice(1)));
             }
             matching.push({code: node.metaData.code, name: node.name, types: node.metaData.types});
         }
@@ -434,7 +435,7 @@ function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_CO
         }
         for (const suggestion of suggestions) {
             if (matching.length === limit) {
-                return matching;
+                return lodashSortBy(matching, (emoji) => !emoji.name.includes(emojiData[0].toLowerCase().slice(1)));
             }
 
             if (!matching.find((obj) => obj.name === suggestion.name)) {
@@ -442,7 +443,7 @@ function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_CO
             }
         }
     }
-    return matching;
+    return lodashSortBy(matching, (emoji) => !emoji.name.includes(emojiData[0].toLowerCase().slice(1)));
 }
 
 /**
