@@ -9,7 +9,6 @@ import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -18,27 +17,19 @@ function SearchFiltersCategoryPage() {
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const selectedCategoriesItems = searchAdvancedFiltersForm?.category?.map((category) => {
-        if (category === CONST.SEARCH.EMPTY_VALUE) {
-            return {name: translate('search.noCategory'), value: category};
-        }
-        return {name: category, value: category};
-    });
+    const selectedCategoriesItems = searchAdvancedFiltersForm?.category?.map((category) => ({name: category, value: category}));
     const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
     const [allPolicyIDCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const singlePolicyCategories = allPolicyIDCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
 
     const categoryItems = useMemo(() => {
-        const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.EMPTY_VALUE as string}];
         if (!singlePolicyCategories) {
             const uniqueCategoryNames = new Set<string>();
             Object.values(allPolicyIDCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
-            items.push(...Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName})));
-        } else {
-            items.push(...Object.values(singlePolicyCategories ?? {}).map((category) => ({name: category.name, value: category.name})));
+            return Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName}));
         }
-        return items;
-    }, [allPolicyIDCategories, singlePolicyCategories, translate]);
+        return Object.values(singlePolicyCategories ?? {}).map((category) => ({name: category.name, value: category.name}));
+    }, [allPolicyIDCategories, singlePolicyCategories]);
 
     const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({category: values}), []);
     const safePaddingBottomStyle = useSafePaddingBottomStyle();

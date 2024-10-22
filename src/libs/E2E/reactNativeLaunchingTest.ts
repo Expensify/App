@@ -32,7 +32,7 @@ if (!appInstanceId) {
 // import your test here, define its name and config first in e2e/config.js
 const tests: Tests = {
     [E2EConfig.TEST_NAMES.AppStartTime]: require<TestModule>('./tests/appStartTimeTest.e2e').default,
-    [E2EConfig.TEST_NAMES.OpenChatFinderPage]: require<TestModule>('./tests/openChatFinderPageTest.e2e').default,
+    [E2EConfig.TEST_NAMES.OpenSearchRouter]: require<TestModule>('./tests/openSearchRouterTest.e2e').default,
     [E2EConfig.TEST_NAMES.ChatOpening]: require<TestModule>('./tests/chatOpeningTest.e2e').default,
     [E2EConfig.TEST_NAMES.ReportTyping]: require<TestModule>('./tests/reportTypingTest.e2e').default,
     [E2EConfig.TEST_NAMES.Linking]: require<TestModule>('./tests/linkingTest.e2e').default,

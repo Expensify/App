@@ -6,7 +6,7 @@ import type {InputHandle} from './types';
 import type LoginFormProps from './types';
 
 function LoginForm({scrollPageToTop, ...rest}: LoginFormProps, ref: ForwardedRef<InputHandle>) {
-    const loginFormRef = useRef<InputHandle>();
+    const loginFormRef = useRef<InputHandle>(null);
 
     useImperativeHandle(ref, () => ({
         isInputFocused: loginFormRef.current ? loginFormRef.current.isInputFocused : () => false,

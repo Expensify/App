@@ -125,7 +125,7 @@ function IOURequestStepDistance({
             const mileageRates = DistanceRequestUtils.getMileageRates(IOUpolicy);
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
             const mileageRate: MileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
-                ? DistanceRequestUtils.getRateForP2P(policyCurrency)
+                ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
                 : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
 
             const {unit, rate} = mileageRate ?? {};
@@ -357,6 +357,7 @@ function IOURequestStepDistance({
                     currentUserPersonalDetails.accountID,
                     transaction?.splitShares,
                     iouType,
+                    transaction,
                 );
                 return;
             }
@@ -550,9 +551,7 @@ function IOURequestStepDistance({
 
 IOURequestStepDistance.displayName = 'IOURequestStepDistance';
 
-const IOURequestStepDistanceWithOnyx = IOURequestStepDistance;
-
-const IOURequestStepDistanceWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceWithOnyx);
+const IOURequestStepDistanceWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistance);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceWithCurrentUserPersonalDetails, true);
 // eslint-disable-next-line rulesdir/no-negated-variables

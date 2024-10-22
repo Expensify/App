@@ -5,6 +5,7 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
+import type {Unit} from './Policy';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReportAction from './ReportAction';
 import type {ViolationName} from './TransactionViolation';
@@ -100,6 +101,9 @@ type TransactionCustomUnit = {
 
     /** Default rate for custom unit */
     defaultP2PRate?: number | null;
+
+    /** The unit for the distance/quantity */
+    distanceUnit?: Unit;
 };
 
 /** Types of geometry */

@@ -85,7 +85,7 @@ When the user is offline:
        - In the event that `successData` and `failureData` are the same, you can use a single object `finallyData` in place of both. 
 
 **Handling errors:**
-- The [OfflineWithFeedback component](https://github.com/Expensify/App/blob/main/src/components/OfflineWithFeedback.js) already handles showing errors too, as long as you pass the error field in the [errors prop](https://github.com/Expensify/App/blob/128ea378f2e1418140325c02f0b894ee60a8e53f/src/components/OfflineWithFeedback.js#L29-L31)
+- The [OfflineWithFeedback component](https://github.com/Expensify/App/blob/main/src/components/OfflineWithFeedback.tsx) already handles showing errors too, as long as you pass the error field in the [errors prop](https://github.com/Expensify/App/blob/128ea378f2e1418140325c02f0b894ee60a8e53f/src/components/OfflineWithFeedback.js#L29-L31)
 - The behavior for when something fails is:
     - If you were adding new data, the failed to add data is displayed greyed out and with the button to dismiss the error
     - If you were deleting data, the failed data is displayed regularly with the button to dismiss the error

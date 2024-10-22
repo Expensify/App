@@ -13,6 +13,12 @@ type FirebaseAttributes = {
     accountId: string;
     personalDetailsLength: string;
     reportsLength: string;
+    reportActionsLength: string;
+    transactionViolationsLength: string;
+    policiesLength: string;
+    transactionsLength: string;
+    policyType: string;
+    policyRole: string;
 };
 
 export type {StartTrace, StopTrace, TraceMap, Log, FirebaseAttributes};

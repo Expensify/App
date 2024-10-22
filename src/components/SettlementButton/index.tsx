@@ -59,6 +59,7 @@ function SettlementButton({
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     onlyShowPayElsewhere,
+    wrapperStyle,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -250,6 +251,7 @@ function SettlementButton({
                         savePreferredPaymentMethod(policyID, option.value);
                     }}
                     style={style}
+                    wrapperStyle={wrapperStyle}
                     disabledStyle={disabledStyle}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}

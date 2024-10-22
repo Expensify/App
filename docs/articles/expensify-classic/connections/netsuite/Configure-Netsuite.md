@@ -2,70 +2,62 @@
 title: Configure Netsuite
 description: Configure NetSuite's export, coding, and advanced settings. 
 ---
-By correctly configuring your NetSuite settings in Expensify, you can leverage the connection's settings to automate most of the tasks, making your workflow more efficient.
+Correctly configuring NetSuite settings in Expensify ensures seamless integration between your expense management and accounting processes, saving time and reducing manual errors. Aligning your workspace settings with NetSuite’s financial structure can automate data syncs, simplify reporting, and improve overall financial accuracy.
+
+# Best Practices Using NetSuite
+A connection to NetSuite lets you combine the power of Expensify’s expense management features with NetSuite’s accounting capabilities. 
+
+By following the recommended best practices below, your finances will be automatically categorized and accounted for in NetSuite:
+- Configure your setup immediately after making the connection, and review each settings tab thoroughly.
+- Keep Auto Sync enabled:
+     - The daily sync will update Expensify with any changes to your chart of accounts, customers/projects, or bank accounts in NetSuite.
+     - Finalized reports will be exported to NetSuite automatically, saving your admin team time with every report.
+- Set your preferred exporter to someone who is both a workspace and domain admin.
+- Configure your coding settings and enforce them by [requiring categories and tags on expenses](https://help.expensify.com/articles/new-expensify/workspaces/Require-tags-and-categories-for-expenses).
 
 # Step 1: Configure Export Settings
 
 There are numerous options for exporting Expensify reports to NetSuite. Let's explore how to configure these settings to align with your business needs.
 
-To access these settings, head to **Settings > Workspace > Group > Connections** and select the **Configure** button. 
+To access these settings, go to **Settings > Workspace > Group > Connections** and select the **Configure** button. 
 
-## Export Options
-
-### Subsidiary
+## Subsidiary
 
 The subsidiary selection will only appear if you use NetSuite OneWorld and have multiple subsidiaries active. If you add a new subsidiary to NetSuite, sync the workspace connection, and the new subsidiary should appear in the dropdown list under **Settings > Workspaces > _[Workspace Name]_ > Connections**.
 
-### Preferred Exporter
+## Preferred Exporter
 
 This option allows any admin to export, but the preferred exporter will receive notifications in Expensify regarding the status of exports.
 
-### Date
+## Date
 
 The three options for the date your report will export with are:
 - Date of last expense: This will use the date of the previous expense on the report
 - Submitted date: The date the employee submitted the report
 - Exported date: The date you export the report to NetSuite
 
-## Reimbursable Expenses
+## Export Settings for Reimbursable Expenses 
 
-### Expense Reports
+**Expense Reports:** Expensify transactions will export reimbursable expenses as expense reports by default, which will be posted to the payables account designated in NetSuite. 
 
-Expensify transactions will export reimbursable expenses as expense reports by default, which will be posted to the payables account designated in NetSuite. 
+**Vendor Bills:** Expensify transactions export as vendor bills in NetSuite and will be mapped to the subsidiary associated with the corresponding policy. Each report will be posted as payable to the vendor associated with the employee who submitted the report. You can also set an approval level in NetSuite for vendor bills.
 
-### Vendor Bills
+**Journal Entries:** Expensify transactions that are set to export as journal entries in NetSuite will be mapped to the subsidiary associated with this policy. All the transactions will be posted to the payable account specified in the policy. You can also set an approval level in NetSuite for the journal entries.
 
-Expensify transactions export as vendor bills in NetSuite and will be mapped to the subsidiary associated with the corresponding policy. Each report will be posted as payable to the vendor associated with the employee who submitted the report. 
-You can also set an approval level in NetSuite for vendor bills.
-
-### Journal Entries
-
-Expensify transactions that are set to export as journal entries in NetSuite will be mapped to the subsidiary associated with this policy. All the transactions will be posted to the payable account specified in the policy. 
-
-You can also set an approval level in NetSuite for the journal entries.
-
-**Important Notes:**
 - Journal entry forms by default do not contain a customer column, so it is not possible to export customers or projects with this export option
 - The credit line and header level classifications are pulled from the employee record
 
-## Non-Reimbursable Expenses
+## Export Settings for Non-Reimbursable Expenses
 
-### Vendor Bills
+**Vendor Bills:** Non-reimbursable expenses will be posted as a vendor bill payable to the default vendor specified in your policy's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific vendor in NetSuite. You can also set an approval level in NetSuite for the bills. 
 
-Non-reimbursable expenses will be posted as a vendor bill payable to the default vendor specified in your policy's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific vendor in NetSuite. You can also set an approval level in NetSuite for the bills. 
+**Journal Entries:** Non-reimbursable expenses will be posted to the Journal Entries posting account selected in your policy's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific account in NetSuite.
 
-### Journal Entries
-
-Non-reimbursable expenses will be posted to the Journal Entries posting account selected in your policy's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific account in NetSuite.
-
-**Important Notes:**
 - Expensify Card expenses will always export as Journal Entries, even if you have Expense Reports or Vendor Bills configured for non-reimbursable expenses on the Export tab
 - Journal entry forms do not contain a customer column, so it is not possible to export customers or projects with this export option
 - The credit line and header level classifications are pulled from the employee record
 
-### Expense Reports
-
-To use the expense report option for your corporate card expenses, you will need to set up your default corporate cards in NetSuite. 
+**Expense Reports:** To use the expense report option for your corporate card expenses, you will need to set up your default corporate cards in NetSuite. 
 
 To use a default corporate card for non-reimbursable expenses, you must select the correct card on the employee records (for individual accounts) or the subsidiary record (If you use a non-one world account, the default is found in your accounting preferences).
 
@@ -77,11 +69,11 @@ Add the corporate card option and corporate card main field to your expense repo
 You can select the default account on your employee record to use individual corporate cards for each employee. Make sure you add this field to your employee entity form in NetSuite.
 If you have multiple cards assigned to a single employee, you cannot export to each account. You can only have a single default per employee record. 
 
-### Export Invoices
+## Export Invoices
 
 Select the Accounts Receivable account you want your Invoice Reports to export. In NetSuite, the Invoices are linked to the customer, corresponding to the email address where the Invoice was sent.
 
-### Default Vendor Bills
+## Default Vendor Bills
 
 When selecting the option to export non-reimbursable expenses as vendor bills, the list of vendors will be available in the dropdown menu.
 
@@ -169,7 +161,7 @@ From there, you should see the values for the Custom Segment under the Tag or Re
 
 Don’t use the "Filtered by" feature available for Custom Segments. Expensify can’t make these dependent on other fields. If you do have a filter selected, we suggest switching that filter in NetSuite to "Subsidiary" and enabling all subsidiaries to ensure you don't receive any errors upon exporting reports. 
 
-### Custom Records
+## Custom Records
 
 Custom Records are added through the Custom Segments feature.
 
@@ -197,7 +189,7 @@ Lastly, head over to Expensify and do the following:
 
 From there, you should see the values for the Custom Records under the Tag or Report Field settings in Expensify. 
 
-### Custom Lists
+## Custom Lists
 
 To add Custom Lists to your workspace, you’ll need to locate two fields in NetSuite:
 - The name of the record
@@ -250,17 +242,11 @@ With this enabled, all submitters can add any newly imported Categories to an Ex
 
 ## Invite Employees & Set Approval Workflow
 
-### Invite Employees
+**Invite Employees:** Use this option in Expensify to bring your employees from a specific NetSuite subsidiary into Expensify. Once imported, Expensify will send them an email letting them know they've been added to a workspace.
 
-Use this option in Expensify to bring your employees from a specific NetSuite subsidiary into Expensify.
-Once imported, Expensify will send them an email letting them know they've been added to a workspace.
+**Set Approval Workflow:** In addition to inviting employees, you can establish an approval process in NetSuite. The Approval Workflow in Expensify will automatically follow the same rules as NetSuite, typically starting with Manager Approval.
 
-### Set Approval Workflow
-
-Besides inviting employees, you can also establish an approval process in NetSuite.
-
-By doing this, the Approval Workflow in Expensify will automatically follow the same rules as NetSuite, typically starting with Manager Approval.
-
+The available options are:
 - **Basic Approval:** This is a single level of approval, where all users submit directly to a Final Approver. The Final Approver defaults to the workspace owner but can be edited on the people page.
 - **Manager Approval (default):** Two levels of approval route reports first to an employee's NetSuite expense approver or supervisor, and second to a workspace-wide Final Approver. By NetSuite convention, Expensify will map to the supervisor if no expense approver exists. The Final Approver defaults to the workspace owner but can be edited on the people page. 
 - **Configure Manually:** Employees will be imported, but all levels of approval must be manually configured on the workspace's People settings page. If you enable this setting, it’s recommended you review the newly imported employees and managers on the **Settings > Workspaces > Group > _[Workspace Name]_ > People page**. You can set a user role for each new employee and enforce an approval workflow.
@@ -275,7 +261,7 @@ Using this feature allows you to send the original amount of the expense rather 
 
 ## Cross-Subsidiary Customers/Projects 
 
-This allows you to import Customers and Projects across all subsidiaries to a single group workspace. For this functionality, you must enable "Intercompany Time and Expense" in NetSuite. 
+This allows you to import Customers and Projects across all subsidiaries to a single group workspace. To enable this functionality in NetSuite, you must enable "Intercompany Time and Expense." 
 
 That feature is found in NetSuite under _Setup > Company > Setup Tasks: Enable Features > Advanced Features_.
 
@@ -303,7 +289,7 @@ If you have Approval Routing selected in your accounting preference, this will o
 
 If you do not wish to use Approval Routing in NetSuite, go to _Setup > Accounting > Accounting Preferences > Approval Routing_ and ensure Vendor Bills and Journal Entries are not selected. 
 
-### Collection Account
+## Collection Account
 
 When exporting invoices, once marked as Paid, the payment is marked against the account selected after enabling the Collection Account setting.
 
@@ -343,7 +329,7 @@ Add the corporate card option and the corporate card main field to configure you
 
 If you prefer individual corporate cards for each employee, you can select the default account on the employee record. Add this field to your employee entity form in NetSuite (under _Customize > Customize Form_ from any employee record). Note that each employee can have only one corporate card account default.
 
-### Exporting Company Cards to GL Accounts in NetSuite
+## Exporting Company Cards to GL Accounts in NetSuite
 
 If you need to export company card transactions to individual GL accounts, you can set that up at the domain level. 
 
@@ -359,9 +345,7 @@ You’ll want to set up Tax Groups in Expensify if you're keeping track of taxes
 
 Expensify can import "NetSuite Tax Groups" (not Tax Codes) from NetSuite. Tax Groups can contain one or more Tax Codes. If you have subsidiaries in the UK or Ireland, ensure your Tax Groups have only one Tax Code.
 
-You can locate these in NetSuite by setting up> Accounting > Tax Groups.
-
-You’ll want to name Tax Groups something that makes sense to your employees since both the name and the tax rate will appear in Expensify.
+You can locate these in NetSuite by setting up> Accounting > Tax Groups. Name the Tax Groups something that makes sense to your employees since both the name and the tax rate will appear in Expensify.
 
 To bring NetSuite Tax Groups into Expensify, here's what you need to do:
 1. Create your Tax Groups in NetSuite by going to _Setup > Accounting > Tax Groups_
@@ -386,7 +370,7 @@ Expensify. If you deactivate this group in NetSuite, it will lead to export erro
 
 Additionally, some tax nexuses in NetSuite have specific settings that need to be configured in a certain way to work seamlessly with the Expensify integration:
 - ​​In the Tax Code Lists Include field, choose "Tax Groups" or "Tax Groups and Tax Codes." This setting determines how tax information is handled.
-- In the Tax Rounding Method field, select "Round Off." Although it won't cause connection errors, not using this setting can result in exported amounts differing from what NetSuite expects.
+- In the Tax Rounding Method field, select "Round Off." Although this setting won't cause connection errors, not using it can result in exported amounts differing from what NetSuite expects.
 
 If your tax groups are importing into Expensify but not exporting to NetSuite, check that each tax group has the right subsidiaries enabled. That is crucial for proper data exchange.
 
@@ -408,7 +392,7 @@ Let's dive right in:
 1. Access Configuration Settings: Go to **Settings > Workspace > Group > _[Workspace Name]_ > Connections > Configuration**
 2. Choose Your Accounts Receivable Account: Scroll down to "Export Expenses to" and select the appropriate Accounts Receivable account from the dropdown list. If you don't see any options, try syncing your NetSuite connection by returning to the Connections page and clicking **Sync Now**
 
-### Exporting an Invoice to NetSuite
+## Exporting an Invoice to NetSuite
 
 Invoices will be automatically sent to NetSuite when they are in the "Processing" or "Paid" status. This ensures you always have an up-to-date record of unpaid and paid invoices.
 
@@ -421,7 +405,7 @@ When exporting to NetSuite, we match the recipient's email address on the invoic
 
 Once exported, the invoice will appear in the Accounts Receivable account you selected during your NetSuite Export configuration.
 
-### Updating the status of an invoice to "paid"
+## Updating the status of an invoice to "paid"
 
 When you mark an invoice as "Paid" in Expensify, this status will automatically update in NetSuite. Similarly, if the invoice is marked as "Paid" in NetSuite, it will sync with Expensify. The payment will be reflected in the Collection account specified in your Advanced Settings Configuration.
 

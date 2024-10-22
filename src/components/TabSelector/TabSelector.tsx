@@ -1,6 +1,5 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {Animated} from 'react-native';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -10,6 +9,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import getBackgroundColor from './getBackground';
+import getOpacity from './getOpacity';
 import TabSelectorItem from './TabSelectorItem';
 
 type TabSelectorProps = MaterialTopTabBarProps & {
@@ -50,42 +51,12 @@ function getIconAndTitle(route: string, translate: LocaleContextProps['translate
     }
 }
 
-function getOpacity(position: Animated.AnimatedInterpolation<number>, routesLength: number, tabIndex: number, active: boolean, affectedTabs: number[]) {
-    const activeValue = active ? 1 : 0;
-    const inactiveValue = active ? 0 : 1;
-
-    if (routesLength > 1) {
-        const inputRange = Array.from({length: routesLength}, (v, i) => i);
-
-        return position.interpolate({
-            inputRange,
-            outputRange: inputRange.map((i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? activeValue : inactiveValue)),
-        });
-    }
-    return activeValue;
-}
-
 function TabSelector({state, navigation, onTabPress = () => {}, position, onFocusTrapContainerElementChanged}: TabSelectorProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
-
-    const getBackgroundColor = useCallback(
-        (routesLength: number, tabIndex: number, affectedTabs: number[]) => {
-            if (routesLength > 1) {
-                const inputRange = Array.from({length: routesLength}, (v, i) => i);
-
-                return position.interpolate({
-                    inputRange,
-                    outputRange: inputRange.map((i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? theme.border : theme.appBG)),
-                }) as unknown as Animated.AnimatedInterpolation<string>;
-            }
-            return theme.border;
-        },
-        [theme, position],
-    );
 
     useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
@@ -98,10 +69,10 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
             <View style={styles.tabSelector}>
                 {state.routes.map((route, index) => {
-                    const activeOpacity = getOpacity(position, state.routes.length, index, true, affectedAnimatedTabs);
-                    const inactiveOpacity = getOpacity(position, state.routes.length, index, false, affectedAnimatedTabs);
-                    const backgroundColor = getBackgroundColor(state.routes.length, index, affectedAnimatedTabs);
                     const isActive = index === state.index;
+                    const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
+                    const inactiveOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive});
+                    const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
                     const {icon, title} = getIconAndTitle(route.name, translate);
 
                     const onPress = () => {

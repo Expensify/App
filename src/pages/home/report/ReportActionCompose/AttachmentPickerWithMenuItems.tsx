@@ -88,6 +88,8 @@ type AttachmentPickerWithMenuItemsProps = {
 
     /** The personal details of everyone in the report */
     reportParticipantIDs?: number[];
+
+    shouldDisableAttachmentItem?: boolean;
 };
 
 /**
@@ -112,6 +114,7 @@ function AttachmentPickerWithMenuItems({
     onItemSelected,
     actionButtonRef,
     raiseIsScrollLikelyLayoutTriggered,
+    shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
     const isFocused = useIsFocused();
     const theme = useTheme();
@@ -121,7 +124,7 @@ function AttachmentPickerWithMenuItems({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`, {initialValue: {} as OnyxTypes.Policy});
     const {canUseCombinedTrackSubmit} = usePermissions();
 
     /**
@@ -237,6 +240,7 @@ function AttachmentPickerWithMenuItems({
                     {
                         icon: Expensicons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
+                        disabled: shouldDisableAttachmentItem,
                     },
                 ];
                 return (

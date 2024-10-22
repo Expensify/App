@@ -29,6 +29,8 @@ To require workspace members to add tags and/or categories to their expenses,
 {% include end-option.html %}
 
 {% include end-selector.html %}
+
+![In the Workspace > Categories setting, the right-hand panel is open and the toggle to require categories on expenses is highlighted.]({{site.url}}/assets/images/workspace_category_toggle.png){:width="100%"}
    
 This will highlight the tag and/or category field as required on all expenses. 
 

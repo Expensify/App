@@ -30,7 +30,7 @@ function AmexCustomFeed() {
         CompanyCards.setAddNewCompanyCardStepAndData({
             step: typeSelected === CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.CORPORATE ? CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS : CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
             data: {
-                cardType: CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
+                feedType: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
                 selectedAmexCustomFeed: typeSelected,
             },
         });

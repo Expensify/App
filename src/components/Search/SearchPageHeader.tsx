@@ -67,7 +67,7 @@ function HeaderWrapper({icon, children, text, value, isCannedQuery, onSubmit, se
                         />
                     )}
                     <Header subtitle={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{text}</Text>} />
-                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>{children}</View>
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap2]}>{children}</View>
                 </View>
             ) : (
                 <View style={styles.pr5}>
