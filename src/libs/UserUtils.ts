@@ -6,7 +6,7 @@ import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, LoginList, Session} from '@src/types/onyx';
+import type {Account, LoginList, PrivatePersonalDetails, Session} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
@@ -78,8 +78,22 @@ function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>): LoginL
     if (hasLoginListInfo(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
+
     return undefined;
 }
+
+function getProfilePageBrickRoadIndicator(loginList: OnyxEntry<LoginList>, privatePersoanlDetails: OnyxEntry<PrivatePersonalDetails>): LoginListIndicator {
+    const hasPhoneNumberError = !!privatePersoanlDetails?.errorFields?.phoneNumber;
+    if (hasLoginListError(loginList) || hasPhoneNumberError) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    }
+    if (hasLoginListInfo(loginList)) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    }
+
+    return undefined;
+}
+
 
 /**
  * Hashes provided string and returns a value between [0, range)
@@ -240,6 +254,7 @@ export {
     getDefaultAvatarURL,
     getFullSizeAvatar,
     getLoginListBrickRoadIndicator,
+    getProfilePageBrickRoadIndicator,
     getSecondaryPhoneLogin,
     getSmallSizeAvatar,
     hasLoginListError,

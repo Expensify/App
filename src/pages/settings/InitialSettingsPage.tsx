@@ -79,6 +79,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [privatePersoanlDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    console.log("privatePersoanlDetails", privatePersoanlDetails)
 
     const network = useNetwork();
     const theme = useTheme();
@@ -125,7 +127,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * @returns object with translationKey, style and items for the account section
      */
     const accountMenuItemsData: Menu = useMemo(() => {
-        const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
+        const profileBrickRoadIndicator = UserUtils.getProfilePageBrickRoadIndicator(loginList, privatePersoanlDetails);
         const paymentCardList = fundList;
         const defaultMenu: Menu = {
             sectionStyle: styles.accountSettingsSectionContainer,
@@ -160,7 +162,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         };
 
         return defaultMenu;
-    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors]);
+    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, privatePersoanlDetails]);
 
     /**
      * Retuns a list of menu items data for workspace section

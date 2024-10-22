@@ -40,14 +40,7 @@ function PhoneNumberPage() {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
-            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.PHONE_NUMBER])) {
-                errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
-            }
-            const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(values[INPUT_IDS.PHONE_NUMBER]);
-            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
-            if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode.slice(0))) {
-                errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
-            }
+
             return errors;
         },
         [translate],
