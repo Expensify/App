@@ -135,6 +135,8 @@ function MoneyRequestAmountInput(
 
     const textInput = useRef<BaseTextInputRef | null>(null);
 
+    const amountRef = useRef<string | undefined>(undefined);
+
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
     const selectedAmountAsString = amount ? onFormatAmount(amount, currency) : '';
 
@@ -172,8 +174,9 @@ function MoneyRequestAmountInput(
 
             willSelectionBeUpdatedManually.current = true;
             let hasSelectionBeenSet = false;
+            const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(finalAmount);
+            amountRef.current = strippedAmount;
             setCurrentAmount((prevAmount) => {
-                const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(finalAmount);
                 const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
                 if (!hasSelectionBeenSet) {
                     hasSelectionBeenSet = true;
@@ -312,7 +315,8 @@ function MoneyRequestAmountInput(
                 if (!shouldUpdateSelection) {
                     return;
                 }
-                const maxSelection = formattedAmount.length;
+                const maxSelection = amountRef.current?.length ?? formattedAmount.length;
+                amountRef.current = undefined;
                 const start = Math.min(e.nativeEvent.selection.start, maxSelection);
                 const end = Math.min(e.nativeEvent.selection.end, maxSelection);
                 setSelection({start, end});
