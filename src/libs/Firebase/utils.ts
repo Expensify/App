@@ -26,8 +26,8 @@ function getAttributes(): FirebaseAttributes {
         transactionViolationsLength,
         policiesLength,
         transactionsLength,
-        policyType: policy?.type ?? '',
-        policyRole: policy?.role ?? '',
+        policyType: policy?.type ?? 'N/A',
+        policyRole: policy?.role ?? 'N/A',
     };
 }
 
