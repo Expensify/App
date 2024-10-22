@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {addLeadingZero, amountRegex, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
