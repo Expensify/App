@@ -155,7 +155,9 @@ type OptimisticExpenseReport = Pick<
     | 'stateNum'
     | 'statusNum'
     | 'total'
+    | 'unheldTotal'
     | 'nonReimbursableTotal'
+    | 'unheldNonReimbursableTotal'
     | 'parentReportID'
     | 'lastVisibleActionCreated'
     | 'parentReportActionID'
@@ -4579,7 +4581,9 @@ function buildOptimisticExpenseReport(
         stateNum,
         statusNum,
         total: storedTotal,
+        unheldTotal: storedTotal,
         nonReimbursableTotal: reimbursable ? 0 : storedTotal,
+        unheldNonReimbursableTotal: reimbursable ? 0 : storedTotal,
         participants: {
             [payeeAccountID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
@@ -7679,36 +7683,17 @@ function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEn
 /**
  * Return held and full amount formatted with used currency
  */
-function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, shouldExcludeNonReimbursables: boolean): string[] {
-    const reportTransactions = reportsTransactions[iouReport?.reportID ?? ''] ?? [];
-    const hasPendingTransaction = reportTransactions.some((transaction) => !!transaction.pendingAction);
-
+function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonReimbursables: boolean): string[] {
     // if the report is an expense report, the total amount should be negated
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
 
     let total = iouReport?.total ?? 0;
-    if (shouldExcludeNonReimbursables) {
-        total -= iouReport?.nonReimbursableTotal ?? 0;
-    }
-
-    if (hasUpdatedTotal(iouReport, policy) && hasPendingTransaction) {
-        const unheldNonReimbursableTotal = reportTransactions.reduce(
-            (currentVal, transaction) => currentVal + (!TransactionUtils.isOnHold(transaction) && !transaction.reimbursable ? transaction.amount : 0),
-            0,
-        );
-        let unheldTotal = reportTransactions.reduce((currentVal, transaction) => currentVal + (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
-
-        if (shouldExcludeNonReimbursables) {
-            unheldTotal -= unheldNonReimbursableTotal;
-        }
-
-        return [CurrencyUtils.convertToDisplayString(unheldTotal * coefficient, iouReport?.currency), CurrencyUtils.convertToDisplayString(total * coefficient, iouReport?.currency)];
-    }
-
     let unheldTotal = iouReport?.unheldTotal ?? 0;
     if (shouldExcludeNonReimbursables) {
+        total -= iouReport?.nonReimbursableTotal ?? 0;
         unheldTotal -= iouReport?.unheldNonReimbursableTotal ?? 0;
     }
+
     return [CurrencyUtils.convertToDisplayString(unheldTotal * coefficient, iouReport?.currency), CurrencyUtils.convertToDisplayString(total * coefficient, iouReport?.currency)];
 }
 
