@@ -101,9 +101,11 @@ function BaseSelectionList<TItem extends ListItem>(
         onLongPressRow,
         shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
         shouldShowListEmptyContent = true,
+        listItemWrapperStyle,
         shouldIgnoreFocus = false,
         scrollEventThrottle,
         contentContainerStyle,
+        shouldHighlightSelectedItem = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -475,6 +477,8 @@ function BaseSelectionList<TItem extends ListItem>(
                         setFocusedIndex(normalizedIndex);
                     }}
                     shouldSyncFocus={!isTextInputFocusedRef.current}
+                    shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+                    wrapperStyle={listItemWrapperStyle}
                 />
                 {item.footerContent && item.footerContent}
             </>
@@ -716,7 +720,7 @@ function BaseSelectionList<TItem extends ListItem>(
                             </View>
                         )}
                     {!!headerContent && headerContent}
-                    {flattenedSections.allOptions.length === 0 ? (
+                    {flattenedSections.allOptions.length === 0 && (showLoadingPlaceholder || shouldShowListEmptyContent) ? (
                         renderListEmptyContent()
                     ) : (
                         <>

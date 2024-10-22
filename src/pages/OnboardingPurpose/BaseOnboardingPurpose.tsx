@@ -51,7 +51,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
+
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const theme = useTheme();
@@ -81,7 +83,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 Welcome.setOnboardingErrorMessage('');
 
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-                    Navigation.navigate(ROUTES.ONBOARDING_WORK.getRoute(route.params?.backTo));
+                    Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
                 }
                 Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
@@ -91,7 +93,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const isFocused = useIsFocused();
 
     const handleOuterClick = useCallback(() => {
-        Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorSelection'));
+        Welcome.setOnboardingErrorMessage(translate('onboarding.errorSelection'));
     }, [translate]);
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
