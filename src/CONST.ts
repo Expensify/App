@@ -5730,11 +5730,6 @@ const CONST = {
             IN: 'in',
         },
         EMPTY_VALUE: 'none',
-        SEARCH_ROUTER_ITEM_TYPE: {
-            CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
-            AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
-            SEARCH: 'seearchItem',
-        },
     },
 
     REFERRER: {

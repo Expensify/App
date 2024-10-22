@@ -139,7 +139,6 @@ function SearchRouterList(
             singleIcon: Expensicons.MagnifyingGlass,
             query,
             keyForList: query,
-            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
         };
     });
 
