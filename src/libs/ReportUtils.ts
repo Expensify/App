@@ -4503,6 +4503,9 @@ function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, re
             [currentUserAccountID ?? -1]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             },
+            [receiverAccountID]: {
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            },
         },
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
