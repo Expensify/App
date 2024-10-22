@@ -19,7 +19,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import * as UserUtils from '@libs/UserUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as User from '@userActions/User';
@@ -41,7 +40,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
-    const validateLoginError = ErrorUtils.getLatestErrorField(loginData, 'addedLogin');
+    const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
@@ -59,19 +58,13 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
 
     const addNewContactMethod = useCallback(
         (magicCode: string) => {
-            User.addNewContactMethod(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? ''), magicCode);
+            User.addNewContactMethod(pendingContactAction?.contactMethod ?? '', magicCode);
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
         },
         [pendingContactAction?.contactMethod],
     );
 
-    useEffect(() => {
-        if (!pendingContactAction?.actionVerified) {
-            return;
-        }
-
-        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
-        User.clearUnvalidatedNewContactMethodAction();
-    }, [pendingContactAction?.actionVerified]);
+    useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
 
     const validate = React.useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
@@ -108,14 +101,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         }
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
     }, [navigateBackTo]);
-
-    const sendValidateCode = () => {
-        if (loginData?.validateCodeSent) {
-            return;
-        }
-
-        User.requestValidateCodeAction();
-    };
 
     return (
         <AccessOrNotFoundWrapper shouldBeBlocked={isActingAsDelegate}>
@@ -162,22 +147,10 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                     validatePendingAction={pendingContactAction?.pendingFields?.actionVerified}
                     validateError={validateLoginError}
                     handleSubmitForm={addNewContactMethod}
-                    clearError={() => {
-                        if (!loginData) {
-                            return;
-                        }
-                        User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin');
-                    }}
-                    onClose={() => {
-                        if (loginData?.errorFields && pendingContactAction?.contactMethod) {
-                            User.clearContactMethod(pendingContactAction?.contactMethod);
-                            User.clearUnvalidatedNewContactMethodAction();
-                        }
-                        setIsValidateCodeActionModalVisible(false);
-                    }}
+                    clearError={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
+                    onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
                     title={contactMethod}
-                    sendValidateCode={sendValidateCode}
                     description={translate('contacts.enterMagicCode', {contactMethod})}
                 />
             </ScreenWrapper>

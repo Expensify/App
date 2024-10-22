@@ -6,26 +6,14 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as User from '@libs/actions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionModalProps} from './type';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
-function ValidateCodeActionModal({
-    isVisible,
-    title,
-    description,
-    onClose,
-    onModalHide,
-    validatePendingAction,
-    validateError,
-    handleSubmitForm,
-    clearError,
-    footer,
-    sendValidateCode,
-    hasMagicCodeBeenSent,
-}: ValidateCodeActionModalProps) {
+function ValidateCodeActionModal({isVisible, title, description, onClose, validatePendingAction, validateError, handleSubmitForm, clearError}: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
@@ -42,16 +30,15 @@ function ValidateCodeActionModal({
             return;
         }
         firstRenderRef.current = false;
-
-        sendValidateCode();
-    }, [isVisible, sendValidateCode]);
+        User.requestValidateCodeAction();
+    }, [isVisible]);
 
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={hide}
-            onModalHide={onModalHide ?? hide}
+            onModalHide={hide}
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
@@ -74,13 +61,10 @@ function ValidateCodeActionModal({
                         validatePendingAction={validatePendingAction}
                         validateError={validateError}
                         handleSubmitForm={handleSubmitForm}
-                        sendValidateCode={sendValidateCode}
                         clearError={clearError}
                         ref={validateCodeFormRef}
-                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                     />
                 </View>
-                {footer?.()}
             </ScreenWrapper>
         </Modal>
     );

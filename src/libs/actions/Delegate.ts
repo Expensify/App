@@ -219,7 +219,6 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                 delegatedAccess: {
                     delegates: optimisticDelegateData(),
                 },
-                isLoading: true,
             },
         },
     ];
@@ -264,7 +263,6 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                 delegatedAccess: {
                     delegates: successDelegateData(),
                 },
-                isLoading: false,
             },
         },
     ];
@@ -307,7 +305,6 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                 delegatedAccess: {
                     delegates: failureDelegateData(),
                 },
-                isLoading: false,
             },
         },
     ];
