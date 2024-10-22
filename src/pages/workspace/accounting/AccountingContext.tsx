@@ -57,6 +57,9 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to allow QuickBooks Desktop setup to be shown only on large screens
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const startIntegrationFlow = React.useCallback(
