@@ -3811,6 +3811,7 @@ function getReportName(
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
+    return 'Report name';
     const reportID = report?.reportID;
     const cacheKey = getCacheKey(report);
 
