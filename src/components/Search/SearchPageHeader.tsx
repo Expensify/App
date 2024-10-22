@@ -67,7 +67,7 @@ function HeaderWrapper({icon, children, text, value, isCannedQuery, onSubmit, se
                         />
                     )}
                     <Header subtitle={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{text}</Text>} />
-                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>{children}</View>
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap2]}>{children}</View>
                 </View>
             ) : (
                 <View style={styles.pr5}>
@@ -121,6 +121,8 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, clearSelectedTransactions, selectedReports} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
