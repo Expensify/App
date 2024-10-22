@@ -109,6 +109,7 @@
     "expensify-common": "2.0.94",
     "expo": "51.0.31",
     "expo-av": "14.0.7",
+    "expo-background-fetch": "^12.0.1",
     "expo-image": "1.12.15",
     "expo-image-manipulator": "12.0.5",
     "fast-equals": "^4.0.3",
@@ -354,7 +355,6 @@
   "expo": {
     "autolinking": {
       "exclude": [
-        "expo-constants",
         "expo-file-system",
         "expo-font",
         "@react-native-google-signin/google-signin",

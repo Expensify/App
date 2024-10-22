@@ -38,6 +38,8 @@ PODS:
     - ExpoModulesCore
   - ExpoAsset (10.0.10):
     - ExpoModulesCore
+  - ExpoBackgroundFetch (12.0.1):
+    - ExpoModulesCore
   - ExpoImage (1.12.15):
     - ExpoModulesCore
     - libavif/libdav1d
@@ -72,6 +74,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - EXTaskManager (11.8.2):
+    - ExpoModulesCore
+    - UMAppLoader
   - FBLazyVector (0.75.2)
   - Firebase/Analytics (8.8.0):
     - Firebase/Core
@@ -1687,7 +1692,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-keyboard-controller (1.14.0):
+  - react-native-keyboard-controller (1.14.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2664,6 +2669,7 @@ PODS:
     - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.7.0)
   - Turf (2.8.0)
+  - UMAppLoader (4.6.0)
   - VisionCamera (4.0.0-beta.13):
     - DoubleConversion
     - glog
@@ -2695,9 +2701,11 @@ DEPENDENCIES:
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
+  - ExpoBackgroundFetch (from `../node_modules/expo-background-fetch/ios`)
   - ExpoImage (from `../node_modules/expo-image/ios`)
   - ExpoImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - EXTaskManager (from `../node_modules/expo-task-manager/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz\"}`)"
@@ -2806,6 +2814,7 @@ DEPENDENCIES:
   - RNShare (from `../node_modules/react-native-share`)
   - RNSound (from `../node_modules/react-native-sound`)
   - RNSVG (from `../node_modules/react-native-svg`)
+  - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -2863,12 +2872,16 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo"
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
+  ExpoBackgroundFetch:
+    :path: "../node_modules/expo-background-fetch/ios"
   ExpoImage:
     :path: "../node_modules/expo-image/ios"
   ExpoImageManipulator:
     :path: "../node_modules/expo-image-manipulator/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
+  EXTaskManager:
+    :path: "../node_modules/expo-task-manager/ios"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   fmt:
@@ -3082,6 +3095,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-sound"
   RNSVG:
     :path: "../node_modules/react-native-svg"
+  UMAppLoader:
+    :path: "../node_modules/unimodules-app-loader/ios"
   VisionCamera:
     :path: "../node_modules/react-native-vision-camera"
   Yoga:
@@ -3102,9 +3117,11 @@ SPEC CHECKSUMS:
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
   Expo: 4773e11951abd0f666f67023f0cb1d48c3e8a32b
   ExpoAsset: 323700f291684f110fb55f0d4022a3362ea9f875
+  ExpoBackgroundFetch: a06c553ecaf0bade0acd691042d996b9ce926327
   ExpoImage: f77df382153d716f332f974438a803c4527f60b0
   ExpoImageManipulator: aea99205c66043a00a0af90e345395637b9902fa
   ExpoModulesCore: 335282d855cc34fb5540e170204e729a51464bbb
+  EXTaskManager: 9c3520305c3aa1b4a12a7c6d1e3f85f2779c06e9
   FBLazyVector: 38bb611218305c3bc61803e287b8a81c6f63b619
   Firebase: 629510f1a9ddb235f3a7c5c8ceb23ba887f0f814
   FirebaseABTesting: 10cbce8db9985ae2e3847ea44e9947dd18f94e10
@@ -3178,7 +3195,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: b9bd12beaf0ebca61a01514517ca8455bd26fa06
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: aae312752fcdfaa2240be9a015fc41ce54087546
-  react-native-keyboard-controller: 17d5830f2bd6c6cad44682eb2cc13f9078eff985
+  react-native-keyboard-controller: 902c07f41a415b632583b384427a71770a8b02a3
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: fb5112b1fa754975485884ae85a3fb6a684f49d5
   react-native-pager-view: 94195f1bf32e7f78359fa20057c97e632364a08b
@@ -3245,6 +3262,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
+  UMAppLoader: f17a5ee8e85b536ace0fc254b447a37ed198d57e
   VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
   Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
 
