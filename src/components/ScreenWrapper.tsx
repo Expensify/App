@@ -1,8 +1,8 @@
-import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Keyboard, NativeModules, PanResponder, View} from 'react-native';
+import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useEnvironment from '@hooks/useEnvironment';
@@ -146,6 +146,9 @@ function ScreenWrapper(
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
@@ -160,15 +163,6 @@ function ScreenWrapper(
     const isKeyboardShownRef = useRef<boolean>(false);
 
     isKeyboardShownRef.current = keyboardState?.isKeyboardShown ?? false;
-
-    const route = useRoute();
-    const shouldReturnToOldDot = useMemo(() => {
-        return !!route?.params && 'singleNewDotEntry' in route.params && route.params.singleNewDotEntry === 'true';
-    }, [route]);
-
-    UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
-        NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
-    });
 
     const panResponder = useRef(
         PanResponder.create({
