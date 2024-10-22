@@ -3,6 +3,7 @@ import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import {Linking} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {ContactsNitroModule} from '@modules/ContactsNitroModule/src';
 import Button from '@components/Button';
@@ -29,6 +30,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getAvatarForContact} from '@libs/RandomAvatarUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import saveLastRoute from '@libs/saveLastRoute';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
@@ -92,6 +94,7 @@ function MoneyRequestParticipantsSelector({
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [isContactPermissionBlocked, setContactPermissionBlocked] = useState(false);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -267,22 +270,20 @@ function MoneyRequestParticipantsSelector({
 
     useEffect(() => {
         requestContactPermission().then((response) => {
+            setContactPermissionBlocked(response === 'blocked');
 
             if (response === 'granted') {
-                const startTime = performance.now();
-                ContactsNitroModule.getAll(['FIRST_NAME', 'LAST_NAME', 'PHONE_NUMBERS', 'EMAIL_ADDRESSES', 'IMAGE_DATA'])
-                    .then((deviceContacts) => {
-                        setContacts(
-                            deviceContacts.map((contact) => ({
-                                text: `${contact?.firstName} ${contact?.lastName}`,
-                                alternateText: `${contact?.emailAddresses?.[0]?.value ?? ''}`,
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                icons: [{source: contact?.imageData || getAvatarForContact(`${contact?.firstName}${contact?.lastName}`), type: 'avatar'}],
-                                reportID: '',
-                            })),
-                        );
-                    })
-                    .catch((error) => {});
+                ContactsNitroModule.getAll(['FIRST_NAME', 'LAST_NAME', 'PHONE_NUMBERS', 'EMAIL_ADDRESSES', 'IMAGE_DATA']).then((deviceContacts) => {
+                    setContacts(
+                        deviceContacts.map((contact) => ({
+                            text: `${contact?.firstName} ${contact?.lastName}`,
+                            alternateText: `${contact?.emailAddresses?.[0]?.value ?? ''}`,
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            icons: [{source: contact?.imageData || getAvatarForContact(`${contact?.firstName}${contact?.lastName}`), type: 'avatar'}],
+                            reportID: '',
+                        })),
+                    );
+                });
             }
         });
     }, []);
@@ -497,6 +498,41 @@ function MoneyRequestParticipantsSelector({
         },
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
+    const goToSettings = useCallback(() => {
+        Linking.openSettings();
+        // In the case of ios, the App reloads when we update contact permission from settings
+        // we are saving last route so we can navigate to it after app reload
+        saveLastRoute();
+    }, []);
+
+    const listFooterComponent = useMemo(() => {
+        if (!isContactPermissionBlocked) {
+            return null;
+        }
+        return (
+            <MenuItem
+                furtherDetails={translate('iou.contactPermissionSQuestion')}
+                icon={Expensicons.Phone}
+                onPress={goToSettings}
+                shouldShowRightIcon
+                style={styles.mb2}
+            />
+        );
+    }, [goToSettings, isContactPermissionBlocked, styles.mb2, translate]);
+
+    const EmptySelectionListContentWithPermission = useMemo(() => {
+        if (isContactPermissionBlocked) {
+            return (
+                <MenuItem
+                    label={translate('iou.contactPermissionSQuestion')}
+                    title={translate('iou.goToSettings')}
+                    icon={Expensicons.Phone}
+                    onPress={goToSettings}
+                />
+            );
+        }
+        return <EmptySelectionListContent contentType={iouType} />;
+    }, [goToSettings, iouType, isContactPermissionBlocked, translate]);
 
     return (
         <SelectionList
@@ -512,7 +548,8 @@ function MoneyRequestParticipantsSelector({
             shouldSingleExecuteRowSelect
             headerContent={headerContent}
             footerContent={footerContent}
-            listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
+            listEmptyContent={EmptySelectionListContentWithPermission}
+            listFooterContent={listFooterComponent}
             headerMessage={header}
             showLoadingPlaceholder={showLoadingPlaceholder}
             canSelectMultiple={isIOUSplit && isAllowedToSplit}
