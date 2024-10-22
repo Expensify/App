@@ -126,7 +126,7 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
     if (Number.isNaN(numValue)) {
         return NaN;
     }
-    return numValue.toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES);
+    return numValue.toFixed(CONST.MIN_TAX_RATE_DECIMAL_PLACES);
 }
 
 /**
@@ -153,7 +153,8 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     if (withDecimals) {
         const decimalPart = numValue.toString().split('.').at(1);
         if (decimalPart) {
-            return Number(numValue).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES).toString().replace('.', toLocaleDigit('.'));
+            const fractionDigits = Math.min(decimalPart.length, CONST.MAX_TAX_RATE_DECIMAL_PLACES);
+            return Number(numValue).toFixed(fractionDigits).toString().replace('.', toLocaleDigit('.'));
         }
     }
 
