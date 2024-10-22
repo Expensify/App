@@ -7,6 +7,7 @@ type CompanyCardBankConnection = {
     domainName: string;
     scrapeMinDate: string;
     isCorporate: string;
+    isNewDot: string;
 };
 
 // TODO remove this when BE will support bank UI callbacks
@@ -24,7 +25,7 @@ export default function getCompanyCardBankConnection(bankName?: string, domainNa
         return null;
     }
     const authToken = NetworkStore.getAuthToken();
-    const params: CompanyCardBankConnection = {authToken: authToken ?? '', domainName: domainName ?? '', isCorporate: 'true', scrapeMinDate: scrapeMinDate ?? ''};
+    const params: CompanyCardBankConnection = {authToken: authToken ?? '', isNewDot: 'true', domainName: domainName ?? '', isCorporate: 'true', scrapeMinDate: scrapeMinDate ?? ''};
     const commandURL = getApiRoot({
         shouldSkipWebProxy: true,
         command: '',
