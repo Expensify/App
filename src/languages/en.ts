@@ -3822,8 +3822,8 @@ const translations = {
                 payingAsBusiness: 'Paying as a business',
             },
             invoiceBalance: 'Invoice balance',
-            invoiceBalanceSubtitle: 'Here’s your current balance from collecting payments on invoices.',
-            bankAccountsSubtitle: 'Add a bank account to receive invoice payments.',
+            invoiceBalanceSubtitle: "This is your current balance from collecting invoice payments. It'll transfer to your bank account automatically if you've added one.",
+            bankAccountsSubtitle: 'Add a bank account to make and receive invoice payments.',
         },
         invite: {
             member: 'Invite member',
