@@ -848,59 +848,11 @@ describe('actions/Report', () => {
         const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
-        // wait for Onyx.connect execute the callback and start processing the queue
-        await Promise.resolve();
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
 
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
-                    resolve();
-                },
-            });
-        });
-
-        Report.deleteReportComment(REPORT_ID, reportAction);
-
         await waitForBatchedUpdates();
-        expect(PersistedRequests.getAll().length).toBe(1);
-
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-        await waitForBatchedUpdates();
-
-        // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
-    });
-
-    it('should send DeleteComment request and remove UpdateComment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-
-        const TEST_USER_ACCOUNT_ID = 1;
-        const REPORT_ID = '1';
-        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-        const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
-
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-
-        Report.addComment(REPORT_ID, 'Testing a comment');
-
-        // Need the reportActionID to delete the comments
-        const newComment = PersistedRequests.getAll().at(1);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
-        const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-
-        // wait for Onyx.connect execute the callback and start processing the queue
-        await Promise.resolve();
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-
-        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
 
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({

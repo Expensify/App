@@ -1711,7 +1711,7 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
                 }
                 return {
                     conflictAction: {
-                        type: 'noAction',
+                        type: 'push',
                     },
                 };
             },
