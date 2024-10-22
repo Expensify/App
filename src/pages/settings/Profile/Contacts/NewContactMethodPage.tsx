@@ -60,6 +60,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const addNewContactMethod = useCallback(
         (magicCode: string) => {
             User.addNewContactMethod(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? ''), magicCode);
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(pendingContactAction?.contactMethod ?? ''));
         },
         [pendingContactAction?.contactMethod],
     );
@@ -69,7 +70,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
         User.clearUnvalidatedNewContactMethodAction();
     }, [pendingContactAction?.actionVerified]);
 
