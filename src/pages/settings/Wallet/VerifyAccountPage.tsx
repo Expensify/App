@@ -42,13 +42,13 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         if (!isUserValidated) {
             return;
         }
-    
+
         setIsValidateCodeActionModalVisible(false);
 
-        if(!navigateBackTo) {
+        if (!navigateBackTo) {
             return;
         }
-    
+
         Navigation.navigate(navigateBackTo);
     }, [isUserValidated, navigateBackTo]);
 
@@ -62,7 +62,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             description={translate('contacts.featureRequiresValidate')}
             onClose={() => {
                 setIsValidateCodeActionModalVisible(false);
-                if (!isUserValidated  && navigateBackTo) {
+                if (!isUserValidated && navigateBackTo) {
                     Navigation.navigate(ROUTES.SETTINGS_WALLET);
                 }
             }}
