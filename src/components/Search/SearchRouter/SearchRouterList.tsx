@@ -29,8 +29,8 @@ type ItemWithQuery = {
 };
 
 type SearchRouterListProps = {
-    /** Value of TextInput */
-    textInputValue: string;
+    /** currentQuery value computed coming from parsed TextInput value */
+    currentQuery: SearchQueryJSON | undefined;
 
     /** Recent searches */
     recentSearches: Array<ItemWithQuery & {timestamp: string}> | undefined;
@@ -48,7 +48,7 @@ type SearchRouterListProps = {
     reportForContextualSearch?: OptionData;
 
     /** Callback to update search query when selecting contextual suggestion */
-    updateSearchInputValue: (newSearchQuery: string) => void;
+    updateUserSearchQuery: (newSearchQuery: string) => void;
 
     /** Callback to close and clear SearchRouter */
     closeAndClearRouter: () => void;
@@ -91,16 +91,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 }
 
 function SearchRouterList(
-    {
-        textInputValue,
-        reportForContextualSearch,
-        recentSearches,
-        recentReports,
-        autocompleteItems,
-        onSearchSubmit,
-        updateSearchInputValue: updateUserSearchQuery,
-        closeAndClearRouter,
-    }: SearchRouterListProps,
+    {currentQuery, reportForContextualSearch, recentSearches, autocompleteItems, recentReports, onSearchSubmit, updateUserSearchQuery, closeAndClearRouter}: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -113,22 +104,21 @@ function SearchRouterList(
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
 
-    if (textInputValue) {
+    if (currentQuery?.inputQuery) {
         sections.push({
             data: [
                 {
-                    text: textInputValue,
+                    text: currentQuery?.inputQuery,
                     singleIcon: Expensicons.MagnifyingGlass,
-                    query: textInputValue,
+                    query: currentQuery?.inputQuery,
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'findItem',
-                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
                 },
             ],
         });
     }
 
-    if (reportForContextualSearch && !textInputValue) {
+    if (reportForContextualSearch && !currentQuery?.inputQuery) {
         sections.push({
             data: [
                 {
@@ -137,7 +127,7 @@ function SearchRouterList(
                     query: SearchUtils.getContextualSuggestionQuery(reportForContextualSearch.reportID),
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
-                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
+                    isContextualSearchItem: true,
                 },
             ],
         });
@@ -167,7 +157,7 @@ function SearchRouterList(
         };
     });
 
-    if (!textInputValue && recentSearchesData && recentSearchesData.length > 0) {
+    if (!currentQuery?.inputQuery && recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
@@ -177,18 +167,9 @@ function SearchRouterList(
     const onSelectRow = useCallback(
         (item: OptionData | SearchQueryItem) => {
             if (isSearchQueryItem(item)) {
-                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
+                if (item.isContextualSearchItem) {
                     // Handle selection of "Contextual search suggestion"
-                    updateUserSearchQuery(`${item?.query} ${textInputValue ?? ''}`);
-                    return;
-                }
-
-                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION) {
-                    // Handle selection of "Autocomplete suggestion"
-                    const lastColonIndex = textInputValue.lastIndexOf(':');
-                    const lastComaIndex = textInputValue.lastIndexOf(',');
-                    const trimmedTextInputValue = lastColonIndex > lastComaIndex ? textInputValue.slice(0, lastColonIndex + 1) : textInputValue.slice(0, lastComaIndex + 1);
-                    updateUserSearchQuery(`${trimmedTextInputValue}${item?.query}`);
+                    updateUserSearchQuery(`${item?.query} ${currentQuery?.inputQuery ?? ''}`);
                     return;
                 }
 
@@ -207,7 +188,7 @@ function SearchRouterList(
                 Report.navigateToAndOpenReport(item.login ? [item.login] : [], false);
             }
         },
-        [closeAndClearRouter, onSearchSubmit, textInputValue, updateUserSearchQuery],
+        [closeAndClearRouter, onSearchSubmit, currentQuery, updateUserSearchQuery],
     );
 
     return (

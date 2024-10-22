@@ -56,34 +56,14 @@ function getAutoCompleteTagsList(allPoliciesTagsLists: OnyxCollection<PolicyTagL
     return getTagNamesFromTagsLists(singlePolicyTagsList);
 }
 
-function getAutocompleteStatusesList(type?: ValueOf<typeof CONST.SEARCH.DATA_TYPES>) {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.INVOICE: {
-            return Object.values(CONST.SEARCH.STATUS.INVOICE);
-        }
-        case CONST.SEARCH.DATA_TYPES.CHAT: {
-            return Object.values(CONST.SEARCH.STATUS.CHAT);
-        }
-        case CONST.SEARCH.DATA_TYPES.EXPENSE: {
-            return Object.values(CONST.SEARCH.STATUS.EXPENSE);
-        }
-        case CONST.SEARCH.DATA_TYPES.TRIP: {
-            return Object.values(CONST.SEARCH.STATUS.TRIP);
-        }
-        default:
-            return Object.values({...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
-    }
-}
-
 function getAutocompleteCategoriesList(allPolicyCategories: OnyxCollection<PolicyCategories>, policyID?: string) {
     const singlePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
-    const categoryList = singlePolicyCategories
-        ? Object.values(singlePolicyCategories)
-        : Object.values(allPolicyCategories ?? {})
-              .map((policyCategories) => Object.values(policyCategories ?? {}))
-              .flat();
-    const filteredCategoryList = categoryList.filter((category) => !!category);
-    return filteredCategoryList.map((category) => category.name);
+    if (!singlePolicyCategories) {
+        const uniqueCategoryNames = new Set<string>();
+        Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
+        return Array.from(uniqueCategoryNames);
+    }
+    return Object.values(singlePolicyCategories ?? {}).map((category) => category.name);
 }
 
 function getAutocompleteTaxList(allTaxRates: Record<string, string[]>, policy?: OnyxEntry<Policy>) {
@@ -92,11 +72,6 @@ function getAutocompleteTaxList(allTaxRates: Record<string, string[]>, policy?: 
     }
     return Object.keys(allTaxRates).map((taxRateName) => taxRateName);
 }
-
-
-type SearchRouterProps = {
-    onRouterClose: () => void;
-};
 
 function SearchRouter({onRouterClose}: SearchRouterProps) {
     const styles = useThemeStyles();
@@ -120,7 +95,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const policy = usePolicy(activeWorkspaceID);
     const typesAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
-    const statusesAutocompleteList = useMemo(() => getAutocompleteStatusesList(userSearchQuery?.type), [userSearchQuery?.type]);
+    const statusesAutocompleteList = Object.values({...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const categoryAutocompleteList = useMemo(() => getAutocompleteCategoriesList(allPolicyCategories, activeWorkspaceID), [allPolicyCategories, activeWorkspaceID]);
@@ -196,9 +171,6 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const updateAutocomplete = useCallback(
         (autocompleteValue: string, autocompleteType?: ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS & typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>) => {
             switch (autocompleteType) {
-                case 'in': {
-                    return;
-                }
                 case 'tag': {
                     const filteredTags = tagAutocompleteList.filter((tag) => tag?.includes(autocompleteValue));
                     setAutocompleteSuggestions(
@@ -213,7 +185,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     const filteredCategories = categoryAutocompleteList.filter((category) => category?.includes(autocompleteValue));
                     setAutocompleteSuggestions(
                         filteredCategories.map((categoryName) => ({
-                            text: `currency:${categoryName}`,
+                            text: `category:${categoryName}`,
                             query: `${categoryName}`,
                         })),
                     );
@@ -317,9 +289,9 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         [updateAutocomplete],
     );
 
-    const updateSearchInputValue = (newValue: string) => {
-        setTextInputValue(newValue);
-        onSearchChange(newValue);
+    const updateUserSearchQuery = (newSearchQuery: string) => {
+        setTextInputValue(newSearchQuery);
+        onSearchChange(newSearchQuery);
     };
 
     const closeAndClearRouter = useCallback(() => {
@@ -378,13 +350,13 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 isSearchingForReports={isSearchingForReports}
             />
             <SearchRouterList
-                textInputValue={textInputValue}
+                currentQuery={userSearchQuery}
                 reportForContextualSearch={contextualReportData}
                 recentSearches={sortedRecentSearches?.slice(0, 5)}
                 recentReports={recentReports}
                 autocompleteItems={autocompleteSuggestions}
                 onSearchSubmit={onSearchSubmit}
-                updateSearchInputValue={updateSearchInputValue}
+                updateUserSearchQuery={updateUserSearchQuery}
                 closeAndClearRouter={closeAndClearRouter}
                 ref={listRef}
             />
