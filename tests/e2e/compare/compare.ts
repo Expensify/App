@@ -91,16 +91,23 @@ function compareResults(baselineEntries: Metric | string, compareEntries: Metric
     };
 }
 
-export default (main: Metric | string, delta: Metric | string, outputFile: string, outputFormat = 'all', metricForTest = {}) => {
+type Options = {
+    outputFile: string;
+    outputFormat: 'console' | 'markdown' | 'all';
+    metricForTest: Record<string, Unit>;
+    hasMissingData: boolean;
+};
+
+export default (main: Metric | string, delta: Metric | string, {outputFile, outputFormat = 'all', metricForTest = {}, hasMissingData}: Options) => {
     // IMPORTANT NOTE: make sure you are passing the main/baseline results first, then the delta/compare results:
     const outputData = compareResults(main, delta, metricForTest);
 
     if (outputFormat === 'console' || outputFormat === 'all') {
-        printToConsole(outputData);
+        printToConsole(outputData, hasMissingData);
     }
 
     if (outputFormat === 'markdown' || outputFormat === 'all') {
-        return writeToMarkdown(outputFile, outputData);
+        return writeToMarkdown(outputFile, outputData, hasMissingData);
     }
 };
 export {compareResults};

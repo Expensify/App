@@ -1,3 +1,4 @@
+import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
 import type {NativeConfig} from 'react-native-config';
 import * as E2EGenericPressableWrapper from '@components/Pressable/GenericPressable/index.e2e';
