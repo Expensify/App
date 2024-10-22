@@ -303,7 +303,7 @@ function getCustomUnitRateID(reportID: string, shouldUseDefault?: boolean) {
  */
 function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, distance: number) {
     const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
-    const customUnitRate = PolicyUtils.getCustomUnitRate(policy, customUnitRateID);
+    const customUnitRate = PolicyUtils.getDistanceRateCustomUnitRate(policy, customUnitRateID);
     if (!distanceUnit || !distanceUnit?.customUnitID || !customUnitRate) {
         return 0;
     }

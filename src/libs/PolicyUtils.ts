@@ -139,7 +139,7 @@ function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | unde
 /**
  * Retrieves custom unit rate object from the given customUnitRateID
  */
-function getCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
+function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
     const distanceUnit = getDistanceRateCustomUnit(policy);
     return distanceUnit?.rates[customUnitRateID];
 }
@@ -1149,7 +1149,7 @@ export {
     getSageIntacctCreditCards,
     getSageIntacctBankAccounts,
     getDistanceRateCustomUnit,
-    getCustomUnitRate,
+    getDistanceRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
     navigateWhenEnableFeature,
