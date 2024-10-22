@@ -208,6 +208,9 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 onClose={closeMenu}
                 onItemSelected={closeMenu}
                 anchorRef={buttonRef}
+                innerContainerStyle={styles.pv0}
+                scrollContainerStyle={styles.pv4}
+                shouldUseScrollView
             />
             <DeleteConfirmModal />
         </View>
