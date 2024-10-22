@@ -21,9 +21,9 @@ const startTrace: StartTrace = (customEventName) => {
 
     const attributes = utils.getAttributes();
 
-    Object.entries(attributes).forEach(([name, value]) => {
-        perfTrace.putAttribute(name, value);
-    });
+    // Object.entries(attributes).forEach(([name, value]) => {
+    //     perfTrace.putAttribute(name, value);
+    // });
 
     traceMap[customEventName] = {
         trace: perfTrace,

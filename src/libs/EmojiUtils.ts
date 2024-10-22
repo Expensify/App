@@ -425,7 +425,7 @@ function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_CO
     for (const node of nodes) {
         if (node.metaData?.code && !matching.find((obj) => obj.name === node.name)) {
             if (matching.length === limit) {
-                return matching;
+                return lodashSortBy(matching, (emoji) => !emoji.name.includes(emojiData[0].toLowerCase().slice(1)));
             }
             matching.push({code: node.metaData.code, name: node.name, types: node.metaData.types});
         }
