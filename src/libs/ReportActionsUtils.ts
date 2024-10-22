@@ -1803,16 +1803,30 @@ function getReportActionsLength() {
     return Object.keys(allReportActions ?? {}).length;
 }
 
-function wasActionCreatedWhileOffline(action: ReportAction, offlineLastAt: Date | undefined, onlineLastAt: Date | undefined, locale: Locale): boolean {
-    if (!onlineLastAt || !offlineLastAt) {
+function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale): boolean {
+    // The user was never online.
+    if (!lastOnlineAt) {
+        return true;
+    }
+
+    // The user never was never offline.
+    if (!lastOfflineAt) {
         return false;
     }
 
     const actionCreatedAt = DateUtils.getLocalDateFromDatetime(locale, action.created);
 
-    if (actionCreatedAt > offlineLastAt && actionCreatedAt <= onlineLastAt) {
+    // The action was created before the user went offline.
+    if (actionCreatedAt <= lastOfflineAt) {
+        return false;
+    }
+
+    // The action was created while the user was offline.
+    if (isOffline || actionCreatedAt < lastOnlineAt) {
         return true;
     }
+
+    // The action was created after the user went back online.
     return false;
 }
 

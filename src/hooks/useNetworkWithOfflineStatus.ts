@@ -10,26 +10,18 @@ export default function useNetworkWithOfflineStatus(): UseNetworkWithOfflineStat
     const {isOffline} = useNetwork();
     const {preferredLocale} = useLocalize();
 
-    // Used to get the last time the user went offline.
-    // Set to a JS Date object if the user was offline before, otherwise undefined.
+    // The last time/date the user went/was offline. If the user was never offline, it is set to undefined.
     const lastOfflineAt = useRef(isOffline ? DateUtils.getLocalDateFromDatetime(preferredLocale) : undefined);
-    useEffect(() => {
-        if (!isOffline) {
-            return;
-        }
-        lastOfflineAt.current = DateUtils.getLocalDateFromDatetime(preferredLocale);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOffline]);
 
-    // Used to get the last time the user went back online after being offline.
-    // Set to a JS Date object if the user was online before, otherwise undefined.
+    // The last time/date the user went/was online. If the user was never online, it is set to undefined.
     const lastOnlineAt = useRef(isOffline ? undefined : DateUtils.getLocalDateFromDatetime(preferredLocale));
+
     useEffect(() => {
         if (isOffline) {
-            return;
+            lastOfflineAt.current = DateUtils.getLocalDateFromDatetime(preferredLocale);
+        } else {
+            lastOnlineAt.current = DateUtils.getLocalDateFromDatetime(preferredLocale);
         }
-        lastOnlineAt.current = DateUtils.getLocalDateFromDatetime(preferredLocale);
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
