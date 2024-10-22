@@ -16,16 +16,16 @@ function adaptStateIfNecessary(state: StackState) {
         workspaceCentralPane?.params && 'policyID' in workspaceCentralPane.params && typeof workspaceCentralPane.params.policyID === 'string'
             ? workspaceCentralPane.params.policyID
             : undefined;
+    const policy = PolicyUtils.getPolicy(policyID ?? '');
+    const isLoadingReportData = PolicyUtils.getIsLoadingReportData();
+    const isPolicyAccessible = PolicyUtils.isPolicyAccessible(policy);
 
     // There should always be WORKSPACE.INITIAL screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.
     // The only exception is when the workspace is invalid or inaccessible.
     if (!isAtLeastOneInState(state, SCREENS.WORKSPACE.INITIAL)) {
-        const policy = PolicyUtils.getPolicy(policyID ?? '');
-        const isPolicyAccessible = PolicyUtils.isPolicyAccessible(policy);
-        if (!isPolicyAccessible) {
+        if (isNarrowLayout && !isLoadingReportData && !isPolicyAccessible) {
             return;
         }
-
         // @ts-expect-error Updating read only property
         // noinspection JSConstantReassignment
         state.stale = true; // eslint-disable-line

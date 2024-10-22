@@ -165,11 +165,11 @@ function AccessOrNotFoundWrapper({
     const childrenProps = useMemo(() => ({report, policy, isLoadingReportData}), [report, policy, isLoadingReportData]);
 
     useEffect(() => {
-        if (!isPolicyNotAccessible) {
+        if (isLoadingReportData || !isPolicyNotAccessible) {
             return;
         }
         Navigation.removeScreenFromNavigationState(SCREENS.WORKSPACE.INITIAL);
-    }, [isPolicyNotAccessible]);
+    }, [isLoadingReportData, isPolicyNotAccessible]);
 
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;

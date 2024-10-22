@@ -1071,8 +1071,12 @@ function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
 }
 
-function isPolicyAccessible(policy: OnyxEntry<Policy>) {
-    return !isLoadingReportData && !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && policy?.id;
+function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
+    return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
+}
+
+function getIsLoadingReportData() {
+    return isLoadingReportData;
 }
 
 export {
@@ -1193,6 +1197,7 @@ export {
     getAllPoliciesLength,
     getActivePolicy,
     isPolicyAccessible,
+    getIsLoadingReportData,
 };
 
 export type {MemberEmailsToAccountIDs};
