@@ -15,9 +15,19 @@ import Navigation from '@navigation/Navigation';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 
-function ConfirmationStep() {
+type ConfirmationStepProps = {
+    /** Current policy id */
+    policyID: string;
+
+    /** Route to go back to */
+    backTo?: Route;
+};
+
+function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -28,7 +38,8 @@ function ConfirmationStep() {
     const data = assignCard?.data;
 
     const submit = () => {
-        Navigation.goBack();
+        CompanyCards.assignWorkspaceCompanyCard(policyID, data);
+        Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         CompanyCards.clearAssignCardStepAndData();
     };
 
