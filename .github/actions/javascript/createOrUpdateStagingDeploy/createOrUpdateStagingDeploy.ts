@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import format from 'date-fns/format';
+import {format} from 'date-fns/format';
 import fs from 'fs';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';

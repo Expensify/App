@@ -18,9 +18,13 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
     });
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportIDWithDefault}`);
 
-    const reportActions = useMemo(() => {
+    const {
+        data: reportActions,
+        hasNextPage,
+        hasPreviousPage,
+    } = useMemo(() => {
         if (!sortedAllReportActions?.length) {
-            return [];
+            return {data: [], hasNextPage: false, hasPreviousPage: false};
         }
         return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, reportActionID);
     }, [reportActionID, reportActionPages, sortedAllReportActions]);
@@ -34,6 +38,8 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
         reportActions,
         linkedAction,
         sortedAllReportActions,
+        hasOlderActions: hasNextPage,
+        hasNewerActions: hasPreviousPage,
     };
 }
 

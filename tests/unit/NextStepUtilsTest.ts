@@ -402,6 +402,33 @@ describe('libs/NextStepUtils', () => {
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
+                // Waiting for an admin to set up a bank account
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: `an admin`,
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'finish setting up',
+                    },
+                    {
+                        text: ' a business bank account.',
+                    },
+                ];
+
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+
+                expect(result).toMatchObject(optimisticNextStep);
+            });
+
+            test('self review with bank account setup', () => {
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+
                 // Waiting for an admin to pay expense(s)
                 optimisticNextStep.message = [
                     {
@@ -421,9 +448,20 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    achAccount: {
+                        accountNumber: '123456789',
+                    },
+                }).then(() => {
+                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
-                expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
+
+                    // restore to previous state
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                        achAccount: null,
+                    });
+                });
             });
 
             test('another reviewer', () => {
@@ -536,7 +574,42 @@ describe('libs/NextStepUtils', () => {
             test('payer', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for an admin to pay expense(s).
+                // Waiting for an admin to set up a bank account
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: 'an admin',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'finish setting up',
+                    },
+                    {
+                        text: ' a business bank account.',
+                    },
+                ];
+                // mock the report as approved
+                const originalState = {stateNum: report.stateNum, statusNum: report.statusNum};
+                report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
+                report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
+
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+
+                expect(result).toMatchObject(optimisticNextStep);
+
+                // restore
+                report.stateNum = originalState.stateNum;
+                report.statusNum = originalState.statusNum;
+            });
+
+            test('payer with bank account setup', () => {
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+
+                // Waiting for an admin to pay expense(s)
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -554,33 +627,31 @@ describe('libs/NextStepUtils', () => {
                         text: ' %expenses.',
                     },
                 ];
-                // mock the report as approved
-                const originalState = {stateNum: report.stateNum, statusNum: report.statusNum};
-                report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
-                report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
 
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
-
-                expect(result).toMatchObject(optimisticNextStep);
-
-                // restore
-                report.stateNum = originalState.stateNum;
-                report.statusNum = originalState.statusNum;
-            });
-        });
-
-        describe('it generates an optimistic nextStep once a report has been paid', () => {
-            test('paid with wallet / outside of Expensify', () => {
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
-                optimisticNextStep.message = [
-                    {
-                        text: 'No further action required!',
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    achAccount: {
+                        accountNumber: '123456789',
                     },
-                ];
+                }).then(() => {
+                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED);
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
+            });
 
-                expect(result).toMatchObject(optimisticNextStep);
+            describe('it generates an optimistic nextStep once a report has been paid', () => {
+                test('paid with wallet / outside of Expensify', () => {
+                    optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
+                    optimisticNextStep.message = [
+                        {
+                            text: 'No further action required!',
+                        },
+                    ];
+
+                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED);
+
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
             });
         });
     });

@@ -1,20 +1,21 @@
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
-import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import getInitialSubstepForBusinessInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForBusinessInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {ReimbursementAccount} from '@src/types/onyx';
 import AddressBusiness from './substeps/AddressBusiness';
 import ConfirmationBusiness from './substeps/ConfirmationBusiness';
 import IncorporationDateBusiness from './substeps/IncorporationDateBusiness';
@@ -25,15 +26,7 @@ import TaxIdBusiness from './substeps/TaxIdBusiness';
 import TypeBusiness from './substeps/TypeBusiness/TypeBusiness';
 import WebsiteBusiness from './substeps/WebsiteBusiness';
 
-type BusinessInfoOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
-};
-
-type BusinessInfoProps = BusinessInfoOnyxProps & {
+type BusinessInfoProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
 };
@@ -52,8 +45,11 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [
     ConfirmationBusiness,
 ];
 
-function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}: BusinessInfoProps) {
+function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const getBankAccountFields = useCallback(
         (fieldNames: string[]) => ({
@@ -75,6 +71,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
                     ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
                     companyTaxID: values.companyTaxID?.replace(CONST.REGEX.NON_NUMERIC, ''),
                     companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
+                    website: ValidationUtils.isValidWebsite(values.website) ? values.website : undefined,
                 },
                 policyID,
                 isConfirmPage,
@@ -130,12 +127,4 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
 
 BusinessInfo.displayName = 'BusinessInfo';
 
-export default withOnyx<BusinessInfoProps, BusinessInfoOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
-    },
-})(BusinessInfo);
+export default BusinessInfo;
