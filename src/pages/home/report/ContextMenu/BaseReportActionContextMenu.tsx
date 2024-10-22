@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import shouldEnableContextMenuEnterShortcut from '@libs/shouldEnableContextMenuEnterShortcut';
@@ -124,6 +125,10 @@ function BaseReportActionContextMenu({
     const transactionID = ReportActionsUtils.getLinkedTransactionID(reportActionID, reportID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [user] = useOnyx(ONYXKEYS.USER);
+    const policyID = ReportUtils.getReport(reportID)?.policyID;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID ?? '-1');
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
         if (isEmptyObject(reportActions) || reportActionID === '0' || reportActionID === '-1') {
@@ -282,6 +287,18 @@ function BaseReportActionContextMenu({
         );
     };
 
+    const cardIssuedActionOriginalMessage = ReportActionsUtils.isActionOfType(
+        reportAction,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+    )
+        ? ReportActionsUtils.getOriginalMessage(reportAction)
+        : undefined;
+    const cardID = cardIssuedActionOriginalMessage?.cardID ?? -1;
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
+    const card = isPolicyAdmin ? cardsList?.[cardID] : cardList[cardID];
+
     return (
         (isVisible || shouldKeepOpen) && (
             <FocusTrapForModal active={!isMini}>
@@ -303,6 +320,7 @@ function BaseReportActionContextMenu({
                             openOverflowMenu,
                             setIsEmojiPickerActive,
                             moneyRequestAction,
+                            hasCard: !!card,
                         };
 
                         if ('renderContent' in contextAction) {
