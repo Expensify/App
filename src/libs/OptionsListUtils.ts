@@ -2612,7 +2612,7 @@ function getEmptyOptions(): Options {
 }
 
 function shouldUseBoldText(report: ReportUtils.OptionData): boolean {
-    const notificationPreference = ReportUtils.getReportNotificationPreference(report);
+    const notificationPreference = ReportUtils.getReportNotificationPreference(report, false);
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
