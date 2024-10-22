@@ -140,7 +140,7 @@ function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | unde
  * Retrieves the per diem custom unit object for the given policy
  */
 function getPerDiemCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
-    return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
 }
 
 /**
