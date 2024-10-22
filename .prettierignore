@@ -21,3 +21,4 @@ src/libs/E2E/reactNativeLaunchingTest.ts
 
 # Automatically generated files
 src/libs/SearchParser/searchParser.js
+src/libs/SearchParser/autocompleteParser.js

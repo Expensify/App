@@ -3,6 +3,8 @@ import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'reac
 import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
+import type {PressableRef} from '@components/Pressable/GenericPressable/types';
+import type PressableProps from '@components/Pressable/GenericPressable/types';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,8 +12,6 @@ import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
-import type {PressableRef} from './types';
-import type PressableProps from './types';
 
 function GenericPressable(
     {
