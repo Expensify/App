@@ -62,7 +62,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         } else if (!navigateBackTo) {
             Navigation.goBack();
         }
-    }, [isValidateCodeActionModalVisible]);
+    }, [isValidateCodeActionModalVisible, isUserValidated, navigateBackTo]);
 
     return (
         <ValidateCodeActionModal
