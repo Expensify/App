@@ -159,6 +159,7 @@ function ScreenWrapper(
 
     const isKeyboardShownRef = useRef<boolean>(false);
 
+    // eslint-disable-next-line react-compiler/react-compiler
     isKeyboardShownRef.current = keyboardState?.isKeyboardShown ?? false;
 
     const route = useRoute();

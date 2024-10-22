@@ -242,6 +242,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     let initialReportID: string | undefined;
     const isInitialRender = useRef(true);
+
+    // eslint-disable-next-line react-compiler/react-compiler
     if (isInitialRender.current) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
@@ -255,6 +257,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             initialReportID = initialReport?.reportID ?? '';
         }
 
+        // eslint-disable-next-line react-compiler/react-compiler
         isInitialRender.current = false;
     }
 
