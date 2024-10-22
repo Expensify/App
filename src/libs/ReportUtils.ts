@@ -4252,13 +4252,6 @@ function getReportDescription(report: OnyxEntry<Report>): string {
     }
 }
 
-function getReportDescriptionText(report: OnyxEntry<Report>): string {
-    if (!report?.description) {
-        return '';
-    }
-    return Parser.htmlToText(getReportDescription(report));
-}
-
 function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
     if (!policy?.description) {
         return '';
@@ -8431,7 +8424,6 @@ export {
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,
     getReportDescription,
-    getReportDescriptionText,
     getReportFieldKey,
     getReportIDFromLink,
     getReportName,
