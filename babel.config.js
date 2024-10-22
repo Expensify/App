@@ -97,6 +97,7 @@ const metro = {
                     '@assets': './assets',
                     '@components': './src/components',
                     '@hooks': './src/hooks',
+                    '@modules': './modules',
                     '@libs': './src/libs',
                     '@navigation': './src/libs/Navigation',
                     '@pages': './src/pages',
