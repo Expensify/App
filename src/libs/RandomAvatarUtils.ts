@@ -58,20 +58,20 @@ const avatars: AvatarArray = [
 const AVATAR_LENGTH: number = avatars.length;
 const DEFAULT_AVATAR: AvatarComponent = Avatar1;
 
-// For best distribution, we use prime numbers slightly above and below our array length.
+// Prime numbers for better distribution
 const MULTIPLIER = AVATAR_LENGTH + 7; // First prime after length
 const OFFSET = AVATAR_LENGTH - 11; // First prime before length
 
 /**
- * Generate a deterministic avatar based on the second letter from the name.
- * Using the second letter avoids avatar clustering when contacts are sorted alphabetically
- * (since first letters often repeat). Use this when you need consistent avatars for names
- * but aren't caching them permanently.
+ * Generate a deterministic avatar based on multiple letters from the name.
+ * Uses a rolling hash of the first 5 letters (or available letters if name is shorter)
+ * for better distribution while maintaining deterministic results.
  *
  * @example
- * // These will always return the same avatar for the same name but they would be different for different names
- * const avatar1 = getAvatarForContact("John")  // Uses 'o' for selection
- * const avatar2 = getAvatarForContact("Jane")  // Uses 'a' for selection
+ * // These will always return the same avatar for the same name
+ * const avatar1 = getAvatarForContact("Jonathan")  // Uses 'Jonat' for hash
+ * const avatar2 = getAvatarForContact("Jane")  // Uses 'Jane' for hash
+ * const avatar3 = getAvatarForContact("J")     // Uses 'J' for hash
  *
  * @param name - Contact name or null/undefined
  * @returns Avatar component
@@ -81,13 +81,18 @@ const getAvatarForContact = (name?: string | null): AvatarComponent => {
         return DEFAULT_AVATAR;
     }
 
-    const char = name.length > 1 ? name.charAt(1) : name.charAt(0);
-    const charCode = char.charCodeAt(0);
+    // Take up to first 5 characters, or all if name is shorter
+    const chars = name.slice(0, 5);
 
-    // Hash based on array length for flexible distribution
-    const hash = (charCode * MULTIPLIER + OFFSET) % AVATAR_LENGTH;
+    // Create a rolling hash from the characters
+    let hash = 0;
+    for (let i = 0; i < chars.length; i++) {
+        const charCode = chars.charCodeAt(i);
+        // Use position-based multiplier for better distribution
+        hash = (hash * MULTIPLIER + charCode * (i + 1) + OFFSET) % AVATAR_LENGTH;
+    }
 
-    return avatars.at(hash) ?? DEFAULT_AVATAR;
+    return avatars.at(Math.abs(hash)) ?? DEFAULT_AVATAR;
 };
 
 export type {AvatarComponent};
