@@ -29,22 +29,22 @@ type Subrate = {
     rate: number;
 };
 
-/** Model of policy distance rate */
+/** Model of policy rate */
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
-        /** Name of the distance rate */
+        /** Name of the rate */
         name?: string;
 
-        /** Amount to be reimbursed per distance unit travelled */
+        /** Amount to be reimbursed per unit */
         rate?: number;
 
-        /** Currency used to pay the distance rate */
+        /** Currency used to pay the rate */
         currency?: string;
 
-        /** Generated ID to identify the distance rate */
+        /** Generated ID to identify the rate */
         customUnitRateID?: string;
 
-        /** Whether this distance rate is currently enabled */
+        /** Whether this rate is currently enabled */
         enabled?: boolean;
 
         /** Error messages to show in UI */
