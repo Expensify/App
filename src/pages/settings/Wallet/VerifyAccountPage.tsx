@@ -23,7 +23,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
-    const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_WALLET;
+    const navigateBackTo = route?.params?.backTo;
 
     useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
 
@@ -42,13 +42,19 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         if (!isUserValidated) {
             return;
         }
-        Navigation.navigate(navigateBackTo);
+    
         setIsValidateCodeActionModalVisible(false);
+
+        if(!navigateBackTo) {
+            return;
+        }
+    
+        Navigation.navigate(navigateBackTo);
     }, [isUserValidated, navigateBackTo]);
 
     return (
         <ValidateCodeActionModal
-            sendValidateCode={() => User.requestValidateCodeAction()}
+            sendValidateCode={() => {}}
             handleSubmitForm={handleSubmitForm}
             validateError={validateLoginError}
             isVisible={isValidateCodeActionModalVisible}
@@ -56,7 +62,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             description={translate('contacts.featureRequiresValidate')}
             onClose={() => {
                 setIsValidateCodeActionModalVisible(false);
-                if (!isUserValidated) {
+                if (!isUserValidated  && navigateBackTo) {
                     Navigation.navigate(ROUTES.SETTINGS_WALLET);
                 }
             }}
