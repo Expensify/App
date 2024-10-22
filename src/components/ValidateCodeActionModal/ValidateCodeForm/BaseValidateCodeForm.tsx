@@ -174,6 +174,7 @@ function BaseValidateCodeForm({
         }
 
         setFormError({});
+        console.log('calling addNewContactMethod 2')
         handleSubmitForm(validateCode);
     }, [validateCode, handleSubmitForm]);
 
@@ -232,7 +233,6 @@ function BaseValidateCodeForm({
                     onPress={validateAndSubmitForm}
                     style={[styles.mt4]}
                     success
-                    pressOnEnter
                     large
                     isLoading={account?.isLoading}
                 />
