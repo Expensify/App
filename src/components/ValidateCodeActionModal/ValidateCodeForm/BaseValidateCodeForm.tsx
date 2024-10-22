@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, ReactNode} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -13,6 +13,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -64,6 +65,9 @@ type ValidateCodeFormProps = {
     clearError: () => void;
 
     sendValidateCode: () => void;
+
+    /** A component to be rendered inside the validateCodeForm */
+    menuItems?: () => ReactNode;
 };
 
 function BaseValidateCodeForm({
@@ -77,12 +81,15 @@ function BaseValidateCodeForm({
     clearError,
     sendValidateCode,
     buttonStyles,
+    menuItems,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
+
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
@@ -178,66 +185,73 @@ function BaseValidateCodeForm({
     }, [validateCode, handleSubmitForm]);
 
     return (
-        <>
-            <MagicCodeInput
-                autoComplete={autoComplete}
-                ref={inputValidateCodeRef}
-                name="validateCode"
-                value={validateCode}
-                onChangeText={onTextInput}
-                errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
-                hasError={!isEmptyObject(validateError)}
-                onFulfill={validateAndSubmitForm}
-                autoFocus
-            />
-            <OfflineWithFeedback
-                pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
-                errors={ErrorUtils.getLatestErrorField(validateCodeAction, 'actionVerified')}
-                errorRowStyles={[styles.mt2]}
-                onClose={() => User.clearValidateCodeActionError('actionVerified')}
-            >
-                <View style={[styles.mt5, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
-                    <PressableWithFeedback
-                        disabled={shouldDisableResendValidateCode}
-                        style={[styles.mr1]}
-                        onPress={resendValidateCode}
-                        underlayColor={theme.componentBG}
-                        hoverDimmingValue={1}
-                        pressDimmingValue={0.2}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
-                    >
-                        <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
-                    </PressableWithFeedback>
-                    {hasMagicCodeBeenSent && (
-                        <DotIndicatorMessage
-                            type="success"
-                            style={[styles.mt6, styles.flex0]}
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
-                        />
-                    )}
-                </View>
-            </OfflineWithFeedback>
-            <OfflineWithFeedback
-                pendingAction={validatePendingAction}
-                errors={validateError}
-                errorRowStyles={[styles.mt2]}
-                onClose={() => clearError()}
-                style={buttonStyles}
-            >
-                <Button
-                    isDisabled={isOffline}
-                    text={translate('common.verify')}
-                    onPress={validateAndSubmitForm}
-                    style={[styles.mt4]}
-                    success
-                    pressOnEnter
-                    large
-                    isLoading={account?.isLoading}
+        <View style={styles.flex1}>
+            <View style={[styles.ph5, styles.mb5]}>
+                <MagicCodeInput
+                    autoComplete={autoComplete}
+                    ref={inputValidateCodeRef}
+                    name="validateCode"
+                    value={validateCode}
+                    onChangeText={onTextInput}
+                    errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
+                    hasError={!isEmptyObject(validateError)}
+                    onFulfill={validateAndSubmitForm}
+                    autoFocus
                 />
-            </OfflineWithFeedback>
-        </>
+                <OfflineWithFeedback
+                    pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
+                    errors={ErrorUtils.getLatestErrorField(validateCodeAction, 'actionVerified')}
+                    errorRowStyles={[styles.mt2]}
+                    onClose={() => User.clearValidateCodeActionError('actionVerified')}
+                >
+                    <View style={[styles.mt5, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
+                        <PressableWithFeedback
+                            disabled={shouldDisableResendValidateCode}
+                            style={[styles.mr1]}
+                            onPress={resendValidateCode}
+                            underlayColor={theme.componentBG}
+                            hoverDimmingValue={1}
+                            pressDimmingValue={0.2}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                        >
+                            <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                        </PressableWithFeedback>
+                        {hasMagicCodeBeenSent && (
+                            <DotIndicatorMessage
+                                type="success"
+                                style={[styles.mt6, styles.flex0]}
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
+                            />
+                        )}
+                    </View>
+                </OfflineWithFeedback>
+            </View>
+
+            {menuItems ? menuItems() : null}
+
+            <View style={[styles.flex1, styles.justifyContentEnd, safePaddingBottomStyle, styles.ph5]}>
+                <OfflineWithFeedback
+                    pendingAction={validatePendingAction}
+                    errors={validateError}
+                    errorRowStyles={[styles.mt2]}
+                    onClose={() => clearError()}
+                    style={buttonStyles}
+                >
+                    <Button
+                        isDisabled={isOffline}
+                        text={translate('common.verify')}
+                        onPress={validateAndSubmitForm}
+                        style={[styles.mt4]}
+                        success
+                        pressOnEnter
+                        large
+                        isLoading={account?.isLoading}
+                    />
+                </OfflineWithFeedback>
+            </View>
+        </View>
     );
 }
 
