@@ -17,19 +17,32 @@ static bool _nativeHidden = false;
 
 RCT_EXPORT_MODULE();
 
+- (dispatch_queue_t)methodQueue {
+  return dispatch_get_main_queue();
+}
+
 + (BOOL)requiresMainQueueSetup {
   return NO;
 }
 
-- (dispatch_queue_t)methodQueue {
-  return dispatch_get_main_queue();
++ (void)invalidateBootSplash {
+    _resolveQueue = nil;
+    _rootView = nil;
+    _nativeHidden = false;
 }
 
 + (bool)isLoadingViewVisible {
   return _loadingView != nil && ![_loadingView isHidden];
 }
 
++ (bool)hasResolveQueue {
+  return _resolveQueue != nil;
+}
+
 + (void)clearResolveQueue {
+  if (![self hasResolveQueue])
+    return;
+    
   while ([_resolveQueue count] > 0) {
     RCTPromiseResolveBlock resolve = [_resolveQueue objectAtIndex:0];
     [_resolveQueue removeObjectAtIndex:0];
@@ -85,11 +98,7 @@ RCT_EXPORT_MODULE();
   }];
 
   if (rootView != nil) {
-#ifdef RCT_NEW_ARCH_ENABLED
     _rootView = (RCTSurfaceHostingProxyRootView *)rootView;
-#else
-    _rootView = (RCTRootView *)rootView;
-#endif
 
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:storyboardName bundle:nil];
 
@@ -99,12 +108,8 @@ RCT_EXPORT_MODULE();
     _loadingView.center = (CGPoint){CGRectGetMidX(_rootView.bounds), CGRectGetMidY(_rootView.bounds)};
     _loadingView.hidden = NO;
 
-#if RCT_NEW_ARCH_ENABLED
     [_rootView disableActivityIndicatorAutoHide:YES];
     [_rootView setLoadingView:_loadingView];
-#else
-    [_rootView addSubview:_loadingView];
-#endif
 
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(onJavaScriptDidLoad)
@@ -142,16 +147,18 @@ RCT_EXPORT_MODULE();
 
 - (void)hideImpl:(BOOL)fade
          resolve:(RCTPromiseResolveBlock)resolve {
-  if (RCTRunningInAppExtension()) {
-    return resolve(@(true));
-  }
+    if (_resolveQueue == nil)
+      _resolveQueue = [[NSMutableArray alloc] init];
 
-  [_resolveQueue addObject:resolve];
-  _fade = fade;
+    [_resolveQueue addObject:resolve];
 
-  if (_nativeHidden) {
-    return [RCTBootSplash hideAndClearPromiseQueue];
-  }
+    if (![RCTBootSplash isLoadingViewVisible] || RCTRunningInAppExtension())
+      return [RCTBootSplash clearResolveQueue];
+
+    _fade = fade;
+
+    if (_nativeHidden)
+      return [RCTBootSplash hideAndClearPromiseQueue];
 }
 
 - (void)isVisibleImpl:(RCTPromiseResolveBlock)resolve {
