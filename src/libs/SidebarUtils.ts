@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {PolicySelector, ReportActionsSelector} from '@hooks/useReportIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -222,10 +223,28 @@ function getOrderedReportIDs(
     return LHNReports;
 }
 
+<<<<<<< HEAD
 function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, transactionViolations?: OnyxCollection<TransactionViolation[]>) {
     const hasErrors = Object.keys(ReportUtils.getAllReportErrors(report, reportActions)).length !== 0;
 
     const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, ReportActionsUtils.getAllReportActions(report.reportID));
+=======
+type ReasonAndReportActionThatHasRedBrickRoad = {
+    reason: ValueOf<typeof CONST.RBR_REASONS>;
+    reportAction?: OnyxEntry<ReportAction>;
+};
+
+function getReasonAndReportActionThatHasRedBrickRoad(
+    report: Report,
+    reportActions: OnyxEntry<ReportActions>,
+    hasViolations: boolean,
+    transactionViolations?: OnyxCollection<TransactionViolation[]>,
+): ReasonAndReportActionThatHasRedBrickRoad | null {
+    const {errors, reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const hasErrors = Object.keys(errors).length !== 0;
+    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, ReportActionsUtils.getAllReportActions(report.reportID));
+
+>>>>>>> main
     if (oneTransactionThreadReportID) {
         const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
 
@@ -236,11 +255,38 @@ function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportA
                 ReportActionsUtils.getAllReportActions(report.reportID)[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
             )
         ) {
+<<<<<<< HEAD
             return true;
         }
     }
 
     return hasErrors || hasViolations;
+=======
+            return {
+                reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
+            };
+        }
+    }
+
+    if (hasErrors) {
+        return {
+            reason: CONST.RBR_REASONS.HAS_ERRORS,
+            reportAction,
+        };
+    }
+
+    if (hasViolations) {
+        return {
+            reason: CONST.RBR_REASONS.HAS_VIOLATIONS,
+        };
+    }
+
+    return null;
+}
+
+function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, transactionViolations?: OnyxCollection<TransactionViolation[]>) {
+    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations);
+>>>>>>> main
 }
 
 /**
@@ -618,5 +664,9 @@ export default {
     getOptionData,
     getOrderedReportIDs,
     getWelcomeMessage,
+<<<<<<< HEAD
+=======
+    getReasonAndReportActionThatHasRedBrickRoad,
+>>>>>>> main
     shouldShowRedBrickRoad,
 };

@@ -13,12 +13,16 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+<<<<<<< HEAD
 import * as Policy from '@libs/actions/Policy/Policy';
+=======
+>>>>>>> main
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -49,13 +53,17 @@ function WorkspaceCompanyCardsSettingsPage({
     };
 
     const deleteCompanyCardFeed = () => {
+<<<<<<< HEAD
         Policy.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, selectedFeed);
+=======
+        CompanyCards.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, selectedFeed);
+>>>>>>> main
         setDeleteCompanyCardConfirmModalVisible(false);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
     const onToggleLiability = (isOn: boolean) => {
-        Policy.setWorkspaceCompanyCardTransactionLiability(
+        CompanyCards.setWorkspaceCompanyCardTransactionLiability(
             workspaceAccountID,
             policyID,
             selectedFeed,

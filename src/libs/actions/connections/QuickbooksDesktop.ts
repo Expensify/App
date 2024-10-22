@@ -445,6 +445,23 @@ function updateQuickbooksDesktopSyncCustomers<TSettingValue extends Connections[
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_SYNC_CUSTOMERS, parameters, onyxData);
 }
 
+<<<<<<< HEAD
+=======
+function updateQuickbooksDesktopSyncItems<TSettingValue extends Connections['quickbooksDesktop']['config']['importItems']>(
+    policyID: string,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.IMPORT_ITEMS, settingValue, oldSettingValue);
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.IMPORT_ITEMS),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_SYNC_ITEMS, parameters, onyxData);
+}
+
+>>>>>>> main
 function updateQuickbooksDesktopPreferredExporter<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['exporter']>(
     policyID: string,
     settingValue: TSettingValue,
@@ -531,4 +548,8 @@ export {
     updateQuickbooksDesktopExportDate,
     updateQuickbooksDesktopSyncClasses,
     updateQuickbooksDesktopSyncCustomers,
+<<<<<<< HEAD
+=======
+    updateQuickbooksDesktopSyncItems,
+>>>>>>> main
 };

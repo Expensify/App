@@ -87,15 +87,15 @@ function Expensify() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [useNewDotSignInPage] = useOnyx(ONYXKEYS.USE_NEWDOT_SIGN_IN_PAGE);
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
+    const [useNewDotSignInPage] = useOnyx(ONYXKEYS.USE_NEWDOT_SIGN_IN_PAGE);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
-    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM);
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE);
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED);
+    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED);
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
-    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION);
+    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     useEffect(() => {

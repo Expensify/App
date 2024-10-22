@@ -39,7 +39,11 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const data = assignCard?.data;
 
     const submit = () => {
+<<<<<<< HEAD
         Policy.assignWorkspaceCompanyCard(policyID, data);
+=======
+        CompanyCards.assignWorkspaceCompanyCard(policyID, data);
+>>>>>>> main
         Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         CompanyCards.clearAssignCardStepAndData();
     };

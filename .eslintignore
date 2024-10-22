@@ -12,4 +12,8 @@ docs/assets/**
 web/gtm.js
 **/.expo/**
 src/libs/SearchParser/searchParser.js
+<<<<<<< HEAD
+=======
+src/libs/SearchParser/autocompleteParser.js
+>>>>>>> main
 help/_scripts/**

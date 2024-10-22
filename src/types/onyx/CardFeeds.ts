@@ -2,8 +2,20 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
+<<<<<<< HEAD
 /** Card feed provider */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
+=======
+/** Card feed */
+type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
+
+/** Card feed provider */
+type CardFeedProvider =
+    | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD
+    | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.VISA
+    | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX
+    | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
+>>>>>>> main
 
 /** Card feed data */
 type CardFeedData = {
@@ -50,7 +62,11 @@ type CardFeeds = {
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
     /** Card feed provider */
+<<<<<<< HEAD
     feedType: CompanyCardFeed;
+=======
+    feedType: CardFeedProvider;
+>>>>>>> main
 
     /** Name of the card */
     cardTitle: string;
@@ -84,4 +100,8 @@ type AddNewCompanyCardFeed = {
 };
 
 export default CardFeeds;
+<<<<<<< HEAD
 export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData, CompanyCardFeed};
+=======
+export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData, CompanyCardFeed, CardFeedProvider};
+>>>>>>> main

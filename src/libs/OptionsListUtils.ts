@@ -40,6 +40,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
+import {createDraftReportForPolicyExpenseChat} from './actions/Report';
 import Timing from './actions/Timing';
 import filterArrayByMatch from './filterArrayByMatch';
 import localeCompare from './LocaleCompare';
@@ -61,6 +62,7 @@ import * as UserUtils from './UserUtils';
 
 type SearchOption<T> = ReportUtils.OptionData & {
     item: T;
+    isOptimisticReportOption?: boolean;
 };
 
 type OptionList = {
@@ -179,6 +181,7 @@ type GetOptionsConfig = {
     includeDomainEmail?: boolean;
     action?: IOUAction;
     shouldBoldTitleByDefault?: boolean;
+    includePoliciesWithoutExpenseChats?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -238,6 +241,13 @@ Onyx.connect({
         currentUserLogin = value?.email;
         currentUserAccountID = value?.accountID;
     },
+});
+
+let allReportsDraft: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportsDraft = value),
 });
 
 let loginList: OnyxEntry<Login>;
@@ -1499,6 +1509,7 @@ function isReportSelected(reportOption: ReportUtils.OptionData, selectedOptions:
 function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>) {
     const reportMapForAccountIDs: Record<number, Report> = {};
     const allReportOptions: Array<SearchOption<Report>> = [];
+    const policyToReportForPolicyExpenseChats: Record<string, Report> = {};
 
     if (reports) {
         Object.values(reports).forEach((report) => {
@@ -1512,6 +1523,10 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             const isChatRoom = ReportUtils.isChatRoom(report);
             if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
                 return;
+            }
+
+            if (ReportUtils.isPolicyExpenseChat(report) && report.policyID) {
+                policyToReportForPolicyExpenseChats[report.policyID] = report;
             }
 
             // Save the report in the map if this is a single participant so we can associate the reportID with the
@@ -1528,6 +1543,46 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
         });
     }
 
+    const policiesWithoutExpenseChats = Object.values(policies ?? {}).filter((policy) => {
+        if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+            return false;
+        }
+        return !policyToReportForPolicyExpenseChats[policy?.id ?? ''];
+    });
+
+    // go through each policy and create a optimistic report option for it
+    if (policiesWithoutExpenseChats && policiesWithoutExpenseChats.length > 0) {
+        policiesWithoutExpenseChats.forEach((policy) => {
+            // check for draft report exist in allreportDrafts for the policy
+            let draftReport = Object.values(allReportsDraft ?? {})?.find((reportDraft) => reportDraft?.policyID === policy?.id);
+            if (!draftReport) {
+                draftReport = ReportUtils.buildOptimisticChatReport(
+                    [currentUserAccountID ?? -1],
+                    '',
+                    CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    policy?.id,
+                    currentUserAccountID,
+                    true,
+                    policy?.name,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                );
+                createDraftReportForPolicyExpenseChat({...draftReport, isOptimisticReport: true});
+            }
+            const accountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(draftReport);
+            allReportOptions.push({
+                item: draftReport,
+                isOptimisticReportOption: true,
+                ...createOption(accountIDs, personalDetails, draftReport, {}),
+            });
+        });
+    }
     const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
         item: personalDetail,
         ...createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], {}, {showPersonalDetails: true}),
@@ -1723,6 +1778,7 @@ function getOptions(
         includeDomainEmail = false,
         action,
         shouldBoldTitleByDefault = true,
+        includePoliciesWithoutExpenseChats = false,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -1787,6 +1843,9 @@ function getOptions(
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
+        if (option.isOptimisticReportOption && !includePoliciesWithoutExpenseChats) {
+            return;
+        }
         const report = option.item;
         const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
 
@@ -1977,11 +2036,6 @@ function getOptions(
                     }
                 }
             }
-
-            // Add this login to the exclude list so it won't appear when we process the personal details
-            if (reportOption.login) {
-                optionsToExclude.push({login: reportOption.login});
-            }
         }
     }
 
@@ -2114,34 +2168,77 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
 /**
  * Build the options for the New Group view
  */
-function getFilteredOptions(
-    reports: Array<SearchOption<Report>> = [],
-    personalDetails: Array<SearchOption<PersonalDetails>> = [],
-    betas: OnyxEntry<Beta[]> = [],
-    searchValue = '',
-    selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
-    excludeLogins: string[] = [],
-    includeOwnedWorkspaceChats = false,
-    includeP2P = true,
-    includeCategories = false,
-    categories: PolicyCategories = {},
-    recentlyUsedCategories: string[] = [],
-    includeTags = false,
-    tags: PolicyTags | Array<PolicyTag | SelectedTagOption> = {},
-    recentlyUsedTags: string[] = [],
-    canInviteUser = true,
-    includeSelectedOptions = false,
-    includeTaxRates = false,
-    maxRecentReportsToShow: number = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-    taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
-    includeSelfDM = false,
-    includePolicyReportFieldOptions = false,
-    policyReportFieldOptions: string[] = [],
-    recentlyUsedPolicyReportFieldOptions: string[] = [],
-    includeInvoiceRooms = false,
-    action: IOUAction | undefined = undefined,
-    sortByReportTypeInSearch = false,
-) {
+type FilteredOptionsParams = {
+    reports?: Array<SearchOption<Report>>;
+    personalDetails?: Array<SearchOption<PersonalDetails>>;
+    betas?: OnyxEntry<Beta[]>;
+    searchValue?: string;
+    selectedOptions?: Array<Partial<ReportUtils.OptionData>>;
+    excludeLogins?: string[];
+    includeOwnedWorkspaceChats?: boolean;
+    includeP2P?: boolean;
+    includeCategories?: boolean;
+    categories?: PolicyCategories;
+    recentlyUsedCategories?: string[];
+    includeTags?: boolean;
+    tags?: PolicyTags | Array<PolicyTag | SelectedTagOption>;
+    recentlyUsedTags?: string[];
+    canInviteUser?: boolean;
+    includeSelectedOptions?: boolean;
+    includeTaxRates?: boolean;
+    taxRates?: TaxRatesWithDefault;
+    maxRecentReportsToShow?: number;
+    includeSelfDM?: boolean;
+    includePolicyReportFieldOptions?: boolean;
+    policyReportFieldOptions?: string[];
+    recentlyUsedPolicyReportFieldOptions?: string[];
+    includeInvoiceRooms?: boolean;
+    action?: IOUAction;
+    sortByReportTypeInSearch?: boolean;
+    includePoliciesWithoutExpenseChats?: boolean;
+};
+
+// It is not recommended to pass a search value to getFilteredOptions when passing reports and personalDetails.
+// If a search value is passed, the search value should be passed to filterOptions.
+// When it is necessary to pass a search value when passing reports and personalDetails, follow these steps:
+// 1. Use getFilteredOptions with reports and personalDetails only, without the search value.
+// 2. Pass the returned options from getFilteredOptions to filterOptions along with the search value.
+// The above constraints are enforced with TypeScript.
+
+type FilteredOptionsParamsWithDefaultSearchValue = Omit<FilteredOptionsParams, 'searchValue'> & {searchValue?: ''};
+
+type FilteredOptionsParamsWithoutOptions = Omit<FilteredOptionsParams, 'reports' | 'personalDetails'> & {reports?: []; personalDetails?: []};
+
+function getFilteredOptions(params: FilteredOptionsParamsWithDefaultSearchValue | FilteredOptionsParamsWithoutOptions) {
+    const {
+        reports = [],
+        personalDetails = [],
+        betas = [],
+        searchValue = '',
+        selectedOptions = [],
+        excludeLogins = [],
+        includeOwnedWorkspaceChats = false,
+        includeP2P = true,
+        includeCategories = false,
+        categories = {},
+        recentlyUsedCategories = [],
+        includeTags = false,
+        tags = {},
+        recentlyUsedTags = [],
+        canInviteUser = true,
+        includeSelectedOptions = false,
+        includeTaxRates = false,
+        maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        taxRates = {} as TaxRatesWithDefault,
+        includeSelfDM = false,
+        includePolicyReportFieldOptions = false,
+        policyReportFieldOptions = [],
+        recentlyUsedPolicyReportFieldOptions = [],
+        includeInvoiceRooms = false,
+        action,
+        sortByReportTypeInSearch = false,
+        includePoliciesWithoutExpenseChats = false,
+    } = params;
     return getOptions(
         {reports, personalDetails},
         {
@@ -2170,6 +2267,7 @@ function getFilteredOptions(
             includeInvoiceRooms,
             action,
             sortByReportTypeInSearch,
+            includePoliciesWithoutExpenseChats,
         },
     );
 }
@@ -2421,8 +2519,19 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         preferPolicyExpenseChat = false,
         preferRecentExpenseReports = false,
     } = config ?? {};
+    // Remove the personal details for the DMs that are already in the recent reports so that we don't show duplicates
+    function filteredPersonalDetailsOfRecentReports(recentReports: ReportUtils.OptionData[], personalDetails: ReportUtils.OptionData[]) {
+        const excludedLogins = new Set(recentReports.map((report) => report.login));
+        return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
+    }
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
-        return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
+        const recentReports = options.recentReports.slice(0, maxRecentReportsToShow);
+        const personalDetails = filteredPersonalDetailsOfRecentReports(recentReports, options.personalDetails);
+        return {
+            ...options,
+            recentReports,
+            personalDetails,
+        };
     }
 
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
@@ -2464,7 +2573,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         const currentUserOptionSearchText = items.currentUserOption ? uniqFast(getCurrentUserSearchTerms(items.currentUserOption)).join(' ') : '';
 
         const currentUserOption = isSearchStringMatch(term, currentUserOptionSearchText) ? items.currentUserOption : null;
-
         return {
             recentReports: recentReports ?? [],
             personalDetails: personalDetails ?? [],
@@ -2479,6 +2587,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     let {recentReports, personalDetails} = matchResults;
 
     if (sortByReportTypeInSearch) {
+        personalDetails = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
         recentReports = recentReports.concat(personalDetails);
         personalDetails = [];
         recentReports = orderOptions(recentReports, searchValue);
@@ -2489,9 +2598,10 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     if (maxRecentReportsToShow > 0 && recentReports.length > maxRecentReportsToShow) {
         recentReports.splice(maxRecentReportsToShow);
     }
+    const filteredPersonalDetails = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
 
     return {
-        personalDetails,
+        personalDetails: filteredPersonalDetails,
         recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat, preferRecentExpenseReports}),
         userToInvite,
         currentUserOption: matchResults.currentUserOption,
@@ -2566,7 +2676,10 @@ export {
     getEmptyOptions,
     shouldUseBoldText,
     getAlternateText,
+<<<<<<< HEAD
     pickUserToInvite,
+=======
+>>>>>>> main
     hasReportErrors,
 };
 

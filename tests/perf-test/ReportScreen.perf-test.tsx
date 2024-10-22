@@ -233,6 +233,10 @@ test('[ReportScreen] should render ReportScreen', async () => {
         ...reportCollectionDataSet,
         ...reportActionsCollectionDataSet,
     });
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
     await measureRenders(
         <ReportScreenWrapper
             navigation={navigation}
@@ -312,6 +316,10 @@ test('[ReportScreen] should render report list', async () => {
         ...reportCollectionDataSet,
         ...reportActionsCollectionDataSet,
     });
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
     await measureRenders(
         <ReportScreenWrapper
             navigation={navigation}

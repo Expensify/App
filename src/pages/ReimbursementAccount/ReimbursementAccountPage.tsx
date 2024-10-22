@@ -40,6 +40,13 @@ import CompanyStep from './CompanyStep';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import EnableBankAccount from './EnableBankAccount/EnableBankAccount';
+import Agreements from './NonUSD/Agreements/Agreements';
+import BankInfo from './NonUSD/BankInfo/BankInfo';
+import BeneficialOwnerInfo from './NonUSD/BeneficialOwnerInfo/BeneficialOwnerInfo';
+import BusinessInfo from './NonUSD/BusinessInfo/BusinessInfo';
+import Country from './NonUSD/Country/Country';
+import Finish from './NonUSD/Finish/Finish';
+import SignerInfo from './NonUSD/SignerInfo/SignerInfo';
 import RequestorStep from './RequestorStep';
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & StackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
@@ -159,6 +166,10 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const isPreviousPolicy = policyIDParam === achData?.policyID;
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+<<<<<<< HEAD
+=======
+    const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+>>>>>>> main
 
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
@@ -195,6 +206,59 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         return achData?.state === BankAccount.STATE.PENDING || [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''].includes(getStepToOpenFromRouteParams(route));
     }
 
+<<<<<<< HEAD
+=======
+    const handleNextNonUSDBankAccountStep = () => {
+        switch (nonUSDBankAccountStep) {
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
+                break;
+            default:
+                return null;
+        }
+    };
+
+    const nonUSDBankAccountsGoBack = () => {
+        switch (nonUSDBankAccountStep) {
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
+                Navigation.goBack();
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO);
+                break;
+            default:
+                return null;
+        }
+    };
+
+>>>>>>> main
     /**
      * Retrieve verified business bank account currently being set up.
      */
@@ -389,6 +453,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         errorText = translate('bankAccount.hasBeenThrottledError');
     } else if (hasUnsupportedCurrency) {
         if (hasForeignCurrency) {
+<<<<<<< HEAD
             // TODO This will be replaced with proper component in next issue - https://github.com/Expensify/App/issues/50893
             return (
                 <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
@@ -402,6 +467,56 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
                     </View>
                 </ScreenWrapper>
             );
+=======
+            switch (nonUSDBankAccountStep) {
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
+                    return (
+                        <Country
+                            onBackButtonPress={nonUSDBankAccountsGoBack}
+                            onSubmit={handleNextNonUSDBankAccountStep}
+                        />
+                    );
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
+                    return (
+                        <BankInfo
+                            onBackButtonPress={nonUSDBankAccountsGoBack}
+                            onSubmit={handleNextNonUSDBankAccountStep}
+                        />
+                    );
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
+                    return (
+                        <BusinessInfo
+                            onBackButtonPress={nonUSDBankAccountsGoBack}
+                            onSubmit={handleNextNonUSDBankAccountStep}
+                        />
+                    );
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
+                    return (
+                        <BeneficialOwnerInfo
+                            onBackButtonPress={nonUSDBankAccountsGoBack}
+                            onSubmit={handleNextNonUSDBankAccountStep}
+                        />
+                    );
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
+                    return (
+                        <SignerInfo
+                            onBackButtonPress={nonUSDBankAccountsGoBack}
+                            onSubmit={handleNextNonUSDBankAccountStep}
+                        />
+                    );
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
+                    return (
+                        <Agreements
+                            onBackButtonPress={nonUSDBankAccountsGoBack}
+                            onSubmit={handleNextNonUSDBankAccountStep}
+                        />
+                    );
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH:
+                    return <Finish />;
+                default:
+                    return null;
+            }
+>>>>>>> main
         }
         errorText = translate('bankAccount.hasCurrencyError');
     }

@@ -47,10 +47,21 @@ function getAccountingIntegrationData(
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
+    isSmallScreenWidth?: boolean,
 ): AccountingIntegration | undefined {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
+
+    const getBackToAfterWorkspaceUpgradeRouteForQBD = () => {
+        if (integrationToDisconnect) {
+            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+        }
+        if (isSmallScreenWidth) {
+            return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL.getRoute(policyID);
+        }
+        return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL.getRoute(policyID);
+    };
 
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -265,6 +276,10 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS,
+<<<<<<< HEAD
+=======
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.IMPORT_ITEMS,
+>>>>>>> main
                 ],
                 subscribedExportSettings: [
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE,
@@ -278,6 +293,13 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR,
                 ],
                 subscribedAdvancedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC],
+<<<<<<< HEAD
+=======
+                workspaceUpgradeNavigationDetails: {
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.quickbooksDesktop.alias,
+                    backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForQBD(),
+                },
+>>>>>>> main
             };
         default:
             return undefined;

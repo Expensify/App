@@ -38,8 +38,11 @@ import type {
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceParams,
     RequestExpensifyCardLimitIncreaseParams,
+<<<<<<< HEAD
     RequestFeedSetupParams,
     SetCompanyCardExportAccountParams,
+=======
+>>>>>>> main
     SetPolicyAutomaticApprovalLimitParams,
     SetPolicyAutomaticApprovalRateParams,
     SetPolicyAutoReimbursementLimitParams,
@@ -53,7 +56,6 @@ import type {
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
-    UpdateCompanyCardNameParams,
     UpdatePolicyAddressParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceDescriptionParams,
@@ -1146,7 +1148,7 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
         return;
     }
 
-    const distanceUnit = PolicyUtils.getCustomUnit(policy);
+    const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID;
     const currency = currencyValue ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -2004,6 +2006,7 @@ function openPolicyTaxesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_TAXES_PAGE, params);
 }
 
+<<<<<<< HEAD
 function openPolicyCompanyCardsFeed(policyID: string, feed: CompanyCardFeed) {
     const parameters: OpenPolicyCompanyCardsFeedParams = {
         policyID,
@@ -2054,6 +2057,8 @@ function openPolicyCompanyCardsPage(policyID: string, workspaceAccountID: number
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE, params, {optimisticData, successData, failureData});
 }
 
+=======
+>>>>>>> main
 function openPolicyExpensifyCardsPage(policyID: string, workspaceAccountID: number) {
     const authToken = NetworkStore.getAuthToken();
 
@@ -4435,6 +4440,7 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
     });
 }
 
+<<<<<<< HEAD
 function addNewCompanyCardsFeed(policyID: string, feedType: string, feedDetails: string) {
     const authToken = NetworkStore.getAuthToken();
 
@@ -4906,6 +4912,8 @@ function clearCompanyCardErrorField(workspaceAccountID: number, cardID: string, 
     });
 }
 
+=======
+>>>>>>> main
 function clearAllPolicies() {
     if (!allPolicies) {
         return;
@@ -5006,6 +5014,7 @@ export {
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,
+<<<<<<< HEAD
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
     setWorkspaceCompanyCardTransactionLiability,
@@ -5018,6 +5027,8 @@ export {
     updateCompanyCardName,
     setCompanyCardExportAccount,
     clearCompanyCardErrorField,
+=======
+>>>>>>> main
     verifySetupIntentAndRequestPolicyOwnerChange,
 };
 

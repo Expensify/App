@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, {memo} from 'react';
+=======
+import React, {memo, useState} from 'react';
+>>>>>>> main
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
@@ -8,6 +12,7 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -63,7 +68,10 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
     const fileType = FileUtils.getFileType(attachmentSourceAttribute);
-    const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.Gallery;
+    const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
+    const [hasLoadFailed, setHasLoadFailed] = useState(true);
+    const theme = useTheme();
+
     const thumbnailImageComponent = (
         <ThumbnailImage
             previewSourceURL={previewSource}
@@ -73,6 +81,10 @@ function ImageRenderer({tnode}: ImageRendererProps) {
             imageWidth={imageWidth}
             imageHeight={imageHeight}
             altText={alt}
+            onLoadFailure={() => setHasLoadFailed(true)}
+            onMeasure={() => setHasLoadFailed(false)}
+            fallbackIconBackground={theme.highlightBG}
+            fallbackIconColor={theme.border}
         />
     );
 
@@ -102,6 +114,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                             shouldUseHapticsOnLongPress
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            disabled={hasLoadFailed}
                         >
                             {thumbnailImageComponent}
                         </PressableWithoutFocus>

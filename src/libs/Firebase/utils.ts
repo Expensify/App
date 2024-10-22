@@ -1,6 +1,10 @@
 import {getAllTransactions, getAllTransactionViolationsLength} from '@libs/actions/Transaction';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+<<<<<<< HEAD
 import {getAllPoliciesLength} from '@libs/PolicyUtils';
+=======
+import {getActivePolicy, getAllPoliciesLength} from '@libs/PolicyUtils';
+>>>>>>> main
 import {getReportActionsLength} from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as SessionUtils from '@libs/SessionUtils';
@@ -16,6 +20,10 @@ function getAttributes(): FirebaseAttributes {
     const transactionViolationsLength = getAllTransactionViolationsLength().toString();
     const policiesLength = getAllPoliciesLength().toString();
     const transactionsLength = getAllTransactions().toString();
+<<<<<<< HEAD
+=======
+    const policy = getActivePolicy();
+>>>>>>> main
 
     return {
         accountId,
@@ -25,6 +33,11 @@ function getAttributes(): FirebaseAttributes {
         transactionViolationsLength,
         policiesLength,
         transactionsLength,
+<<<<<<< HEAD
+=======
+        policyType: policy?.type ?? 'N/A',
+        policyRole: policy?.role ?? 'N/A',
+>>>>>>> main
     };
 }
 

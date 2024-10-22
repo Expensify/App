@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
+import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -257,7 +258,11 @@ function openApp() {
     return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
         const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
         return API.write(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true), {
+<<<<<<< HEAD
             checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, WRITE_COMMANDS.OPEN_APP),
+=======
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_APP),
+>>>>>>> main
         });
     });
 }
@@ -287,7 +292,11 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         }
 
         API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(), {
+<<<<<<< HEAD
             checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, WRITE_COMMANDS.RECONNECT_APP),
+=======
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.RECONNECT_APP),
+>>>>>>> main
         });
     });
 }
@@ -546,6 +555,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             });
         });
     });
+    clearSoundAssetsCache();
 }
 
 export {

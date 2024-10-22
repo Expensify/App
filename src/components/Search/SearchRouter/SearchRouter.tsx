@@ -41,7 +41,11 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
+<<<<<<< HEAD
     const {isSmallScreenWidth} = useResponsiveLayout();
+=======
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+>>>>>>> main
     const listRef = useRef<SelectionListHandle>(null);
 
     const taxRates = getAllTaxRates();
@@ -117,7 +121,11 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+<<<<<<< HEAD
         const newOptions = findInSearchTree(debouncedInputValue);
+=======
+        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedInputValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
+>>>>>>> main
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const recentReports = newOptions.recentReports.concat(newOptions.personalDetails);
@@ -138,10 +146,13 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     }, [debouncedInputValue, findInSearchTree]);
 
     const recentReports: OptionData[] = useMemo(() => {
-        const currentSearchOptions = debouncedInputValue === '' ? searchOptions : filteredOptions;
-        const reports: OptionData[] = [...currentSearchOptions.recentReports, ...currentSearchOptions.personalDetails];
-        if (currentSearchOptions.userToInvite) {
-            reports.push(currentSearchOptions.userToInvite);
+        if (debouncedInputValue === '') {
+            return searchOptions.recentReports.slice(0, 10);
+        }
+
+        const reports: OptionData[] = [...filteredOptions.recentReports, ...filteredOptions.personalDetails];
+        if (filteredOptions.userToInvite) {
+            reports.push(filteredOptions.userToInvite);
         }
         return reports.slice(0, 10);
     }, [debouncedInputValue, filteredOptions, searchOptions]);
@@ -212,6 +223,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         closeAndClearRouter();
     });
 
+<<<<<<< HEAD
     const modalWidth = isSmallScreenWidth ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
     return (
@@ -220,6 +232,16 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
             testID={SearchRouter.displayName}
         >
             {isSmallScreenWidth && (
+=======
+    const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
+
+    return (
+        <View
+            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
+            testID={SearchRouter.displayName}
+        >
+            {shouldUseNarrowLayout && (
+>>>>>>> main
                 <HeaderWithBackButton
                     title={translate('common.search')}
                     onBackButtonPress={() => onRouterClose()}
@@ -228,7 +250,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
             <SearchRouterInput
                 value={textInputValue}
                 setValue={setTextInputValue}
-                isFullWidth={isSmallScreenWidth}
+                isFullWidth={shouldUseNarrowLayout}
                 updateSearch={onSearchChange}
                 onSubmit={() => {
                     onSearchSubmit(SearchUtils.buildSearchQueryJSON(textInputValue));
@@ -236,7 +258,11 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 routerListRef={listRef}
                 shouldShowOfflineMessage
                 wrapperStyle={[styles.border, styles.alignItemsCenter]}
+<<<<<<< HEAD
                 outerWrapperStyle={[isSmallScreenWidth ? styles.mv3 : styles.mv2, isSmallScreenWidth ? styles.mh5 : styles.mh2]}
+=======
+                outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
+>>>>>>> main
                 wrapperFocusedStyle={[styles.borderColorFocus]}
                 isSearchingForReports={isSearchingForReports}
             />

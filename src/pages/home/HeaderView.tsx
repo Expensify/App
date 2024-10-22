@@ -284,7 +284,11 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
+<<<<<<< HEAD
                             {shouldDisplaySearchRouter && <SearchButton style={styles.ml4} />}
+=======
+                            {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
+>>>>>>> main
                         </View>
                         <ConfirmModal
                             isVisible={isDeleteTaskConfirmModalVisible}

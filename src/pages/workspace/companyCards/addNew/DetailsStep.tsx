@@ -49,7 +49,11 @@ function DetailsStep({policyID}: DetailsStepProps) {
             .map(([key, value]) => `${key}: ${value}`)
             .join(', ');
 
+<<<<<<< HEAD
         Policy.addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails);
+=======
+        CompanyCards.addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails);
+>>>>>>> main
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
     };
 

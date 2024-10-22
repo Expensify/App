@@ -17,6 +17,11 @@ type FirebaseAttributes = {
     transactionViolationsLength: string;
     policiesLength: string;
     transactionsLength: string;
+<<<<<<< HEAD
+=======
+    policyType: string;
+    policyRole: string;
+>>>>>>> main
 };
 
 export type {StartTrace, StopTrace, TraceMap, Log, FirebaseAttributes};

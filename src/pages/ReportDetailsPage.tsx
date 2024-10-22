@@ -96,6 +96,10 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const {currentSearchHash} = useSearchContext();
     const {isSmallScreenWidth} = useResponsiveLayout();
 
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+
     const transactionThreadReportID = useMemo(
         () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
         [report.reportID, reportActions, isOffline],

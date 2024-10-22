@@ -1,4 +1,5 @@
 import Config from 'react-native-config';
+import * as E2EGenericPressableWrapper from '@components/Pressable/GenericPressable/index.e2e';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
@@ -31,6 +32,32 @@ const test = () => {
 
         Performance.subscribeToMeasurements((entry) => {
             console.debug(`[E2E] Entry: ${JSON.stringify(entry)}`);
+<<<<<<< HEAD
+=======
+            if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
+                const props = E2EGenericPressableWrapper.getPressableProps('searchButton');
+                if (!props) {
+                    console.debug('[E2E] Search button not found, failing test!');
+                    E2EClient.submitTestResults({
+                        branch: Config.E2E_BRANCH,
+                        error: 'Search button not found',
+                        name: 'Open Search Router TTI',
+                    }).then(() => E2EClient.submitTestDone());
+                    return;
+                }
+                if (!props.onPress) {
+                    console.debug('[E2E] Search button found but onPress prop was not present, failing test!');
+                    E2EClient.submitTestResults({
+                        branch: Config.E2E_BRANCH,
+                        error: 'Search button found but onPress prop was not present',
+                        name: 'Open Search Router TTI',
+                    }).then(() => E2EClient.submitTestDone());
+                    return;
+                }
+                // Open the search router
+                props.onPress();
+            }
+>>>>>>> main
 
             if (entry.name === CONST.TIMING.SEARCH_ROUTER_RENDER) {
                 E2EClient.submitTestResults({
