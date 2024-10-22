@@ -96,6 +96,7 @@ function Expensify() {
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
     const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [useNewDotSignInPage] = useOnyx(ONYXKEYS.USE_NEWDOT_SIGN_IN_PAGE);
 
     useEffect(() => {
         if (!account?.needsTwoFactorAuthSetup || account.requiresTwoFactorAuth) {
@@ -119,7 +120,9 @@ function Expensify() {
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash =
         shouldInit &&
-        (NativeModules.HybridAppModule ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
+        (NativeModules.HybridAppModule
+            ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && (isAuthenticated || useNewDotSignInPage)
+            : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {

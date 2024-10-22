@@ -444,6 +444,9 @@ const ONYXKEYS = {
     /** Company cards custom names */
     NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES: 'nvp_expensify_ccCustomNames',
 
+    /** Stores the information if HybridApp uses NewDot's sign in flow */
+    USE_NEWDOT_SIGN_IN_PAGE: 'useNewDotSignInPage',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1007,6 +1010,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
+    [ONYXKEYS.USE_NEWDOT_SIGN_IN_PAGE]: boolean;
 };
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
 
