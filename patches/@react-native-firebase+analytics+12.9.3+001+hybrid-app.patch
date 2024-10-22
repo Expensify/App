@@ -1,8 +1,8 @@
 diff --git a/node_modules/@react-native-firebase/analytics/android/build.gradle b/node_modules/@react-native-firebase/analytics/android/build.gradle
-index 5cd04f1..ab7ea07 100644
+index d223ebf..821b730 100644
 --- a/node_modules/@react-native-firebase/analytics/android/build.gradle
 +++ b/node_modules/@react-native-firebase/analytics/android/build.gradle
-@@ -44,6 +44,8 @@ if (coreVersionDetected != coreVersionRequired) {
+@@ -45,6 +45,8 @@ if (coreVersionDetected != coreVersionRequired) {
    }
  }
  
@@ -11,7 +11,7 @@ index 5cd04f1..ab7ea07 100644
  project.ext {
    set('react-native', [
      versions: [
-@@ -175,4 +177,3 @@ dependencies {
+@@ -144,4 +146,3 @@ dependencies {
  ReactNative.shared.applyPackageVersion()
  ReactNative.shared.applyDefaultExcludes()
  ReactNative.module.applyAndroidVersions()
