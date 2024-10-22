@@ -24,6 +24,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to manage GestureDetector correctly
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const Tap = Gesture.Tap().onEnd(() => {
         handleSendMessage();

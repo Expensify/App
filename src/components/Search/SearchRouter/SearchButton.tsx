@@ -26,6 +26,7 @@ function SearchButton({style}: SearchButtonProps) {
     return (
         <Tooltip text={translate('common.search')}>
             <PressableWithoutFeedback
+                nativeID="searchButton"
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 onPress={Session.checkIfActionIsAllowed(() => {

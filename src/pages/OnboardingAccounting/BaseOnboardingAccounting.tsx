@@ -37,6 +37,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+
+    // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
