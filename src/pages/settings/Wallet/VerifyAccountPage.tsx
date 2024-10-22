@@ -52,20 +52,27 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         Navigation.navigate(navigateBackTo);
     }, [isUserValidated, navigateBackTo]);
 
+    useEffect(() => {
+        if (isValidateCodeActionModalVisible) {
+            return;
+        }
+
+        if (!isUserValidated && navigateBackTo) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET);
+        } else if (!navigateBackTo) {
+            Navigation.goBack();
+        }
+    }, [isValidateCodeActionModalVisible]);
+
     return (
         <ValidateCodeActionModal
-            sendValidateCode={() => {}}
+            sendValidateCode={() => User.requestValidateCodeAction()}
             handleSubmitForm={handleSubmitForm}
             validateError={validateLoginError}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('contacts.validateAccount')}
             description={translate('contacts.featureRequiresValidate')}
-            onClose={() => {
-                setIsValidateCodeActionModalVisible(false);
-                if (!isUserValidated && navigateBackTo) {
-                    Navigation.navigate(ROUTES.SETTINGS_WALLET);
-                }
-            }}
+            onClose={() => setIsValidateCodeActionModalVisible(false)}
             clearError={clearError}
         />
     );
