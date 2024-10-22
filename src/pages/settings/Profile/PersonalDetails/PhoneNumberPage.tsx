@@ -76,7 +76,7 @@ function PhoneNumberPage() {
                 >
                     <OfflineWithFeedback
                         errors={validateLoginError}
-                        style={styles.mb4}
+                        errorRowStyles={styles.mt2}
                         onClose={() => PersonalDetails.clearPhoneNumberError()}
                     >
                         <InputWrapper
