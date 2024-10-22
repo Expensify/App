@@ -134,6 +134,7 @@ function MoneyRequestParticipantsSelector({
             sortByReportTypeInSearch: isPaidGroupPolicy,
             searchValue: '',
             maxRecentReportsToShow: 0,
+            includePoliciesWithoutExpenseChats: true,
         });
 
         return optionList;

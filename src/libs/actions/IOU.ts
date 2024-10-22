@@ -3640,6 +3640,7 @@ function requestMoney(
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 reimbursible,
+                policyID: policy?.id,
             };
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
@@ -8410,9 +8411,30 @@ function resolveDuplicates(params: TransactionMergeParams) {
     const optimisticHoldActions: OnyxUpdate[] = [];
     const failureHoldActions: OnyxUpdate[] = [];
     const reportActionIDList: string[] = [];
+    const optimisticHoldTransactionActions: OnyxUpdate[] = [];
+    const failureHoldTransactionActions: OnyxUpdate[] = [];
     transactionThreadReportIDList.forEach((transactionThreadReportID) => {
         const createdReportAction = ReportUtils.buildOptimisticHoldReportAction();
         reportActionIDList.push(createdReportAction.reportActionID);
+        const transactionID = TransactionUtils.getTransactionID(transactionThreadReportID ?? '-1');
+        optimisticHoldTransactionActions.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: createdReportAction.reportActionID,
+                },
+            },
+        });
+        failureHoldTransactionActions.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: null,
+                },
+            },
+        });
         optimisticHoldActions.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
@@ -8456,8 +8478,8 @@ function resolveDuplicates(params: TransactionMergeParams) {
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, ...optimisticHoldActions, optimisticReportActionData);
-    failureData.push(failureTransactionData, ...failureTransactionViolations, ...failureHoldActions, failureReportActionData);
+    optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, ...optimisticHoldActions, ...optimisticHoldTransactionActions, optimisticReportActionData);
+    failureData.push(failureTransactionData, ...failureTransactionViolations, ...failureHoldActions, ...failureHoldTransactionActions, failureReportActionData);
     const {reportID, transactionIDList, receiptID, ...otherParams} = params;
 
     const parameters: ResolveDuplicatesParams = {
