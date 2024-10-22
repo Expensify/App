@@ -5937,7 +5937,7 @@ const CONST = {
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
-        HASINDICATOR_STATUS_SYNC_ERRORS: 'hasSyncError',
+        HAS_SYNC_ERRORS: 'hasSyncError',
         HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
         HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
         HAS_LOGIN_LIST_ERROR: 'hasLoginListError',
