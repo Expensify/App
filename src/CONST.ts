@@ -5729,6 +5729,7 @@ const CONST = {
             KEYWORD: 'keyword',
             IN: 'in',
         },
+        EMPTY_VALUE: 'none',
     },
 
     REFERRER: {
@@ -5971,6 +5972,12 @@ const CONST = {
         IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION: 'isWaitingForAssigneeToCompleteAction',
         HAS_CHILD_REPORT_AWAITING_ACTION: 'hasChildReportAwaitingAction',
         HAS_MISSING_INVOICE_BANK_ACCOUNT: 'hasMissingInvoiceBankAccount',
+    },
+
+    RBR_REASONS: {
+        HAS_ERRORS: 'hasErrors',
+        HAS_VIOLATIONS: 'hasViolations',
+        HAS_TRANSACTION_THREAD_VIOLATIONS: 'hasTransactionThreadViolations',
     },
 } as const;
 

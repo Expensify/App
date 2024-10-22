@@ -4397,6 +4397,8 @@ const translations = {
             current: 'Actual',
             past: 'Anterior',
         },
+        noCategory: 'Sin categoría',
+        noTag: 'Sin etiqueta',
         expenseType: 'Tipo de gasto',
         recentSearches: 'Búsquedas recientes',
         recentChats: 'Chats recientes',
@@ -5663,6 +5665,11 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: 'Esperando a que el asignado complete la acción',
             hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
             hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
+        },
+        reasonRBR: {
+            hasErrors: 'Tiene errores en los datos o las acciones del informe',
+            hasViolations: 'Tiene violaciones',
+            hasTransactionThreadViolations: 'Tiene violaciones de hilo de transacciones',
         },
         indicatorStatus: {
             theresAReportAwaitingAction: 'Hay un informe pendiente de acción',

@@ -722,15 +722,17 @@ function buildFilterFormValuesFromQuery(
                       .map((tagList) => getTagNamesFromTagsLists(tagList ?? {}))
                       .flat();
             const uniqueTags = new Set(tags);
+            uniqueTags.add(CONST.SEARCH.EMPTY_VALUE);
             filtersForm[filterKey] = filterValues.filter((name) => uniqueTags.has(name));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             const categories = policyID
                 ? Object.values(policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {}).map((category) => category.name)
                 : Object.values(policyCategories ?? {})
-                      .map((categoryList) => Object.values(categoryList ?? {}).map((category) => category.name))
+                      .map((item) => Object.values(item ?? {}).map((category) => category.name))
                       .flat();
             const uniqueCategories = new Set(categories);
+            uniqueCategories.add(CONST.SEARCH.EMPTY_VALUE);
             filtersForm[filterKey] = filterValues.filter((name) => uniqueCategories.has(name));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
