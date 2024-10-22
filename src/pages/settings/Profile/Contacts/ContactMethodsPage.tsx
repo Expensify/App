@@ -50,6 +50,9 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
         const login = loginList?.[loginName];
         const isDefaultContactMethod = session?.email === login?.partnerUserID;
         const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin ?? undefined;
+        if (!login?.partnerUserID && !pendingAction) {
+            return null;
+        }
 
         let description = '';
         if (session?.email === login?.partnerUserID) {
