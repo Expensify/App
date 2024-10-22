@@ -398,8 +398,11 @@ function ReportPreview({
         if (formattedDescription ?? moneyRequestComment) {
             return {supportText: truncate(StringUtils.lineBreaksToSpaces(formattedDescription ?? moneyRequestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH})};
         }
-        if (formattedMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT) {
-            return {supportText: formattedMerchant};
+
+        if (numberOfRequests === 1) {
+            return {
+                supportText: '',
+            };
         }
         return {
             supportText: translate('iou.expenseCount', {
