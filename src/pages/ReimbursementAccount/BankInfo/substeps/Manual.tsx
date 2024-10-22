@@ -33,7 +33,8 @@ function Manual({onNext}: ManualProps) {
         [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: reimbursementAccount?.achData?.[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
     };
 
-    const shouldBeReadOnlyInput = reimbursementAccount?.achData?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
+    const hasBankAccountData = !!(reimbursementAccount?.achData?.bankAccountID ?? '');
+    const shouldBeReadOnlyInput = reimbursementAccount?.achData?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID || hasBankAccountData;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -57,8 +58,6 @@ function Manual({onNext}: ManualProps) {
         },
         [translate],
     );
-
-    const hasBankAccountData = !!(reimbursementAccount?.achData?.bankAccountID ?? '');
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
