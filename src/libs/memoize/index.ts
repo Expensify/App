@@ -60,8 +60,8 @@ function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<Is
         // Detect if memoized function was called with `new` keyword. If so we need to call the original function as constructor.
         const constructable = !!new.target;
 
-        // If keyFilter is set, check if we should skip the cache
-        if (options.keyFilter?.(args)) {
+        // If skipCache is set, check if we should skip the cache
+        if (options.skipCache?.(args)) {
             const fnTimeStart = performance.now();
             const result = (constructable ? new (fn as Constructable)(...args) : (fn as Callable)(...args)) as IsomorphicReturnType<Fn>;
 
