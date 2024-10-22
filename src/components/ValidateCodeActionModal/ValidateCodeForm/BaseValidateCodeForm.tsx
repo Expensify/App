@@ -229,7 +229,7 @@ function BaseValidateCodeForm({
                 </OfflineWithFeedback>
             </View>
 
-            {menuItems && menuItems()}
+            {menuItems ? menuItems() : null}
 
             <View style={[styles.flex1, styles.justifyContentEnd, safePaddingBottomStyle, styles.ph5]}>
                 <OfflineWithFeedback
