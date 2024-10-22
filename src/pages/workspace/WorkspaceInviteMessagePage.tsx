@@ -114,7 +114,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
 
     const validate = (): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> => {
         const errorFields: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> = {};
-        if (isEmptyObject(invitedEmailsToAccountIDsDraft)) {
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft) && !isOnyxLoading) {
             errorFields.welcomeMessage = translate('workspace.inviteMessage.inviteNoMembersError');
         }
         return errorFields;
