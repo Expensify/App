@@ -3420,7 +3420,7 @@ function completeOnboarding(
     });
 
     if (!userReportedIntegration) {
-        tasksData = tasksData.filter((tasksDataItem) => tasksDataItem.task.type === 'accounting');
+        tasksData = tasksData.filter((tasksDataItem) => tasksDataItem.task.type !== 'addAccountingIntegration');
     }
 
     const tasksForParameters = tasksData.map<TaskForParameters>(({task, currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => ({

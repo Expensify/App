@@ -4789,7 +4789,7 @@ const CONST = {
                         `[Take me to workspace members](${workspaceMembersLink}). That’s it, happy expensing! :)`,
                 },
                 {
-                    type: 'integration',
+                    type: 'addAccountingIntegration',
                     autoCompleted: false,
                     title: ({accountingName}) => `Connect to ${accountingName}`,
                     description: ({accountingName, accountingLink}) =>
