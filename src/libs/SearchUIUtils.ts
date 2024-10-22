@@ -110,8 +110,6 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     });
 }
 
-const currentYear = new Date().getFullYear();
-
 /**
  * Type guard that checks if something is a ReportListItemType
  */
@@ -138,7 +136,9 @@ function isReportActionListItemType(item: TransactionListItemType | ReportListIt
 /**
  * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
  */
-function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']): boolean {
+function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']) {
+    const currentYear = new Date().getFullYear();
+
     if (Array.isArray(data)) {
         return data.some((item: TransactionListItemType | ReportListItemType) => {
             if (isReportListItemType(item)) {
