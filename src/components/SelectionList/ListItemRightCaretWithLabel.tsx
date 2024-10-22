@@ -11,7 +11,7 @@ type ListItemRightCaretWithLabelProps = {
     shouldShowCaret?: boolean;
 };
 
-function ListItemRightCaretWithLabel({labelText, shouldShowCaret = true}: ListItemRightCaretWithLabelProps) {
+function ListItemRightCaretWithLabel({labelText, shouldShowCaret = false}: ListItemRightCaretWithLabelProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 

@@ -124,12 +124,7 @@ function WorkspaceReportFieldsPage({
                         isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined && canSelectMultiple,
                         isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         text: reportField.name,
-                        rightElement: (
-                            <ListItemRightCaretWithLabel
-                                shouldShowCaret={false}
-                                labelText={Str.recapitalize(translate(WorkspaceReportFieldUtils.getReportFieldTypeTranslationKey(reportField.type)))}
-                            />
-                        ),
+                        rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(translate(WorkspaceReportFieldUtils.getReportFieldTypeTranslationKey(reportField.type)))} />,
                     })),
                 isDisabled: false,
             },
@@ -212,7 +207,7 @@ function WorkspaceReportFieldsPage({
                     styles.flex1,
                     styles.flexRow,
                     styles.justifyContentBetween,
-                    // Required padding accounting for the checkbox and the right arrow in multi-select mode
+                    // Required padding accounting for the checkbox in multi-select mode
                     canSelectMultiple && styles.pl3,
                 ]}
             >

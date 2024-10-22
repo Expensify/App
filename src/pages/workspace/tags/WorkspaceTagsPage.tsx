@@ -115,7 +115,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 rightElement: (
                     <ListItemRightCaretWithLabel
                         labelText={policyTagList.required && !!Object.values(policyTagList?.tags ?? {}).some((tag) => tag.enabled) ? translate('common.required') : undefined}
-                        shouldShowCaret={false}
                     />
                 ),
             }));
@@ -163,8 +162,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     styles.flex1,
                     styles.flexRow,
                     styles.justifyContentBetween,
-                    // Required padding accounting for the checkbox and the right arrow in multi-select mode
-                    canSelectMultiple && [styles.pl3, styles.pr8],
+                    // Required padding accounting for the checkbox in multi-select mode
+                    canSelectMultiple && styles.pl3,
                 ]}
             >
                 <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
