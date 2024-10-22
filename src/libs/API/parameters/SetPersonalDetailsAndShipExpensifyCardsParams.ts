@@ -1,4 +1,4 @@
-type SetMissingPersonalDetailsAndShipExpensifyCardParams = {
+type SetPersonalDetailsAndShipExpensifyCardsParams = {
     legalFirstName: string;
     legalLastName: string;
     phoneNumber: string;
@@ -9,7 +9,6 @@ type SetMissingPersonalDetailsAndShipExpensifyCardParams = {
     addressCountry: string;
     addressState: string;
     dob: string;
-    cardID: number;
 };
 
-export default SetMissingPersonalDetailsAndShipExpensifyCardParams;
+export default SetPersonalDetailsAndShipExpensifyCardsParams;
