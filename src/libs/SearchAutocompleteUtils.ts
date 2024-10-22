@@ -1,5 +1,5 @@
 import type {SearchAutocompleteResult} from '@components/Search/types';
-import * as autocompleteParser from './AutocompleteParser/autocompleteParser';
+import * as autocompleteParser from './SearchParser/autocompleteParser';
 
 function parseForAutocomplete(text: string) {
     try {
