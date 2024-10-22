@@ -105,23 +105,11 @@ function getOrderedReportIDs(
         if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
             return;
         }
-        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-        const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, transactionViolations);
+        const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
         const isHidden = ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
-        const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
-        const transactionReportActions = ReportActionsUtils.getAllReportActions(report.reportID);
-        const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, transactionReportActions, undefined);
-        let doesTransactionThreadReportHasViolations = false;
-        if (oneTransactionThreadReportID) {
-            const transactionReport = ReportUtils.getReport(oneTransactionThreadReportID);
-            doesTransactionThreadReportHasViolations = !!transactionReport && OptionsListUtils.shouldShowViolations(transactionReport, transactionViolations);
-        }
-        const hasErrorsOtherThanFailedReceipt =
-            doesTransactionThreadReportHasViolations ||
-            doesReportHaveViolations ||
-            Object.values(allReportErrors).some((error) => error?.[0] !== Localize.translateLocal('iou.error.genericSmartscanFailureMessage'));
+        const hasErrorsOtherThanFailedReceipt = ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations);
         const isReportInAccessible = report?.errorFields?.notFound;
         if (ReportUtils.isOneTransactionThread(report.reportID, report.parentReportID ?? '0', parentReportAction)) {
             return;
@@ -234,6 +222,27 @@ function getOrderedReportIDs(
     return LHNReports;
 }
 
+function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, transactionViolations?: OnyxCollection<TransactionViolation[]>) {
+    const hasErrors = Object.keys(ReportUtils.getAllReportErrors(report, reportActions)).length !== 0;
+
+    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, ReportActionsUtils.getAllReportActions(report.reportID));
+    if (oneTransactionThreadReportID) {
+        const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
+
+        if (
+            ReportUtils.shouldDisplayTransactionThreadViolations(
+                oneTransactionThreadReport,
+                transactionViolations,
+                ReportActionsUtils.getAllReportActions(report.reportID)[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
+            )
+        ) {
+            return true;
+        }
+    }
+
+    return hasErrors || hasViolations;
+}
+
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  */
@@ -270,7 +279,7 @@ function getOptionData({
     const result: ReportUtils.OptionData = {
         text: '',
         alternateText: undefined,
-        allReportErrors: OptionsListUtils.getAllReportErrors(report, reportActions),
+        allReportErrors: ReportUtils.getAllReportErrors(report, reportActions),
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: undefined,
@@ -306,7 +315,6 @@ function getOptionData({
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
     const personalDetail = participantPersonalDetailList.at(0) ?? ({} as PersonalDetails);
-    const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
 
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
@@ -320,21 +328,7 @@ function getOptionData({
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
-    result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, ReportActionsUtils.getAllReportActions(report.reportID));
-    if (oneTransactionThreadReportID) {
-        const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
-
-        if (
-            ReportUtils.shouldDisplayTransactionThreadViolations(
-                oneTransactionThreadReport,
-                transactionViolations,
-                ReportActionsUtils.getAllReportActions(report.reportID)[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
-            )
-        ) {
-            result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-        }
-    }
+    result.brickRoadIndicator = shouldShowRedBrickRoad(report, reportActions, hasViolations, transactionViolations) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
@@ -567,7 +561,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
         })
         .join(' ');
 
-    welcomeMessage.messageText = `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`;
+    welcomeMessage.messageText = displayNamesWithTooltips.length ? `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}` : '';
     return welcomeMessage;
 }
 
@@ -624,4 +618,5 @@ export default {
     getOptionData,
     getOrderedReportIDs,
     getWelcomeMessage,
+    shouldShowRedBrickRoad,
 };

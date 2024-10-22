@@ -13,7 +13,7 @@ Create, store, or share non-reimbursable expenses with the Track Expenses featur
 2. Create the expense manually, scan the receipt, or add a distance expense. 
 
 {% include info.html %}
-For an in-depth walkthrough on how to create an expense, check out the <a href="[url](https://help.expensify.com/articles/new-expensify/expenses/Create-an-expense)">create an expense</a> article.
+For an in-depth walkthrough on how to create an expense, check out the [create an expense](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense) article.
 {% include end-info.html %}
 
 3. Choose the next steps for the expense:
@@ -28,7 +28,7 @@ For an in-depth walkthrough on how to create an expense, check out the <a href="
 2. Create the expense manually, scan the receipt, or add a distance expense. 
 
 {% include info.html %}
-For an in-depth walkthrough on how to create an expense, check out the <a href="[url](https://help.expensify.com/articles/new-expensify/expenses/Create-an-expense)">create an expense</a> article.
+For an in-depth walkthrough on how to create an expense, check out the [create an expense](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense) article.
 {% include end-info.html %}
 
 3. Choose the next steps for the expense:

@@ -191,7 +191,7 @@ function HeaderWithBackButton({
                     />
                 )}
                 {middleContent}
-                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
+                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.gap4, styles.alignItemsCenter]}>
                     {children}
                     {shouldShowDownloadButton && (
                         <Tooltip text={translate('common.download')}>

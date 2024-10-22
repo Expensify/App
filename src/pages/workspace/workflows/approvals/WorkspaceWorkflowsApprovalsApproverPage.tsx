@@ -60,6 +60,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
     const defaultApprover = policy?.approver ?? policy?.owner;
+    const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
 
     useEffect(() => {
         const currentApprover = approvalWorkflow?.approvers[approverIndex];
@@ -158,10 +159,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
         } else {
-            const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
             Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
         }
-    }, [approvalWorkflow, approverIndex, personalDetails, employeeList, route.params.policyID, selectedApproverEmail]);
+    }, [approvalWorkflow?.action, firstApprover, approverIndex, personalDetails, employeeList, route.params.policyID, selectedApproverEmail]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
@@ -182,11 +182,17 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     }, [isInitialCreationFlow, nextStep, selectedApproverEmail, shouldShowListEmptyContent, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
 
     const goBack = useCallback(() => {
+        let backTo;
         if (isInitialCreationFlow) {
+            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID);
             Workflow.clearApprovalWorkflowApprovers();
+        } else if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
+            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
+        } else {
+            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
         }
-        Navigation.goBack();
-    }, [isInitialCreationFlow]);
+        Navigation.goBack(backTo);
+    }, [isInitialCreationFlow, route.params.policyID, approvalWorkflow?.action, firstApprover]);
 
     const toggleApprover = (approver: SelectionListApprover) => {
         if (selectedApproverEmail === approver.login) {

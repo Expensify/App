@@ -2,7 +2,7 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
-import {utcToZonedTime} from 'date-fns-tz';
+import {toZonedTime} from 'date-fns-tz';
 import React from 'react';
 import {AppState, DeviceEventEmitter} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
@@ -304,7 +304,7 @@ describe('Unread Indicators', () => {
                             reportID: NEW_REPORT_ID,
                             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                             lastReadTime: '',
-                            lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
+                            lastVisibleActionCreated: DateUtils.getDBTime(toZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
                             lastMessageText: 'Comment 1',
                             lastActorAccountID: USER_C_ACCOUNT_ID,
                             participants: {
