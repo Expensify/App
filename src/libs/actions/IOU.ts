@@ -3581,6 +3581,7 @@ function requestMoney(
         linkedTrackedExpenseReportAction,
     );
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
+    const isOptimisticPolicyExpenseChat = report?.isOptimisticReport && ReportUtils.isPolicyExpenseChat(report);
 
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
@@ -3640,7 +3641,7 @@ function requestMoney(
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 reimbursible,
-                policyID: policy?.id,
+                policyID: isOptimisticPolicyExpenseChat ? policy?.id : undefined,
             };
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
