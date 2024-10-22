@@ -7679,7 +7679,7 @@ function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEn
 /**
  * Return held and full amount formatted with used currency
  */
-function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReimbursableOnly: boolean): string[] {
+function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, shouldExcludeNonReimbursables: boolean): string[] {
     const reportTransactions = reportsTransactions[iouReport?.reportID ?? ''] ?? [];
     const hasPendingTransaction = reportTransactions.some((transaction) => !!transaction.pendingAction);
 
@@ -7687,7 +7687,7 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
 
     let total = iouReport?.total ?? 0;
-    if (isReimbursableOnly) {
+    if (shouldExcludeNonReimbursables) {
         total -= iouReport?.nonReimbursableTotal ?? 0;
     }
 
@@ -7698,7 +7698,7 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry
         );
         let unheldTotal = reportTransactions.reduce((currentVal, transaction) => currentVal + (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
 
-        if (isReimbursableOnly) {
+        if (shouldExcludeNonReimbursables) {
             unheldTotal -= unheldNonReimbursableTotal;
         }
 
@@ -7706,7 +7706,7 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry
     }
 
     let unheldTotal = iouReport?.unheldTotal ?? 0;
-    if (isReimbursableOnly) {
+    if (shouldExcludeNonReimbursables) {
         unheldTotal -= iouReport?.unheldNonReimbursableTotal ?? 0;
     }
     return [CurrencyUtils.convertToDisplayString(unheldTotal * coefficient, iouReport?.currency), CurrencyUtils.convertToDisplayString(total * coefficient, iouReport?.currency)];
