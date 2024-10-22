@@ -332,7 +332,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_ENABLED}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
