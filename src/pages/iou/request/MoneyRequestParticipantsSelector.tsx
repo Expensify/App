@@ -275,7 +275,7 @@ function MoneyRequestParticipantsSelector({
                         setContacts(
                             deviceContacts.map((contact) => ({
                                 text: `${contact?.firstName} ${contact?.lastName}`,
-                                alternateText: `${contact?.emailAddresses?.[0]?.value}`,
+                                alternateText: `${contact?.emailAddresses?.[0]?.value ?? ''}`,
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 icons: [{source: contact?.imageData || getAvatarForContact(`${contact?.firstName}${contact?.lastName}`), type: 'avatar'}],
                                 reportID: '',
