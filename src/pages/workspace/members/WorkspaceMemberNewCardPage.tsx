@@ -78,9 +78,9 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = Object.keys(cardFeeds?.settings?.companyCards ?? {}).map((key) => ({
+    const companyCardFeeds: CardFeedListItem[] = (Object.keys(cardFeeds?.settings?.companyCards ?? {}) as CompanyCardFeed[]).map((key) => ({
         value: key,
-        text: cardFeeds?.settings?.companyCardNicknames?.[key] ?? translate(`workspace.companyCards.addNewCard.cardProviders.${key as CompanyCardFeed}`),
+        text: cardFeeds?.settings?.companyCardNicknames?.[key] ?? CardUtils.getCardFeedName(key),
         keyForList: key,
         isSelected: selectedFeed === key,
         leftElement: (
