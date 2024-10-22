@@ -1776,7 +1776,7 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             borderRadius: 0,
             paddingHorizontal: 20,
-            paddingVertical: 12,
+            paddingVertical: 16,
             justifyContent: 'space-between',
             width: '100%',
         },
