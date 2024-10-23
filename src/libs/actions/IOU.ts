@@ -3662,7 +3662,6 @@ function requestMoney(
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 reimbursible,
-                policyID: policy?.id,
             };
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls

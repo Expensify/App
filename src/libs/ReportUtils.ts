@@ -302,7 +302,6 @@ type OptimisticChatReport = Pick<
     | 'chatReportID'
     | 'iouReportID'
     | 'isOwnPolicyExpenseChat'
-    | 'isPolicyExpenseChat'
     | 'isPinned'
     | 'lastActorAccountID'
     | 'lastMessageTranslationKey'
@@ -4115,11 +4114,11 @@ function navigateBackAfterDeleteTransaction(backRoute: Route | undefined, isFrom
 /**
  * Go back to the previous page from the edit private page of a given report
  */
-function goBackFromPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Session>, backTo?: string) {
-    if (isEmpty(report) || isEmpty(session) || !session.accountID) {
+function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number, backTo?: string) {
+    if (isEmpty(report) || !accountID) {
         return;
     }
-    const currentUserPrivateNote = report.privateNotes?.[session.accountID]?.note ?? '';
+    const currentUserPrivateNote = report.privateNotes?.[accountID]?.note ?? '';
     if (isEmpty(currentUserPrivateNote)) {
         const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
 
@@ -5327,7 +5326,6 @@ function buildOptimisticChatReport(
         chatType,
         isOwnPolicyExpenseChat,
         isPinned: isNewlyCreatedWorkspaceChat,
-        isPolicyExpenseChat: chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         lastActorAccountID: 0,
         lastMessageTranslationKey: '',
         lastMessageHtml: '',
