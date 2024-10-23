@@ -1,7 +1,7 @@
 import React from 'react';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchUIUtils from '@libs/SearchUIUtils';
 import type {BaseListItemProps, BaseSelectionListProps, ListItem} from './types';
 
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
@@ -40,7 +40,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     singleExecution,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
-        if (SearchUtils.isReportListItemType(item)) {
+        if (SearchUIUtils.isReportListItemType(item)) {
             return onCheckboxPress;
         }
         return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
