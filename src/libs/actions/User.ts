@@ -315,11 +315,7 @@ function resetContactMethodValidateCodeSentState(contactMethod: string) {
  * Clears unvalidated new contact method action
  */
 function clearUnvalidatedNewContactMethodAction() {
-    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
-        validateCodeSent: null,
-        pendingFields: null,
-        errorFields: null,
-    });
+    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, null);
 }
 
 /**
@@ -414,7 +410,6 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
                 [contactMethod]: {
                     partnerUserID: contactMethod,
                     validatedDate: '',
-                    validateCodeSent: true,
                     errorFields: {
                         addedLogin: null,
                     },
@@ -447,6 +442,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
                 validateCodeSent: null,
+                actionVerified: true,
                 errorFields: {
                     actionVerified: null,
                 },
@@ -775,7 +771,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     const reportActionsOnly = pushJSON.filter((update) => update.key?.includes('reportActions_'));
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportID = reportActionsOnly
-        .map((value) => value.key.split('_')[1])
+        .map((value) => value.key.split('_').at(1))
         .find((reportKey) => reportKey === Navigation.getTopmostReportId() && Visibility.isVisible() && Visibility.hasFocus());
 
     if (!reportID) {

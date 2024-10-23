@@ -37,14 +37,13 @@ Onyx.connect({
 
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
-
     messages?.forEach((part, index) => {
         const isEmail = Str.isValidEmail(part.text);
         let tagType = part.type ?? 'span';
         let content = Str.safeEscape(part.text);
 
-        const previousPart = messages[index - 1];
-        const nextPart = messages[index + 1];
+        const previousPart = index !== 0 ? messages.at(index - 1) : undefined;
+        const nextPart = messages.at(index + 1);
 
         if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
             tagType = 'strong';
@@ -94,8 +93,19 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const nextApproverDisplayName = getNextApproverDisplayName(report);
 
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
+    const hasValidAccount = !!policy?.achAccount?.accountNumber;
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
+
+    const noActionRequired = {
+        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+        type,
+        message: [
+            {
+                text: 'No further action required!',
+            },
+        ],
+    };
 
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
@@ -217,15 +227,13 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
 
         // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
         case CONST.REPORT.STATUS_NUM.CLOSED:
-            optimisticNextStep = {
-                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-                type,
-                message: [
-                    {
-                        text: 'No further action required!',
-                    },
-                ],
-            };
+            optimisticNextStep = noActionRequired;
+
+            break;
+
+        // Generates an optimistic nextStep once a report has been paid
+        case CONST.REPORT.STATUS_NUM.REIMBURSED:
+            optimisticNextStep = noActionRequired;
 
             break;
 
@@ -241,15 +249,8 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     report,
                 )
             ) {
-                optimisticNextStep = {
-                    type,
-                    icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-                    message: [
-                        {
-                            text: 'No further action required!',
-                        },
-                    ],
-                };
+                optimisticNextStep = noActionRequired;
+
                 break;
             }
             // Self review
@@ -272,28 +273,13 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: ' to ',
                     },
                     {
-                        text: 'pay',
+                        text: hasValidAccount ? 'pay' : 'finish setting up',
                     },
                     {
-                        text: ' %expenses.',
+                        text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
                     },
                 ],
             };
-            break;
-
-        // Generates an optimistic nextStep once a report has been paid
-        case CONST.REPORT.STATUS_NUM.REIMBURSED:
-            // Paid with wallet
-            optimisticNextStep = {
-                type,
-                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-                message: [
-                    {
-                        text: 'No further action required!',
-                    },
-                ],
-            };
-
             break;
 
         // Resets a nextStep

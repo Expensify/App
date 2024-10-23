@@ -8,9 +8,11 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useSession} from '@components/OnyxProvider';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -24,6 +26,7 @@ import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import * as BankAccounts from '@userActions/BankAccounts';
+import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -37,6 +40,13 @@ import CompanyStep from './CompanyStep';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import EnableBankAccount from './EnableBankAccount/EnableBankAccount';
+import Agreements from './NonUSD/Agreements/Agreements';
+import BankInfo from './NonUSD/BankInfo/BankInfo';
+import BeneficialOwnerInfo from './NonUSD/BeneficialOwnerInfo/BeneficialOwnerInfo';
+import BusinessInfo from './NonUSD/BusinessInfo/BusinessInfo';
+import Country from './NonUSD/Country/Country';
+import Finish from './NonUSD/Finish/Finish';
+import SignerInfo from './NonUSD/SignerInfo/SignerInfo';
 import RequestorStep from './RequestorStep';
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & StackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
@@ -50,6 +60,8 @@ const ROUTE_NAMES = {
     ENABLE: 'enable',
     NEW: 'new',
 };
+
+const SUPPORTED_FOREIGN_CURRENCIES: string[] = [CONST.CURRENCY.EUR, CONST.CURRENCY.GBP, CONST.CURRENCY.CAD, CONST.CURRENCY.AUD];
 
 /**
  * We can pass stepToOpen in the URL to force which step to show.
@@ -96,23 +108,75 @@ function getRouteForCurrentStep(currentStep: TBankAccountStep): ValueOf<typeof R
     }
 }
 
+/**
+ * Returns selected bank account fields based on field names provided.
+ */
+function getFieldsForStep(step: TBankAccountStep): InputID[] {
+    switch (step) {
+        case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+            return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
+        case CONST.BANK_ACCOUNT.STEP.COMPANY:
+            return [
+                'companyName',
+                'addressStreet',
+                'addressZipCode',
+                'addressCity',
+                'addressState',
+                'companyPhone',
+                'website',
+                'companyTaxID',
+                'incorporationType',
+                'incorporationDate',
+                'incorporationState',
+            ];
+        case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
+            return ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
+        default:
+            return [];
+    }
+}
+
 function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps) {
+    const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [plaidLinkToken = ''] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
     const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT);
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
+    const policyName = policy?.name ?? '';
+    const policyIDParam = route.params?.policyID ?? '-1';
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const requestorStepRef = useRef(null);
+    const prevReimbursementAccount = usePrevious(reimbursementAccount);
+    const prevIsOffline = usePrevious(isOffline);
+    const {isDevelopment} = useEnvironment();
+
     /**
-        The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
-        user left off. This view will refer to the achData as the single source of truth to determine which route to
-        display. We can also specify a specific route to navigate to via route params when the component first
-        mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
-        next step.
-    */
+     The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
+     user left off. This view will refer to the achData as the single source of truth to determine which route to
+     display. We can also specify a specific route to navigate to via route params when the component first
+     mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
+     next step.
+     */
     const achData = reimbursementAccount?.achData;
+    const isPreviousPolicy = policyIDParam === achData?.policyID;
+    // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
+    const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+    const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+
+    /**
+     When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
+     Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
+     it relies on incomplete data. Thus, we should wait to calculate it until we have received
+     the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
+     which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
+     */
+    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
+    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue());
 
     function getBankAccountFields<T extends InputID>(fieldNames: T[]): Pick<ACHDataReimbursementAccount, T> {
         return {
@@ -121,39 +185,12 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     }
 
     /**
-     * Returns selected bank account fields based on field names provided.
-     */
-    function getFieldsForStep(step: TBankAccountStep): InputID[] {
-        switch (step) {
-            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-                return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
-            case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                return [
-                    'companyName',
-                    'addressStreet',
-                    'addressZipCode',
-                    'addressCity',
-                    'addressState',
-                    'companyPhone',
-                    'website',
-                    'companyTaxID',
-                    'incorporationType',
-                    'incorporationDate',
-                    'incorporationState',
-                ];
-            case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                return ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
-            default:
-                return [];
-        }
-    }
-
-    /**
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      */
     function hasInProgressVBBA(): boolean {
-        return !!achData?.bankAccountID && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
+        return !!achData?.bankAccountID && !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
     }
+
     /*
      * Calculates the state used to show the "Continue with setup" view. If a bank account setup is already in progress and
      * no specific further step was passed in the url we'll show the workspace bank account reset modal if the user wishes to start over
@@ -166,57 +203,75 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         return achData?.state === BankAccount.STATE.PENDING || [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''].includes(getStepToOpenFromRouteParams(route));
     }
 
-    /**
-        When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
-        Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
-        it relies on incomplete data. Thus, we should wait to calculate it until we have received
-        the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
-        which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
-     */
-    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
-
-    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(hasACHDataBeenLoaded ? getShouldShowContinueSetupButtonInitialValue() : false);
-    const [isReimbursementAccountLoading, setIsReimbursementAccountLoading] = useState(() => {
-        // By default return true (loading), if there are already loaded data we can skip the loading state
-        if (hasACHDataBeenLoaded && typeof reimbursementAccount?.isLoading === 'boolean' && !reimbursementAccount?.isLoading) {
-            return false;
+    const handleNextNonUSDBankAccountStep = () => {
+        switch (nonUSDBankAccountStep) {
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
+                break;
+            default:
+                return null;
         }
-        return true;
-    });
+    };
 
-    // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
-    const currentStep = achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-    const policyName = policy?.name ?? '';
-    const policyIDParam = route.params?.policyID ?? '-1';
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
-    const requestorStepRef = useRef(null);
-    const prevIsReimbursementAccountLoading = usePrevious(reimbursementAccount?.isLoading);
-    const prevReimbursementAccount = usePrevious(reimbursementAccount);
-    const prevIsOffline = usePrevious(isOffline);
+    const nonUSDBankAccountsGoBack = () => {
+        switch (nonUSDBankAccountStep) {
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
+                Navigation.goBack();
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO);
+                break;
+            default:
+                return null;
+        }
+    };
 
     /**
      * Retrieve verified business bank account currently being set up.
-     * @param ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
-     * @param ignoreLocalSubStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
      */
-    function fetchData(ignoreLocalCurrentStep?: boolean, ignoreLocalSubStep?: boolean) {
-        // Show loader right away, as optimisticData might be set only later in case multiple calls are in the queue
-        BankAccounts.setReimbursementAccountLoading(true);
-
+    function fetchData() {
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = getStepToOpenFromRouteParams(route);
-        const subStep = achData?.subStep ?? '';
-        const localCurrentStep = achData?.currentStep ?? '';
-        BankAccounts.openReimbursementAccountPage(stepToOpen, ignoreLocalSubStep ? '' : subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyIDParam);
+        const subStep = isPreviousPolicy ? achData?.subStep ?? '' : '';
+        const localCurrentStep = isPreviousPolicy ? achData?.currentStep ?? '' : '';
+        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
     }
 
     useEffect(() => {
-        if (!isReimbursementAccountLoading) {
+        if (isPreviousPolicy) {
             return;
         }
+
+        BankAccounts.setReimbursementAccountLoading(true);
+        ReimbursementAccount.clearReimbursementAccountDraft();
 
         // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
         const isStepToOpenEmpty = getStepToOpenFromRouteParams(route) === '';
@@ -224,16 +279,9 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
             BankAccounts.setBankAccountSubStep(null);
             BankAccounts.setPlaidEvent(null);
         }
-        fetchData(false, isStepToOpenEmpty);
+        fetchData();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []); // The empty dependency array ensures this runs only once after the component mounts.
-
-    useEffect(() => {
-        if (typeof reimbursementAccount?.isLoading !== 'boolean' || reimbursementAccount.isLoading === prevIsReimbursementAccountLoading) {
-            return;
-        }
-        setIsReimbursementAccountLoading(reimbursementAccount.isLoading);
-    }, [prevIsReimbursementAccountLoading, reimbursementAccount?.isLoading]);
 
     useEffect(
         () => {
@@ -243,8 +291,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
             }
 
             if (!hasACHDataBeenLoaded) {
-                if (reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isReimbursementAccountLoading === false) {
-                    setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
+                if (reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && reimbursementAccount?.isLoading === false) {
                     setHasACHDataBeenLoaded(true);
                 }
                 return;
@@ -296,7 +343,6 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
             setShouldShowContinueSetupButton(false);
         });
-        fetchData(true);
     };
 
     const goBack = () => {
@@ -352,7 +398,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         }
     };
 
-    const isLoading = (!!isLoadingApp || !!account?.isLoading || isReimbursementAccountLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
+    const isLoading = (!!isLoadingApp || !!account?.isLoading || reimbursementAccount?.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
 
     const shouldShowOfflineLoader = !(
         isOffline &&
@@ -368,6 +414,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
+    // eslint-disable-next-line react-compiler/react-compiler
     if ((!hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef.current)) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
@@ -388,13 +435,68 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     let errorText;
     const userHasPhonePrimaryEmail = Str.endsWith(session?.email ?? '', CONST.SMS.DOMAIN);
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
-    const hasUnsupportedCurrency = (policy?.outputCurrency ?? '') !== CONST.CURRENCY.USD;
+
+    const policyCurrency = policy?.outputCurrency ?? '';
+    // TODO once nonUSD flow is complete update the flag below to reflect all supported currencies, this will be updated in - https://github.com/Expensify/App/issues/50912
+    const hasUnsupportedCurrency = policyCurrency !== CONST.CURRENCY.USD;
+    // TODO remove isDevelopment flag once nonUSD flow is complete, this will be updated in - https://github.com/Expensify/App/issues/50912
+    const hasForeignCurrency = SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency) && isDevelopment;
 
     if (userHasPhonePrimaryEmail) {
         errorText = translate('bankAccount.hasPhoneLoginError');
     } else if (throttledDate) {
         errorText = translate('bankAccount.hasBeenThrottledError');
     } else if (hasUnsupportedCurrency) {
+        if (hasForeignCurrency) {
+            switch (nonUSDBankAccountStep) {
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
+                    return (
+                        <Country
+                            onBackButtonPress={nonUSDBankAccountsGoBack}
+                            onSubmit={handleNextNonUSDBankAccountStep}
+                        />
+                    );
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
+                    return (
+                        <BankInfo
+                            onBackButtonPress={nonUSDBankAccountsGoBack}
+                            onSubmit={handleNextNonUSDBankAccountStep}
+                        />
+                    );
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
+                    return (
+                        <BusinessInfo
+                            onBackButtonPress={nonUSDBankAccountsGoBack}
+                            onSubmit={handleNextNonUSDBankAccountStep}
+                        />
+                    );
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
+                    return (
+                        <BeneficialOwnerInfo
+                            onBackButtonPress={nonUSDBankAccountsGoBack}
+                            onSubmit={handleNextNonUSDBankAccountStep}
+                        />
+                    );
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
+                    return (
+                        <SignerInfo
+                            onBackButtonPress={nonUSDBankAccountsGoBack}
+                            onSubmit={handleNextNonUSDBankAccountStep}
+                        />
+                    );
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
+                    return (
+                        <Agreements
+                            onBackButtonPress={nonUSDBankAccountsGoBack}
+                            onSubmit={handleNextNonUSDBankAccountStep}
+                        />
+                    );
+                case CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH:
+                    return <Finish />;
+                default:
+                    return null;
+            }
+        }
         errorText = translate('bankAccount.hasCurrencyError');
     }
 
@@ -424,53 +526,43 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         );
     }
 
-    if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT) {
-        return (
-            <BankAccountStep
-                reimbursementAccount={reimbursementAccount}
-                onBackButtonPress={goBack}
-                receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                plaidLinkOAuthToken={plaidLinkToken}
-                policyName={policyName}
-                policyID={policyIDParam}
-            />
-        );
-    }
-
-    if (currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY) {
-        return <CompanyStep onBackButtonPress={goBack} />;
-    }
-
-    if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
-        const shouldShowOnfido = onfidoToken && !achData?.isOnfidoSetupComplete;
-        return (
-            <RequestorStep
-                ref={requestorStepRef}
-                shouldShowOnfido={!!shouldShowOnfido}
-                onBackButtonPress={goBack}
-            />
-        );
-    }
-
-    if (currentStep === CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS) {
-        return <BeneficialOwnersStep onBackButtonPress={goBack} />;
-    }
-
-    if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT) {
-        return <ACHContractStep onBackButtonPress={goBack} />;
-    }
-
-    if (currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION) {
-        return <ConnectBankAccount onBackButtonPress={goBack} />;
-    }
-
-    if (currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE) {
-        return (
-            <EnableBankAccount
-                reimbursementAccount={reimbursementAccount}
-                onBackButtonPress={goBack}
-            />
-        );
+    switch (currentStep) {
+        case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+            return (
+                <BankAccountStep
+                    reimbursementAccount={reimbursementAccount}
+                    onBackButtonPress={goBack}
+                    receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                    plaidLinkOAuthToken={plaidLinkToken}
+                    policyName={policyName}
+                    policyID={policyIDParam}
+                />
+            );
+        case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
+            return (
+                <RequestorStep
+                    ref={requestorStepRef}
+                    shouldShowOnfido={!!(onfidoToken && !achData?.isOnfidoSetupComplete)}
+                    onBackButtonPress={goBack}
+                />
+            );
+        case CONST.BANK_ACCOUNT.STEP.COMPANY:
+            return <CompanyStep onBackButtonPress={goBack} />;
+        case CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS:
+            return <BeneficialOwnersStep onBackButtonPress={goBack} />;
+        case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
+            return <ACHContractStep onBackButtonPress={goBack} />;
+        case CONST.BANK_ACCOUNT.STEP.VALIDATION:
+            return <ConnectBankAccount onBackButtonPress={goBack} />;
+        case CONST.BANK_ACCOUNT.STEP.ENABLE:
+            return (
+                <EnableBankAccount
+                    reimbursementAccount={reimbursementAccount}
+                    onBackButtonPress={goBack}
+                />
+            );
+        default:
+            return null;
     }
 }
 

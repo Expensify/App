@@ -68,6 +68,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                     onChangeText={(renamedName) => setNewName(renamedName)}
                     ref={inputCallbackRef}
                     defaultValue={name}
+                    shouldShowClearButton
                 />
             </FormProvider>
         </ScreenWrapper>

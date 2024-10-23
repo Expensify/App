@@ -104,6 +104,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.CategoriesModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.EXPENSIFY_CARD}
+                        component={ModalStackNavigators.ExpensifyCardModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.DOMAIN_CARD}
+                        component={ModalStackNavigators.DomainCardModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PARTICIPANTS}
                         component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
                     />

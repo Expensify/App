@@ -13,9 +13,6 @@ type CustomSelectionChangeEvent = NativeSyntheticEvent<TextInputSelectionChangeE
 };
 
 type ComposerProps = Omit<TextInputProps, 'onClear'> & {
-    /** identify id in the text input */
-    id?: string;
-
     /** Indicate whether input is multiline */
     multiline?: boolean;
 
@@ -77,8 +74,6 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
 
     /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
     isGroupPolicyReport?: boolean;
-
-    showSoftInputOnFocus?: boolean;
 };
 
 export type {TextSelection, ComposerProps, CustomSelectionChangeEvent};

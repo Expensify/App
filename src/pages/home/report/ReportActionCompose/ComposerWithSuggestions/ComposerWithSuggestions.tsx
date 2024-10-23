@@ -29,6 +29,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
@@ -39,6 +40,7 @@ import getPlatform from '@libs/getPlatform';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -64,6 +66,9 @@ type SyncSelection = {
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsOnyxProps = {
+    /** The parent report actions for the report */
+    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+
     /** The modal state */
     modal: OnyxEntry<OnyxTypes.Modal>;
 
@@ -145,11 +150,21 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** Whether the edit is focused */
         editFocused: boolean;
 
+        /** Wheater chat is empty */
+        isEmptyChat?: boolean;
+
         /** The last report action */
         lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
         /** Whether to include chronos */
         includeChronos?: boolean;
+
+        /** The parent report action ID */
+        parentReportActionID?: string;
+
+        /** The parent report ID */
+        // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
+        parentReportID: string | undefined;
 
         /** Whether report is from group policy */
         isGroupPolicyReport: boolean;
@@ -196,6 +211,10 @@ const debouncedBroadcastUserIsTyping = lodashDebounce(
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
+// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
+// prevent auto focus on existing chat for mobile device
+const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
 /**
  * This component holds the value and selection state.
  * If a component really needs access to these state values it should be put here.
@@ -207,11 +226,14 @@ function ComposerWithSuggestions(
         // Onyx
         modal,
         preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
+        parentReportActions,
 
         // Props: Report
         reportID,
         includeChronos,
+        isEmptyChat,
         lastReportAction,
+        parentReportActionID,
         isGroupPolicyReport,
         policyID,
 
@@ -276,12 +298,16 @@ function ComposerWithSuggestions(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const shouldAutoFocus = !modal?.isVisible && shouldShowComposeInput && Modal.areAllModalsHidden() && isFocused;
+    const parentReportAction = parentReportActions?.[parentReportActionID ?? '-1'];
+    const shouldAutoFocus =
+        !modal?.isVisible &&
+        Modal.areAllModalsHidden() &&
+        isFocused &&
+        (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) &&
+        shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
-
-    const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
 
     const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
 
@@ -772,19 +798,6 @@ function ComposerWithSuggestions(
                     shouldCalculateCaretPosition
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
-                    showSoftInputOnFocus={showSoftInputOnFocus}
-                    onTouchStart={() => {
-                        if (showSoftInputOnFocus) {
-                            return;
-                        }
-                        if (Browser.isMobileSafari()) {
-                            setTimeout(() => {
-                                setShowSoftInputOnFocus(true);
-                            }, CONST.ANIMATED_TRANSITION);
-                            return;
-                        }
-                        setShowSoftInputOnFocus(true);
-                    }}
                     shouldContainScroll={Browser.isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
                 />
@@ -834,6 +847,11 @@ export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef
     },
     editFocused: {
         key: ONYXKEYS.INPUT_FOCUSED,
+    },
+    parentReportActions: {
+        key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+        canEvict: false,
+        initWithStoredValues: false,
     },
 })(memo(ComposerWithSuggestionsWithRef));
 

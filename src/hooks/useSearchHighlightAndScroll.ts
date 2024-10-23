@@ -83,7 +83,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             return;
         }
 
-        const newTransactionID = newTransactionIDs[0];
+        const newTransactionID = newTransactionIDs.at(0) ?? '';
         const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`;
 
         setNewSearchResultKey(newTransactionKey);

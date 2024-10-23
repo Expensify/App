@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {CardFeedData} from '@src/types/onyx/CardFeeds';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -48,11 +49,17 @@ type ConnectionWithLastSyncData = {
 };
 
 let allPolicies: OnyxCollection<Policy>;
+let activePolicyId: OnyxEntry<string>;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
+});
+
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (value) => (activePolicyId = value),
 });
 
 /**
@@ -125,15 +132,15 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
 /**
  * Retrieves the distance custom unit object for the given policy
  */
-function getCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
+function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
 }
 
 /**
  * Retrieves custom unit rate object from the given customUnitRateID
  */
-function getCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
-    const distanceUnit = getCustomUnit(policy);
+function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
+    const distanceUnit = getDistanceRateCustomUnit(policy);
     return distanceUnit?.rates[customUnitRateID];
 }
 
@@ -144,9 +151,11 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     }
 
     if (withDecimals) {
-        const decimalPart = numValue.toString().split('.')[1];
-        const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
-        return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
+        const decimalPart = numValue.toString().split('.').at(1);
+        if (decimalPart) {
+            const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
+            return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
+        }
     }
 
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
@@ -190,6 +199,11 @@ function isExpensifyTeam(email: string | undefined): boolean {
     const emailDomain = Str.extractEmailDomain(email ?? '');
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
+
+/**
+ * Checks if the user with login is an admin of the policy.
+ */
+const isUserPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string) => !!(policy && policy.employeeList && login && policy.employeeList[login]?.role === CONST.POLICY.ROLE.ADMIN);
 
 /**
  * Checks if the current user is an admin of the policy.
@@ -302,12 +316,12 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagLists>): Array<ValueOf<Po
  */
 function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number): ValueOf<PolicyTagLists> {
     const tagLists = getTagLists(policyTagList);
-
     return (
-        tagLists[tagIndex] ?? {
+        tagLists.at(tagIndex) ?? {
             name: '',
             required: false,
             tags: {},
+            orderWeight: 0,
         }
     );
 }
@@ -368,7 +382,7 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
 }
 
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
-    const distanceUnit = getCustomUnit(policy);
+    const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? 0;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
     const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
@@ -507,12 +521,12 @@ function getDefaultApprover(policy: OnyxEntry<Policy>): string {
  * Returns the accountID to whom the given employeeAccountID submits reports to in the given Policy.
  */
 function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: number): number {
-    const employeeLogin = getLoginsByAccountIDs([employeeAccountID])[0];
+    const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
     const defaultApprover = getDefaultApprover(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
     if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
-        return getAccountIDsByLogins([defaultApprover])[0];
+        return getAccountIDsByLogins([defaultApprover]).at(0) ?? -1;
     }
 
     const employee = policy?.employeeList?.[employeeLogin];
@@ -520,12 +534,12 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
         return -1;
     }
 
-    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
+    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover]).at(0) ?? -1;
 }
 
 function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number): string {
     const submitToAccountID = getSubmitToAccountID(policy, employeeAccountID);
-    return getLoginsByAccountIDs([submitToAccountID])[0] ?? '';
+    return getLoginsByAccountIDs([submitToAccountID]).at(0) ?? '';
 }
 
 /**
@@ -554,7 +568,7 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     const reimburserEmail = policy?.achAccount?.reimburser ?? '';
-    return reimburserEmail ? getAccountIDsByLogins([reimburserEmail])[0] : -1;
+    return reimburserEmail ? getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1 : -1;
 }
 
 function getPersonalPolicy() {
@@ -834,6 +848,23 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
     return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
 }
 
+function getNetSuiteImportCustomFieldLabel(
+    policy: Policy | undefined,
+    importField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>,
+    translate: LocaleContextProps['translate'],
+): string | undefined {
+    const fieldData = policy?.connections?.netsuite?.options?.config.syncOptions?.[importField] ?? [];
+    if (fieldData.length === 0) {
+        return undefined;
+    }
+
+    const mappingSet = new Set(fieldData.map((item) => item.mapping));
+    const importedTypes = Array.from(mappingSet)
+        .sort((a, b) => b.localeCompare(a))
+        .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping}.label`).toLowerCase());
+    return translate(`workspace.netsuite.import.importCustomFields.label`, {importedTypes});
+}
+
 function isNetSuiteCustomSegmentRecord(customField: NetSuiteCustomList | NetSuiteCustomSegment): boolean {
     return 'segmentName' in customField;
 }
@@ -1021,6 +1052,18 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
 }
 
+function hasPolicyFeedsError(feeds: Record<string, CardFeedData>, feedToSkip?: string): boolean {
+    return Object.entries(feeds).filter(([feedName, feedData]) => feedName !== feedToSkip && !!feedData.errors).length > 0;
+}
+
+function getAllPoliciesLength() {
+    return Object.keys(allPolicies ?? {}).length;
+}
+
+function getActivePolicy(): OnyxEntry<Policy> {
+    return getPolicy(activePolicyId);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1049,6 +1092,7 @@ export {
     goBackFromInvalidPolicy,
     hasAccountingConnections,
     hasSyncError,
+    hasPolicyFeedsError,
     hasCustomUnitsError,
     hasEmployeeListError,
     hasIntegrationAutoSync,
@@ -1063,6 +1107,7 @@ export {
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
+    isUserPolicyAdmin,
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
@@ -1103,8 +1148,8 @@ export {
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
     getSageIntacctBankAccounts,
-    getCustomUnit,
-    getCustomUnitRate,
+    getDistanceRateCustomUnit,
+    getDistanceRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
     navigateWhenEnableFeature,
@@ -1133,6 +1178,9 @@ export {
     getDomainNameForPolicy,
     hasUnsupportedIntegration,
     getWorkflowApprovalsUnavailable,
+    getNetSuiteImportCustomFieldLabel,
+    getAllPoliciesLength,
+    getActivePolicy,
 };
 
 export type {MemberEmailsToAccountIDs};

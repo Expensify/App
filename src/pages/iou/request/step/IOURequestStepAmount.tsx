@@ -178,10 +178,13 @@ function IOURequestStepAmount({
             return;
         }
 
-        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+        // If a reportID exists in the report object, it's because either:
+        // - The user started this flow from using the + button in the composer inside a report.
+        // - The user started this flow from using the global create menu by selecting the Track expense option.
+        // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
-        if (report?.reportID && !ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
+        // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
+        if (report?.reportID && !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? -1;
@@ -212,11 +215,11 @@ function IOURequestStepAmount({
 
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
+                        IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                         return;
                     }
 
-                    IOU.sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
+                    IOU.sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
@@ -228,7 +231,7 @@ function IOURequestStepAmount({
                         CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        participants[0],
+                        participants.at(0) ?? {},
                         '',
                         {},
                     );
@@ -243,7 +246,7 @@ function IOURequestStepAmount({
                         CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        participants[0],
+                        participants.at(0) ?? {},
                         '',
                     );
                     return;

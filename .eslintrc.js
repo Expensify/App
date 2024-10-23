@@ -109,7 +109,6 @@ module.exports = {
         'plugin:prettier/recommended',
     ],
     plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler', 'lodash', 'deprecation'],
-    ignorePatterns: ['lib/**'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
         project: path.resolve(__dirname, './tsconfig.json'),
@@ -289,6 +288,12 @@ module.exports = {
             files: ['en.ts', 'es.ts'],
             rules: {
                 'rulesdir/use-periods-for-error-messages': 'error',
+            },
+        },
+        {
+            files: ['*.ts', '*.tsx'],
+            rules: {
+                'rulesdir/prefer-at': 'error',
             },
         },
     ],

@@ -6,7 +6,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,14 +23,14 @@ type ReportActionItemCreatedProps = {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string | undefined;
 };
-function ReportActionItemCreated({policyID, reportID}: ReportActionItemCreatedProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const policy = usePolicy(policyID);
+function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedProps) {
     const styles = useThemeStyles();
 
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     if (!ReportUtils.isChatReport(report)) {
@@ -68,7 +67,8 @@ function ReportActionItemCreated({policyID, reportID}: ReportActionItemCreatedPr
                         >
                             <MultipleAvatars
                                 icons={icons}
-                                size={isLargeScreenWidth || (icons && icons.length < 3) ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.MEDIUM}
+                                size={CONST.AVATAR_SIZE.XLARGE}
+                                overlapDivider={4}
                                 shouldStackHorizontally
                                 shouldDisplayAvatarsInRows={shouldUseNarrowLayout}
                                 maxAvatarsInRow={shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN}

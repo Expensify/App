@@ -68,7 +68,7 @@ function isCurrencySymbolLTR(currencyCode: string): boolean {
     });
 
     // Currency is LTR when the first part is of currency type.
-    return parts[0].type === 'currency';
+    return parts.at(0)?.type === 'currency';
 }
 
 /**

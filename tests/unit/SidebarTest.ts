@@ -86,11 +86,11 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames[0]).toHaveTextContent('Report (archived)');
+                        expect(displayNames.at(0)).toHaveTextContent('Report (archived)');
 
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
-                        expect(messagePreviewTexts[0]).toHaveTextContent('This chat room has been archived.');
+                        expect(messagePreviewTexts.at(0)).toHaveTextContent('This chat room has been archived.');
                     })
             );
         });
@@ -141,11 +141,11 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames[0]).toHaveTextContent('Report (archived)');
+                        expect(displayNames.at(0)).toHaveTextContent('Report (archived)');
 
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
-                        expect(messagePreviewTexts[0]).toHaveTextContent('This chat is no longer active because Vikings Policy is no longer an active workspace.');
+                        expect(messagePreviewTexts.at(0)).toHaveTextContent('This chat is no longer active because Vikings Policy is no longer an active workspace.');
                     })
             );
         });

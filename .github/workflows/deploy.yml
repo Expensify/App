@@ -67,84 +67,86 @@ jobs:
     needs: prep
     secrets: inherit
 
-  android:
-    name: Build and deploy Android
+  buildAndroid:
+    name: Build Android app
+    uses: ./.github/workflows/buildAndroid.yml
+    if: ${{ github.ref == 'refs/heads/staging' }}
     needs: prep
-    runs-on: ubuntu-latest-xl
+    secrets: inherit
+    with:
+      type: release
+      ref: staging
+
+  uploadAndroid:
+    name: Upload Android build to Google Play Store
+    needs: buildAndroid
+    runs-on: ubuntu-latest
     env:
       RUBYOPT: '-rostruct'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure MapBox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
         with:
-          distribution: 'oracle'
-          java-version: '17'
+          bundler-cache: true
+
+      - name: Download Android build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/artifacts
+          pattern: android-artifact-*
+          merge-multiple: true
+
+      - name: Log downloaded artifact paths
+        run: ls -R /tmp/artifacts
+
+      - name: Decrypt json w/ Google Play credentials
+        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+        working-directory: android/app
+
+      - name: Upload Android app to Google Play
+        run: bundle exec fastlane android upload_google_play_internal
+        env:
+          aabPath: /tmp/artifacts/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}
+
+      - name: Upload Android build to Browser Stack
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/tmp/artifacts/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+  submitAndroid:
+    name: Submit Android app for production review
+    needs: prep
+    if: ${{ github.ref == 'refs/heads/production' }}
+    runs-on: ubuntu-latest
+    env:
+      RUBYOPT: '-rostruct'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.190.0
         with:
           bundler-cache: true
 
-      - name: Decrypt keystore
-        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt json key
-        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
       - name: Get Android native version
         id: getAndroidVersion
         run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
 
-      - name: Build Android app
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android build
-        env:
-          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
-          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
+      - name: Decrypt json w/ Google Play credentials
+        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+        working-directory: android/app
 
-      - name: Upload Android app to Google Play
-        run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'upload_google_play_production' || 'upload_google_play_internal' }}
+      - name: Submit Android build for review
+        run: bundle exec fastlane android upload_google_play_production
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
-      - name: Upload Android build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@./android/app/build/outputs/bundle/productionRelease/app-production-release.aab"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-      - name: Upload Android sourcemaps artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-sourcemaps-artifact
-          path: ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
-
-      - name: Upload Android build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-build-artifact
-          path: ./android/app/build/outputs/bundle/productionRelease/app-production-release.aab
-
-      - name: Set current App version in Env
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
-
       - name: Warn deployers if Android production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ failure() }}
         uses: 8398a7/action-slack@v3
         with:
           status: custom
@@ -266,9 +268,6 @@ jobs:
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - name: Set current App version in Env
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
-
       - name: Get iOS native version
         id: getIOSVersion
         run: echo "IOS_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')" >> "$GITHUB_OUTPUT"
@@ -381,9 +380,6 @@ jobs:
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
-      - name: Set current App version in Env
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
-
       - name: Verify staging deploy
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: ./.github/scripts/verifyDeploy.sh staging ${{ needs.prep.outputs.APP_VERSION }}
@@ -419,7 +415,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [android, desktop, iOS, web]
+    needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -444,16 +440,25 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
-      IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastAllPlatform.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
-    needs: [android, desktop, iOS, web]
+      IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
+    needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
         id: checkDeploymentSuccessOnAtLeastOnePlatform
         run: |
           isAtLeastOnePlatformDeployed="false"
-          if [ "${{ needs.android.result }}" == "success" ] || \
-            [ "${{ needs.iOS.result }}" == "success" ] || \
+          if [ ${{ github.ref }} == 'refs/heads/production' ]; then
+            if [ "${{ needs.submitAndroid.result }}" == "success" ]; then
+              isAtLeastOnePlatformDeployed="true"
+            fi
+          else
+            if [ "${{ needs.uploadAndroid.result }}" == "success" ]; then
+              isAtLeastOnePlatformDeployed="true"
+            fi
+          fi
+          
+          if [ "${{ needs.iOS.result }}" == "success" ] || \
             [ "${{ needs.desktop.result }}" == "success" ] || \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAtLeastOnePlatformDeployed="true"
@@ -462,15 +467,25 @@ jobs:
           echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED is $isAtLeastOnePlatformDeployed"
 
       - name: Check deployment success on all platforms
-        id: checkDeploymentSuccessOnAtLeastAllPlatform
+        id: checkDeploymentSuccessOnAllPlatforms
         run: |
           isAllPlatformsDeployed="false"
-          if [ "${{ needs.android.result }}" == "success" ] && \
-            [ "${{ needs.iOS.result }}" == "success" ] && \
+          if [ "${{ needs.iOS.result }}" == "success" ] && \
             [ "${{ needs.desktop.result }}" == "success" ] && \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAllPlatformsDeployed="true"
           fi
+
+          if [ ${{ github.ref }} == 'refs/heads/production' ]; then
+            if [ "${{ needs.submitAndroid.result }}" != "success" ]; then
+              isAllPlatformsDeployed="false"
+            fi
+          else
+            if [ "${{ needs.uploadAndroid.result }}" != "success" ]; then
+              isAllPlatformsDeployed="false"
+            fi
+          fi
+
           echo "IS_ALL_PLATFORMS_DEPLOYED=$isAllPlatformsDeployed" >> "$GITHUB_OUTPUT"
           echo "IS_ALL_PLATFORMS_DEPLOYED is $isAllPlatformsDeployed"
 
@@ -590,7 +605,7 @@ jobs:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         uses: 8398a7/action-slack@v3
@@ -644,11 +659,11 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
-      android: ${{ needs.android.result }}
+      android: ${{ github.ref == 'refs/heads/production' && needs.submitAndroid.result || needs.uploadAndroid.result }}
       ios: ${{ needs.iOS.result }}
       web: ${{ needs.web.result }}
       desktop: ${{ needs.desktop.result }}

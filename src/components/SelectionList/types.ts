@@ -11,6 +11,8 @@ import type {
     TextStyle,
     ViewStyle,
 } from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
+import type {SearchRouterItem} from '@components/Search/SearchRouter/SearchRouterList';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -24,6 +26,7 @@ import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type ReportListItem from './Search/ReportListItem';
+import type SearchQueryListItem from './Search/SearchQueryListItem';
 import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
@@ -57,6 +60,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Styles for the pressable component */
     pressableStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the pressable component wrapper view */
+    pressableWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /** Styles for the wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -95,6 +101,9 @@ type ListItem = {
 
     /** Whether this option is selected */
     isSelected?: boolean;
+
+    /** Whether the option can show both selected and error indicators */
+    canShowSeveralIndicators?: boolean;
 
     /** Whether the checkbox should be disabled */
     isDisabledCheckbox?: boolean;
@@ -178,6 +187,9 @@ type ListItem = {
 
     /** Determines whether the newly added item should animate in / highlight */
     shouldAnimateInHighlight?: boolean;
+
+    /** The style to override the default appearance */
+    itemStyle?: StyleProp<ViewStyle>;
 };
 
 type TransactionListItemType = ListItem &
@@ -278,6 +290,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show RBR */
     shouldDisplayRBR?: boolean;
+
+    /** Whether we highlight all the selected items */
+    shouldHighlightSelectedItem?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -291,7 +306,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
     shouldSyncFocus?: boolean;
     hoverStyle?: StyleProp<ViewStyle>;
-    hasAnimateInHighlightStyle?: boolean;
     /** Errors that this user may contain */
     shouldDisplayRBR?: boolean;
 };
@@ -326,7 +340,9 @@ type ValidListItem =
     | typeof InviteMemberListItem
     | typeof TransactionListItem
     | typeof ReportListItem
-    | typeof ChatListItem;
+    | typeof ChatListItem
+    | typeof SearchQueryListItem
+    | typeof SearchRouterItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -489,6 +505,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles to apply to SectionList component */
     sectionListStyle?: StyleProp<ViewStyle>;
 
+    /** Whether to ignore the focus event */
+    shouldIgnoreFocus?: boolean;
+
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
 
@@ -560,17 +579,25 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to show the empty list content */
     shouldShowListEmptyContent?: boolean;
 
+    /** The style is applied for the wrap component of list item */
+    listItemWrapperStyle?: StyleProp<ViewStyle>;
+
     /** Scroll event throttle for preventing onScroll callbacks to be fired too often */
     scrollEventThrottle?: number;
 
     /** Additional styles to apply to scrollable content */
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether we highlight all the selected items */
+    shouldHighlightSelectedItem?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;
     clearInputAfterSelect?: () => void;
     scrollToIndex: (index: number, animated?: boolean) => void;
+    updateAndScrollToFocusedIndex: (newFocusedIndex: number) => void;
+    updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
 };
 
 type ItemLayout = {

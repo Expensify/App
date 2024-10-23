@@ -137,7 +137,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             onToggle: () =>
                 QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(
                     policyID,
-                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions][0].id,
+                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions].at(0)?.id,
                     qboConfig?.collectionAccountID,
                 ),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,

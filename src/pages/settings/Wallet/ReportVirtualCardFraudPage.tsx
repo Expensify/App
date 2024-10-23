@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,32 +17,22 @@ import * as Card from '@userActions/Card';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ReportVirtualCardFraudForm} from '@src/types/form';
-import type {Card as OnyxCard} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ReportVirtualCardFraudPageOnyxProps = {
-    /** Form data propTypes */
-    formData: OnyxEntry<ReportVirtualCardFraudForm>;
-
-    /** Card list propTypes */
-    cardList: OnyxEntry<Record<string, OnyxCard>>;
-};
-
-type ReportVirtualCardFraudPageProps = ReportVirtualCardFraudPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD>;
+type ReportVirtualCardFraudPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD>;
 
 function ReportVirtualCardFraudPage({
     route: {
         params: {cardID = ''},
     },
-    cardList,
-    formData,
 }: ReportVirtualCardFraudPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD);
 
     const virtualCard = cardList?.[cardID];
-    const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard?.errors ?? {});
+    const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard);
 
     const prevIsLoading = usePrevious(formData?.isLoading);
 
@@ -85,11 +74,4 @@ function ReportVirtualCardFraudPage({
 
 ReportVirtualCardFraudPage.displayName = 'ReportVirtualCardFraudPage';
 
-export default withOnyx<ReportVirtualCardFraudPageProps, ReportVirtualCardFraudPageOnyxProps>({
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    formData: {
-        key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
-    },
-})(ReportVirtualCardFraudPage);
+export default ReportVirtualCardFraudPage;

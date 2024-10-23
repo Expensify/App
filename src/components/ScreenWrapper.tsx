@@ -22,6 +22,7 @@ import CustomDevMenu from './CustomDevMenu';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from './HeaderGap';
+import ImportedStateIndicator from './ImportedStateIndicator';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
 import OfflineIndicator from './OfflineIndicator';
 import SafeAreaConsumer from './SafeAreaConsumer';
@@ -145,6 +146,9 @@ function ScreenWrapper(
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
@@ -158,6 +162,7 @@ function ScreenWrapper(
 
     const isKeyboardShownRef = useRef<boolean>(false);
 
+    // eslint-disable-next-line react-compiler/react-compiler
     isKeyboardShownRef.current = keyboardState?.isKeyboardShown ?? false;
 
     const panResponder = useRef(
@@ -285,12 +290,22 @@ function ScreenWrapper(
                                                       })
                                                     : children
                                             }
-                                            {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                            {isSmallScreenWidth && shouldShowOfflineIndicator && (
+                                                <>
+                                                    <OfflineIndicator style={offlineIndicatorStyle} />
+                                                    {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                                    <ImportedStateIndicator />
+                                                </>
+                                            )}
                                             {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
-                                                <OfflineIndicator
-                                                    containerStyles={[]}
-                                                    style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
-                                                />
+                                                <>
+                                                    <OfflineIndicator
+                                                        containerStyles={[]}
+                                                        style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                                    />
+                                                    {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                                    <ImportedStateIndicator />
+                                                </>
                                             )}
                                         </ScreenWrapperStatusContext.Provider>
                                     </PickerAvoidingView>

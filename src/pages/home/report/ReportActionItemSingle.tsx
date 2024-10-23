@@ -95,13 +95,19 @@ function ReportActionItemSingle({
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = ReportUtils.isTripRoom(report);
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const displayAllActors = isReportPreviewAction && !isTripRoom;
+    const displayAllActors = isReportPreviewAction && !isTripRoom && !ReportUtils.isPolicyExpenseChat(report);
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
 
+    if (isReportPreviewAction && ReportUtils.isPolicyExpenseChat(report)) {
+        avatarId = ownerAccountID;
+        avatarSource = personalDetails[ownerAccountID ?? -1]?.avatar;
+        displayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
+        actorHint = displayName;
+    }
     if (isWorkspaceActor) {
         displayName = ReportUtils.getPolicyName(report, undefined, policy);
         actorHint = displayName;
@@ -146,7 +152,7 @@ function ReportActionItemSingle({
         const avatarIconIndex = report?.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
         const reportIcons = ReportUtils.getIcons(report, {});
 
-        secondaryAvatar = reportIcons[avatarIconIndex];
+        secondaryAvatar = reportIcons.at(avatarIconIndex) ?? {name: '', source: '', type: CONST.ICON_TYPE_AVATAR};
     } else {
         secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }
@@ -193,6 +199,15 @@ function ReportActionItemSingle({
     );
 
     const getAvatar = () => {
+        if (shouldShowSubscriptAvatar) {
+            return (
+                <SubscriptAvatar
+                    mainAvatar={icon}
+                    secondaryAvatar={secondaryAvatar}
+                    noMargin
+                />
+            );
+        }
         if (displayAllActors) {
             return (
                 <MultipleAvatars
@@ -200,15 +215,6 @@ function ReportActionItemSingle({
                     isInReportAction
                     shouldShowTooltip
                     secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
-                />
-            );
-        }
-        if (shouldShowSubscriptAvatar) {
-            return (
-                <SubscriptAvatar
-                    mainAvatar={icon}
-                    secondaryAvatar={secondaryAvatar}
-                    noMargin
                 />
             );
         }
