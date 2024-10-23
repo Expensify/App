@@ -6982,8 +6982,7 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, 
     const isOpenExpenseReport = ReportUtils.isOpenExpenseReport(iouReport);
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(iouReport?.reportID);
-    const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);
+    const isArchivedReport = ReportUtils.isArchivedRoom(iouReport);
     const unheldTotalIsZero = iouReport && iouReport.unheldTotal === 0;
 
     return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !unheldTotalIsZero;
@@ -6997,8 +6996,7 @@ function canIOUBePaid(
     onlyShowPayElsewhere = false,
 ) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(chatReport?.reportID);
-    const isChatReportArchived = ReportUtils.isArchivedRoom(chatReport, reportNameValuePairs);
+    const isChatReportArchived = ReportUtils.isArchivedRoom(chatReport);
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
 
     if (isEmptyObject(iouReport)) {

@@ -57,7 +57,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const selectionListRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<TextInput>(null);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const {selectionMode} = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -375,7 +374,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             style={[styles.defaultModalContainer]}
             testID={ReportParticipantsPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isSelfDM(report)}>
+            <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report)}>
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : headerTitle}
                     onBackButtonPress={() => {

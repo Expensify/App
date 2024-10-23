@@ -2,7 +2,6 @@ import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -16,7 +15,6 @@ import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 type NotificationPreferencePageProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>;
@@ -24,13 +22,10 @@ type NotificationPreferencePageProps = WithReportOrNotFoundProps & StackScreenPr
 function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     const route = useRoute<RouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>>();
     const {translate} = useLocalize();
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID || -1}`);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentNotificationPreference = ReportUtils.getReportNotificationPreference(report);
     const shouldDisableNotificationPreferences =
-        ReportUtils.isArchivedRoom(report, reportNameValuePairs) ||
-        ReportUtils.isSelfDM(report) ||
-        (!isMoneyRequestReport && currentNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+        ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report) || (!isMoneyRequestReport && currentNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
     const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
         .filter((pref) => pref !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
         .map((preference) => ({

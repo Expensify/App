@@ -169,8 +169,6 @@ function ReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible());
     const isFocused = useIsFocused();
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
-
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
             setIsVisible(Visibility.isVisible());
@@ -551,8 +549,8 @@ function ReportActionsList({
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = useMemo(
-        () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(report, reportNameValuePairs)],
-        [unreadMarkerReportActionID, shouldUseNarrowLayout, report, reportNameValuePairs],
+        () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(report)],
+        [unreadMarkerReportActionID, shouldUseNarrowLayout, report],
     );
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;

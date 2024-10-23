@@ -89,8 +89,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || '-1'}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || '-1'}`);
-    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || '-1'}`);
     const {reportActions} = usePaginatedReportActions(report.reportID || '-1');
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     const {currentSearchHash} = useSearchContext();
@@ -125,7 +123,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
     const isDefaultRoom = useMemo(() => ReportUtils.isDefaultRoom(report), [report]);
     const isChatThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
-    const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(report, reportNameValuePairs), [report, reportNameValuePairs]);
+    const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(report), [report]);
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
@@ -598,7 +596,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const shouldShowHoldAction =
         caseID !== CASES.DEFAULT &&
         (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) &&
-        !ReportUtils.isArchivedRoom(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
+        !ReportUtils.isArchivedRoom(transactionThreadReportID ? report : parentReport);
 
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
 

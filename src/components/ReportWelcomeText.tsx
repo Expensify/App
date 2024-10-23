@@ -32,9 +32,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const styles = useThemeStyles();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || -1}`);
-    const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);

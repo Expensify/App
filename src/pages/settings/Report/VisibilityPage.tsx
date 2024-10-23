@@ -2,7 +2,6 @@ import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -16,7 +15,6 @@ import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNot
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {RoomVisibility} from '@src/types/onyx/Report';
 
@@ -25,10 +23,9 @@ type VisibilityProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettin
 function VisibilityPage({report}: VisibilityProps) {
     const route = useRoute<RouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>>();
     const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || -1}`);
     const shouldGoBackToDetailsPage = useRef(false);
 
-    const shouldDisableVisibility = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
+    const shouldDisableVisibility = ReportUtils.isArchivedRoom(report);
     const {translate} = useLocalize();
 
     const visibilityOptions = useMemo(

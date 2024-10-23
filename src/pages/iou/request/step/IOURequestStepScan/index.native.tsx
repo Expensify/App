@@ -70,7 +70,6 @@ function IOURequestStepScan({
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [fileResize, setFileResize] = useState<null | FileObject>(null);
     const [fileSource, setFileSource] = useState('');
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
@@ -92,10 +91,8 @@ function IOURequestStepScan({
             return false;
         }
 
-        return (
-            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
-        );
-    }, [report, skipConfirmation, policy, reportNameValuePairs]);
+        return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
+    }, [report, skipConfirmation, policy]);
 
     const {translate} = useLocalize();
 

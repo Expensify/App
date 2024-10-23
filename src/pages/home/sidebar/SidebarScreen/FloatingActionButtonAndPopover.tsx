@@ -178,7 +178,6 @@ function FloatingActionButtonAndPopover(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${quickActionReport?.reportID ?? -1}`);
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
@@ -243,7 +242,7 @@ function FloatingActionButtonAndPopover(
             onSelected();
         };
 
-        const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport, reportNameValuePairs));
+        const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport));
         const quickActionReportID = isValidReport ? quickActionReport?.reportID ?? '-1' : ReportUtils.generateReportID();
 
         switch (quickAction?.action) {

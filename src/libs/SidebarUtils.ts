@@ -180,14 +180,13 @@ function getOrderedReportIDs(
 
         const isPinned = report?.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-        const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
             errorReports.push(miniReport);
         } else if (hasValidDraftComment(report?.reportID ?? '-1')) {
             draftReports.push(miniReport);
-        } else if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
+        } else if (ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
