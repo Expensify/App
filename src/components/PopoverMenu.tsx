@@ -269,6 +269,7 @@ function PopoverMenu({
         setCurrentMenuItems(menuItems);
     }, [menuItems]);
 
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -302,7 +303,6 @@ function PopoverMenu({
                     <WrapComponent {...(shouldUseScrollView && {contentContainerStyle: scrollContainerStyle})}>
                         {currentMenuItems.map((item, menuIndex) => {
                             const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
-
                             return (
                                 <OfflineWithFeedback
                                     // eslint-disable-next-line react/no-array-index-key

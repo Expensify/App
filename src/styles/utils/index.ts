@@ -1123,9 +1123,7 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, se
     let backgroundColor;
     if (isSelected) {
         backgroundColor = selectedBG;
-    }
-
-    if (isFocused) {
+    } else if (isFocused) {
         backgroundColor = focusedBG;
     }
 
