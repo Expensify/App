@@ -34,8 +34,8 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
 
-    const isLoading = !cardFeeds || !!(cardFeeds.isLoading && !cardFeeds.settings);
     const companyCards = cardFeeds?.settings?.companyCards ?? {};
+    const isLoading = !cardFeeds || !!(cardFeeds.isLoading && !companyCards);
     const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? null;
     const isNoFeed = !selectedCompanyCard;
     const isPending = !!selectedCompanyCard?.pending;
