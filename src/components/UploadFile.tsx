@@ -123,14 +123,13 @@ function UploadFile({
             </AttachmentPicker>
             {uploadedFiles.map((file) => (
                 <View
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p4, styles.mt3]}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3]}
                     key={file.uri}
                 >
                     <Icon
-                        height={variables.iconSizeNormal}
-                        width={variables.iconSizeSemiSmall}
                         src={Expensicons.Paperclip}
-                        fill={theme.textSupporting}
+                        fill={theme.icon}
+                        medium
                     />
                     <Text style={[styles.ml4, styles.mr3, styles.textBold]}>{file.name}</Text>
                     <PressableWithFeedback
@@ -140,8 +139,8 @@ function UploadFile({
                     >
                         <Icon
                             src={Expensicons.Close}
-                            fill={theme.textSupporting}
-                            small
+                            fill={theme.icon}
+                            medium
                         />
                     </PressableWithFeedback>
                 </View>
