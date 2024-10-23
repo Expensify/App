@@ -206,12 +206,32 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
+    /**
+     * Whether a message is NOT from the active user and it was received while the user was offline.
+     */
     const wasMessageReceivedWhileOffline = useCallback(
         (message: OnyxTypes.ReportAction) =>
             !ReportActionsUtils.wasActionTakenByCurrentUser(message) &&
             ReportActionsUtils.wasActionCreatedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale),
         [isOffline, lastOfflineAt, lastOnlineAt, preferredLocale],
     );
+
+    /**
+     * The index of the earliest message that was received while offline
+     */
+    const earliestReceivedOfflineMessageIndex = useMemo(() => {
+        // Create a list of (sorted) indices of message that were received while offline
+        const receviedOfflineMessages = sortedReportActions.reduce<number[]>((acc, message, index) => {
+            if (wasMessageReceivedWhileOffline(message)) {
+                acc[index] = index;
+            }
+
+            return acc;
+        }, []);
+
+        // The last index in the list is the earliest message that was received while offline
+        return receviedOfflineMessages.at(-1);
+    }, [sortedReportActions, wasMessageReceivedWhileOffline]);
 
     /**
      * The reportActionID the unread marker should display above
@@ -221,23 +241,24 @@ function ReportActionsList({
             const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? message.created < (userActiveSince.current ?? '') : true;
 
             const nextMessage = sortedVisibleReportActions.at(index + 1);
-
-            // If the user recevied new messages while being offline, we want to display the unread marker above the first offline message.
-            const isCurrentMessageOffline = wasMessageReceivedWhileOffline(message);
-            const isNextMessageOffline = !!nextMessage && wasMessageReceivedWhileOffline(nextMessage);
-
-            const isCurrentMessageUnread = ReportActionsUtils.isReportActionUnread(message, unreadMarkerTime);
             const isNextMessageUnread = !!nextMessage && ReportActionsUtils.isReportActionUnread(nextMessage, unreadMarkerTime);
 
-            const shouldDisplayForNextMessage = isNextMessageUnread || isNextMessageOffline;
-            const shouldDisplayBecauseOffline = isCurrentMessageOffline && !shouldDisplayForNextMessage;
-            const shouldDisplayBecauseUnread = isCurrentMessageUnread && !shouldDisplayForNextMessage && !ReportActionsUtils.shouldHideNewMarker(message) && isWithinVisibleThreshold;
+            // If the current message was received while offline, we want to display the unread marker above the earliest offline message.
+            const wasCurrentMessageReceivedWhileOffline = index === earliestReceivedOfflineMessageIndex;
+            if (wasCurrentMessageReceivedWhileOffline && !isNextMessageUnread) {
+                return true;
+            }
 
-            return shouldDisplayBecauseOffline || shouldDisplayBecauseUnread;
+            const isCurrentMessageUnread = ReportActionsUtils.isReportActionUnread(message, unreadMarkerTime);
+            return isCurrentMessageUnread && !isNextMessageUnread && !ReportActionsUtils.shouldHideNewMarker(message) && isWithinVisibleThreshold;
         };
 
+        // If there are message that were recevied while offline,
+        // we can skip checking all messages later than the earliest recevied offline message.
+        const startIndex = earliestReceivedOfflineMessageIndex ?? 0;
+
         // Scan through each visible report action until we find the appropriate action to show the unread marker
-        for (let index = 0; index < sortedVisibleReportActions.length; index++) {
+        for (let index = startIndex; index < sortedVisibleReportActions.length; index++) {
             const reportAction = sortedVisibleReportActions.at(index);
 
             if (reportAction && shouldDisplayNewMarker(reportAction, index)) {
@@ -246,7 +267,7 @@ function ReportActionsList({
         }
 
         return null;
-    }, [sortedVisibleReportActions, unreadMarkerTime, wasMessageReceivedWhileOffline]);
+    }, [earliestReceivedOfflineMessageIndex, sortedVisibleReportActions, unreadMarkerTime]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
