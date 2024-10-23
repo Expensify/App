@@ -3210,6 +3210,8 @@ const translations = {
             bankAccountVerifiedDescription: 'You can now issue Expensify Cards to your workspace members.',
             oneMoreStep: 'One more step...',
             oneMoreStepDescription: 'Looks like we need to manually verify your bank account. Please head on over to Concierge where your instructions are waiting for you.',
+            gotIt: 'Got it',
+            goToConcierge: 'Go to Concierge',
         },
         categories: {
             deleteCategories: 'Delete categories',

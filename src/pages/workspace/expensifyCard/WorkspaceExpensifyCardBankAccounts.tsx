@@ -37,8 +37,9 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
 
-    const shouldShowLoadingView = cardSettings?.isLoading;
+    const shouldShowLoadingView = !!cardOnWaitlist ?? cardSettings?.isLoading;
 
     const handleAddBankAccount = () => {
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
@@ -90,7 +91,11 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 shouldEnablePickerAvoiding={false}
             >
                 {shouldShowLoadingView ? (
-                    <WorkspaceExpensifyCardLoadingView policyID={policyID} />
+                    <WorkspaceExpensifyCardLoadingView
+                        policyID={policyID}
+                        isLoading={!!cardSettings?.isLoading}
+                        cardOnWaitlist={!!cardOnWaitlist}
+                    />
                 ) : (
                     <>
                         <HeaderWithBackButton
