@@ -51,8 +51,12 @@ function LimitStep() {
             const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
 
             // We only want integers to be sent as the limit
-            if (!Number(values.limit) || !Number.isInteger(Number(values.limit)) || Number(values.limit) > CONST.EXPENSIFY_CARD.LIMIT_VALUE) {
+            if (!Number(values.limit) || !Number.isInteger(Number(values.limit))) {
                 errors.limit = translate('iou.error.invalidAmount');
+            }
+
+            if (Number(values.limit) > CONST.EXPENSIFY_CARD.LIMIT_VALUE) {
+                errors.limit = translate('workspace.card.issueNewCard.cardLimitError');
             }
             return errors;
         },
