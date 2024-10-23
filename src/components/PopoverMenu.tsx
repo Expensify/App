@@ -163,6 +163,7 @@ function PopoverMenu({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
