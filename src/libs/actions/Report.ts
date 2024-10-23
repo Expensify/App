@@ -3373,7 +3373,12 @@ function completeOnboarding(
     }
 
     const tasksData = data.tasks
-        .filter((task) => !!userReportedIntegration || task.type !== 'addAccountingIntegration')
+        .filter((task) => {
+            if (task.type === 'addAccountingIntegration' && !userReportedIntegration) {
+                return false;
+            }
+            return true;
+        })
         .map((task, index) => {
             const taskDescription =
                 typeof task.description === 'function'
