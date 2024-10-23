@@ -123,9 +123,9 @@ const runTests = async (): Promise<void> => {
         }
     };
 
-    let hasSkippedTests = false;
+    let skippedTests: string[] = [];
     const clearTestResults = (test: TestConfig) => {
-        hasSkippedTests = true;
+        skippedTests.push(test.name);
 
         Object.keys(results).forEach((branch: string) => {
             Object.keys(results[branch]).forEach((metric: string) => {
@@ -352,7 +352,7 @@ const runTests = async (): Promise<void> => {
         outputFile: `${config.OUTPUT_DIR}/output.md`,
         outputFormat: 'all',
         metricForTest,
-        hasMissingData: hasSkippedTests,
+        skippedTests,
     });
 
     await server.stop();
