@@ -585,7 +585,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     );
 }
 
-AuthScreens.displayName = 'AuthScreens';
+AuthScreens.displayName = 'AuthScreens';;;;;
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 
