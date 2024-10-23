@@ -269,7 +269,6 @@ function PopoverMenu({
         setCurrentMenuItems(menuItems);
     }, [menuItems]);
 
-
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
