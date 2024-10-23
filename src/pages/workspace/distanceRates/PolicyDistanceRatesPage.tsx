@@ -13,6 +13,7 @@ import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRight
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
+import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -193,32 +194,16 @@ function PolicyDistanceRatesPage({
         }
     };
 
-    // const getCustomListHeader = () => (
-    //     <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, !canSelectMultiple && styles.m5]}>
-    //         <Text style={styles.searchInputStyle}>{translate('workspace.distanceRates.rate')}</Text>
-    //         <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
-    //     </View>
-    // );
     const getCustomListHeader = () => {
-        const header = (
-            <View
-                style={[
-                    styles.flex1,
-                    styles.flexRow,
-                    styles.justifyContentBetween,
-                    // Required padding accounting for the checkbox in multi-select mode
-                    canSelectMultiple && styles.pl3,
-                ]}
-            >
-                <Text style={styles.searchInputStyle}>{translate('workspace.distanceRates.rate')}</Text>
-                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
-            </View>
+        return (
+            <CustomListHeader
+                canSelectMultiple={canSelectMultiple}
+                leftHeaderText={translate('workspace.distanceRates.rate')}
+                rightHeaderText={translate('statusPage.status')}
+            />
         );
-        if (canSelectMultiple) {
-            return header;
-        }
-        return <View style={[styles.flexRow, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
     };
+    
     const getBulkActionsButtonOptions = () => {
         const options: Array<DropdownOption<WorkspaceDistanceRatesBulkActionType>> = [
             {
