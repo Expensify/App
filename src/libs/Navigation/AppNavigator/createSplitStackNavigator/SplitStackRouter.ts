@@ -60,11 +60,12 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
         if (state.routes.length === 1 && state.routes[0].name === sidebarScreen) {
             const rootState = navigationRef.getRootState();
 
-            // @TODO: If we have optimization for not rendering all split navigators, then last selected option won't be in the state.
-            // @TODO: Do we want to use previous selected screen if the policyID is different.
-            const previousSameNavigator = rootState?.routes.findLast((route) => route.name === parentRoute.name && route.state !== undefined);
+            const previousSameNavigator = rootState?.routes.filter((route) => route.name === parentRoute.name).at(-2);
+
+            // If we have optimization for not rendering all split navigators, then last selected option may not be in the state. In this case state has to be read from the preserved state.
+            const previousSameNavigatorState = previousSameNavigator?.state ?? (previousSameNavigator?.key ? getPreservedSplitNavigatorState(previousSameNavigator.key) : undefined);
             const previousSelectedCentralScreen =
-                previousSameNavigator?.state?.routes && previousSameNavigator.state.routes.length > 1 ? previousSameNavigator.state.routes.at(-1)?.name : undefined;
+                previousSameNavigatorState?.routes && previousSameNavigatorState.routes.length > 1 ? previousSameNavigatorState.routes.at(-1)?.name : undefined;
 
             // @ts-expect-error Updating read only property
             // noinspection JSConstantReassignment
