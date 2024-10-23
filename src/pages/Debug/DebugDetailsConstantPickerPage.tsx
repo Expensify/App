@@ -19,7 +19,7 @@ type DebugDetailsConstantPickerPageProps = StackScreenProps<DebugParamList, type
 
 function DebugDetailsConstantPickerPage({
     route: {
-        params: {fieldName, fieldValue, backTo = ''},
+        params: {formType, fieldName, fieldValue, backTo = ''},
     },
     navigation,
 }: DebugDetailsConstantPickerPageProps) {
@@ -28,14 +28,14 @@ function DebugDetailsConstantPickerPage({
     const [searchValue, setSearchValue] = useState('');
     const sections: ListItem[] = useMemo(
         () =>
-            Object.entries(DETAILS_CONSTANT_OPTIONS[fieldName as keyof typeof DETAILS_CONSTANT_OPTIONS])
+            Object.entries(DETAILS_CONSTANT_OPTIONS[formType][fieldName])
                 .reduce((acc: Array<[string, string]>, [key, value]) => {
                     // Option has multiple constants, so we need to flatten these into separate options
                     if (isObject(value)) {
                         acc.push(...Object.entries(value));
                         return acc;
                     }
-                    acc.push([key, value as string]);
+                    acc.push([key, value]);
                     return acc;
                 }, [])
                 .map(
@@ -48,7 +48,7 @@ function DebugDetailsConstantPickerPage({
                         } satisfies ListItem),
                 )
                 .filter(({searchText}) => searchText.toLowerCase().includes(searchValue.toLowerCase())),
-        [fieldName, fieldValue, searchValue],
+        [fieldName, fieldValue, formType, searchValue],
     );
     const onSubmit = (item: ListItem) => {
         const value = item.text === fieldValue ? '' : item.text ?? '';

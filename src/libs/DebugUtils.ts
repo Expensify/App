@@ -766,7 +766,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
 }
 
 function validateTransactionViolationDraftProperty(key: keyof TransactionViolation, value: string) {
-    if (TRANSACTION_VIOLATION_REQUIRED_PROPERTIES.includes(key) && value === 'undefined') {
+    if (TRANSACTION_VIOLATION_REQUIRED_PROPERTIES.includes(key) && (value === 'undefined' || value === '')) {
         throw SyntaxError('debug.missingValue');
     }
     if (key === 'type') {

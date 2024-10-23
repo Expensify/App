@@ -1660,8 +1660,9 @@ const ROUTES = {
         getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/preview` as const,
     },
     DETAILS_CONSTANT_PICKER_PAGE: {
-        route: 'debug/details/constant/:fieldName',
-        getRoute: (fieldName: string, fieldValue?: string, backTo?: string) => getUrlWithBackToParam(`debug/details/constant/${fieldName}?fieldValue=${fieldValue}`, backTo),
+        route: 'debug/:formType/details/constant/:fieldName',
+        getRoute: (formType: string, fieldName: string, fieldValue?: string, backTo?: string) =>
+            getUrlWithBackToParam(`debug/${formType}/details/constant/${fieldName}?fieldValue=${fieldValue}`, backTo),
     },
     DETAILS_DATE_TIME_PICKER_PAGE: {
         route: 'debug/details/datetime/:fieldName',

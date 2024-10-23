@@ -58,6 +58,7 @@ function DebugTransactionPage({
                         <TopTab.Screen name={CONST.DEBUG.DETAILS}>
                             {() => (
                                 <DebugDetails
+                                    formType={CONST.DEBUG.FORMS.TRANSACTION}
                                     data={transaction}
                                     onSave={(data) => {
                                         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, data);
@@ -71,7 +72,7 @@ function DebugTransactionPage({
                                         <Button
                                             text={translate('debug.viewReport')}
                                             onPress={() => {
-                                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(transaction?.reportID ?? ''));
+                                                Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(transaction?.reportID ?? ''));
                                             }}
                                         />
                                     </View>

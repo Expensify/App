@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
@@ -16,15 +17,17 @@ import type {ObjectType, OnyxDataType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Debug from '@userActions/Debug';
+import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {DetailsConstantFieldsKeys, DetailsDatetimeFieldsKeys, DetailsDisabledKeys} from './const';
 import {DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS, DETAILS_DISABLED_KEYS} from './const';
 import ConstantSelector from './ConstantSelector';
 import DateTimeSelector from './DateTimeSelector';
 
 type DebugDetailsProps = {
+    formType: ValueOf<typeof CONST.DEBUG.FORMS>;
+
     /** The report or report action data to be displayed and editted. */
     data: OnyxEntry<Report> | OnyxEntry<ReportAction> | OnyxEntry<Transaction> | OnyxEntry<TransactionViolation>;
 
@@ -41,7 +44,7 @@ type DebugDetailsProps = {
     validate: (key: any, value: string) => void;
 };
 
-function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetailsProps) {
+function DebugDetails({formType, data, children, onSave, onDelete, validate}: DebugDetailsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [formDraftData] = useOnyx(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT);
@@ -55,9 +58,9 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
     const constantFields = useMemo(
         () =>
             Object.entries(data ?? {})
-                .filter((entry): entry is [string, string] => DETAILS_CONSTANT_FIELDS.includes(entry[0] as DetailsConstantFieldsKeys))
+                .filter((entry): entry is [string, string] => DETAILS_CONSTANT_FIELDS[formType].includes(entry[0]))
                 .sort((a, b) => a[0].localeCompare(b[0])),
-        [data],
+        [data, formType],
     );
     const numberFields = useMemo(
         () =>
@@ -72,17 +75,14 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                 .filter(
                     (entry): entry is [string, string | ObjectType<Record<string, unknown>>] =>
                         (typeof entry[1] === 'string' || typeof entry[1] === 'object') &&
-                        !DETAILS_CONSTANT_FIELDS.includes(entry[0] as DetailsConstantFieldsKeys) &&
-                        !DETAILS_DATETIME_FIELDS.includes(entry[0] as DetailsDatetimeFieldsKeys),
+                        !DETAILS_CONSTANT_FIELDS[formType].includes(entry[0]) &&
+                        !DETAILS_DATETIME_FIELDS.includes(entry[0]),
                 )
                 .map(([key, value]) => [key, DebugUtils.onyxDataToString(value)])
                 .sort((a, b) => (a.at(0) ?? '').localeCompare(b.at(0) ?? '')),
-        [data],
+        [data, formType],
     );
-    const dateTimeFields = useMemo(
-        () => Object.entries(data ?? {}).filter((entry): entry is [string, string] => DETAILS_DATETIME_FIELDS.includes(entry[0] as DetailsDatetimeFieldsKeys)),
-        [data],
-    );
+    const dateTimeFields = useMemo(() => Object.entries(data ?? {}).filter((entry): entry is [string, string] => DETAILS_DATETIME_FIELDS.includes(entry[0])), [data]);
 
     const validator = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM> => {
@@ -162,7 +162,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                                 numberOfLines={numberOfLines}
                                 multiline={numberOfLines > 1}
                                 defaultValue={value}
-                                disabled={DETAILS_DISABLED_KEYS.includes(key as DetailsDisabledKeys)}
+                                disabled={DETAILS_DISABLED_KEYS.includes(key)}
                                 shouldInterceptSwipe
                             />
                         );
@@ -180,7 +180,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                             forceActiveLabel
                             label={key}
                             defaultValue={String(value)}
-                            disabled={DETAILS_DISABLED_KEYS.includes(key as DetailsDisabledKeys)}
+                            disabled={DETAILS_DISABLED_KEYS.includes(key)}
                             shouldInterceptSwipe
                         />
                     ))}
@@ -193,6 +193,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                             key={key}
                             InputComponent={ConstantSelector}
                             inputID={key}
+                            formType={formType}
                             name={key}
                             shouldSaveDraft
                             defaultValue={String(value)}

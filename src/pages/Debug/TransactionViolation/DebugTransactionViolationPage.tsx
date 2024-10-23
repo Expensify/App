@@ -57,16 +57,17 @@ function DebugTransactionViolationPage({
                         <TopTab.Screen name={CONST.DEBUG.DETAILS}>
                             {() => (
                                 <DebugDetails
+                                    formType={CONST.DEBUG.FORMS.TRANSACTION_VIOLATION}
                                     data={transactionViolation}
                                     onSave={(data) => {
-                                        const updatedTransactionViolations = transactionViolations ?? [];
+                                        const updatedTransactionViolations = [...(transactionViolations ?? [])];
                                         updatedTransactionViolations.splice(Number(index), 1, data as TransactionViolation);
-                                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
                                     }}
                                     onDelete={() => {
-                                        const updatedTransactionViolations = transactionViolations ?? [];
+                                        const updatedTransactionViolations = [...(transactionViolations ?? [])];
                                         updatedTransactionViolations.splice(Number(index), 1);
-                                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
                                     }}
                                     validate={DebugUtils.validateTransactionViolationDraftProperty}
                                 />
