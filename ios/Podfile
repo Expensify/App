@@ -16,8 +16,7 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
-# Our min supported iOS version is higher than the default (min_ios_version_supported) to support libraires such as Airship
-platform :ios, 14.0
+platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
 

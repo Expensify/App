@@ -126,10 +126,10 @@ index 26c9aeb..b2cff8b 100644
  
    @Override
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactHorizontalScrollView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactHorizontalScrollView.java
-index 7d8853b..341ff28 100644
+index 1d7800d..b612029 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactHorizontalScrollView.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactHorizontalScrollView.java
-@@ -476,6 +476,10 @@ public class ReactHorizontalScrollView extends HorizontalScrollView
+@@ -508,6 +508,10 @@ public class ReactHorizontalScrollView extends HorizontalScrollView
            mOnScrollDispatchHelper.getYFlingVelocity(),
            mEnableSyncOnScroll);
        mPreventReentry = false;
@@ -140,7 +140,7 @@ index 7d8853b..341ff28 100644
      }
    }
  
-@@ -1390,7 +1394,7 @@ public class ReactHorizontalScrollView extends HorizontalScrollView
+@@ -1459,7 +1463,7 @@ public class ReactHorizontalScrollView extends HorizontalScrollView
      if (layoutDirection == LAYOUT_DIRECTION_RTL) {
        adjustPositionForContentChangeRTL(left, right, oldLeft, oldRight);
      } else if (mMaintainVisibleContentPositionHelper != null) {
@@ -150,10 +150,10 @@ index 7d8853b..341ff28 100644
    }
  
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
-index 56f486a..21f5158 100644
+index e49a25a..0eb79ed 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
-@@ -406,6 +406,10 @@ public class ReactScrollView extends ScrollView
+@@ -432,6 +432,10 @@ public class ReactScrollView extends ScrollView
            mOnScrollDispatchHelper.getYFlingVelocity(),
            mEnableSyncOnScroll);
        mPreventReentry = false;
@@ -164,7 +164,7 @@ index 56f486a..21f5158 100644
      }
    }
  
-@@ -1195,7 +1199,7 @@ public class ReactScrollView extends ScrollView
+@@ -1235,7 +1239,7 @@ public class ReactScrollView extends ScrollView
      }
  
      if (mMaintainVisibleContentPositionHelper != null) {
