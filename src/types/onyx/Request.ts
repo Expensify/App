@@ -135,6 +135,11 @@ type RequestConflictResolver = {
      * the ongoing request, it will be removed from the persisted request queue.
      */
     persistWhenOngoing?: boolean;
+
+    /**
+     * A boolean flag to mark a request as rollbacked, if set to true it means the request failed and was added back into the queue.
+     */
+    isRollbacked?: boolean;
 };
 
 /** Model of requests sent to the API */

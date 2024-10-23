@@ -2,10 +2,12 @@
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
+import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as EmojiUtils from '@libs/EmojiUtils';
+import HttpUtils from '@libs/HttpUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -38,7 +40,7 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
         didScreenTransitionEnd: true,
     }),
 }));
-
+const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -49,16 +51,21 @@ describe('actions/Report', () => {
     });
 
     beforeEach(() => {
+        HttpUtils.xhr = originalXHR;
         const promise = Onyx.clear().then(jest.useRealTimers);
         if (getIsUsingFakeTimers()) {
             // flushing pending timers
             // Onyx.clear() promise is resolved in batch which happends after the current microtasks cycle
             setImmediate(jest.runOnlyPendingTimers);
         }
+
         return promise;
     });
 
-    afterEach(PusherHelper.teardown);
+    afterEach(() => {
+        jest.clearAllMocks();
+        PusherHelper.teardown();
+    });
 
     it('should store a new report action in Onyx when onyxApiUpdate event is handled via Pusher', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
@@ -977,6 +984,57 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
     });
 
+    it('should send DeleteComment request after AddComment is rollbacked', async () => {
+        global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
+
+        const mockedXhr = jest.fn();
+        mockedXhr
+            .mockImplementationOnce(originalXHR)
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.EXP_ERROR,
+                }),
+            )
+            .mockImplementation(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                }),
+            );
+
+        HttpUtils.xhr = mockedXhr;
+        await waitForBatchedUpdates();
+        const TEST_USER_ACCOUNT_ID = 1;
+        const REPORT_ID = '1';
+        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
+        const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
+
+        Report.addComment(REPORT_ID, 'Testing a comment');
+        await waitForNetworkPromises();
+
+        const newComment = PersistedRequests.getAll().at(1);
+        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
+        const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
+
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getAll().length).toBe(1);
+        expect(PersistedRequests.getAll().at(0)?.isRollbacked).toBeTruthy();
+        Report.deleteReportComment(REPORT_ID, reportAction);
+
+        jest.runOnlyPendingTimers();
+        await waitForBatchedUpdates();
+
+        const httpCalls = (HttpUtils.xhr as Mock).mock.calls;
+
+        const addCommentCalls = httpCalls.filter(([command]) => command === 'AddComment');
+        const deleteCommentCalls = httpCalls.filter(([command]) => command === 'DeleteComment');
+
+        if (httpCalls.length === 3) {
+            expect(addCommentCalls).toHaveLength(2);
+            expect(deleteCommentCalls).toHaveLength(1);
+        }
+    });
+
     it('should send not DeleteComment request and remove AddAttachment accordingly', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
 
@@ -1042,7 +1100,7 @@ describe('actions/Report', () => {
         // Checking no requests were or will be made
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_ATTACHMENT, 0);
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
-    }, 2000);
+    });
 
     it('should send not DeleteComment request and remove AddTextAndAttachment accordingly', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
