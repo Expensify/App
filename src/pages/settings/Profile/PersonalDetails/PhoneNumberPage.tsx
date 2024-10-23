@@ -97,6 +97,11 @@ function PhoneNumberPage() {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={phoneNumber}
                             spellCheck={false}
+                            onBlur={() => {
+                                if (validateLoginError) {
+                                    PersonalDetails.clearPhoneNumberError();
+                                }
+                            }}
                         />
                     </OfflineWithFeedback>
                 </FormProvider>
