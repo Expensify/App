@@ -93,7 +93,7 @@ function MoneyRequestAction({
             return;
         }
 
-        const childReportID = action?.childReportID ?? '-1';
+        const childReportID = action?.childReportID ?? iouReport?.reportID ?? '-1';
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };
 
