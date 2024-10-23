@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
@@ -67,6 +68,7 @@ function ReportActionItemParentAction({
     const ancestorReports = useRef<Record<string, OnyxEntry<OnyxTypes.Report>>>({});
     const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
     const {isOffline} = useNetwork();
+    const {canUseNewTravelProvisioning} = usePermissions();
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
@@ -118,7 +120,7 @@ function ReportActionItemParentAction({
                         ancestor={ancestor}
                         isLinkDisabled={!ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID ?? '-1'])}
                     />
-                    {ReportActionsUtils.isTripPreview(ancestor?.reportAction) ? (
+                    {ReportActionsUtils.isTripPreview(ancestor?.reportAction) && canUseNewTravelProvisioning ? (
                         <OfflineWithFeedback pendingAction={ancestor.reportAction.pendingAction}>
                             <TripDetailsView
                                 tripRoomReportID={ReportActionsUtils.getOriginalMessage(ancestor.reportAction)?.linkedReportID ?? '-1'}
