@@ -14,30 +14,37 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {useSearchRouterContext} from './SearchRouterContext';
 import SearchRouterInput from './SearchRouterInput';
 import SearchRouterList from './SearchRouterList';
 
 const SEARCH_DEBOUNCE_DELAY = 150;
 
-function SearchRouter() {
+type SearchRouterProps = {
+    onRouterClose: () => void;
+};
+
+function SearchRouter({onRouterClose}: SearchRouterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
+
+    const taxRates = getAllTaxRates();
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const [textInputValue, debouncedInputValue, setTextInputValue] = useDebouncedState('', 500);
     const [userSearchQuery, setUserSearchQuery] = useState<SearchQueryJSON | undefined>(undefined);
@@ -65,7 +72,9 @@ function SearchRouter() {
             };
         }
 
+        Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedInputValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
+        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         return {
             recentReports: newOptions.recentReports,
@@ -75,10 +84,13 @@ function SearchRouter() {
     }, [debouncedInputValue, searchOptions]);
 
     const recentReports: OptionData[] = useMemo(() => {
-        const currentSearchOptions = debouncedInputValue === '' ? searchOptions : filteredOptions;
-        const reports: OptionData[] = [...currentSearchOptions.recentReports, ...currentSearchOptions.personalDetails];
-        if (currentSearchOptions.userToInvite) {
-            reports.push(currentSearchOptions.userToInvite);
+        if (debouncedInputValue === '') {
+            return searchOptions.recentReports.slice(0, 10);
+        }
+
+        const reports: OptionData[] = [...filteredOptions.recentReports, ...filteredOptions.personalDetails];
+        if (filteredOptions.userToInvite) {
+            reports.push(filteredOptions.userToInvite);
         }
         return reports.slice(0, 10);
     }, [debouncedInputValue, filteredOptions, searchOptions]);
@@ -86,15 +98,6 @@ function SearchRouter() {
     useEffect(() => {
         Report.searchInServer(debouncedInputValue.trim());
     }, [debouncedInputValue]);
-
-    useEffect(() => {
-        if (!textInputValue && isSearchRouterDisplayed) {
-            return;
-        }
-        listRef.current?.updateAndScrollToFocusedIndex(0);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSearchRouterDisplayed]);
 
     const contextualReportData = contextualReportID ? searchOptions.recentReports?.find((option) => option.reportID === contextualReportID) : undefined;
 
@@ -113,7 +116,7 @@ function SearchRouter() {
                     return;
                 }
                 listRef.current?.updateAndScrollToFocusedIndex(0);
-                const queryJSON = SearchUtils.buildSearchQueryJSON(userQuery);
+                const queryJSON = SearchQueryUtils.buildSearchQueryJSON(userQuery);
 
                 if (queryJSON) {
                     setUserSearchQuery(queryJSON);
@@ -132,49 +135,57 @@ function SearchRouter() {
     };
 
     const closeAndClearRouter = useCallback(() => {
-        closeSearchRouter();
+        onRouterClose();
         clearUserQuery();
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [closeSearchRouter]);
+    }, [onRouterClose]);
 
     const onSearchSubmit = useCallback(
         (query: SearchQueryJSON | undefined) => {
             if (!query) {
                 return;
             }
-            closeSearchRouter();
-            const queryString = SearchUtils.buildSearchQueryString(query);
+            onRouterClose();
+            const standardizedQuery = SearchQueryUtils.standardizeQueryJSON(query, cardList, taxRates);
+            const queryString = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: queryString}));
             clearUserQuery();
         },
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [closeSearchRouter],
+        [onRouterClose],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
-        closeSearchRouter();
-        clearUserQuery();
+        closeAndClearRouter();
     });
 
-    const modalWidth = isSmallScreenWidth ? styles.w100 : {width: variables.popoverWidth};
+    const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
     return (
-        <View style={[styles.flex1, modalWidth, styles.h100, !isSmallScreenWidth && styles.mh85vh]}>
-            {isSmallScreenWidth && (
+        <View
+            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
+            testID={SearchRouter.displayName}
+        >
+            {shouldUseNarrowLayout && (
                 <HeaderWithBackButton
                     title={translate('common.search')}
-                    onBackButtonPress={() => closeSearchRouter()}
+                    onBackButtonPress={() => onRouterClose()}
                 />
             )}
             <SearchRouterInput
                 value={textInputValue}
                 setValue={setTextInputValue}
-                isFullWidth={isSmallScreenWidth}
+                isFullWidth={shouldUseNarrowLayout}
                 updateSearch={onSearchChange}
+                onSubmit={() => {
+                    onSearchSubmit(SearchQueryUtils.buildSearchQueryJSON(textInputValue));
+                }}
                 routerListRef={listRef}
-                wrapperStyle={[isSmallScreenWidth ? styles.mv3 : styles.mv2, isSmallScreenWidth ? styles.mh5 : styles.mh2, styles.border]}
+                shouldShowOfflineMessage
+                wrapperStyle={[styles.border, styles.alignItemsCenter]}
+                outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
                 wrapperFocusedStyle={[styles.borderColorFocus]}
                 isSearchingForReports={isSearchingForReports}
             />

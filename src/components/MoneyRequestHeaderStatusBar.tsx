@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import type {ReactElement, ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,7 +9,7 @@ type MoneyRequestHeaderStatusBarProps = {
     icon: ReactNode;
 
     /** Banner Description */
-    description: string;
+    description: string | ReactElement;
 
     /** Whether we style flex grow */
     shouldStyleFlexGrow?: boolean;
