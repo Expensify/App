@@ -178,7 +178,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue());
 
-    function getBankAccountFields<T extends InputID>(fieldNames: T[]): Pick<ACHDataReimbursementAccount, T> {
+    function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
         return {
             ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
         };
