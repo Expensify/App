@@ -7,9 +7,9 @@ index ed1aba8..0a9284f 100644
                "keyboardDidHide",
                createKeyboardEventPayload(
 -                  PixelUtil.toDIPFromPixel(mVisibleViewArea.height()),
-+                  // Use mLastHeight to account for the translucent status bar, and fall back to mVisibleViewArea.height() in case mLastHeight hasn't been measured yet.
++                  // Use mLastHeight to account for the translucent status bar, and fall back to getMeasuredHeight() on Bridgeless mode.
 +                  // Remove this patch once the upstream fix for https://github.com/facebook/react-native/issues/47140 is released.
-+                  PixelUtil.toDIPFromPixel(mWasMeasured ? mLastHeight : mVisibleViewArea.height()),
++                  PixelUtil.toDIPFromPixel(mWasMeasured ? mLastHeight : getMeasuredHeight()),
                    0,
                    PixelUtil.toDIPFromPixel(mVisibleViewArea.width()),
                    0));
@@ -18,9 +18,9 @@ index ed1aba8..0a9284f 100644
              "keyboardDidHide",
              createKeyboardEventPayload(
 -                PixelUtil.toDIPFromPixel(mVisibleViewArea.height()),
-+                // Use mLastHeight to account for the translucent status bar, and fall back to mVisibleViewArea.height() in case mLastHeight hasn't been measured yet.
++                // Use mLastHeight to account for the translucent status bar, and fall back to getMeasuredHeight() on Bridgeless mode.
 +                // Remove this patch once the upstream fix for https://github.com/facebook/react-native/issues/47140 is released.
-+                PixelUtil.toDIPFromPixel(mWasMeasured ? mLastHeight : mVisibleViewArea.height()),
++                PixelUtil.toDIPFromPixel(mWasMeasured ? mLastHeight : getMeasuredHeight()),
                  0,
                  PixelUtil.toDIPFromPixel(mVisibleViewArea.width()),
                  0));
