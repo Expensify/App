@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchAutocompleteResult} from '@components/Search/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import * as autocompleteParser from './SearchParser/autocompleteParser';
 
@@ -10,7 +10,7 @@ function parseForAutocomplete(text: string) {
         const parsedAutocomplete = autocompleteParser.parse(text) as SearchAutocompleteResult;
         return parsedAutocomplete;
     } catch (e) {
-        console.error(`Error when parsing autocopmlete}"`, e);
+        console.error(`Error when parsing autocopmlete query}"`, e);
     }
 }
 
@@ -20,9 +20,7 @@ function getAutoCompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
         const uniqueTagNames = new Set<string>();
         const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
         tagListsUnpacked
-            .map((policyTagLists) => {
-                return getTagNamesFromTagsLists(policyTagLists);
-            })
+            .map(getTagNamesFromTagsLists)
             .flat()
             .forEach((tag) => uniqueTagNames.add(tag));
         return Array.from(uniqueTagNames);
@@ -57,5 +55,4 @@ function getAutocompleteTaxList(allTaxRates: Record<string, string[]>, policy?: 
     return Object.keys(allTaxRates).map((taxRateName) => taxRateName);
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export {parseForAutocomplete, getAutoCompleteTags, getAutocompleteCategories, getAutocompleteRecentCategories, getAutocompleteTaxList};
