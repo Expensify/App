@@ -8,7 +8,7 @@ import type {Class} from 'type-fest';
 import type {Configuration, WebpackPluginInstance} from 'webpack';
 import {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} from 'webpack';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
-// import CustomVersionFilePlugin from './CustomVersionFilePlugin';
+import CustomVersionFilePlugin from './CustomVersionFilePlugin';
 import type Environment from './types';
 
 type Options = {
@@ -135,7 +135,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                   }),
               ]
             : []),
-        // ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
+        ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
             ...(platform === 'desktop' ? {} : {process: {env: {}}}),
             // eslint-disable-next-line @typescript-eslint/naming-convention
