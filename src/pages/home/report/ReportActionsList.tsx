@@ -440,6 +440,7 @@ function ReportActionsList({
         if (!hasNewestReportAction) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
             Report.openReport(report.reportID);
+            reportScrollManager.scrollToBottom();
             return;
         }
         reportScrollManager.scrollToBottom();

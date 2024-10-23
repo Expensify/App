@@ -28,7 +28,7 @@ function SelectFeedType() {
             return;
         }
         CompanyCards.setAddNewCompanyCardStepAndData({
-            step: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+            step: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
             data: {selectedFeedType: typeSelected},
         });
     };

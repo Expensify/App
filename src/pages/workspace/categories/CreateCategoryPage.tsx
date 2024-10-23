@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,31 +14,23 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyCategories} from '@src/types/onyx';
 import CategoryForm from './CategoryForm';
 
-type WorkspaceCreateCategoryPageOnyxProps = {
-    /** All policy categories */
-    policyCategories: OnyxEntry<PolicyCategories>;
-};
+type CreateCategoryPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_CREATE>;
 
-type CreateCategoryPageProps = WorkspaceCreateCategoryPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_CREATE>;
-
-function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) {
+function CreateCategoryPage({route}: CreateCategoryPageProps) {
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
+    const isQuickSettingsFlow = !!backTo;
 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             Category.createPolicyCategory(route.params.policyID, values.categoryName.trim());
-            if (backTo) {
-                Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo));
-                return;
-            }
-            Navigation.goBack();
+            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
-        [backTo, route.params.policyID],
+        [isQuickSettingsFlow, route.params.policyID, backTo],
     );
 
     return (
@@ -56,7 +47,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
             >
                 <HeaderWithBackButton
                     title={translate('workspace.categories.addCategory')}
-                    onBackButtonPress={() => (backTo ? Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo)) : Navigation.goBack())}
+                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined)}
                 />
                 <CategoryForm
                     onSubmit={createCategory}
@@ -69,8 +60,4 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
 
 CreateCategoryPage.displayName = 'CreateCategoryPage';
 
-export default withOnyx<CreateCategoryPageProps, WorkspaceCreateCategoryPageOnyxProps>({
-    policyCategories: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route?.params?.policyID}`,
-    },
-})(CreateCategoryPage);
+export default CreateCategoryPage;
