@@ -1,5 +1,12 @@
+import {WRITE_COMMANDS} from '@libs/API/types';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {ConflictActionData} from '@src/types/onyx/Request';
+
+function createUpdateCommentMatcher(reportActionID: string) {
+    return function (request: OnyxRequest) {
+        return request.command === WRITE_COMMANDS.UPDATE_COMMENT && request.data?.reportActionID === reportActionID;
+    };
+}
 
 type RequestMatcher = (request: OnyxRequest) => boolean;
 
@@ -28,4 +35,4 @@ function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], requ
     };
 }
 
-export default resolveDuplicationConflictAction;
+export {resolveDuplicationConflictAction, createUpdateCommentMatcher};

@@ -16,9 +16,10 @@ type DelegateMagicCodeModalProps = {
     role: ValueOf<typeof CONST.DELEGATE_ROLE>;
     isValidateCodeActionModalVisible: boolean;
     setIsValidateCodeActionModalVisible: (isValidateCodeActionModalVisible: boolean) => void;
+    onClose?: () => void;
 };
 
-function DelegateMagicCodeModal({login, role, isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible}: DelegateMagicCodeModalProps) {
+function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible}: DelegateMagicCodeModalProps) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
@@ -35,6 +36,7 @@ function DelegateMagicCodeModal({login, role, isValidateCodeActionModalVisible, 
     }, [login, currentDelegate, role]);
 
     const onBackButtonPress = () => {
+        onClose?.();
         setIsValidateCodeActionModalVisible(false);
     };
 
