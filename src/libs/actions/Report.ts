@@ -79,7 +79,7 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
-import type {OptimisticAddCommentReportAction, OptimisticChatReport} from '@libs/ReportUtils';
+import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
@@ -1372,7 +1372,6 @@ function handleReportChanged(report: OnyxEntry<Report>) {
     if (report?.reportID && report.preexistingReportID) {
         let callback = () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, null);
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, null);
         };
         // Only re-route them if they are still looking at the optimistically created report
@@ -4137,10 +4136,6 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
 
-function createDraftReportForPolicyExpenseChat(draftReport: OptimisticChatReport) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${draftReport.reportID}`, draftReport);
-}
-
 function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_REPORT_TO_CSV, {
         reportID,
@@ -4248,5 +4243,4 @@ export {
     updateReportName,
     updateRoomVisibility,
     updateWriteCapability,
-    createDraftReportForPolicyExpenseChat,
 };
