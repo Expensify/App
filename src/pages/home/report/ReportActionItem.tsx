@@ -339,7 +339,6 @@ function ReportActionItem({
                 return;
             }
 
-            ReportActionComposeFocusManager.blurAll();
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
             ReportActionContextMenu.showContextMenu(
