@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
