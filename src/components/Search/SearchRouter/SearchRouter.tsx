@@ -3,7 +3,6 @@ import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -19,9 +18,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import {getAllTaxRates, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
+import {getAutocompleteCategoriesList, getAutoCompleteTagsList, getAutocompleteTaxList, parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -30,7 +29,6 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import SearchRouterInput from './SearchRouterInput';
 import SearchRouterList from './SearchRouterList';
 import type {ItemWithQuery} from './SearchRouterList';
@@ -39,39 +37,6 @@ const SEARCH_DEBOUNCE_DELAY = 150;
 type SearchRouterProps = {
     onRouterClose: () => void;
 };
-
-function getAutoCompleteTagsList(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>, policyID?: string) {
-    const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
-    if (!singlePolicyTagsList) {
-        const uniqueTagNames = new Set<string>();
-        const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
-        tagListsUnpacked
-            .map((policyTagLists) => {
-                return getTagNamesFromTagsLists(policyTagLists);
-            })
-            .flat()
-            .forEach((tag) => uniqueTagNames.add(tag));
-        return Array.from(uniqueTagNames);
-    }
-    return getTagNamesFromTagsLists(singlePolicyTagsList);
-}
-
-function getAutocompleteCategoriesList(allPolicyCategories: OnyxCollection<PolicyCategories>, policyID?: string) {
-    const singlePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
-    if (!singlePolicyCategories) {
-        const uniqueCategoryNames = new Set<string>();
-        Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
-        return Array.from(uniqueCategoryNames);
-    }
-    return Object.values(singlePolicyCategories ?? {}).map((category) => category.name);
-}
-
-function getAutocompleteTaxList(allTaxRates: Record<string, string[]>, policy?: OnyxEntry<Policy>) {
-    if (policy) {
-        return Object.keys(policy?.taxRates?.taxes ?? {}).map((taxRateName) => taxRateName);
-    }
-    return Object.keys(allTaxRates).map((taxRateName) => taxRateName);
-}
 
 function SearchRouter({onRouterClose}: SearchRouterProps) {
     const styles = useThemeStyles();
