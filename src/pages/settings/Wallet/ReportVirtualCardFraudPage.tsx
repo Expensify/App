@@ -59,9 +59,8 @@ function ReportVirtualCardFraudPage({
     };
 
     const handleValidateCodeEntered = (validateCode: string) => {
-        Card.reportVirtualExpensifyCardFraud(virtualCard.cardID, validateCode).finally(() => {
-            setIsValidateCodeActionModalVisible(false);
-        });
+        Card.reportVirtualExpensifyCardFraud(virtualCard.cardID, validateCode);
+        setIsValidateCodeActionModalVisible(false);
     };
 
     return (
