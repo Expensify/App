@@ -20,7 +20,7 @@ import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getAutocompleteCategoriesList, getAutoCompleteTagsList, getAutocompleteTaxList, parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
+import {getAutocompleteCategories, getAutocompleteRecentCategories, getAutoCompleteTags, getAutocompleteTaxList, parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -62,12 +62,6 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const typesAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
     const statusesAutocompleteList = Object.values({...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const categoryAutocompleteList = useMemo(() => getAutocompleteCategoriesList(allPolicyCategories, activeWorkspaceID), [allPolicyCategories, activeWorkspaceID]);
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
-    const currencyAutocompleteList = Object.keys(currencyList ?? {});
-    const [allPoliciesTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const tagAutocompleteList = useMemo(() => getAutoCompleteTagsList(allPoliciesTagsLists, activeWorkspaceID), [allPoliciesTagsLists, activeWorkspaceID]);
     const allTaxRates = getAllTaxRates();
     const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(allTaxRates, policy), [policy, allTaxRates]);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -77,6 +71,23 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         .filter((details) => details && details?.login)
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         .map((details) => details?.login as string);
+
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
+    const categoryAutocompleteList = useMemo(() => {
+        if (textInputValue) {
+            return getAutocompleteCategories(allPolicyCategories, activeWorkspaceID);
+        }
+        return getAutocompleteRecentCategories(allRecentCategories, activeWorkspaceID);
+    }, [textInputValue, allRecentCategories, activeWorkspaceID, allPolicyCategories]);
+
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const [recentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const currencyAutocompleteList = useMemo(() => (textInputValue ? Object.keys(currencyList ?? {}) : recentlyUsedCurrencies ?? []), []);
+
+    const [allPoliciesTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allRecentTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
+    const tagAutocompleteList = useMemo(() => getAutoCompleteTags(allPoliciesTagsLists, activeWorkspaceID), [allPoliciesTagsLists, activeWorkspaceID]);
 
     const sortedRecentSearches = useMemo(() => {
         return Object.values(recentSearches ?? {}).sort((a, b) => b.timestamp.localeCompare(a.timestamp));

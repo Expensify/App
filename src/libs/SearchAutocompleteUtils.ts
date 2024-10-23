@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchAutocompleteResult} from '@components/Search/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import * as autocompleteParser from './SearchParser/autocompleteParser';
 
@@ -14,7 +14,7 @@ function parseForAutocomplete(text: string) {
     }
 }
 
-function getAutoCompleteTagsList(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>, policyID?: string) {
+function getAutoCompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>, policyID?: string) {
     const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
     if (!singlePolicyTagsList) {
         const uniqueTagNames = new Set<string>();
@@ -30,7 +30,7 @@ function getAutoCompleteTagsList(allPoliciesTagsLists: OnyxCollection<PolicyTagL
     return getTagNamesFromTagsLists(singlePolicyTagsList);
 }
 
-function getAutocompleteCategoriesList(allPolicyCategories: OnyxCollection<PolicyCategories>, policyID?: string) {
+function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCategories>, policyID?: string) {
     const singlePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
     if (!singlePolicyCategories) {
         const uniqueCategoryNames = new Set<string>();
@@ -38,6 +38,16 @@ function getAutocompleteCategoriesList(allPolicyCategories: OnyxCollection<Polic
         return Array.from(uniqueCategoryNames);
     }
     return Object.values(singlePolicyCategories ?? {}).map((category) => category.name);
+}
+
+function getAutocompleteRecentCategories(allRecentCategories: OnyxCollection<RecentlyUsedCategories>, policyID?: string) {
+    const singlePolicyRecentCategories = allRecentCategories?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`];
+    if (!singlePolicyRecentCategories) {
+        const uniqueCategoryNames = new Set<string>();
+        Object.values(allRecentCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category)));
+        return Array.from(uniqueCategoryNames);
+    }
+    return Object.values(singlePolicyRecentCategories ?? {}).map((category) => category);
 }
 
 function getAutocompleteTaxList(allTaxRates: Record<string, string[]>, policy?: OnyxEntry<Policy>) {
@@ -48,4 +58,4 @@ function getAutocompleteTaxList(allTaxRates: Record<string, string[]>, policy?: 
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {parseForAutocomplete, getAutoCompleteTagsList, getAutocompleteCategoriesList, getAutocompleteTaxList};
+export {parseForAutocomplete, getAutoCompleteTags, getAutocompleteCategories, getAutocompleteRecentCategories, getAutocompleteTaxList};
