@@ -52,28 +52,15 @@ function useOptions({isGroupChat}: NewChatPageProps) {
     });
 
     const defaultOptions = useMemo(() => {
-        const filteredOptions = OptionsListUtils.getFilteredOptions(
-            listOptions.reports ?? [],
-            listOptions.personalDetails ?? [],
-            betas ?? [],
-            '',
+        const filteredOptions = OptionsListUtils.getFilteredOptions({
+            reports: listOptions.reports ?? [],
+            personalDetails: listOptions.personalDetails ?? [],
+            betas: betas ?? [],
             selectedOptions,
-            isGroupChat ? excludedGroupEmails : [],
-            false,
-            true,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            true,
-            undefined,
-            undefined,
-            0,
-            undefined,
-            true,
-        );
+            excludeLogins: isGroupChat ? excludedGroupEmails : [],
+            maxRecentReportsToShow: 0,
+            includeSelfDM: true,
+        });
         return filteredOptions;
     }, [betas, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
@@ -146,6 +133,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
