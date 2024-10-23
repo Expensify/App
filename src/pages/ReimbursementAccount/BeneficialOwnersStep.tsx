@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
@@ -10,8 +9,6 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountForm} from '@src/types/form';
-import type {ReimbursementAccount} from '@src/types/onyx';
 import BeneficialOwnerCheckUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerCheckUBO';
 import AddressUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/AddressUBO';
 import ConfirmationUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/ConfirmationUBO';
@@ -20,15 +17,7 @@ import LegalNameUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsF
 import SocialSecurityNumberUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/SocialSecurityNumberUBO';
 import CompanyOwnersListUBO from './BeneficialOwnerInfo/substeps/CompanyOwnersListUBO';
 
-type BeneficialOwnerInfoOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
-};
-
-type BeneficialOwnersStepProps = BeneficialOwnerInfoOnyxProps & {
+type BeneficialOwnersStepProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
 };
@@ -39,8 +28,12 @@ const SUBSTEP = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 const MAX_NUMBER_OF_UBOS = 4;
 const bodyContent: Array<React.ComponentType<BeneficialOwnerSubStepProps>> = [LegalNameUBO, DateOfBirthUBO, SocialSecurityNumberUBO, AddressUBO, ConfirmationUBO];
 
-function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}: BeneficialOwnersStepProps) {
+function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
     const {translate} = useLocalize();
+
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const defaultValues = {
@@ -269,12 +262,4 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
 
 BeneficialOwnersStep.displayName = 'BeneficialOwnersStep';
 
-export default withOnyx<BeneficialOwnersStepProps, BeneficialOwnerInfoOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
-    },
-})(BeneficialOwnersStep);
+export default BeneficialOwnersStep;

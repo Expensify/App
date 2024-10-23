@@ -1,8 +1,6 @@
-import type {RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useMemo} from 'react';
 import type {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
@@ -12,24 +10,14 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {ReimbursementAccount} from '@src/types/onyx';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
 import FullName from './substeps/FullName';
 import SocialSecurityNumber from './substeps/SocialSecurityNumber';
 
-type PersonalInfoOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
-};
-
-type PersonalInfoProps = PersonalInfoOnyxProps & {
+type PersonalInfoProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
 };
@@ -37,8 +25,11 @@ type PersonalInfoProps = PersonalInfoOnyxProps & {
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 
-function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}: PersonalInfoProps, ref: React.ForwardedRef<View>) {
+function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.ForwardedRef<View>) {
     const {translate} = useLocalize();
+
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
@@ -96,12 +87,4 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
 
 PersonalInfo.displayName = 'PersonalInfo';
 
-export default withOnyx<RefAttributes<View> & PersonalInfoProps, PersonalInfoOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
-    },
-})(forwardRef(PersonalInfo));
+export default forwardRef(PersonalInfo);

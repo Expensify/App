@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
@@ -10,20 +9,14 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {ReimbursementAccount} from '@src/types/onyx';
-
-type SocialSecurityNumberOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-};
-
-type SocialSecurityNumberProps = SocialSecurityNumberOnyxProps & SubStepProps;
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
 
-function SocialSecurityNumber({reimbursementAccount, onNext, onMove, isEditing}: SocialSecurityNumberProps) {
+function SocialSecurityNumber({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
+
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const defaultSsnLast4 = reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
 
@@ -66,9 +59,4 @@ function SocialSecurityNumber({reimbursementAccount, onNext, onMove, isEditing}:
 
 SocialSecurityNumber.displayName = 'SocialSecurityNumber';
 
-export default withOnyx<SocialSecurityNumberProps, SocialSecurityNumberOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-})(SocialSecurityNumber);
+export default SocialSecurityNumber;

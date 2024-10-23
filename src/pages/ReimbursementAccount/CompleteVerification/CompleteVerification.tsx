@@ -1,7 +1,6 @@
 import type {ComponentType} from 'react';
 import React, {useCallback, useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
@@ -10,20 +9,10 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {ReimbursementAccount} from '@src/types/onyx';
 import ConfirmAgreements from './substeps/ConfirmAgreements';
 
-type CompleteVerificationOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
-};
-
-type CompleteVerificationProps = CompleteVerificationOnyxProps & {
+type CompleteVerificationProps = {
     /** Handles back button press */
     onBackButtonPress: () => void;
 };
@@ -31,8 +20,11 @@ type CompleteVerificationProps = CompleteVerificationOnyxProps & {
 const COMPLETE_VERIFICATION_KEYS = INPUT_IDS.COMPLETE_VERIFICATION;
 const bodyContent: Array<ComponentType<SubStepProps>> = [ConfirmAgreements];
 
-function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}: CompleteVerificationProps) {
+function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
     const {translate} = useLocalize();
+
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const values = useMemo(() => getSubstepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
@@ -85,12 +77,4 @@ function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, 
 
 CompleteVerification.displayName = 'CompleteVerification';
 
-export default withOnyx<CompleteVerificationProps, CompleteVerificationOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
-    },
-})(CompleteVerification);
+export default CompleteVerification;

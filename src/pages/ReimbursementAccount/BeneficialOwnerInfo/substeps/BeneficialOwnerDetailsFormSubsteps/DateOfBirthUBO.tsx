@@ -1,25 +1,21 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountForm} from '@src/types/form';
 
 const DOB = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.DOB;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
 
-type DateOfBirthUBOOnyxProps = {
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
-};
-type DateOfBirthUBOProps = SubStepProps & DateOfBirthUBOOnyxProps & {beneficialOwnerBeingModifiedID: string};
+type DateOfBirthUBOProps = SubStepProps & {beneficialOwnerBeingModifiedID: string};
 
-function DateOfBirthUBO({reimbursementAccountDraft, onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}: DateOfBirthUBOProps) {
+function DateOfBirthUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}: DateOfBirthUBOProps) {
     const {translate} = useLocalize();
+
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const dobInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${DOB}` as const;
     const dobDefaultValue = reimbursementAccountDraft?.[dobInputID] ?? '';
@@ -48,8 +44,4 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, onMove, isEditing, b
 
 DateOfBirthUBO.displayName = 'DateOfBirthUBO';
 
-export default withOnyx<DateOfBirthUBOProps, DateOfBirthUBOOnyxProps>({
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
-    },
-})(DateOfBirthUBO);
+export default DateOfBirthUBO;

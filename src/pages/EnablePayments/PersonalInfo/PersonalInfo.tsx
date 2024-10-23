@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
@@ -12,9 +11,7 @@ import getSubstepValues from '@pages/EnablePayments/utils/getSubstepValues';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {WalletAdditionalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
-import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
 import DateOfBirth from './substeps/DateOfBirthStep';
@@ -22,21 +19,15 @@ import LegalName from './substeps/LegalNameStep';
 import PhoneNumber from './substeps/PhoneNumberStep';
 import SocialSecurityNumber from './substeps/SocialSecurityNumberStep';
 
-type PersonalInfoPageOnyxProps = {
-    /** Reimbursement account from ONYX */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
-
-    /** The draft values of the bank account being setup */
-    walletAdditionalDetailsDraft: OnyxEntry<WalletAdditionalDetailsForm>;
-};
-
-type PersonalInfoPageProps = PersonalInfoPageOnyxProps;
-
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [LegalName, DateOfBirth, Address, PhoneNumber, SocialSecurityNumber, Confirmation];
 
-function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft}: PersonalInfoPageProps) {
+function PersonalInfoPage() {
     const {translate} = useLocalize();
+
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
+
     const showIdologyQuestions = walletAdditionalDetails?.questions && walletAdditionalDetails?.questions.length > 0;
 
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
@@ -114,13 +105,4 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
 
 PersonalInfoPage.displayName = 'PersonalInfoPage';
 
-export default withOnyx<PersonalInfoPageProps, PersonalInfoPageOnyxProps>({
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
-    walletAdditionalDetails: {
-        key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-    },
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
-    walletAdditionalDetailsDraft: {
-        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT,
-    },
-})(PersonalInfoPage);
+export default PersonalInfoPage;

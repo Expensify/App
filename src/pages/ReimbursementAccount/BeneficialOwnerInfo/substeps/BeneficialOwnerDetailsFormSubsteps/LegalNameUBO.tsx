@@ -1,6 +1,5 @@
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullNameStep from '@components/SubStepForms/FullNameStep';
 import useLocalize from '@hooks/useLocalize';
@@ -8,19 +7,16 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountForm} from '@src/types/form';
 
 const {FIRST_NAME, LAST_NAME} = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
 
-type LegalNameUBOOnyxProps = {
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
-};
-type LegalNameUBOProps = SubStepProps & LegalNameUBOOnyxProps & {beneficialOwnerBeingModifiedID: string};
+type LegalNameUBOProps = SubStepProps & {beneficialOwnerBeingModifiedID: string};
 
-function LegalNameUBO({reimbursementAccountDraft, onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}: LegalNameUBOProps) {
+function LegalNameUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}: LegalNameUBOProps) {
     const {translate} = useLocalize();
+
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const firstNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${FIRST_NAME}` as keyof FormOnyxValues;
     const lastNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${LAST_NAME}` as keyof FormOnyxValues;
@@ -54,8 +50,4 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, onMove, isEditing, ben
 
 LegalNameUBO.displayName = 'LegalNameUBO';
 
-export default withOnyx<LegalNameUBOProps, LegalNameUBOOnyxProps>({
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
-    },
-})(LegalNameUBO);
+export default LegalNameUBO;
