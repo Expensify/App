@@ -294,7 +294,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('Automatically approved report message is', () => {
+    describe('Automatically approved report message via automatic action is', () => {
         test('Automatically Approved Report message', () => {
             const threadOfSubmittedReportAction = {
                 ...LHNTestUtils.getFakeReport(),
@@ -314,8 +314,31 @@ describe('ReportUtils', () => {
             } as ReportAction;
 
             expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('automatically approved $1.69 via workspace rules');
-        })
-    })
+        });
+    });
+
+    describe('Automatically approved report message via harvesting is', () => {
+        test('Automatically Approved Report message', () => {
+            const threadOfSubmittedReportAction = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    harvesting: true,
+                },
+            } as ReportAction;
+
+            expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('approved $1.69');
+        });
+    });
 
     describe('requiresAttentionFromCurrentUser', () => {
         afterEach(async () => {
