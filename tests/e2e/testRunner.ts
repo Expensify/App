@@ -123,7 +123,7 @@ const runTests = async (): Promise<void> => {
         }
     };
 
-    let skippedTests: string[] = [];
+    const skippedTests: string[] = [];
     const clearTestResults = (test: TestConfig) => {
         skippedTests.push(test.name);
 
