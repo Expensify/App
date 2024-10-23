@@ -112,6 +112,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             title={bankAccountTitle}
                             description={translate('workspace.accounting.reconciliationAccount')}
                             shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection))}
                         />
                     )}
                 </ScrollView>
