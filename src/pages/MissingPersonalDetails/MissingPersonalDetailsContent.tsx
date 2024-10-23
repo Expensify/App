@@ -41,7 +41,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, cardList, draftV
 
     const startFrom = useMemo(() => getInitialSubstep(values), [values]);
 
-    // eslint-disable-next-line rulesdir/prefer-at
     const firstUnissuedCard = useMemo(() => Object.values(cardList ?? {}).find((card) => card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED), [cardList]);
 
     const handleFinishStep = useCallback(() => {
