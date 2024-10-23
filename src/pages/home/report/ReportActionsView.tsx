@@ -328,8 +328,7 @@ function ReportActionsView({
         (force = false) => {
             if (
                 !force &&
-                (!reportActionID ||
-                    !isFocused ||
+                (!isFocused ||
                     !newestReportAction ||
                     isLoadingInitialReportActions ||
                     isLoadingNewerReportActions ||
@@ -359,7 +358,6 @@ function ReportActionsView({
             }
         },
         [
-            reportActionID,
             isFocused,
             newestReportAction,
             isLoadingInitialReportActions,
