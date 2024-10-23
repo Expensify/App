@@ -65,7 +65,6 @@ function IOURequestStepConfirmation({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyIDForReal}`);
 
     const report = reportReal ?? reportDraft;
-    // Check if the real policy exists for either reportReal or reportDraft
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
