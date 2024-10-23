@@ -1,4 +1,7 @@
-import React, { useMemo, useCallback } from 'react';
+import React, {useCallback, useMemo} from 'react';
+import RadioListItem from '@components/SelectionList/RadioListItem';
+import {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
@@ -10,9 +13,6 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import SelectionScreen from '@components/SelectionScreen';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import { ListItem } from '@components/SelectionList/types';
 
 type CardListItem = ListItem & {
     value: keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES;
@@ -45,11 +45,7 @@ function QuickbooksClassesDisplayedAsPage({policy}: WithPolicyProps) {
     const selectDisplayedAs = useCallback(
         (row: CardListItem) => {
             if (row.value !== qboConfig?.syncClasses) {
-                QuickbooksOnline.updateQuickbooksOnlineSyncClasses(
-                    policyID,
-                    row.value,
-                    qboConfig?.syncClasses,
-                );
+                QuickbooksOnline.updateQuickbooksOnlineSyncClasses(policyID, row.value, qboConfig?.syncClasses);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.getRoute(policyID));
         },

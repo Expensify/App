@@ -1,5 +1,7 @@
-import React, { useMemo, useCallback } from 'react';
-import { ListItem } from '@components/SelectionList/types';
+import React, {useCallback, useMemo} from 'react';
+import RadioListItem from '@components/SelectionList/RadioListItem';
+import {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
@@ -11,8 +13,6 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import SelectionScreen from '@components/SelectionScreen';
 
 type CardListItem = ListItem & {
     value: keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES;
@@ -27,7 +27,10 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
     const data: CardListItem[] = useMemo(() => {
         const items: CardListItem[] = [];
 
-        if (qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY && qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_ACCOUNT_TYPE.CREDIT_CARD) {
+        if (
+            qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY &&
+            qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_ACCOUNT_TYPE.CREDIT_CARD
+        ) {
             items.push({
                 value: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                 text: translate('workspace.common.tags'),
@@ -49,11 +52,7 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
     const selectDisplayedAs = useCallback(
         (row: CardListItem) => {
             if (row.value !== qboConfig?.syncLocations) {
-                QuickbooksOnline.updateQuickbooksOnlineSyncLocations(
-                    policyID,
-                    row.value,
-                    qboConfig?.syncLocations,
-                );
+                QuickbooksOnline.updateQuickbooksOnlineSyncLocations(policyID, row.value, qboConfig?.syncLocations);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID));
         },

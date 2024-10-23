@@ -45,7 +45,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const isLocationsEnabled = !!(qboConfig?.syncLocations && qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = !!qboConfig?.syncTax;
     const shouldShowTaxError = isTaxesEnabled && qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
-    const hasErrors = !!qboConfig?.errorFields?.reimbursableExpensesExportDestination && (shouldShowTaxError);
+    const hasErrors = !!qboConfig?.errorFields?.reimbursableExpensesExportDestination && shouldShowTaxError;
     const policyID = policy?.id ?? '-1';
 
     const data: MenuItem[] = useMemo(
@@ -126,11 +126,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
             }
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)}
-            listFooterContent={
-                <Footer
-                    isTaxEnabled={isTaxesEnabled}
-                />
-            }
+            listFooterContent={<Footer isTaxEnabled={isTaxesEnabled} />}
         />
     );
 }
