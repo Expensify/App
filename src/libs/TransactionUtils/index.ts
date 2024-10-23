@@ -1085,7 +1085,7 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
 
                 if (!areAllFieldsEqualForKey && validTaxes.length > 1) {
                     change[fieldName] = validTaxes;
-                } else {
+                } else if (areAllFieldsEqualForKey) {
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'category') {
@@ -1097,7 +1097,7 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
 
                 if (!areAllFieldsEqualForKey && policy?.areCategoriesEnabled && (availableCategories.length > 1 || (availableCategories.length === 1 && differentValues.includes('')))) {
                     change[fieldName] = [...availableCategories, ...(differentValues.includes('') ? [''] : [])];
-                } else {
+                } else if (areAllFieldsEqualForKey) {
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'tag') {
@@ -1115,7 +1115,7 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
                     const availableTags = policyTagsObj.filter((tag) => differentValues.includes(tag.name) && firstTransaction?.tag !== tag.name).map((e) => e.name);
                     if (!areAllFieldsEqualForKey && policy?.areTagsEnabled && (availableTags.length > 1 || (availableTags.length === 1 && differentValues.includes('')))) {
                         change[fieldName] = [...availableTags, ...(differentValues.includes('') ? [''] : [])];
-                    } else {
+                    } else if (areAllFieldsEqualForKey) {
                         keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                     }
                 }
