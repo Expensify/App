@@ -405,7 +405,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     return (
         <ScreenWrapper
-            style={[styles.w100]}
             includeSafeAreaPaddingBottom
             testID={InitialSettingsPage.displayName}
         >
