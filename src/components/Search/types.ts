@@ -92,6 +92,13 @@ type SearchAutocompleteResult = {
     ranges: AutocompleteRange[];
 };
 
+type SearchAutocompleteQueryRange = {
+    key: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
+    value: string;
+    start: number;
+    length: number;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -112,4 +119,5 @@ export type {
     ChatSearchStatus,
     SearchAutocompleteResult,
     AutocompleteRange,
+    SearchAutocompleteQueryRange,
 };
