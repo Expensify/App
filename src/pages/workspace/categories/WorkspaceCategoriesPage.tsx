@@ -148,7 +148,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             />
         );
     };
-    
+
     const navigateToCategorySettings = (category: PolicyOption) => {
         if (backTo) {
             Navigation.navigate(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo));

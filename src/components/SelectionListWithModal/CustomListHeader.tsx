@@ -5,9 +5,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type CustomListHeaderProps = {
-    canSelectMultiple: Boolean | undefined;
-    leftHeaderText?: String | undefined;
-    rightHeaderText?: String | undefined;
+    canSelectMultiple: boolean | undefined;
+    leftHeaderText?: string | undefined;
+    rightHeaderText?: string | undefined;
 };
 
 function CustomListHeader({canSelectMultiple, leftHeaderText = '', rightHeaderText = ''}: CustomListHeaderProps) {
@@ -30,7 +30,7 @@ function CustomListHeader({canSelectMultiple, leftHeaderText = '', rightHeaderTe
             </View>
         </View>
     );
-    
+
     if (canSelectMultiple) {
         return header;
     }

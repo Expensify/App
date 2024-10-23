@@ -165,7 +165,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             />
         );
     };
-    
+
     const navigateToTagsSettings = () => {
         Navigation.navigate(ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(policyID));
     };

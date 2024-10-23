@@ -203,7 +203,7 @@ function PolicyDistanceRatesPage({
             />
         );
     };
-    
+
     const getBulkActionsButtonOptions = () => {
         const options: Array<DropdownOption<WorkspaceDistanceRatesBulkActionType>> = [
             {
