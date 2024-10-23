@@ -6,13 +6,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 function QuickbooksCustomersPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -49,12 +50,22 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS)}
             />
             {isSwitchOn && (
-                <MenuItemWithTopDescription
-                    interactive={false}
-                    title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
-                    description={translate('workspace.common.displayedAs')}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
-                />
+                <OfflineWithFeedback
+                    pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.pendingFields)}
+                >
+                    <MenuItemWithTopDescription
+                        title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
+                        description={translate('workspace.common.displayedAs')}
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS.getRoute(policyID))}
+                        shouldShowRightIcon
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
+                        brickRoadIndicator={
+                            areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.errorFields)
+                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                : undefined
+                        }
+                    />
+                </OfflineWithFeedback>
             )}
         </ConnectionLayout>
     );
