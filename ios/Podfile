@@ -28,11 +28,14 @@ setup_permissions([
   'LocationWhenInUse'
 ])
 
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
-end
+# linkage = ENV['USE_FRAMEWORKS']
+# if linkage != nil
+#   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+#   use_frameworks! :linkage => linkage.to_sym
+# end
+ENV['USE_FRAMEWORKS'] == '1'
+use_frameworks! :linkage => :static
+$RNFirebaseAsStaticFramework = true
 
 # Force pods to match minimum iOS version for React Native
 # Fixes build issue on Xcode Cloud where some pods
