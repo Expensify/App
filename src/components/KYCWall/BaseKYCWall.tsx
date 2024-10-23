@@ -243,7 +243,6 @@ function KYCWall({
                     selectPaymentMethod(item);
                 }}
                 shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
-                // eslint-disable-next-line react/jsx-no-comment-textnodes
             />
             {children(continueAction, viewRef(anchorRef))}
         </>
