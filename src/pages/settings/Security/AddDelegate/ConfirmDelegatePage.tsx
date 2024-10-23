@@ -72,13 +72,12 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role))}
                 shouldShowRightIcon
             />
-
-            {isValidateCodeActionModalVisible && (
-                <DelegateMagicCodeModal
-                    login={login}
-                    role={role}
-                />
-            )}
+            <DelegateMagicCodeModal
+                login={login}
+                role={role}
+                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+                setIsValidateCodeActionModalVisible={setIsValidateCodeActionModalVisible}
+            />
         </HeaderPageLayout>
     );
 }
