@@ -105,7 +105,7 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const newPage = sortedPageItems.map((item) => getItemID(item));
 
-        if (response.hasNewerActions === false || (type === 'initial' && !cursorID)) {
+        if (response.hasNewerActions === false) {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
         if (response.hasOlderActions === false) {
@@ -119,8 +119,14 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const pagesCollections = pages.get(pageCollectionKey) ?? {};
         const existingPages = pagesCollections[pageKey] ?? [];
-        const mergedPages = PaginationUtils.mergeAndSortContinuousPages(sortedAllItems, [...existingPages, newPage], getItemID);
 
+        // When loading the first page of data, make sure to remove the start maker if the backend returns
+        // that there is new data.
+        const firstPage = existingPages.at(0);
+        if (type === 'initial' && !cursorID && firstPage?.at(0) === CONST.PAGINATION_START_ID && response.hasNewerActions === true) {
+            firstPage.shift();
+        }
+        const mergedPages = PaginationUtils.mergeAndSortContinuousPages(sortedAllItems, [...existingPages, newPage], getItemID);
         response.onyxData.push({
             key: pageKey,
             onyxMethod: Onyx.METHOD.SET,

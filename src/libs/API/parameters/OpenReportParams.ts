@@ -15,6 +15,7 @@ type OpenReportParams = {
     optimisticAccountIDList?: string;
     file?: File | CustomRNImageManipulatorResult;
     guidedSetupData?: string;
+    useLastUnreadReportAction?: boolean;
 };
 
 export default OpenReportParams;
