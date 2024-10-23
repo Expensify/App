@@ -1,5 +1,6 @@
 import React from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';

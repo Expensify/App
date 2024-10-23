@@ -1,10 +1,7 @@
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import ScreenWrapper from '@components/ScreenWrapper';
+import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -47,7 +44,6 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [
 
 function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 

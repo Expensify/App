@@ -1,7 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {FormOnyxValues} from '@components/Form/types';
 import FullNameStep from '@components/SubStepForms/FullNameStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';

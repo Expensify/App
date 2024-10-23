@@ -1,5 +1,6 @@
 import React from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';

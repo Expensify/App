@@ -6,7 +6,6 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -34,7 +33,6 @@ const bodyContent: Array<ComponentType<SubStepProps>> = [ConfirmAgreements];
 
 function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}: CompleteVerificationProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const values = useMemo(() => getSubstepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';

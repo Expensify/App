@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullNameStep from '@components/SubStepForms/FullNameStep';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
@@ -7,7 +7,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
-import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
