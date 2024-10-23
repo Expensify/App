@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useIsKeyboardShown from '@hooks/useIsKeyboardShown';
 import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import usePermissions from '@hooks/usePermissions';
@@ -216,6 +217,7 @@ function MoneyRequestConfirmationList({
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canUseP2PDistanceRequests} = usePermissions(iouType);
+    const isKeyboardShown = useIsKeyboardShown();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -822,7 +824,7 @@ function MoneyRequestConfirmationList({
     );
 
     const footerContent = useMemo(() => {
-        if (isReadOnly) {
+        if (isReadOnly || isKeyboardShown) {
             return;
         }
 
@@ -889,6 +891,7 @@ function MoneyRequestConfirmationList({
         shouldShowReadOnlySplits,
         debouncedFormError,
         translate,
+        isKeyboardShown,
     ]);
 
     const listFooterContent = (
