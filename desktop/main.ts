@@ -347,7 +347,13 @@ const mainWindow = (): Promise<void> => {
                         submenu: [
                             {id: 'about', role: 'about'},
                             {id: 'update', label: Localize.translate(preferredLocale, `desktopApplicationMenu.update`), click: quitAndInstallWithUpdate, visible: false},
-                            {id: 'checkForUpdates', label: Localize.translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
+                            {
+                                id: 'checkForUpdates',
+                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`),
+                                click: (menuItem: MenuItem) => {
+                                    manuallyCheckForUpdates(menuItem, browserWindow);
+                                }
+                            },
                             {
                                 id: 'viewShortcuts',
                                 label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
