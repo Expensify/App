@@ -255,7 +255,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                             wrapperStyle={styles.sectionMenuItem}
                             focused={index === activeItemIndex}
                             onPress={onPress}
-                            shouldUseAutoWidth
+                            shouldIconUseAutoWidthStyle
                             style={styles.pv4}
                         />
                     );
