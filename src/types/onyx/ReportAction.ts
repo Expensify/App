@@ -130,6 +130,12 @@ type Person = {
     text?: string;
 };
 
+type HoldData = {
+    isOnHold?: boolean;
+    transactionID?: string;
+    reportID?: string;
+};
+
 /** Main properties of report action */
 type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
@@ -212,6 +218,8 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Amount of money requests */
     childMoneyRequestCount?: number;
+
+    childHoldData?: HoldData;
 
     /** Whether the report action is the first one */
     isFirstItem?: boolean;
