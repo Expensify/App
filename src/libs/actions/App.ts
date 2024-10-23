@@ -28,7 +28,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
 import * as PersistedRequests from './PersistedRequests';
 import * as Policy from './Policy/Policy';
-import resolveDuplicationConflictAction from './RequestConflictUtils';
+import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import * as Session from './Session';
 import Timing from './Timing';
 
