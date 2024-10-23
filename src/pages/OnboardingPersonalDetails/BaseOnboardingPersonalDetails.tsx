@@ -28,6 +28,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsProps} from './types';
+import ROUTES from '@src/ROUTES';
+import * as LoginUtils from '@libs/LoginUtils';
+import Navigation from '@libs/Navigation/Navigation';
 
 function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, route}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
@@ -42,6 +45,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isOffline} = useNetwork();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isPrivateDomain = !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
 
@@ -49,12 +54,17 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         Welcome.setOnboardingErrorMessage('');
     }, []);
 
-    const completeEngagement = useCallback(
+    const handleSubmit = useCallback(
         (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
             const firstName = values.firstName.trim();
             const lastName = values.lastName.trim();
 
             PersonalDetails.setDisplayName(firstName, lastName);
+
+            if (isPrivateDomain) {
+                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(route.params?.backTo));
+                return;
+            }
 
             if (!onboardingPurposeSelected) {
                 return;
@@ -120,14 +130,14 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         >
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={75}
+                progressBarPercentage={isPrivateDomain ? 40 : 75}
                 onBackButtonPress={OnboardingFlow.goBack}
             />
             <FormProvider
                 style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
                 validate={validate}
-                onSubmit={completeEngagement}
+                onSubmit={handleSubmit}
                 submitButtonText={translate('common.continue')}
                 enabledWhenOffline
                 submitFlexEnabled
