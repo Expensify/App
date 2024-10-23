@@ -4557,11 +4557,12 @@ function buildOptimisticExpenseReport(
     payeeAccountID: number,
     total: number,
     currency: string,
-    reimbursable = true,
+    nonReimbursableTotal: number = 0,
     parentReportActionID?: string,
 ): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
+    const storedNonReimbursableTotal = nonReimbursableTotal * -1;
     const policyName = getPolicyName(ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
     const formattedTotal = CurrencyUtils.convertToDisplayString(storedTotal, currency);
     const policy = getPolicy(policyID);
@@ -4581,8 +4582,8 @@ function buildOptimisticExpenseReport(
         statusNum,
         total: storedTotal,
         unheldTotal: storedTotal,
-        nonReimbursableTotal: reimbursable ? 0 : storedTotal,
-        unheldNonReimbursableTotal: reimbursable ? 0 : storedTotal,
+        nonReimbursableTotal: storedNonReimbursableTotal,
+        unheldNonReimbursableTotal: storedNonReimbursableTotal,
         participants: {
             [payeeAccountID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,

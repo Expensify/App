@@ -2304,7 +2304,7 @@ function getTrackExpenseInformation(
 
         shouldCreateNewMoneyRequestReport = ReportUtils.shouldCreateNewMoneyRequestReport(iouReport, chatReport);
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
-            iouReport = ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID ?? '-1', payeeAccountID, amount, currency, false);
+            iouReport = ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID ?? '-1', payeeAccountID, amount, currency, 0);
         } else {
             iouReport = {...iouReport};
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
@@ -6549,13 +6549,14 @@ function getReportFromHoldRequestsOnyxData(
     const firstHoldTransaction = holdTransactions.at(0);
     const newParentReportActionID = rand64();
 
+    const coefficient = ReportUtils.isExpenseReport(iouReport) ? -1 : 1;
     const optimisticExpenseReport = ReportUtils.buildOptimisticExpenseReport(
         chatReport.reportID,
         chatReport.policyID ?? iouReport?.policyID ?? '',
         recipient.accountID ?? 1,
-        ((iouReport?.total ?? 0) - (iouReport?.unheldTotal ?? 0)) * (ReportUtils.isIOUReport(iouReport) ? 1 : -1),
+        ((iouReport?.total ?? 0) - (iouReport?.unheldTotal ?? 0)) * coefficient,
         iouReport?.currency ?? '',
-        false,
+        ((iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0)) * coefficient,
         newParentReportActionID,
     );
     const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(
@@ -6630,6 +6631,7 @@ function getReportFromHoldRequestsOnyxData(
             value: {
                 ...optimisticExpenseReport,
                 unheldTotal: 0,
+                unheldNonReimbursableTotal: 0,
             },
         },
         // add preview report action to main chat
