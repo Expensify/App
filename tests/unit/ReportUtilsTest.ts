@@ -294,8 +294,8 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('Automatically approved report message via automatic action is', () => {
-        test('Automatically Approved Report message', () => {
+    describe('Automatically approved report message via automatic (not by a human) action is', () => {
+        test('Automatically Approved Report message when report is approved and forwarded (Control feature)', () => {
             const threadOfSubmittedReportAction = {
                 ...LHNTestUtils.getFakeReport(),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -305,7 +305,7 @@ describe('ReportUtils', () => {
                 policyID: policy.id,
             };
             const submittedParentReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
                 originalMessage: {
                     amount: 169,
                     currency: 'USD',
@@ -317,18 +317,18 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('Automatically approved report message via harvesting is', () => {
-        test('Automatically Approved Report message', () => {
+    describe('Automatically approved report message via harvesting (delayed submit) is', () => {
+        test('Automatically Approved Report message for report type submitted and status is submitted', () => {
             const threadOfSubmittedReportAction = {
                 ...LHNTestUtils.getFakeReport(),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 parentReportID: '101',
                 policyID: policy.id,
             };
             const submittedParentReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                 originalMessage: {
                     amount: 169,
                     currency: 'USD',
@@ -336,7 +336,28 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('approved $1.69');
+            expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('automatically submitted $1.69 via delayed submission');
+        });
+
+        test('Automatically Approved Report message for report type submitted and status is closed', () => {
+            const threadOfSubmittedReportAction = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    harvesting: true,
+                },
+            } as ReportAction;
+
+            expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('automatically submitted $1.69 via delayed submission');
         });
     });
 
