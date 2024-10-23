@@ -1,4 +1,4 @@
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -21,6 +21,7 @@ import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
+import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
@@ -88,11 +89,15 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
+    const isFocused = useIsFocused();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
-    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading} = useSearchContext();
-    const {selectionMode} = useMobileSelectionMode();
+    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading, lastSearchType, setLastSearchType} =
+        useSearchContext();
+    const {selectionMode} = useMobileSelectionMode(false);
     const [offset, setOffset] = useState(0);
 
     const {type, status, sortBy, sortOrder, hash} = queryJSON;
@@ -100,6 +105,13 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const previousTransactions = usePrevious(transactions);
+
+    useEffect(() => {
+        if (!currentSearchResults?.search?.type) {
+            return;
+        }
+        setLastSearchType(currentSearchResults.search.type);
+    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
@@ -184,14 +196,19 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
-        setShouldShowStatusBarLoading(shouldShowLoadingState && searchResults?.search?.type !== type);
-    }, [searchResults?.search?.type, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
+        setShouldShowStatusBarLoading(shouldShowLoadingState && lastSearchType !== type);
+    }, [lastSearchType, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
 
     useEffect(() => {
+        if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
+            return;
+        }
         const newTransactionList: SelectedTransactions = {};
-        data.forEach((report) => {
-            const transactionsData: TransactionListItemType[] = Object.hasOwn(report, 'transactions') && 'transactions' in report ? report.transactions : [];
-            transactionsData.forEach((transaction) => {
+        if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+            data.forEach((transaction) => {
+                if (!Object.hasOwn(transaction, 'transactionID') || !('transactionID' in transaction)) {
+                    return;
+                }
                 if (!Object.keys(selectedTransactions).includes(transaction.transactionID)) {
                     return;
                 }
@@ -203,7 +220,25 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                     canDelete: transaction.canDelete,
                 };
             });
-        });
+        } else {
+            data.forEach((report) => {
+                if (!Object.hasOwn(report, 'transactions') || !('transactions' in report)) {
+                    return;
+                }
+                report.transactions.forEach((transaction) => {
+                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID)) {
+                        return;
+                    }
+                    newTransactionList[transaction.transactionID] = {
+                        action: transaction.action,
+                        canHold: transaction.canHold,
+                        canUnhold: transaction.canUnhold,
+                        isSelected: selectedTransactions[transaction.transactionID].isSelected,
+                        canDelete: transaction.canDelete,
+                    };
+                });
+            });
+        }
         setSelectedTransactions(newTransactionList, data);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [data, setSelectedTransactions]);
@@ -214,6 +249,17 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
         }
         turnOffMobileSelectionMode();
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
+
+    useEffect(
+        () => () => {
+            if (isSearchTopmostCentralPane()) {
+                return;
+            }
+            clearSelectedTransactions();
+            turnOffMobileSelectionMode();
+        },
+        [isFocused, clearSelectedTransactions],
+    );
 
     if (shouldShowLoadingState) {
         return (
@@ -369,6 +415,12 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                     />
                 )
             }
+            isSelected={(item) =>
+                status !== CONST.SEARCH.STATUS.EXPENSE.ALL && SearchUtils.isReportListItemType(item)
+                    ? item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
+                    : !!item.isSelected
+            }
+            shouldAutoTurnOff={false}
             onScroll={onSearchListScroll}
             canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
             customListHeaderHeight={searchHeaderHeight}
@@ -402,7 +454,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                     />
                 ) : undefined
             }
-            contentContainerStyle={contentContainerStyle}
+            contentContainerStyle={[contentContainerStyle, styles.pb3]}
             scrollEventThrottle={1}
         />
     );
