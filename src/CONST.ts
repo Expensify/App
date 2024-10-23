@@ -507,6 +507,7 @@ const CONST = {
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         NEW_DOT_QBD: 'quickbooksDesktopOnNewDot',
+        NEW_TRAVEL_PROVISIONING: 'newTravelProvisioning',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

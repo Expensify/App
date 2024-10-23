@@ -57,6 +57,10 @@ function canUseNewDotQBD(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEW_DOT_QBD) || canUseAllBetas(betas);
 }
 
+function canUseNewTravelProvisioning(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEW_TRAVEL_PROVISIONING) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -78,4 +82,5 @@ export default {
     canUseCombinedTrackSubmit,
     canUseCategoryAndTagApprovers,
     canUseNewDotQBD,
+    canUseNewTravelProvisioning,
 };
