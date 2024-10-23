@@ -212,7 +212,9 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
 }
 
 function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
-    return iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
+    return false;
+    // To be renabled once feature is complete: https://github.com/Expensify/App/issues/44725
+    // return iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
 }
 
 /**
