@@ -264,7 +264,7 @@ function IOURequestStepScan({
                 );
             }
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.created, transaction?.currency],
+        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
     );
     const navigateToConfirmationStep = useCallback(
         (file: FileObject, source: string, locationPermissionGranted = false) => {
@@ -390,6 +390,7 @@ function IOURequestStepScan({
         [
             backTo,
             transaction?.isFromGlobalCreate,
+            transaction?.attendees,
             transaction?.currency,
             transaction?.created,
             iouType,
