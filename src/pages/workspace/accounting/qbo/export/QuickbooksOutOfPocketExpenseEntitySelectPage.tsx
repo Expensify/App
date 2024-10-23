@@ -42,7 +42,6 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const styles = useThemeStyles();
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const isLocationsEnabled = !!(qboConfig?.syncLocations && qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = !!qboConfig?.syncTax;
     const shouldShowTaxError = isTaxesEnabled && qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
     const hasErrors = !!qboConfig?.errorFields?.reimbursableExpensesExportDestination && shouldShowTaxError;
@@ -75,7 +74,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                 accounts: accountPayable ?? [],
             },
         ],
-        [qboConfig?.reimbursableExpensesExportDestination, qboConfig?.syncLocations, translate, isLocationsEnabled, bankAccounts, accountPayable, journalEntryAccounts],
+        [qboConfig?.reimbursableExpensesExportDestination, qboConfig?.syncLocations, translate, bankAccounts, accountPayable, journalEntryAccounts, isTaxesEnabled],
     );
 
     const sections = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
