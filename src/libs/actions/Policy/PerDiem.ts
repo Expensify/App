@@ -102,7 +102,7 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
 
     const parameters = {policyID, enabled, customUnitID: finalCustomUnitID};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_PER_DIEM, parameters, onyxData);
+    API.write(WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         navigateWhenEnableFeature(policyID);

@@ -341,5 +341,5 @@ export type {default as SetInvoicingTransferBankAccountParams} from './SetInvoic
 export type {default as ConnectPolicyToQuickBooksDesktopParams} from './ConnectPolicyToQuickBooksDesktopParams';
 export type {default as UpdateQuickbooksDesktopExpensesExportDestinationTypeParams} from './UpdateQuickbooksDesktopExpensesExportDestinationTypeParams';
 export type {default as UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams} from './UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams';
-export type {default as EnablePolicyPerDiemParams} from './EnablePolicyPerDiemParams';
+export type {default as TogglePolicyPerDiemParams} from './TogglePolicyPerDiemParams';
 export type {default as OpenPolicyPerDiemRatesPageParams} from './OpenPolicyPerDiemRatesPageParams';
