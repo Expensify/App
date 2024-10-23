@@ -5144,6 +5144,7 @@ function createDistanceRequest(
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+    const isOptimisticPolicyExpenseChat = report?.isOptimisticReport && ReportUtils.isPolicyExpenseChat(report);
 
     const optimisticReceipt: Receipt = {
         source: ReceiptGeneric as ReceiptSource,
@@ -5257,6 +5258,7 @@ function createDistanceRequest(
             createdReportActionIDForThread,
             payerEmail,
             customUnitRateID,
+            policyID: isOptimisticPolicyExpenseChat ? policy?.id : undefined,
         };
     }
 
