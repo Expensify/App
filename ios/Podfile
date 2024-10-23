@@ -116,6 +116,11 @@ target 'NewExpensify' do
           config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
         end
       end
+
+      # Define USE_FRAMEWORKS macro for all pods projects to enable our patches that fix some build issues
+      target.build_configurations.each do |config|
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)', 'USE_FRAMEWORKS=1']
+      end
     end
   end
 end
