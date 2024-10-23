@@ -3,8 +3,7 @@ import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -31,25 +30,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PrivateNotesForm';
-import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
 
-type PrivateNotesEditPageOnyxProps = {
-    /** All of the personal details for everyone */
-    personalDetailsList: OnyxEntry<PersonalDetailsList>;
-};
-
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
-    PrivateNotesEditPageOnyxProps &
     PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> & {
         /** The report currently being looked at */
         report: Report;
     };
 
-function PrivateNotesEditPage({route, personalDetailsList, report, session}: PrivateNotesEditPageProps) {
+function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPageProps) {
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     // We need to edit the note in markdown format, but display it in HTML format
     const [privateNote, setPrivateNote] = useState(
@@ -117,7 +111,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report, session}: Pri
         >
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
-                onBackButtonPress={() => ReportUtils.goBackFromPrivateNotes(report, session, backTo)}
+                onBackButtonPress={() => ReportUtils.goBackFromPrivateNotes(report, accountID, backTo)}
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
@@ -178,10 +172,4 @@ function PrivateNotesEditPage({route, personalDetailsList, report, session}: Pri
 
 PrivateNotesEditPage.displayName = 'PrivateNotesEditPage';
 
-export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(
-    withOnyx<PrivateNotesEditPageProps, PrivateNotesEditPageOnyxProps>({
-        personalDetailsList: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    })(PrivateNotesEditPage),
-);
+export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(PrivateNotesEditPage);
