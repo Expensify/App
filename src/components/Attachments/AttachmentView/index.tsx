@@ -9,9 +9,9 @@ import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import Text from '@components/Text';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -270,7 +270,9 @@ function AttachmentView({
                         isImage={isFileImage}
                         onPress={onPress}
                         onError={() => {
-                            if (!isOffline) setImageError(true);
+                            if (!isOffline) {
+                                setImageError(true);
+                            }
                         }}
                     />
                 </View>

@@ -196,9 +196,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
             document.removeEventListener('mouseup', trackPointerPosition);
         };
     }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
-
-    const isOfflineFile = FileUtils.isOfflineFile(url) ;
-
+    const isOfflineFile = FileUtils.isOfflineFile(url);
     if (canUseTouchScreen) {
         return (
             <Lightbox

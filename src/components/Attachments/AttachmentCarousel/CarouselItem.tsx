@@ -7,9 +7,9 @@ import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Text from '@components/Text';
 import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 import CONST from '@src/CONST';
 
