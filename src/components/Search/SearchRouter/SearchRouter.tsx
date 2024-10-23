@@ -20,7 +20,14 @@ import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getAutocompleteCategories, getAutocompleteRecentCategories, getAutoCompleteTags, getAutocompleteTaxList, parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
+import {
+    getAutocompleteCategories,
+    getAutocompleteRecentCategories,
+    getAutocompleteRecentTags,
+    getAutocompleteTags,
+    getAutocompleteTaxList,
+    parseForAutocomplete,
+} from '@libs/SearchAutocompleteUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -75,19 +82,22 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const categoryAutocompleteList = useMemo(() => {
-        if (textInputValue) {
-            return getAutocompleteCategories(allPolicyCategories, activeWorkspaceID);
-        }
+        return getAutocompleteCategories(allPolicyCategories, activeWorkspaceID);
+    }, [activeWorkspaceID, allPolicyCategories]);
+    const recentCategoriesAutocompleteList = useMemo(() => {
         return getAutocompleteRecentCategories(allRecentCategories, activeWorkspaceID);
-    }, [textInputValue, allRecentCategories, activeWorkspaceID, allPolicyCategories]);
+    }, [activeWorkspaceID, allRecentCategories]);
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
-    const [recentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
-    const currencyAutocompleteList = useMemo(() => (textInputValue ? Object.keys(currencyList ?? {}) : recentlyUsedCurrencies ?? []), []);
+    const currencyAutocompleteList = Object.keys(currencyList ?? {});
+    const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
 
-    const [allPoliciesTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [allRecentTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
-    const tagAutocompleteList = useMemo(() => getAutoCompleteTags(allPoliciesTagsLists, activeWorkspaceID), [allPoliciesTagsLists, activeWorkspaceID]);
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
+    const tagAutocompleteList = useMemo(() => {
+        return getAutocompleteTags(allPoliciesTags, activeWorkspaceID);
+    }, [activeWorkspaceID, allPoliciesTags]);
+    const recentTagsAutocompleteList = getAutocompleteRecentTags(allRecentTags, activeWorkspaceID);
 
     const sortedRecentSearches = useMemo(() => {
         return Object.values(recentSearches ?? {}).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
@@ -148,7 +158,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         (autocompleteValue: string, autocompleteType?: ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS & typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>) => {
             switch (autocompleteType) {
                 case 'tag': {
-                    const filteredTags = tagAutocompleteList.filter((tag) => tag?.includes(autocompleteValue));
+                    const autocompleteList = autocompleteValue ? tagAutocompleteList : recentTagsAutocompleteList ?? [];
+                    const filteredTags = autocompleteList.filter((tag) => tag?.includes(autocompleteValue));
                     setAutocompleteSuggestions(
                         filteredTags.map((tagName) => ({
                             text: `tag:${tagName}`,
@@ -158,7 +169,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     return;
                 }
                 case 'category': {
-                    const filteredCategories = categoryAutocompleteList.filter((category) => category?.includes(autocompleteValue));
+                    const autocompleteList = autocompleteValue ? categoryAutocompleteList : recentCategoriesAutocompleteList;
+                    const filteredCategories = autocompleteList.filter((category) => category?.includes(autocompleteValue));
                     setAutocompleteSuggestions(
                         filteredCategories.map((categoryName) => ({
                             text: `category:${categoryName}`,
@@ -168,7 +180,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     return;
                 }
                 case 'currency': {
-                    const filteredCurrencies = currencyAutocompleteList.filter((currency) => currency?.includes(autocompleteValue));
+                    const autocompleteList = autocompleteValue ? currencyAutocompleteList : recentCurrencyAutocompleteList ?? [];
+                    const filteredCurrencies = autocompleteList.filter((currency) => currency?.includes(autocompleteValue));
                     setAutocompleteSuggestions(
                         filteredCurrencies.map((currencyName) => ({
                             text: `currency:${currencyName}`,
@@ -228,8 +241,11 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         },
         [
             tagAutocompleteList,
+            recentTagsAutocompleteList,
             categoryAutocompleteList,
+            recentCategoriesAutocompleteList,
             currencyAutocompleteList,
+            recentCurrencyAutocompleteList,
             taxAutocompleteList,
             participantsAutocompleteList,
             typesAutocompleteList,

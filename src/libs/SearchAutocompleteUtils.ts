@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchAutocompleteResult} from '@components/Search/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import * as autocompleteParser from './SearchParser/autocompleteParser';
 
@@ -14,7 +14,7 @@ function parseForAutocomplete(text: string) {
     }
 }
 
-function getAutoCompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>, policyID?: string) {
+function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>, policyID?: string) {
     const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
     if (!singlePolicyTagsList) {
         const uniqueTagNames = new Set<string>();
@@ -26,6 +26,19 @@ function getAutoCompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
         return Array.from(uniqueTagNames);
     }
     return getTagNamesFromTagsLists(singlePolicyTagsList);
+}
+
+function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTags>, policyID?: string) {
+    const singlePolicyRecentTags: RecentlyUsedTags | undefined = allRecentTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`];
+    if (!singlePolicyRecentTags) {
+        const uniqueTagNames = new Set<string>();
+        Object.values(allRecentTags ?? {})
+            .map((testVar) => Object.values(testVar ?? {}))
+            .flat(2)
+            .forEach((tag) => uniqueTagNames.add(tag));
+        return Array.from(uniqueTagNames);
+    }
+    return Object.values(singlePolicyRecentTags ?? {}).flat(2);
 }
 
 function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCategories>, policyID?: string) {
@@ -55,4 +68,4 @@ function getAutocompleteTaxList(allTaxRates: Record<string, string[]>, policy?: 
     return Object.keys(allTaxRates).map((taxRateName) => taxRateName);
 }
 
-export {parseForAutocomplete, getAutoCompleteTags, getAutocompleteCategories, getAutocompleteRecentCategories, getAutocompleteTaxList};
+export {parseForAutocomplete, getAutocompleteTags, getAutocompleteRecentTags, getAutocompleteCategories, getAutocompleteRecentCategories, getAutocompleteTaxList};
