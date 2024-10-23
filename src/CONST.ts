@@ -5875,7 +5875,7 @@ const CONST = {
             perDiem: {
                 id: 'perDiem' as const,
                 alias: 'per-diem',
-                name: 'Per Diem',
+                name: 'Per diem',
                 title: 'workspace.upgrade.perDiem.title' as const,
                 description: 'workspace.upgrade.perDiem.description' as const,
                 icon: 'PerDiem',

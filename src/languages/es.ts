@@ -2346,7 +2346,7 @@ const translations = {
             rules: 'Reglas',
             plan: 'Plan',
             profile: 'Perfil',
-            perDiem: 'Per Diem',
+            perDiem: 'Per diem',
             bankAccount: 'Cuenta bancaria',
             displayedAs: 'Mostrado como',
             connectBankAccount: 'Conectar cuenta bancaria',
@@ -3327,7 +3327,7 @@ const translations = {
                 subtitle: 'Añade, actualiza y haz cumplir las tasas.',
             },
             perDiem: {
-                title: 'Per Diem',
+                title: 'Per diem',
                 subtitle: 'Set Per diem rates to control daily employee spend.',
             },
             expensifyCard: {
@@ -4117,9 +4117,10 @@ const translations = {
                 onlyAvailableOnPlan: 'Las reglas están disponibles solo en el plan Control, que comienza en ',
             },
             perDiem: {
-                title: 'Per Diem',
-                description: `Rules run in the background and keep your spend under control so you don't have to sweat the small stuff.\n\nRequire expense details like receipts and descriptions, set limits and defaults, and automate approvals and payments – all in one place.`,
-                onlyAvailableOnPlan: 'Per Diem are only available on the Control plan, starting at ',
+                title: 'Per diem',
+                description:
+                    'Per diem is a great way to keep your daily costs compliant and predictable whenever your employees travel. Enjoy features like custom rates, default categories, and more granular details like destinations and subrates.',
+                onlyAvailableOnPlan: 'Per diem are only available on the Control plan, starting at ',
             },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
