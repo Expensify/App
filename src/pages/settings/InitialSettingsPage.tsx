@@ -333,26 +333,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
                                 shouldIconUseAutoWidthStyle
-                                style={styles.pv4}
                             />
                         );
                     })}
                 </View>
             );
         },
-        [
-            styles.pb4,
-            styles.mh3,
-            styles.pv4,
-            styles.sectionTitle,
-            styles.sectionMenuItem,
-            translate,
-            userWallet?.currentBalance,
-            isExecuting,
-            singleExecution,
-            activeCentralPaneRoute,
-            waitForNavigate,
-        ],
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, userWallet?.currentBalance, isExecuting, singleExecution, activeCentralPaneRoute, waitForNavigate],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);

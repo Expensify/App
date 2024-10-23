@@ -415,7 +415,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
                                     badgeText={item.badgeText}
                                     shouldIconUseAutoWidthStyle
-                                    style={styles.pv4}
                                 />
                             ))}
                         </View>

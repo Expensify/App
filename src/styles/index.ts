@@ -2903,6 +2903,7 @@ const styles = (theme: ThemeColors) =>
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 16,
+            paddingVertical: 8,
             height: 52,
             alignItems: 'center',
         },

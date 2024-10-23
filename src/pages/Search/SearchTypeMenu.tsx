@@ -139,6 +139,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             styles: [styles.alignItemsCenter],
             pendingAction: item.pendingAction,
             disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            shouldIconUseAutoWidthStyle: true,
         };
 
         if (!isNarrow) {
@@ -256,7 +257,6 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                             focused={index === activeItemIndex}
                             onPress={onPress}
                             shouldIconUseAutoWidthStyle
-                            style={styles.pv4}
                         />
                     );
                 })}

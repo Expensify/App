@@ -627,10 +627,22 @@ function MenuItem(
                                                         />
                                                     )}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (
-                                                        <View style={[styles.popoverMenuIcon, iconStyles, shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize)]} />
+                                                        <View
+                                                            style={[
+                                                                styles.popoverMenuIcon,
+                                                                iconStyles,
+                                                                shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
+                                                            ]}
+                                                        />
                                                     )}
                                                     {icon && !Array.isArray(icon) && (
-                                                        <View style={[styles.popoverMenuIcon, iconStyles, shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize)]}>
+                                                        <View
+                                                            style={[
+                                                                styles.popoverMenuIcon,
+                                                                iconStyles,
+                                                                shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
+                                                            ]}
+                                                        >
                                                             {typeof icon !== 'string' &&
                                                                 iconType === CONST.ICON_TYPE_ICON &&
                                                                 (!shouldShowLoadingSpinnerIcon ? (
