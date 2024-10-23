@@ -75,7 +75,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                 accounts: accountPayable ?? [],
             },
         ],
-        [qboConfig?.reimbursableExpensesExportDestination, isTaxesEnabled, translate, isLocationsEnabled, bankAccounts, accountPayable, journalEntryAccounts],
+        [qboConfig?.reimbursableExpensesExportDestination, qboConfig?.syncLocations, translate, isLocationsEnabled, bankAccounts, accountPayable, journalEntryAccounts],
     );
 
     const sections = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
