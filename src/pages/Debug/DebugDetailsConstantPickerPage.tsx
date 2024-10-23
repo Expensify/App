@@ -13,7 +13,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {appendParam} from '@libs/Url';
 import type SCREENS from '@src/SCREENS';
-import {DETAILS_CONSTANT_OPTIONS} from './const';
+import type {DebugForms} from './const';
+import {DETAILS_CONSTANT_FIELDS} from './const';
 
 type DebugDetailsConstantPickerPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
 
@@ -28,14 +29,14 @@ function DebugDetailsConstantPickerPage({
     const [searchValue, setSearchValue] = useState('');
     const sections: ListItem[] = useMemo(
         () =>
-            Object.entries(DETAILS_CONSTANT_OPTIONS[formType][fieldName])
+            Object.entries(DETAILS_CONSTANT_FIELDS[formType as DebugForms].find((field) => field.fieldName === fieldName)?.options ?? {})
                 .reduce((acc: Array<[string, string]>, [key, value]) => {
                     // Option has multiple constants, so we need to flatten these into separate options
                     if (isObject(value)) {
                         acc.push(...Object.entries(value));
                         return acc;
                     }
-                    acc.push([key, value]);
+                    acc.push([key, String(value)]);
                     return acc;
                 }, [])
                 .map(

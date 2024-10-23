@@ -1,52 +1,117 @@
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ACTION_FORM_INPUT_IDS from '@src/types/form/DebugReportActionForm';
 import REPORT_FORM_INPUT_IDS from '@src/types/form/DebugReportForm';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
 import TRANSACTION_VIOLATION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionViolationForm';
 
-const DETAILS_CONSTANT_FIELDS = {
-    [CONST.DEBUG.FORMS.REPORT]: [
-        REPORT_FORM_INPUT_IDS.CHAT_TYPE,
-        REPORT_FORM_INPUT_IDS.CURRENCY,
-        REPORT_FORM_INPUT_IDS.NOTIFICATION_PREFERENCE,
-        REPORT_FORM_INPUT_IDS.TYPE,
-        REPORT_FORM_INPUT_IDS.LAST_ACTION_TYPE,
-        REPORT_FORM_INPUT_IDS.WRITE_CAPABILITY,
-    ],
-    [CONST.DEBUG.FORMS.REPORT_ACTION]: [ACTION_FORM_INPUT_IDS.ACTION_NAME],
-    [CONST.DEBUG.FORMS.TRANSACTION]: [
-        TRANSACTION_FORM_INPUT_IDS.IOU_REQUEST_TYPE,
-        TRANSACTION_FORM_INPUT_IDS.MODIFIED_CURRENCY,
-        TRANSACTION_FORM_INPUT_IDS.STATUS,
-        TRANSACTION_FORM_INPUT_IDS.MCC_GROUP,
-        TRANSACTION_FORM_INPUT_IDS.MODIFIED_MCC_GROUP,
-    ],
-    [CONST.DEBUG.FORMS.TRANSACTION_VIOLATION]: [],
-} as Record<string, string[]>;
+type DebugForms = ValueOf<typeof CONST.DEBUG.FORMS>;
 
-const DETAILS_CONSTANT_OPTIONS = {
-    [CONST.DEBUG.FORMS.REPORT]: {
-        [REPORT_FORM_INPUT_IDS.CHAT_TYPE]: CONST.REPORT.CHAT_TYPE,
-        [REPORT_FORM_INPUT_IDS.CURRENCY]: CONST.CURRENCY,
-        [REPORT_FORM_INPUT_IDS.NOTIFICATION_PREFERENCE]: CONST.REPORT.NOTIFICATION_PREFERENCE,
-        [REPORT_FORM_INPUT_IDS.TYPE]: CONST.REPORT.TYPE,
-        [REPORT_FORM_INPUT_IDS.WRITE_CAPABILITY]: CONST.REPORT.WRITE_CAPABILITIES,
-        [REPORT_FORM_INPUT_IDS.LAST_ACTION_TYPE]: CONST.REPORT.ACTIONS.TYPE,
-    },
-    [CONST.DEBUG.FORMS.REPORT_ACTION]: {
-        [ACTION_FORM_INPUT_IDS.ACTION_NAME]: CONST.REPORT.ACTIONS.TYPE,
-    },
-    [CONST.DEBUG.FORMS.TRANSACTION]: {
-        [TRANSACTION_FORM_INPUT_IDS.IOU_REQUEST_TYPE]: CONST.IOU.REQUEST_TYPE,
-        [TRANSACTION_FORM_INPUT_IDS.STATUS]: CONST.TRANSACTION.STATUS,
-        [TRANSACTION_FORM_INPUT_IDS.MCC_GROUP]: CONST.MCC_GROUPS,
-        [TRANSACTION_FORM_INPUT_IDS.MODIFIED_MCC_GROUP]: CONST.MCC_GROUPS,
-    },
-    [CONST.DEBUG.FORMS.TRANSACTION_VIOLATION]: {
-        [TRANSACTION_VIOLATION_FORM_INPUT_IDS.NAME]: CONST.VIOLATIONS,
-        [TRANSACTION_VIOLATION_FORM_INPUT_IDS.TYPE]: CONST.VIOLATION_TYPES,
-    },
-} as Record<string, Record<string, Record<string, string | Record<string, string>>>>;
+type ConstantField = {
+    fieldName: string;
+    options: Record<string, string | number | Record<string, string>>;
+};
+
+type DetailsConstantFields = Record<DebugForms, ConstantField[]>;
+
+const DETAILS_CONSTANT_FIELDS: DetailsConstantFields = {
+    [CONST.DEBUG.FORMS.REPORT]: [
+        {
+            fieldName: REPORT_FORM_INPUT_IDS.CHAT_TYPE,
+            options: CONST.REPORT.CHAT_TYPE,
+        },
+        {
+            fieldName: REPORT_FORM_INPUT_IDS.CURRENCY,
+            options: CONST.CURRENCY,
+        },
+        {
+            fieldName: REPORT_FORM_INPUT_IDS.NOTIFICATION_PREFERENCE,
+            options: CONST.REPORT.NOTIFICATION_PREFERENCE,
+        },
+        {
+            fieldName: REPORT_FORM_INPUT_IDS.TYPE,
+            options: CONST.REPORT.TYPE,
+        },
+        {
+            fieldName: REPORT_FORM_INPUT_IDS.LAST_ACTION_TYPE,
+            options: CONST.REPORT.ACTIONS.TYPE,
+        },
+        {
+            fieldName: REPORT_FORM_INPUT_IDS.WRITE_CAPABILITY,
+            options: CONST.REPORT.WRITE_CAPABILITIES,
+        },
+        {
+            fieldName: REPORT_FORM_INPUT_IDS.VISIBILITY,
+            options: CONST.REPORT.VISIBILITY,
+        },
+        {
+            fieldName: REPORT_FORM_INPUT_IDS.STATE_NUM,
+            options: CONST.REPORT.STATE_NUM,
+        },
+        {
+            fieldName: REPORT_FORM_INPUT_IDS.STATUS_NUM,
+            options: CONST.REPORT.STATUS_NUM,
+        },
+    ],
+    [CONST.DEBUG.FORMS.REPORT_ACTION]: [
+        {
+            fieldName: ACTION_FORM_INPUT_IDS.ACTION_NAME,
+            options: CONST.REPORT.ACTIONS.TYPE,
+        },
+        {
+            fieldName: ACTION_FORM_INPUT_IDS.CHILD_STATUS_NUM,
+            options: CONST.REPORT.STATUS_NUM,
+        },
+        {
+            fieldName: ACTION_FORM_INPUT_IDS.CHILD_STATE_NUM,
+            options: CONST.REPORT.STATE_NUM,
+        },
+        {
+            fieldName: ACTION_FORM_INPUT_IDS.CHILD_REPORT_NOTIFICATION_PREFERENCE,
+            options: CONST.REPORT.NOTIFICATION_PREFERENCE,
+        },
+    ],
+    [CONST.DEBUG.FORMS.TRANSACTION]: [
+        {
+            fieldName: TRANSACTION_FORM_INPUT_IDS.IOU_REQUEST_TYPE,
+            options: CONST.IOU.REQUEST_TYPE,
+        },
+        {
+            fieldName: TRANSACTION_FORM_INPUT_IDS.MODIFIED_CURRENCY,
+            options: CONST.CURRENCY,
+        },
+        {
+            fieldName: TRANSACTION_FORM_INPUT_IDS.CURRENCY,
+            options: CONST.CURRENCY,
+        },
+        {
+            fieldName: TRANSACTION_FORM_INPUT_IDS.ORIGINAL_CURRENCY,
+            options: CONST.CURRENCY,
+        },
+        {
+            fieldName: TRANSACTION_FORM_INPUT_IDS.STATUS,
+            options: CONST.TRANSACTION.STATUS,
+        },
+        {
+            fieldName: TRANSACTION_FORM_INPUT_IDS.MCC_GROUP,
+            options: CONST.MCC_GROUPS,
+        },
+        {
+            fieldName: TRANSACTION_FORM_INPUT_IDS.MODIFIED_MCC_GROUP,
+            options: CONST.MCC_GROUPS,
+        },
+    ],
+    [CONST.DEBUG.FORMS.TRANSACTION_VIOLATION]: [
+        {
+            fieldName: TRANSACTION_VIOLATION_FORM_INPUT_IDS.NAME,
+            options: CONST.VIOLATIONS,
+        },
+        {
+            fieldName: TRANSACTION_VIOLATION_FORM_INPUT_IDS.TYPE,
+            options: CONST.VIOLATION_TYPES,
+        },
+    ],
+};
 
 const DETAILS_DATETIME_FIELDS = [
     ACTION_FORM_INPUT_IDS.CREATED,
@@ -64,4 +129,5 @@ const DETAILS_DISABLED_KEYS = [
     TRANSACTION_FORM_INPUT_IDS.TRANSACTION_ID,
 ] as string[];
 
-export {DETAILS_CONSTANT_OPTIONS, DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS, DETAILS_DISABLED_KEYS};
+export {DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS, DETAILS_DISABLED_KEYS};
+export type {DebugForms};

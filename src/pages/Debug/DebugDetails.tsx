@@ -58,7 +58,7 @@ function DebugDetails({formType, data, children, onSave, onDelete, validate}: De
     const constantFields = useMemo(
         () =>
             Object.entries(data ?? {})
-                .filter((entry): entry is [string, string] => DETAILS_CONSTANT_FIELDS[formType].includes(entry[0]))
+                .filter((entry): entry is [string, string] => DETAILS_CONSTANT_FIELDS[formType].some(({fieldName}) => fieldName === entry[0]))
                 .sort((a, b) => a[0].localeCompare(b[0])),
         [data, formType],
     );
@@ -75,7 +75,7 @@ function DebugDetails({formType, data, children, onSave, onDelete, validate}: De
                 .filter(
                     (entry): entry is [string, string | ObjectType<Record<string, unknown>>] =>
                         (typeof entry[1] === 'string' || typeof entry[1] === 'object') &&
-                        !DETAILS_CONSTANT_FIELDS[formType].includes(entry[0]) &&
+                        !DETAILS_CONSTANT_FIELDS[formType].some(({fieldName}) => fieldName === entry[0]) &&
                         !DETAILS_DATETIME_FIELDS.includes(entry[0]),
                 )
                 .map(([key, value]) => [key, DebugUtils.onyxDataToString(value)])
