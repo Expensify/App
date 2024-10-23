@@ -84,8 +84,7 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
             },
         });
 
-        return config;
-        return TimeAnalyticsPlugin.wrap(config);
+        return TimeAnalyticsPlugin.wrap(config, {plugin: {exclude: ['ReactRefreshPlugin']}});
     });
 
 export default getConfiguration;
