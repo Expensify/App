@@ -81,7 +81,7 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<
         customUnitID: string;
 
         /** Contains custom attributes like unit, for this custom unit */
-        attributes: Attributes;
+        attributes?: Attributes;
 
         /** Distance rates using this custom unit */
         rates: Record<string, Rate>;

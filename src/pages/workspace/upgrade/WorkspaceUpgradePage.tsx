@@ -33,6 +33,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const canPerformUpgrade = !!feature && !!policy && PolicyUtils.isPolicyAdmin(policy);
     const isUpgraded = React.useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
+    const perDiemCustomUnit = PolicyUtils.getPerDiemCustomUnit(policy);
+
     const goBack = useCallback(() => {
         if (!feature) {
             return;
@@ -71,11 +73,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 Policy.enableCompanyCards(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
-                PerDiem.enablePerDiem(policyID, true);
+                PerDiem.enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID);
                 break;
             default:
         }
-    }, [feature, policyID]);
+    }, [feature, perDiemCustomUnit?.customUnitID, policyID]);
 
     useEffect(() => {
         const unsubscribeListener = navigation.addListener('blur', () => {

@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import * as NumberUtils from '@libs/NumberUtils';
 import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -43,7 +44,23 @@ Onyx.connect({
     },
 });
 
-function enablePerDiem(policyID: string, enabled: boolean) {
+/**
+ * Returns a client generated 13 character hexadecimal value for a custom unit ID
+ */
+function generateCustomUnitID(): string {
+    return NumberUtils.generateHexadecimalValue(13);
+}
+
+function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string) {
+    const doesCustomUnitExists = !!customUnitID;
+    const finalCustomUnitID = doesCustomUnitExists ? customUnitID : generateCustomUnitID();
+    const optimisticCustomUnit = {
+        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+        customUnitID: finalCustomUnitID,
+        enabled: true,
+        defaultCategory: '',
+        rates: {},
+    };
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -54,6 +71,7 @@ function enablePerDiem(policyID: string, enabled: boolean) {
                     pendingFields: {
                         arePerDiemEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
+                    ...(doesCustomUnitExists ? {} : {customUnits: {[finalCustomUnitID]: optimisticCustomUnit}}),
                 },
             },
         ],
@@ -82,7 +100,7 @@ function enablePerDiem(policyID: string, enabled: boolean) {
         ],
     };
 
-    const parameters = {policyID, enabled};
+    const parameters = {policyID, enabled, customUnitID: finalCustomUnitID};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_PER_DIEM, parameters, onyxData);
 
