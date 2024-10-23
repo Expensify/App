@@ -2634,9 +2634,9 @@ const translations = {
             notImported: 'No importado',
             notConfigured: 'No configurado',
             trackingCategoriesOptions: {
-                default: 'Contacto de Xero por defecto',
-                tag: 'Etiquetas',
-                report_field: 'Campos de informes',
+                [CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.DEFAULT]: 'Contacto de Xero por defecto',
+                [CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.TAG]: 'Etiquetas',
+                [CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD]: 'Campos de informes',
             },
             exportDescription: 'Configura cómo se exportan los datos de Expensify a Xero.',
             purchaseBill: 'Factura de compra',

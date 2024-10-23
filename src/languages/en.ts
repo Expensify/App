@@ -2603,9 +2603,9 @@ const translations = {
             notImported: 'Not imported',
             notConfigured: 'Not configured',
             trackingCategoriesOptions: {
-                default: 'Xero contact default',
-                tag: 'Tags',
-                report_field: 'Report fields',
+                [CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.DEFAULT]: 'Xero contact default',
+                [CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.TAG]: 'Tags',
+                [CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD]: 'Report fields',
             },
             exportDescription: 'Configure how Expensify data exports to Xero.',
             purchaseBill: 'Purchase bill',
