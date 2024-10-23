@@ -16,7 +16,7 @@ import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
@@ -116,7 +116,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     return;
                 }
                 listRef.current?.updateAndScrollToFocusedIndex(0);
-                const queryJSON = SearchUtils.buildSearchQueryJSON(userQuery);
+                const queryJSON = SearchQueryUtils.buildSearchQueryJSON(userQuery);
 
                 if (queryJSON) {
                     setUserSearchQuery(queryJSON);
@@ -147,8 +147,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 return;
             }
             onRouterClose();
-            const standardizedQuery = SearchUtils.standardizeQueryJSON(query, cardList, taxRates);
-            const queryString = SearchUtils.buildSearchQueryString(standardizedQuery);
+            const standardizedQuery = SearchQueryUtils.standardizeQueryJSON(query, cardList, taxRates);
+            const queryString = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: queryString}));
             clearUserQuery();
         },
@@ -180,7 +180,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 isFullWidth={shouldUseNarrowLayout}
                 updateSearch={onSearchChange}
                 onSubmit={() => {
-                    onSearchSubmit(SearchUtils.buildSearchQueryJSON(textInputValue));
+                    onSearchSubmit(SearchQueryUtils.buildSearchQueryJSON(textInputValue));
                 }}
                 routerListRef={listRef}
                 shouldShowOfflineMessage
