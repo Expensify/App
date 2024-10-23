@@ -53,6 +53,7 @@ function SocialSecurityNumber({onNext, onMove, isEditing}: SubStepProps) {
             inputLabel={translate('personalInfoStep.last4SSN')}
             inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultSsnLast4}
+            maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
         />
     );
 }

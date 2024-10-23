@@ -52,6 +52,7 @@ function SocialSecurityNumberUBO({onNext, onMove, isEditing, beneficialOwnerBein
             inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultSsnLast4}
             shouldShowHelpLinks={false}
+            maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
         />
     );
 }

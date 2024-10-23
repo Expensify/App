@@ -43,6 +43,9 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
 
     /** Whether to show help links */
     shouldShowHelpLinks?: boolean;
+
+    /** Max length of the field */
+    maxLength?: number;
 };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -57,6 +60,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     defaultValue,
     isEditing,
     shouldShowHelpLinks = true,
+    maxLength,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -83,7 +87,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         containerStyles={[styles.mt6]}
                         inputMode={inputMode}
                         defaultValue={defaultValue}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+                        maxLength={maxLength}
                         shouldSaveDraft={!isEditing}
                     />
                 </View>
