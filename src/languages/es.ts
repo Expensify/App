@@ -2451,12 +2451,9 @@ const translations = {
                 'Crearemos una factura de proveedor desglosada para cada informe de Expensify y la añadiremos a la cuenta a continuación. Si este periodo está cerrado, lo contabilizaremos el 1º del siguiente periodo abierto.',
             deepDiveExpensifyCard: 'Las transacciones de la Tarjeta Expensify se exportarán automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con',
             deepDiveExpensifyCardIntegration: 'nuestra integración.',
-            outOfPocketLocationEnabledDescription:
-                'QuickBooks Desktop no permite lugares en facturas de proveedores o cheques. Como tienes activadas los lugares en tu espacio de trabajo, estas opciones de exportación no están disponibles.',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Desktop no admite impuestos en las exportaciones de asientos contables. Como tienes impuestos habilitados en tu espacio de trabajo, esta opción de exportación no está disponible.',
             outOfPocketTaxEnabledError: 'Los asientos contables no están disponibles cuando los impuestos están habilitados. Por favor, selecciona otra opción de exportación.',
-            outOfPocketLocationEnabledError: 'Las facturas de proveedores no están disponibles cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación.',
             accounts: {
                 [CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Tarjeta de crédito',
                 [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Factura del proveedor',
@@ -2525,10 +2522,10 @@ const translations = {
             classesDescription: 'Elige cómo gestionar las clases de QuickBooks Online en Expensify.',
             customersDescription: 'Elige cómo gestionar los clientes/proyectos de QuickBooks Online en Expensify.',
             locationsDescription: 'Elige cómo gestionar los lugares de QuickBooks Online en Expensify.',
+            locationsLineItemsRestrictionDescription:
+                'QuickBooks Online no admite ubicaciones a nivel de línea para cheques o facturas de proveedores. Si deseas tener ubicaciones a nivel de línea, asegúrate de estar usando asientos contables y gastos con tarjetas de crédito/débito.',
             taxesDescription: 'Elige cómo gestionar los impuestos de QuickBooks Online en Expensify.',
             taxesJournalEntrySwitchNote: 'QuickBooks Online no permite impuestos en los asientos contables. Por favor, cambia la opción de exportación a factura de proveedor o cheque.',
-            locationsAdditionalDescription:
-                'QuickBooks Online no permite lugares en facturas de proveedores o cheques. Como tienes activadas los lugares en tu espacio de trabajo, estas opciones de exportación no están disponibles.',
             exportInvoices: 'Exportar facturas a',
             exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Online.',
             date: 'Fecha de exportación',
@@ -2577,10 +2574,6 @@ const translations = {
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Online no permite impuestos en las exportaciones de entradas a los asientos contables. Como tienes los impuestos activados en tu espacio de trabajo, esta opción de exportación no está disponible.',
             outOfPocketTaxEnabledError: 'La anotacion en el diario no está disponible cuando los impuestos están activados. Por favor, selecciona otra opción de exportación diferente.',
-            outOfPocketLocationEnabledError:
-                'Las facturas de proveedores no están disponibles cuando las ubicaciones están activadas. Por favor, selecciona otra opción de exportación diferente.',
-            outOfPocketLocationEnabledDescription:
-                'QuickBooks Online no permite lugares en facturas de proveedores o cheques. Como tienes activadas los lugares en tu espacio de trabajo, estas opciones de exportación no están disponibles.',
 
             advancedConfig: {
                 autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Online todos los días.',
@@ -2643,6 +2636,7 @@ const translations = {
             trackingCategoriesOptions: {
                 default: 'Contacto de Xero por defecto',
                 tag: 'Etiquetas',
+                report_field: 'Campos de informes',
             },
             exportDescription: 'Configura cómo se exportan los datos de Expensify a Xero.',
             purchaseBill: 'Factura de compra',
