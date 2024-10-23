@@ -123,6 +123,20 @@ const runTests = async (): Promise<void> => {
         }
     };
 
+    const skippedTests: string[] = [];
+    const clearTestResults = (test: TestConfig) => {
+        skippedTests.push(test.name);
+
+        Object.keys(results).forEach((branch: string) => {
+            Object.keys(results[branch]).forEach((metric: string) => {
+                if (!metric.startsWith(test.name)) {
+                    return;
+                }
+                delete results[branch][metric];
+            });
+        });
+    };
+
     // Collect results while tests are being executed
     server.addTestResultListener((testResult) => {
         const {isCritical = true} = testResult;
@@ -244,88 +258,102 @@ const runTests = async (): Promise<void> => {
         server.setTestConfig(test as TestConfig);
         server.setReadyToAcceptTestResults(false);
 
-        const warmupText = `Warmup for test '${test?.name}' [${testIndex + 1}/${tests.length}]`;
+        try {
+            const warmupText = `Warmup for test '${test?.name}' [${testIndex + 1}/${tests.length}]`;
 
-        // For each warmup we allow the warmup to fail three times before we stop the warmup run:
-        const errorCountWarmupRef = {
-            errorCount: 0,
-            allowedExceptions: 3,
-        };
-
-        // by default we do 2 warmups:
-        // - first warmup to pass a login flow
-        // - second warmup to pass an actual flow and cache network requests
-        const iterations = 2;
-        for (let i = 0; i < iterations; i++) {
-            try {
-                // Warmup the main app:
-                await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}. Iteration ${i + 1}/${iterations}`, config.BRANCH_MAIN);
-
-                // Warmup the delta app:
-                await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}. Iteration ${i + 1}/${iterations}`, config.BRANCH_DELTA);
-            } catch (e) {
-                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                Logger.error(`Warmup failed with error: ${e}`);
-
-                errorCountWarmupRef.errorCount++;
-                i--; // repeat warmup again
-
-                if (errorCountWarmupRef.errorCount === errorCountWarmupRef.allowedExceptions) {
-                    Logger.error("There was an error running the warmup and we've reached the maximum number of allowed exceptions. Stopping the test run.");
-                    throw e;
-                }
-            }
-        }
-
-        server.setReadyToAcceptTestResults(true);
-
-        // For each test case we allow the test to fail three times before we stop the test run:
-        const errorCountRef = {
-            errorCount: 0,
-            allowedExceptions: 3,
-        };
-
-        // We run each test multiple time to average out the results
-        for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
-            const onError = (e: Error) => {
-                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                Logger.error(`Unexpected error during test execution: ${e}. `);
-                MeasureUtils.stop('error');
-                server.clearAllTestDoneListeners();
-                errorCountRef.errorCount += 1;
-                if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
-                    Logger.error("There was an error running the test and we've reached the maximum number of allowed exceptions. Stopping the test run.");
-                    // If the error happened on the first test run, the test is broken
-                    // and we should not continue running it. Or if we have reached the
-                    // maximum number of allowed exceptions, we should stop the test run.
-                    throw e;
-                }
-                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                Logger.warn(`There was an error running the test. Continuing the test run. Error: ${e}`);
+            // For each warmup we allow the warmup to fail three times before we stop the warmup run:
+            const errorCountWarmupRef = {
+                errorCount: 0,
+                allowedExceptions: 3,
             };
 
-            const launchArgs = {
-                mockNetwork: true,
+            // by default we do 2 warmups:
+            // - first warmup to pass a login flow
+            // - second warmup to pass an actual flow and cache network requests
+            const iterations = 2;
+            for (let i = 0; i < iterations; i++) {
+                try {
+                    // Warmup the main app:
+                    await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}. Iteration ${i + 1}/${iterations}`, config.BRANCH_MAIN);
+
+                    // Warmup the delta app:
+                    await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}. Iteration ${i + 1}/${iterations}`, config.BRANCH_DELTA);
+                } catch (e) {
+                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                    Logger.error(`Warmup failed with error: ${e}`);
+
+                    MeasureUtils.stop('error-warmup');
+                    server.clearAllTestDoneListeners();
+
+                    errorCountWarmupRef.errorCount++;
+                    i--; // repeat warmup again
+
+                    if (errorCountWarmupRef.errorCount === errorCountWarmupRef.allowedExceptions) {
+                        Logger.error("There was an error running the warmup and we've reached the maximum number of allowed exceptions. Stopping the test run.");
+                        throw e;
+                    }
+                }
+            }
+
+            server.setReadyToAcceptTestResults(true);
+
+            // For each test case we allow the test to fail three times before we stop the test run:
+            const errorCountRef = {
+                errorCount: 0,
+                allowedExceptions: 3,
             };
 
-            const iterationText = `Test '${test?.name}' [${testIndex + 1}/${tests.length}], iteration [${testIteration + 1}/${config.RUNS}]`;
-            const mainIterationText = `[MAIN] ${iterationText}`;
-            const deltaIterationText = `[DELTA] ${iterationText}`;
-            try {
-                // Run the test on the main app:
-                await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, config.BRANCH_MAIN, launchArgs);
+            // We run each test multiple time to average out the results
+            for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
+                const onError = (e: Error) => {
+                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                    Logger.error(`Unexpected error during test execution: ${e}. `);
+                    MeasureUtils.stop('error');
+                    server.clearAllTestDoneListeners();
+                    errorCountRef.errorCount += 1;
+                    if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
+                        Logger.error("There was an error running the test and we've reached the maximum number of allowed exceptions. Stopping the test run.");
+                        // If the error happened on the first test run, the test is broken
+                        // and we should not continue running it. Or if we have reached the
+                        // maximum number of allowed exceptions, we should stop the test run.
+                        throw e;
+                    }
+                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                    Logger.warn(`There was an error running the test. Continuing the test run. Error: ${e}`);
+                };
 
-                // Run the test on the delta app:
-                await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, config.BRANCH_DELTA, launchArgs);
-            } catch (e) {
-                onError(e as Error);
+                const launchArgs = {
+                    mockNetwork: true,
+                };
+
+                const iterationText = `Test '${test?.name}' [${testIndex + 1}/${tests.length}], iteration [${testIteration + 1}/${config.RUNS}]`;
+                const mainIterationText = `[MAIN] ${iterationText}`;
+                const deltaIterationText = `[DELTA] ${iterationText}`;
+                try {
+                    // Run the test on the main app:
+                    await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, config.BRANCH_MAIN, launchArgs);
+
+                    // Run the test on the delta app:
+                    await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, config.BRANCH_DELTA, launchArgs);
+                } catch (e) {
+                    onError(e as Error);
+                }
             }
+        } catch (exception) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            Logger.warn(`Test ${test?.name} can not be finished due to error: ${exception}`);
+            clearTestResults(test as TestConfig);
         }
     }
 
     // Calculate statistics and write them to our work file
     Logger.info('Calculating statics and writing results');
-    compare(results.main, results.delta, `${config.OUTPUT_DIR}/output.md`, 'all', metricForTest);
+    compare(results.main, results.delta, {
+        outputFile: `${config.OUTPUT_DIR}/output.md`,
+        outputFormat: 'all',
+        metricForTest,
+        skippedTests,
+    });
 
     await server.stop();
 };

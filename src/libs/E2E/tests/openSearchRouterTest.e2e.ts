@@ -1,15 +1,19 @@
+import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
 import * as E2EGenericPressableWrapper from '@components/Pressable/GenericPressable/index.e2e';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
+import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import getPromiseWithResolve from '@libs/E2E/utils/getPromiseWithResolve';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 
-const test = () => {
+const test = (config: NativeConfig) => {
     // check for login (if already logged in the action will simply resolve)
     console.debug('[E2E] Logging in for new search router');
+
+    const name = getConfigValueOrThrow('name', config);
 
     E2ELogin().then((neededLogin: boolean): Promise<Response> | undefined => {
         if (neededLogin) {
@@ -59,7 +63,7 @@ const test = () => {
             if (entry.name === CONST.TIMING.SEARCH_ROUTER_RENDER) {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
-                    name: 'Open Search Router TTI',
+                    name: `${name} Open Search Router TTI`,
                     metric: entry.duration,
                     unit: 'ms',
                 })
@@ -75,7 +79,7 @@ const test = () => {
             if (entry.name === CONST.TIMING.LOAD_SEARCH_OPTIONS) {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
-                    name: 'Load Search Options',
+                    name: `${name} Load Search Options`,
                     metric: entry.duration,
                     unit: 'ms',
                 })
