@@ -3330,7 +3330,7 @@ function completeOnboarding(
     companySize?: OnboardingCompanySizeType,
     userReportedIntegration?: OnboardingAccountingType,
 ) {
-    const accountingName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
+    const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
     const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
@@ -3365,62 +3365,60 @@ function completeOnboarding(
         };
     }
 
-    let tasksData = data.tasks.map((task, index) => {
-        const taskDescription =
-            typeof task.description === 'function'
-                ? task.description({
-                      adminsRoomLink: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '-1')}`,
-                      workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID ?? '-1')}`,
-                      workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID ?? '-1')}`,
-                      workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID ?? '-1')}`,
-                      accountingName,
-                      accountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID ?? '-1')}`,
-                  })
-                : task.description;
-        const taskTitle =
-            typeof task.title === 'function'
-                ? task.title({
-                      accountingName,
-                  })
-                : task.title;
-        const currentTask = ReportUtils.buildOptimisticTaskReport(
-            actorAccountID,
-            currentUserAccountID,
-            targetChatReportID,
-            taskTitle,
-            taskDescription,
-            targetChatPolicyID,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-        );
-        const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.EMAIL.CONCIERGE);
-        const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
-            currentTask.reportID,
-            taskTitle,
-            0,
-            `task for ${taskTitle}`,
-            targetChatReportID,
-            actorAccountID,
-            index + 3,
-        );
-        currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
+    const tasksData = data.tasks
+        .filter((task) => !!userReportedIntegration || task.type !== 'addAccountingIntegration')
+        .map((task, index) => {
+            const taskDescription =
+                typeof task.description === 'function'
+                    ? task.description({
+                          adminsRoomLink: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '-1')}`,
+                          workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID ?? '-1')}`,
+                          workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID ?? '-1')}`,
+                          workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID ?? '-1')}`,
+                          integrationName,
+                          workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID ?? '-1')}`,
+                      })
+                    : task.description;
+            const taskTitle =
+                typeof task.title === 'function'
+                    ? task.title({
+                          integrationName,
+                      })
+                    : task.title;
+            const currentTask = ReportUtils.buildOptimisticTaskReport(
+                actorAccountID,
+                currentUserAccountID,
+                targetChatReportID,
+                taskTitle,
+                taskDescription,
+                targetChatPolicyID,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            );
+            const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.EMAIL.CONCIERGE);
+            const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
+                currentTask.reportID,
+                taskTitle,
+                0,
+                `task for ${taskTitle}`,
+                targetChatReportID,
+                actorAccountID,
+                index + 3,
+            );
+            currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
 
-        const completedTaskReportAction = task.autoCompleted
-            ? ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
-            : null;
+            const completedTaskReportAction = task.autoCompleted
+                ? ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
+                : null;
 
-        return {
-            task,
-            currentTask,
-            taskCreatedAction,
-            taskReportAction,
-            taskDescription: currentTask.description,
-            completedTaskReportAction,
-        };
-    });
-
-    if (!userReportedIntegration) {
-        tasksData = tasksData.filter((tasksDataItem) => tasksDataItem.task.type !== 'addAccountingIntegration');
-    }
+            return {
+                task,
+                currentTask,
+                taskCreatedAction,
+                taskReportAction,
+                taskDescription: currentTask.description,
+                completedTaskReportAction,
+            };
+        });
 
     const tasksForParameters = tasksData.map<TaskForParameters>(({task, currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => ({
         type: 'task',

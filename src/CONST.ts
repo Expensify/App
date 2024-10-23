@@ -131,7 +131,7 @@ type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 type OnboardingCompanySizeType = ValueOf<typeof onboardingCompanySize>;
 
-type OnboardingAccountingType = ValueOf<typeof connectNames> | null;
+type OnboardingAccountingType = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -147,13 +147,6 @@ const onboardingCompanySize = {
     LARGE: '1001+',
 } as const;
 
-const connectNames = {
-    QBO: 'quickbooksOnline',
-    XERO: 'xero',
-    NETSUITE: 'netsuite',
-    SAGE_INTACCT: 'intacct',
-} as const;
-
 type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
 
 type OnboardingTaskType = {
@@ -163,7 +156,7 @@ type OnboardingTaskType = {
         | string
         | ((
               params: Partial<{
-                  accountingName: string;
+                  integrationName: string;
               }>,
           ) => string);
     description:
@@ -174,8 +167,8 @@ type OnboardingTaskType = {
                   workspaceCategoriesLink: string;
                   workspaceMoreFeaturesLink: string;
                   workspaceMembersLink: string;
-                  accountingName: string;
-                  accountingLink: string;
+                  integrationName: string;
+                  workspaceAccountingLink: string;
               }>,
           ) => string);
 };
@@ -4672,10 +4665,11 @@ const CONST = {
             "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
     },
     ONBOARDING_ACCOUNTING_MAPPING: {
-        [connectNames.QBO]: 'QuickBooks Online',
-        [connectNames.XERO]: 'Xero',
-        [connectNames.NETSUITE]: 'NetSuite',
-        [connectNames.SAGE_INTACCT]: 'Sage Intacct',
+        quickbooksOnline: 'QuickBooks Online',
+        xero: 'Xero',
+        netsuite: 'NetSuite',
+        intacct: 'Sage Intacct',
+        quickbooksDesktop: 'QuickBooks Desktop',
     },
     ONBOARDING_MESSAGES: {
         [onboardingChoices.EMPLOYER]: onboardingEmployerOrSubmitMessage,
@@ -4791,20 +4785,20 @@ const CONST = {
                 {
                     type: 'addAccountingIntegration',
                     autoCompleted: false,
-                    title: ({accountingName}) => `Connect to ${accountingName}`,
-                    description: ({accountingName, accountingLink}) =>
-                        `Connect to ${accountingName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
+                    title: ({integrationName}) => `Connect to ${integrationName}`,
+                    description: ({integrationName, workspaceAccountingLink}) =>
+                        `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                         '\n' +
-                        `Here’s how to connect to ${accountingName}:\n` +
+                        `Here’s how to connect to ${integrationName}:\n` +
                         '\n' +
                         '1. Click your profile photo.\n' +
                         '2. Go to Workspaces.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click Accounting.\n' +
-                        `5. Find ${accountingName}.\n` +
+                        `5. Find ${integrationName}.\n` +
                         '6. Click Connect.\n' +
                         '\n' +
-                        `[Take me to Accounting!](${accountingLink})`,
+                        `[Take me to Accounting!](${workspaceAccountingLink})`,
                 },
             ],
         },
