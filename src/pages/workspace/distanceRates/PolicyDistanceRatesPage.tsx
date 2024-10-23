@@ -193,12 +193,6 @@ function PolicyDistanceRatesPage({
         }
     };
 
-    // const getCustomListHeader = () => (
-    //     <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, !canSelectMultiple && styles.m5]}>
-    //         <Text style={styles.searchInputStyle}>{translate('workspace.distanceRates.rate')}</Text>
-    //         <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
-    //     </View>
-    // );
     const getCustomListHeader = () => {
         const header = (
             <View
