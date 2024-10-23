@@ -130,9 +130,15 @@ type Person = {
     text?: string;
 };
 
+/** Model of data required for hold */
 type HoldData = {
+    /** Is currently held */
     isOnHold?: boolean;
+
+    /** ID of held transaction */
     transactionID?: string;
+
+    /** ID of held report */
     reportID?: string;
 };
 
@@ -219,6 +225,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Amount of money requests */
     childMoneyRequestCount?: number;
 
+    /** Hold data tied to report action */
     childHoldData?: HoldData;
 
     /** Whether the report action is the first one */
