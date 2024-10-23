@@ -684,11 +684,13 @@ function buildFilterFormValuesFromQuery(
     taxRates: Record<string, string[]>,
 ) {
     const filters = queryJSON.flatFilters;
+    console.log(filters);
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
     const policyID = queryJSON.policyID;
     for (const queryFilter of filters) {
         const filterKey = queryFilter.key;
         const filterList = queryFilter.filters;
+        console.log(filterKey, filterList);
         const filterValues = filterList.map((item) => item.value.toString());
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
             filtersForm[filterKey] = filterValues.at(0);
@@ -746,17 +748,19 @@ function buildFilterFormValuesFromQuery(
                 .join(' ');
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
-            filtersForm[FILTER_KEYS.DATE_BEFORE] = filterList.find((filter) => filter.operator === 'lt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString();
-            filtersForm[FILTER_KEYS.DATE_AFTER] = filterList.find((filter) => filter.operator === 'gt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString();
+            filtersForm[FILTER_KEYS.DATE_BEFORE] =
+                filterList.find((filter) => filter.operator === 'lt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[FILTER_KEYS.DATE_BEFORE];
+            filtersForm[FILTER_KEYS.DATE_AFTER] =
+                filterList.find((filter) => filter.operator === 'gt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[FILTER_KEYS.DATE_AFTER];
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-            // backend amount is an integer and is 2 digit longer than frontend amount
-            filtersForm[FILTER_KEYS.LESS_THAN] = filterList
-                .find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
-                ?.value.toString();
-            filtersForm[FILTER_KEYS.GREATER_THAN] = filterList
-                .find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
-                ?.value.toString();
+            // backend amount is an integer and is 2 digits longer than frontend amount
+            filtersForm[FILTER_KEYS.LESS_THAN] =
+                filterList.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
+                filtersForm[FILTER_KEYS.LESS_THAN];
+            filtersForm[FILTER_KEYS.GREATER_THAN] =
+                filterList.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
+                filtersForm[FILTER_KEYS.GREATER_THAN];
         }
     }
 
