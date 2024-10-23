@@ -2,14 +2,14 @@ import React, {useContext, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import AttachmentView from '@components/Attachments/AttachmentView';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
+import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Text from '@components/Text';
 import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 import CONST from '@src/CONST';
 

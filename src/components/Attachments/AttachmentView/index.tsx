@@ -124,7 +124,7 @@ function AttachmentView({
 
     const [imageError, setImageError] = useState(false);
 
-    useNetwork({onReconnect: () => setImageError(false)});
+    const {isOffline} = useNetwork({onReconnect: () => setImageError(false)});
 
     useEffect(() => {
         FileUtils.getFileResolution(file).then((resolution) => {
@@ -228,7 +228,7 @@ function AttachmentView({
                         src={fallbackSource}
                         width={variables.iconSizeSuperLarge}
                         height={variables.iconSizeSuperLarge}
-                        fill={theme.border}
+                        fill={theme.icon}       
                     />
                     <View>
                         <Text style={[styles.notFoundTextHeader]}>{translate('attachmentView.attachmentNotFound')}</Text>
@@ -270,7 +270,7 @@ function AttachmentView({
                         isImage={isFileImage}
                         onPress={onPress}
                         onError={() => {
-                            setImageError(true);
+                            if (!isOffline) setImageError(true);
                         }}
                     />
                 </View>

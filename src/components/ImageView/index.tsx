@@ -197,7 +197,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         };
     }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
 
-    const isLocalFile = FileUtils.isLocalFile(url);
+    const isOfflineFile = FileUtils.isOfflineFile(url) ;
 
     if (canUseTouchScreen) {
         return (
@@ -237,8 +237,8 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 />
             </PressableWithoutFeedback>
 
-            {isLoading && (!isOffline || isLocalFile) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-            {isLoading && !isLocalFile && <AttachmentOfflineIndicator />}
+            {isLoading && (!isOffline || isOfflineFile) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {isLoading && !isOfflineFile && <AttachmentOfflineIndicator />}
         </View>
     );
 }
