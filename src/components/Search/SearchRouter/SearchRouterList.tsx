@@ -16,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -58,6 +58,10 @@ const setPerformanceTimersEnd = () => {
     Timing.end(CONST.TIMING.SEARCH_ROUTER_RENDER);
     Performance.markEnd(CONST.TIMING.SEARCH_ROUTER_RENDER);
 };
+
+function getContextualSearchQuery(reportID: string) {
+    return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${CONST.SEARCH.DATA_TYPES.CHAT} in:${reportID}`;
+}
 
 function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
     if ('singleIcon' in item && item.singleIcon && 'query' in item && item.query) {
@@ -124,7 +128,7 @@ function SearchRouterList(
                 {
                     text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
                     singleIcon: Expensicons.MagnifyingGlass,
-                    query: SearchUtils.getContextualSuggestionQuery(reportForContextualSearch.reportID),
+                    query: getContextualSearchQuery(reportForContextualSearch.reportID),
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
                     isContextualSearchItem: true,
@@ -147,9 +151,9 @@ function SearchRouterList(
     }
 
     const recentSearchesData = recentSearches?.map(({query, timestamp}) => {
-        const searchQueryJSON = SearchUtils.buildSearchQueryJSON(query);
+        const searchQueryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? SearchUtils.getSearchHeaderTitle(searchQueryJSON, personalDetails, cardList, reports, taxRates) : query,
+            text: searchQueryJSON ? SearchQueryUtils.buildUserReadableQueryString(searchQueryJSON, personalDetails, cardList, reports, taxRates) : query,
             singleIcon: Expensicons.History,
             query,
             keyForList: timestamp,
@@ -176,7 +180,7 @@ function SearchRouterList(
                 if (!item?.query) {
                     return;
                 }
-                onSearchSubmit(SearchUtils.buildSearchQueryJSON(item?.query));
+                onSearchSubmit(SearchQueryUtils.buildSearchQueryJSON(item?.query));
             }
 
             // Handle selection of "Recent chat"
