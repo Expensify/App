@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,7 +47,7 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
         });
 
         return items;
-    }, [qboConfig?.syncLocations, qboConfig?.reimbursableExpensesExportDestination, translate]);
+    }, [qboConfig?.syncLocations, qboConfig?.reimbursableExpensesExportDestination, qboConfig?.nonReimbursableExpensesExportDestination, translate]);
 
     const selectDisplayedAs = useCallback(
         (row: CardListItem) => {
