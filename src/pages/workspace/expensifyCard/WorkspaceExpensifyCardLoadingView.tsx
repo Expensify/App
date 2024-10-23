@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -10,10 +11,17 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
-function WorkspaceExpensifyCardLoadingView() {
+type WorkspaceExpensifyCardLoadingViewProps = {
+    policyID: string;
+};
+
+function WorkspaceExpensifyCardLoadingView({policyID}: WorkspaceExpensifyCardLoadingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
 
     return (
         <>
@@ -43,7 +51,7 @@ function WorkspaceExpensifyCardLoadingView() {
                         text={'Got it'}
                         style={styles.mt6}
                         pressOnEnter
-                        onPress={() => {}}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID))}
                     />
                 </FixedFooter>
             </FullPageOfflineBlockingView>

@@ -89,8 +89,8 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
-                {!shouldShowLoadingView ? (
-                    <WorkspaceExpensifyCardLoadingView />
+                {shouldShowLoadingView ? (
+                    <WorkspaceExpensifyCardLoadingView policyID={policyID} />
                 ) : (
                     <>
                         <HeaderWithBackButton
