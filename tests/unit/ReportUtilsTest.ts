@@ -295,7 +295,7 @@ describe('ReportUtils', () => {
     });
 
     describe('Automatically approved report message via automatic (not by a human) action is', () => {
-        test('Automatically Approved Report message when report is approved and forwarded (Control feature)', () => {
+        test('Automatically Approved Report message when report is forwarded (Control feature)', () => {
             const threadOfSubmittedReportAction = {
                 ...LHNTestUtils.getFakeReport(),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -306,6 +306,27 @@ describe('ReportUtils', () => {
             };
             const submittedParentReportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                originalMessage: {
+                    amount: 169,
+                    currency: 'USD',
+                    automaticAction: true,
+                },
+            } as ReportAction;
+
+            expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('automatically approved $1.69 via workspace rules');
+        });
+
+        test('Automatically Approved Report message when report is approved', () => {
+            const threadOfSubmittedReportAction = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                parentReportID: '101',
+                policyID: policy.id,
+            };
+            const submittedParentReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
                 originalMessage: {
                     amount: 169,
                     currency: 'USD',
