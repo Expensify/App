@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,7 +19,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {GetPhysicalCardForm} from '@src/types/form';
-import type {CardList, LoginList, PrivatePersonalDetails, Session} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -31,24 +30,7 @@ type RenderContentProps = ChildrenProps & {
     onValidate: OnValidate;
 };
 
-type BaseGetPhysicalCardOnyxProps = {
-    /** List of available assigned cards */
-    cardList: OnyxEntry<CardList>;
-
-    /** User's private personal details */
-    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
-
-    /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<GetPhysicalCardForm>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-
-    /** List of available login methods */
-    loginList: OnyxEntry<LoginList>;
-};
-
-type BaseGetPhysicalCardProps = BaseGetPhysicalCardOnyxProps & {
+type BaseGetPhysicalCardProps = {
     /** Text displayed below page title */
     headline: string;
 
@@ -94,17 +76,12 @@ function DefaultRenderContent({onSubmit, submitButtonText, children, onValidate}
 }
 
 function BaseGetPhysicalCard({
-    cardList,
     children,
     currentRoute,
     domain,
-    draftValues,
-    privatePersonalDetails,
     headline,
     isConfirmation = false,
-    loginList,
     renderContent = DefaultRenderContent,
-    session,
     submitButtonText,
     title,
     onValidate = () => ({}),
@@ -112,6 +89,11 @@ function BaseGetPhysicalCard({
     const styles = useThemeStyles();
     const isRouteSet = useRef(false);
     const {translate} = useLocalize();
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isActionCodeModalVisible, setActionCodeModalVisible] = useState(false);
     const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
@@ -209,22 +191,6 @@ function BaseGetPhysicalCard({
 
 BaseGetPhysicalCard.displayName = 'BaseGetPhysicalCard';
 
-export default withOnyx<BaseGetPhysicalCardProps, BaseGetPhysicalCardOnyxProps>({
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    loginList: {
-        key: ONYXKEYS.LOGIN_LIST,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-    draftValues: {
-        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
-    },
-})(BaseGetPhysicalCard);
+export default BaseGetPhysicalCard;
 
 export type {RenderContentProps};
