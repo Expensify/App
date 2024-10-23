@@ -8024,14 +8024,13 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
     if (iouReport && iouReport.currency === transaction?.currency) {
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const coefficient = isExpenseReport ? -1 : 1;
+        const transactionAmount = TransactionUtils.getAmount(transaction, isExpenseReport) * coefficient;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
-                unheldTotal: (iouReport.unheldTotal ?? 0) - TransactionUtils.getAmount(transaction, isExpenseReport) * coefficient,
-                unheldNonReimbursableTotal: !transaction?.reimbursable
-                    ? (iouReport.unheldNonReimbursableTotal ?? 0) - TransactionUtils.getAmount(transaction, isExpenseReport) * coefficient
-                    : iouReport.unheldNonReimbursableTotal,
+                unheldTotal: (iouReport.unheldTotal ?? 0) - transactionAmount,
+                unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) - transactionAmount : iouReport.unheldNonReimbursableTotal,
             },
         });
     }
@@ -8144,14 +8143,13 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
     if (iouReport && iouReport.currency === transaction?.currency) {
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const coefficient = isExpenseReport ? -1 : 1;
+        const transactionAmount = TransactionUtils.getAmount(transaction, isExpenseReport) * coefficient;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
-                unheldTotal: (iouReport.unheldTotal ?? 0) + TransactionUtils.getAmount(transaction, isExpenseReport) * coefficient,
-                unheldNonReimbursableTotal: !transaction?.reimbursable
-                    ? (iouReport.unheldNonReimbursableTotal ?? 0) + TransactionUtils.getAmount(transaction, isExpenseReport) * coefficient
-                    : iouReport.unheldNonReimbursableTotal,
+                unheldTotal: (iouReport.unheldTotal ?? 0) + transactionAmount,
+                unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) + transactionAmount : iouReport.unheldNonReimbursableTotal,
             },
         });
     }
