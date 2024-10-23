@@ -319,11 +319,7 @@ function resetContactMethodValidateCodeSentState(contactMethod: string) {
  * Clears unvalidated new contact method action
  */
 function clearUnvalidatedNewContactMethodAction() {
-    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
-        validateCodeSent: null,
-        pendingFields: null,
-        errorFields: null,
-    });
+    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, null);
 }
 
 /**
@@ -418,7 +414,6 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
                 [contactMethod]: {
                     partnerUserID: contactMethod,
                     validatedDate: '',
-                    validateCodeSent: true,
                     errorFields: {
                         addedLogin: null,
                     },
@@ -451,6 +446,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
                 validateCodeSent: null,
+                actionVerified: true,
                 errorFields: {
                     actionVerified: null,
                 },
