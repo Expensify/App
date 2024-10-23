@@ -6,7 +6,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {FileObject} from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
