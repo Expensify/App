@@ -2265,6 +2265,10 @@ const translations = {
     countryStep: {
         confirmBusinessBank: 'Confirmar moneda y país de la cuenta bancaria comercial',
         confirmCurrency: 'Confirmar moneda y país',
+        yourBusiness: 'La moneda de su cuenta bancaria comercial debe coincidir con la moneda de su espacio de trabajo.',
+        youCanChange: 'Puede cambiar la moneda de su espacio de trabajo en su',
+        findCountry: 'Encontrar país',
+        selectCountry: 'Seleccione su país',
     },
     signerInfoStep: {
         signerInfo: 'Información del firmante',
