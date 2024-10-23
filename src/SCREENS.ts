@@ -175,6 +175,7 @@ const SCREENS = {
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',
+        SETTINGS_TAGS: 'SettingsTags',
         EXPENSIFY_CARD: 'ExpensifyCard',
         DOMAIN_CARD: 'DomainCard',
         RESTRICTED_ACTION: 'RestrictedAction',
@@ -244,6 +245,10 @@ const SCREENS = {
         SETTINGS_CATEGORY_CREATE: 'Settings_Category_Create',
         SETTINGS_CATEGORY_EDIT: 'Settings_Category_Edit',
         SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
+        SETTINGS_CATEGORIES_IMPORT: 'Settings_Categories_Import',
+        SETTINGS_CATEGORIES_IMPORTED: 'Settings_Categories_Imported',
+        SETTINGS_CATEGORY_PAYROLL_CODE: 'Settings_Category_Payroll_Code',
+        SETTINGS_CATEGORY_GL_CODE: 'Settings_Category_GL_Code',
     },
     EXPENSIFY_CARD: {
         EXPENSIFY_CARD_DETAILS: 'Expensify_Card_Details',
@@ -256,7 +261,19 @@ const SCREENS = {
         DOMAIN_CARD_REPORT_FRAUD: 'Domain_Card_Report_Fraud',
     },
 
-    SETTINGS_TAGS_ROOT: 'Settings_Tags',
+    SETTINGS_TAGS: {
+        SETTINGS_TAGS_ROOT: 'Settings_Tags',
+        SETTINGS_TAGS_SETTINGS: 'Settings_Tags_Settings',
+        SETTINGS_TAGS_EDIT: 'Settings_Tags_Edit',
+        SETTINGS_TAG_CREATE: 'Settings_Tag_Create',
+        SETTINGS_TAG_EDIT: 'Settings_Tag_Edit',
+        SETTINGS_TAG_SETTINGS: 'Settings_Tag_Settings',
+        SETTINGS_TAG_APPROVER: 'Settings_Tag_Approver',
+        SETTINGS_TAG_LIST_VIEW: 'Settings_Tag_List_View',
+        SETTINGS_TAG_GL_CODE: 'Settings_Tag_GL_Code',
+        SETTINGS_TAGS_IMPORT: 'Settings_Tags_Import',
+        SETTINGS_TAGS_IMPORTED: 'Settings_Tags_Imported',
+    },
 
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
