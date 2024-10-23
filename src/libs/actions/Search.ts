@@ -52,7 +52,7 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
 }
 
 function saveSearch({queryJSON, newName}: {queryJSON: SearchQueryJSON; newName?: string}) {
-    const saveSearchName = newName?.trim() || queryJSON?.inputQuery || '';
+    const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
     const jsonQuery = JSON.stringify(queryJSON);
 
     const optimisticData: OnyxUpdate[] = [
