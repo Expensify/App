@@ -1139,7 +1139,7 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
         return;
     }
 
-    const distanceUnit = PolicyUtils.getCustomUnit(policy);
+    const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID;
     const currency = currencyValue ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
