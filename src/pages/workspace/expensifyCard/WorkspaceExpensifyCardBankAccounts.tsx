@@ -2,12 +2,9 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import * as Expensicons from '@components/Icon/Expensicons';
-import Lottie from '@components/Lottie';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -19,6 +16,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import WorkspaceExpensifyCardLoadingView from '@pages/workspace/expensifyCard/WorkspaceExpensifyCardLoadingView';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +38,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
-    const isLoading = cardSettings?.isLoading;
+    const shouldShowLoadingView = cardSettings?.isLoading;
 
     const handleAddBankAccount = () => {
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
@@ -91,37 +89,25 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
-                <HeaderWithBackButton
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    title={translate(isLoading ? 'workspace.expensifyCard.verifyingHeader' : 'workspace.expensifyCard.chooseBankAccount')}
-                />
-                {isLoading ? (
-                    <FullPageOfflineBlockingView>
-                        <View style={[styles.pageWrapper, styles.flex1, styles.justifyContentCenter, styles.mb15]}>
-                            <Lottie
-                                source={LottieAnimations.ReviewingBankInfo}
-                                autoPlay
-                                loop
-                                style={styles.loadingVBAAnimation}
-                                webStyle={styles.loadingVBAAnimationWeb}
-                            />
-                            <View style={styles.ph5}>
-                                <Text style={[styles.textAlignCenter, styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('workspace.expensifyCard.verifyingBankAccount')}</Text>
-                                <Text style={[styles.textAlignCenter, styles.textLabelSupporting]}>{translate('workspace.expensifyCard.verifyingBankAccountDescription')}</Text>
-                            </View>
-                        </View>
-                    </FullPageOfflineBlockingView>
+                {!shouldShowLoadingView ? (
+                    <WorkspaceExpensifyCardLoadingView />
                 ) : (
-                    <View style={styles.flex1}>
-                        <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
-                        {renderBankOptions()}
-                        <MenuItem
-                            icon={Expensicons.Plus}
-                            title={translate('workspace.expensifyCard.addNewBankAccount')}
-                            onPress={handleAddBankAccount}
+                    <>
+                        <HeaderWithBackButton
+                            shouldShowBackButton
+                            onBackButtonPress={() => Navigation.goBack()}
+                            title={translate('workspace.expensifyCard.chooseBankAccount')}
                         />
-                    </View>
+                        <View style={styles.flex1}>
+                            <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
+                            {renderBankOptions()}
+                            <MenuItem
+                                icon={Expensicons.Plus}
+                                title={translate('workspace.expensifyCard.addNewBankAccount')}
+                                onPress={handleAddBankAccount}
+                            />
+                        </View>
+                    </>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
