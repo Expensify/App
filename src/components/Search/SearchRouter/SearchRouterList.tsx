@@ -16,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -32,7 +32,7 @@ type SearchRouterListProps = {
     currentQuery: SearchQueryJSON | undefined;
 
     /** Recent searches */
-    recentSearches: ItemWithQuery[] | undefined;
+    recentSearches: Array<ItemWithQuery & {timestamp: string}> | undefined;
 
     /** Recent reports */
     recentReports: OptionData[];
@@ -54,6 +54,10 @@ const setPerformanceTimersEnd = () => {
     Timing.end(CONST.TIMING.SEARCH_ROUTER_RENDER);
     Performance.markEnd(CONST.TIMING.SEARCH_ROUTER_RENDER);
 };
+
+function getContextualSearchQuery(reportID: string) {
+    return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${CONST.SEARCH.DATA_TYPES.CHAT} in:${reportID}`;
+}
 
 function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
     if ('singleIcon' in item && item.singleIcon && 'query' in item && item.query) {
@@ -92,7 +96,7 @@ function SearchRouterList(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -120,7 +124,7 @@ function SearchRouterList(
                 {
                     text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
                     singleIcon: Expensicons.MagnifyingGlass,
-                    query: SearchUtils.getContextualSuggestionQuery(reportForContextualSearch.reportID),
+                    query: getContextualSearchQuery(reportForContextualSearch.reportID),
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
                     isContextualSearchItem: true,
@@ -129,13 +133,13 @@ function SearchRouterList(
         });
     }
 
-    const recentSearchesData = recentSearches?.map(({query}) => {
-        const searchQueryJSON = SearchUtils.buildSearchQueryJSON(query);
+    const recentSearchesData = recentSearches?.map(({query, timestamp}) => {
+        const searchQueryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? SearchUtils.getSearchHeaderTitle(searchQueryJSON, personalDetails, cardList, reports, taxRates) : query,
+            text: searchQueryJSON ? SearchQueryUtils.buildUserReadableQueryString(searchQueryJSON, personalDetails, cardList, reports, taxRates) : query,
             singleIcon: Expensicons.History,
             query,
-            keyForList: query,
+            keyForList: timestamp,
         };
     });
 
@@ -159,7 +163,7 @@ function SearchRouterList(
                 if (!item?.query) {
                     return;
                 }
-                onSearchSubmit(SearchUtils.buildSearchQueryJSON(item?.query));
+                onSearchSubmit(SearchQueryUtils.buildSearchQueryJSON(item?.query));
             }
 
             // Handle selection of "Recent chat"
@@ -179,11 +183,11 @@ function SearchRouterList(
             onSelectRow={onSelectRow}
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
-            sectionListStyle={[isSmallScreenWidth ? styles.ph5 : styles.ph2, styles.pb2]}
+            sectionListStyle={[shouldUseNarrowLayout ? styles.ph5 : styles.ph2, styles.pb2]}
             listItemWrapperStyle={[styles.pr3, styles.pl3]}
             onLayout={setPerformanceTimersEnd}
             ref={ref}
-            showScrollIndicator={!isSmallScreenWidth}
+            showScrollIndicator={!shouldUseNarrowLayout}
             sectionTitleStyles={styles.mhn2}
             shouldSingleExecuteRowSelect
         />
