@@ -131,7 +131,7 @@ function UploadFile({
                         fill={theme.icon}
                         medium
                     />
-                    <Text style={[styles.ml4, styles.mr3, styles.textBold]}>{file.name}</Text>
+                    <Text style={[styles.ml2, styles.mr2, styles.textBold]}>{file.name}</Text>
                     <PressableWithFeedback
                         onPress={() => onRemove(file?.uri ?? '')}
                         role={CONST.ROLE.BUTTON}
