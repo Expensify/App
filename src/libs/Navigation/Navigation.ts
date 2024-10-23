@@ -81,33 +81,6 @@ const getTopmostReportActionId = (state = navigationRef.getState()) => originalG
 // Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 
-// Re-exporting the dismissModalWithReport here to fill in default value for navigationRef. The dismissModalWithReport isn't defined in this file to avoid cyclic dependencies.
-// This method is needed because it allows to dismiss the modal and then open the report. Within this method is checked whether the report belongs to a specific workspace. Sometimes the report we want to check, hasn't been added to the Onyx yet.
-// Then we can pass the report as a param without getting it from the Onyx.
-
-// @TODO: Check if it's still needed
-/** Method for finding on which index in stack we are. */
-// function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number | undefined {
-//     if ('routes' in stateOrRoute && stateOrRoute.routes) {
-//         const childActiveRoute = stateOrRoute.routes[stateOrRoute.index ?? 0];
-//         return getActiveRouteIndex(childActiveRoute, stateOrRoute.index ?? 0);
-//     }
-
-//     if ('state' in stateOrRoute && stateOrRoute.state?.routes) {
-//         const childActiveRoute = stateOrRoute.state.routes[stateOrRoute.state.index ?? 0];
-//         return getActiveRouteIndex(childActiveRoute, stateOrRoute.state.index ?? 0);
-//     }
-
-//     if (
-//         'name' in stateOrRoute &&
-//         (stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR)
-//     ) {
-//         return 0;
-//     }
-
-//     return index;
-// }
-
 /**
  * Function that generates dynamic urls from paths passed from OldDot
  */
@@ -124,34 +97,6 @@ function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
             return url;
     }
 }
-
-// @TODO: Check if it's still needed
-// /**
-//  * Gets distance from the path in root navigator. In other words how much screen you have to pop to get to the route with this path.
-//  * The search is limited to 5 screens from the top for performance reasons.
-//  * @param path - Path that you are looking for.
-//  * @return - Returns distance to path or -1 if the path is not found in root navigator.
-//  */
-// function getDistanceFromPathInRootNavigator(state: State, path?: string): number {
-//     let currentState = {...state};
-
-//     for (let index = 0; index < 5; index++) {
-//         if (!currentState.routes.length) {
-//             break;
-//         }
-
-//         // When comparing path and pathFromState, the policyID parameter isn't included in the comparison
-//         const currentStateWithoutPolicyID = removePolicyIDParamFromState(currentState as State<RootStackParamList>);
-//         const pathFromState = getPathFromState(currentStateWithoutPolicyID, linkingConfig.config);
-//         if (path === pathFromState.substring(1)) {
-//             return index;
-//         }
-
-//         currentState = {...currentState, routes: currentState.routes.slice(0, -1), index: currentState.index - 1};
-//     }
-
-//     return -1;
-// }
 
 /** Returns the current active route */
 function getActiveRoute(): string {

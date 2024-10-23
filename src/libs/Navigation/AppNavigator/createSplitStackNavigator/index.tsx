@@ -54,8 +54,6 @@ function SplitStackNavigator<ParamList extends ParamListBase>(props: SplitStackN
         initialRouteName: props.initialRouteName,
         sidebarScreen: props.sidebarScreen,
         defaultCentralScreen: props.defaultCentralScreen,
-
-        // @TODO figure out if we can end in a situation where the state and route are not in sync. If so, we may need to figure out a getter.
         parentRoute: route,
     });
 

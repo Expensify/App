@@ -43,16 +43,6 @@ function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
         [activeWorkspaceID, setActiveWorkspaceID],
     );
 
-    // @TODO Remember to handle saving activeWorkspaceID in the session storage
-    // const setActiveWorkspaceID = useCallback((workspaceID: string | undefined) => {
-    //     updateActiveWorkspaceID(workspaceID);
-    //     if (workspaceID && sessionStorage) {
-    //         sessionStorage?.setItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID, workspaceID);
-    //     } else {
-    //         sessionStorage?.removeItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID);
-    //     }
-    // }, []);
-
     return <ActiveWorkspaceContext.Provider value={value}>{children}</ActiveWorkspaceContext.Provider>;
 }
 
