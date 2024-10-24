@@ -254,6 +254,10 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
 
+      - name: Debug paths
+        run: |
+          ls -laR .
+
       - name: Upload Android app to Google Play
         run: bundle exec fastlane android upload_google_play_internal_hybrid
         env:
@@ -576,41 +580,40 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane ios build_hybrid
 
-  #      - name: Upload release build to TestFlight
-  #        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-  #        run: bundle exec fastlane ios upload_testflight
-  #        env:
-  #          APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
-  #          APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
-  #          APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
-  #          APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
-  #
-  #      - name: Submit build for App Store review
-  #        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-  #        run: bundle exec fastlane ios submit_for_review
-  #        env:
-  #          VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
-  #
-  #      - name: Upload iOS build to Browser Stack
-  #        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-  #        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/Users/runner/work/App/App/New Expensify.ipa"
-  #        env:
-  #          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-  #
-  #      - name: Upload iOS sourcemaps artifact
-  #        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-  #        uses: actions/upload-artifact@v4
-  #        with:
-  #          name: ios-sourcemaps-artifact
-  #          path: ./main.jsbundle.map
-  #
-  #      - name: Upload iOS build artifact
-  #        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-  #        uses: actions/upload-artifact@v4
-  #        with:
-  #          name: ios-build-artifact
-  #          path: /Users/runner/work/App/App/New\ Expensify.ipa
-  #
+      - name: Debug paths
+        run: |
+          ls -laR .
+
+      - name: Upload release build to TestFlight
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane ios upload_testflight_hybrid
+        env:
+          APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
+          APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
+          APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
+          APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+
+      - name: Upload iOS build to Browser Stack
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@builds/${{ env.VERSION }}/${{ env.VERSION }}.ipa"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+          VERSION: "$(cat ../app/config/config.json | jq -r '.meta.version')"
+
+      - name: Upload iOS sourcemaps artifact
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-sourcemaps-artifact
+          path: ./main.jsbundle.map
+
+      - name: Upload iOS build artifact
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-artifact
+          path: builds/"$(cat ../app/config/config.json | jq -r '.meta.version')"/"$(cat ../app/config/config.json | jq -r '.meta.version')".ipa
+
   #      - name: Warn deployers if iOS production deploy failed
   #        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
   #        uses: 8398a7/action-slack@v3
