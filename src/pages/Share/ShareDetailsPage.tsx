@@ -6,6 +6,7 @@ import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -90,7 +91,7 @@ function ShareDetailsPage({
                     </>
                 )}
 
-                <View style={[styles.ph5, styles.justifyContentBetween, styles.flexGrow1, styles.flexColumn]}>
+                <ScrollView style={[styles.ph5, styles.flexGrow1, styles.flexColumn]}>
                     <View style={styles.justifyContentCenter}>
                         <View style={[styles.pv5]}>
                             <TextInput
@@ -120,7 +121,7 @@ function ShareDetailsPage({
                             onPress={handleShare}
                         />
                     </View>
-                </View>
+                </ScrollView>
             </View>
         </ScreenWrapper>
     );

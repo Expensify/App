@@ -1,5 +1,5 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {AppState, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -10,30 +10,47 @@ import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ShareActions from '@userActions/Share';
 import CONST from '@src/CONST';
 import ShareActionHandlerModule from '@src/modules/ShareActionHandlerModule';
+import type {TempShareFile} from '@src/types/onyx';
 import ShareTab from './ShareTab';
 import SubmitTab from './SubmitTab';
 
 function ShareRootPage() {
+    const appState = useRef(AppState.currentState);
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isFileScannable, setIsFileScannable] = useState(false);
+    const imageFileFormats = Object.values(CONST.IMAGE_FILE_FORMAT) as string[];
 
-    const handleProcessFiles = () => {
+    const handleProcessFiles = useCallback(() => {
+        setIsFileScannable(false);
         ShareActionHandlerModule.processFiles((processedFiles) => {
-            const tempFile = processedFiles.at(0);
+            const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as TempShareFile);
 
             if (tempFile) {
-                ShareActions.addTempShareFile({...tempFile});
+                if (tempFile.mimeType && imageFileFormats.includes(tempFile.mimeType)) {
+                    setIsFileScannable(true);
+                }
+
+                ShareActions.addTempShareFile(tempFile);
             }
         });
-    };
+    }, [imageFileFormats]);
 
     useEffect(() => {
         handleProcessFiles();
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+                handleProcessFiles();
+            }
 
-    const fileIsScannable = true;
+            appState.current = nextAppState;
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [handleProcessFiles]);
 
     return (
         <ScreenWrapper
@@ -49,13 +66,10 @@ function ShareRootPage() {
                 />
                 <OnyxTabNavigator
                     id={CONST.TAB.SHARE.NAVIGATOR_ID}
-                    // @ts-expect-error I think that OnyxTabNavigator is going to be refactored in terms of types
-                    // selectedTab={fileIsScannable && selectedTab ? selectedTab : CONST.TAB.SHARE}
-                    hideTabBar={!fileIsScannable}
                     tabBar={TabSelector}
                 >
                     <TopTab.Screen name={CONST.TAB.SHARE.SHARE}>{() => <ShareTab />}</TopTab.Screen>
-                    <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab />}</TopTab.Screen>
+                    {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab />}</TopTab.Screen>}
                 </OnyxTabNavigator>
             </View>
         </ScreenWrapper>
