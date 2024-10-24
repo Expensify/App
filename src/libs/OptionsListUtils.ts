@@ -599,7 +599,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         );
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(reportPreviewMessage);
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
+        lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report, true);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
