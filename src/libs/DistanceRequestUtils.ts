@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
@@ -6,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import type Report from '@src/types/onyx/Report';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
@@ -28,6 +29,13 @@ Onyx.connect({
     callback: (value) => {
         lastSelectedDistanceRates = value;
     },
+});
+
+let allReportsDraft: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportsDraft = value),
 });
 
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
@@ -279,7 +287,9 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
  */
 function getCustomUnitRateID(reportID: string, shouldUseDefault?: boolean) {
     const allReports = ReportConnection.getAllReports();
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportReal = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportDraft = allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
+    const report = reportReal ?? reportDraft;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '-1');
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;

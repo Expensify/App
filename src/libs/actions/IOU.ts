@@ -3623,6 +3623,7 @@ function requestMoney(
         attendees,
     );
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
+    const isOptimisticPolicyExpenseChat = report?.isOptimisticReport && ReportUtils.isPolicyExpenseChat(report);
 
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
@@ -3683,6 +3684,7 @@ function requestMoney(
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 reimbursible,
+                policyID: isOptimisticPolicyExpenseChat ? policy?.id : undefined,
             };
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
@@ -5192,6 +5194,7 @@ function createDistanceRequest(
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+    const isOptimisticPolicyExpenseChat = report?.isOptimisticReport && ReportUtils.isPolicyExpenseChat(report);
 
     const optimisticReceipt: Receipt = {
         source: ReceiptGeneric as ReceiptSource,
@@ -5306,6 +5309,7 @@ function createDistanceRequest(
             createdReportActionIDForThread,
             payerEmail,
             customUnitRateID,
+            policyID: isOptimisticPolicyExpenseChat ? policy?.id : undefined,
         };
     }
 

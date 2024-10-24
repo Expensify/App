@@ -53,7 +53,8 @@ type IOURequestStepDistanceProps = WithCurrentUserPersonalDetailsProps &
     };
 
 function IOURequestStepDistance({
-    report,
+    report: reportReal,
+    reportDraft,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
@@ -63,6 +64,7 @@ function IOURequestStepDistance({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const report = reportReal ?? reportDraft;
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const policy = usePolicy(report?.policyID);

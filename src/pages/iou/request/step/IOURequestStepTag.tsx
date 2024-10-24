@@ -32,16 +32,21 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 type IOURequestStepTagProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAG> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAG>;
 
 function IOURequestStepTag({
-    report,
+    report: reportReal,
+    reportDraft,
     route: {
         params: {action, orderWeight: rawTagIndex, transactionID, backTo, iouType, reportActionID},
     },
     transaction,
 }: IOURequestStepTagProps) {
+    const policyID = IOU.getIOURequestPolicyID(transaction, reportReal ?? reportDraft) ?? '-1';
+
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID ?? 0}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const report = reportReal ?? reportDraft;
+
     let reportID: string | undefined = '-1';
     if (action === CONST.IOU.ACTION.EDIT) {
         reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;

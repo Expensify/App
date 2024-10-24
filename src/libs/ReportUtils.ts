@@ -300,6 +300,7 @@ type OptimisticChatReport = Pick<
     | 'chatReportID'
     | 'iouReportID'
     | 'isOwnPolicyExpenseChat'
+    | 'isPolicyExpenseChat'
     | 'isPinned'
     | 'lastActorAccountID'
     | 'lastMessageTranslationKey'
@@ -5344,6 +5345,7 @@ function buildOptimisticChatReport(
         chatType,
         isOwnPolicyExpenseChat,
         isPinned: isNewlyCreatedWorkspaceChat,
+        isPolicyExpenseChat: chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         lastActorAccountID: 0,
         lastMessageTranslationKey: '',
         lastMessageHtml: '',

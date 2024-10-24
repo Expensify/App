@@ -28,20 +28,24 @@ type IOURequestStepDistanceRateProps = WithWritableReportOrNotFoundProps<typeof 
 };
 
 function IOURequestStepDistanceRate({
-    report,
+    report: reportReal,
     reportDraft,
     route: {
         params: {action, reportID, backTo, transactionID},
     },
     transaction,
 }: IOURequestStepDistanceRateProps) {
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft) ?? '-1'}`);
+    const policyIDForReal = IOU.getIOURequestPolicyID(transaction, reportReal ?? reportDraft);
+    const policyIDForDraft = IOU.getIOURequestPolicyID(transaction, reportDraft);
+
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyIDForDraft}`);
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID || '-1'}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID || '-1'}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID || '-1'}`);
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyIDForReal || '-1'}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyIDForReal || '-1'}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyIDForReal || '-1'}`);
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
+    const report = reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
 
     const styles = useThemeStyles();
