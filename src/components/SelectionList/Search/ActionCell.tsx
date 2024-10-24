@@ -15,6 +15,9 @@ import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
     review: 'common.review',
+    submit: 'common.submit',
+    approve: 'iou.approve',
+    pay: 'iou.pay',
     done: 'common.done',
     paid: 'iou.settledExpensify',
 };
@@ -77,17 +80,17 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth
         ) : null;
     }
 
-    if (action === CONST.SEARCH.ACTION_TYPES.REVIEW) {
-        return (
-            <Button
-                text={text}
-                onPress={goToItem}
-                small
-                style={[styles.w100]}
-                innerStyles={buttonInnerStyles}
-            />
-        );
-    }
+    // if (action === CONST.SEARCH.ACTION_TYPES.REVIEW) {
+    return (
+        <Button
+            text={text}
+            onPress={goToItem}
+            small
+            style={[styles.w100]}
+            innerStyles={buttonInnerStyles}
+        />
+    );
+    // }
 }
 
 ActionCell.displayName = 'ActionCell';
