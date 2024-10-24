@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -23,12 +23,18 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const isSwitchOn = !!(qboConfig?.syncLocations && qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isReportFieldsSelected = qboConfig?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
     const isTagsSelected = qboConfig?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
     const shouldShowLineItemsRestriction = !(
         qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY &&
         qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_ACCOUNT_TYPE.CREDIT_CARD
     );
+
+    // If we previously selected tags but now we have the line items restriction, we need to switch to report fields
+    useEffect(() => {
+        if (qboConfig?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG && shouldShowLineItemsRestriction) {
+            QuickbooksOnline.updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
+        }
+    }, [qboConfig?.syncLocations, shouldShowLineItemsRestriction, policyID]);
 
     return (
         <ConnectionLayout
@@ -52,7 +58,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                         // eslint-disable-next-line no-nested-ternary
                         isSwitchOn
                             ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
-                            : isReportFieldsSelected || shouldShowLineItemsRestriction
+                            : shouldShowLineItemsRestriction
                             ? CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD
                             : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                         qboConfig?.syncLocations,
@@ -65,6 +71,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
             {isSwitchOn && (
                 <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
+                        interactive={!shouldShowLineItemsRestriction}
                         title={!isTagsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
                         description={translate('workspace.common.displayedAs')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS.getRoute(policyID))}
