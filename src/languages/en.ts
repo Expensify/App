@@ -3499,12 +3499,12 @@ const translations = {
         },
         emptyWorkspace: {
             title: 'Create a workspace',
-            subtitle: 'Workspaces are where you’ll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more - all in one place.',
+            subtitle: 'Create a workspace to track receipts, reimburse expenses, send invoices, and more -- all at the speed of chat.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
-                companyCards: 'Company credit cards',
-                reimbursements: 'Easy reimbursements',
+                reimbursements: 'Reimburse employees',                
+                companyCards: 'Manage company cards',
             },
             notFound: 'No workspace found',
             description: 'Rooms are a great place to discuss and work with multiple people. To begin collaborating, create or join a workspace',
