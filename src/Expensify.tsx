@@ -41,6 +41,7 @@ import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/Popo
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {Route} from './ROUTES';
 import ROUTES from './ROUTES';
+import {registerBackgroundFetch} from './setup/backgroundTask';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 
@@ -207,6 +208,9 @@ function Expensify() {
         Linking.addEventListener('url', (state) => {
             Report.openReportFromDeepLink(state.url);
         });
+
+        // Register background fetch task to flush the SequentialQueue
+        registerBackgroundFetch();
 
         return () => {
             if (!appStateChangeListener.current) {
