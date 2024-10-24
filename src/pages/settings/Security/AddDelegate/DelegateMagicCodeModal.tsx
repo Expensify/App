@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
@@ -14,13 +14,14 @@ import ROUTES from '@src/ROUTES';
 type DelegateMagicCodeModalProps = {
     login: string;
     role: ValueOf<typeof CONST.DELEGATE_ROLE>;
+    isValidateCodeActionModalVisible: boolean;
+    setIsValidateCodeActionModalVisible: (isValidateCodeActionModalVisible: boolean) => void;
     onClose?: () => void;
 };
 
-function DelegateMagicCodeModal({login, role, onClose}: DelegateMagicCodeModalProps) {
+function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible}: DelegateMagicCodeModalProps) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
     const validateLoginError = ErrorUtils.getLatestErrorField(currentDelegate, 'addDelegate');
