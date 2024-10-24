@@ -117,6 +117,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 .filter((approver): approver is SelectionListApprover => !!approver);
 
             approvers.push(...availableApprovers);
+            // eslint-disable-next-line react-compiler/react-compiler
             setAllApprovers(approvers);
         }
 

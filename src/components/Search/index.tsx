@@ -172,10 +172,13 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     });
 
     // save last non-empty search results to avoid ugly flash of loading screen when hash changes and onyx returns empty data
+    // eslint-disable-next-line react-compiler/react-compiler
     if (currentSearchResults?.data && currentSearchResults !== lastSearchResultsRef.current) {
+        // eslint-disable-next-line react-compiler/react-compiler
         lastSearchResultsRef.current = currentSearchResults;
     }
 
+    // eslint-disable-next-line react-compiler/react-compiler
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
 
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({

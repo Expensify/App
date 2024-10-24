@@ -8,5 +8,6 @@ export default function usePrevious<T>(value: T): T {
     useEffect(() => {
         ref.current = value;
     }, [value]);
+    // eslint-disable-next-line react-compiler/react-compiler
     return ref.current;
 }
