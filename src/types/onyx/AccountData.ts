@@ -50,6 +50,9 @@ type AccountData = {
 
     /** The debit card ID */
     fundID?: number;
+
+    /** Date that the account was created */
+    created: string;
 };
 
 export default AccountData;
