@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -33,6 +33,21 @@ function DebugTransactionViolationPage({
     const transactionViolation = useMemo(() => transactionViolations?.[Number(index)], [index, transactionViolations]);
     const styles = useThemeStyles();
 
+    const onSave = useCallback(
+        (data: Record<string, unknown>) => {
+            const updatedTransactionViolations = [...(transactionViolations ?? [])];
+            updatedTransactionViolations.splice(Number(index), 1, data as TransactionViolation);
+            Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+        },
+        [index, transactionID, transactionViolations],
+    );
+
+    const onDelete = useCallback(() => {
+        const updatedTransactionViolations = [...(transactionViolations ?? [])];
+        updatedTransactionViolations.splice(Number(index), 1);
+        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+    }, [index, transactionID, transactionViolations]);
+
     if (!transactionViolation) {
         return <NotFoundPage />;
     }
@@ -59,16 +74,8 @@ function DebugTransactionViolationPage({
                                 <DebugDetails
                                     formType={CONST.DEBUG.FORMS.TRANSACTION_VIOLATION}
                                     data={transactionViolation}
-                                    onSave={(data) => {
-                                        const updatedTransactionViolations = [...(transactionViolations ?? [])];
-                                        updatedTransactionViolations.splice(Number(index), 1, data as TransactionViolation);
-                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
-                                    }}
-                                    onDelete={() => {
-                                        const updatedTransactionViolations = [...(transactionViolations ?? [])];
-                                        updatedTransactionViolations.splice(Number(index), 1);
-                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
-                                    }}
+                                    onSave={onSave}
+                                    onDelete={onDelete}
                                     validate={DebugUtils.validateTransactionViolationDraftProperty}
                                 />
                             )}

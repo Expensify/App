@@ -23,6 +23,7 @@ type ConstantSelectorProps = {
     // eslint-disable-next-line react/no-unused-prop-types
     inputID: string;
 
+    /** Type of debug form - required to access constant field options for a specific form */
     formType: ValueOf<typeof CONST.DEBUG.FORMS>;
 };
 

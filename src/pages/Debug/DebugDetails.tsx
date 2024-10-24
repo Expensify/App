@@ -26,6 +26,7 @@ import ConstantSelector from './ConstantSelector';
 import DateTimeSelector from './DateTimeSelector';
 
 type DebugDetailsProps = {
+    /** Type of debug form - required to access constant field options for a specific form */
     formType: ValueOf<typeof CONST.DEBUG.FORMS>;
 
     /** The report or report action data to be displayed and editted. */

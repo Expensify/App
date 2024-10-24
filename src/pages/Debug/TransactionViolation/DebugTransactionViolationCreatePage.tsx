@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -66,6 +66,27 @@ function DebugTransactionViolationCreatePage({
     const [draftTransactionViolation, setDraftTransactionViolation] = useState<string>(getInitialTransactionViolation());
     const [error, setError] = useState<string>();
 
+    const onEditJSON = useCallback(
+        (updatedJSON: string) => {
+            try {
+                DebugUtils.validateTransactionViolationJSON(updatedJSON);
+                setError('');
+            } catch (e) {
+                const {cause, message} = e as SyntaxError;
+                setError(cause ? translate(message as TranslationPaths, cause as never) : message);
+            } finally {
+                setDraftTransactionViolation(updatedJSON);
+            }
+        },
+        [translate],
+    );
+
+    const onSave = useCallback(() => {
+        const parsedTransactionViolation = DebugUtils.stringToOnyxData(draftTransactionViolation, 'object') as TransactionViolation;
+        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [...(transactionViolations ?? []), parsedTransactionViolation]);
+        Navigation.navigate(ROUTES.DEBUG_TRANSACTION_TAB_VIOLATIONS.getRoute(transactionID));
+    }, [draftTransactionViolation, transactionID, transactionViolations]);
+
     if (!transactionID) {
         return <NotFoundPage />;
     }
@@ -93,17 +114,7 @@ function DebugTransactionViolationCreatePage({
                                 numberOfLines={18}
                                 multiline
                                 value={draftTransactionViolation}
-                                onChangeText={(updatedJSON) => {
-                                    try {
-                                        DebugUtils.validateTransactionViolationJSON(updatedJSON);
-                                        setError('');
-                                    } catch (e) {
-                                        const {cause, message} = e as SyntaxError;
-                                        setError(cause ? translate(message as TranslationPaths, cause as never) : message);
-                                    } finally {
-                                        setDraftTransactionViolation(updatedJSON);
-                                    }
-                                }}
+                                onChangeText={onEditJSON}
                                 textInputContainerStyles={[styles.border, styles.borderBottom, styles.p5]}
                             />
                         </View>
@@ -112,11 +123,7 @@ function DebugTransactionViolationCreatePage({
                             success
                             text={translate('common.save')}
                             isDisabled={!draftTransactionViolation || !!error}
-                            onPress={() => {
-                                const parsedTransactionViolation = DebugUtils.stringToOnyxData(draftTransactionViolation, 'object') as TransactionViolation;
-                                Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [...(transactionViolations ?? []), parsedTransactionViolation]);
-                                Navigation.navigate(ROUTES.DEBUG_TRANSACTION_TAB_VIOLATIONS.getRoute(transactionID));
-                            }}
+                            onPress={onSave}
                         />
                     </ScrollView>
                 </View>

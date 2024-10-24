@@ -18,7 +18,7 @@ type DebugTransactionViolationsProps = {
 };
 
 function DebugTransactionViolations({transactionID}: DebugTransactionViolationsProps) {
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, {});
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
