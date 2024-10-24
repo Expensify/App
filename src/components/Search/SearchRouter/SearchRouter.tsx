@@ -17,7 +17,7 @@ import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
@@ -41,7 +41,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
 
     const taxRates = getAllTaxRates();
@@ -170,7 +170,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     return;
                 }
                 listRef.current?.updateAndScrollToFocusedIndex(0);
-                const queryJSON = SearchUtils.buildSearchQueryJSON(userQuery);
+                const queryJSON = SearchQueryUtils.buildSearchQueryJSON(userQuery);
 
                 if (queryJSON) {
                     setUserSearchQuery(queryJSON);
@@ -201,8 +201,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 return;
             }
             onRouterClose();
-            const standardizedQuery = SearchUtils.standardizeQueryJSON(query, cardList, taxRates);
-            const queryString = SearchUtils.buildSearchQueryString(standardizedQuery);
+            const standardizedQuery = SearchQueryUtils.standardizeQueryJSON(query, cardList, taxRates);
+            const queryString = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: queryString}));
             clearUserQuery();
         },
@@ -215,14 +215,14 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         closeAndClearRouter();
     });
 
-    const modalWidth = isSmallScreenWidth ? styles.w100 : {width: variables.searchRouterPopoverWidth};
+    const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
     return (
         <View
-            style={[styles.flex1, modalWidth, styles.h100, !isSmallScreenWidth && styles.mh85vh]}
+            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
             testID={SearchRouter.displayName}
         >
-            {isSmallScreenWidth && (
+            {shouldUseNarrowLayout && (
                 <HeaderWithBackButton
                     title={translate('common.search')}
                     onBackButtonPress={() => onRouterClose()}
@@ -231,15 +231,15 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
             <SearchRouterInput
                 value={textInputValue}
                 setValue={setTextInputValue}
-                isFullWidth={isSmallScreenWidth}
+                isFullWidth={shouldUseNarrowLayout}
                 updateSearch={onSearchChange}
                 onSubmit={() => {
-                    onSearchSubmit(SearchUtils.buildSearchQueryJSON(textInputValue));
+                    onSearchSubmit(SearchQueryUtils.buildSearchQueryJSON(textInputValue));
                 }}
                 routerListRef={listRef}
                 shouldShowOfflineMessage
                 wrapperStyle={[styles.border, styles.alignItemsCenter]}
-                outerWrapperStyle={[isSmallScreenWidth ? styles.mv3 : styles.mv2, isSmallScreenWidth ? styles.mh5 : styles.mh2]}
+                outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
                 wrapperFocusedStyle={[styles.borderColorFocus]}
                 isSearchingForReports={isSearchingForReports}
             />
