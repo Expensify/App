@@ -119,7 +119,7 @@ function hasWorkspaceSettingsRBR(policy: Policy) {
     return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError || taxRateError;
 }
 
-function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
+function getChatTabBrickRoadReport(policyID?: string): OnyxEntry<Report> {
     const allReports = ReportConnection.getAllReports();
     if (!allReports) {
         return undefined;
@@ -128,25 +128,31 @@ function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
     // If policyID is undefined, then all reports are checked whether they contain any brick road
     const policyReports = policyID ? Object.values(allReports).filter((report) => report?.policyID === policyID) : Object.values(allReports);
 
-    let hasChatTabGBR = false;
+    let reportWithGBR: OnyxEntry<Report>;
 
-    const hasChatTabRBR = policyReports.some((report) => {
+    const reportWithRBR = policyReports.find((report) => {
         const brickRoad = report ? getBrickRoadForPolicy(report) : undefined;
-        if (!hasChatTabGBR && brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-            hasChatTabGBR = true;
+        if (!reportWithGBR && brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+            reportWithGBR = report;
+            return false;
         }
         return brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     });
 
-    if (hasChatTabRBR) {
-        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    if (reportWithRBR) {
+        return reportWithRBR;
     }
 
-    if (hasChatTabGBR) {
-        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    if (reportWithGBR) {
+        return reportWithGBR;
     }
 
     return undefined;
+}
+
+function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
+    const report = getChatTabBrickRoadReport(policyID);
+    return report ? getBrickRoadForPolicy(report) : undefined;
 }
 
 /**
@@ -296,6 +302,7 @@ function getOwnershipChecksDisplayText(
 }
 
 export {
+    getChatTabBrickRoadReport,
     getBrickRoadForPolicy,
     getWorkspacesBrickRoads,
     getWorkspacesUnreadStatuses,
