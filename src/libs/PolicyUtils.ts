@@ -531,6 +531,8 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     let tagApprover;
     const allTransactions = getAllReportTransactions(expenseReport?.reportID).sort((transA, transB) => (transA.created < transB.created ? -1 : 1));
 
+    // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
+    // Category approvers are prioritized, then tag approvers.
     for (let i = 0; i < allTransactions.length; i++) {
         const transaction = allTransactions.at(i);
         const tag = getTag(transaction);
