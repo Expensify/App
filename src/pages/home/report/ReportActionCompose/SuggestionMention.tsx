@@ -137,7 +137,6 @@ function SuggestionMention(
     const suggestionInsertionIndexRef = useRef<number | null>(null);
 
     // Used to detect if the selection has changed since the last suggestion insertion
-    // eslint-disable-next-line react-compiler/react-compiler
     // If so, we reset the suggestionInsertionIndexRef
     // eslint-disable-next-line react-compiler/react-compiler
     const hasSelectionChanged = !(selection.end === selection.start && selection.start === suggestionInsertionIndexRef.current);

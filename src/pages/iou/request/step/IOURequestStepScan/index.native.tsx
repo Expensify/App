@@ -481,6 +481,8 @@ function IOURequestStepScan({
             return;
         }
 
+        setDidCapturePhoto(true);
+
         camera?.current
             ?.takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
@@ -491,26 +493,34 @@ function IOURequestStepScan({
                 const source = getPhotoSource(photo.path);
                 IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
 
-                FileUtils.readFileAsync(source, photo.path, (file) => {
-                    if (isEditing) {
-                        updateScanAndNavigate(file, source);
-                        return;
-                    }
-                    setDidCapturePhoto(true);
-                    if (shouldSkipConfirmation) {
-                        setFileResize(file);
-                        setFileSource(source);
-                        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
-                        if (gpsRequired) {
-                            const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
-                            if (shouldStartLocationPermissionFlow) {
-                                setStartLocationPermissionFlow(true);
-                                return;
+                FileUtils.readFileAsync(
+                    source,
+                    photo.path,
+                    (file) => {
+                        if (isEditing) {
+                            updateScanAndNavigate(file, source);
+                            return;
+                        }
+                        if (shouldSkipConfirmation) {
+                            setFileResize(file);
+                            setFileSource(source);
+                            const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
+                            if (gpsRequired) {
+                                const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
+                                if (shouldStartLocationPermissionFlow) {
+                                    setStartLocationPermissionFlow(true);
+                                    return;
+                                }
                             }
                         }
-                    }
-                    navigateToConfirmationStep(file, source, false);
-                });
+                        navigateToConfirmationStep(file, source, false);
+                    },
+                    () => {
+                        setDidCapturePhoto(false);
+                        showCameraAlert();
+                        Log.warn('Error reading photo');
+                    },
+                );
             })
             .catch((error: string) => {
                 setDidCapturePhoto(false);
