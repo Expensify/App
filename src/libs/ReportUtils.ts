@@ -452,6 +452,7 @@ type OptimisticIOUReport = Pick<
     | 'parentReportID'
     | 'lastVisibleActionCreated'
     | 'fieldList'
+    | 'parentReportActionID'
 >;
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
@@ -4437,7 +4438,15 @@ function buildOptimisticTaskCommentReportAction(
  * @param isSendingMoney - If we pay someone the IOU should be created as settled
  */
 
-function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number, total: number, chatReportID: string, currency: string, isSendingMoney = false): OptimisticIOUReport {
+function buildOptimisticIOUReport(
+    payeeAccountID: number,
+    payerAccountID: number,
+    total: number,
+    chatReportID: string,
+    currency: string,
+    isSendingMoney = false,
+    parentReportActionID?: string,
+): OptimisticIOUReport {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
@@ -4467,6 +4476,7 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
         fieldList: policy?.fieldList,
+        parentReportActionID,
     };
 }
 
