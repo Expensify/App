@@ -8,7 +8,7 @@ You can choose to connect either a business deposit-only account that only recei
 
 | Business deposit-only account                     | Verified business account                            | 
 |---------------------------------------------------|------------------------------------------------------|
-| &#10004; Receive reimbursements for invoices      | &#10004; Reimburse expenses via direct bank transfer |
+| &#10004; Receive payments for invoices      | &#10004; Reimburse expenses via direct bank transfer |
 |                                                   | &#10004; Pay bills                                   | 
 |                                                   | &#10004; Issue Expensify Cards                       |
 

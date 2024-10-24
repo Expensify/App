@@ -24,33 +24,21 @@ jobs:
     runs-on: ubuntu-latest
     name: Find the baseline and delta refs, and check for an existing build artifact for that commit
     outputs:
-      BASELINE_ARTIFACT_FOUND: ${{ steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND }}
-      BASELINE_ARTIFACT_WORKFLOW_ID: ${{ steps.checkForExistingArtifact.outputs.ARTIFACT_WORKFLOW_ID }}
-      BASELINE_VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
+      BASELINE_REF: ${{ steps.getBaselineRef.outputs.BASELINE_REF }}
       DELTA_REF: ${{ steps.getDeltaRef.outputs.DELTA_REF }}
       IS_PR_MERGED: ${{ steps.getPullRequestDetails.outputs.IS_MERGED }}
     steps:
       - uses: actions/checkout@v4
         with:
-          # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify (we need a PAT to access the artifact API)
-          token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+          fetch-depth: 0  # Fetches the entire history
 
-      - name: Get most recent release version
-        id: getMostRecentRelease
-        run: echo "VERSION=$(gh release list --limit 1 | awk '{ print $1 }')" >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Check if there's an existing artifact for this baseline
-        id: checkForExistingArtifact
-        uses: ./.github/actions/javascript/getArtifactInfo
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-          ARTIFACT_NAME: baseline-${{ steps.getMostRecentRelease.outputs.VERSION }}-android-artifact-apk
-
-      - name: Skip build if there's already an existing artifact for the baseline
-        if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
-        run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
+      - name: Determine "baseline ref" (prev merge commit)
+        id: getBaselineRef
+        run: |
+          previous_merge=$(git rev-list --merges HEAD~1 | head -n 1)
+          git checkout "$previous_merge"
+          echo "$previous_merge"
+          echo "BASELINE_REF=$previous_merge" >> "$GITHUB_OUTPUT"
 
       - name: Get pull request details
         id: getPullRequestDetails
@@ -84,15 +72,14 @@ jobs:
           fi
 
   buildBaseline:
-    name: Build apk from latest release as a baseline
+    name: Build apk from baseline
     uses: ./.github/workflows/buildAndroid.yml
     needs: prep
-    if: ${{ !fromJSON(needs.prep.outputs.BASELINE_ARTIFACT_FOUND) }}
     secrets: inherit
     with:
       type: e2e
-      ref: ${{ needs.prep.outputs.BASELINE_VERSION }}
-      artifact-prefix: baseline-${{ needs.prep.outputs.BASELINE_VERSION }}
+      ref: ${{ needs.prep.outputs.BASELINE_REF }}
+      artifact-prefix: baseline-${{ needs.prep.outputs.BASELINE_REF }}
 
   buildDelta:
     name: Build apk from delta ref
@@ -127,9 +114,6 @@ jobs:
         with:
           name: ${{ needs.buildBaseline.outputs.APK_ARTIFACT_NAME }}
           path: zip
-          # Set github-token only if the baseline was built in this workflow run:
-          github-token: ${{ needs.prep.outputs.BASELINE_ARTIFACT_WORKFLOW_ID && github.token }}
-          run-id: ${{ needs.prep.outputs.BASELINE_ARTIFACT_WORKFLOW_ID }}
 
       # The downloaded artifact will be a file named "app-e2e-release.apk" so we have to rename it
       - name: Rename baseline APK

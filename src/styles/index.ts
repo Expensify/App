@@ -67,7 +67,7 @@ type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 type OverlayStylesParams = {progress: Animated.AnimatedInterpolation<string | number>};
 
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
-type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
+type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
 
 type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
 
@@ -1116,6 +1116,17 @@ const styles = (theme: ThemeColors) =>
             height: 25,
         },
 
+        deletedAttachmentIndicator: {
+            zIndex: 20,
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+        },
+
+        deletedIndicatorOverlay: {
+            opacity: 0.8,
+        },
+
         // Actions
         actionAvatar: {
             borderRadius: 20,
@@ -1181,7 +1192,6 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderBottomWidth: 2,
             borderColor: theme.border,
-            paddingBottom: 8,
         },
 
         optionRowAmountInput: {
@@ -3616,8 +3626,8 @@ const styles = (theme: ThemeColors) =>
 
         searchInputStyle: {
             color: theme.textSupporting,
-            fontSize: 13,
-            lineHeight: 16,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
         },
 
         searchRouterTextInputContainer: {
@@ -3636,6 +3646,7 @@ const styles = (theme: ThemeColors) =>
         searchRouterInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
+            backgroundColor: theme.appBG,
         },
 
         searchTableHeaderActive: {
@@ -3647,7 +3658,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchListContentContainerStyles: {
-            marginTop: variables.searchListContentMarginTop,
+            paddingTop: variables.searchListContentMarginTop,
         },
 
         searchTopBarStyle: {
@@ -5157,6 +5168,11 @@ const styles = (theme: ThemeColors) =>
             height: 188,
         },
 
+        pendingBankCardIllustration: {
+            width: 217,
+            height: 150,
+        },
+
         cardIcon: {
             overflow: 'hidden',
             borderRadius: variables.cardBorderRadius,
@@ -5270,6 +5286,7 @@ const styles = (theme: ThemeColors) =>
             top: 80,
             left: 12,
         },
+
         qbdSetupLinkBox: {
             backgroundColor: theme.hoverComponentBG,
             borderRadius: variables.componentBorderRadiusMedium,
