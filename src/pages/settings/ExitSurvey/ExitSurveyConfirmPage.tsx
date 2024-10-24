@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components//Icon';
 import Button from '@components/Button';
@@ -22,20 +22,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ExitReason, ExitSurveyReasonForm} from '@src/types/form/ExitSurveyReasonForm';
+import type {ExitSurveyReasonForm} from '@src/types/form/ExitSurveyReasonForm';
 import EXIT_SURVEY_REASON_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
-type ExitSurveyConfirmPageOnyxProps = {
-    exitReason?: ExitReason | null;
-};
+type ExitSurveyConfirmPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM>;
 
-type ExitSurveyConfirmPageProps = ExitSurveyConfirmPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM>;
-
-function ExitSurveyConfirmPage({exitReason, route, navigation}: ExitSurveyConfirmPageProps) {
+function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const [exitReason] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null});
 
     const getBackToParam = useCallback(() => {
         if (isOffline) {
@@ -97,9 +94,4 @@ function ExitSurveyConfirmPage({exitReason, route, navigation}: ExitSurveyConfir
 
 ExitSurveyConfirmPage.displayName = 'ExitSurveyConfirmPage';
 
-export default withOnyx<ExitSurveyConfirmPageProps, ExitSurveyConfirmPageOnyxProps>({
-    exitReason: {
-        key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM,
-        selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null,
-    },
-})(ExitSurveyConfirmPage);
+export default ExitSurveyConfirmPage;
