@@ -4351,7 +4351,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'No hay nada que ver aquí',
-                subtitle: 'Por favor intenta crear algo usando el botón verde.',
+                subtitle: 'Por favor intenta crear algo con el botón verde.',
             },
             emptyExpenseResults: {
                 title: 'Aún no has creado ningún gasto',
