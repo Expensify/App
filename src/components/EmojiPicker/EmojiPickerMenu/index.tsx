@@ -51,7 +51,6 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
         emojiListRef,
         spacersIndexes,
     } = useEmojiPickerMenu();
-    console.log('header', headerEmojis, headerRowIndices)
 
     // Ref for the emoji search input
     const searchInputRef = useRef<BaseTextInputRef>(null);
