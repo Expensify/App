@@ -4,7 +4,6 @@ import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import * as IOU from '@libs/actions/IOU';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -13,11 +12,13 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import * as IOU from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as ReportActionsUtils from './ReportActionsUtils';
+import * as ReportUtils from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
@@ -258,10 +259,20 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     }
 
     const transaction = isTransactionEntry(key) ? data[key] : {};
-    const report = isTransactionEntry(key) ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] : data[key] ?? {};
-    const chatReport = (chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] ?? {});
+    const report = isTransactionEntry(key) ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? {} : data[key] ?? {};
+    const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] ?? {};
     const policy = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.policyID}`] ?? {};
-    const allTransaction = isTransactionEntry(key) ? transaction : report.transactions;
+    const violations = data[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? {};
+    const allViolations = Object.keys(data).filter(item => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)) ?? {};
+    const allTransactions = isTransactionEntry(key) ? transaction : Object.keys(data).filter(item => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) ?? {};
+
+    if (ReportUtils.isSettled(report.reportID)) {
+        return CONST.SEARCH.ACTION_TYPES.PAID;
+    }
+
+    if (ReportUtils.isSettled(report.reportID)) {
+        return CONST.SEARCH.ACTION_TYPES.DONE;
+    }
 
     if (IOU.canIOUBePaid(report, chatReport, policy, allTransactions, false)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
@@ -270,13 +281,15 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     if (IOU.canApproveIOU(report, policy)) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
-    // pay
-    // approve
-    // submit
-    // review
-    // view
-    // done
-    // paid
+
+    if (IOU.canReportBeSubmitted(report, policy, 1, transaction)) {
+        return CONST.SEARCH.ACTION_TYPES.SUBMIT;
+    }
+
+    const hasViolations = isTransactionEntry(key) ? TransactionUtils.hasViolation(transaction.transactionID, violations) : ReportUtils.hasViolations(report.reportID, allViolations);
+    if (hasViolations) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
 
     return CONST.SEARCH.ACTION_TYPES.VIEW;
 }
