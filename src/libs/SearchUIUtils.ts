@@ -269,12 +269,12 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
     const allTransactions = isTransactionEntry(key) ? transaction : Object.keys(data).filter((item) => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) ?? {};
 
     // TODO: update isSettled to take report object instead of connect to Onyx
-    if (ReportUtils.isSettled(report.reportID)) {
+    if (ReportUtils.isSettled(report?.reportID)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
 
     // TODO: create function to determine if report is done
-    if (ReportUtils.isSettled(report.reportID)) {
+    if (ReportUtils.isSettled(report?.reportID)) {
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
