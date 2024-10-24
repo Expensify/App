@@ -15,6 +15,9 @@ import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
     review: 'common.review',
+    submit: 'common.submit',
+    approve: 'iou.approve',
+    pay: 'iou.pay',
     done: 'common.done',
     paid: 'iou.settledExpensify',
 };

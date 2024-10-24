@@ -223,6 +223,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
             return {
                 ...transactionItem,
+                action: 'submit',
                 from,
                 to,
                 formattedFrom,
