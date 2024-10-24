@@ -25,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 
 type ItemWithQuery = {
     query: string;
+    text?: string;
 };
 
 type SearchRouterListProps = {
@@ -36,6 +37,9 @@ type SearchRouterListProps = {
 
     /** Recent reports */
     recentReports: OptionData[];
+
+    /** Autocomplete items */
+    autocompleteItems: ItemWithQuery[] | undefined;
 
     /** Callback to submit query when selecting a list item */
     onSearchSubmit: (query: SearchQueryJSON | undefined) => void;
@@ -91,7 +95,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 }
 
 function SearchRouterList(
-    {currentQuery, reportForContextualSearch, recentSearches, recentReports, onSearchSubmit, updateUserSearchQuery, closeAndClearRouter}: SearchRouterListProps,
+    {currentQuery, reportForContextualSearch, recentSearches, autocompleteItems, recentReports, onSearchSubmit, updateUserSearchQuery, closeAndClearRouter}: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -131,6 +135,19 @@ function SearchRouterList(
                 },
             ],
         });
+    }
+
+    const autocompleteData = autocompleteItems?.map(({text, query}) => {
+        return {
+            text,
+            singleIcon: Expensicons.MagnifyingGlass,
+            query,
+            keyForList: query,
+        };
+    });
+
+    if (autocompleteData && autocompleteData.length > 0) {
+        sections.push({title: 'Autocomplete', data: autocompleteData});
     }
 
     const recentSearchesData = recentSearches?.map(({query, timestamp}) => {

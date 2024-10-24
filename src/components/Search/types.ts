@@ -79,6 +79,15 @@ type SearchQueryJSON = {
     flatFilters: QueryFilters;
 } & SearchQueryAST;
 
+type SearchAutocompleteResult = {
+    autocomplete: {
+        key: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
+        length: number;
+        start: number;
+        value: string;
+    };
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -97,4 +106,5 @@ export type {
     InvoiceSearchStatus,
     TripSearchStatus,
     ChatSearchStatus,
+    SearchAutocompleteResult,
 };
