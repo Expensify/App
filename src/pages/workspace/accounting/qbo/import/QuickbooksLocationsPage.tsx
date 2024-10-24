@@ -16,6 +16,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {shouldShowLocationsLineItemsRestriction, shouldSwitchLocationsToReportFields} from '../utils';
 
 function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -24,18 +25,15 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const isSwitchOn = !!(qboConfig?.syncLocations && qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTagsSelected = qboConfig?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
-    const shouldShowLineItemsRestriction = !(
-        qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY &&
-        qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_ACCOUNT_TYPE.CREDIT_CARD
-    );
+    const shouldShowLineItemsRestriction = shouldShowLocationsLineItemsRestriction(qboConfig);
 
     // If we previously selected tags but now we have the line items restriction, we need to switch to report fields
     useEffect(() => {
-        if (qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG || !shouldShowLineItemsRestriction) {
+        if (!shouldSwitchLocationsToReportFields(qboConfig)) {
             return;
         }
         QuickbooksOnline.updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
-    }, [qboConfig?.syncLocations, shouldShowLineItemsRestriction, policyID]);
+    }, [qboConfig, policyID]);
 
     return (
         <ConnectionLayout
