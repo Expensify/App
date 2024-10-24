@@ -49,6 +49,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                 onToggle={() =>
                     QuickbooksOnline.updateQuickbooksOnlineSyncLocations(
                         policyID,
+                        // eslint-disable-next-line no-nested-ternary
                         isSwitchOn
                             ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
                             : isReportFieldsSelected || shouldShowLineItemsRestriction
