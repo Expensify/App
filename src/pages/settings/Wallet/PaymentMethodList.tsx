@@ -154,12 +154,14 @@ function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], item: P
         return false;
     }
     // Find all payment methods that are marked as default
-    const defaultPaymentMethods = filteredPaymentMethods.filter((method): method is PaymentMethod & {accountData: AccountData} => !!method.isDefault);
+    const defaultPaymentMethods = filteredPaymentMethods.filter((method): method is PaymentMethod => !!method.isDefault);
 
     // If there are two or more default payment methods, find the most recently created one
     if (defaultPaymentMethods.length > 1) {
         // Sort default payment methods by creation date to find the most recent
-        const mostRecentDefaultMethod = defaultPaymentMethods.reduce((latest, current) => (new Date(current.accountData.created) > new Date(latest.accountData.created) ? current : latest));
+        const mostRecentDefaultMethod = defaultPaymentMethods.reduce((latest, current) =>
+            new Date((current.accountData ?? {}).created as string) > new Date((latest.accountData ?? {}).created as string) ? current : latest,
+        );
 
         // Return true only if the methodID matches the most recently created default account
         return mostRecentDefaultMethod.methodID === item.methodID;
@@ -411,7 +413,7 @@ function PaymentMethodList({
                     iconWidth={item.iconWidth ?? item.iconSize}
                     iconStyles={item.iconStyles}
                     badgeText={
-                        shouldShowDefaultBadge(filteredPaymentMethods, invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.isDefault, item)
+                        shouldShowDefaultBadge(filteredPaymentMethods, item, invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.isDefault)
                             ? translate('paymentMethodList.defaultPaymentMethod')
                             : undefined
                     }
