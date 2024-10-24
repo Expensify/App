@@ -626,6 +626,7 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 isLoading: true,
+                isSuccess: false,
             },
         },
     ];
@@ -636,6 +637,7 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 isLoading: false,
+                isSuccess: true,
             },
         },
     ];
@@ -647,6 +649,7 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
             value: {
                 isLoading: false,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                isSuccess: false,
             },
         },
     ];
