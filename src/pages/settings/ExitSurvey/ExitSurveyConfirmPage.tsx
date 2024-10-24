@@ -82,6 +82,7 @@ function ExitSurveyConfirmPage({exitReason, route, navigation}: ExitSurveyConfir
                     success
                     large
                     text={translate('exitSurvey.goToExpensifyClassic')}
+                    pressOnEnter
                     onPress={() => {
                         ExitSurvey.switchToOldDot();
                         Navigation.dismissModal();
