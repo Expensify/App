@@ -1,13 +1,16 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FormActions from '@libs/actions/FormActions';
+import * as User from '@libs/actions/User';
 import * as Wallet from '@libs/actions/Wallet';
 import * as CardUtils from '@libs/CardUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
@@ -16,7 +19,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {GetPhysicalCardForm} from '@src/types/form';
-import type {CardList, LoginList, PrivatePersonalDetails, Session} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -28,24 +30,7 @@ type RenderContentProps = ChildrenProps & {
     onValidate: OnValidate;
 };
 
-type BaseGetPhysicalCardOnyxProps = {
-    /** List of available assigned cards */
-    cardList: OnyxEntry<CardList>;
-
-    /** User's private personal details */
-    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
-
-    /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<GetPhysicalCardForm>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-
-    /** List of available login methods */
-    loginList: OnyxEntry<LoginList>;
-};
-
-type BaseGetPhysicalCardProps = BaseGetPhysicalCardOnyxProps & {
+type BaseGetPhysicalCardProps = {
     /** Text displayed below page title */
     headline: string;
 
@@ -91,24 +76,26 @@ function DefaultRenderContent({onSubmit, submitButtonText, children, onValidate}
 }
 
 function BaseGetPhysicalCard({
-    cardList,
     children,
     currentRoute,
     domain,
-    draftValues,
-    privatePersonalDetails,
     headline,
     isConfirmation = false,
-    loginList,
     renderContent = DefaultRenderContent,
-    session,
     submitButtonText,
     title,
     onValidate = () => ({}),
 }: BaseGetPhysicalCardProps) {
     const styles = useThemeStyles();
     const isRouteSet = useRef(false);
-
+    const {translate} = useLocalize();
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [isActionCodeModalVisible, setActionCodeModalVisible] = useState(false);
     const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
     const cardToBeIssued = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
     const cardID = cardToBeIssued?.cardID.toString() ?? '-1';
@@ -146,17 +133,37 @@ function BaseGetPhysicalCard({
 
     const onSubmit = useCallback(() => {
         const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
-        // If the current step of the get physical card flow is the confirmation page
         if (isConfirmation) {
-            Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? -1, session?.authToken ?? '', updatedPrivatePersonalDetails);
+            setActionCodeModalVisible(true);
+            return;
+        }
+        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails);
+    }, [isConfirmation, domain, draftValues, privatePersonalDetails]);
+
+    const handleIssuePhysicalCard = useCallback(
+        (validateCode: string) => {
+            const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
+            // If the current step of the get physical card flow is the confirmation page
+            Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? -1, session?.authToken ?? '', updatedPrivatePersonalDetails, validateCode);
             // Form draft data needs to be erased when the flow is complete,
             // so that no stale data is left on Onyx
             FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID.toString()));
+        },
+        [cardID, cardToBeIssued?.cardID, draftValues, session?.authToken, privatePersonalDetails],
+    );
+
+    const sendValidateCode = useCallback(() => {
+        const primaryLogin = account?.primaryLogin ?? '';
+        const loginData = loginList?.[primaryLogin];
+
+        if (loginData?.validateCodeSent) {
             return;
         }
-        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails);
-    }, [cardID, cardToBeIssued?.cardID, domain, draftValues, isConfirmation, session?.authToken, privatePersonalDetails]);
+
+        User.requestValidateCodeAction();
+    }, [account, loginList]);
+
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -169,28 +176,21 @@ function BaseGetPhysicalCard({
             />
             <Text style={[styles.textHeadline, styles.mh5, styles.mb5]}>{headline}</Text>
             {renderContent({onSubmit, submitButtonText, children, onValidate})}
+            <ValidateCodeActionModal
+                isVisible={isActionCodeModalVisible}
+                sendValidateCode={sendValidateCode}
+                clearError={() => {}}
+                handleSubmitForm={handleIssuePhysicalCard}
+                title={translate('cardPage.validateCardTitle')}
+                onClose={() => setActionCodeModalVisible(false)}
+                description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+            />
         </ScreenWrapper>
     );
 }
 
 BaseGetPhysicalCard.displayName = 'BaseGetPhysicalCard';
 
-export default withOnyx<BaseGetPhysicalCardProps, BaseGetPhysicalCardOnyxProps>({
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    loginList: {
-        key: ONYXKEYS.LOGIN_LIST,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-    draftValues: {
-        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
-    },
-})(BaseGetPhysicalCard);
+export default BaseGetPhysicalCard;
 
 export type {RenderContentProps};

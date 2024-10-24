@@ -257,7 +257,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
     });
 }
 
-function requestPhysicalExpensifyCard(cardID: number, authToken: string, privatePersonalDetails: PrivatePersonalDetails) {
+function requestPhysicalExpensifyCard(cardID: number, authToken: string, privatePersonalDetails: PrivatePersonalDetails, validateCode: string) {
     const {legalFirstName = '', legalLastName = '', phoneNumber = ''} = privatePersonalDetails;
     const {city = '', country = '', state = '', street = '', zip = ''} = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails) ?? {};
 
@@ -271,6 +271,7 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
         addressState: state,
         addressStreet: street,
         addressZip: zip,
+        validateCode,
     };
 
     const optimisticData: OnyxUpdate[] = [
