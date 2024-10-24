@@ -1,4 +1,5 @@
-import {resolveDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
+import Onyx from 'react-native-onyx';
+import {resolveCommentDeletionConflicts, resolveDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import type {WriteCommand} from '@libs/API/types';
 
 describe('RequestConflictUtils', () => {
@@ -32,4 +33,50 @@ describe('RequestConflictUtils', () => {
         const result = resolveDuplicationConflictAction(persistedRequests, (request) => request.command === 'OpenReport' && request.data?.reportID === reportID);
         expect(result).toEqual({conflictAction: {type: 'replace', index: 2}});
     });
+
+    it('resolveCommentDeletionConflicts should return push when no special comments are found', () => {
+        const persistedRequests = [{command: 'OpenReport'}, {command: 'AddComment', data: {reportActionID: 2}}, {command: 'CloseAccount'}];
+        const reportActionID = '1';
+        const originalReportID = '1';
+        const result = resolveCommentDeletionConflicts(persistedRequests, reportActionID, originalReportID);
+        expect(result).toEqual({conflictAction: {type: 'push'}});
+    });
+
+    it('resolveCommentDeletionConflicts should return delete when special comments are found', () => {
+        const persistedRequests = [{command: 'AddComment', data: {reportActionID: '2'}}, {command: 'CloseAccount'}, {command: 'OpenReport'}];
+        const reportActionID = '2';
+        const originalReportID = '1';
+        const result = resolveCommentDeletionConflicts(persistedRequests, reportActionID, originalReportID);
+        expect(result).toEqual({conflictAction: {type: 'delete', indices: [0], pushNewRequest: false}});
+    });
+
+    it.each([['AddComment'], ['AddAttachment'], ['AddTextAndAttachment']])(
+        'resolveCommentDeletionConflicts should return delete when special comments are found and %s is true',
+        (commandName) => {
+            const updateSpy = jest.spyOn(Onyx, 'update');
+            const persistedRequests = [
+                {command: commandName, data: {reportActionID: '2'}},
+                {command: 'UpdateComment', data: {reportActionID: '2'}},
+                {command: 'CloseAccount'},
+                {command: 'OpenReport'},
+            ];
+            const reportActionID = '2';
+            const originalReportID = '1';
+            const result = resolveCommentDeletionConflicts(persistedRequests, reportActionID, originalReportID);
+            expect(result).toEqual({conflictAction: {type: 'delete', indices: [0, 1], pushNewRequest: false}});
+            expect(updateSpy).toHaveBeenCalledTimes(1);
+            updateSpy.mockClear();
+        },
+    );
+
+    it.each([['UpdateComment'], ['AddEmojiReaction'], ['RemoveEmojiReaction']])(
+        'resolveCommentDeletionConflicts should return delete when special comments are found and %s is false',
+        (commandName) => {
+            const persistedRequests = [{command: commandName, data: {reportActionID: '2'}}, {command: 'CloseAccount'}, {command: 'OpenReport'}];
+            const reportActionID = '2';
+            const originalReportID = '1';
+            const result = resolveCommentDeletionConflicts(persistedRequests, reportActionID, originalReportID);
+            expect(result).toEqual({conflictAction: {type: 'delete', indices: [0], pushNewRequest: true}});
+        },
+    );
 });
