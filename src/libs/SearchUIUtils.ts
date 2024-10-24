@@ -13,6 +13,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import * as IOU from './actions/IOU';
+import * as Report from './actions/Report';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
@@ -213,6 +214,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
+    const currentUserAccountID = Report.getCurrentUserAccountID();
 
     return Object.keys(data)
         .filter(isTransactionEntry)
@@ -225,7 +227,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
             return {
                 ...transactionItem,
-                action: getAction(data, key),
+                action: getAction(data, key, currentUserAccountID),
                 from,
                 to,
                 formattedFrom,
@@ -249,7 +251,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTransactionAction {
+function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUserAccountID: number): SearchTransactionAction {
     if (!isTransactionEntry(key) && !isReportEntry(key)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
@@ -258,18 +260,20 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
-    const transaction = isTransactionEntry(key) ? data[key] : {};
-    const report = isTransactionEntry(key) ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? {} : data[key] ?? {};
-    const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] ?? {};
-    const policy = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.policyID}`] ?? {};
+    const transaction = isTransactionEntry(key) ? data[key] : null;
+    const report = transaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key];
+    const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
+    const policy = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.policyID}`] ?? {};
     const violations = data[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? {};
-    const allViolations = Object.keys(data).filter(item => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)) ?? {};
-    const allTransactions = isTransactionEntry(key) ? transaction : Object.keys(data).filter(item => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) ?? {};
+    const allViolations = Object.keys(data).filter((item) => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)) ?? {};
+    const allTransactions = isTransactionEntry(key) ? transaction : Object.keys(data).filter((item) => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) ?? {};
 
+    // TODO: update isSettled to take report object instead of connect to Onyx
     if (ReportUtils.isSettled(report.reportID)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
 
+    // TODO: create function to determine if report is done
     if (ReportUtils.isSettled(report.reportID)) {
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
@@ -282,7 +286,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    if (IOU.canReportBeSubmitted(report, policy, 1, transaction)) {
+    if (IOU.canReportBeSubmitted(report, policy, currentUserAccountID, transaction)) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
