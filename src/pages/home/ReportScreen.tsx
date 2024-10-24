@@ -55,6 +55,9 @@ import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
+import Onyx from 'react-native-onyx';
+import lodashDefer from 'lodash/defer';
+
 
 type ReportScreenNavigationProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT>;
 
@@ -343,20 +346,26 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         [currentUserAccountID, linkedAction],
     );
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
-    console.log("[wildebug] ~ file: ReportScreen.tsx:346 ~ ReportScreen ~ deleteTransactionNavigateBackUrl:", deleteTransactionNavigateBackUrl)
-    console.log("[wildebug] ~ file: ReportScreen.tsx:348 ~ ReportScreen ~ report?.reportID:", report?.reportID)
-    console.log("[wildebug] ~ file: ReportScreen.tsx:348 ~ ReportScreen ~ ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl):", ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl))
-    console.log("[wildebug] ~ file: ReportScreen.tsx:348 ~ ReportScreen ~ (deleteTransactionNavigateBackUrl && ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl) === report?.reportID):", (deleteTransactionNavigateBackUrl && ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl) === report?.reportID))
-    
-    const isLoading = isLoadingApp || ((!reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty()) || (deleteTransactionNavigateBackUrl && ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl) === report?.reportID));
-    // const isLoading = isLoadingApp || ((!reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty()));
-    console.log("[wildebug] ~ file: ReportScreen.tsx:348 ~ ReportScreen ~ isLoading:", isLoading)
+
+    useEffect(() => {
+        if (!isFocused || !deleteTransactionNavigateBackUrl) {
+            return;
+        }
+        // Schedule the code to run after the current call stack is cleared,
+        // ensuring all updates are processed before hide the skeleton
+        lodashDefer(() => {
+            Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
+        });
+    }, [isFocused]);
+
+    const isLoading = isLoadingApp ?? ((!reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty()));
     const shouldShowSkeleton =
         (isLinkingToMessage && !isLinkedMessagePageReady) ||
         (!isLinkingToMessage && !isInitialPageReady) ||
         isEmptyObject(reportOnyx) ||
         isLoadingReportOnyx ||
         !isCurrentReportLoadedFromOnyx ||
+        (deleteTransactionNavigateBackUrl && ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl) === report?.reportID) ||
         isLoading;
 
     const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
