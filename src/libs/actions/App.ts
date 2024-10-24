@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
+import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -27,7 +28,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
 import * as PersistedRequests from './PersistedRequests';
 import * as Policy from './Policy/Policy';
-import resolveDuplicationConflictAction from './RequestConflictUtils';
+import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import * as Session from './Session';
 import Timing from './Timing';
 
@@ -546,6 +547,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             });
         });
     });
+    clearSoundAssetsCache();
 }
 
 export {
