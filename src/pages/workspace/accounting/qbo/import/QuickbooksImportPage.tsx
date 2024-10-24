@@ -11,7 +11,7 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {shouldSwitchLocationsToReportFields} from '../utils';
+import {shouldSwitchLocationsToReportFields} from '@pages/workspace/accounting/qbo/utils';
 
 type QBOSectionType = {
     description: string;

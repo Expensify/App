@@ -16,7 +16,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {shouldShowLocationsLineItemsRestriction, shouldSwitchLocationsToReportFields} from '../utils';
+import {shouldShowLocationsLineItemsRestriction, shouldSwitchLocationsToReportFields} from '@pages/workspace/accounting/qbo/utils';
 
 function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
