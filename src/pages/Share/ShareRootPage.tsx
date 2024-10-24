@@ -19,9 +19,8 @@ function ShareRootPage() {
 
     const handleProcessFiles = () => {
         ShareActionHandlerModule.processFiles((processedFiles) => {
-            // eslint-disable-next-line no-console
             const tempFile = processedFiles.at(0);
-            console.log('processedFiles', processedFiles);
+
             if (tempFile) {
                 ShareActions.addTempShareFile({...tempFile});
             }
