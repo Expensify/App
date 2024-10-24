@@ -64,8 +64,8 @@ The following steps help you determine how data will be exported from Expensify 
       <ul>
            <li><b>Export Out-of-Pocket Expenses as</b>: All out-of-pocket expenses will be exported as purchase bills. This cannot be amended.</li>
            <li><b>Purchase Bill Date</b>: Choose whether to use the date of last expense, export date, or submitted date.</li>
-           <li><b>Export invoices as</b>: All invoices exported to Xero will be as a sales invoice. This cannot be amended.</li>
-           <li><b>Export company card expenses as</b>: All company card expenses export to Xero as bank transactions. This cannot be amended.</li>
+           <li><b>Export invoices as</b>: All invoices exported to Xero will be as sales invoices. This cannot be amended.</li>
+           <li><b>Export company card expenses as</b>: All company card expenses are exported to Xero as bank transactions. This cannot be amended.</li>
            <li><b>Xero Bank Account</b>: Select which bank account will be used to post bank transactions when non-reimbursable expenses are exported.</li>
       </ul>
 </ol>
@@ -93,13 +93,13 @@ The following steps help you determine the advanced settings for your connection
 
 {% include faq-begin.md %}
 
-**How do I disconnect Xero from Expensify?**
+## How do I disconnect Xero from Expensify?
 
 1. Click your profile image or icon in the bottom left menu.
 2. Scroll down and click **Workspaces** in the left menu. 
 3. Select the workspace you want to disconnect from Xero. 
 4. Click **Accounting** in the left menu.
-5. Click the three dot menu icon to the right of Xero and select **Disconnect**.
+5. Click the three-dot menu icon to the right of Xero and select **Disconnect**.
 6. Click **Disconnect** to confirm. 
 
 You will no longer see the imported options from Xero.
