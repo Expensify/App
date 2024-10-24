@@ -34,13 +34,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
-type NewChatPageProps = {
-    isGroupChat?: boolean;
-};
+const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
-
-function useOptions({isGroupChat}: NewChatPageProps) {
+function useOptions() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<Array<ListItem & OptionData>>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -57,22 +53,20 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             personalDetails: listOptions.personalDetails ?? [],
             betas: betas ?? [],
             selectedOptions,
-            excludeLogins: isGroupChat ? excludedGroupEmails : [],
             maxRecentReportsToShow: 0,
             includeSelfDM: true,
         });
         return filteredOptions;
-    }, [betas, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
+    }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
     const options = useMemo(() => {
         const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
             selectedOptions,
-            excludeLogins: isGroupChat ? excludedGroupEmails : [],
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
         return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions, isGroupChat, selectedOptions]);
+    }, [debouncedSearchTerm, defaultOptions, selectedOptions]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
         return OptionsListUtils.getHeaderMessage(
@@ -129,7 +123,7 @@ function useOptions({isGroupChat}: NewChatPageProps) {
     };
 }
 
-function NewChatPage({isGroupChat}: NewChatPageProps) {
+function NewChatPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
@@ -142,9 +136,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
     const selectionListRef = useRef<SelectionListHandle>(null);
 
     const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
-        useOptions({
-            isGroupChat,
-        });
+        useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: OptionsListUtils.CategorySection[] = [];
@@ -217,7 +209,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
 
     const itemRightSideComponent = useCallback(
         (item: ListItem & OptionsListUtils.Option, isFocused?: boolean) => {
-            if (!!item.isSelfDM || (item.accountID && CONST.NON_ADDABLE_ACCOUNT_IDS.includes(item.accountID))) {
+            if (!!item.isSelfDM || (item.login && excludedGroupEmails.includes(item.login))) {
                 return null;
             }
             /**
