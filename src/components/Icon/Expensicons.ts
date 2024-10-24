@@ -94,6 +94,7 @@ import FlagLevelTwo from '@assets/images/flag_level_02.svg';
 import FlagLevelThree from '@assets/images/flag_level_03.svg';
 import Folder from '@assets/images/folder.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
+import GalleryNotFound from '@assets/images/gallery-not-found.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
 import Globe from '@assets/images/globe.svg';
@@ -107,6 +108,7 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
+import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
@@ -404,4 +406,6 @@ export {
     SpreadsheetComputer,
     Bookmark,
     Star,
+    QBDSquare,
+    GalleryNotFound,
 };
