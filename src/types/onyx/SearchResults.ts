@@ -107,6 +107,40 @@ type SearchReport = {
 
     /** The action that can be performed for the report */
     action?: SearchTransactionAction;
+
+    /** The type of chat if this is a chat report */
+    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
+
+    /** Invoice room receiver data */
+    invoiceReceiver?: Record<string, string>;
+
+    /** Whether the report has a single transaction */
+    isOneTransactionReport?: boolean;
+
+    /** Whether the report is policyExpenseChat */
+    isPolicyExpenseChat?: boolean;
+
+    /** Whether the report is waiting on a bank account */
+    isWaitingOnBankAccount?: boolean;
+
+    /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
+    nonReimbursableTotal?: number;
+
+    /** Account ID of the report owner */
+    ownerAccountID?: number;
+
+    /** The state that the report is currently in */
+    stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+
+    /** The status of the current report */
+    statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+
+    /** For expense reports, this is the total amount requested */
+    unheldTotal?: number;
+
+    /** Whether the report is archived */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    private_isArchived?: string;
 };
 
 /** Model of report action search result */
