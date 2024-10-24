@@ -160,8 +160,10 @@ function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], item: P
     if (defaultPaymentMethods.length > 1) {
         // Sort default payment methods by creation date to find the most recent
         const mostRecentDefaultMethod = defaultPaymentMethods.reduce((latest, current) =>
-            new Date((current.accountData ?? {}).created as string) > new Date((latest.accountData ?? {}).created as string) ? current : latest,
-        );
+            new Date(current.accountData?.created!) > new Date(latest.accountData?.created!)
+                ? current
+                : latest
+        );        
 
         // Return true only if the methodID matches the most recently created default account
         return mostRecentDefaultMethod.methodID === item.methodID;
