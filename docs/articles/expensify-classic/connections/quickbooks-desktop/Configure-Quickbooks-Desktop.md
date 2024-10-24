@@ -43,8 +43,7 @@ The following steps help you determine how data will be imported from QuickBooks
 
 The following steps help you determine the advanced settings for your connection, like auto-sync and employee invitation settings.
 
-![Expensify advanced settings page for the QuickBooks Desktop integration](https://help.expensify.com/assets/images/quickbooks-desktop-advanced-settings.png
-){:width="100%"}
+![Expensify advanced settings page for the QuickBooks Desktop integration](https://help.expensify.com/assets/images/quickbooks-desktop-advanced-settings.png){:width="100%"}
 
 1. Click **Advanced** under the QuickBooks Desktop connection.
 2. **Enable or disable Auto-Sync**: If enabled, QuickBooks Desktop automatically communicates changes with Expensify to ensure that the data shared between the two systems is up to date. New report approvals/reimbursements will be synced during the next auto-sync period.
