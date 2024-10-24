@@ -23,7 +23,8 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import isReportOpenInRHP from '@libs/Navigation/isReportOpenInRHP';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import FreeTrialBadge from '@pages/settings/Subscription/FreeTrialBadge';
@@ -87,8 +88,8 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const isTaskReport = ReportUtils.isTaskReport(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = ReportUtils.getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, true);
-    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData, true);
+    const title = ReportUtils.getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
+    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName(report, true);
@@ -120,15 +121,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     );
 
     const renderAdditionalText = () => {
-        if (
-            shouldShowSubtitle() ||
-            isPersonalExpenseChat ||
-            !policyName ||
-            !isEmptyObject(parentNavigationSubtitleData) ||
-            isSelfDM ||
-            ReportUtils.isUserCreatedPolicyRoom(report) ||
-            ReportUtils.isDefaultRoom(report)
-        ) {
+        if (shouldShowSubtitle() || isPersonalExpenseChat || !policyName || !isEmptyObject(parentNavigationSubtitleData) || isSelfDM) {
             return null;
         }
         return (
@@ -147,6 +140,9 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report?.reportID || !title;
+
+    const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
+    const shouldDisplaySearchRouter = !isReportInRHP;
 
     return (
         <View
@@ -288,7 +284,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
-                            <SearchButton />
+                            {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
                         </View>
                         <ConfirmModal
                             isVisible={isDeleteTaskConfirmModalVisible}

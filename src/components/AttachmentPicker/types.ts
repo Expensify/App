@@ -43,6 +43,10 @@ type AttachmentPickerProps = {
 
     acceptedFileTypes?: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>;
 
+    shouldHideCameraOption?: boolean;
+
+    shouldHideGalleryOption?: boolean;
+
     /** Whether to validate the image and show the alert or not. */
     shouldValidateImage?: boolean;
 };

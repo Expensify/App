@@ -16,7 +16,7 @@ class NotificationService: UANotificationServiceExtension {
   var bestAttemptContent: UNMutableNotificationContent?
   let log = OSLog(subsystem: Bundle.main.bundleIdentifier ?? "com.expensify.chat.dev.NotificationServiceExtension", category: "NotificationService")
   let appLogs: AppLogs = .init()
-  
+
   deinit {
     appLogs.forwardLogsTo(appGroup: "group.com.expensify.new")
   }

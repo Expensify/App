@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
@@ -20,8 +21,9 @@ function SearchFiltersDatePage() {
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const dateAfter = searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_AFTER];
-    const dateBefore = searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_BEFORE];
+
+    const dateAfter = searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_AFTER] ? format(searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_AFTER], 'yyyy-MM-dd') : undefined;
+    const dateBefore = searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_BEFORE] ? format(searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_BEFORE], 'yyyy-MM-dd') : undefined;
 
     const updateDateFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);

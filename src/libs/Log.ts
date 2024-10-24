@@ -83,7 +83,7 @@ const Log = new Logger({
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
-AppLogs.configureAppGroupName('group.com.expensify.new');
+AppLogs.configure({appGroupName: 'group.com.expensify.new', interval: -1});
 AppLogs.registerHandler({
     filter: '[NotificationService]',
     handler: ({filter, logs}) => {

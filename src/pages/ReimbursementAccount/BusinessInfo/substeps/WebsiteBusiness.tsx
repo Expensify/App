@@ -47,7 +47,7 @@ function WebsiteBusiness({onNext, isEditing}: SubStepProps) {
             BankAccounts.addBusinessWebsiteForDraft((values as {website: string})?.website);
             onNext();
         },
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     return (

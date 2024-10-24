@@ -12,7 +12,7 @@ import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
-import type {AddNewCompanyCardFeed} from './CardFeeds';
+import type {AddNewCompanyCardFeed, CompanyCardFeed} from './CardFeeds';
 import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
@@ -64,6 +64,7 @@ import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
+import type {RecentSearchItem} from './RecentSearch';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type Report from './Report';
@@ -133,6 +134,7 @@ export type {
     IOU,
     IssueNewCard,
     AddNewCompanyCardFeed,
+    CompanyCardFeed,
     LastExportMethod,
     Locale,
     Login,
@@ -230,6 +232,7 @@ export type {
     WorkspaceTooltip,
     CardFeeds,
     SaveSearch,
+    RecentSearchItem,
     ImportedSpreadsheet,
     ValidateMagicCodeAction,
 };

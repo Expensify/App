@@ -38,6 +38,7 @@ function UserListItem<TItem extends ListItem>({
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
+    wrapperStyle,
     pressableStyle,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -60,7 +61,7 @@ function UserListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, isFocused && styles.sidebarLinkActive]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, wrapperStyle]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -71,7 +72,7 @@ function UserListItem<TItem extends ListItem>({
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
-            pressableStyle={pressableStyle}
+            pressableStyle={[isFocused && styles.sidebarLinkActive, pressableStyle]}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
