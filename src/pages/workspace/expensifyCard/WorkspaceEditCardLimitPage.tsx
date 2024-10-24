@@ -92,6 +92,9 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                 errors.limit = translate('iou.error.invalidAmount');
             }
 
+            if (Number(values.limit) > CONST.EXPENSIFY_CARD.LIMIT_VALUE) {
+                errors.limit = translate('workspace.card.issueNewCard.cardLimitError');
+            }
             return errors;
         },
         [translate],
