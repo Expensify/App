@@ -10,6 +10,7 @@ import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
+import {updateLastVisitedPath} from '@userActions/App';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -100,6 +101,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                         Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
                     }
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
+                    updateLastVisitedPath(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
                 } catch (error) {
                     let errorMessage = String(error);
                     if (error instanceof Error) {
