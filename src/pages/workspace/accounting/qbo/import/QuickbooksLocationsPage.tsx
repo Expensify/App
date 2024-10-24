@@ -31,9 +31,10 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
 
     // If we previously selected tags but now we have the line items restriction, we need to switch to report fields
     useEffect(() => {
-        if (qboConfig?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG && shouldShowLineItemsRestriction) {
-            QuickbooksOnline.updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
+        if (qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG || !shouldShowLineItemsRestriction) {
+            return;
         }
+        QuickbooksOnline.updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
     }, [qboConfig?.syncLocations, shouldShowLineItemsRestriction, policyID]);
 
     return (
