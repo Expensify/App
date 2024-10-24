@@ -200,6 +200,26 @@ type ConnectionLastSync = {
     isConnected?: boolean;
 };
 
+/**
+ * Model of QBO credentials data.
+ */
+type QBOCredentials = {
+    /**
+     * The company ID that's connected from QBO.
+     */
+    companyID: string;
+
+    /**
+     * The company name that's connected from QBO.
+     */
+    companyName: string;
+
+    /**
+     * The current scope of QBO connection.
+     */
+    scope: string;
+};
+
 /** Financial account (bank account, debit card, etc) */
 type Account = {
     /** GL code assigned to the financial account */
@@ -437,6 +457,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;
+
+    /** Credentials of the current QBO connection */
+    credentials: QBOCredentials;
 }>;
 
 /**

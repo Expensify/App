@@ -15,6 +15,7 @@ const test = (config: NativeConfig) => {
     console.debug('[E2E] Logging in for chat opening');
 
     const reportID = getConfigValueOrThrow('reportID', config);
+    const name = getConfigValueOrThrow('name', config);
 
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {
@@ -48,7 +49,7 @@ const test = (config: NativeConfig) => {
             if (entry.name === CONST.TIMING.CHAT_RENDER) {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
-                    name: 'Chat opening',
+                    name: `${name} Chat opening`,
                     metric: entry.duration,
                     unit: 'ms',
                 })
@@ -64,7 +65,7 @@ const test = (config: NativeConfig) => {
             if (entry.name === CONST.TIMING.OPEN_REPORT) {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
-                    name: 'Chat TTI',
+                    name: `${name} Chat TTI`,
                     metric: entry.duration,
                     unit: 'ms',
                 })
