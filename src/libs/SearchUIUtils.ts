@@ -4,6 +4,7 @@ import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import * as IOU from '@libs/actions/IOU';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -11,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
@@ -223,7 +224,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
             return {
                 ...transactionItem,
-                action: 'submit',
+                action: getAction(data, key),
                 from,
                 to,
                 formattedFrom,
@@ -239,6 +240,35 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 shouldShowYear: doesDataContainAPastYearTransaction,
             };
         });
+}
+
+/**
+ * @private
+ * Returns the action that can be taken on a given transaction or report
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTransactionAction {
+    if (!isTransactionEntry(key) && !isReportEntry(key)) {
+        return CONST.SEARCH.ACTION_TYPES.VIEW;
+    }
+
+    return CONST.SEARCH.ACTION_TYPES.VIEW;
+
+    // const report = isReportEntry(key) ? data[key] : data[data[key].reportID];
+    // const chatReport = isReportEntry(key) ? data[key].chatReportID
+    // iouReport
+    // chatReport
+    // policy
+    // transactions
+    // if (IOU.canIOUBePaid()) {
+    // pay
+    // approve
+    // submit
+    // review
+    // view
+    // done
+    // paid
 }
 
 /**
