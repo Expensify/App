@@ -14,9 +14,10 @@ import ROUTES from '@src/ROUTES';
 type DelegateMagicCodeModalProps = {
     login: string;
     role: ValueOf<typeof CONST.DELEGATE_ROLE>;
+    onClose?: () => void;
 };
 
-function DelegateMagicCodeModal({login, role}: DelegateMagicCodeModalProps) {
+function DelegateMagicCodeModal({login, role, onClose}: DelegateMagicCodeModalProps) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
@@ -34,6 +35,7 @@ function DelegateMagicCodeModal({login, role}: DelegateMagicCodeModalProps) {
     }, [login, currentDelegate, role]);
 
     const onBackButtonPress = () => {
+        onClose?.();
         setIsValidateCodeActionModalVisible(false);
     };
 
