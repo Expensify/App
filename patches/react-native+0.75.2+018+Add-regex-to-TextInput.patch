@@ -1,0 +1,299 @@
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js b/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
+index 5e58ec4..ab988e9 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
+@@ -329,6 +329,12 @@ export type NativeProps = $ReadOnly<{|
+    */
+   returnKeyType?: WithDefault<ReturnKeyType, 'done'>,
+ 
++  /**
++   * Restricts the text value to match the specified regular expression. Use this
++   * instead of implementing the logic in JS to avoid flicker.
++   */
++  regex?: ?string,
++
+   /**
+    * Limits the maximum number of characters that can be entered. Use this
+    * instead of implementing the logic in JS to avoid flicker.
+@@ -689,6 +695,7 @@ export const __INTERNAL_VIEW_CONFIG: PartialViewConfig = {
+       process: require('../../StyleSheet/processColor').default,
+     },
+     maxLength: true,
++    regex: true,
+     selectTextOnFocus: true,
+     textShadowRadius: true,
+     underlineColorAndroid: {
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
+index 1cb122f..737030d 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
+@@ -151,6 +151,7 @@ const RCTTextInputViewConfig = {
+     autoFocus: true,
+     lineBreakStrategyIOS: true,
+     smartInsertDelete: true,
++    regex: true,
+     ...ConditionallyIgnoredEventHandlers({
+       onChange: true,
+       onSelectionChange: true,
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
+index 20501f7..76f30b9 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
+@@ -701,6 +701,12 @@ export interface TextInputProps
+    */
+   inputMode?: InputModeOptions | undefined;
+ 
++  /**
++   * Restricts the text value to match the specified regular expression. Use this
++   * instead of implementing the logic in JS to avoid flicker.
++   */
++  regex?: string | undefined;
++
+   /**
+    * Limits the maximum number of characters that can be entered.
+    * Use this instead of implementing the logic in JS to avoid flicker.
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
+index 2f35731..5bb94bc 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
+@@ -697,6 +697,12 @@ export type Props = $ReadOnly<{|
+    */
+   maxFontSizeMultiplier?: ?number,
+ 
++  /**
++   * Restricts the text value to match the specified regular expression. Use this
++   * instead of implementing the logic in JS to avoid flicker.
++   */
++  regex?: ?string,
++
+   /**
+    * Limits the maximum number of characters that can be entered. Use this
+    * instead of implementing the logic in JS to avoid flicker.
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
+index 8cfde15..4f3345c 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
+@@ -731,6 +731,12 @@ export type Props = $ReadOnly<{|
+    */
+   maxFontSizeMultiplier?: ?number,
+ 
++  /**
++   * Restricts the text value to match the specified regular expression. Use this
++   * instead of implementing the logic in JS to avoid flicker.
++   */
++  regex?: ?string,
++
+   /**
+    * Limits the maximum number of characters that can be entered. Use this
+    * instead of implementing the logic in JS to avoid flicker.
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
+index e367394..95f21f2 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
++++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
+@@ -59,6 +59,7 @@ @implementation RCTBaseTextInputViewManager {
+ RCT_EXPORT_VIEW_PROPERTY(inputAccessoryViewID, NSString)
+ RCT_EXPORT_VIEW_PROPERTY(textContentType, NSString)
+ RCT_EXPORT_VIEW_PROPERTY(passwordRules, NSString)
++RCT_EXPORT_VIEW_PROPERTY(regex, NSString)
+ 
+ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
+ RCT_EXPORT_VIEW_PROPERTY(onKeyPressSync, RCTDirectEventBlock)
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+index db7cba4..f85f95a 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+@@ -34,6 +34,7 @@ @implementation RCTTextInputComponentView {
+   UIView<RCTBackedTextInputViewProtocol> *_backedTextInputView;
+   NSUInteger _mostRecentEventCount;
+   NSAttributedString *_lastStringStateWasUpdatedWith;
++  NSRegularExpression *_regex;
+ 
+   /*
+    * UIKit uses either UITextField or UITextView as its UIKit element for <TextInput>. UITextField is for single line
+@@ -224,6 +225,13 @@ - (void)updateProps:(const Props::Shared &)props oldProps:(const Props::Shared &
+   if (newTextInputProps.inputAccessoryViewID != oldTextInputProps.inputAccessoryViewID) {
+     _backedTextInputView.inputAccessoryViewID = RCTNSStringFromString(newTextInputProps.inputAccessoryViewID);
+   }
++
++  if (newTextInputProps.regex != oldTextInputProps.regex) {
++    _regex = [NSRegularExpression regularExpressionWithPattern:RCTNSStringFromString(newTextInputProps.regex)
++                                                       options:0
++                                                         error:nil];
++  }
++
+   [super updateProps:props oldProps:oldProps];
+ 
+   [self setDefaultInputAccessoryView];
+@@ -359,6 +367,14 @@ - (NSString *)textInputShouldChangeText:(NSString *)text inRange:(NSRange)range
+     }
+   }
+ 
++  if (_regex) {
++    NSMutableString *newString = [_backedTextInputView.attributedText.string mutableCopy];
++    [newString replaceCharactersInRange:range withString:text];
++    if ([_regex numberOfMatchesInString:newString options:0 range:NSMakeRange(0, newString.length)] == 0) {
++      return nil;
++    }
++  }
++
+   if (props.maxLength) {
+     NSInteger allowedLength = props.maxLength - _backedTextInputView.attributedText.string.length + range.length;
+ 
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+index 2cceb14..8fdc0c1 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+@@ -824,6 +824,47 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+     view.setLines(numLines);
+   }
+ 
++  @ReactProp(name = "regex")
++  public void setRegex(ReactEditText view, @Nullable String regex) {
++    InputFilter[] currentFilters = view.getFilters();
++    InputFilter[] newFilters = EMPTY_FILTERS;
++
++    if (regex == null) {
++      if (currentFilters.length > 0) {
++        LinkedList<InputFilter> list = new LinkedList<>();
++        for (InputFilter currentFilter : currentFilters) {
++          if (!(currentFilter instanceof RegexFilter)) {
++            list.add(currentFilter);
++          }
++        }
++        if (!list.isEmpty()) {
++          newFilters = (InputFilter[]) list.toArray(new InputFilter[list.size()]);
++        }
++      }
++    } else {
++      if (currentFilters.length > 0) {
++        newFilters = currentFilters;
++        boolean replaced = false;
++        for (int i = 0; i < currentFilters.length; i++) {
++          if (currentFilters[i] instanceof RegexFilter) {
++            currentFilters[i] = new RegexFilter(regex);
++            replaced = true;
++          }
++        }
++        if (!replaced) {
++          newFilters = new InputFilter[currentFilters.length + 1];
++          System.arraycopy(currentFilters, 0, newFilters, 0, currentFilters.length);
++          newFilters[currentFilters.length] = new RegexFilter(regex);
++        }
++      } else {
++        newFilters = new InputFilter[1];
++        newFilters[0] = new RegexFilter(regex);
++      }
++    }
++
++    view.setFilters(newFilters);
++  }
++
+   @ReactProp(name = "maxLength")
+   public void setMaxLength(ReactEditText view, @Nullable Integer maxLength) {
+     InputFilter[] currentFilters = view.getFilters();
+@@ -854,7 +895,7 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+         if (!replaced) {
+           newFilters = new InputFilter[currentFilters.length + 1];
+           System.arraycopy(currentFilters, 0, newFilters, 0, currentFilters.length);
+-          currentFilters[currentFilters.length] = new InputFilter.LengthFilter(maxLength);
++          newFilters[currentFilters.length] = new InputFilter.LengthFilter(maxLength);
+         }
+       } else {
+         newFilters = new InputFilter[1];
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/RegexFilter.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/RegexFilter.java
+new file mode 100644
+index 0000000..f85e4cf
+--- /dev/null
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/RegexFilter.java
+@@ -0,0 +1,44 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++package com.facebook.react.views.textinput;
++
++import android.text.InputFilter;
++import android.text.Spanned;
++import java.util.regex.Matcher;
++import java.util.regex.Pattern;
++
++public class RegexFilter implements InputFilter {
++  private Pattern mPattern;
++
++  public RegexFilter(String pattern) {
++    mPattern = Pattern.compile(pattern);
++  }
++
++  @Override
++  public CharSequence filter(
++      CharSequence source,
++      int start,
++      int end,
++      Spanned dest,
++      int dstart,
++      int dend) {
++    StringBuilder newText = new StringBuilder(dest);
++    if (start == 0 && end == source.length())
++      newText.replace(dstart, dend, source.toString());
++    else
++      newText.replace(dstart, dend, source.toString().substring(start, end));
++    Matcher matcher = mPattern.matcher(newText);
++    if (matcher.matches()) {
++      return null;
++    }
++    if (dend - dstart == 0) {
++      return "";
++    }
++    return dest.subSequence(dstart, dend);
++  }
++}
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
+index ec0f350..cfae622 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
+@@ -102,7 +102,9 @@ BaseTextInputProps::BaseTextInputProps(
+           rawProps,
+           "autoCapitalize",
+           sourceProps.autoCapitalize,
+-          {})) {}
++          {})),
++      regex(convertRawProp(context, rawProps, "regex", sourceProps.regex, {})) {
++}
+ 
+ void BaseTextInputProps::setProp(
+     const PropsParserContext& context,
+@@ -180,6 +182,7 @@ void BaseTextInputProps::setProp(
+     RAW_SET_PROP_SWITCH_CASE_BASIC(text);
+     RAW_SET_PROP_SWITCH_CASE_BASIC(mostRecentEventCount);
+     RAW_SET_PROP_SWITCH_CASE_BASIC(autoCapitalize);
++    RAW_SET_PROP_SWITCH_CASE_BASIC(regex);
+   }
+ }
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
+index bff69fe..43a584e 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
+@@ -63,6 +63,7 @@ class BaseTextInputProps : public ViewProps, public BaseTextProps {
+   bool autoFocus{false};
+ 
+   std::string autoCapitalize{};
++  std::string regex{};
+ };
+ 
+ } // namespace facebook::react
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputProps.cpp
+index 6f318ca..10ed356 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputProps.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputProps.cpp
+@@ -346,6 +346,7 @@ folly::dynamic AndroidTextInputProps::getDynamic() const {
+   props["cursorColor"] = toAndroidRepr(cursorColor);
+   props["mostRecentEventCount"] = mostRecentEventCount;
+   props["text"] = text;
++  props["regex"] = regex;
+ 
+   props["hasPadding"] = hasPadding;
+   props["hasPaddingHorizontal"] = hasPaddingHorizontal;

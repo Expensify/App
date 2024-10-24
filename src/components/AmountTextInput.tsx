@@ -39,7 +39,7 @@ type AmountTextInputProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'regex'>;
 
 function AmountTextInput(
     {
