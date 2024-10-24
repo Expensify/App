@@ -1,3 +1,4 @@
+import type {Country} from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type Form from './Form';
 
@@ -50,6 +51,9 @@ const INPUT_IDS = {
     AMOUNT1: 'amount1',
     AMOUNT2: 'amount2',
     AMOUNT3: 'amount3',
+    ADDITIONAL_DATA: {
+        COUNTRY: 'country',
+    },
 } as const;
 
 type InputID = DeepValueOf<typeof INPUT_IDS>;
@@ -121,8 +125,23 @@ type ReimbursementAccountProps = {
     [INPUT_IDS.AMOUNT3]: string;
 };
 
+/** Additional props for non-USD reimbursement account */
+type NonUSDReimbursementAccountAdditionalProps = {
+    /** Country of the reimbursement account */
+    [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
+};
+
 type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
-    Form<InputID, BeneficialOwnersStepBaseProps & BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps>;
+    Form<
+        InputID,
+        BeneficialOwnersStepBaseProps &
+            BankAccountStepProps &
+            CompanyStepProps &
+            RequestorStepProps &
+            ACHContractStepProps &
+            ReimbursementAccountProps &
+            NonUSDReimbursementAccountAdditionalProps
+    >;
 
 export type {
     ReimbursementAccountForm,
@@ -133,6 +152,7 @@ export type {
     BeneficialOwnersStepProps,
     ACHContractStepProps,
     ReimbursementAccountProps,
+    NonUSDReimbursementAccountAdditionalProps,
     InputID,
 };
 export default INPUT_IDS;
