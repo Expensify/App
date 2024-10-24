@@ -1,11 +1,12 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {UpdateCommentParams} from '@libs/API/parameters';
-import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {ConflictActionData} from '@src/types/onyx/Request';
+
+type RequestMatcher = (request: OnyxRequest) => boolean;
 
 const addNewMessage = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 
@@ -18,15 +19,21 @@ const commentsToBeDeleted = new Set<string>([
     WRITE_COMMANDS.REMOVE_EMOJI_REACTION,
 ]);
 
+function createUpdateCommentMatcher(reportActionID: string) {
+    return function (request: OnyxRequest) {
+        return request.command === WRITE_COMMANDS.UPDATE_COMMENT && request.data?.reportActionID === reportActionID;
+    };
+}
+
 /**
- * Resolves duplication conflicts between persisted requests and a given command.
+ * Determines the appropriate action for handling duplication conflicts in persisted requests.
  *
- * This method checks if a specific command exists within a list of persisted requests.
- * - If the command is not found, it suggests adding the command to the list, indicating a 'push' action.
- * - If the command is found, it suggests updating the existing entry, indicating a 'replace' action at the found index.
+ * This method checks if any request in the list of persisted requests matches the criteria defined by the request matcher function.
+ * - If no match is found, it suggests adding the request to the list, indicating a 'push' action.
+ * - If a match is found, it suggests updating the existing entry, indicating a 'replace' action at the found index.
  */
-function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], commandToFind: WriteCommand): ConflictActionData {
-    const index = persistedRequests.findIndex((request) => request.command === commandToFind);
+function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], requestMatcher: RequestMatcher): ConflictActionData {
+    const index = persistedRequests.findIndex(requestMatcher);
     if (index === -1) {
         return {
             conflictAction: {
@@ -61,7 +68,7 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
 
         // If we find a new message, we probably want to remove it and not perform any request given that the server
         // doesn't know about it yet.
-        if (addNewMessage.has(request.command)) {
+        if (addNewMessage.has(request.command) && !request.isRollbacked) {
             addCommentFound = true;
             commentCouldBeThread[reportActionID] = index;
         }
@@ -135,4 +142,4 @@ function resolveEditCommentWithNewAddCommentRequest(persistedRequests: OnyxReque
     } as ConflictActionData;
 }
 
-export {resolveDuplicationConflictAction, resolveCommentDeletionConflicts, resolveEditCommentWithNewAddCommentRequest};
+export {resolveDuplicationConflictAction, resolveCommentDeletionConflicts, resolveEditCommentWithNewAddCommentRequest, createUpdateCommentMatcher};

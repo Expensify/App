@@ -111,7 +111,7 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
         policyID,
     };
 
-    return new Promise((resolve, reject) => {
+    return new Promise((_, reject) => {
         const error = new Error('Failed to generate spotnana token.');
 
         asyncOpenURL(
@@ -122,9 +122,7 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
                         reject(error);
                         throw error;
                     }
-                    const travelURL = buildTravelDotURL(response.spotnanaToken, postLoginPath);
-                    resolve(undefined);
-                    return travelURL;
+                    return buildTravelDotURL(response.spotnanaToken, postLoginPath);
                 })
                 .catch(() => {
                     reject(error);

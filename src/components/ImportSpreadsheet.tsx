@@ -42,6 +42,8 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
 
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use different copies depending on the screen size
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
@@ -167,7 +169,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('spreadsheet.importSpreadsheet')}
-                            onBackButtonPress={() => Navigation.navigate(backTo)}
+                            onBackButtonPress={() => Navigation.goBack(backTo)}
                         />
 
                         <View style={[styles.flex1, styles.uploadFileView(isSmallScreenWidth)]}>

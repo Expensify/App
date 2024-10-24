@@ -39,6 +39,7 @@ import type {
     ChangeTypeParams,
     CharacterLengthLimitParams,
     CharacterLimitParams,
+    CompanyCardBankName,
     CompanyCardFeedNameParams,
     ConfirmThatParams,
     ConnectionNameParams,
@@ -2159,6 +2160,7 @@ const translations = {
         companyAddress: 'Company address',
         listOfRestrictedBusinesses: 'list of restricted businesses',
         confirmCompanyIsNot: 'I confirm that this company is not on the',
+        businessInfoTitle: 'Business info',
     },
     beneficialOwnerInfoStep: {
         doYouOwn25percent: 'Do you own 25% or more of',
@@ -2236,6 +2238,21 @@ const translations = {
         enable2FATitle: 'Prevent fraud, enable two-factor authentication (2FA)',
         enable2FAText: 'We take your security seriously. Please set up 2FA now to add an extra layer of protection to your account.',
         secureYourAccount: 'Secure your account',
+    },
+    countryStep: {
+        confirmBusinessBank: 'Confirm business bank account currency and country',
+        confirmCurrency: 'Confirm currency and country',
+    },
+    signerInfoStep: {
+        signerInfo: 'Signer info',
+    },
+    agreementsStep: {
+        agreements: 'Agreements',
+        pleaseConfirm: 'Please confirm the agreements below',
+        accept: 'Accept and add bank account',
+    },
+    finishStep: {
+        connect: 'Connect bank account',
     },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'One moment',
@@ -3314,6 +3331,9 @@ const translations = {
                 emptyAddedFeedDescription: 'Get started by assigning your first card to a member.',
                 pendingFeedTitle: `We're reviewing your request...`,
                 pendingFeedDescription: `We're currently reviewing your feed details. Once that's done we'll reach out to you via`,
+                pendingBankTitle: 'Check your browser window',
+                pendingBankDescription: ({bankName}: CompanyCardBankName) => `Please connect to ${bankName} via your browser window that just opened. If one didn’t open, `,
+                pendingBankLink: 'please click here.',
                 giveItNameInstruction: 'Give the card a name that sets it apart from the others.',
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
@@ -4037,7 +4057,7 @@ const translations = {
             upgradeToUnlock: 'Unlock this feature',
             completed: {
                 headline: `You've upgraded your workspace!`,
-                successMessage: ({policyName}: ReportPolicyNameParams) => `You've successfully upgraded your ${policyName} workspace to the Control plan!`,
+                successMessage: ({policyName}: ReportPolicyNameParams) => `You've successfully upgraded ${policyName} to the Control plan!`,
                 viewSubscription: 'View your subscription',
                 moreDetails: 'for more details.',
                 gotIt: 'Got it, thanks',
@@ -4283,7 +4303,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
-                subtitle: 'Try creating something using the green + button.',
+                subtitle: 'Try creating something with the green + button.',
             },
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",
@@ -4329,6 +4349,8 @@ const translations = {
             current: 'Current',
             past: 'Past',
         },
+        noCategory: 'No category',
+        noTag: 'No tag',
         expenseType: 'Expense type',
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
@@ -5127,6 +5149,27 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: 'Is waiting for assignee to complete action',
             hasChildReportAwaitingAction: 'Has child report awaiting action',
             hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
+        },
+        reasonRBR: {
+            hasErrors: 'Has errors in report or report actions data',
+            hasViolations: 'Has violations',
+            hasTransactionThreadViolations: 'Has transaction thread violations',
+        },
+        indicatorStatus: {
+            theresAReportAwaitingAction: "There's a report awaiting action",
+            theresAReportWithErrors: "There's a report with errors",
+            theresAWorkspaceWithCustomUnitsErrors: "There's a workspace with custom units errors",
+            theresAProblemWithAWorkspaceMember: "There's a problem with a workspace member",
+            theresAProblemWithAContactMethod: "There's a problem with a contact method",
+            aContactMethodRequiresVerification: 'A contact method requires verification',
+            theresAProblemWithAPaymentMethod: "There's a problem with a payment method",
+            theresAProblemWithAWorkspace: "There's a problem with a workspace",
+            theresAProblemWithYourReimbursementAccount: "There's a problem with your reimbursement account",
+            theresABillingProblemWithYourSubscription: "There's a billing problem with your subscription",
+            yourSubscriptionHasBeenSuccessfullyRenewed: 'Your subscription has been successfully renewed',
+            theresWasAProblemDuringAWorkspaceConnectionSync: 'There was a problem during a workspace connection sync',
+            theresAProblemWithYourWallet: "There's a problem with your wallet",
+            theresAProblemWithYourWalletTerms: "There's a problem with your wallet terms",
         },
     },
     emptySearchView: {

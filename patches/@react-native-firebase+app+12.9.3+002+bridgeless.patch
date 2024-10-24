@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-native-firebase/app/lib/internal/registry/nativeModule.js b/node_modules/@react-native-firebase/app/lib/internal/registry/nativeModule.js
+index 03f001c..23d467d 100644
+--- a/node_modules/@react-native-firebase/app/lib/internal/registry/nativeModule.js
++++ b/node_modules/@react-native-firebase/app/lib/internal/registry/nativeModule.js
+@@ -65,7 +65,7 @@ function nativeModuleWrapped(namespace, NativeModule, argToPrepend) {
+     return NativeModule;
+   }
+ 
+-  const properties = Object.keys(NativeModule);
++  const properties = Object.keys(Object.getPrototypeOf(NativeModule));
+ 
+   for (let i = 0, len = properties.length; i < len; i++) {
+     const property = properties[i];

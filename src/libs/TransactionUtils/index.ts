@@ -12,7 +12,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import * as Localize from '@libs/Localize';
 import * as NumberUtils from '@libs/NumberUtils';
 import Permissions from '@libs/Permissions';
-import {getCleanedTagName, getCustomUnitRate} from '@libs/PolicyUtils';
+import {getCleanedTagName, getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 // eslint-disable-next-line import/no-cycle
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -903,7 +903,7 @@ function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefin
 function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined): string | undefined {
     if (isDistanceRequest(transaction)) {
         const customUnitRateID = getRateID(transaction) ?? '';
-        const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
+        const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
         return customUnitRate?.attributes?.taxRateExternalID ?? '';
     }
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
