@@ -805,7 +805,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon
                                     interactive
-                                    title={report.description}
+                                    title={ReportUtils.getReportDescription(report)}
                                     shouldRenderAsHTML
                                     shouldTruncateTitle
                                     characterLimit={100}

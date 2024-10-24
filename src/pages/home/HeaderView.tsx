@@ -26,6 +26,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import isReportOpenInRHP from '@libs/Navigation/isReportOpenInRHP';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
 import FreeTrialBadge from '@pages/settings/Subscription/FreeTrialBadge';
 import * as Report from '@userActions/Report';
@@ -91,7 +92,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const title = ReportUtils.getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
-    const reportDescription = ReportUtils.getReportDescriptionText(report);
+    const reportDescription = Parser.htmlToText(ReportUtils.getReportDescription(report));
     const policyName = ReportUtils.getPolicyName(report, true);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report?.reportID ?? '');
