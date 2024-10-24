@@ -3329,7 +3329,7 @@ function completeOnboarding(
     paymentSelected?: string,
     companySize?: OnboardingCompanySizeType,
     userReportedIntegration?: OnboardingAccountingType,
-    wasInvited = false,
+    wasInvited?: boolean,
 ) {
     const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);

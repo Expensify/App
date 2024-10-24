@@ -7604,7 +7604,18 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         onboardingPurpose = CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
     }
 
-    Report.completeOnboarding(onboardingPurpose, CONST.ONBOARDING_MESSAGES[onboardingPurpose], personalDetails?.firstName ?? '', personalDetails?.lastName ?? '', paymentSelected, true);
+    Report.completeOnboarding(
+        onboardingPurpose,
+        CONST.ONBOARDING_MESSAGES[onboardingPurpose],
+        personalDetails?.firstName ?? '',
+        personalDetails?.lastName ?? '',
+        undefined,
+        undefined,
+        paymentSelected,
+        undefined,
+        undefined,
+        true,
+    );
 }
 
 function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true) {
