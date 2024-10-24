@@ -176,6 +176,43 @@ type SearchReportAction = {
     reportID: string;
 };
 
+/** Model of policy search result */
+type SearchPolicy = {
+    /** The policy type */
+    type: ValueOf<typeof CONST.POLICY.TYPE>;
+
+    /** Whether the auto reporting is enabled */
+    autoReporting?: boolean;
+
+    /**
+     * The scheduled submit frequency set up on this policy.
+     * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
+     * "manual" really means "immediate" (aka "daily") && harvesting.enabled === false
+     */
+    autoReportingFrequency?: Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL>;
+
+    /** The approval mode set up on this policy */
+    approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** The reimbursement choice for policy */
+    reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+    /** The maximum report total allowed to trigger auto reimbursement */
+    autoReimbursementLimit?: number;
+
+    /** The verified bank account linked to the policy */
+    achAccount?: Record<string, string>;
+
+    /** The current user's role in the policy */
+    role: ValueOf<typeof CONST.POLICY.ROLE>;
+
+    /** The employee list of the policy */
+    employeeList?: Record<string, Record<string, string>>;
+
+    /** Detailed settings for the autoReimbursement */
+    autoReimbursement?: Record<string, string>;
+};
+
 /** Model of transaction search result */
 type SearchTransaction = {
     /** The ID of the transaction */
@@ -314,4 +351,15 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {ListItemType, ListItemDataType, SearchTransaction, SearchTransactionType, SearchTransactionAction, SearchPersonalDetails, SearchDataTypes, SearchReport, SearchReportAction};
+export type {
+    ListItemType,
+    ListItemDataType,
+    SearchTransaction,
+    SearchTransactionType,
+    SearchTransactionAction,
+    SearchPersonalDetails,
+    SearchDataTypes,
+    SearchReport,
+    SearchReportAction,
+    SearchPolicy,
+};

@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction, SearchTransactionAction, SearchPolicy} from '@src/types/onyx/SearchResults';
 import * as IOU from './actions/IOU';
 import * as Report from './actions/Report';
 import * as CurrencyUtils from './CurrencyUtils';
