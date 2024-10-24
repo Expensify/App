@@ -53,7 +53,11 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
         );
     }
 
-    if (ReportUtils.isReportApproved(report) || ReportUtils.isReportManuallyReimbursed(report) || (ReportUtils.isProcessingReport(report) && !PolicyUtils.isInstantSubmitEnabled(policy))) {
+    if (
+        ReportUtils.isReportApproved({reportOrID: report}) ||
+        ReportUtils.isReportManuallyReimbursed(report) ||
+        (ReportUtils.isProcessingReport(report) && !PolicyUtils.isInstantSubmitEnabled(policy))
+    ) {
         return translate('violations.memberBrokenConnectionError');
     }
 

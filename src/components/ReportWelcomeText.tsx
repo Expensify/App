@@ -112,7 +112,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                     ) : (
                         <Text>
                             <Text>{welcomeMessage.phrase1}</Text>
-                            <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
+                            <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant({accountID: report?.ownerAccountID})}</Text>
                             <Text>{welcomeMessage.phrase2}</Text>
                             <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName({report})}</Text>
                             <Text>{welcomeMessage.phrase3}</Text>
@@ -138,7 +138,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                             <Text>{welcomeMessage.phrase1}</Text>
                             <Text>
                                 {report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? (
-                                    <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)}</Text>
+                                    <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})}</Text>
                                 ) : (
                                     <Text style={[styles.textStrong]}>{getPolicy(report?.invoiceReceiver?.policyID)?.name}</Text>
                                 )}

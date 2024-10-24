@@ -370,7 +370,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
                     prompt={translate('roomMembersPage.removeMembersPrompt', {
                         count: selectedMembers.length,
-                        memberName: PersonalDetailsUtils.getPersonalDetailsByIDs(selectedMembers, currentUserAccountID).at(0)?.displayName ?? '',
+                        memberName: PersonalDetailsUtils.getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? '',
                     })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}

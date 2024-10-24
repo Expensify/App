@@ -976,7 +976,7 @@ function removeSettledAndApprovedTransactions(transactionIDs: string[]) {
     return transactionIDs.filter(
         (transactionID) =>
             !ReportUtils.isSettled(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID) &&
-            !ReportUtils.isReportApproved(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID),
+            !ReportUtils.isReportApproved({reportOrID: allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID}),
     );
 }
 

@@ -105,12 +105,12 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         if (!approverAccountID) {
             return translate('workspace.people.removeMembersPrompt', {
                 count: selectedEmployees.length,
-                memberName: PersonalDetailsUtils.getPersonalDetailsByIDs(selectedEmployees, currentUserAccountID).at(0)?.displayName ?? '',
+                memberName: PersonalDetailsUtils.getPersonalDetailsByIDs({accountIDs: selectedEmployees, currentUserAccountID}).at(0)?.displayName ?? '',
             });
         }
         return translate('workspace.people.removeMembersWarningPrompt', {
-            memberName: getDisplayNameForParticipant(approverAccountID),
-            ownerName: getDisplayNameForParticipant(policy?.ownerAccountID),
+            memberName: getDisplayNameForParticipant({accountID: approverAccountID}),
+            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID}),
         });
     }, [selectedEmployees, translate, policy, currentUserAccountID]);
     /**

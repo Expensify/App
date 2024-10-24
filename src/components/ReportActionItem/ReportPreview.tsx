@@ -144,7 +144,7 @@ function ReportPreview({
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(chatReport);
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
-    const isApproved = ReportUtils.isReportApproved(iouReport, action);
+    const isApproved = ReportUtils.isReportApproved({reportOrID: iouReport, parentReportAction: action});
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = allTransactions.length;
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
@@ -296,7 +296,7 @@ function ReportPreview({
         } else if (isInvoiceRoom) {
             payerOrApproverName = ReportUtils.getInvoicePayerName(chatReport, invoiceReceiverPolicy);
         } else {
-            payerOrApproverName = ReportUtils.getDisplayNameForParticipant(managerID, true);
+            payerOrApproverName = ReportUtils.getDisplayNameForParticipant({accountID: managerID, shouldUseShortForm: true});
         }
 
         if (isApproved) {
@@ -307,7 +307,7 @@ function ReportPreview({
             paymentVerb = 'iou.payerPaid';
         } else if (hasNonReimbursableTransactions) {
             paymentVerb = 'iou.payerSpent';
-            payerOrApproverName = ReportUtils.getDisplayNameForParticipant(chatReport?.ownerAccountID, true);
+            payerOrApproverName = ReportUtils.getDisplayNameForParticipant({accountID: chatReport?.ownerAccountID, shouldUseShortForm: true});
         }
         return translate(paymentVerb, {payer: payerOrApproverName});
     }, [

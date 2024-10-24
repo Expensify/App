@@ -85,11 +85,21 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
  * @param shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
  * @returns - Array of personal detail objects
  */
-function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: number, shouldChangeUserDisplayName = false, personalDetailsProp = allPersonalDetails): PersonalDetails[] {
+function getPersonalDetailsByIDs({
+    accountIDs,
+    currentUserAccountID,
+    shouldChangeUserDisplayName = false,
+    personalDetailsParam = allPersonalDetails,
+}: {
+    accountIDs: number[];
+    currentUserAccountID: number;
+    shouldChangeUserDisplayName?: boolean;
+    personalDetailsParam?: OnyxEntry<PersonalDetailsList>;
+}): PersonalDetails[] {
     const result: PersonalDetails[] = accountIDs
-        .filter((accountID) => !!personalDetailsProp?.[accountID])
+        .filter((accountID) => !!personalDetailsParam?.[accountID])
         .map((accountID) => {
-            const detail = (personalDetailsProp?.[accountID] ?? {}) as PersonalDetails;
+            const detail = (personalDetailsParam?.[accountID] ?? {}) as PersonalDetails;
 
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 return {

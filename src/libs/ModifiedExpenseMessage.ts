@@ -132,7 +132,17 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, reports?: OnyxCollection<Report>, policyTagLists = allPolicyTags): string {
+function getForReportAction({
+    reportID,
+    reportAction,
+    reports,
+    policyTagLists = allPolicyTags,
+}: {
+    reportID: string | undefined;
+    reportAction: OnyxEntry<ReportAction>;
+    reports?: OnyxCollection<Report>;
+    policyTagLists?: OnyxCollection<PolicyTagLists>;
+}): string {
     if (!ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
         return '';
     }

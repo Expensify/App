@@ -6983,7 +6983,7 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, 
     const managerID = iouReport?.managerID ?? -1;
     const isCurrentUserManager = managerID === userAccountID;
     const isOpenExpenseReport = ReportUtils.isOpenExpenseReport(iouReport);
-    const isApproved = ReportUtils.isReportApproved(iouReport);
+    const isApproved = ReportUtils.isReportApproved({reportOrID: iouReport});
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(iouReport?.reportID);
     const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);

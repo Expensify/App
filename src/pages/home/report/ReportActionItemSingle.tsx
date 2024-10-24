@@ -88,7 +88,7 @@ function ReportActionItemSingle({
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
-    let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
+    let displayName = ReportUtils.getDisplayNameForParticipant({accountID: actorAccountID});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -105,7 +105,7 @@ function ReportActionItemSingle({
     if (isReportPreviewAction && ReportUtils.isPolicyExpenseChat(report)) {
         avatarId = ownerAccountID;
         avatarSource = personalDetails[ownerAccountID ?? -1]?.avatar;
-        displayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
+        displayName = ReportUtils.getDisplayNameForParticipant({accountID: ownerAccountID});
         actorHint = displayName;
     }
     if (isWorkspaceActor) {
@@ -138,7 +138,7 @@ function ReportActionItemSingle({
             // The ownerAccountID and actorAccountID can be the same if a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
             const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
             const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
-            const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
+            const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant({accountID: secondaryAccountId});
 
             secondaryAvatar = {
                 source: secondaryUserAvatar,

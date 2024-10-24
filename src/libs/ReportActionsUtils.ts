@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -755,10 +755,14 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
     return updatedReportAction;
 }
 
-function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {}): OnyxEntry<ReportAction> {
+function getLastVisibleAction(
+    reportID: string,
+    actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
+    reportActionsParam: OnyxCollection<ReportActions> = allReportActions,
+): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
     if (!isEmpty(actionsToMerge)) {
-        reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true)) as Array<
+        reportActions = Object.values(fastMerge(reportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true)) as Array<
             ReportAction | null | undefined
         >;
     } else {
@@ -1151,7 +1155,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
 
     const originalMessage = getOriginalMessage(reportAction);
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
-    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
+    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
 
     const mentionElements = targetAccountIDs.map((accountID): MemberChangeMessageUserMentionElement => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
@@ -1432,7 +1436,7 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
     }
     const originalMessage = getOriginalMessage(reportAction);
     const targetAccountIDs: number[] = originalMessage?.inviteeAccountIDs ?? [];
-    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
+    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
     const mentionElements = targetAccountIDs.map((accountID): string => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
         const displayName = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail);
@@ -1732,7 +1736,7 @@ function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPO
 
 function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>) {
     const originalMessage = getOriginalMessage(reportAction);
-    const submittersNames = PersonalDetailsUtils.getPersonalDetailsByIDs(originalMessage?.submittersAccountIDs ?? [], currentUserAccountID ?? -1).map(
+    const submittersNames = PersonalDetailsUtils.getPersonalDetailsByIDs({accountIDs: originalMessage?.submittersAccountIDs ?? [], currentUserAccountID: currentUserAccountID ?? -1}).map(
         ({displayName, login}) => displayName ?? login ?? 'Unknown Submitter',
     );
     return Localize.translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
@@ -1748,7 +1752,17 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
     );
 }
 
-function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1') {
+function getCardIssuedMessage({
+    reportAction,
+    shouldRenderHTML = false,
+    policyID = '-1',
+    personalDetails,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    shouldRenderHTML?: boolean;
+    policyID?: string;
+    personalDetails?: OnyxEntry<PersonalDetailsList>;
+}) {
     const cardIssuedActionOriginalMessage = isActionOfType(
         reportAction,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
@@ -1760,7 +1774,11 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
 
     const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID ?? -1;
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? -1;
-    const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1).at(0);
+    const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs({
+        accountIDs: [assigneeAccountID],
+        currentUserAccountID: currentUserAccountID ?? -1,
+        personalDetailsParam: personalDetails,
+    }).at(0);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID));

@@ -610,7 +610,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastMessageTextFromReport = `[${Localize.translateLocal((report?.lastMessageTranslationKey || 'common.attachment') as TranslationPaths)}]`;
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(report?.reportID, lastReportAction);
+        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportID: report?.reportID, reportAction: lastReportAction});
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (ReportActionUtils.isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastReportAction).text);
@@ -763,11 +763,11 @@ function createOption(
         result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
         reportName = showPersonalDetails
-            ? ReportUtils.getDisplayNameForParticipant(accountIDs.at(0)) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '')
+            ? ReportUtils.getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '')
             : ReportUtils.getReportName({report});
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs.at(0)) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '');
+        reportName = ReportUtils.getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');

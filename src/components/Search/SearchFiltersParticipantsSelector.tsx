@@ -92,7 +92,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 
         if (chatOptions.currentUserOption) {
-            const formattedName = ReportUtils.getDisplayNameForParticipant(chatOptions.currentUserOption.accountID, false, true, true, personalDetails);
+            const formattedName = ReportUtils.getDisplayNameForParticipant({
+                accountID: chatOptions.currentUserOption.accountID,
+                shouldAddCurrentUserPostfix: true,
+                personalDetailsData: personalDetails,
+            });
             if (selectedCurrentUser) {
                 selectedCurrentUser.text = formattedName;
             } else {

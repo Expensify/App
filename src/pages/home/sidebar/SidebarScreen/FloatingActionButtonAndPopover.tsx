@@ -185,7 +185,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             return '';
         }
         if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
-            const name: string = ReportUtils.getDisplayNameForParticipant(+(quickActionAvatars.at(0)?.id ?? -1), true) ?? '';
+            const name: string = ReportUtils.getDisplayNameForParticipant({accountID: +(quickActionAvatars.at(0)?.id ?? -1), shouldUseShortForm: true}) ?? '';
             return translate('quickAction.paySomeone', {name});
         }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));

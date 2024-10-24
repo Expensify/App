@@ -384,7 +384,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = html ?? text;
                     setClipboardMessage(displayMessage);
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
-                    const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportID, reportAction);
+                    const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportID, reportAction});
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isReimbursementDeQueuedAction(reportAction)) {
                     const {expenseReportID} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
@@ -470,7 +470,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(Localize.translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage}));
                 } else if (ReportActionsUtils.isCardIssuedAction(reportAction)) {
                     const report = ReportUtils.getReport(reportID);
-                    setClipboardMessage(ReportActionsUtils.getCardIssuedMessage(reportAction, true, report?.policyID));
+                    setClipboardMessage(ReportActionsUtils.getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID}));
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
                     setClipboardMessage(ReportActionsUtils.getRemovedConnectionMessage(reportAction));
                 } else if (content) {
