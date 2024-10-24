@@ -125,8 +125,14 @@ function getChatTabBrickRoadReport(policyID?: string): OnyxEntry<Report> {
         return undefined;
     }
 
+    // There are optimistic reports without a reportID, so we need to extract it from the report key
+    const normalizedAllReports = Object.entries(allReports).map(([key, report]) => ({
+        ...report,
+        reportID: report?.reportID ?? key.replace(ONYXKEYS.COLLECTION.REPORT, ''),
+    }));
+    
     // If policyID is undefined, then all reports are checked whether they contain any brick road
-    const policyReports = policyID ? Object.values(allReports).filter((report) => report?.policyID === policyID) : Object.values(allReports);
+    const policyReports = policyID ? normalizedAllReports.filter((report) => report?.policyID === policyID) : normalizedAllReports;
 
     let reportWithGBR: OnyxEntry<Report>;
 
