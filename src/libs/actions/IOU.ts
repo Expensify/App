@@ -1779,6 +1779,11 @@ function getDeleteTrackExpenseInformation(
                 lastMessageHtml: !lastMessageHtml ? lastMessageText : lastMessageHtml,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL,
+            value: null,
+        }
     );
 
     const successData: OnyxUpdate[] = [
@@ -6020,6 +6025,11 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: ReportUtils.getOutstandingChildRequest(updatedIOUReport),
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL,
+            value: null,
+        }
     );
 
     if (!shouldDeleteIOUReport && updatedReportPreviewAction?.childMoneyRequestCount === 0) {

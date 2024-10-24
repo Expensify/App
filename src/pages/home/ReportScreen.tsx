@@ -342,8 +342,15 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         () => !!linkedAction && ReportActionsUtils.isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
         [currentUserAccountID, linkedAction],
     );
-
-    const isLoading = isLoadingApp ?? (!reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty());
+    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+    console.log("[wildebug] ~ file: ReportScreen.tsx:346 ~ ReportScreen ~ deleteTransactionNavigateBackUrl:", deleteTransactionNavigateBackUrl)
+    console.log("[wildebug] ~ file: ReportScreen.tsx:348 ~ ReportScreen ~ report?.reportID:", report?.reportID)
+    console.log("[wildebug] ~ file: ReportScreen.tsx:348 ~ ReportScreen ~ ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl):", ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl))
+    console.log("[wildebug] ~ file: ReportScreen.tsx:348 ~ ReportScreen ~ (deleteTransactionNavigateBackUrl && ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl) === report?.reportID):", (deleteTransactionNavigateBackUrl && ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl) === report?.reportID))
+    
+    const isLoading = isLoadingApp || ((!reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty()) || (deleteTransactionNavigateBackUrl && ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl) === report?.reportID));
+    // const isLoading = isLoadingApp || ((!reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty()));
+    console.log("[wildebug] ~ file: ReportScreen.tsx:348 ~ ReportScreen ~ isLoading:", isLoading)
     const shouldShowSkeleton =
         (isLinkingToMessage && !isLinkedMessagePageReady) ||
         (!isLinkingToMessage && !isInitialPageReady) ||
