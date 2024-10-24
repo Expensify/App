@@ -35,10 +35,7 @@ function DebugTransactionViolations({transactionID}: DebugTransactionViolationsP
     );
 
     return (
-        <ScrollView
-            style={styles.mt5}
-            contentContainerStyle={styles.pb5}
-        >
+        <ScrollView style={styles.mv5}>
             <Button
                 success
                 large
@@ -49,6 +46,7 @@ function DebugTransactionViolations({transactionID}: DebugTransactionViolationsP
             <FlatList
                 data={transactionViolations}
                 renderItem={renderItem}
+                scrollEnabled={false}
             />
         </ScrollView>
     );
