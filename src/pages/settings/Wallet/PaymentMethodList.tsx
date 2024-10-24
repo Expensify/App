@@ -149,12 +149,12 @@ function dismissError(item: PaymentMethodItem) {
     }
 }
 
-function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefault = false, item: PaymentMethod): boolean {
+function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], item: PaymentMethod, isDefault = false): boolean {
     if (!isDefault) {
         return false;
     }
     // Find all payment methods that are marked as default
-    const defaultPaymentMethods = filteredPaymentMethods.filter((method): method is PaymentMethod & {accountData: AccountData} => Boolean(method.isDefault));
+    const defaultPaymentMethods = filteredPaymentMethods.filter((method): method is PaymentMethod & {accountData: AccountData} => !!method.isDefault);
 
     // If there are two or more default payment methods, find the most recently created one
     if (defaultPaymentMethods.length > 1) {
