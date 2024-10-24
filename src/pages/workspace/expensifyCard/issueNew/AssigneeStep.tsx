@@ -1,11 +1,8 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import ScreenWrapper from '@components/ScreenWrapper';
+import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -134,22 +131,15 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     }, [debouncedSearchTerm, sections]);
 
     return (
-        <ScreenWrapper
-            testID={AssigneeStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+        <InteractiveStepWrapper
+            wrapperID={AssigneeStep.displayName}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            headerTitle={translate('workspace.card.issueCard')}
+            handleBackButtonPress={handleBackButtonPress}
+            startStepIndex={0}
+            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.card.issueCard')}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    startStepIndex={0}
-                    stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
-                />
-            </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>
             <SelectionList
                 textInputLabel={textInputLabel}
@@ -160,7 +150,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
                 ListItem={UserListItem}
                 onSelectRow={submit}
             />
-        </ScreenWrapper>
+        </InteractiveStepWrapper>
     );
 }
 

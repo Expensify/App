@@ -1,13 +1,9 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import ScreenWrapper from '@components/ScreenWrapper';
+import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -37,7 +33,6 @@ function BankInfo({onBackButtonPress, policyID}: BankInfoProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const [redirectedFromPlaidToManual, setRedirectedFromPlaidToManual] = React.useState(false);
     const values = useMemo(() => getSubstepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
@@ -125,28 +120,20 @@ function BankInfo({onBackButtonPress, policyID}: BankInfoProps) {
     };
 
     return (
-        <ScreenWrapper
-            testID={BankInfo.displayName}
-            includeSafeAreaPaddingBottom={false}
+        <InteractiveStepWrapper
+            wrapperID={BankInfo.displayName}
             shouldEnablePickerAvoiding={false}
+            handleBackButtonPress={handleBackButtonPress}
+            headerTitle={translate('bankAccount.bankInfo')}
+            startStepIndex={0}
+            stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
-            <HeaderWithBackButton
-                shouldShowBackButton
-                onBackButtonPress={handleBackButtonPress}
-                title={translate('bankAccount.bankInfo')}
-            />
-            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    startStepIndex={0}
-                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-                />
-            </View>
             <SubStep
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
             />
-        </ScreenWrapper>
+        </InteractiveStepWrapper>
     );
 }
 

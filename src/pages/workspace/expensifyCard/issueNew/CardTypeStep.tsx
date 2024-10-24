@@ -2,11 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
-import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,23 +39,16 @@ function CardTypeStep() {
     };
 
     return (
-        <ScreenWrapper
-            testID={CardTypeStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+        <InteractiveStepWrapper
+            wrapperID={CardTypeStep.displayName}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
+            headerTitle={translate('workspace.card.issueCard')}
+            handleBackButtonPress={handleBackButtonPress}
+            startStepIndex={1}
+            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.card.issueCard')}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    startStepIndex={1}
-                    stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
-                />
-            </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseCardType')}</Text>
             <View style={styles.mh5}>
                 <MenuItem
@@ -85,7 +76,7 @@ function CardTypeStep() {
                     wrapperStyle={styles.purposeMenuItem}
                 />
             </View>
-        </ScreenWrapper>
+        </InteractiveStepWrapper>
     );
 }
 
