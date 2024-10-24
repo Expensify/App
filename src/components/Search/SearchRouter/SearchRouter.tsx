@@ -6,7 +6,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {AutocompleteRange, SearchQueryJSON} from '@components/Search/types';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -146,11 +146,18 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const contextualReportData = contextualReportID ? searchOptions.recentReports?.find((option) => option.reportID === contextualReportID) : undefined;
 
     const updateAutocomplete = useCallback(
-        (autocompleteValue: string, autocompleteType?: ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS & typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>) => {
+        (autocompleteValue: string, ranges: AutocompleteRange[], autocompleteType: ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS & typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>) => {
+            const alreadyAutocompletedKeys: string[] = [];
+            ranges.forEach((range) => {
+                if (range.key !== autocompleteType) {
+                    return;
+                }
+                alreadyAutocompletedKeys.push(range.value);
+            });
             switch (autocompleteType) {
                 case 'tag': {
                     const autocompleteList = autocompleteValue ? tagAutocompleteList : recentTagsAutocompleteList ?? [];
-                    const filteredTags = autocompleteList.filter((tag) => tag?.includes(autocompleteValue));
+                    const filteredTags = autocompleteList.filter((tag) => tag?.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(tag));
                     setAutocompleteSuggestions(
                         filteredTags.map((tagName) => ({
                             text: `tag:${tagName}`,
@@ -161,7 +168,9 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 }
                 case 'category': {
                     const autocompleteList = autocompleteValue ? categoryAutocompleteList : recentCategoriesAutocompleteList;
-                    const filteredCategories = autocompleteList.filter((category) => category?.includes(autocompleteValue));
+                    const filteredCategories = autocompleteList.filter((category) => {
+                        return category?.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(category);
+                    });
                     setAutocompleteSuggestions(
                         filteredCategories.map((categoryName) => ({
                             text: `category:${categoryName}`,
@@ -172,7 +181,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 }
                 case 'currency': {
                     const autocompleteList = autocompleteValue ? currencyAutocompleteList : recentCurrencyAutocompleteList ?? [];
-                    const filteredCurrencies = autocompleteList.filter((currency) => currency?.includes(autocompleteValue));
+                    const filteredCurrencies = autocompleteList.filter((currency) => currency?.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(currency));
                     setAutocompleteSuggestions(
                         filteredCurrencies.map((currencyName) => ({
                             text: `currency:${currencyName}`,
@@ -182,7 +191,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     return;
                 }
                 case 'taxRate': {
-                    const filteredTaxRates = taxAutocompleteList.filter((tax) => tax.includes(autocompleteValue));
+                    const filteredTaxRates = taxAutocompleteList.filter((tax) => tax.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(tax));
                     setAutocompleteSuggestions(filteredTaxRates.map((tax) => ({text: `type:${tax}`, query: `${tax}`})));
                     return;
                 }
@@ -197,17 +206,17 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     return;
                 }
                 case 'type': {
-                    const filteredTypes = typesAutocompleteList.filter((type) => type.includes(autocompleteValue));
+                    const filteredTypes = typesAutocompleteList.filter((type) => type.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(type));
                     setAutocompleteSuggestions(filteredTypes.map((type) => ({text: `type:${type}`, query: `${type}`})));
                     return;
                 }
                 case 'status': {
-                    const filteredStatuses = statusesAutocompleteList.filter((status) => status.includes(autocompleteValue));
+                    const filteredStatuses = statusesAutocompleteList.filter((status) => status.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(status));
                     setAutocompleteSuggestions(filteredStatuses.map((status) => ({text: `status:${status}`, query: `${status}`})));
                     return;
                 }
                 case 'expenseType': {
-                    const filteredExpenseTypes = expenseTypes.filter((expenseType) => expenseType.includes(autocompleteValue));
+                    const filteredExpenseTypes = expenseTypes.filter((expenseType) => expenseType.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(expenseType));
                     setAutocompleteSuggestions(
                         filteredExpenseTypes.map((expenseType) => ({
                             text: `expenseType:${expenseType}`,
@@ -217,7 +226,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     return;
                 }
                 case 'cardID': {
-                    const filteredCards = cardsAutocompleteList.filter((card) => card.includes(autocompleteValue));
+                    const filteredCards = cardsAutocompleteList.filter((card) => card.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(card));
                     setAutocompleteSuggestions(
                         filteredCards.map((card) => ({
                             text: `expenseType:${card}`,
@@ -255,8 +264,9 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
             }
             setTextInputValue(userQuery);
             const autocompleteParsedQuery = parseForAutocomplete(userQuery);
-            console.log('%%%%%\n', 'autocompleteParsedQuery', autocompleteParsedQuery);
-            updateAutocomplete(autocompleteParsedQuery?.autocomplete?.value ?? '', autocompleteParsedQuery?.autocomplete?.key);
+            if (autocompleteParsedQuery?.autocomplete) {
+                updateAutocomplete(autocompleteParsedQuery.autocomplete.value ?? '', autocompleteParsedQuery.ranges, autocompleteParsedQuery.autocomplete.key);
+            }
             listRef.current?.updateAndScrollToFocusedIndex(0);
         },
         // eslint-disable-next-line react-compiler/react-compiler

@@ -79,13 +79,16 @@ type SearchQueryJSON = {
     flatFilters: QueryFilters;
 } & SearchQueryAST;
 
+type AutocompleteRange = {
+    key: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS & typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+    length: number;
+    start: number;
+    value: string;
+};
+
 type SearchAutocompleteResult = {
-    autocomplete: {
-        key: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
-        length: number;
-        start: number;
-        value: string;
-    };
+    autocomplete: AutocompleteRange;
+    ranges: AutocompleteRange[];
 };
 
 export type {
@@ -107,4 +110,5 @@ export type {
     TripSearchStatus,
     ChatSearchStatus,
     SearchAutocompleteResult,
+    AutocompleteRange,
 };

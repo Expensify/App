@@ -39,8 +39,9 @@ defaultFilter
         ...value[value.length - 1],
       };
 
-      return value.map(({ start, length }) => ({
+      return value.map(({ start, value, length }) => ({
         key,
+        value,
         start,
         length,
       }));
