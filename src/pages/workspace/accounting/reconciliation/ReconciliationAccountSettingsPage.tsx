@@ -57,7 +57,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
 
     const selectBankAccount = (newBankAccountID?: number) => {
         Card.updateSettlementAccount(workspaceAccountID, policyID, newBankAccountID, paymentBankAccountID);
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection));
     };
 
     return (
@@ -70,6 +70,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             contentContainerStyle={[styles.flex1, styles.pb2]}
             connectionName={connectionName}
             shouldUseScrollView={false}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection))}
         >
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}</Text>
             <Text style={[styles.textNormal, styles.mb6, styles.ph5]}>
