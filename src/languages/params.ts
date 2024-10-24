@@ -476,7 +476,8 @@ type SpreadCategoriesParams = {
     categories: number;
 };
 
-type AssignedYouCardParams = {
+type AssignedCardParams = {
+    assignee: string;
     link: string;
 };
 
@@ -558,7 +559,7 @@ export type {
     FeatureNameParams,
     SpreadSheetColumnParams,
     SpreadFieldNameParams,
-    AssignedYouCardParams,
+    AssignedCardParams,
     SpreadCategoriesParams,
     DelegateRoleParams,
     DelegatorParams,
