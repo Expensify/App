@@ -85,15 +85,17 @@ import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
-import type {OnboardingAccountingType, OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
+import type {OnboardingAccountingType, OnboardingCompanySizeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
+    OnboardingPurpose,
     PersonalDetailsList,
     PolicyReportField,
     QuickAction,
@@ -262,8 +264,13 @@ Onyx.connect({
     callback: (val) => (quickAction = val),
 });
 
-let allReportDraftComments: Record<string, string | undefined> = {};
+let introSelected: OnyxEntry<IntroSelected> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (val) => (introSelected = val),
+});
 
+let allReportDraftComments: Record<string, string | undefined> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     waitForCollectionCallback: true,
@@ -829,6 +836,40 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
     };
+
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? true;
+
+    if (introSelected && !isInviteOnboardingComplete) {
+        const {choice, inviteType} = introSelected;
+        const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
+        const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+
+        if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
+            const onboardingMessage = CONST.ONBOARDING_MESSAGES[choice];
+            if (choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT) {
+                const updatedTasks = onboardingMessage.tasks.map((task) => (task.type === 'startChat' ? {...task, autoCompleted: true} : task));
+                onboardingMessage.tasks = updatedTasks;
+            }
+
+            const onboardingData = prepareOnboardingOptimisticData(choice, onboardingMessage);
+            introSelected.isInviteOnboardingComplete = true;
+
+            optimisticData.push(...onboardingData.optimisticData, {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_INTRO_SELECTED,
+                value: {
+                    isInviteOnboardingComplete: true,
+                },
+            });
+
+            successData.push(...onboardingData.successData);
+
+            failureData.push(...onboardingData.failureData);
+
+            parameters.guidedSetupData = JSON.stringify(onboardingData.guidedSetupData);
+        }
+    }
+
     const isGroupChat = ReportUtils.isGroupChat(newReportObject);
     if (isGroupChat) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
@@ -975,6 +1016,7 @@ function openReport(
             paginationConfig,
         ).finally(() => {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+            Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: true});
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
@@ -3326,14 +3368,11 @@ function getReportPrivateNote(reportID: string | undefined) {
     API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
-function completeOnboarding(
-    engagementChoice: OnboardingPurposeType,
+function prepareOnboardingOptimisticData(
+    engagementChoice: OnboardingPurpose,
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
-    firstName = '',
-    lastName = '',
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
-    paymentSelected?: string,
     companySize?: OnboardingCompanySizeType,
     userReportedIntegration?: OnboardingAccountingType,
 ) {
@@ -3716,6 +3755,22 @@ function completeOnboarding(
     }
 
     guidedSetupData.push(...tasksForParameters);
+
+    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID};
+}
+
+function completeOnboarding(
+    engagementChoice: OnboardingPurpose,
+    data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
+    firstName = '',
+    lastName = '',
+    adminsChatReportID?: string,
+    onboardingPolicyID?: string,
+    paymentSelected?: string,
+    companySize?: OnboardingCompanySizeType,
+    userReportedIntegration?: OnboardingAccountingType,
+) {
+    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(engagementChoice, data, adminsChatReportID, onboardingPolicyID);
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,

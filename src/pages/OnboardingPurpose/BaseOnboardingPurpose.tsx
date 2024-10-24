@@ -22,15 +22,15 @@ import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {OnboardingPurpose} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseOnboardingPurposeProps} from './types';
 
 const selectableOnboardingChoices = Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES);
 
-function getOnboardingChoices(customChoices: OnboardingPurposeType[]) {
+function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
     if (customChoices.length === 0) {
         return selectableOnboardingChoices;
     }

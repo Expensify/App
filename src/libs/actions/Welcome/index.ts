@@ -4,8 +4,9 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import type {OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
+import type {OnboardingCompanySizeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 import * as OnboardingFlow from './OnboardingFlow';
@@ -89,11 +90,11 @@ function checkOnboardingDataReady() {
     resolveOnboardingFlowStatus();
 }
 
-function setOnboardingCustomChoices(value: OnboardingPurposeType[]) {
+function setOnboardingCustomChoices(value: OnboardingPurpose[]) {
     Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, value ?? []);
 }
 
-function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
+function setOnboardingPurposeSelected(value: OnboardingPurpose) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
 
