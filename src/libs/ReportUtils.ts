@@ -3259,7 +3259,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
     }
 };
 
-const changePreviewHoldStatus = (isOnHold: boolean, transactionID: string, reportID: string): void => {
+function changePreviewHoldStatus(isOnHold: boolean, transactionID: string, reportID: string): void {
     const report = getReport(reportID ?? '-1');
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
 
@@ -3267,12 +3267,9 @@ const changePreviewHoldStatus = (isOnHold: boolean, transactionID: string, repor
         IOU.unholdRequest(transactionID, reportID);
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-        Navigation.navigate(
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportID, activeRoute),
-        );
+        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportID, activeRoute));
     }
-};
+}
 
 /**
  * Gets all transactions on an IOU report with a receipt
