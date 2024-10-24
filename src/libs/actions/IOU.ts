@@ -7104,6 +7104,26 @@ function canIOUBePaid(
     );
 }
 
+function canReportBeSubmitted(
+    moneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
+    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
+    currentUserAccountID: number,
+    transaction?: OnyxTypes.Transaction,
+) {
+    const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
+    const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
+    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', moneyRequestReport, policy);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+   return !!moneyRequestReport &&
+    isDraft &&
+    reimbursableSpend !== 0 &&
+    !hasAllPendingRTERViolations &&
+    !shouldShowBrokenConnectionViolation &&
+    (moneyRequestReport?.ownerAccountID === currentUserAccountID || isAdmin || moneyRequestReport?.managerID === currentUserAccountID);
+}
+
 function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string): OnyxEntry<ReportAction> {
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
@@ -8615,5 +8635,6 @@ export {
     updateLastLocationPermissionPrompt,
     resolveDuplicates,
     getIOUReportActionToApproveOrPay,
+    canReportBeSubmitted,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};

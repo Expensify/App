@@ -253,15 +253,23 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
-    return CONST.SEARCH.ACTION_TYPES.VIEW;
+    if (isTransactionEntry(key) && !data[key].isFromOneTransactionReport) {
+        return CONST.SEARCH.ACTION_TYPES.VIEW;
+    }
 
-    // const report = isReportEntry(key) ? data[key] : data[data[key].reportID];
-    // const chatReport = isReportEntry(key) ? data[key].chatReportID
-    // iouReport
-    // chatReport
-    // policy
-    // transactions
-    // if (IOU.canIOUBePaid()) {
+    const transaction = isTransactionEntry(key) ? data[key] : {};
+    const report = isTransactionEntry(key) ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] : data[key] ?? {};
+    const chatReport = chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] ?? {};
+    const policy = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.policyID}`] ?? {};
+    const allTransaction = isTransactionEntry(key) ? transaction : report.transactions;
+
+    if (IOU.canIOUBePaid(report, chatReport, policy, allTransactions, false)) {
+        return CONST.SEARCH.ACTION_TYPES.PAY;
+    }
+
+    if (IOU.canApproveIOU(report, policy)) {
+        return CONST.SEARCH.ACTION_TYPES.APPROVE;
+    }
     // pay
     // approve
     // submit
@@ -269,6 +277,8 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     // view
     // done
     // paid
+
+    return CONST.SEARCH.ACTION_TYPES.VIEW;
 }
 
 /**
