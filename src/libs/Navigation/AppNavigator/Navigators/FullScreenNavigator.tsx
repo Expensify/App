@@ -2,10 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import createCustomFullScreenNavigator from '@libs/Navigation/AppNavigator/createCustomFullScreenNavigator';
-import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
+import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -35,17 +34,16 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
 
 function FullScreenNavigator() {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
+    const rootNavigatorOptions = useRootNavigatorOptions();
 
     return (
         <FocusTrapForScreens>
             <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
-                <RootStack.Navigator screenOptions={screenOptions.centralPaneNavigator}>
+                <RootStack.Navigator screenOptions={rootNavigatorOptions.centralPaneNavigator}>
                     <RootStack.Screen
                         name={SCREENS.WORKSPACE.INITIAL}
-                        options={screenOptions.homeScreen}
+                        options={rootNavigatorOptions.homeScreen}
                         getComponent={loadWorkspaceInitialPage}
                     />
                     {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (

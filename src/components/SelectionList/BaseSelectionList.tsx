@@ -544,7 +544,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 if (shouldDelayFocus) {
                     focusTimeoutRef.current = setTimeout(focusTextInput, CONST.ANIMATED_TRANSITION);
                 } else {
-                    focusTextInput();
+                    requestAnimationFrame(focusTextInput);
                 }
             }
 
