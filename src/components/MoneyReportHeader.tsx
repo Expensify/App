@@ -34,6 +34,7 @@ import DelegateNoAccessModal from './DelegateNoAccessModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import type {PaymentMethod} from './KYCWall/types';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
@@ -180,7 +181,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldDisplaySearchRouter = !isReportInRHP;
 
     const confirmPayment = useCallback(
-        (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+        (type?: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
             if (!type || !chatReport) {
                 return;
             }
@@ -191,7 +192,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             } else if (isAnyTransactionOnHold) {
                 setIsHoldMenuVisible(true);
             } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
-                IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
+                IOU.payInvoice(
+                    type,
+                    chatReport,
+                    moneyRequestReport,
+                    payAsBusiness,
+                    paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? methodID : undefined,
+                    paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD ? methodID : undefined,
+                );
             } else {
                 IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
