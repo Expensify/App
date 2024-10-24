@@ -259,6 +259,7 @@ const translations = {
         firstName: 'First name',
         lastName: 'Last name',
         addCardTermsOfService: 'Expensify Terms of Service',
+        perPerson: 'per person',
         phone: 'Phone',
         phoneNumber: 'Phone number',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -974,6 +975,7 @@ const translations = {
             atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses.',
             splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
             invalidMerchant: 'Please enter a correct merchant.',
+            atLeastOneAttendee: 'At least one attendee must be selected',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
@@ -1029,6 +1031,7 @@ const translations = {
         bookingPendingDescription: "This booking is pending because it hasn't been paid yet.",
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
+        attendees: 'Attendees',
         paymentComplete: 'Payment complete',
         justTrackIt: 'Just track it (don’t submit it)',
     },
@@ -3827,14 +3830,6 @@ const translations = {
             notReadyDescription: 'Draft or pending expense reports cannot be exported to the accounting system. Please approve or pay these expenses before exporting them.',
         },
         invoices: {
-            invoiceClientsAndCustomers: 'Invoice clients and customers',
-            invoiceFirstSectionCopy: 'Send beautiful, professional invoices directly to your clients and customers right from the Expensify app.',
-            viewAllInvoices: 'View all invoices',
-            unlockOnlineInvoiceCollection: 'Unlock online invoice collection',
-            unlockNoVBACopy: 'Connect your bank account to accept online invoice payments by ACH or credit card.',
-            moneyBackInAFlash: 'Money back, in a flash!',
-            unlockVBACopy: "You're all set to accept payments by ACH or credit card!",
-            viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
             sendFrom: 'Send from',
             invoicingDetails: 'Invoicing details',
@@ -3850,8 +3845,8 @@ const translations = {
                 payingAsBusiness: 'Paying as a business',
             },
             invoiceBalance: 'Invoice balance',
-            invoiceBalanceSubtitle: 'Here’s your current balance from collecting payments on invoices.',
-            bankAccountsSubtitle: 'Add a bank account to receive invoice payments.',
+            invoiceBalanceSubtitle: "This is your current balance from collecting invoice payments. It'll transfer to your bank account automatically if you've added one.",
+            bankAccountsSubtitle: 'Add a bank account to make and receive invoice payments.',
         },
         invite: {
             member: 'Invite member',
@@ -4057,7 +4052,7 @@ const translations = {
             upgradeToUnlock: 'Unlock this feature',
             completed: {
                 headline: `You've upgraded your workspace!`,
-                successMessage: ({policyName}: ReportPolicyNameParams) => `You've successfully upgraded your ${policyName} workspace to the Control plan!`,
+                successMessage: ({policyName}: ReportPolicyNameParams) => `You've successfully upgraded ${policyName} to the Control plan!`,
                 viewSubscription: 'View your subscription',
                 moreDetails: 'for more details.',
                 gotIt: 'Got it, thanks',
@@ -4303,7 +4298,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
-                subtitle: 'Try creating something using the green + button.',
+                subtitle: 'Try creating something with the green + button.',
             },
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",

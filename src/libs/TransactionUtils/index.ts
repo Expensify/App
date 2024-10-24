@@ -22,8 +22,10 @@ import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -128,6 +130,7 @@ function buildOptimisticTransaction(
     currency: string,
     reportID: string,
     comment = '',
+    attendees: Attendee[] = [],
     created = '',
     source = '',
     originalTransactionID = '',
@@ -181,6 +184,7 @@ function buildOptimisticTransaction(
         taxAmount,
         billable,
         reimbursable,
+        attendees,
     };
 }
 
@@ -207,6 +211,13 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     const isMerchantEmpty = transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === '';
 
     return isMerchantEmpty;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
+    return false;
+    // To be renabled once feature is complete: https://github.com/Expensify/App/issues/44725
+    // return iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
 }
 
 /**
@@ -314,6 +325,10 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         updatedTransaction.tag = transactionChanges.tag;
     }
 
+    if (Object.hasOwn(transactionChanges, 'attendees')) {
+        updatedTransaction.modifiedAttendees = transactionChanges?.attendees;
+    }
+
     if (
         shouldUpdateReceiptState &&
         shouldStopSmartscan &&
@@ -337,6 +352,7 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         ...(Object.hasOwn(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'taxAmount') && {taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'taxCode') && {taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'attendees') && {attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;
@@ -440,6 +456,22 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
 
 function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
     return !isMerchantMissing(transaction) ? getMerchant(transaction) : getDescription(transaction);
+}
+
+/**
+ * Return the list of modified attendees if present otherwise list of attendees
+ */
+function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
+    return transaction?.modifiedAttendees ? transaction.modifiedAttendees : transaction?.attendees ?? [];
+}
+
+/**
+ * Return the list of attendees as a string and modified list of attendees as a string if present.
+ */
+function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[]): [string, string] {
+    const oldAttendees = modifiedAttendees ?? [];
+    const newAttendees = attendees ?? [];
+    return [oldAttendees.map((item) => item.displayName ?? item.login).join(', '), newAttendees.map((item) => item.displayName ?? item.login).join(', ')];
 }
 
 /**
@@ -1185,6 +1217,7 @@ export {
     isManualRequest,
     isScanRequest,
     getAmount,
+    getAttendees,
     getTaxAmount,
     getTaxCode,
     getCurrency,
@@ -1192,6 +1225,7 @@ export {
     getCardID,
     getOriginalCurrency,
     getOriginalAmount,
+    getFormattedAttendees,
     getMerchant,
     getMerchantOrDescription,
     getMCCGroup,
@@ -1251,6 +1285,7 @@ export {
     removeSettledAndApprovedTransactions,
     getCardName,
     hasReceiptSource,
+    shouldShowAttendees,
 };
 
 export type {TransactionChanges};
