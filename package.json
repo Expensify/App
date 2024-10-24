@@ -33,6 +33,7 @@
     "ios-build": "bundle exec fastlane ios build_unsigned",
     "android-build": "bundle exec fastlane android build_local",
     "test": "TZ=utc NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:unit": "TZ=utc NODE_OPTIONS=--experimental-vm-modules jest tests/unit/ReportUtilsTest.ts",
     "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc",
     "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=0 --cache --cache-location=node_modules/.cache/eslint",
     "lint-changed": "NODE_OPTIONS=--max_old_space_size=8192 eslint --max-warnings=0 --config ./.eslintrc.changed.js $(git diff --diff-filter=AM --name-only origin/main HEAD -- \"*.ts\" \"*.tsx\")",
