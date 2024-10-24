@@ -5,6 +5,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {ConflictActionData} from '@src/types/onyx/Request';
 
+type RequestMatcher = (request: OnyxRequest) => boolean;
+
 const addNewMessage = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 
 const commentsToBeDeleted = new Set<string>([
@@ -16,7 +18,11 @@ const commentsToBeDeleted = new Set<string>([
     WRITE_COMMANDS.REMOVE_EMOJI_REACTION,
 ]);
 
-type RequestMatcher = (request: OnyxRequest) => boolean;
+function createUpdateCommentMatcher(reportActionID: string) {
+    return function (request: OnyxRequest) {
+        return request.command === WRITE_COMMANDS.UPDATE_COMMENT && request.data?.reportActionID === reportActionID;
+    };
+}
 
 /**
  * Determines the appropriate action for handling duplication conflicts in persisted requests.
@@ -99,4 +105,4 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
     };
 }
 
-export {resolveDuplicationConflictAction, resolveCommentDeletionConflicts};
+export {resolveDuplicationConflictAction, resolveCommentDeletionConflicts, createUpdateCommentMatcher};
