@@ -23,6 +23,7 @@ export default function createRandomTransaction(index: number): Transaction {
                 },
             },
         },
+        attendees: [{email: randWord()}],
         filename: randWord(),
         managedCard: randBoolean(),
         created: format(randPastDate(), CONST.DATE.FNS_DB_FORMAT_STRING),
