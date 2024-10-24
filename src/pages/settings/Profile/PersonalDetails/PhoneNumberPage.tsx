@@ -98,10 +98,10 @@ function PhoneNumberPage() {
                             defaultValue={phoneNumber}
                             spellCheck={false}
                             onBlur={() => {
-                                if (validateLoginError) {
-                                    PersonalDetails.clearPhoneNumberError();
+                                if (!validateLoginError) {
                                     return;
                                 }
+                                PersonalDetails.clearPhoneNumberError();
                             }}
                         />
                     </OfflineWithFeedback>
