@@ -2513,7 +2513,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         excludeLogins = [],
         preferChatroomsOverThreads = false,
         preferPolicyExpenseChat = false,
-        shouldAcceptName = false,
         preferRecentExpenseReports = false,
     } = config ?? {};
     // Remove the personal details for the DMs that are already in the recent reports so that we don't show duplicates
