@@ -10,7 +10,7 @@ import * as IOU from '@libs/actions/IOU';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -83,7 +83,7 @@ function IOURequestStepDistanceRate({
         let taxAmount;
         let taxRateExternalID;
         if (shouldShowTax) {
-            const policyCustomUnitRate = getCustomUnitRate(policy, customUnitRateID);
+            const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
             taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID ?? '-1';
             const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistanceInMeters(transaction, unit));
