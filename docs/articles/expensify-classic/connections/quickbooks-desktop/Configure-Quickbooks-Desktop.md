@@ -31,8 +31,7 @@ The following steps will determine how data will be exported from Expensify to Q
 
 The following steps help you determine how data will be imported from QuickBooks Online to Expensify:
 
-![Expensify coding settings page for the QuickBooks Desktop integration](https://help.expensify.com/assets/images/quickbooks-desktop-coding-settings.png
-){:width="100%"}
+![Expensify coding settings page for the QuickBooks Desktop integration](https://help.expensify.com/assets/images/quickbooks-desktop-coding-settings.png){:width="100%"}
 
 1. Click Import under the QuickBooks Online connection.
 2. Review each of the following import settings:
