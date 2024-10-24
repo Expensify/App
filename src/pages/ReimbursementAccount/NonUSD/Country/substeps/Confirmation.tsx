@@ -78,12 +78,12 @@ function Confirmation({onNext}: SubStepProps) {
                     />
                     <Text style={[styles.ph5, styles.mb3, styles.mutedTextLabel]}>
                         {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}
-                        {` `}
                         <PressableWithoutFeedback
                             accessibilityRole="button"
                             accessibilityLabel={translate('common.settings')}
                             accessible
                             onPress={handleSettingsPress}
+                            style={styles.ml1}
                         >
                             <Text style={[styles.label, styles.textBlue]}>{translate('common.settings').toLowerCase()}</Text>
                         </PressableWithoutFeedback>

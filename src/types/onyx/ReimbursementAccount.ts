@@ -12,13 +12,9 @@ type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 /** Substeps to setup a reimbursement bank account */
 type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
 
-/**
- *
- */
+/** Additional data where details of the non-USD reimbursements account are stored */
 type AdditionalData = {
-    /**
-     *
-     */
+    /** Country of the reimbursement account */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
 };
 

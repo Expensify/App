@@ -125,7 +125,9 @@ type ReimbursementAccountProps = {
     [INPUT_IDS.AMOUNT3]: string;
 };
 
+/** Additional props for non-USD reimbursement account */
 type NonUSDReimbursementAccountAdditionalProps = {
+    /** Country of the reimbursement account */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
 };
 

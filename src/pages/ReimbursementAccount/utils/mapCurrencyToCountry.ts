@@ -3,13 +3,13 @@ import CONST from '@src/CONST';
 function mapCurrencyToCountry(currency: string): string {
     switch (currency) {
         case CONST.CURRENCY.USD:
-            return 'US';
+            return CONST.COUNTRY.US;
         case CONST.CURRENCY.AUD:
-            return 'AU';
+            return CONST.COUNTRY.AU;
         case CONST.CURRENCY.CAD:
-            return 'CA';
+            return CONST.COUNTRY.CA;
         case CONST.CURRENCY.GBP:
-            return 'GB';
+            return CONST.COUNTRY.GB;
         default:
             return '';
     }
