@@ -1,5 +1,4 @@
 import {useNavigationState} from '@react-navigation/native';
-import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -16,7 +15,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -40,7 +38,6 @@ import SearchRouterInput from './SearchRouterInput';
 import SearchRouterList from './SearchRouterList';
 import type {ItemWithQuery} from './SearchRouterList';
 
-const SEARCH_DEBOUNCE_DELAY = 150;
 type SearchRouterProps = {
     onRouterClose: () => void;
 };
@@ -59,7 +56,6 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const taxRates = getAllTaxRates();
 
     const [textInputValue, debouncedInputValue, setTextInputValue] = useDebouncedState('', 500);
-    const [userSearchQuery, setUserSearchQuery] = useState<SearchQueryJSON | undefined>(undefined);
     const contextualReportID = useNavigationState<Record<string, {reportID: string}>, string | undefined>((state) => {
         return state?.routes.at(-1)?.params?.reportID;
     });
@@ -148,11 +144,6 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     }, [debouncedInputValue]);
 
     const contextualReportData = contextualReportID ? searchOptions.recentReports?.find((option) => option.reportID === contextualReportID) : undefined;
-
-    const clearUserQuery = () => {
-        setTextInputValue('');
-        setUserSearchQuery(undefined);
-    };
 
     const updateAutocomplete = useCallback(
         (autocompleteValue: string, autocompleteType?: ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS & typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>) => {
@@ -255,40 +246,27 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         ],
     );
 
-    const onSearchChange = useMemo(
-        // eslint-disable-next-line react-compiler/react-compiler
-        () =>
-            debounce((userQuery: string) => {
-                if (!userQuery) {
-                    clearUserQuery();
-                    listRef.current?.updateAndScrollToFocusedIndex(-1);
-                    return;
-                }
-                const autocompleteParsedQuery = parseForAutocomplete(userQuery);
-                updateAutocomplete(autocompleteParsedQuery?.autocomplete?.value ?? '', autocompleteParsedQuery?.autocomplete?.key);
-
-                listRef.current?.updateAndScrollToFocusedIndex(0);
-                const queryJSON = SearchQueryUtils.buildSearchQueryJSON(userQuery);
-
-                if (queryJSON) {
-                    setUserSearchQuery(queryJSON);
-                } else {
-                    Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, userQuery, false);
-                }
-            }, SEARCH_DEBOUNCE_DELAY),
+    const onSearchChange = useCallback(
+        (userQuery: string) => {
+            if (!userQuery) {
+                setTextInputValue('');
+                listRef.current?.updateAndScrollToFocusedIndex(-1);
+                return;
+            }
+            setTextInputValue(userQuery);
+            const autocompleteParsedQuery = parseForAutocomplete(userQuery);
+            console.log('%%%%%\n', 'autocompleteParsedQuery', autocompleteParsedQuery);
+            updateAutocomplete(autocompleteParsedQuery?.autocomplete?.value ?? '', autocompleteParsedQuery?.autocomplete?.key);
+            listRef.current?.updateAndScrollToFocusedIndex(0);
+        },
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [updateAutocomplete],
     );
 
-    const updateUserSearchQuery = (newSearchQuery: string) => {
-        setTextInputValue(newSearchQuery);
-        onSearchChange(newSearchQuery);
-    };
-
     const closeAndClearRouter = useCallback(() => {
         onRouterClose();
-        clearUserQuery();
+        setTextInputValue('');
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [onRouterClose]);
@@ -302,7 +280,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
             const standardizedQuery = SearchQueryUtils.standardizeQueryJSON(query, cardList, taxRates);
             const queryString = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: queryString}));
-            clearUserQuery();
+            setTextInputValue('');
         },
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -328,7 +306,6 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
             )}
             <SearchRouterInput
                 value={textInputValue}
-                setValue={setTextInputValue}
                 isFullWidth={shouldUseNarrowLayout}
                 updateSearch={onSearchChange}
                 onSubmit={() => {
@@ -342,13 +319,13 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 isSearchingForReports={isSearchingForReports}
             />
             <SearchRouterList
-                currentQuery={userSearchQuery}
+                textInputValue={textInputValue}
+                setTextInputValue={onSearchChange}
                 reportForContextualSearch={contextualReportData}
                 recentSearches={sortedRecentSearches?.slice(0, 5)}
                 recentReports={recentReports}
                 autocompleteItems={autocompleteSuggestions}
                 onSearchSubmit={onSearchSubmit}
-                updateUserSearchQuery={updateUserSearchQuery}
                 closeAndClearRouter={closeAndClearRouter}
                 ref={listRef}
             />

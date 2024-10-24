@@ -1,17 +1,20 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
     query?: string;
     isContextualSearchItem?: boolean;
+    searchItemType: ValueOf<typeof CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE>;
 };
 
 type SearchQueryListItemProps = {

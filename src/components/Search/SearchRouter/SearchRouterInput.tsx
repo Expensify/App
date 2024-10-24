@@ -16,9 +16,6 @@ type SearchRouterInputProps = {
     /** Value of TextInput */
     value: string;
 
-    /** Setter to TextInput value */
-    setValue: (searchTerm: string) => void;
-
     /** Callback to update search in SearchRouter */
     updateSearch: (searchTerm: string) => void;
 
@@ -58,7 +55,6 @@ type SearchRouterInputProps = {
 
 function SearchRouterInput({
     value,
-    setValue,
     updateSearch,
     onSubmit = () => {},
     routerListRef,
@@ -79,7 +75,6 @@ function SearchRouterInput({
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const onChangeText = (text: string) => {
-        setValue(text);
         updateSearch(text);
     };
 

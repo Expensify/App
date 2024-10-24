@@ -29,8 +29,11 @@ type ItemWithQuery = {
 };
 
 type SearchRouterListProps = {
-    /** currentQuery value computed coming from parsed TextInput value */
-    currentQuery: SearchQueryJSON | undefined;
+    /** value of TextInput */
+    textInputValue: string;
+
+    /** Callback to update text input when selecting contextual or autocomplete suggestion */
+    setTextInputValue: (newSearchQuery: string) => void;
 
     /** Recent searches */
     recentSearches: Array<ItemWithQuery & {timestamp: string}> | undefined;
@@ -46,9 +49,6 @@ type SearchRouterListProps = {
 
     /** Context present when opening SearchRouter from a report, invoice or workspace page */
     reportForContextualSearch?: OptionData;
-
-    /** Callback to update search query when selecting contextual suggestion */
-    updateUserSearchQuery: (newSearchQuery: string) => void;
 
     /** Callback to close and clear SearchRouter */
     closeAndClearRouter: () => void;
@@ -95,7 +95,16 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 }
 
 function SearchRouterList(
-    {currentQuery, reportForContextualSearch, recentSearches, autocompleteItems, recentReports, onSearchSubmit, updateUserSearchQuery, closeAndClearRouter}: SearchRouterListProps,
+    {
+        textInputValue,
+        setTextInputValue: updateTextInputValue,
+        reportForContextualSearch,
+        recentSearches,
+        autocompleteItems,
+        recentReports,
+        onSearchSubmit,
+        closeAndClearRouter,
+    }: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -108,21 +117,22 @@ function SearchRouterList(
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
 
-    if (currentQuery?.inputQuery) {
+    if (textInputValue) {
         sections.push({
             data: [
                 {
-                    text: currentQuery?.inputQuery,
+                    text: textInputValue,
                     singleIcon: Expensicons.MagnifyingGlass,
-                    query: currentQuery?.inputQuery,
+                    query: textInputValue,
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'findItem',
+                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
                 },
             ],
         });
     }
 
-    if (reportForContextualSearch && !currentQuery?.inputQuery) {
+    if (reportForContextualSearch && !textInputValue) {
         sections.push({
             data: [
                 {
@@ -132,6 +142,7 @@ function SearchRouterList(
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
                     isContextualSearchItem: true,
+                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
                 },
             ],
         });
@@ -143,6 +154,7 @@ function SearchRouterList(
             singleIcon: Expensicons.MagnifyingGlass,
             query,
             keyForList: query,
+            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
         };
     });
 
@@ -157,10 +169,11 @@ function SearchRouterList(
             singleIcon: Expensicons.History,
             query,
             keyForList: timestamp,
+            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
         };
     });
 
-    if (!currentQuery?.inputQuery && recentSearchesData && recentSearchesData.length > 0) {
+    if (!textInputValue && recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
@@ -170,16 +183,21 @@ function SearchRouterList(
     const onSelectRow = useCallback(
         (item: OptionData | SearchQueryItem) => {
             if (isSearchQueryItem(item)) {
-                if (item.isContextualSearchItem) {
-                    // Handle selection of "Contextual search suggestion"
-                    updateUserSearchQuery(`${item?.query} ${currentQuery?.inputQuery ?? ''}`);
-                    return;
-                }
-
-                // Handle selection of "Recent search"
                 if (!item?.query) {
                     return;
                 }
+                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
+                    updateTextInputValue(`${item?.query} `);
+                    return;
+                }
+                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
+                    const lastColonIndex = textInputValue.lastIndexOf(':');
+                    const lastComaIndex = textInputValue.lastIndexOf(',');
+                    const trimmedUserSearchQuery = lastColonIndex > lastComaIndex ? textInputValue.slice(0, lastColonIndex + 1) : textInputValue.slice(0, lastComaIndex + 1);
+                    updateTextInputValue(`${trimmedUserSearchQuery}${item?.query} `);
+                    return;
+                }
+
                 onSearchSubmit(SearchQueryUtils.buildSearchQueryJSON(item?.query));
             }
 
@@ -191,7 +209,7 @@ function SearchRouterList(
                 Report.navigateToAndOpenReport(item.login ? [item.login] : [], false);
             }
         },
-        [closeAndClearRouter, onSearchSubmit, currentQuery, updateUserSearchQuery],
+        [closeAndClearRouter, textInputValue, onSearchSubmit, updateTextInputValue],
     );
 
     return (
