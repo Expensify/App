@@ -180,7 +180,6 @@ const CONST = {
         BILLABLE: 'billable',
         NON_BILLABLE: 'nonBillable',
     },
-    COMPANY_CARD_DOMAIN_NAME: 'expensify-policyABASDASDASDASDFASD.exfy',
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],

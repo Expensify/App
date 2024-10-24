@@ -10,17 +10,17 @@ type CompanyCardBankConnection = {
     isNewDot: string;
 };
 
-export default function getCompanyCardBankConnection(bankName?: string, scrapeMinDate?: string) {
+export default function getCompanyCardBankConnection(policyID: string, bankName?: string, scrapeMinDate?: string) {
     const bankConnection = Object.keys(CONST.COMPANY_CARDS.BANKS).find((key) => CONST.COMPANY_CARDS.BANKS[key as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
 
-    if (!bankName || !bankConnection) {
+    if (!bankName || !bankConnection || !policyID) {
         return null;
     }
     const authToken = NetworkStore.getAuthToken();
     const params: CompanyCardBankConnection = {
         authToken: authToken ?? '',
         isNewDot: 'true',
-        domainName: CONST.COMPANY_CARD_DOMAIN_NAME,
+        domainName: `expensify-policy${policyID}.exfy`,
         isCorporate: 'true',
         scrapeMinDate: scrapeMinDate ?? '',
     };
