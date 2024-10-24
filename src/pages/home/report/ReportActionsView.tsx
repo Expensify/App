@@ -318,7 +318,7 @@ function ReportActionsView({
     const handleReportActionPagination = useCallback(
         ({firstReportActionID}: {firstReportActionID: string}) => {
             // This function is a placeholder as the actual pagination is handled by visibleReportActions
-            if (!hasMoreCached && !hasNewestReportAction) {
+            if (!hasMoreCached) {
                 isFirstLinkedActionRender.current = false;
                 if (newestReportAction) {
                     fetchNewerAction(newestReportAction);
@@ -329,7 +329,7 @@ function ReportActionsView({
             }
             setCurrentReportActionID(firstReportActionID);
         },
-        [fetchNewerAction, hasMoreCached, newestReportAction, hasNewestReportAction],
+        [fetchNewerAction, hasMoreCached, newestReportAction],
     );
 
     /**
@@ -387,8 +387,7 @@ function ReportActionsView({
         (force = false) => {
             if (
                 !force &&
-                (!reportActionID ||
-                    !isFocused ||
+                (!isFocused ||
                     (isLoadingInitialReportActions && !hasMoreCached) ||
                     isLoadingNewerReportActions ||
                     // If there was an error only try again once on initial mount. We should also still load

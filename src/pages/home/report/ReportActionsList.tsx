@@ -216,7 +216,7 @@ function ReportActionsList({
     /**
      * The reportActionID the unread marker should display above
      */
-    const unreadMarkerReportActionID = useMemo(() => {
+    const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useMemo(() => {
         const shouldDisplayNewMarker = (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
             const nextMessage = sortedVisibleReportActions.at(index + 1);
             const isCurrentMessageUnread = isMessageUnread(reportAction, unreadMarkerTime);
@@ -231,11 +231,11 @@ function ReportActionsList({
             const reportAction = sortedVisibleReportActions.at(index);
 
             if (reportAction && shouldDisplayNewMarker(reportAction, index)) {
-                return reportAction.reportActionID;
+                return {unreadMarkerReportActionID: reportAction.reportActionID, unreadMarkerReportActionIndex: index};
             }
         }
 
-        return null;
+        return {unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1};
     }, [sortedVisibleReportActions, unreadMarkerTime]);
 
     /**
@@ -363,7 +363,7 @@ function ReportActionsList({
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
-        //         meaning that the cleanup might not get called. When we then open a report we had open already previosuly, a new
+        //         meaning that the cleanup might not get called. When we then open a report we had open already previously, a new
         //         ReportScreen will get created. Thus, we have to cancel the earlier subscription of the previous screen,
         //         because the two subscriptions could conflict!
         //         In case we return to the previous screen (e.g. by web back navigation) the useEffect for that screen would
@@ -509,6 +509,25 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused, isVisible]);
 
+    // Handles scrolling to the unread marker.
+    const didScrollToUnreadMarker = useRef(false);
+    useEffect(() => {
+        if (unreadMarkerReportActionIndex === -1 || didScrollToUnreadMarker.current) {
+            return;
+        }
+        didScrollToUnreadMarker.current = true;
+        InteractionManager.runAfterInteractions(() => {
+            reportScrollManager.ref?.current?.scrollToIndex({
+                index: unreadMarkerReportActionIndex,
+                animated: true,
+                // This scrolls the unread action at the top of the screen.
+                viewPosition: 1,
+                // This makes sure that the unread indicator doesn't get cut off.
+                viewOffset: -5,
+            });
+        });
+    }, [reportScrollManager, unreadMarkerReportActionIndex]);
+
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
             <ReportActionsListItemRenderer
@@ -625,13 +644,25 @@ function ReportActionsList({
         );
     }, [isLoadingNewerReportActions, canShowHeader, hasLoadingNewerReportActionsError, retryLoadNewerChatsError]);
 
+    const [currentUnreadMarkerReportActionIndex, setCurrentUnreadMarkerReportActionIndex] = useState(unreadMarkerReportActionIndex);
+
     const onStartReached = useCallback(() => {
+        setCurrentUnreadMarkerReportActionIndex(0);
         InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
     }, [loadNewerChats]);
 
     const onEndReached = useCallback(() => {
         loadOlderChats(false);
     }, [loadOlderChats]);
+
+    // This makes sure that the list is initially scrolled at the unread marker if messages are already loaded.
+    const reportActionsToDisplay = useMemo(() => {
+        // If we are already close to the unread marker we do not need to adjust the list.
+        if (currentUnreadMarkerReportActionIndex < 10) {
+            return sortedVisibleReportActions;
+        }
+        return sortedVisibleReportActions.slice(currentUnreadMarkerReportActionIndex);
+    }, [currentUnreadMarkerReportActionIndex, sortedVisibleReportActions]);
 
     // When performing comment linking, initially 25 items are added to the list. Subsequent fetches add 15 items from the cache or 50 items from the server.
     // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
@@ -648,7 +679,7 @@ function ReportActionsList({
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={sortedVisibleReportActions}
+                    data={reportActionsToDisplay}
                     renderItem={renderItem}
                     contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
@@ -666,7 +697,7 @@ function ReportActionsList({
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
-                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
+                    shouldEnableAutoScrollToTopThreshold={!unreadMarkerReportActionID && shouldEnableAutoScrollToTopThreshold}
                 />
             </View>
         </>
