@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import Text from '@components/Text';
@@ -157,6 +158,13 @@ function DebugReportPage({
                                                 )}
                                             </View>
                                         ))}
+                                        <Button
+                                            text={translate('debug.viewReport')}
+                                            onPress={() => {
+                                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                                            }}
+                                            icon={Expensicons.Eye}
+                                        />
                                     </View>
                                 </DebugDetails>
                             )}
