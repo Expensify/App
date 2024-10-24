@@ -47,6 +47,7 @@ const INPUT_IDS = {
     VISIBLE_CHAT_MEMBER_ACCOUNT_IDS: 'visibleChatMemberAccountIDs',
     WELCOME_MESSAGE: 'welcomeMessage',
     WRITE_CAPABILITY: 'writeCapability',
+    VISIBILITY: 'visibility',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -97,6 +98,7 @@ type DebugReportForm = Form<
         [INPUT_IDS.VISIBLE_CHAT_MEMBER_ACCOUNT_IDS]: string;
         [INPUT_IDS.WELCOME_MESSAGE]: string;
         [INPUT_IDS.WRITE_CAPABILITY]: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
+        [INPUT_IDS.VISIBILITY]: ValueOf<typeof CONST.REPORT.VISIBILITY>;
     }
 >;
 

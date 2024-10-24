@@ -13,13 +13,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {appendParam} from '@libs/Url';
 import type SCREENS from '@src/SCREENS';
-import {DETAILS_CONSTANT_OPTIONS} from './const';
+import type {DebugForms} from './const';
+import {DETAILS_CONSTANT_FIELDS} from './const';
 
 type DebugDetailsConstantPickerPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
 
 function DebugDetailsConstantPickerPage({
     route: {
-        params: {fieldName, fieldValue, backTo = ''},
+        params: {formType, fieldName, fieldValue, backTo = ''},
     },
     navigation,
 }: DebugDetailsConstantPickerPageProps) {
@@ -28,14 +29,14 @@ function DebugDetailsConstantPickerPage({
     const [searchValue, setSearchValue] = useState('');
     const sections: ListItem[] = useMemo(
         () =>
-            Object.entries(DETAILS_CONSTANT_OPTIONS[fieldName as keyof typeof DETAILS_CONSTANT_OPTIONS])
+            Object.entries(DETAILS_CONSTANT_FIELDS[formType as DebugForms].find((field) => field.fieldName === fieldName)?.options ?? {})
                 .reduce((acc: Array<[string, string]>, [key, value]) => {
                     // Option has multiple constants, so we need to flatten these into separate options
                     if (isObject(value)) {
                         acc.push(...Object.entries(value));
                         return acc;
                     }
-                    acc.push([key, value as string]);
+                    acc.push([key, String(value)]);
                     return acc;
                 }, [])
                 .map(
@@ -48,7 +49,7 @@ function DebugDetailsConstantPickerPage({
                         } satisfies ListItem),
                 )
                 .filter(({searchText}) => searchText.toLowerCase().includes(searchValue.toLowerCase())),
-        [fieldName, fieldValue, searchValue],
+        [fieldName, fieldValue, formType, searchValue],
     );
     const onSubmit = (item: ListItem) => {
         const value = item.text === fieldValue ? '' : item.text ?? '';

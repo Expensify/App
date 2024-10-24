@@ -52,6 +52,7 @@ function DebugReportPage({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? '-1'}`);
     const parentReportAction = parentReportActions && report?.parentReportID ? parentReportActions[report?.parentReportActionID ?? '-1'] : undefined;
+    const transactionID = DebugUtils.getTransactionID(reportActions);
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -132,6 +133,7 @@ function DebugReportPage({
                         <TopTab.Screen name={CONST.DEBUG.DETAILS}>
                             {() => (
                                 <DebugDetails
+                                    formType={CONST.DEBUG.FORMS.REPORT}
                                     data={report}
                                     onSave={(data) => {
                                         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
@@ -157,6 +159,14 @@ function DebugReportPage({
                                                 )}
                                             </View>
                                         ))}
+                                        {transactionID && (
+                                            <Button
+                                                text={translate('debug.viewTransaction')}
+                                                onPress={() => {
+                                                    Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
+                                                }}
+                                            />
+                                        )}
                                     </View>
                                 </DebugDetails>
                             )}
