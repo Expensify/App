@@ -2639,6 +2639,7 @@ const CONST = {
         },
         BANK_CONNECTIONS: {
             WELLS_FARGO: 'wellsfargo',
+            BANK_OF_AMERICA: 'bankofamerica',
             CHASE: 'chase',
             BREX: 'brex',
             CAPITAL_ONE: 'capitalone',
