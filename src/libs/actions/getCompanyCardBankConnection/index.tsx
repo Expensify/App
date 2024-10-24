@@ -10,7 +10,7 @@ type CompanyCardBankConnection = {
     isNewDot: string;
 };
 
-export default function getCompanyCardBankConnection(policyID: string, bankName?: string, scrapeMinDate?: string) {
+export default function getCompanyCardBankConnection(policyID?: string, bankName?: string, scrapeMinDate?: string) {
     const bankConnection = Object.keys(CONST.COMPANY_CARDS.BANKS).find((key) => CONST.COMPANY_CARDS.BANKS[key as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
 
     if (!bankName || !bankConnection || !policyID) {

@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
@@ -14,8 +13,11 @@ import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnect
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function BankConnection() {
-    const params = useRoute().params as Record<string, string>;
+type BankConnectionStepProps = {
+    policyID?: string;
+};
+
+function BankConnection({policyID}: BankConnectionStepProps) {
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setWebViewOpen] = useState(false);
@@ -23,7 +25,6 @@ function BankConnection() {
     const authToken = session?.authToken ?? null;
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = addNewCard?.data?.selectedBank;
-    const policyID = params?.policyID;
     const url = getCompanyCardBankConnection(policyID, bankName);
 
     const renderLoading = () => <FullScreenLoadingIndicator />;

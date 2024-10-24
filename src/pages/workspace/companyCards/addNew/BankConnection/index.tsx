@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -20,15 +19,17 @@ import openBankConnection from './openBankConnection';
 
 let customWindow: Window | null = null;
 
-function BankConnection() {
-    const params = useRoute().params as Record<string, string>;
+type BankConnectionStepProps = {
+    policyID?: string;
+};
+
+function BankConnection({policyID}: BankConnectionStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = addNewCard?.data?.selectedBank;
     const currentUrl = getCurrentUrl();
     const isBankConnectionCompleteRoute = currentUrl.includes(ROUTES.BANK_CONNECTION_COMPLETE);
-    const policyID = params?.policyID;
     const url = getCompanyCardBankConnection(policyID, bankName);
 
     const onOpenBankConnectionFlow = useCallback(() => {
