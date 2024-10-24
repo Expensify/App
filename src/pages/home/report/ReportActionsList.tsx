@@ -256,7 +256,7 @@ function ReportActionsList({
         }
 
         return null;
-    }, [sortedVisibleReportActions, unreadMarkerTime, accountID]);
+    }, [sortedVisibleReportActions, unreadMarkerTime, accountID, prevSortedVisibleReportActionsObjects]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**
