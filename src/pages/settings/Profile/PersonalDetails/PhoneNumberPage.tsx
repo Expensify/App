@@ -100,6 +100,7 @@ function PhoneNumberPage() {
                             onBlur={() => {
                                 if (validateLoginError) {
                                     PersonalDetails.clearPhoneNumberError();
+                                    return;
                                 }
                             }}
                         />
