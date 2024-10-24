@@ -51,6 +51,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
         emojiListRef,
         spacersIndexes,
     } = useEmojiPickerMenu();
+    console.log('header', headerEmojis, headerRowIndices)
 
     // Ref for the emoji search input
     const searchInputRef = useRef<BaseTextInputRef>(null);
@@ -236,8 +237,9 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
 
             const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
             emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
+            setFocusedIndex(headerIndex);
         },
-        [emojiListRef],
+        [emojiListRef, setFocusedIndex],
     );
 
     /**
