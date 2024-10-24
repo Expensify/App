@@ -130,7 +130,7 @@ function getChatTabBrickRoadReport(policyID?: string): OnyxEntry<Report> {
         ...report,
         reportID: report?.reportID ?? key.replace(ONYXKEYS.COLLECTION.REPORT, ''),
     }));
-    
+
     // If policyID is undefined, then all reports are checked whether they contain any brick road
     const policyReports = policyID ? normalizedAllReports.filter((report) => report?.policyID === policyID) : normalizedAllReports;
 

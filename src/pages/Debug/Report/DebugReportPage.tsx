@@ -20,13 +20,13 @@ import type {DebugParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import Debug from '@userActions/Debug';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import DebugReportActions from './DebugReportActions';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 type DebugReportPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT>;
 
@@ -54,10 +54,6 @@ function DebugReportPage({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? '-1'}`);
     const parentReportAction = parentReportActions && report?.parentReportID ? parentReportActions[report?.parentReportActionID ?? '-1'] : undefined;
-
-    if (!report) {
-        return <NotFoundPage />
-    }
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -117,6 +113,10 @@ function DebugReportPage({
             },
         ];
     }, [parentReportAction, report, reportActions, reportID, transactionViolations, translate]);
+
+    if (!report) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper
