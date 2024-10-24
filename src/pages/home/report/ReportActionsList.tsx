@@ -14,6 +14,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -170,6 +171,7 @@ function ReportActionsList({
     const isFocused = useIsFocused();
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
@@ -198,6 +200,15 @@ function ReportActionsList({
         [sortedReportActions, isOffline],
     );
     const lastAction = sortedVisibleReportActions.at(0);
+    const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
+        () =>
+            sortedVisibleReportActions.reduce((acc, action) => {
+                Object.assign(acc, {[action.reportActionID]: action});
+                return acc;
+            }, {}),
+        [sortedVisibleReportActions],
+    );
+    const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
     /**
      * The timestamp for the unread marker.
@@ -214,6 +225,7 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
+    const prevUnreadMarkerReportActionID = useRef<string | null>(null);
     /**
      * The reportActionID the unread marker should display above
      */
@@ -224,7 +236,14 @@ function ReportActionsList({
             const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
             const shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
             const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-            return shouldDisplay && isWithinVisibleThreshold;
+
+            // Don't set unread marker for newly added message from the current user, only if there is no existing unread marker
+            const isFromCurrentUser = accountID === (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID);
+            const isNewMessage = !prevSortedVisibleReportActionsObjects[reportAction.reportActionID];
+            const isPreviouslyOptimistic = !!prevSortedVisibleReportActionsObjects[reportAction.reportActionID]?.isOptimisticAction && !reportAction.isOptimisticAction;
+            const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID.current && isFromCurrentUser && (isNewMessage || isPreviouslyOptimistic);
+
+            return shouldDisplay && isWithinVisibleThreshold && !shouldIgnoreUnreadForCurrentUserMessage;
         };
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
@@ -237,7 +256,8 @@ function ReportActionsList({
         }
 
         return null;
-    }, [sortedVisibleReportActions, unreadMarkerTime]);
+    }, [sortedVisibleReportActions, unreadMarkerTime, accountID]);
+    prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
