@@ -84,7 +84,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
             titleStyle={styles.ph5}
             shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] remove it once the QBD beta is done
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack()}
         >
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback
