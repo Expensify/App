@@ -30,7 +30,7 @@ function CardNameStep() {
         CompanyCards.setAddNewCompanyCardStepAndData({
             step: CONST.COMPANY_CARDS.STEP.CARD_DETAILS,
             data: {
-                cardTitle: values.cardTitle,
+                bankName: values.cardTitle,
             },
             isEditing: false,
         });
@@ -65,7 +65,7 @@ function CardNameStep() {
                     inputID={INPUT_IDS.CARD_TITLE}
                     label={translate('workspace.companyCards.addNewCard.enterNameOfBank')}
                     role={CONST.ROLE.PRESENTATION}
-                    defaultValue={addNewCard?.data?.cardTitle}
+                    defaultValue={addNewCard?.data?.bankName}
                     containerStyles={[styles.mb6]}
                     ref={inputCallbackRef}
                 />

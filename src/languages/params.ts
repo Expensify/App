@@ -1,3 +1,5 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
@@ -257,6 +259,7 @@ type ViolationsRterParams = {
     email?: string;
     isTransactionOlderThan7Days: boolean;
     member?: string;
+    rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
 };
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
@@ -474,7 +477,7 @@ type SpreadCategoriesParams = {
 };
 
 type AssignedYouCardParams = {
-    assigner: string;
+    link: string;
 };
 
 type FeatureNameParams = {
@@ -533,6 +536,10 @@ type AuthenticationErrorParams = {
 
 type ImportedTypesParams = {
     importedTypes: string[];
+};
+
+type CompanyCardBankName = {
+    bankName: string;
 };
 
 export type {
@@ -726,6 +733,7 @@ export type {
     DateParams,
     FiltersAmountBetweenParams,
     StatementPageTitleParams,
+    CompanyCardBankName,
     DisconnectPromptParams,
     DisconnectTitleParams,
     CharacterLengthLimitParams,
