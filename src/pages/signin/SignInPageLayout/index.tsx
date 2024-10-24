@@ -2,7 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
 import ImageSVG from '@components/ImageSVG';
 import ScrollView from '@components/ScrollView';
@@ -15,6 +15,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import DomUtils from '@libs/DomUtils';
+// eslint-disable-next-line no-restricted-imports
+import themes from '@styles/theme';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BackgroundImage from './BackgroundImage';
@@ -80,6 +83,19 @@ function SignInPageLayout(
     const scrollViewStyles = useMemo(() => scrollViewContentContainerStyles(styles), [styles]);
 
     const backgroundImageHeight = Math.max(variables.signInContentMinHeight, containerHeight);
+
+    const cssClass = 'sign-in-page-layout';
+    DomUtils.addCSS(DomUtils.getAutofilledInputStyle(themes[CONST.THEME.DARK].text, `.${cssClass}`), 'sign-in-autofill-input');
+
+    useEffect(() => {
+        if (Platform.OS !== 'web') {
+            return;
+        }
+        document.body.classList.add(cssClass);
+        return () => {
+            document.body.classList.remove(cssClass);
+        };
+    }, []);
 
     return (
         <View style={containerStyles}>
