@@ -538,6 +538,10 @@ type ImportedTypesParams = {
     importedTypes: string[];
 };
 
+type FileLimitParams = {
+    fileLimit: number;
+};
+
 type CompanyCardBankName = {
     bankName: string;
 };
@@ -556,6 +560,7 @@ export type {
     DefaultAmountParams,
     AutoPayApprovedReportsLimitErrorParams,
     FeatureNameParams,
+    FileLimitParams,
     SpreadSheetColumnParams,
     SpreadFieldNameParams,
     AssignedYouCardParams,

@@ -475,6 +475,9 @@ const CONST = {
         },
     },
     NON_USD_BANK_ACCOUNT: {
+        ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
+        FILE_LIMIT: 10,
+        TOTAL_FILES_SIZE_LIMIT: 5242880,
         STEP: {
             COUNTRY: 'CountryStep',
             BANK_INFO: 'BankInfoStep',
