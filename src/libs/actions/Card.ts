@@ -21,7 +21,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeed, OnyxUpdateEvent, OnyxUpdatesFromServer} from '@src/types/onyx';
-import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
+import type {CardLimitType, ExpensifyCardDetails, ExpensifyCardID, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 
@@ -38,7 +38,7 @@ type IssueNewCardFlowData = {
     data?: Partial<IssueNewCardData>;
 };
 
-function reportVirtualExpensifyCardFraud(cardID: number, validateCode: string) {
+function reportVirtualExpensifyCardFraud(cardID: number, validateCode: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const optimisticData: OnyxUpdate[] = [
             {
@@ -98,7 +98,7 @@ function reportVirtualExpensifyCardFraud(cardID: number, validateCode: string) {
 
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD, parameters, {optimisticData, successData, failureData})
-            .then((response) => {
+            .then((response): string | undefined => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
                         // eslint-disable-next-line prefer-promise-reject-errors
@@ -110,7 +110,7 @@ function reportVirtualExpensifyCardFraud(cardID: number, validateCode: string) {
                     reject();
                     return;
                 }
-                resolve(response);
+                resolve((response as ExpensifyCardID).newCardID.toString());
             })
             // eslint-disable-next-line prefer-promise-reject-errors
             .catch(() => reject('cardPage.cardDetailsLoadingFailure'));
