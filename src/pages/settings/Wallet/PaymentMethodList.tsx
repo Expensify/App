@@ -149,11 +149,23 @@ function dismissError(item: PaymentMethodItem) {
     }
 }
 
-function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefault = false): boolean {
+function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], item: PaymentMethod, isDefault = false): boolean {
     if (!isDefault) {
         return false;
     }
+    // Find all payment methods that are marked as default
+    const defaultPaymentMethods = filteredPaymentMethods.filter((method): method is PaymentMethod => !!method.isDefault);
 
+    // If there are two or more default payment methods, find the most recently created one
+    if (defaultPaymentMethods.length > 1) {
+        // Sort default payment methods by creation date to find the most recent
+        const mostRecentDefaultMethod = defaultPaymentMethods.reduce((latest, current) =>
+            new Date(current.accountData?.created ?? 0) > new Date(latest.accountData?.created ?? 0) ? current : latest,
+        );
+
+        // Return true only if the methodID matches the most recently created default account
+        return mostRecentDefaultMethod.methodID === item.methodID;
+    }
     const defaultablePaymentMethodCount = filteredPaymentMethods.filter(
         (method) => method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
     ).length;
@@ -401,7 +413,7 @@ function PaymentMethodList({
                     iconWidth={item.iconWidth ?? item.iconSize}
                     iconStyles={item.iconStyles}
                     badgeText={
-                        shouldShowDefaultBadge(filteredPaymentMethods, invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.isDefault)
+                        shouldShowDefaultBadge(filteredPaymentMethods, item, invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.isDefault)
                             ? translate('paymentMethodList.defaultPaymentMethod')
                             : undefined
                     }
