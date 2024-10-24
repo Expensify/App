@@ -167,6 +167,8 @@ jobs:
     name: Build and deploy Android HybridApp
     needs: prep
     runs-on: ubuntu-latest-xl
+    # Only deploy HybridApp to staging
+    if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
@@ -185,6 +187,7 @@ jobs:
       - name: Update submodule
         run: |
           git submodule update --init
+          # TODO: REMOVE THIS LINE
           git checkout andrew-mobile-deploy
 
       - name: Configure MapBox SDK
@@ -469,6 +472,8 @@ jobs:
     runs-on: macos-13-xlarge
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
+    # Only deploy HybridApp to staging
+    if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
@@ -485,6 +490,7 @@ jobs:
       - name: Update submodule
         run: |
           git submodule update --init
+          # TODO: REMOVE THIS LINE
           git checkout andrew-mobile-deploy
 
       - name: Configure MapBox SDK
