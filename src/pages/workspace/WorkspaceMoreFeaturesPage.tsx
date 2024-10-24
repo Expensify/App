@@ -18,9 +18,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import * as Category from '@userActions/Policy/Category';
 import * as DistanceRate from '@userActions/Policy/DistanceRate';
+import * as PerDiem from '@userActions/Policy/PerDiem';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Tag from '@userActions/Policy/Tag';
 import * as Report from '@userActions/Report';
@@ -79,6 +80,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [isDisableExpensifyCardWarningModalOpen, setIsDisableExpensifyCardWarningModalOpen] = useState(false);
     const [isDisableCompanyCardsWarningModalOpen, setIsDisableCompanyCardsWarningModalOpen] = useState(false);
 
+    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnection) {
             return;
@@ -115,6 +118,23 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
             disabledAction: () => {
                 setIsDisableExpensifyCardWarningModalOpen(true);
+            },
+        },
+        {
+            icon: Illustrations.PerDiem,
+            titleTranslationKey: 'workspace.moreFeatures.perDiem.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.perDiem.subtitle',
+            isActive: policy?.arePerDiemEnabled ?? false,
+            pendingAction: policy?.pendingFields?.arePerDiemEnabled,
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                    return;
+                }
+                PerDiem.enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID);
             },
         },
     ];

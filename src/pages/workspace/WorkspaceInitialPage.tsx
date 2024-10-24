@@ -62,7 +62,8 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD
         | typeof SCREENS.WORKSPACE.COMPANY_CARDS
         | typeof SCREENS.WORKSPACE.REPORT_FIELDS
-        | typeof SCREENS.WORKSPACE.RULES;
+        | typeof SCREENS.WORKSPACE.RULES
+        | typeof SCREENS.WORKSPACE.PER_DIEM;
     badgeText?: string;
 };
 
@@ -111,6 +112,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_ENABLED]: policy?.arePerDiemEnabled,
         }),
         [policy],
     ) as PolicyFeatureStates;
@@ -218,6 +220,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.COMPANY_CARDS,
             brickRoadIndicator: PolicyUtils.hasPolicyFeedsError(cardFeeds?.settings?.companyCards ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.perDiem',
+            icon: Expensicons.CalendarSolid,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.PER_DIEM,
         });
     }
 

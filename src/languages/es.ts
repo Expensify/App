@@ -2349,6 +2349,7 @@ const translations = {
             rules: 'Reglas',
             plan: 'Plan',
             profile: 'Perfil',
+            perDiem: 'Per diem',
             bankAccount: 'Cuenta bancaria',
             displayedAs: 'Mostrado como',
             connectBankAccount: 'Conectar cuenta bancaria',
@@ -2413,6 +2414,25 @@ const translations = {
                     default:
                         return 'Miembro';
                 }
+            },
+        },
+        perDiem: {
+            subtitle: 'Set per diem rates to control daily employee spend.',
+            destination: 'Destination',
+            subrate: 'Subrate',
+            amount: 'Amount',
+            deleteRates: () => ({
+                one: 'Delete rate',
+                other: 'Delete rates',
+            }),
+            deletePerDiemRate: 'Delete per diem rate',
+            areYouSureDelete: () => ({
+                one: 'Are you sure you want to delete this rate?',
+                other: 'Are you sure you want to delete these rates?',
+            }),
+            emptyList: {
+                title: 'Per diem',
+                subtitle: 'Set per diem rates to control daily employee spend. Import rates from a spreadsheet to get started.',
             },
         },
         qbd: {
@@ -3309,6 +3329,10 @@ const translations = {
                 title: 'Tasas de distancia',
                 subtitle: 'Añade, actualiza y haz cumplir las tasas.',
             },
+            perDiem: {
+                title: 'Per diem',
+                subtitle: 'Set Per diem rates to control daily employee spend.',
+            },
             expensifyCard: {
                 title: 'Tarjeta Expensify',
                 subtitle: 'Obtén información y control sobre tus gastos.',
@@ -4086,6 +4110,12 @@ const translations = {
                 title: 'Reglas',
                 description: `Las reglas se ejecutan en segundo plano y mantienen tus gastos bajo control para que no tengas que preocuparte por los detalles pequeños.\n\nExige detalles de los gastos, como recibos y descripciones, establece límites y valores predeterminados, y automatiza las aprobaciones y los pagos, todo en un mismo lugar.`,
                 onlyAvailableOnPlan: 'Las reglas están disponibles solo en el plan Control, que comienza en ',
+            },
+            perDiem: {
+                title: 'Per diem',
+                description:
+                    'Per diem is a great way to keep your daily costs compliant and predictable whenever your employees travel. Enjoy features like custom rates, default categories, and more granular details like destinations and subrates.',
+                onlyAvailableOnPlan: 'Per diem are only available on the Control plan, starting at ',
             },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
