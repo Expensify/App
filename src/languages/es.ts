@@ -3180,7 +3180,7 @@ const translations = {
             brokenConnectionErrorFirstPart: `La conexión de la fuente de tarjetas está rota. Por favor, `,
             brokenConnectionErrorLink: 'inicia sesión en tu banco ',
             brokenConnectionErrorSecondPart: 'para que podamos restablecer la conexión.',
-            assignedCard: ({assignee, link}: AssignedCardParams) => `le ha asignado a ${assignee} una ${link}! Las transacciones importadas aparecerán en este chat.`,
+            assignedCard: ({assignee, link}: AssignedCardParams) => `ha asignado a ${assignee} una ${link}! Las transacciones importadas aparecerán en este chat.`,
             companyCard: 'tarjeta de empresa',
             chooseCardFeed: 'Elige feed de tarjetas',
         },
