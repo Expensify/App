@@ -40,7 +40,8 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
-    | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO;
+    | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO
+    | typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES;
 
 type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 

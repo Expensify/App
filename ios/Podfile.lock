@@ -26,6 +26,7 @@ PODS:
   - AppAuth/Core (1.7.5)
   - AppAuth/ExternalUserAgent (1.7.5):
     - AppAuth/Core
+  - AppLogs (0.1.0)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
   - EXAV (14.0.7):
@@ -1564,6 +1565,27 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-app-logs (0.3.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-blob-util (0.19.4):
     - DoubleConversion
     - glog
@@ -2702,6 +2724,7 @@ PODS:
 
 DEPENDENCIES:
   - AirshipServiceExtension
+  - AppLogs (from `../node_modules/react-native-app-logs/AppLogsPod`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXAV (from `../node_modules/expo-av/ios`)
@@ -2751,6 +2774,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - "react-native-airship (from `../node_modules/@ua/react-native-airship`)"
+  - react-native-app-logs (from `../node_modules/react-native-app-logs`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - "react-native-cameraroll (from `../node_modules/@react-native-camera-roll/camera-roll`)"
   - react-native-config (from `../node_modules/react-native-config`)
@@ -2864,6 +2888,8 @@ SPEC REPOS:
     - Turf
 
 EXTERNAL SOURCES:
+  AppLogs:
+    :path: "../node_modules/react-native-app-logs/AppLogsPod"
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   DoubleConversion:
@@ -2959,6 +2985,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-airship:
     :path: "../node_modules/@ua/react-native-airship"
+  react-native-app-logs:
+    :path: "../node_modules/react-native-app-logs"
   react-native-blob-util:
     :path: "../node_modules/react-native-blob-util"
   react-native-cameraroll:
@@ -3109,6 +3137,7 @@ SPEC CHECKSUMS:
   AirshipFrameworkProxy: dbd862dc6fb21b13e8b196458d626123e2a43a50
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
+  AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   boost: 26992d1adf73c1c7676360643e687aee6dda994b
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXAV: afa491e598334bbbb92a92a2f4dd33d7149ad37f
@@ -3184,6 +3213,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 1c08607305558666fd16678b85ef135e455d5c96
   React-microtasksnativemodule: f13f03163b6a5ec66665dfe80a0df4468bb766a6
   react-native-airship: e10f6823d8da49bbcb2db4bdb16ff954188afccc
+  react-native-app-logs: b8a104816aafc78cd0965e923452de88dcf8ec67
   react-native-blob-util: 221c61c98ae507b758472ac4d2d489119d1a6c44
   react-native-cameraroll: 478a0c1fcdd39f08f6ac272b7ed06e92b2c7c129
   react-native-config: 742a9e0a378a78d0eaff1fb3477d8c0ae222eb51
@@ -3261,6 +3291,6 @@ SPEC CHECKSUMS:
   VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
   Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
 
-PODFILE CHECKSUM: a07e55247056ec5d84d1af31d694506efff3cfe2
+PODFILE CHECKSUM: 15e2f095b9c80d658459723edf84005a6867debf
 
 COCOAPODS: 1.15.2

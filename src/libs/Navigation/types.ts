@@ -1174,6 +1174,13 @@ type MoneyRequestNavigatorParamList = {
 
         searchHash?: number;
     };
+    [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+    };
 };
 
 type NewTaskNavigatorParamList = {
