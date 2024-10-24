@@ -1,15 +1,17 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {shouldSwitchLocationsToReportFields} from '../utils';
 
 type QBOSectionType = {
     description: string;
@@ -22,7 +24,16 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const {syncClasses, syncCustomers, syncLocations, syncTax, pendingFields, errorFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    const {syncClasses, syncCustomers, syncLocations, syncTax, pendingFields, errorFields} = qboConfig ?? {};
+
+    // If we previously selected tags but now we have the line items restriction for locations, we need to switch to report fields
+    useEffect(() => {
+        if (!shouldSwitchLocationsToReportFields(qboConfig)) {
+            return;
+        }
+        QuickbooksOnline.updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
+    }, [qboConfig, policyID]);
 
     const sections: QBOSectionType[] = [
         {
