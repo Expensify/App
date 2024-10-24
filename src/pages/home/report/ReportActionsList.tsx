@@ -13,7 +13,7 @@ import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInve
 import {usePersonalDetails} from '@components/OnyxProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
+import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -122,14 +122,6 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
 }
 
-function isMessageUnread(message: OnyxTypes.ReportAction, lastReadTime?: string): boolean {
-    if (!lastReadTime) {
-        return !ReportActionsUtils.isCreatedAction(message);
-    }
-
-    return !!(message && lastReadTime && message.created && lastReadTime < message.created);
-}
-
 const onScrollToIndexFailed = () => {};
 
 function ReportActionsList({
@@ -161,7 +153,8 @@ function ReportActionsList({
     const {windowHeight} = useWindowDimensions();
     const {isInNarrowPaneModal, shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const {isOffline} = useNetwork();
+    const {preferredLocale} = useLocalize();
+    const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
@@ -214,20 +207,58 @@ function ReportActionsList({
     }, [report.reportID]);
 
     /**
+     * Whether a message is NOT from the active user and it was received while the user was offline.
+     */
+    const wasMessageReceivedWhileOffline = useCallback(
+        (message: OnyxTypes.ReportAction) =>
+            !ReportActionsUtils.wasActionTakenByCurrentUser(message) &&
+            ReportActionsUtils.wasActionCreatedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale),
+        [isOffline, lastOfflineAt, lastOnlineAt, preferredLocale],
+    );
+
+    /**
+     * The index of the earliest message that was received while offline
+     */
+    const earliestReceivedOfflineMessageIndex = useMemo(() => {
+        // Create a list of (sorted) indices of message that were received while offline
+        const receviedOfflineMessages = sortedReportActions.reduce<number[]>((acc, message, index) => {
+            if (wasMessageReceivedWhileOffline(message)) {
+                acc[index] = index;
+            }
+
+            return acc;
+        }, []);
+
+        // The last index in the list is the earliest message that was received while offline
+        return receviedOfflineMessages.at(-1);
+    }, [sortedReportActions, wasMessageReceivedWhileOffline]);
+
+    /**
      * The reportActionID the unread marker should display above
      */
     const unreadMarkerReportActionID = useMemo(() => {
-        const shouldDisplayNewMarker = (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
+        const shouldDisplayNewMarker = (message: OnyxTypes.ReportAction, index: number): boolean => {
+            const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? message.created < (userActiveSince.current ?? '') : true;
+
             const nextMessage = sortedVisibleReportActions.at(index + 1);
-            const isCurrentMessageUnread = isMessageUnread(reportAction, unreadMarkerTime);
-            const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
-            const shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
-            const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-            return shouldDisplay && isWithinVisibleThreshold;
+            const isNextMessageUnread = !!nextMessage && ReportActionsUtils.isReportActionUnread(nextMessage, unreadMarkerTime);
+
+            // If the current message was received while offline, we want to display the unread marker above the earliest offline message.
+            const wasCurrentMessageReceivedWhileOffline = index === earliestReceivedOfflineMessageIndex;
+            if (wasCurrentMessageReceivedWhileOffline && !isNextMessageUnread) {
+                return true;
+            }
+
+            const isCurrentMessageUnread = ReportActionsUtils.isReportActionUnread(message, unreadMarkerTime);
+            return isCurrentMessageUnread && !isNextMessageUnread && !ReportActionsUtils.shouldHideNewMarker(message) && isWithinVisibleThreshold;
         };
 
+        // If there are message that were recevied while offline,
+        // we can skip checking all messages later than the earliest recevied offline message.
+        const startIndex = earliestReceivedOfflineMessageIndex ?? 0;
+
         // Scan through each visible report action until we find the appropriate action to show the unread marker
-        for (let index = 0; index < sortedVisibleReportActions.length; index++) {
+        for (let index = startIndex; index < sortedVisibleReportActions.length; index++) {
             const reportAction = sortedVisibleReportActions.at(index);
 
             if (reportAction && shouldDisplayNewMarker(reportAction, index)) {
@@ -236,7 +267,7 @@ function ReportActionsList({
         }
 
         return null;
-    }, [sortedVisibleReportActions, unreadMarkerTime]);
+    }, [earliestReceivedOfflineMessageIndex, sortedVisibleReportActions, unreadMarkerTime]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
