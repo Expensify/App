@@ -64,7 +64,7 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                     'process.env.PORT': port,
                     'process.env.NODE_ENV': JSON.stringify('development'),
                 }),
-                new ReactRefreshWebpackPlugin(),
+                new ReactRefreshWebpackPlugin({overlay: {sockProtocol: 'wss'}}),
             ],
             cache: {
                 type: 'filesystem',

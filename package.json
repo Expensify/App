@@ -368,13 +368,11 @@
   },
   "electronmon": {
     "patterns": [
-      "!node_modules",
-      "!node_modules/**/*",
-      "!**/*.map",
+      "!src/**",
       "!ios/**",
       "!android/**",
-      "*.test.*",
-      "*.spec.*"
+      "!tests/**",
+      "*.test.*"
     ]
   },
   "engines": {
