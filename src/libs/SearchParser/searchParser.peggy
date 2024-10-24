@@ -114,10 +114,15 @@ defaultKey "default key"
   = @("type" / "status" / "sortBy" / "sortOrder" / "policyID")
 
 identifier
-  = parts:(quotedString / alphanumeric)+ {
-      const value = parts.flat();
+  = parts:(quotedString / alphanumeric)|1.., ","| {
+      const value = parts.flat().map((word) => {
+      	if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
+      		return word.slice(1,-1);
+		}
+		return word;
+      });
       if (value.length > 1) {
-        return value;
+        return value.filter((word) => word.length > 0);
       }
       return value[0];
     }

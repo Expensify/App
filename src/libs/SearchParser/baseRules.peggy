@@ -16,12 +16,12 @@ operator "operator"
   / "<=" { return "lte"; }
   / "<" { return "lt"; }
 
-quotedString "quote" = "\"" chars:[^"\r\n]* "\"" { return chars.join(""); }
-
-alphanumeric "word"
-  = chars:[^ "\t\n\r]+ {
-      return chars.join("").trim().split(",").filter(Boolean);
+quotedString "quote"
+  = start:[^ ,"\t\n\r]* "\"" inner:[^"\r\n]* "\"" end:[^ ,\t\n\r]* {
+      return [...start, '"', ...inner, '"', ...end].join("");
     }
+
+alphanumeric "word" = chars:[^ ,\t\n\r]+ { return chars.join("").trim(); }
 
 logicalAnd = _ { return "and"; }
 
