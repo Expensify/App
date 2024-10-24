@@ -259,7 +259,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
 
     const transaction = isTransactionEntry(key) ? data[key] : {};
     const report = isTransactionEntry(key) ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] : data[key] ?? {};
-    const chatReport = chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] ?? {};
+    const chatReport = (chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] ?? {});
     const policy = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.policyID}`] ?? {};
     const allTransaction = isTransactionEntry(key) ? transaction : report.transactions;
 

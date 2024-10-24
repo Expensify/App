@@ -81,15 +81,15 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth
     }
 
     // if (action === CONST.SEARCH.ACTION_TYPES.REVIEW) {
-        return (
-            <Button
-                text={text}
-                onPress={goToItem}
-                small
-                style={[styles.w100]}
-                innerStyles={buttonInnerStyles}
-            />
-        );
+    return (
+        <Button
+            text={text}
+            onPress={goToItem}
+            small
+            style={[styles.w100]}
+            innerStyles={buttonInnerStyles}
+        />
+    );
     // }
 }
 

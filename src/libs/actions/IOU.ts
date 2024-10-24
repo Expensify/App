@@ -7116,12 +7116,14 @@ function canReportBeSubmitted(
     const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', moneyRequestReport, policy);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-   return !!moneyRequestReport &&
-    isDraft &&
-    reimbursableSpend !== 0 &&
-    !hasAllPendingRTERViolations &&
-    !shouldShowBrokenConnectionViolation &&
-    (moneyRequestReport?.ownerAccountID === currentUserAccountID || isAdmin || moneyRequestReport?.managerID === currentUserAccountID);
+    return (
+        !!moneyRequestReport &&
+        isDraft &&
+        reimbursableSpend !== 0 &&
+        !hasAllPendingRTERViolations &&
+        !shouldShowBrokenConnectionViolation &&
+        (moneyRequestReport?.ownerAccountID === currentUserAccountID || isAdmin || moneyRequestReport?.managerID === currentUserAccountID)
+    );
 }
 
 function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string): OnyxEntry<ReportAction> {
