@@ -53,7 +53,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         .map((item, index) => `${index === filteredOptions.length - 1 && index > 0 ? `${translate('common.or')} ` : ''}${translate(`reportActionsView.iouTypes.${item}`)}`)
         .join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
-    const reportName = ReportUtils.getReportName(report);
+    const reportName = ReportUtils.getReportName({report});
     const shouldShowUsePlusButtonText =
         (moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
             moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
@@ -112,9 +112,9 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                     ) : (
                         <Text>
                             <Text>{welcomeMessage.phrase1}</Text>
-                            <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
+                            <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant({accountID: report?.ownerAccountID})}</Text>
                             <Text>{welcomeMessage.phrase2}</Text>
-                            <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
+                            <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName({report})}</Text>
                             <Text>{welcomeMessage.phrase3}</Text>
                         </Text>
                     ))}
@@ -138,13 +138,13 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                             <Text>{welcomeMessage.phrase1}</Text>
                             <Text>
                                 {report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? (
-                                    <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)}</Text>
+                                    <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})}</Text>
                                 ) : (
                                     <Text style={[styles.textStrong]}>{getPolicy(report?.invoiceReceiver?.policyID)?.name}</Text>
                                 )}
                             </Text>
                             <Text>{` ${translate('common.and')} `}</Text>
-                            <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
+                            <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName({report})}</Text>
                             <Text>{welcomeMessage.phrase2}</Text>
                         </Text>
                     ))}
@@ -174,7 +174,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                     onPress={navigateToReport}
                                     suppressHighlighting
                                 >
-                                    {ReportUtils.getReportName(report)}
+                                    {ReportUtils.getReportName({report})}
                                 </Text>
                             )}
                             {welcomeMessage.phrase2 !== undefined && <Text>{welcomeMessage.phrase2}</Text>}

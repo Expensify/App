@@ -67,12 +67,12 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const subtitle = useMemo(() => {
         if (isReport) {
             if (ReportUtils.isExpenseReport(report)) {
-                return ReportUtils.getPolicyName(report);
+                return ReportUtils.getPolicyName({report});
             }
             if (ReportUtils.isMoneyRequestReport(report)) {
                 // generate subtitle from participants
                 return ReportUtils.getParticipantsAccountIDsForDisplay(report, true)
-                    .map((accountID) => ReportUtils.getDisplayNameForParticipant(accountID))
+                    .map((accountID) => ReportUtils.getDisplayNameForParticipant({accountID}))
                     .join(' & ');
             }
 
@@ -82,7 +82,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         return currentUserPersonalDetails.login;
     }, [report, currentUserPersonalDetails, isReport]);
 
-    const title = isReport ? ReportUtils.getReportName(report) : currentUserPersonalDetails.displayName ?? '';
+    const title = isReport ? ReportUtils.getReportName({report}) : currentUserPersonalDetails.displayName ?? '';
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`

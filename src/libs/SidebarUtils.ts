@@ -174,7 +174,7 @@ function getOrderedReportIDs(
         const report = reportToDisplay;
         const miniReport: MiniReport = {
             reportID: report?.reportID,
-            displayName: ReportUtils.getReportName(report),
+            displayName: ReportUtils.getReportName({report}),
             lastVisibleActionCreated: report?.lastVisibleActionCreated,
         };
 
@@ -464,7 +464,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
         } else if (ReportActionsUtils.isCardIssuedAction(lastAction)) {
-            result.alternateText = ReportActionsUtils.getCardIssuedMessage(lastAction);
+            result.alternateText = ReportActionsUtils.getCardIssuedMessage({reportAction: lastAction});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = ReportUtils.formatReportLastMessageText(Parser.htmlToText(`${lastActorDisplayName}: ${lastMessageText}`));
         } else if (ReportActionsUtils.isTagModificationAction(lastAction?.actionName)) {
@@ -514,7 +514,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = ReportUtils.getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
+    const reportName = ReportUtils.getReportName({report, policy, invoiceReceiverPolicy});
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -549,9 +549,9 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
             welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne');
             welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo');
             welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree');
-            welcomeMessage.messageText = `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${ReportUtils.getPolicyName(
-                report,
-            )} ${welcomeMessage.phrase3}`;
+            welcomeMessage.messageText = `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant({accountID: report?.ownerAccountID})} ${
+                welcomeMessage.phrase2
+            } ${ReportUtils.getPolicyName({report})} ${welcomeMessage.phrase3}`;
         }
         return welcomeMessage;
     }
@@ -602,7 +602,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
  */
 function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {showReportName: true};
-    const workspaceName = ReportUtils.getPolicyName(report);
+    const workspaceName = ReportUtils.getPolicyName({report});
 
     if (report?.description) {
         welcomeMessage.messageHtml = report.description;
@@ -631,9 +631,9 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartTwo');
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? ReportUtils.getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)
+                ? ReportUtils.getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})
                 : PolicyUtils.getPolicy(report?.invoiceReceiver?.policyID)?.name;
-        const receiver = ReportUtils.getPolicyName(report);
+        const receiver = ReportUtils.getPolicyName({report});
         welcomeMessage.messageText = `${welcomeMessage.phrase1}${payer} ${Localize.translateLocal('common.and')} ${receiver}${welcomeMessage.phrase2}`;
         return welcomeMessage;
     } else {
@@ -641,7 +641,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
     }
-    welcomeMessage.messageText = `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`;
+    welcomeMessage.messageText = `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName({report}) : ''} ${welcomeMessage.phrase2 ?? ''}`;
 
     return welcomeMessage;
 }

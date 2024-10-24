@@ -223,7 +223,10 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
     const canUnapproveRequest =
-        ReportUtils.isExpenseReport(report) && (ReportUtils.isReportManager(report) || isPolicyAdmin) && ReportUtils.isReportApproved(report) && !PolicyUtils.isSubmitAndClose(policy);
+        ReportUtils.isExpenseReport(report) &&
+        (ReportUtils.isReportManager(report) || isPolicyAdmin) &&
+        ReportUtils.isReportApproved({reportOrID: report}) &&
+        !PolicyUtils.isSubmitAndClose(policy);
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -272,7 +275,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
 
-    const reportName = ReportUtils.getReportName(report);
+    const reportName = ReportUtils.getReportName({report});
 
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || ReportUtils.isExpenseReport(report) || isPolicyExpenseChat || isInvoiceRoom
