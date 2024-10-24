@@ -1116,6 +1116,17 @@ const styles = (theme: ThemeColors) =>
             height: 25,
         },
 
+        deletedAttachmentIndicator: {
+            zIndex: 20,
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+        },
+
+        deletedIndicatorOverlay: {
+            opacity: 0.8,
+        },
+
         // Actions
         actionAvatar: {
             borderRadius: 20,

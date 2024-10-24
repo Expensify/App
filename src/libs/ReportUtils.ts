@@ -1291,6 +1291,16 @@ function isProcessingReport(report: OnyxEntry<Report>): boolean {
     return report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
 }
 
+function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
+    if (!report) {
+        return false;
+    }
+
+    const submitsToAccountID = PolicyUtils.getSubmitToAccountID(getPolicy(report.policyID), report.ownerAccountID ?? -1);
+
+    return isProcessingReport(report) && submitsToAccountID === report.managerID;
+}
+
 /**
  * Check if the report is a single chat report that isn't a thread
  * and personal detail of participant is optimistic data
@@ -1744,6 +1754,10 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
 
     if (PolicyUtils.isInstantSubmitEnabled(policy) && PolicyUtils.isSubmitAndClose(policy) && !PolicyUtils.arePaymentsEnabled(policy)) {
         return false;
+    }
+
+    if (PolicyUtils.isInstantSubmitEnabled(policy) && isProcessingReport(moneyRequestReport)) {
+        return isAwaitingFirstLevelApproval(moneyRequestReport);
     }
 
     if (isReportApproved(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
@@ -6129,7 +6143,7 @@ function isUnread(report: OnyxEntry<Report>): boolean {
         return false;
     }
 
-    if (isEmptyReport(report) && !isSelfDM(report)) {
+    if (isEmptyReport(report)) {
         return false;
     }
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
@@ -8516,6 +8530,7 @@ export {
     isPolicyExpenseChat,
     isPolicyExpenseChatAdmin,
     isProcessingReport,
+    isAwaitingFirstLevelApproval,
     isPublicAnnounceRoom,
     isPublicRoom,
     isReportApproved,
