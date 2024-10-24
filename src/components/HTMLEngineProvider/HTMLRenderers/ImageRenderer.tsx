@@ -113,7 +113,6 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                             shouldUseHapticsOnLongPress
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                            disabled={hasLoadFailed}
                         >
                             {thumbnailImageComponent}
                         </PressableWithoutFocus>

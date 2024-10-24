@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
+import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
@@ -83,6 +84,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
                     isHovered={isModalHovered}
                     isFocused={isFocused}
                     duration={item.duration}
+                    fallbackSource={Expensicons.AttachmentNotFound}
                 />
             </View>
 
