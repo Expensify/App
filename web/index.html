@@ -109,7 +109,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
-    <% if (htmlWebpackPlugin.options.isWeb && htmlWebpackPlugin.options.isProduction) { %>
+    <% if (htmlWebpackPlugin.options.useThirdPartyScripts) { %>
         <!-- Third party scripts -->
         <script async="" src="thirdPartyScripts.js"></script>
         <!-- End Third party scripts -->
@@ -117,7 +117,7 @@
     <link rel="manifest" href="/manifest.json" />
 </head>
 <body>
-    <% if (htmlWebpackPlugin.options.isWeb && htmlWebpackPlugin.options.isProduction) { %>
+    <% if (htmlWebpackPlugin.options.useThirdPartyScripts) { %>
         <!-- Google Tag Manager (noscript) -->
         <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N4M3FLJZ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- End Google Tag Manager (noscript) -->
