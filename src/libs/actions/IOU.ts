@@ -4019,6 +4019,7 @@ function createSplitsAndOnyxData(
     iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
     taxCode = '',
     taxAmount = 0,
+    receipt: Receipt = {},
 ): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -4026,8 +4027,8 @@ function createSplitsAndOnyxData(
     const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
-    // Pass an open receipt so the distance expense will show a map with the route optimistically
-    const receipt: Receipt | undefined = iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : undefined;
+    const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCANREADY} = receipt;
+    const receiptObject: Receipt = {state, source};
 
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
@@ -4041,7 +4042,7 @@ function createSplitsAndOnyxData(
         '',
         '',
         merchant || Localize.translateLocal('iou.expense'),
-        receipt,
+        receiptObject,
         undefined,
         undefined,
         category,
@@ -4201,6 +4202,9 @@ function createSplitsAndOnyxData(
                 value: {
                     [splitIOUReportAction.reportActionID]: {
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                    },
+                    [splitIOUReportAction.reportActionID]: {
+                        errors: getReceiptError(receipt, filename),
                     },
                 },
             },
@@ -4443,6 +4447,7 @@ type SplitBillActionsParams = {
     splitPayerAccountIDs?: number[];
     taxCode?: string;
     taxAmount?: number;
+    receipt?: Receipt;
 };
 
 /**
@@ -4467,6 +4472,7 @@ function splitBill({
     splitPayerAccountIDs = [],
     taxCode = '',
     taxAmount = 0,
+    receipt = {},
 }: SplitBillActionsParams) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
@@ -4485,6 +4491,7 @@ function splitBill({
         iouRequestType,
         taxCode,
         taxAmount,
+        receipt,
     );
 
     const parameters: SplitBillParams = {
@@ -4506,6 +4513,7 @@ function splitBill({
         splitPayerAccountIDs,
         taxCode,
         taxAmount,
+        receipt,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
@@ -4534,6 +4542,7 @@ function splitBillAndOpenReport({
     splitPayerAccountIDs = [],
     taxCode = '',
     taxAmount = 0,
+    receipt = {},
 }: SplitBillActionsParams) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
@@ -4552,6 +4561,7 @@ function splitBillAndOpenReport({
         iouRequestType,
         taxCode,
         taxAmount,
+        receipt,
     );
 
     const parameters: SplitBillParams = {
@@ -4573,6 +4583,7 @@ function splitBillAndOpenReport({
         splitPayerAccountIDs,
         taxCode,
         taxAmount,
+        receipt,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
