@@ -5126,6 +5126,7 @@ const translations = {
         RBR: 'RBR',
         true: 'true',
         false: 'false',
+        viewReport: 'View Report',
         reasonVisibleInLHN: {
             hasDraftComment: 'Has draft comment',
             hasGBR: 'Has GBR',
