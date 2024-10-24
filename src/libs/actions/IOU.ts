@@ -2644,7 +2644,15 @@ function getUpdateMoneyRequestParams(
             }
         }
     } else {
-        updatedMoneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false, true);
+        updatedMoneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(
+            iouReport,
+            updatedReportAction.actorAccountID ?? -1,
+            diff,
+            TransactionUtils.getCurrency(transaction),
+            false,
+            true,
+            isTransactionOnHold,
+        );
     }
 
     if (updatedMoneyRequestReport) {
@@ -5716,7 +5724,15 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
             }
         }
     } else {
-        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID ?? -1, TransactionUtils.getAmount(transaction, false), currency, true);
+        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
+            iouReport,
+            reportAction.actorAccountID ?? -1,
+            TransactionUtils.getAmount(transaction, false),
+            currency,
+            true,
+            false,
+            isTransactionOnHold,
+        );
     }
 
     if (updatedIOUReport) {
