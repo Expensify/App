@@ -168,7 +168,7 @@ jobs:
     needs: prep
     runs-on: ubuntu-latest-xl
     # Only deploy HybridApp to staging
-    if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+    if: ${{ github.ref != 'refs/heads/production' }}
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
@@ -254,30 +254,30 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
 
-      #      - name: Upload Android app to Google Play
-      #        run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'upload_google_play_production' || 'upload_google_play_internal' }}
-      #        env:
-      #          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
-      #
-      #      - name: Upload Android build to Browser Stack
-      #        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-      #        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@./android/app/build/outputs/bundle/productionRelease/app-production-release.aab"
-      #        env:
-      #          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-      #
-      #      - name: Upload Android sourcemaps artifact
-      #        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-      #        uses: actions/upload-artifact@v4
-      #        with:
-      #          name: android-sourcemaps-artifact
-      #          path: ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
-      #
-      #      - name: Upload Android build artifact
-      #        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-      #        uses: actions/upload-artifact@v4
-      #        with:
-      #          name: android-build-artifact
-      #          path: ./android/app/build/outputs/bundle/productionRelease/app-production-release.aab
+      - name: Upload Android app to Google Play
+        run: bundle exec fastlane android upload_google_play_internal_hybrid
+        env:
+          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+
+      - name: Upload Android build to Browser Stack
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@../Android/build/outputs/bundle/release/Expensify-release.aab"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Upload Android sourcemaps artifact
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-sourcemaps-artifact
+          path: ../Android/build/generated/sourcemaps/react/release/index.android.bundle.map
+
+      - name: Upload Android build artifact
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-artifact
+          path: ../Android/build/outputs/bundle/release/Expensify-release.aab
 
       - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
@@ -473,7 +473,7 @@ jobs:
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
     # Only deploy HybridApp to staging
-    if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+    if: ${{ github.ref != 'refs/heads/production' }}
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
