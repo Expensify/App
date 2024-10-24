@@ -78,13 +78,9 @@ function UploadFile({
             }
         }
 
-        if (fileLimit) {
-            if (files.length > 0) {
-                if (files.length > fileLimit) {
-                    setError(translate('attachmentPicker.tooManyFiles', {fileLimit}));
-                    return;
-                }
-            }
+        if (fileLimit && files.length > 0 && files.length > fileLimit) {
+            setError(translate('attachmentPicker.tooManyFiles', {fileLimit}));
+            return;
         }
 
         if (acceptedFileTypes.length > 0) {
@@ -96,8 +92,12 @@ function UploadFile({
             }
         }
 
-        onInputChange(files);
-        onUpload(files);
+        const uploadedFilesNames = uploadedFiles.map((uploadedFile) => uploadedFile.name);
+
+        const newFilesToUpload = files.filter((file) => !uploadedFilesNames.includes(file.name));
+
+        onInputChange(newFilesToUpload);
+        onUpload(newFilesToUpload);
     };
 
     return (
@@ -130,7 +130,7 @@ function UploadFile({
                         fill={theme.icon}
                         medium
                     />
-                    <Text style={[styles.ml2, styles.mr2, styles.textBold]}>{file.name}</Text>
+                    <Text style={[styles.ml2, styles.mr2, styles.textBold, styles.breakWord]}>{file.name}</Text>
                     <PressableWithFeedback
                         onPress={() => onRemove(file?.uri ?? '')}
                         role={CONST.ROLE.BUTTON}

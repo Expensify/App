@@ -4,7 +4,7 @@ import type {FileObject} from '@components/AttachmentModal';
 import type CONST from '@src/CONST';
 
 type PickerOptions = {
-    /** A callback that will be called with the selected attachment. */
+    /** A callback that will be called with the selected attachments. */
     onPicked: (files: FileObject[]) => void;
     /** A callback that will be called without a selected attachment. */
     onCanceled?: () => void;
