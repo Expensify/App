@@ -165,7 +165,7 @@ const runTests = async (): Promise<void> => {
         await launchApp('android', appPackage, config.ACTIVITY_PATH, launchArgs);
 
         const {promise, resetTimeout} = withFailTimeout(
-            new Promise<void>((resolve) => {
+            new Promise<void>((resolve, reject) => {
                 const removeListener = server.addTestDoneListener(() => {
                     Logger.success(iterationText);
 
@@ -215,9 +215,14 @@ const runTests = async (): Promise<void> => {
                         removeListener();
                         // something went wrong, let's wait a little bit and try again
                         await sleep(5000);
-                        // simply restart the test
-                        await runTestIteration(appPackage, iterationText, branch, launchArgs);
-                        resolve();
+                        try {
+                            // simply restart the test
+                            await runTestIteration(appPackage, iterationText, branch, launchArgs);
+                            resolve();
+                        } catch (e) {
+                            // okay, give up and throw the exception further
+                            reject(e);
+                        }
                     },
                 });
             }),
