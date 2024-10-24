@@ -1,5 +1,6 @@
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
+import type {NativeConfig} from 'react-native-config';
 import * as E2EGenericPressableWrapper from '@components/Pressable/GenericPressable/index.e2e';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
@@ -43,7 +44,7 @@ const test = (config: NativeConfig) => {
                     E2EClient.submitTestResults({
                         branch: Config.E2E_BRANCH,
                         error: 'Search button not found',
-                        name: 'Open Search Router TTI',
+                        name: `${name} Open Search Router TTI`,
                     }).then(() => E2EClient.submitTestDone());
                     return;
                 }
@@ -52,7 +53,7 @@ const test = (config: NativeConfig) => {
                     E2EClient.submitTestResults({
                         branch: Config.E2E_BRANCH,
                         error: 'Search button found but onPress prop was not present',
-                        name: 'Open Search Router TTI',
+                        name: `${name} Open Search Router TTI`,
                     }).then(() => E2EClient.submitTestDone());
                     return;
                 }
