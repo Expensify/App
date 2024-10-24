@@ -343,7 +343,8 @@ type SearchResults = {
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport>;
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;

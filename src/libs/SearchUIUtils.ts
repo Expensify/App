@@ -263,7 +263,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
     const transaction = isTransactionEntry(key) ? data[key] : null;
     const report = transaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key];
     const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
-    const policy = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.policyID}`] ?? {};
+    const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${transaction?.policyID}`] ?? {};
     const violations = data[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? {};
     const allViolations = Object.keys(data).filter((item) => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)) ?? {};
     const allTransactions = isTransactionEntry(key) ? transaction : Object.keys(data).filter((item) => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) ?? {};
