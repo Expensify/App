@@ -2,14 +2,14 @@ name: Deploy code to staging or production
 
 on:
   push:
-    branches: [staging, production]
+    branches: [staging, production, andrew-mobile-deploy]
 
 env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/production' }}
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+#concurrency:
+#  group: ${{ github.workflow }}-${{ github.ref }}
+#  cancel-in-progress: true
 
 jobs:
   validateActor:
