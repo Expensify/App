@@ -1,6 +1,6 @@
 import {getApiRoot} from '@libs/ApiUtils';
-import getPolicyDomainName from '@libs/getPolicyDomainName';
 import * as NetworkStore from '@libs/Network/NetworkStore';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 
 type CompanyCardBankConnection = {
@@ -21,7 +21,7 @@ export default function getCompanyCardBankConnection(policyID?: string, bankName
     const params: CompanyCardBankConnection = {
         authToken: authToken ?? '',
         isNewDot: 'true',
-        domainName: getPolicyDomainName(policyID),
+        domainName: PolicyUtils.getDomainNameForPolicy(policyID),
         isCorporate: 'true',
         scrapeMinDate: scrapeMinDate ?? '',
     };
