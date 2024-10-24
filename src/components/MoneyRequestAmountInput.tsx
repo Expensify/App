@@ -315,6 +315,8 @@ function MoneyRequestAmountInput(
                 if (!shouldUpdateSelection) {
                     return;
                 }
+
+                // When the amount is updated in setNewAmount on iOS, in onSelectionChange formattedAmount stores the value before the update. Using amountRef allows us to read the updated value
                 const maxSelection = amountRef.current?.length ?? formattedAmount.length;
                 amountRef.current = undefined;
                 const start = Math.min(e.nativeEvent.selection.start, maxSelection);
