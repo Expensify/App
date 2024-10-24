@@ -2565,13 +2565,21 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 /**
  * Returns the preview message for `REIMBURSEMENT_QUEUED` action
  */
-function getReimbursementQueuedActionMessage(
-    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>,
-    reportOrID: OnyxEntry<Report> | string,
+function getReimbursementQueuedActionMessage({
+    reportAction,
+    reportOrID,
     shouldUseShortDisplayName = true,
-): string {
-    const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
-    const submitterDisplayName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldUseShortForm: shouldUseShortDisplayName}) ?? '';
+    reports,
+    personalDetails,
+}: {
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>;
+    reportOrID: OnyxEntry<Report> | string;
+    shouldUseShortDisplayName?: boolean;
+    reports?: OnyxCollection<Report>;
+    personalDetails?: Partial<PersonalDetailsList>;
+}): string {
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID, reports) : reportOrID;
+    const submitterDisplayName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldUseShortForm: shouldUseShortDisplayName, personalDetailsData: personalDetails}) ?? '';
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
     let messageKey: TranslationPaths;
     if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
@@ -3834,7 +3842,21 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
 /**
  * Get the report action message for a report action.
  */
-function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, reportID?: string, childReportID?: string, reports?: OnyxCollection<Report>, draftReports?: OnyxCollection<Report>) {
+function getReportActionMessage({
+    reportAction,
+    reportID,
+    childReportID,
+    reports,
+    draftReports,
+    personalDetails,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    reportID?: string;
+    childReportID?: string;
+    reports?: OnyxCollection<Report>;
+    draftReports?: OnyxCollection<Report>;
+    personalDetails?: Partial<PersonalDetailsList>;
+}) {
     if (isEmptyObject(reportAction)) {
         return '';
     }
@@ -3853,7 +3875,13 @@ function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, reportID?
         return ReportActionsUtils.getReportActionMessageText(reportAction);
     }
     if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
-        return getReimbursementQueuedActionMessage(reportAction, getReportOrDraftReport(reportID, reports, draftReports), false);
+        return getReimbursementQueuedActionMessage({
+            reportAction,
+            reportOrID: getReportOrDraftReport(reportID, reports, draftReports),
+            shouldUseShortDisplayName: false,
+            reports,
+            personalDetails,
+        });
     }
 
     return parseReportActionHtmlToText(reportAction, reportID ?? '', childReportID);
@@ -3973,7 +4001,14 @@ function getReportName({
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
-        const reportActionMessage = getReportActionMessage(parentReportAction, report?.parentReportID, report?.reportID ?? '', reports, draftReports).replace(/(\n+|\r\n|\n|\r)/gm, ' ');
+        const reportActionMessage = getReportActionMessage({
+            reportAction: parentReportAction,
+            reportID: report?.parentReportID,
+            childReportID: report?.reportID ?? '',
+            reports,
+            draftReports,
+            personalDetails,
+        }).replace(/(\n+|\r\n|\n|\r)/gm, ' ');
         if (isAttachment && reportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
