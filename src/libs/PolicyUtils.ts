@@ -520,7 +520,7 @@ function getDefaultApprover(policy: OnyxEntry<Policy>): string {
 }
 
 /**
- * Returns the accountID to whom the given employeeAccountID submits reports to in the given Policy.
+ * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
 function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
     const employeeAccountID = expenseReport?.ownerAccountID ?? -1;
