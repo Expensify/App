@@ -87,7 +87,7 @@ type AutocompleteRange = {
 };
 
 type SearchAutocompleteResult = {
-    autocomplete: AutocompleteRange;
+    autocomplete: AutocompleteRange | null;
     ranges: AutocompleteRange[];
 };
 

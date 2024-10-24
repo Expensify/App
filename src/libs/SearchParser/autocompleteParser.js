@@ -194,7 +194,7 @@ function peg$parse(input, options) {
 
   var peg$r0 = /^[:=]/;
   var peg$r1 = /^[^"\r\n]/;
-  var peg$r2 = /^[A-Za-z0-9_@.\/#&+\-\\',;%]/;
+  var peg$r2 = /^[^ "\t\n\r]/;
   var peg$r3 = /^[ \t\r\n]/;
 
   var peg$e0 = peg$otherExpectation("key");
@@ -219,7 +219,7 @@ function peg$parse(input, options) {
   var peg$e19 = peg$literalExpectation("\"", false);
   var peg$e20 = peg$classExpectation(["\"", "\r", "\n"], true, false);
   var peg$e21 = peg$otherExpectation("word");
-  var peg$e22 = peg$classExpectation([["A", "Z"], ["a", "z"], ["0", "9"], "_", "@", ".", "/", "#", "&", "+", "-", "\\", "'", ",", ";", "%"], false, false);
+  var peg$e22 = peg$classExpectation([" ", "\"", "\t", "\n", "\r"], true, false);
   var peg$e23 = peg$otherExpectation("whitespace");
   var peg$e24 = peg$classExpectation([" ", "\t", "\r", "\n"], false, false);
 
@@ -240,8 +240,7 @@ function peg$parse(input, options) {
         key,
         ...value[value.length - 1],
       };
-
-      return value.map(({ start, value, length }) => ({
+      return value.filter((filter) => filter.length > 0).map(({ start, value, length }) => ({
         key,
         value,
         start,
@@ -272,7 +271,7 @@ function peg$parse(input, options) {
   var peg$f10 = function() { return "lt"; };
   var peg$f11 = function(chars) { return chars.join(""); };
   var peg$f12 = function(chars) {
-      return chars.join("").trim().split(",").filter(Boolean);
+      return chars.join("").trim().split(",");
     };
   var peg$f13 = function() { return "and"; };
   var peg$currPos = options.peg$currPos | 0;

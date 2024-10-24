@@ -13,7 +13,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
     query?: string;
-    isContextualSearchItem?: boolean;
     searchItemType: ValueOf<typeof CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE>;
 };
 

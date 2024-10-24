@@ -4404,6 +4404,7 @@ const translations = {
         recentChats: 'Chats recientes',
         searchIn: 'Buscar en',
         searchPlaceholder: 'Busca algo',
+        autocomplete: 'Autocompletar',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',

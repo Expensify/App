@@ -52,7 +52,7 @@ type SearchRouterListProps = {
     reportForContextualSearch?: OptionData;
 
     /** Callback to close and clear SearchRouter */
-    closeAndClearRouter: () => void;
+    closeRouter: () => void;
 };
 
 const setPerformanceTimersEnd = () => {
@@ -104,7 +104,7 @@ function SearchRouterList(
         autocompleteItems,
         recentReports,
         onSearchSubmit,
-        closeAndClearRouter,
+        closeRouter,
     }: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -142,7 +142,6 @@ function SearchRouterList(
                     query: getContextualSearchQuery(reportForContextualSearch.reportID),
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
-                    isContextualSearchItem: true,
                     searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
                 },
             ],
@@ -160,7 +159,7 @@ function SearchRouterList(
     });
 
     if (autocompleteData && autocompleteData.length > 0) {
-        sections.push({title: 'Autocomplete', data: autocompleteData});
+        sections.push({title: translate('search.autocomplete'), data: autocompleteData});
     }
 
     const recentSearchesData = recentSearches?.map(({query, timestamp}) => {
@@ -203,14 +202,14 @@ function SearchRouterList(
             }
 
             // Handle selection of "Recent chat"
-            closeAndClearRouter();
+            closeRouter();
             if ('reportID' in item && item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
                 Report.navigateToAndOpenReport(item.login ? [item.login] : [], false);
             }
         },
-        [closeAndClearRouter, textInputValue, onSearchSubmit, updateTextInputValue],
+        [closeRouter, textInputValue, onSearchSubmit, updateTextInputValue],
     );
 
     return (

@@ -74,10 +74,6 @@ function SearchRouterInput({
     const {isOffline} = useNetwork();
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const onChangeText = (text: string) => {
-        updateSearch(text);
-    };
-
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
     return (
@@ -87,7 +83,7 @@ function SearchRouterInput({
                     <TextInput
                         testID="search-router-text-input"
                         value={value}
-                        onChangeText={onChangeText}
+                        onChangeText={updateSearch}
                         autoFocus={autoFocus}
                         shouldDelayFocus={shouldDelayFocus}
                         loadingSpinnerStyle={[styles.mt0, styles.mr2]}
