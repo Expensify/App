@@ -5723,7 +5723,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
     // }
 
     // const urlToNavigateBack = reportIDToNavigateBack ? ROUTES.REPORT_WITH_ID.getRoute(reportIDToNavigateBack) : undefined;
-    const urlToNavigateBack = undefined;
+    // const urlToNavigateBack = undefined;
 
     return {
         shouldDeleteTransactionThread,
@@ -5738,7 +5738,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
         transactionViolations,
         reportPreviewAction,
         iouReport,
-        urlToNavigateBack,
+        // urlToNavigateBack,
     };
 }
 
@@ -5754,30 +5754,10 @@ function getNavigationUrlAfterMoneyRequestDelete(
     reportAction: OnyxTypes.ReportAction, 
     isSingleTransactionView = false
 ): string | undefined {
-    // // Get all collections we need for navigation
-    // const allReports = ReportConnection.getAllReports();
-    // const iouReportID = ReportActionsUtils.isMoneyRequestAction(reportAction) 
-    //     ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID 
-    //     : '-1';
-    // const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] ?? null;
-    // const transactionThreadID = reportAction.childReportID;
-
-    // // Calculate if resources would be deleted
-    // const shouldDeleteTransactionThread = transactionThreadID 
-    //     ? (reportAction?.childVisibleActionCount ?? 0) === 0 
-    //     : false;
-    
-    // const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(iouReport?.reportID ?? '-1');
-    // const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessage(iouReport?.reportID ?? '-1').lastMessageText;
-    // const shouldDeleteIOUReport = iouReportLastMessageText.length === 0 
-    //     && !ReportActionsUtils.isDeletedParentAction(lastVisibleAction) 
-    //     && (!transactionThreadID || shouldDeleteTransactionThread);
-
     const {
         shouldDeleteTransactionThread,
         shouldDeleteIOUReport,
         iouReport,
-        chatReport,
     } = prepareToCleanUpMoneyRequest(transactionID, reportAction, isSingleTransactionView);
     
 
@@ -5846,9 +5826,10 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         chatReport,
         iouReport,
         reportPreviewAction,
-        urlToNavigateBack,
     } = prepareToCleanUpMoneyRequest(transactionID, reportAction, isSingleTransactionView);
 
+        
+    const urlToNavigateBack = getNavigationUrlAfterMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
     // build Onyx data
 
     // Onyx operations to delete the transaction, update the IOU report action and chat report action
@@ -5984,8 +5965,9 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         transactionViolations,
         iouReport,
         reportPreviewAction,
-        urlToNavigateBack,
     } = prepareToCleanUpMoneyRequest(transactionID, reportAction, isSingleTransactionView);
+
+    const urlToNavigateBack = getNavigationUrlAfterMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
 
     // STEP 2: Build Onyx data
     // The logic mostly resembles the cleanUpMoneyRequest function
