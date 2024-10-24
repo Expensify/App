@@ -28,6 +28,7 @@ function useIndicatorStatus(): IndicatorStatusResult {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [privatePersoanlDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
@@ -57,6 +58,7 @@ function useIndicatorStatus(): IndicatorStatusResult {
         [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR]: !!loginList && UserUtils.hasLoginListError(loginList),
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
         [CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS]: Object.keys(walletTerms?.errors ?? {}).length > 0 && !walletTerms?.chatReportID,
+        [CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR]: !!privatePersoanlDetails?.errorFields?.phoneNumber ?? undefined,
     };
 
     const infoChecking: Partial<Record<IndicatorStatus, boolean>> = {
