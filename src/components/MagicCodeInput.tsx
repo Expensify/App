@@ -212,6 +212,7 @@ function MagicCodeInput(
      */
     const tapGesture = Gesture.Tap()
         .runOnJS(true)
+        // eslint-disable-next-line react-compiler/react-compiler
         .onBegin((event) => {
             const index = Math.floor(event.x / (inputWidth.current / maxLength));
             shouldFocusLast.current = false;

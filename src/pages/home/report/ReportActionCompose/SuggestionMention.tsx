@@ -89,6 +89,7 @@ function SuggestionMention(
     const {translate, formatPhoneNumber} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
+    // eslint-disable-next-line react-compiler/react-compiler
     suggestionValuesRef.current = suggestionValues;
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -137,8 +138,10 @@ function SuggestionMention(
 
     // Used to detect if the selection has changed since the last suggestion insertion
     // If so, we reset the suggestionInsertionIndexRef
+    // eslint-disable-next-line react-compiler/react-compiler
     const hasSelectionChanged = !(selection.end === selection.start && selection.start === suggestionInsertionIndexRef.current);
     if (hasSelectionChanged) {
+        // eslint-disable-next-line react-compiler/react-compiler
         suggestionInsertionIndexRef.current = null;
     }
 

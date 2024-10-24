@@ -157,6 +157,7 @@ function GenericTooltip({
 
     // Skip the tooltip and return the children if the text is empty, we don't have a render function.
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
+        // eslint-disable-next-line react-compiler/react-compiler
         return children({isVisible, showTooltip, hideTooltip, updateTargetBounds});
     }
 
@@ -164,6 +165,7 @@ function GenericTooltip({
         <>
             {isRendered && (
                 <BaseGenericTooltip
+                    // eslint-disable-next-line react-compiler/react-compiler
                     animation={animation.current}
                     windowWidth={windowWidth}
                     xOffset={xOffset}
@@ -186,7 +188,7 @@ function GenericTooltip({
                     onHideTooltip={onPressOverlay}
                 />
             )}
-
+            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {children({isVisible, showTooltip, hideTooltip, updateTargetBounds})}
         </>
     );
