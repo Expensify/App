@@ -7,8 +7,7 @@ Our new QuickBooks Desktop integration allows you to automate the import and exp
 # Step 1: Configure export settings
 The following steps will determine how data will be exported from Expensify to QuickBooks Desktop.
 
-![Expensify export settings page for the QuickBooks Desktop integration](https://help.expensify.com/assets/images/quickbooks-desktop-export-settings.png
-){:width="100%"}
+![Expensify export settings page for the QuickBooks Desktop integration](https://help.expensify.com/assets/images/quickbooks-desktop-export-settings.png){:width="100%"}
 
 1. In Expensify, hover over **Settings** and click **Workspaces**.
 2. Select the Workspace you want to connect to QuickBooks Desktop.
