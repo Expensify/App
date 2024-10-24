@@ -205,6 +205,11 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     setAutocompleteSuggestions(filteredParticipants.map((participant) => ({text: `to:${participant}`, query: `${participant}`})));
                     return;
                 }
+                case 'in': {
+                    const filteredChats = searchOptions.recentReports.filter((chat) => chat.text?.includes(autocompleteValue));
+                    setAutocompleteSuggestions(filteredChats.map((chat) => ({text: `in:${chat.text}`, query: `${chat.reportID}`})));
+                    return;
+                }
                 case 'type': {
                     const filteredTypes = typesAutocompleteList.filter((type) => type.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(type));
                     setAutocompleteSuggestions(filteredTypes.map((type) => ({text: `type:${type}`, query: `${type}`})));
@@ -248,6 +253,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
             recentCurrencyAutocompleteList,
             taxAutocompleteList,
             participantsAutocompleteList,
+            recentReports,
             typesAutocompleteList,
             statusesAutocompleteList,
             expenseTypes,

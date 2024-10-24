@@ -25,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 
 type ItemWithQuery = {
     query: string;
+    id?: string;
     text?: string;
 };
 
@@ -192,8 +193,8 @@ function SearchRouterList(
                 }
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const lastColonIndex = textInputValue.lastIndexOf(':');
-                    const lastComaIndex = textInputValue.lastIndexOf(',');
-                    const trimmedUserSearchQuery = lastColonIndex > lastComaIndex ? textInputValue.slice(0, lastColonIndex + 1) : textInputValue.slice(0, lastComaIndex + 1);
+                    const lastCommaIndex = textInputValue.lastIndexOf(',');
+                    const trimmedUserSearchQuery = lastColonIndex > lastCommaIndex ? textInputValue.slice(0, lastColonIndex + 1) : textInputValue.slice(0, lastCommaIndex + 1);
                     updateTextInputValue(`${trimmedUserSearchQuery}${item?.query} `);
                     return;
                 }
