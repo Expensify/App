@@ -415,11 +415,12 @@ function validateObject<T extends Record<string, unknown>>(value: string, type: 
         }
 
         Object.entries(test).forEach(([key, val]) => {
+            const expectedValueType = type[key];
             // val is a constant enum
-            if (typeof type[key] === 'object') {
-                return validateConstantEnum(val as string, type[key]);
+            if (typeof expectedValueType === 'object') {
+                return validateConstantEnum(val as string, expectedValueType);
             }
-            if (type[key] === 'array' ? !Array.isArray(val) : typeof val !== type[key]) {
+            if (expectedValueType === 'array' ? !Array.isArray(val) : typeof val !== expectedValueType) {
                 throw new ObjectError(expectedType);
             }
         });
