@@ -237,9 +237,13 @@ function ReportActionsList({
             const shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
             const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
 
-            // Don't set unread marker for newly added message from the current user, only if there is no existing unread marker
+            // If no unread marker exists, don't set an unread marker for newly added messages from the current user.
             const isFromCurrentUser = accountID === (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID);
             const isNewMessage = !prevSortedVisibleReportActionsObjects[reportAction.reportActionID];
+            // The unread marker will show if the action's `created` time is later than `unreadMarkerTime`.
+            // The `unreadMarkerTime` has already been updated to match the optimistic action created time,
+            // but once the new action is saved on the backend, the actual created time will be later than the optimistic one.
+            // Therefore, we also need to prevent the unread marker from appearing for previously optimistic actions.
             const isPreviouslyOptimistic = !!prevSortedVisibleReportActionsObjects[reportAction.reportActionID]?.isOptimisticAction && !reportAction.isOptimisticAction;
             const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID.current && isFromCurrentUser && (isNewMessage || isPreviouslyOptimistic);
 
