@@ -80,7 +80,6 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth
         ) : null;
     }
 
-    // if (action === CONST.SEARCH.ACTION_TYPES.REVIEW) {
     return (
         <Button
             text={text}
@@ -88,9 +87,9 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth
             small
             style={[styles.w100]}
             innerStyles={buttonInnerStyles}
+            success
         />
     );
-    // }
 }
 
 ActionCell.displayName = 'ActionCell';
