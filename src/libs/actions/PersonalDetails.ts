@@ -4,7 +4,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
 import type {
     OpenPublicProfilePageParams,
-    SetMissingPersonalDetailsAndShipExpensifyCardParams,
+    SetPersonalDetailsAndShipExpensifyCardsParams,
     UpdateAutomaticTimezoneParams,
     UpdateDateOfBirthParams,
     UpdateDisplayNameParams,
@@ -465,8 +465,8 @@ function clearAvatarErrors() {
     });
 }
 
-function updatePersonalDetailsAndShipExpensifyCard(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, cardID: number) {
-    const parameters: SetMissingPersonalDetailsAndShipExpensifyCardParams = {
+function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) {
+    const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
         phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? ''),
@@ -477,10 +477,9 @@ function updatePersonalDetailsAndShipExpensifyCard(values: FormOnyxValues<typeof
         addressCountry: values.country,
         addressState: values.state.trim(),
         dob: values.dob,
-        cardID,
     };
 
-    API.write(WRITE_COMMANDS.SET_MISSING_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARD, parameters, {
+    API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -522,5 +521,5 @@ export {
     clearPhoneNumberError,
     updatePronouns,
     updateSelectedTimezone,
-    updatePersonalDetailsAndShipExpensifyCard,
+    updatePersonalDetailsAndShipExpensifyCards,
 };

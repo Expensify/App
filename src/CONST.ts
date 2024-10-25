@@ -297,6 +297,9 @@ const CONST = {
     // Regex to get link in href prop inside of <a/> component
     REGEX_LINK_IN_ANCHOR: /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi,
 
+    // Regex to read violation value from string given by backend
+    VIOLATION_LIMIT_REGEX: /[^0-9]+/g,
+
     MERCHANT_NAME_MAX_LENGTH: 255,
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
@@ -1143,6 +1146,9 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
+        SEARCH_CONVERT_SEARCH_VALUES: 'search_convert_search_values',
+        SEARCH_MAKE_TREE: 'search_make_tree',
+        SEARCH_BUILD_TREE: 'search_build_tree',
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
     },
@@ -2599,6 +2605,7 @@ const CONST = {
             MONTHLY: 'monthly',
         },
         CARD_TITLE_INPUT_LIMIT: 255,
+        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
     },
     COMPANY_CARDS: {
         CONNECTION_ERROR: 'connectionError',
@@ -2635,6 +2642,7 @@ const CONST = {
         },
         BANK_CONNECTIONS: {
             WELLS_FARGO: 'wellsfargo',
+            BANK_OF_AMERICA: 'bankofamerica',
             CHASE: 'chase',
             BREX: 'brex',
             CAPITAL_ONE: 'capitalone',

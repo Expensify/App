@@ -333,6 +333,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 }
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
+                                shouldIconUseAutoWidthStyle
                             />
                         );
                     })}
