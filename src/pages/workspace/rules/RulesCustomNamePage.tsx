@@ -66,7 +66,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     title={translate('workspace.rules.expenseReportRules.customNameTitle')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <View style={[styles.ph5, styles.pt3, styles.pb4]}>
+                <View style={[styles.ph5, styles.pb4]}>
                     <Text>
                         {translate('workspace.rules.expenseReportRules.customNameDescription')}
                         <TextLink

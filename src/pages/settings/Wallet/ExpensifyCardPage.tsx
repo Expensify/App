@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
@@ -18,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FormActions from '@libs/actions/FormActions';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
@@ -31,27 +31,11 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {GetPhysicalCardForm} from '@src/types/form';
-import type {LoginList, Card as OnyxCard, PrivatePersonalDetails} from '@src/types/onyx';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import RedDotCardSection from './RedDotCardSection';
 import CardDetails from './WalletPage/CardDetails';
 
-type ExpensifyCardPageOnyxProps = {
-    /** User's private personal details */
-    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
-
-    /** The details about the Expensify cards */
-    cardList: OnyxEntry<Record<string, OnyxCard>>;
-
-    /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<GetPhysicalCardForm>;
-
-    /** Login info */
-    loginList: OnyxEntry<LoginList>;
-};
-
-type ExpensifyCardPageProps = ExpensifyCardPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>;
+type ExpensifyCardPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>;
 
 type PossibleTitles = 'cardPage.smartLimit.title' | 'cardPage.monthlyLimit.title' | 'cardPage.fixedLimit.title';
 
@@ -74,15 +58,16 @@ function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_C
 }
 
 function ExpensifyCardPage({
-    cardList,
-    draftValues,
-    privatePersonalDetails,
-    loginList,
     route: {
         params: {cardID = ''},
     },
 }: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
+
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -159,6 +144,17 @@ function ExpensifyCardPage({
         }
 
         GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(updatedDraftValues, privatePersonalDetails));
+    };
+
+    const sendValidateCode = () => {
+        const primaryLogin = account?.primaryLogin ?? '';
+        const loginData = loginList?.[primaryLogin];
+
+        if (loginData?.validateCodeSent) {
+            return;
+        }
+
+        requestValidateCodeAction();
     };
 
     if (isNotFound) {
@@ -314,6 +310,7 @@ function ExpensifyCardPage({
                     <ValidateCodeActionModal
                         handleSubmitForm={handleRevealDetails}
                         clearError={() => {}}
+                        sendValidateCode={sendValidateCode}
                         onClose={() => setIsValidateCodeActionModalVisible(false)}
                         isVisible={isValidateCodeActionModalVisible}
                         title={translate('cardPage.validateCardTitle')}
@@ -327,17 +324,4 @@ function ExpensifyCardPage({
 
 ExpensifyCardPage.displayName = 'ExpensifyCardPage';
 
-export default withOnyx<ExpensifyCardPageProps, ExpensifyCardPageOnyxProps>({
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    loginList: {
-        key: ONYXKEYS.LOGIN_LIST,
-    },
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-    draftValues: {
-        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
-    },
-})(ExpensifyCardPage);
+export default ExpensifyCardPage;

@@ -24,7 +24,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchUIUtils from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -101,9 +101,11 @@ function BaseSelectionList<TItem extends ListItem>(
         onLongPressRow,
         shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
         shouldShowListEmptyContent = true,
+        listItemWrapperStyle,
         shouldIgnoreFocus = false,
         scrollEventThrottle,
         contentContainerStyle,
+        shouldHighlightSelectedItem = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -436,7 +438,7 @@ function BaseSelectionList<TItem extends ListItem>(
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
         const handleOnCheckboxPress = () => {
-            if (SearchUtils.isReportListItemType(item)) {
+            if (SearchUIUtils.isReportListItemType(item)) {
                 return onCheckboxPress;
             }
             return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
@@ -475,6 +477,8 @@ function BaseSelectionList<TItem extends ListItem>(
                         setFocusedIndex(normalizedIndex);
                     }}
                     shouldSyncFocus={!isTextInputFocusedRef.current}
+                    shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+                    wrapperStyle={listItemWrapperStyle}
                 />
                 {item.footerContent && item.footerContent}
             </>
@@ -716,7 +720,7 @@ function BaseSelectionList<TItem extends ListItem>(
                             </View>
                         )}
                     {!!headerContent && headerContent}
-                    {flattenedSections.allOptions.length === 0 ? (
+                    {flattenedSections.allOptions.length === 0 && (showLoadingPlaceholder || shouldShowListEmptyContent) ? (
                         renderListEmptyContent()
                     ) : (
                         <>

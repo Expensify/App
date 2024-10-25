@@ -102,6 +102,9 @@ type ListItem = {
     /** Whether this option is selected */
     isSelected?: boolean;
 
+    /** Whether the option can show both selected and error indicators */
+    canShowSeveralIndicators?: boolean;
+
     /** Whether the checkbox should be disabled */
     isDisabledCheckbox?: boolean;
 
@@ -287,6 +290,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show RBR */
     shouldDisplayRBR?: boolean;
+
+    /** Whether we highlight all the selected items */
+    shouldHighlightSelectedItem?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -573,11 +579,17 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to show the empty list content */
     shouldShowListEmptyContent?: boolean;
 
+    /** The style is applied for the wrap component of list item */
+    listItemWrapperStyle?: StyleProp<ViewStyle>;
+
     /** Scroll event throttle for preventing onScroll callbacks to be fired too often */
     scrollEventThrottle?: number;
 
     /** Additional styles to apply to scrollable content */
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether we highlight all the selected items */
+    shouldHighlightSelectedItem?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

@@ -16,6 +16,7 @@ type WorkspaceCardListHeaderProps = {
 };
 
 function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
