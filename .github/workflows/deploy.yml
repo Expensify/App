@@ -255,14 +255,14 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
 
+#      - name: Upload Android app to Google Play
+#        run: bundle exec fastlane android upload_google_play_internal_hybrid
+#        env:
+#          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+
       - name: Debug paths
         run: |
           ls -laR .
-
-      - name: Upload Android app to Google Play
-        run: bundle exec fastlane android upload_google_play_internal_hybrid
-        env:
-          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
       - name: Upload Android build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -582,18 +582,18 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane ios build_hybrid
 
+#      - name: Upload release build to TestFlight
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        run: bundle exec fastlane ios upload_testflight_hybrid
+#        env:
+#          APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
+#          APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
+#          APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
+#          APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+
       - name: Debug paths
         run: |
           ls -laR .
-
-      - name: Upload release build to TestFlight
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios upload_testflight_hybrid
-        env:
-          APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
-          APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
-          APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
-          APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
 
       - name: Upload iOS build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
