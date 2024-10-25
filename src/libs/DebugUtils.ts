@@ -2,11 +2,13 @@
 import {isMatch, isValid} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, RecentWaypoint, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Message, Person} from '@src/types/onyx/ReportAction';
 import type {Comment, Receipt, SplitShare, TaxRate} from '@src/types/onyx/Transaction';
 import type {TransactionViolationData} from '@src/types/onyx/TransactionViolation';
 import * as ReportActionsUtils from './ReportActionsUtils';
@@ -322,9 +324,13 @@ function validateConstantEnum(value: string, constEnum: ConstantEnum) {
 /**
  * Validates if a string is a valid representation of an array.
  */
-function validateArray<T extends 'string' | 'number' | 'boolean' | Record<string, unknown> = 'string'>(
+function validateArray<T extends 'string' | 'number' | 'boolean' | Record<string, unknown> | 'constantEnum' = 'string'>(
     value: string,
-    arrayType: T extends Record<string, unknown> ? Record<keyof T, 'string' | 'number' | 'object' | 'boolean' | 'array' | PropertyTypes | ConstantEnum> | ConstantEnum : T,
+    arrayType: T extends Record<string, unknown>
+        ? Record<keyof T, 'string' | 'number' | 'object' | 'boolean' | 'array' | PropertyTypes | ConstantEnum>
+        : T extends 'constantEnum'
+        ? ConstantEnum
+        : T,
 ) {
     if (value === 'undefined') {
         return;
@@ -339,22 +345,22 @@ function validateArray<T extends 'string' | 'number' | 'boolean' | Record<string
     array.forEach((element) => {
         // Element is an object
         if (element && typeof element === 'object' && typeof arrayType === 'object') {
-            Object.entries(arrayType).forEach(([key, val]) => {
-                const property = element[key as keyof typeof element];
+            Object.entries(element).forEach(([key, val]) => {
+                const expectedType = arrayType[key as keyof typeof arrayType];
                 // Property is a constant enum, so we apply validateConstantEnum
-                if (typeof val === 'object' && !Array.isArray(val)) {
-                    return validateConstantEnum(property, val as ConstantEnum);
+                if (typeof expectedType === 'object' && !Array.isArray(expectedType)) {
+                    return validateConstantEnum(String(val), expectedType as ConstantEnum);
                 }
                 // Expected property type is array
-                if (val === 'array') {
+                if (expectedType === 'array') {
                     // Property type is not array
-                    if (!Array.isArray(property)) {
+                    if (!Array.isArray(val)) {
                         throw new ArrayError(arrayType);
                     }
                     return;
                 }
                 // Property type is not one of the valid types
-                if (Array.isArray(val) ? !val.includes(typeof property) : typeof property !== val) {
+                if (Array.isArray(expectedType) ? !expectedType.includes(typeof val as TupleToUnion<PropertyTypes>) : typeof val !== expectedType) {
                     throw new ArrayError(arrayType);
                 }
             });
@@ -469,7 +475,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         );
     }
     if (key === 'permissions') {
-        return validateArray(value, CONST.REPORT.PERMISSIONS);
+        return validateArray<'constantEnum'>(value, CONST.REPORT.PERMISSIONS);
     }
     if (key === 'pendingChatMembers') {
         return validateArray(value, {
@@ -571,10 +577,40 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
         return validateArray(value, 'number');
     }
     if (key === 'message') {
-        return validateArray(value, {text: 'string', html: ['string', 'undefined'], type: 'string'});
+        return validateArray<Message>(value, {
+            text: 'string',
+            html: ['string', 'undefined'],
+            type: 'string',
+            isDeletedParentAction: 'boolean',
+            policyID: 'string',
+            reportID: 'string',
+            currency: 'string',
+            amount: 'number',
+            style: 'string',
+            target: 'string',
+            href: 'string',
+            iconUrl: 'string',
+            isEdited: 'boolean',
+            isReversedTransaction: 'boolean',
+            whisperedTo: 'array',
+            moderationDecision: 'object',
+            translationKey: 'string',
+            taskReportID: 'string',
+            cancellationReason: 'string',
+            expenseReportID: 'string',
+            resolution: {
+                ...CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION,
+                ...CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION,
+            },
+            deleted: 'string',
+        });
     }
     if (key === 'person') {
-        return validateArray(value, {});
+        return validateArray<Person>(value, {
+            type: 'string',
+            text: 'string',
+            style: 'string',
+        });
     }
     if (key === 'errors') {
         return validateObject(value, {});
@@ -762,6 +798,20 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
     }
     if (key === 'errors') {
         return validateObject(value, {});
+    }
+    if (key === 'attendees') {
+        return validateArray<Attendee>(value, {
+            email: 'string',
+            displayName: 'string',
+            avatarUrl: 'string',
+            accountID: 'number',
+            text: 'string',
+            login: 'string',
+            searchText: 'string',
+            selected: 'boolean',
+            iouType: CONST.IOU.TYPE,
+            reportID: 'string',
+        });
     }
     validateString(value);
 }

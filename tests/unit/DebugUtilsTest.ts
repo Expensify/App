@@ -324,7 +324,7 @@ describe('DebugUtils', () => {
 
         it('throws SyntaxError when value is not a valid string representation of a constant enum array', () => {
             expect(() => {
-                DebugUtils.validateArray('["a"]', MOCK_CONST_ENUM);
+                DebugUtils.validateArray<'constantEnum'>('["a"]', MOCK_CONST_ENUM);
             }).toThrow();
         });
 
