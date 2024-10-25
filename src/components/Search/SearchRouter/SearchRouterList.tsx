@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {trimSearchQueryForAutocomplete} from '@libs/SearchAutocompleteUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
@@ -99,17 +100,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 }
 
 function SearchRouterList(
-    {
-        textInputValue,
-        updateSearchValue: updateTextInputValue,
-        setTextInputValue,
-        reportForContextualSearch,
-        recentSearches,
-        autocompleteItems,
-        recentReports,
-        onSearchSubmit,
-        closeRouter,
-    }: SearchRouterListProps,
+    {textInputValue, updateSearchValue, setTextInputValue, reportForContextualSearch, recentSearches, autocompleteItems, recentReports, onSearchSubmit, closeRouter}: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -191,14 +182,12 @@ function SearchRouterList(
                     return;
                 }
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
-                    updateTextInputValue(`${item?.query} `);
+                    updateSearchValue(`${item?.query} `);
                     return;
                 }
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
-                    const lastColonIndex = textInputValue.lastIndexOf(':');
-                    const lastCommaIndex = textInputValue.lastIndexOf(',');
-                    const trimmedUserSearchQuery = lastColonIndex > lastCommaIndex ? textInputValue.slice(0, lastColonIndex + 1) : textInputValue.slice(0, lastCommaIndex + 1);
-                    updateTextInputValue(`${trimmedUserSearchQuery}${item?.query} `);
+                    const trimmedUserSearchQuery = trimSearchQueryForAutocomplete(textInputValue);
+                    updateSearchValue(`${trimmedUserSearchQuery}${item?.query} `);
                     return;
                 }
 
@@ -213,7 +202,7 @@ function SearchRouterList(
                 Report.navigateToAndOpenReport(item.login ? [item.login] : [], false);
             }
         },
-        [closeRouter, textInputValue, onSearchSubmit, updateTextInputValue],
+        [closeRouter, textInputValue, onSearchSubmit, updateSearchValue],
     );
 
     const onArrowFocus = useCallback(
@@ -221,9 +210,7 @@ function SearchRouterList(
             if (!isSearchQueryItem(focusedItem) || focusedItem.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION || !textInputValue) {
                 return;
             }
-            const lastColonIndex = textInputValue.lastIndexOf(':');
-            const lastCommaIndex = textInputValue.lastIndexOf(',');
-            const trimmedUserSearchQuery = lastColonIndex > lastCommaIndex ? textInputValue.slice(0, lastColonIndex + 1) : textInputValue.slice(0, lastCommaIndex + 1);
+            const trimmedUserSearchQuery = trimSearchQueryForAutocomplete(textInputValue);
             setTextInputValue(`${trimmedUserSearchQuery}${focusedItem?.query} `);
         },
         [setTextInputValue, textInputValue],

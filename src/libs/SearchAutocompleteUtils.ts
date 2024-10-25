@@ -68,4 +68,19 @@ function getAutocompleteTaxList(allTaxRates: Record<string, string[]>, policy?: 
     return Object.keys(allTaxRates).map((taxRateName) => taxRateName);
 }
 
-export {parseForAutocomplete, getAutocompleteTags, getAutocompleteRecentTags, getAutocompleteCategories, getAutocompleteRecentCategories, getAutocompleteTaxList};
+function trimSearchQueryForAutocomplete(searchQuery: string) {
+    const lastColonIndex = searchQuery.lastIndexOf(':');
+    const lastCommaIndex = searchQuery.lastIndexOf(',');
+    const trimmedUserSearchQuery = lastColonIndex > lastCommaIndex ? searchQuery.slice(0, lastColonIndex + 1) : searchQuery.slice(0, lastCommaIndex + 1);
+    return trimmedUserSearchQuery;
+}
+
+export {
+    parseForAutocomplete,
+    getAutocompleteTags,
+    getAutocompleteRecentTags,
+    getAutocompleteCategories,
+    getAutocompleteRecentCategories,
+    getAutocompleteTaxList,
+    trimSearchQueryForAutocomplete,
+};
