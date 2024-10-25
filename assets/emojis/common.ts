@@ -775,11 +775,6 @@ const emojis: PickerEmojis = [
         types: ['🤞🏿', '🤞🏾', '🤞🏽', '🤞🏼', '🤞🏻'],
     },
     {
-        name: 'hand_with_index_finger_and_thumb_crossed',
-        code: '🫰',
-        types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
-    },
-    {
         name: 'love_you_gesture',
         code: '🤟',
         types: ['🤟🏿', '🤟🏾', '🤟🏽', '🤟🏼', '🤟🏻'],
@@ -843,6 +838,11 @@ const emojis: PickerEmojis = [
         name: '-1',
         code: '👎',
         types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+    },
+    {
+        name: 'hand_with_index_finger_and_thumb_crossed',
+        code: '🫰',
+        types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
     },
     {
         name: 'fist_raised',

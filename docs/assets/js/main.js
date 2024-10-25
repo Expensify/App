@@ -165,6 +165,8 @@ window.addEventListener('load', () => {
     insertElementAfter(searchInput, searchLabel);
 });
 
+const FIXED_HEADER_HEIGHT = 80;
+
 const tocbotOptions = {
     // Where to render the table of contents.
     tocSelector: '.article-toc',
@@ -188,13 +190,50 @@ const tocbotOptions = {
     activeLinkClass: 'selected-article',
 
     // Headings offset between the headings and the top of the document (requires scrollSmooth enabled)
-    headingsOffset: 80,
-    scrollSmoothOffset: -80,
+    headingsOffset: FIXED_HEADER_HEIGHT,
+    scrollSmoothOffset: -FIXED_HEADER_HEIGHT,
     scrollSmooth: true,
 
     // If there is a fixed article scroll container, set to calculate titles' offset
     scrollContainer: 'content-area',
+
+    onClick: (e) => {
+        e.preventDefault();
+        const hashText = e.target.href.split('#').pop();
+        // Append hashText to the current URL without saving to history
+        const newUrl = `${window.location.pathname}#${hashText}`;
+        history.replaceState(null, '', newUrl);
+    },
 };
+
+// Define the media query string for the mobile breakpoint
+const mobileBreakpoint = window.matchMedia('(max-width: 799px)');
+
+// Function to update tocbot options and refresh
+function updateTocbotOptions(headingsOffset, scrollSmoothOffset) {
+    tocbotOptions.headingsOffset = headingsOffset;
+    tocbotOptions.scrollSmoothOffset = scrollSmoothOffset;
+    window.tocbot.refresh({
+        ...tocbotOptions,
+    });
+}
+
+function handleBreakpointChange() {
+    const isMobile = mobileBreakpoint.matches;
+    const headingsOffset = isMobile ? FIXED_HEADER_HEIGHT : 0;
+    const scrollSmoothOffset = isMobile ? -FIXED_HEADER_HEIGHT : 0;
+
+    // Update tocbot options only if there is a change in offsets
+    if (tocbotOptions.headingsOffset !== headingsOffset || tocbotOptions.scrollSmoothOffset !== scrollSmoothOffset) {
+        updateTocbotOptions(headingsOffset, scrollSmoothOffset);
+    }
+}
+
+// Add listener for changes to the media query status using addEventListener
+mobileBreakpoint.addEventListener('change', handleBreakpointChange);
+
+// Initial check
+handleBreakpointChange();
 
 function selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
     newExpensifyTab.classList.add('active');

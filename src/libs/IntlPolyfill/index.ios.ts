@@ -13,9 +13,12 @@ const intlPolyfill: IntlPolyfill = () => {
 
     require('@formatjs/intl-locale/polyfill-force');
 
+    require('@formatjs/intl-pluralrules/polyfill-force');
+    require('@formatjs/intl-pluralrules/locale-data/en');
+    require('@formatjs/intl-pluralrules/locale-data/es');
+
     // Required to polyfill NumberFormat on iOS
     // see: https://github.com/facebook/hermes/issues/1172#issuecomment-1776156538
-    require('@formatjs/intl-pluralrules/polyfill-force');
     polyfillNumberFormat();
 
     // Required to polyfill DateTimeFormat on iOS

@@ -29,6 +29,7 @@ type ExportSelectorType = SelectorType<ExportType>;
 function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const connectionName = route?.params?.connectionName;
     const reportID = route.params.reportID;
+    const backTo = route.params.backTo;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const policyID = report?.policyID;
@@ -56,7 +57,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const exportSelectorOptions: ExportSelectorType[] = [
         {
             value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-            text: translate('workspace.common.exportIntegrationSelected', connectionName),
+            text: translate('workspace.common.exportIntegrationSelected', {connectionName}),
             icons: [
                 {
                     source: iconToDisplay ?? '',
@@ -81,7 +82,10 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     if (!canBeExported) {
         return (
             <ScreenWrapper testID={ReportDetailsExportPage.displayName}>
-                <HeaderWithBackButton title={translate('common.export')} />
+                <HeaderWithBackButton
+                    title={translate('common.export')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
+                />
                 <ConfirmationPage
                     illustration={Illustrations.LaptopwithSecondScreenandHourglass}
                     heading={translate('workspace.export.notReadyHeading')}
@@ -105,7 +109,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 sections={[{data: exportSelectorOptions}]}
                 listItem={UserListItem}
                 shouldBeBlocked={false}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
                 title="common.export"
                 connectionName={connectionName}
                 onSelectRow={({value}) => {
@@ -120,7 +124,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 title={translate('workspace.exportAgainModal.title')}
                 onConfirm={confirmExport}
                 onCancel={() => setModalStatus(null)}
-                prompt={translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName)}
+                prompt={translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName})}
                 confirmText={translate('workspace.exportAgainModal.confirmText')}
                 cancelText={translate('workspace.exportAgainModal.cancelText')}
                 isVisible={!!modalStatus}

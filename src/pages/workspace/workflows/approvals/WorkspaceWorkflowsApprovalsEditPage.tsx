@@ -1,7 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -37,9 +38,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const formRef = useRef<ScrollView>(null);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !approvalWorkflow;
-
     const updateApprovalWorkflow = useCallback(() => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {
             return;
@@ -49,9 +47,11 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
+        // We need to remove members and approvers that are no longer in the updated workflow
         const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
-        Workflow.updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove);
-        Navigation.goBack();
+        const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
+        Workflow.updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove, approversToRemove);
+        Navigation.dismissModal();
     }, [approvalWorkflow, initialApprovalWorkflow, route.params.policyID]);
 
     const removeApprovalWorkflow = useCallback(() => {
@@ -59,24 +59,44 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
-        // Remove the approval workflow using the initial data as it could be already edited
-        Workflow.removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
-        Navigation.goBack();
+        setIsDeleteModalVisible(false);
+        Navigation.dismissModal();
+        InteractionManager.runAfterInteractions(() => {
+            // Remove the approval workflow using the initial data as it could be already edited
+            Workflow.removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
+        });
     }, [initialApprovalWorkflow, route.params.policyID]);
 
-    // Set the initial approval workflow when the page is loaded
-    useEffect(() => {
-        if (!!initialApprovalWorkflow || !policy || !personalDetails) {
-            return;
+    const {currentApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = useMemo(() => {
+        if (!policy || !personalDetails) {
+            return {};
         }
 
         const defaultApprover = policy?.approver ?? policy.owner;
-        const workflows = convertPolicyEmployeesToApprovalWorkflows({
+        const firstApprover = route.params.firstApproverEmail;
+        const result = convertPolicyEmployeesToApprovalWorkflows({
             employees: policy.employeeList ?? {},
             defaultApprover,
             personalDetails,
+            firstApprover,
         });
-        const currentApprovalWorkflow = workflows.find((workflow) => workflow.approvers.at(0)?.email === route.params.firstApproverEmail);
+
+        return {
+            defaultWorkflowMembers: result.availableMembers,
+            usedApproverEmails: result.usedApproverEmails,
+            currentApprovalWorkflow: result.approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === firstApprover),
+        };
+    }, [personalDetails, policy, route.params.firstApproverEmail]);
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !currentApprovalWorkflow;
+
+    // Set the initial approval workflow when the page is loaded
+    useEffect(() => {
+        if (initialApprovalWorkflow) {
+            return;
+        }
 
         if (!currentApprovalWorkflow) {
             return Workflow.clearApprovalWorkflow();
@@ -84,13 +104,14 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
         Workflow.setApprovalWorkflow({
             ...currentApprovalWorkflow,
-            availableMembers: [...currentApprovalWorkflow.members, ...(workflows.at(0)?.members ?? [])],
+            availableMembers: [...currentApprovalWorkflow.members, ...defaultWorkflowMembers],
+            usedApproverEmails,
             action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
             isLoading: false,
             errors: null,
         });
         setInitialApprovalWorkflow(currentApprovalWorkflow);
-    }, [initialApprovalWorkflow, personalDetails, policy, route.params.firstApproverEmail, route.params.policyID]);
+    }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow, usedApproverEmails]);
 
     return (
         <AccessOrNotFoundWrapper

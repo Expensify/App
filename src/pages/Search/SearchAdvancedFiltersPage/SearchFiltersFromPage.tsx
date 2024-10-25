@@ -6,8 +6,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFiltersParticipantsSelector from '@components/Search/SearchFiltersParticipantsSelector';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 function SearchFiltersFromPage() {
     const styles = useThemeStyles();
@@ -21,8 +23,14 @@ function SearchFiltersFromPage() {
             includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight
         >
-            <HeaderWithBackButton title={translate('common.from')} />
+            <HeaderWithBackButton
+                title={translate('common.from')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
             <View style={[styles.flex1]}>
                 <SearchFiltersParticipantsSelector
                     initialAccountIDs={searchAdvancedFiltersForm?.from ?? []}

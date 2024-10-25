@@ -39,8 +39,15 @@ Onyx.connect({
 });
 
 function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<string> {
-    const hasHashParams = url.indexOf('#') !== -1;
+    const hashIndex = url.lastIndexOf('#');
+    const hasHashParams = hashIndex !== -1;
     const hasURLParams = url.indexOf('?') !== -1;
+    let originURL = url;
+    let hashParams = '';
+    if (hasHashParams) {
+        originURL = url.substring(0, hashIndex);
+        hashParams = url.substring(hashIndex);
+    }
 
     const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
     const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
@@ -51,7 +58,7 @@ function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<stri
         const oldDotDomain = Url.addTrailingForwardSlash(environmentURL);
 
         // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
-        return `${oldDotDomain}${url}${hasHashParams || hasURLParams ? '&' : '?'}${params}`;
+        return `${oldDotDomain}${originURL}${hasURLParams ? '&' : '?'}${params}${hashParams}`;
     });
 }
 
@@ -188,7 +195,8 @@ function buildURLWithAuthToken(url: string, shortLivedAuthToken?: string) {
     const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
     const exitTo = `exitTo=${url}`;
     const accountID = `accountID=${currentUserAccountID}`;
-    const paramsArray = [accountID, emailParam, authTokenParam, exitTo];
+    const referrer = 'referrer=desktop';
+    const paramsArray = [accountID, emailParam, authTokenParam, exitTo, referrer];
     const params = paramsArray.filter(Boolean).join('&');
 
     return `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}transition?${params}`;

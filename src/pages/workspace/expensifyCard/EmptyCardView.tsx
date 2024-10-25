@@ -7,6 +7,7 @@ import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import colors from '@styles/theme/colors';
@@ -15,9 +16,10 @@ import CONST from '@src/CONST';
 function EmptyCardView() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const headerHeight = useEmptyViewHeaderHeight(isSmallScreenWidth);
+    const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout);
 
     return (
         <ScrollView>
@@ -31,7 +33,7 @@ function EmptyCardView() {
                             overflow: 'hidden',
                             backgroundColor: colors.green700,
                         },
-                        isSmallScreenWidth && {maxHeight: 250},
+                        shouldUseNarrowLayout && {maxHeight: 250},
                     ]}
                     title={translate('workspace.expensifyCard.issueAndManageCards')}
                     subtitle={translate('workspace.expensifyCard.getStartedIssuing')}

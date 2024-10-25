@@ -55,6 +55,9 @@ type ReportActionItemImageProps = {
 
     /** Whether the receipt is not editable */
     readonly?: boolean;
+
+    /** whether or not this report is from review duplicates */
+    isFromReviewDuplicates?: boolean;
 };
 
 /**
@@ -75,6 +78,7 @@ function ReportActionItemImage({
     isSingleImage = true,
     readonly = false,
     shouldMapHaveBorderRadius,
+    isFromReviewDuplicates = false,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -99,7 +103,7 @@ function ReportActionItemImage({
 
     const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
-    const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
+    const isEReceipt = transaction && !TransactionUtils.hasReceiptSource(transaction) && TransactionUtils.hasEReceipt(transaction);
 
     let propsObj: ReceiptImageProps;
 
@@ -135,7 +139,12 @@ function ReportActionItemImage({
                         style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID ?? '-1', transaction?.transactionID ?? '-1', readonly),
+                                ROUTES.TRANSACTION_RECEIPT.getRoute(
+                                    transactionThreadReport?.reportID ?? report?.reportID ?? '-1',
+                                    transaction?.transactionID ?? '-1',
+                                    readonly,
+                                    isFromReviewDuplicates,
+                                ),
                             )
                         }
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}

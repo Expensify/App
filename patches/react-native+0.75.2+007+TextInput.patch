@@ -1,0 +1,60 @@
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+index a206779..7e868f9 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+@@ -125,6 +125,10 @@ - (void)updateProps:(const Props::Shared &)props oldProps:(const Props::Shared &
+     [self _setMultiline:newTextInputProps.traits.multiline];
+   }
+ 
++  if (newTextInputProps.traits.showSoftInputOnFocus != oldTextInputProps.traits.showSoftInputOnFocus) {
++    [self _setShowSoftInputOnFocus:newTextInputProps.traits.showSoftInputOnFocus];
++  }
++
+   if (newTextInputProps.traits.autocapitalizationType != oldTextInputProps.traits.autocapitalizationType) {
+     _backedTextInputView.autocapitalizationType =
+         RCTUITextAutocapitalizationTypeFromAutocapitalizationType(newTextInputProps.traits.autocapitalizationType);
+@@ -661,6 +665,25 @@ - (void)_setMultiline:(BOOL)multiline
+   RCTCopyBackedTextInput(_backedTextInputView, backedTextInputView);
+   _backedTextInputView = backedTextInputView;
+   [self addSubview:_backedTextInputView];
++  
++  auto const &currentTextInputProps = *std::static_pointer_cast<TextInputProps const>(_props);
++  [self _setShowSoftInputOnFocus:currentTextInputProps.traits.showSoftInputOnFocus];
++}
++
++- (void)_setShowSoftInputOnFocus:(BOOL)showSoftInputOnFocus
++{
++    if (showSoftInputOnFocus) {
++      // Resets to default keyboard.
++      _backedTextInputView.inputView = nil;
++
++      // Without the call to reloadInputViews, the keyboard will not change until the textInput field (the first      // responder) loses and regains focus.
++      if (_backedTextInputView.isFirstResponder) {
++        [_backedTextInputView reloadInputViews];
++      }
++    } else {
++      // Hides keyboard, but keeps blinking cursor.
++      _backedTextInputView.inputView = [UIView new];
++  }
+ }
+ 
+ - (BOOL)_textOf:(NSAttributedString *)newText equals:(NSAttributedString *)oldText
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+index d15c7b3..2543fc5 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+@@ -179,14 +179,6 @@ void AndroidTextInputShadowNode::updateStateIfNeeded() {
+ Size AndroidTextInputShadowNode::measureContent(
+     const LayoutContext& layoutContext,
+     const LayoutConstraints& layoutConstraints) const {
+-  if (getStateData().cachedAttributedStringId != 0) {
+-    return textLayoutManager_
+-        ->measureCachedSpannableById(
+-            getStateData().cachedAttributedStringId,
+-            getConcreteProps().paragraphAttributes,
+-            layoutConstraints)
+-        .size;
+-  }
+ 
+   // Layout is called right after measure.
+   // Measure is marked as `const`, and `layout` is not; so State can be updated

@@ -24,6 +24,7 @@
     - [Refs](#refs)
     - [Other Expensify Resources on TypeScript](#other-expensify-resources-on-typescript)
     - [Default value for inexistent IDs](#default-value-for-inexistent-IDs)
+    - [Extract complex types](#extract-complex-types)
 - [Naming Conventions](#naming-conventions)
     - [Type names](#type-names)
     - [Prop callbacks](#prop-callbacks)
@@ -50,6 +51,9 @@
     - [Stateless components vs Pure Components vs Class based components vs Render Props](#stateless-components-vs-pure-components-vs-class-based-components-vs-render-props---when-to-use-what)
     - [Use Refs Appropriately](#use-refs-appropriately)
     - [Are we allowed to use [insert brand new React feature]?](#are-we-allowed-to-use-insert-brand-new-react-feature-why-or-why-not)
+- [Handling Scroll Issues with Nested Lists in React Native](#handling-scroll-issues-with-nested-lists-in-react-native)
+    - [Wrong Approach (Using SelectionList)](#wrong-approach-using-selectionlist)
+    - [Correct Approach (Using SelectionList)](#correct-approach-using-selectionlist)
 - [React Hooks: Frequently Asked Questions](#react-hooks-frequently-asked-questions)
 - [Onyx Best Practices](#onyx-best-practices)
     - [Collection Keys](#collection-keys)
@@ -487,6 +491,30 @@ report ? report.reportID : '';
 const foo = report?.reportID ?? '-1';
 
 report ? report.reportID : '-1';
+```
+
+### Extract complex types
+
+Advanced data types, such as objects within function parameters, should be separated into their own type definitions. Callbacks in function parameters should be extracted if there's a possibility they could be reused somewhere else.
+
+```ts
+// BAD
+function foo(param1: string, param2: {id: string}) {...};
+
+// BAD
+function foo(param1: string, param2: (value: string) => void) {...};
+
+// GOOD
+type Data = {
+    id: string;
+};
+
+function foo(param1: string, param2: Data) {...};
+
+// GOOD 
+type Callback = (value: string) => void
+
+function foo(param1: string, param2: Callback) {...};
 ```
 
 ## Naming Conventions
@@ -1104,6 +1132,48 @@ There are several ways to use and declare refs and we prefer the [callback metho
 ### Are we allowed to use [insert brand new React feature]? Why or why not?
 
 We love React and learning about all the new features that are regularly being added to the API. However, we try to keep our organization's usage of React limited to the most stable set of features that React offers. We do this mainly for **consistency** and so our engineers don't have to spend extra time trying to figure out how everything is working. That said, if you aren't sure if we have adopted something, please ask us first.
+
+
+## Handling Scroll Issues with Nested Lists in React Native
+
+### Problem
+
+When using `SelectionList` alongside other components (e.g., `Text`, `Button`), wrapping them inside a `ScrollView` can lead to alignment and performance issues. Additionally, using `ScrollView` with nested `FlatList` or `SectionList` causes the error:
+
+> "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation."
+
+### Solution
+
+The correct approach is avoid using `ScrollView`. You can add props like `listHeaderComponent` and `listFooterComponent` to add other components before or after the list while keeping the layout scrollable.
+
+### Wrong Approach (Using `SelectionList`)
+
+```jsx
+<ScrollView>
+    <Text>Header Content</Text>
+    <SelectionList
+        sections={[{data}]}
+        ListItem={RadioListItem}
+        onSelectRow={handleSelect}
+    />
+    <Button title="Submit" onPress={handleSubmit} />
+</ScrollView>
+```
+
+### Correct Approach (Using `SelectionList`)
+
+```jsx
+<SelectionList 
+    sections={[{item}]} 
+    ListItem={RadioListItem} 
+    onSelectRow={handleSelect}
+    listHeaderComponent={<Text>Header Content</Text>}
+    listFooterComponent={<Button title="Submit" onPress={handleSubmit} />}
+/>
+```
+
+This ensures optimal performance and avoids layout issues.
+
 
 ## React Hooks: Frequently Asked Questions
 

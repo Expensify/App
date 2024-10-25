@@ -26,7 +26,6 @@ jest.doMock('react-native', () => {
     type ReactNativeMock = typeof ReactNative & {
         NativeModules: typeof ReactNative.NativeModules & {
             BootSplash: {
-                getVisibilityStatus: typeof BootSplash.getVisibilityStatus;
                 hide: typeof BootSplash.hide;
                 logoSizeRatio: number;
                 navigationBarHeight: number;
@@ -46,7 +45,6 @@ jest.doMock('react-native', () => {
             NativeModules: {
                 ...ReactNative.NativeModules,
                 BootSplash: {
-                    getVisibilityStatus: jest.fn(),
                     hide: jest.fn(),
                     logoSizeRatio: 1,
                     navigationBarHeight: 0,

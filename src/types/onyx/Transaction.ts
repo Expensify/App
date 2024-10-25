@@ -3,8 +3,9 @@ import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
-import type {Participant, Split} from './IOU';
+import type {Attendee, Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
+import type {Unit} from './Policy';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReportAction from './ReportAction';
 import type {ViolationName} from './TransactionViolation';
@@ -99,7 +100,10 @@ type TransactionCustomUnit = {
     name?: ValueOf<typeof CONST.CUSTOM_UNITS>;
 
     /** Default rate for custom unit */
-    defaultP2PRate?: number;
+    defaultP2PRate?: number | null;
+
+    /** The unit for the distance/quantity */
+    distanceUnit?: Unit;
 };
 
 /** Types of geometry */
@@ -306,6 +310,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The original transaction amount */
         amount: number;
 
+        /** Selected attendees */
+        attendees?: Attendee[];
+
         /** The transaction tax amount */
         taxAmount?: number;
 
@@ -345,6 +352,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The edited transaction amount */
         modifiedAmount?: number;
 
+        /** The edited attendees list */
+        modifiedAttendees?: Attendee[];
+
         /** The edited transaction date */
         modifiedCreated?: string;
 
@@ -356,9 +366,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The edited waypoints for the distance expense */
         modifiedWaypoints?: WaypointCollection;
-
-        /** The edited distance rate for the distance request */
-        modifiedCustomUnitRateID?: string;
 
         /**
          * Used during the creation flow before the transaction is saved to the server and helps dictate where
@@ -452,7 +459,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the transaction is linked to a managed card */
         managedCard?: boolean;
     },
-    keyof Comment | keyof TransactionCustomUnit
+    keyof Comment | keyof TransactionCustomUnit | 'attendees'
 >;
 
 /** Keys of pending transaction fields */

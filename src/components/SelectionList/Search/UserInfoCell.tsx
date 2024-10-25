@@ -2,8 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as SearchUIUtils from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 
@@ -14,8 +15,12 @@ type UserInfoCellProps = {
 
 function UserInfoCell({participant, displayName}: UserInfoCellProps) {
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useWindowDimensions();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const avatarURL = participant?.avatar;
+
+    if (!SearchUIUtils.isCorrectSearchUserName(displayName)) {
+        return null;
+    }
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>

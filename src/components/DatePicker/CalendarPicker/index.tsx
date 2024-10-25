@@ -170,7 +170,7 @@ function CalendarPicker({
                         testID="currentMonthText"
                         accessibilityLabel={translate('common.currentMonth')}
                     >
-                        {monthNames[currentMonthView]}
+                        {monthNames.at(currentMonthView)}
                     </Text>
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
@@ -208,7 +208,7 @@ function CalendarPicker({
                     </View>
                 ))}
             </View>
-            {calendarDaysMatrix.map((week) => (
+            {calendarDaysMatrix?.map((week) => (
                 <View
                     key={`week-${week.toString()}`}
                     style={themeStyles.flexRow}

@@ -32,14 +32,17 @@ type SystemChatReportFooterMessageProps = SystemChatReportFooterMessageOnyxProps
 function SystemChatReportFooterMessage({choice, policies, activePolicyID}: SystemChatReportFooterMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
 
     const adminChatReportID = useMemo(() => {
         const adminPolicy = activePolicyID
             ? PolicyUtils.getPolicy(activePolicyID)
-            : Object.values(policies ?? {}).find((policy) => PolicyUtils.shouldShowPolicy(policy, false) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins);
+            : Object.values(policies ?? {}).find(
+                  (policy) => PolicyUtils.shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins,
+              );
 
         return String(adminPolicy?.chatReportIDAdmins ?? -1);
-    }, [activePolicyID, policies]);
+    }, [activePolicyID, policies, currentUserLogin]);
 
     const [adminChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${adminChatReportID}`);
 

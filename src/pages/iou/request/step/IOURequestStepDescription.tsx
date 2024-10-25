@@ -131,7 +131,7 @@ function IOURequestStepDescription({
             navigateBack();
             return;
         }
-        const isTransactionDraft = action === CONST.IOU.ACTION.CREATE || IOUUtils.isMovingTransactionFromTrackExpense(action);
+        const isTransactionDraft = IOUUtils.shouldUseTransactionDraft(action);
 
         IOU.setMoneyRequestDescription(transaction?.transactionID ?? '-1', newComment, isTransactionDraft);
 
@@ -149,6 +149,8 @@ function IOURequestStepDescription({
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportActionsUtils.isMoneyRequestAction(reportAction) || !ReportUtils.canEditMoneyRequest(reportAction));
+    const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.description')}
@@ -187,6 +189,7 @@ function IOURequestStepDescription({
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
                         isMarkdownEnabled
+                        excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
                     />
                 </View>
             </FormProvider>

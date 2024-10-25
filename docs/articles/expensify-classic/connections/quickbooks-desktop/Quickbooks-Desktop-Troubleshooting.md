@@ -40,7 +40,13 @@ Generally, these errors indicate that there is a credentials issue.
 4. Check that you have the correct permissions. 
 5. Log in to QuickBooks Desktop as an Admin (in single-user mode). 
 6. Go to **Edit** > **Preferences** > **Integrated Applications** > **Company Preferences**.
-7. Select the Web Connector and click **Properties**. 
+
+![Company Preferences page of QuickBooks Desktop](https://help.expensify.com/assets/images/quickbooks-desktop-company-preferences.png){:width="100%"}
+
+7. Select the Web Connector and click **Properties**.
+
+![Web Connector Properties page in QuickBooks Desktop](https://help.expensify.com/assets/images/quickbooks-desktop-access-rights.png){:width="100%"}
+
 8. Make sure that the "Allow this application to login automatically" checkbox is selected and click **OK**.
 9. Close all windows in QuickBooks.
 
@@ -89,3 +95,20 @@ If the problem persists, download the QuickBooks Desktop log file via the Web Co
 {% include info.html %}
 If you’re using a remote server (e.g. RightNetworks), you may need to contact that support team to request your logs.
 {% include end-info.html %}
+
+# Reports not exporting to QuickBooks Desktop
+
+Generally, this is the result of not having both the QuickBooks Web Connector and the Company File open, since the Report was exported.
+
+## How to resolve
+
+1. Make sure that the Web Connector and QuickBooks Desktop Company File are both open.
+2. In the Web Connector, check that the Last Status is “Ok”.
+
+![QuickBooks Web Connector showing status "OK"](https://help.expensify.com/assets/images/quickbooks-desktop-web-connector.png){:width="100%"}
+
+3. Check the Report Comments in Expensify to confirm that the report has been successfully exported to QuickBooks Desktop.
+
+![Expensify report showing the report was exported](https://help.expensify.com/assets/images/quickbooks-desktop-exported-report-comments.png){:width="100%"}
+
+If these general troubleshooting steps don’t work, reach out to Concierge with your Expensify Report ID and a screenshot of your QuickBooks Web Connector.

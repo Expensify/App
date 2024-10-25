@@ -3,7 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import {getXeroSetupLink} from '@libs/actions/connections/ConnectToXero';
+import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,18 +29,17 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    if (isRequire2FAModalOpen) {
+    if (!is2FAEnabled) {
         return (
             <RequireTwoFactorAuthenticationModal
                 onSubmit={() => {
                     setIsRequire2FAModalOpen(false);
-                    Navigation.dismissModal();
                     Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID)));
                 }}
                 onCancel={() => {
                     setIsRequire2FAModalOpen(false);
                 }}
-                isVisible
+                isVisible={isRequire2FAModalOpen}
                 description={translate('twoFactorAuth.twoFactorAuthIsRequiredDescription')}
             />
         );
