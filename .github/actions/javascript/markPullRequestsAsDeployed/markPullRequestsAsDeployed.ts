@@ -69,7 +69,7 @@ async function run() {
         message += `🚀`;
         message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
-        message += `\n🤖 android HybridApp 🤖|${androidHybridResult}\n🍎 iOS HybridApp 🍎|${iOSHybridResult}`;
+        message += `\n🤖🔄 android HybridApp 🤖🔄|${androidHybridResult}\n🍎🔄 iOS HybridApp 🍎🔄|${iOSHybridResult}`;
 
         if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle ?? '')) {
             // eslint-disable-next-line max-len
