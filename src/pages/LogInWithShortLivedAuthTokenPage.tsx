@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import {NativeModules} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -25,6 +25,9 @@ type LogInWithShortLivedAuthTokenPageProps = LogInWithShortLivedAuthTokenPageOny
 
 function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedAuthTokenPageProps) {
     const {email = '', shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
+
+    // State to track if authentication flow is still processing
+    const [isProcessing, setIsProcessing] = useState(true);
 
     useEffect(() => {
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
@@ -58,11 +61,13 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
                 Navigation.navigate(exitTo as Route);
             });
         }
+
+        setIsProcessing(false);
         // The only dependencies of the effect are based on props.route
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route]);
 
-    if (account?.isLoading) {
+    if (isProcessing || account?.isLoading) {
         return <FullScreenLoadingIndicator />;
     }
 
