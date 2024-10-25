@@ -36,8 +36,8 @@ import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {isExpenseReport} from './ReportUtils';
 import {getAllReportTransactions, getCategory, getTag} from './TransactionUtils';
-import { isExpenseReport } from './ReportUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
