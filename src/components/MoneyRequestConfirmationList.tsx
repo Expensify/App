@@ -2,7 +2,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
@@ -33,7 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -48,7 +49,33 @@ import UserListItem from './SelectionList/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 
-type MoneyRequestConfirmationListProps = {
+type MoneyRequestConfirmationListOnyxProps = {
+    /** Collection of categories attached to a policy */
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+
+    /** Collection of draft categories attached to a policy */
+    policyCategoriesDraft: OnyxEntry<OnyxTypes.PolicyCategories>;
+
+    /** Collection of tags attached to a policy */
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+
+    /** The policy of the report */
+    policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** The draft policy of the report */
+    policyDraft: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Mileage rate default for the policy */
+    defaultMileageRate: OnyxEntry<MileageRate>;
+
+    /** Last selected distance rates */
+    lastSelectedDistanceRates: OnyxEntry<Record<string, string>>;
+
+    /** List of currencies */
+    currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
+};
+
+type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps & {
     /** Callback to inform parent modal of success */
     onConfirm?: (selectedParticipants: Participant[]) => void;
 
@@ -57,6 +84,9 @@ type MoneyRequestConfirmationListProps = {
 
     /** IOU amount */
     iouAmount: number;
+
+    /** IOU attendees list */
+    iouAttendees?: Attendee[];
 
     /** IOU comment */
     iouComment?: string;
@@ -148,11 +178,16 @@ function MoneyRequestConfirmationList({
     onConfirm,
     iouType = CONST.IOU.TYPE.SUBMIT,
     iouAmount,
+    policyCategories: policyCategoriesReal,
+    policyCategoriesDraft,
     isDistanceRequest = false,
+    policy: policyReal,
+    policyDraft,
     isPolicyExpenseChat = false,
     iouCategory = '',
     shouldShowSmartScanFields = true,
     isEditingSplitBill,
+    policyTags,
     iouCurrencyCode,
     iouMerchant,
     selectedParticipants: selectedParticipantsProp,
@@ -162,6 +197,7 @@ function MoneyRequestConfirmationList({
     policyID = '',
     reportID = '',
     receiptPath = '',
+    iouAttendees,
     iouComment,
     receiptFilename = '',
     iouCreated,
@@ -169,21 +205,14 @@ function MoneyRequestConfirmationList({
     onToggleBillable,
     hasSmartScanFailed,
     reportActionID,
+    defaultMileageRate,
+    lastSelectedDistanceRates,
     action = CONST.IOU.ACTION.CREATE,
+    currencyList,
     shouldDisplayReceipt = false,
     shouldPlaySound = true,
     isConfirmed,
 }: MoneyRequestConfirmationListProps) {
-    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
-    const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
-        selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
-    });
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
@@ -263,7 +292,12 @@ function MoneyRequestConfirmationList({
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
         : CurrencyUtils.convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
-
+    const formattedAmountPerAttendee = isDistanceRequestWithPendingRoute
+        ? ''
+        : CurrencyUtils.convertToDisplayString(
+              (shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount) / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1),
+              isDistanceRequest ? currency : iouCurrencyCode,
+          );
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
@@ -874,8 +908,10 @@ function MoneyRequestConfirmationList({
             didConfirm={!!didConfirm}
             distance={distance}
             formattedAmount={formattedAmount}
+            formattedAmountPerAttendee={formattedAmountPerAttendee}
             formError={formError}
             hasRoute={hasRoute}
+            iouAttendees={iouAttendees}
             iouCategory={iouCategory}
             iouComment={iouComment}
             iouCreated={iouCreated}
@@ -936,35 +972,67 @@ function MoneyRequestConfirmationList({
 
 MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
 
-export default memo(
-    MoneyRequestConfirmationList,
-    (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
-        prevProps.onSendMoney === nextProps.onSendMoney &&
-        prevProps.onConfirm === nextProps.onConfirm &&
-        prevProps.iouType === nextProps.iouType &&
-        prevProps.iouAmount === nextProps.iouAmount &&
-        prevProps.isDistanceRequest === nextProps.isDistanceRequest &&
-        prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
-        prevProps.iouCategory === nextProps.iouCategory &&
-        prevProps.shouldShowSmartScanFields === nextProps.shouldShowSmartScanFields &&
-        prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
-        prevProps.iouCurrencyCode === nextProps.iouCurrencyCode &&
-        prevProps.iouMerchant === nextProps.iouMerchant &&
-        lodashIsEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
-        lodashIsEqual(prevProps.payeePersonalDetails, nextProps.payeePersonalDetails) &&
-        prevProps.isReadOnly === nextProps.isReadOnly &&
-        prevProps.bankAccountRoute === nextProps.bankAccountRoute &&
-        prevProps.policyID === nextProps.policyID &&
-        prevProps.reportID === nextProps.reportID &&
-        prevProps.receiptPath === nextProps.receiptPath &&
-        prevProps.iouComment === nextProps.iouComment &&
-        prevProps.receiptFilename === nextProps.receiptFilename &&
-        prevProps.iouCreated === nextProps.iouCreated &&
-        prevProps.iouIsBillable === nextProps.iouIsBillable &&
-        prevProps.onToggleBillable === nextProps.onToggleBillable &&
-        prevProps.hasSmartScanFailed === nextProps.hasSmartScanFailed &&
-        prevProps.reportActionID === nextProps.reportActionID &&
-        lodashIsEqual(prevProps.action, nextProps.action) &&
-        prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt,
+export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmationListOnyxProps>({
+    policyCategories: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+    },
+    policyCategoriesDraft: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
+    },
+    policyTags: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+    },
+    defaultMileageRate: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        selector: DistanceRequestUtils.getDefaultMileageRate,
+    },
+    policy: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+    },
+    policyDraft: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+    },
+    lastSelectedDistanceRates: {
+        key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+    },
+    currencyList: {
+        key: ONYXKEYS.CURRENCY_LIST,
+    },
+})(
+    memo(
+        MoneyRequestConfirmationList,
+        (prevProps, nextProps) =>
+            lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
+            prevProps.onSendMoney === nextProps.onSendMoney &&
+            prevProps.onConfirm === nextProps.onConfirm &&
+            prevProps.iouType === nextProps.iouType &&
+            prevProps.iouAmount === nextProps.iouAmount &&
+            prevProps.isDistanceRequest === nextProps.isDistanceRequest &&
+            prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
+            prevProps.iouCategory === nextProps.iouCategory &&
+            prevProps.shouldShowSmartScanFields === nextProps.shouldShowSmartScanFields &&
+            prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
+            prevProps.iouCurrencyCode === nextProps.iouCurrencyCode &&
+            prevProps.iouMerchant === nextProps.iouMerchant &&
+            lodashIsEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
+            lodashIsEqual(prevProps.payeePersonalDetails, nextProps.payeePersonalDetails) &&
+            prevProps.isReadOnly === nextProps.isReadOnly &&
+            prevProps.bankAccountRoute === nextProps.bankAccountRoute &&
+            prevProps.policyID === nextProps.policyID &&
+            prevProps.reportID === nextProps.reportID &&
+            prevProps.receiptPath === nextProps.receiptPath &&
+            prevProps.iouAttendees === nextProps.iouAttendees &&
+            prevProps.iouComment === nextProps.iouComment &&
+            prevProps.receiptFilename === nextProps.receiptFilename &&
+            prevProps.iouCreated === nextProps.iouCreated &&
+            prevProps.iouIsBillable === nextProps.iouIsBillable &&
+            prevProps.onToggleBillable === nextProps.onToggleBillable &&
+            prevProps.hasSmartScanFailed === nextProps.hasSmartScanFailed &&
+            prevProps.reportActionID === nextProps.reportActionID &&
+            lodashIsEqual(prevProps.defaultMileageRate, nextProps.defaultMileageRate) &&
+            lodashIsEqual(prevProps.lastSelectedDistanceRates, nextProps.lastSelectedDistanceRates) &&
+            lodashIsEqual(prevProps.action, nextProps.action) &&
+            lodashIsEqual(prevProps.currencyList, nextProps.currencyList) &&
+            prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt,
+    ),
 );
