@@ -155,7 +155,10 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
             switch (autocompleteType) {
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG: {
                     const autocompleteList = autocompleteValue ? tagAutocompleteList : recentTagsAutocompleteList ?? [];
-                    const filteredTags = autocompleteList.filter((tag) => tag?.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(tag));
+                    const filteredTags = autocompleteList
+                        .filter((tag) => tag?.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(tag))
+                        .sort()
+                        .slice(0, 10);
                     setAutocompleteSuggestions(
                         filteredTags.map((tagName) => ({
                             text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG}:${tagName}`,
@@ -166,9 +169,12 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY: {
                     const autocompleteList = autocompleteValue ? categoryAutocompleteList : recentCategoriesAutocompleteList;
-                    const filteredCategories = autocompleteList.filter((category) => {
-                        return category?.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(category);
-                    });
+                    const filteredCategories = autocompleteList
+                        .filter((category) => {
+                            return category?.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(category);
+                        })
+                        .sort()
+                        .slice(0, 10);
                     setAutocompleteSuggestions(
                         filteredCategories.map((categoryName) => ({
                             text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY}:${categoryName}`,
@@ -179,7 +185,10 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY: {
                     const autocompleteList = autocompleteValue ? currencyAutocompleteList : recentCurrencyAutocompleteList ?? [];
-                    const filteredCurrencies = autocompleteList.filter((currency) => currency?.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(currency));
+                    const filteredCurrencies = autocompleteList
+                        .filter((currency) => currency?.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(currency))
+                        .sort()
+                        .slice(0, 10);
                     setAutocompleteSuggestions(
                         filteredCurrencies.map((currencyName) => ({
                             text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}:${currencyName}`,
@@ -189,37 +198,52 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE: {
-                    const filteredTaxRates = taxAutocompleteList.filter((tax) => tax.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(tax));
+                    const filteredTaxRates = taxAutocompleteList
+                        .filter((tax) => tax.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(tax))
+                        .sort()
+                        .slice(0, 10);
                     setAutocompleteSuggestions(filteredTaxRates.map((tax) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE}:${tax}`, query: `${tax}`})));
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
-                    const filteredParticipants = participantsAutocompleteList.filter((participant) => participant.includes(autocompleteValue));
+                    const filteredParticipants = participantsAutocompleteList
+                        .filter((participant) => participant.includes(autocompleteValue))
+                        .sort()
+                        .slice(0, 10);
                     setAutocompleteSuggestions(filteredParticipants.map((participant) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}:${participant}`, query: `${participant}`})));
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO: {
-                    const filteredParticipants = participantsAutocompleteList.filter((participant) => participant.includes(autocompleteValue));
+                    const filteredParticipants = participantsAutocompleteList
+                        .filter((participant) => participant.includes(autocompleteValue))
+                        .sort()
+                        .slice(0, 10);
                     setAutocompleteSuggestions(filteredParticipants.map((participant) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${participant}`, query: `${participant}`})));
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
-                    const filteredChats = searchOptions.recentReports.filter((chat) => chat.text?.includes(autocompleteValue));
+                    const filteredChats = searchOptions.recentReports
+                        .filter((chat) => chat.text?.includes(autocompleteValue))
+                        .sort((chatA, chatB) => (chatA > chatB ? 1 : -1))
+                        .slice(0, 10);
                     setAutocompleteSuggestions(filteredChats.map((chat) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${chat.text}`, query: `${chat.reportID}`})));
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE: {
-                    const filteredTypes = typeAutocompleteList.filter((type) => type.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(type));
+                    const filteredTypes = typeAutocompleteList.filter((type) => type.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(type)).sort();
                     setAutocompleteSuggestions(filteredTypes.map((type) => ({text: `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${type}`, query: `${type}`})));
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
-                    const filteredStatuses = statusAutocompleteList.filter((status) => status.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(status));
+                    const filteredStatuses = statusAutocompleteList
+                        .filter((status) => status.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(status))
+                        .sort()
+                        .slice(0, 10);
                     setAutocompleteSuggestions(filteredStatuses.map((status) => ({text: `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${status}`, query: `${status}`})));
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE: {
-                    const filteredExpenseTypes = expenseTypes.filter((expenseType) => expenseType.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(expenseType));
+                    const filteredExpenseTypes = expenseTypes.filter((expenseType) => expenseType.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(expenseType)).sort();
                     setAutocompleteSuggestions(
                         filteredExpenseTypes.map((expenseType) => ({
                             text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE}:${expenseType}`,
@@ -229,7 +253,10 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
-                    const filteredCards = cardAutocompleteList.filter((card) => card.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(card));
+                    const filteredCards = cardAutocompleteList
+                        .filter((card) => card.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(card))
+                        .sort()
+                        .slice(0, 10);
                     setAutocompleteSuggestions(
                         filteredCards.map((card) => ({
                             text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID}:${card}`,
