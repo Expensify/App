@@ -423,14 +423,13 @@ platform :ios do
         }
       )
 
-# # TODO: FIX FOR HYBRIDAPP
-#     puts "dsym path: #{ENV[KEY_DSYM_PATH]}"
-#     upload_symbols_to_crashlytics(
-#       app_id: "1:921154746561:ios:216bd10ccc947659027c40",
-#       dsym_path: ENV[KEY_DSYM_PATH],
-#       gsp_path: "./ios/GoogleService-Info.plist",
-#       binary_path: "./ios/Pods/FirebaseCrashlytics/upload-symbols"
-#     )
+    puts "dsym path: #{ENV[KEY_DSYM_PATH]}"
+    upload_symbols_to_crashlytics(
+      app_id: "1:1008697809946:ios:3ffad71f664f2886",
+      dsym_path: ENV[KEY_DSYM_PATH],
+      gsp_path: "./ios/GoogleService-Info.plist",
+      binary_path: "./ios/Pods/FirebaseCrashlytics/upload-symbols"
+    )
     end
 
   desc "Submit app to App Store Review"
