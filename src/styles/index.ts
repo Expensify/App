@@ -5277,10 +5277,6 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             padding: 16,
         },
-
-        selectionOuterBorder: {
-            boxShadow: `0px 0px 0px 1px ${colors.blue300}`,
-        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
