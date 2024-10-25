@@ -266,23 +266,24 @@ jobs:
 
       - name: Upload Android build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@../Android/build/outputs/bundle/release/Expensify-release.aab"
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/home/runner/work/App/App/Mobile-Expensify/Android/build/outputs/bundle/release/Expensify-release.aab"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
-      - name: Upload Android sourcemaps artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-sourcemaps-artifact
-          path: ../Android/build/generated/sourcemaps/react/release/index.android.bundle.map
+# TODO: Fix Sourcemaps
+#      - name: Upload Android sourcemaps artifact
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: android-sourcemaps-artifact
+#          path: ../Android/build/generated/sourcemaps/react/release/index.android.bundle.map
 
       - name: Upload Android build artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
           name: android-build-artifact
-          path: ../Android/build/outputs/bundle/release/Expensify-release.aab
+          path: /home/runner/work/App/App/Mobile-Expensify/Android/build/outputs/bundle/release/Expensify-release.aab
 
       - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
@@ -578,9 +579,11 @@ jobs:
         id: getIOSVersion
         run: echo "IOS_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')" >> "$GITHUB_OUTPUT"
 
-      - name: Build iOS release app
+      - name: Build iOS HybridApp
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios build_hybrid
+        run: | 
+          export SOURCEMAP_FILE="$(pwd)/../main.jsbundle.map";
+          bundle exec fastlane ios build_hybrid
 
 #      - name: Upload release build to TestFlight
 #        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -597,24 +600,24 @@ jobs:
 
       - name: Upload iOS build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@builds/${{ env.VERSION }}/${{ env.VERSION }}.ipa"
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@Expensify.ipa"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-          VERSION: "$(cat ../app/config/config.json | jq -r '.meta.version')"
 
-      - name: Upload iOS sourcemaps artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-sourcemaps-artifact
-          path: ./main.jsbundle.map
+# TODO: Fix Sourcemaps
+#      - name: Upload iOS sourcemaps artifact
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ios-sourcemaps-artifact
+#          path: ./main.jsbundle.map
 
       - name: Upload iOS build artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
           name: ios-build-artifact
-          path: builds/"$(cat ../app/config/config.json | jq -r '.meta.version')"/"$(cat ../app/config/config.json | jq -r '.meta.version')".ipa
+          path: Expensify.ipa
 
   #      - name: Warn deployers if iOS production deploy failed
   #        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
