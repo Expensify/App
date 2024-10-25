@@ -98,12 +98,7 @@ function ReportFieldsListValuesPage({
                 keyForList: value,
                 isSelected: selectedValues[value] && canSelectMultiple,
                 enabled: !disabledListValues.at(index) ?? true,
-                rightElement: (
-                    <ListItemRightCaretWithLabel
-                        shouldShowCaret={false}
-                        labelText={disabledListValues.at(index) ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
-                    />
-                ),
+                rightElement: <ListItemRightCaretWithLabel labelText={disabledListValues.at(index) ? translate('workspace.common.disabled') : translate('workspace.common.enabled')} />,
             }))
             .sort((a, b) => localeCompare(a.value, b.value));
         return [{data, isDisabled: false}];
@@ -164,7 +159,7 @@ function ReportFieldsListValuesPage({
                     styles.flex1,
                     styles.flexRow,
                     styles.justifyContentBetween,
-                    // Required padding accounting for the checkbox and the right arrow in multi-select mode
+                    // Required padding accounting for the checkbox in multi-select mode
                     canSelectMultiple && styles.pl3,
                 ]}
             >
