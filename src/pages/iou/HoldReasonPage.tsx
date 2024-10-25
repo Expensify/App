@@ -54,7 +54,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         }
 
         IOU.putOnHold(transactionID, values.comment, reportID, searchHash);
-        Navigation.navigate(backTo);
+        Navigation.goBack(backTo);
     };
 
     const validate = useCallback(
