@@ -9,6 +9,7 @@ import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import type {ImageObjectPosition} from './Image/types';
@@ -56,6 +57,9 @@ type ThumbnailImageProps = {
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
 
+    /** Whether the image is deleted */
+    isDeleted?: boolean;
+
     /** Callback fired when the image fails to load */
     onLoadFailure?: () => void;
 
@@ -81,6 +85,7 @@ function ThumbnailImage({
     fallbackIconColor,
     fallbackIconBackground,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
+    isDeleted,
     onLoadFailure,
     onMeasure,
 }: ThumbnailImageProps) {
@@ -141,6 +146,7 @@ function ThumbnailImage({
 
     return (
         <View style={[style, styles.overflowHidden]}>
+            {isDeleted && <AttachmentDeletedIndicator containerStyles={[...sizeStyles]} />}
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
