@@ -286,9 +286,9 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 
-    // if (IOU.canApproveIOU(report, policy)) {
-    //     return CONST.SEARCH.ACTION_TYPES.APPROVE;
-    // }
+    if (IOU.canApproveIOU(report, policy)) {
+        return CONST.SEARCH.ACTION_TYPES.APPROVE;
+    }
 
     // if (IOU.canReportBeSubmitted(report, policy, currentUserAccountID, transaction)) {
     //     return CONST.SEARCH.ACTION_TYPES.SUBMIT;
