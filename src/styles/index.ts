@@ -2902,8 +2902,9 @@ const styles = (theme: ThemeColors) =>
 
         sectionMenuItem: {
             borderRadius: 8,
-            paddingHorizontal: 8,
-            height: 56,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            height: 52,
             alignItems: 'center',
         },
 
@@ -5261,6 +5262,11 @@ const styles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        integrationIcon: {
+            overflow: 'hidden',
+            borderRadius: variables.buttonBorderRadius,
         },
 
         colorGreenSuccess: {
