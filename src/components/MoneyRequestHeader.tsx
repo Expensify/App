@@ -7,7 +7,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import isReportOpenInRHP from '@libs/Navigation/isReportOpenInRHP';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -44,6 +45,8 @@ type MoneyRequestHeaderProps = {
 };
 
 function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`);
     const [transaction] = useOnyx(
@@ -61,6 +64,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
     const reportID = report?.reportID;
+
+    const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
+    const shouldDisplaySearchRouter = !isReportInRHP;
 
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
 
@@ -154,7 +160,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     }}
                     policy={policy}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplaySearchRouter
+                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                     onBackButtonPress={onBackButtonPress}
                 >
                     {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
