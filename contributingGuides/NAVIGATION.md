@@ -344,6 +344,15 @@ Linked issue: https://github.com/Expensify/App/pull/44138
 4. Press the "From" link in the displayed header.
 5. Verify if the link correctly redirects to the chat opened in the first step.
 
+#### Expense - App does not open destination report after submitting expense
+
+Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-2432400819
+
+1. Launch the app.
+2. Open FAB > Submit expense > Manual.
+3. Submit a manual expense to any user (as long as the user is not the currrently opened report and the receiver is not workspace chat).
+4. Verify if the destination report is opened after submitting expense.
+
 #### QBO - Preferred exporter/Export date tab do not auto-close after value selected
 
 Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-2433342220
@@ -354,3 +363,29 @@ Precondition: Workspace with QBO integration connected.
 2. Click on Export > Preferred exporter (or Export date).
 3. Click on value.
 4. Verify if the value chosen in the third step is selected and the app redirects to the Export page.
+
+#### Web - Hold - App flickers after entering reason and saving it when holding expense
+
+Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-2433389682
+
+1. Launch the app.
+2. Open DM with any user.
+3. Submit two expenses to them.
+4. Click on the expense preview to go to expense report.
+5. Click on any preview to go to transaction thread.
+6. Go back to expense report.
+7. Right click on the expense preview in Step 5 > Hold.
+8. Enter a reason and save it.
+9. Verify if the app does not flicker after entering reason and saving it.
+
+#### Group - App returns to group settings page after saving group name
+
+Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-2433381800
+
+1. Launch the app.
+2. Create a group chat.
+3. Go to group chat.
+4. Click on the group chat header.
+5. Click Group name field.
+6. Click Save.
+7. Verify if the app returs to group details RHP after saving group name.
