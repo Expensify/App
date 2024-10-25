@@ -3639,13 +3639,13 @@ function completeOnboarding(
         },
     );
 
-    if (!wasInvited) failureData.push(
-        {
+    if (!wasInvited) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {hasCompletedGuidedSetupFlow: false},
-        },
-    );
+        });
+    }
 
     if (userReportedIntegration) {
         optimisticData.push({
