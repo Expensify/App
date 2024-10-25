@@ -23,7 +23,7 @@ const intlPolyfill: IntlPolyfill = () => {
 
     // Required to polyfill DateTimeFormat on iOS
     // see: https://github.com/facebook/hermes/issues/1172#issuecomment-1776156538
-    polyfillDateTimeFormat();
+    //polyfillDateTimeFormat();
 
     polyfillListFormat();
 };
