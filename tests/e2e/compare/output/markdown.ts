@@ -115,6 +115,7 @@ const writeToFile = (filePath: string, content: string) =>
 
 const writeToMarkdown = (filePath: string, data: Data, skippedTests: string[]) => {
     const markdown = buildMarkdown(data, skippedTests);
+    Logger.info('Markdown was built successfully, writing to file...', markdown);
     return writeToFile(filePath, markdown).catch((error) => {
         console.error(error);
         throw error;
