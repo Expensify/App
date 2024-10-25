@@ -36,6 +36,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
+import {clearSoundAssetsCache} from '@libs/Sound';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
@@ -761,6 +762,7 @@ function cleanupSession() {
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });
+    clearSoundAssetsCache();
     Timing.clearData();
 }
 

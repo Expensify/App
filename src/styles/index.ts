@@ -67,7 +67,7 @@ type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 type OverlayStylesParams = {progress: Animated.AnimatedInterpolation<string | number>};
 
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
-type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
+type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
 
 type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
 
@@ -1114,6 +1114,17 @@ const styles = (theme: ThemeColors) =>
 
         offlineIndicatorRow: {
             height: 25,
+        },
+
+        deletedAttachmentIndicator: {
+            zIndex: 20,
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+        },
+
+        deletedIndicatorOverlay: {
+            opacity: 0.8,
         },
 
         // Actions
@@ -2891,8 +2902,9 @@ const styles = (theme: ThemeColors) =>
 
         sectionMenuItem: {
             borderRadius: 8,
-            paddingHorizontal: 8,
-            height: 56,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            height: 52,
             alignItems: 'center',
         },
 
@@ -3647,7 +3659,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchListContentContainerStyles: {
-            marginTop: variables.searchListContentMarginTop,
+            paddingTop: variables.searchListContentMarginTop,
         },
 
         searchTopBarStyle: {
@@ -5155,6 +5167,11 @@ const styles = (theme: ThemeColors) =>
         computerIllustrationContainer: {
             width: 272,
             height: 188,
+        },
+
+        pendingBankCardIllustration: {
+            width: 217,
+            height: 150,
         },
 
         cardIcon: {

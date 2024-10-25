@@ -191,7 +191,7 @@ function HeaderWithBackButton({
                     />
                 )}
                 {middleContent}
-                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.gap4, styles.alignItemsCenter]}>
+                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
                     {children}
                     {shouldShowDownloadButton && (
                         <Tooltip text={translate('common.download')}>
@@ -263,8 +263,8 @@ function HeaderWithBackButton({
                             </PressableWithoutFeedback>
                         </Tooltip>
                     )}
-                    {shouldDisplaySearchRouter && <SearchButton />}
                 </View>
+                {shouldDisplaySearchRouter && <SearchButton style={styles.mr5} />}
             </View>
         </View>
     );

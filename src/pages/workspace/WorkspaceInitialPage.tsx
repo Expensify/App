@@ -217,7 +217,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             icon: Expensicons.CreditCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.COMPANY_CARDS,
-            brickRoadIndicator: PolicyUtils.hasPolicyFeedsError(cardFeeds?.companyCards ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: PolicyUtils.hasPolicyFeedsError(cardFeeds?.settings?.companyCards ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 
@@ -414,6 +414,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     highlighted={enabledItem?.routeName === item.routeName}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
                                     badgeText={item.badgeText}
+                                    shouldIconUseAutoWidthStyle
                                 />
                             ))}
                         </View>
