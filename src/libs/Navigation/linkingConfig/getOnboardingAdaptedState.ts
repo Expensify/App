@@ -8,14 +8,11 @@ export default function getOnboardingAdaptedState(state: PartialState<Navigation
     }
 
     const routes = [];
+    routes.push({name: SCREENS.ONBOARDING.PURPOSE});
     if (onboardingRoute.name === SCREENS.ONBOARDING.ACCOUNTING) {
-        routes.push({name: SCREENS.ONBOARDING.PURPOSE});
-        routes.push({name: SCREENS.ONBOARDING.EMPLOYEES});
-        routes.push(onboardingRoute);
-    } else {
-        routes.push({name: SCREENS.ONBOARDING.PURPOSE});
-        routes.push(onboardingRoute);
+        routes.push({name: SCREENS.ONBOARDING.EMPLOYEES});   
     }
+    routes.push(onboardingRoute);
 
     return {
         routes,
