@@ -61,7 +61,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [companyCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [cards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
     const [expensifyCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
@@ -90,10 +90,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [policyID, workspaceAccountID]);
 
     const memberCards = useMemo(() => {
-        if (!companyCards && !expensifyCards) {
+        if (!cards && !expensifyCards) {
             return [];
         }
-        const allCards = [...Object.values(companyCards ?? {}), ...Object.values(expensifyCards ?? {})];
+        // For admin Expensify Cards can also appear in the cards list, so we need to remove duplicates
+        const allCards = [...Object.values(cards ?? {}), ...Object.values(expensifyCards ?? {})];
         const cardIDs = new Set();
         const uniqueObjects = allCards.filter((obj) => {
             if (cardIDs.has(obj.cardID)) {
@@ -104,7 +105,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         });
 
         return Object.values(uniqueObjects ?? {}).filter((card) => card.accountID === accountID && workspaceAccountID.toString() === card.fundID);
-    }, [accountID, workspaceAccountID, companyCards, expensifyCards]);
+    }, [accountID, workspaceAccountID, cards, expensifyCards]);
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
