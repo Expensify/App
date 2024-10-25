@@ -57,6 +57,11 @@ function PhoneNumberPage() {
             if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode.slice(0))) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
             }
+
+            // Clear the error when the user tries to validate the form and there are errors
+            if (validateLoginError && !!errors) {
+                PersonalDetails.clearPhoneNumberError();
+            }
             return errors;
         },
         [translate],
