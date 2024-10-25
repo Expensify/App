@@ -186,6 +186,11 @@ jobs:
       - name: Update submodule
         run: |
           git submodule update --init
+          # TODO: REMOVE THESE LINES BEFORE MERGING
+          cd ..
+          git config -f .gitmodules submodule.react-native.branch andrew-mobile-deploy
+          cd react-native
+          git branch -u origin/andrew-mobile-deploy andrew-mobile-deploy
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -490,6 +495,11 @@ jobs:
       - name: Update submodule
         run: |
           git submodule update --init
+          # TODO: REMOVE THESE LINES BEFORE MERGING
+          cd ..
+          git config -f .gitmodules submodule.react-native.branch andrew-mobile-deploy
+          cd react-native
+          git branch -u origin/andrew-mobile-deploy andrew-mobile-deploy
 
       - name: Configure MapBox SDK
         run: |
