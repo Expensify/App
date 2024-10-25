@@ -389,3 +389,24 @@ Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-243338180
 5. Click Group name field.
 6. Click Save.
 7. Verify if the app returs to group details RHP after saving group name.
+#### Going up to a screen with any params
+
+Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-2432694948
+
+1. Press the FAB.
+2. Select "Book travel".
+3. Press "Book travel" in the new RHP pane.
+4. Press "Country".
+5. Select any country.
+6. Verify that the country you selected is actually visible in the form.
+
+### Change params of existing attachments screens instead of pushing new screen on the stack
+
+Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-2432360626
+
+1. Open any chat.
+2. Send at least two images.
+3. Open attachment by pressing on image.
+4. Press arrow on the side of attachment modal to navigate to the second image.
+5. Close the modal with X in the corner.
+6. Verify that the modal is now fully closed.

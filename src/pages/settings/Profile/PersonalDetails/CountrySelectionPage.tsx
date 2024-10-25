@@ -18,7 +18,7 @@ import type SCREENS from '@src/SCREENS';
 
 type CountrySelectionPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY>;
 
-function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
+function CountrySelectionPage({route}: CountrySelectionPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
     const currentCountry = route.params.country;
@@ -44,19 +44,16 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
     const selectCountry = useCallback(
         (option: CountryData) => {
             const backTo = route.params.backTo ?? '';
-            // Check the navigation state and "backTo" parameter to decide navigation behavior
-            if (navigation.getState().routes.length === 1 && !backTo) {
-                // If there is only one route and "backTo" is empty, go back in navigation
+
+            // Check the "backTo" parameter to decide navigation behavior
+            if (!backTo) {
                 Navigation.goBack();
-            } else if (!!backTo && navigation.getState().routes.length === 1) {
-                // If "backTo" is not empty and there is only one route, go back to the specific route defined in "backTo" with a country parameter
-                Navigation.goBack(appendParam(backTo, 'country', option.value));
             } else {
-                // Otherwise, navigate to the specific route defined in "backTo" with a country parameter
-                Navigation.navigate(appendParam(backTo, 'country', option.value));
+                // Set compareParams to false because we want to goUp to this particular screen and update params (country).
+                Navigation.goUp(appendParam(backTo, 'country', option.value), {compareParams: false});
             }
         },
-        [route, navigation],
+        [route],
     );
 
     return (
