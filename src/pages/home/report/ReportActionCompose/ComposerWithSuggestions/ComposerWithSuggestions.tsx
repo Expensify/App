@@ -14,7 +14,7 @@ import type {
 import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
@@ -298,13 +298,13 @@ function ComposerWithSuggestions(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const parentReportAction = parentReportActions?.[parentReportActionID ?? '-1'];
     const shouldAutoFocus =
         !modal?.isVisible &&
         Modal.areAllModalsHidden() &&
         isFocused &&
-        (shouldFocusInputOnScreenFocus ||
-            (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction) && !ReportActionsUtils.isCreatedTaskReportAction(parentReportAction))) &&
+        (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction) && !ReportUtils.isTaskReport(report))) &&
         shouldShowComposeInput;
 
     const valueRef = useRef(value);
