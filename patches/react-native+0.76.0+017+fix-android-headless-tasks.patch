@@ -1,0 +1,48 @@
+diff --git a/node_modules/react-native/Libraries/ReactNative/AppRegistry.js b/node_modules/react-native/Libraries/ReactNative/AppRegistry.js
+index 9908ec7..cdd37a3 100644
+--- a/node_modules/react-native/Libraries/ReactNative/AppRegistry.js
++++ b/node_modules/react-native/Libraries/ReactNative/AppRegistry.js
+@@ -13,7 +13,7 @@ import type {RootTag} from '../Types/RootTagTypes';
+ import type {IPerformanceLogger} from '../Utilities/createPerformanceLogger';
+ import type {DisplayModeType} from './DisplayMode';
+ 
+-import BatchedBridge from '../BatchedBridge/BatchedBridge';
++import registerCallableModule from '../Core/registerCallableModule';
+ import BugReporting from '../BugReporting/BugReporting';
+ import createPerformanceLogger from '../Utilities/createPerformanceLogger';
+ import infoLog from '../Utilities/infoLog';
+@@ -385,8 +385,8 @@ global.RN$SurfaceRegistry = {
+ 
+ if (global.RN$Bridgeless === true) {
+   console.log('Bridgeless mode is enabled');
+-} else {
+-  BatchedBridge.registerCallableModule('AppRegistry', AppRegistry);
+ }
+ 
++registerCallableModule('AppRegistry', AppRegistry);
++
+ module.exports = AppRegistry;
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/HeadlessJsTaskService.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/HeadlessJsTaskService.java
+index c5dfeb3..d4a5e5e 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/HeadlessJsTaskService.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/HeadlessJsTaskService.java
+@@ -125,14 +125,11 @@ public abstract class HeadlessJsTaskService extends Service implements HeadlessJ
+   public void onDestroy() {
+     super.onDestroy();
+ 
+-    if (getReactNativeHost().hasInstance()) {
+-      ReactInstanceManager reactInstanceManager = getReactNativeHost().getReactInstanceManager();
+-      ReactContext reactContext = reactInstanceManager.getCurrentReactContext();
+-      if (reactContext != null) {
+-        HeadlessJsTaskContext headlessJsTaskContext =
+-            HeadlessJsTaskContext.getInstance(reactContext);
+-        headlessJsTaskContext.removeTaskEventListener(this);
+-      }
++    ReactContext reactContext = getReactContext();
++
++    if (reactContext != null) {
++      HeadlessJsTaskContext headlessJsTaskContext = HeadlessJsTaskContext.getInstance(reactContext);
++      headlessJsTaskContext.removeTaskEventListener(this);
+     }
+     if (sWakeLock != null) {
+       sWakeLock.release();
