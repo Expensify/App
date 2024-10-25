@@ -266,7 +266,7 @@ jobs:
 
       - name: Upload Android build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/home/runner/work/App/App/Mobile-Expensify/Android/build/outputs/bundle/release/Expensify-release.aab"
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.aabPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
@@ -283,7 +283,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-build-artifact
-          path: /home/runner/work/App/App/Mobile-Expensify/Android/build/outputs/bundle/release/Expensify-release.aab
+          path: ${{ env.aabPath }}
 
       - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
@@ -600,7 +600,7 @@ jobs:
 
       - name: Upload iOS build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@Expensify.ipa"
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.ipaPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
@@ -617,7 +617,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-build-artifact
-          path: Expensify.ipa
+          path: ${{ env.ipaPath }}
 
   #      - name: Warn deployers if iOS production deploy failed
   #        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
