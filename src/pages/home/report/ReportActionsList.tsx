@@ -202,9 +202,9 @@ function ReportActionsList({
     const lastAction = sortedVisibleReportActions.at(0);
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
         () =>
-            sortedVisibleReportActions.reduce((acc, action) => {
-                Object.assign(acc, {[action.reportActionID]: action});
-                return acc;
+            sortedVisibleReportActions.reduce((actions, action) => {
+                Object.assign(actions, {[action.reportActionID]: action});
+                return actions;
             }, {}),
         [sortedVisibleReportActions],
     );
