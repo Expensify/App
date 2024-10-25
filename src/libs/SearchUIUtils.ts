@@ -290,9 +290,10 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    // if (IOU.canReportBeSubmitted(report, policy, currentUserAccountID, transaction)) {
-    //     return CONST.SEARCH.ACTION_TYPES.SUBMIT;
-    // }
+    // TODO: update allHavePendingRTERViolation to take in array of transactions
+    if (IOU.canReportBeSubmitted(report, policy, currentUserAccountID, transaction)) {
+        return CONST.SEARCH.ACTION_TYPES.SUBMIT;
+    }
 
     // const hasViolations = isTransactionEntry(key) ? TransactionUtils.hasViolation(transaction.transactionID, violations) : ReportUtils.hasViolations(report.reportID, allViolations);
     // if (hasViolations) {

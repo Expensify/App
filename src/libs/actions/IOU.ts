@@ -7108,7 +7108,7 @@ function canReportBeSubmitted(
     moneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
     currentUserAccountID: number,
-    transaction?: OnyxTypes.Transaction,
+    transaction?: OnyxTypes.Transaction | SearchTransaction,
 ) {
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
