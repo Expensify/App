@@ -36,7 +36,6 @@ import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {isExpenseReport} from './ReportUtils';
 import {getAllReportTransactions, getCategory, getTag} from './TransactionUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -528,30 +527,28 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
     const defaultApprover = getDefaultApprover(policy);
 
-    if (isExpenseReport(expenseReport)) {
-        let categoryAppover;
-        let tagApprover;
-        const allTransactions = getAllReportTransactions(expenseReport?.reportID).sort((transA, transB) => (transA.created < transB.created ? -1 : 1));
+    let categoryAppover;
+    let tagApprover;
+    const allTransactions = getAllReportTransactions(expenseReport?.reportID).sort((transA, transB) => (transA.created < transB.created ? -1 : 1));
 
-        // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
-        // Category approvers are prioritized, then tag approvers.
-        for (let i = 0; i < allTransactions.length; i++) {
-            const transaction = allTransactions.at(i);
-            const tag = getTag(transaction);
-            const category = getCategory(transaction);
-            categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
-            if (categoryAppover) {
-                return getAccountIDsByLogins([categoryAppover]).at(0) ?? -1;
-            }
-
-            if (!tagApprover && getTagApproverRule(policy?.id ?? '-1', tag)?.approver) {
-                tagApprover = getTagApproverRule(policy?.id ?? '-1', tag)?.approver;
-            }
+    // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
+    // Category approvers are prioritized, then tag approvers.
+    for (let i = 0; i < allTransactions.length; i++) {
+        const transaction = allTransactions.at(i);
+        const tag = getTag(transaction);
+        const category = getCategory(transaction);
+        categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
+        if (categoryAppover) {
+            return getAccountIDsByLogins([categoryAppover]).at(0) ?? -1;
         }
 
-        if (tagApprover) {
-            return getAccountIDsByLogins([tagApprover]).at(0) ?? -1;
+        if (!tagApprover && getTagApproverRule(policy?.id ?? '-1', tag)?.approver) {
+            tagApprover = getTagApproverRule(policy?.id ?? '-1', tag)?.approver;
         }
+    }
+
+    if (tagApprover) {
+        return getAccountIDsByLogins([tagApprover]).at(0) ?? -1;
     }
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
