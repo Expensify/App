@@ -1,0 +1,28 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/build.gradle b/node_modules/@expensify/react-native-live-markdown/android/build.gradle
+index 5aff2c7..b21072c 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/build.gradle
++++ b/node_modules/@expensify/react-native-live-markdown/android/build.gradle
+@@ -192,6 +192,6 @@ tasks.preBuild {
+   dependsOn copyJS
+ }
+ 
+-tasks.withType(JavaCompile).configureEach {
+-  options.compilerArgs << "-Xlint:all" << "-Werror"
+-}
++// tasks.withType(JavaCompile).configureEach {
++//   options.compilerArgs << "-Xlint:all" << "-Werror"
++// }
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/spans/MarkdownLineHeightSpan.java b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/spans/MarkdownLineHeightSpan.java
+index 3f4c33f..8256e31 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/spans/MarkdownLineHeightSpan.java
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/spans/MarkdownLineHeightSpan.java
+@@ -12,7 +12,7 @@ public class MarkdownLineHeightSpan implements MarkdownSpan, LineHeightSpan {
+ 
+   @Override
+   public void chooseHeight(CharSequence text, int start, int end, int spanstartv, int lineHeight, Paint.FontMetricsInt fm) {
+-    fm.top -= mLineHeight / 4;
+-    fm.ascent -= mLineHeight / 4;
++    fm.top -= (int) (mLineHeight / 4);
++    fm.ascent -= (int) (mLineHeight / 4);
+   }
+ }
