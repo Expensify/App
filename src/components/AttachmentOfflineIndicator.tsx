@@ -37,7 +37,7 @@ function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndica
     return (
         <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter, styles.pAbsolute, styles.h100, styles.w100, isPreview && styles.hoveredComponentBG]}>
             <Icon
-                fill={theme.border}
+                fill={theme.icon}
                 src={Expensicons.OfflineCloud}
                 width={variables.iconSizeSuperLarge}
                 height={variables.iconSizeSuperLarge}

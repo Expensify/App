@@ -3,6 +3,7 @@ import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/glob
 import {toZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -756,5 +757,83 @@ describe('actions/Report', () => {
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`];
                 expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             });
+    });
+
+    it.only('should send only one OpenReport, replacing any extra ones with same reportIDs', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        const REPORT_ID = '1';
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        for (let i = 0; i < 5; i++) {
+            Report.openReport(REPORT_ID, undefined, ['test@user.com'], {
+                isOptimisticReport: true,
+                reportID: REPORT_ID,
+            });
+        }
+
+        expect(PersistedRequests.getAll().length).toBe(1);
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+    });
+
+    it.only('should replace duplicate OpenReport commands with the same reportID', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        const REPORT_ID = '1';
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        for (let i = 0; i < 8; i++) {
+            let reportID = REPORT_ID;
+            if (i > 4) {
+                reportID = `${i}`;
+            }
+            Report.openReport(reportID, undefined, ['test@user.com'], {
+                isOptimisticReport: true,
+                reportID: REPORT_ID,
+            });
+        }
+
+        expect(PersistedRequests.getAll().length).toBe(4);
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 4);
+    });
+
+    it('it should only send the last sequential UpdateComment request to BE', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        const reportID = '123';
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        const action: OnyxEntry<OnyxTypes.ReportAction> = {
+            reportID,
+            reportActionID: '722',
+            actionName: 'ADDCOMMENT',
+            created: '2024-10-21 10:37:59.881',
+        };
+
+        Report.editReportComment(reportID, action, 'value1');
+        Report.editReportComment(reportID, action, 'value2');
+        Report.editReportComment(reportID, action, 'value3');
+
+        const requests = PersistedRequests?.getAll();
+
+        expect(requests.length).toBe(1);
+        expect(requests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
+        expect(requests?.at(0)?.data?.reportComment).toBe('value3');
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
     });
 });
