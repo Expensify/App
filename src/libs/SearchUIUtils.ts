@@ -272,10 +272,9 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
 
-    // TODO: create function to determine if report is done
-    // if (ReportUtils.isSettled(report?.reportID)) {
-    //     return CONST.SEARCH.ACTION_TYPES.DONE;
-    // }
+    if (ReportUtils.isClosedReport(report)) {
+        return CONST.SEARCH.ACTION_TYPES.DONE;
+    }
 
     // if (IOU.canIOUBePaid(report, chatReport, policy, allTransactions, false)) {
     //     return CONST.SEARCH.ACTION_TYPES.PAY;
