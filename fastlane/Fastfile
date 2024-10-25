@@ -186,7 +186,7 @@ platform :android do
       ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
       upload_to_play_store(
         package_name: "org.me.mobiexpensifyg",
-        json_key: './android/app/android-fastlane-json-key.json',
+        json_key: './android-fastlane-json-key.json',
         aab: ENV[KEY_GRADLE_AAB_PATH],
         track: 'alpha',
         rollout: '1.0'

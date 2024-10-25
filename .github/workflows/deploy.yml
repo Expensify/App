@@ -180,7 +180,6 @@ jobs:
         with:
           repository: 'Expensify/Mobile-Expensify'
           submodules: true
-          fetch-depth: 0
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -487,7 +486,6 @@ jobs:
         with:
           repository: 'Expensify/Mobile-Expensify'
           submodules: true
-          fetch-depth: 0
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
