@@ -7,14 +7,8 @@ const ReactCompilerConfig = {
     environment: {
         enableTreatRefLikeIdentifiersAsRefs: true,
     },
-    sources: (filename) => {
-        // We exclude 'tests' directory from compilation, but still compile components imported in test files.
-        if (filename.includes('tests/') || filename.includes('node_modules/')) {
-            return false;
-        }
-
-        return true;
-    },
+    // We exclude 'tests' directory from compilation, but still compile components imported in test files.
+    sources: (filename) => !filename.includes('tests/') || !filename.includes('node_modules/'),
 };
 
 /**
