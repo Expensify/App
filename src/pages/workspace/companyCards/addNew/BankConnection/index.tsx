@@ -19,14 +19,18 @@ import openBankConnection from './openBankConnection';
 
 let customWindow: Window | null = null;
 
-function BankConnection() {
+type BankConnectionStepProps = {
+    policyID?: string;
+};
+
+function BankConnection({policyID}: BankConnectionStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = addNewCard?.data?.selectedBank;
     const currentUrl = getCurrentUrl();
     const isBankConnectionCompleteRoute = currentUrl.includes(ROUTES.BANK_CONNECTION_COMPLETE);
-    const url = getCompanyCardBankConnection(bankName);
+    const url = getCompanyCardBankConnection(policyID, bankName);
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {

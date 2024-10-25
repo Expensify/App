@@ -146,6 +146,9 @@ function ScreenWrapper(
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
@@ -159,6 +162,7 @@ function ScreenWrapper(
 
     const isKeyboardShownRef = useRef<boolean>(false);
 
+    // eslint-disable-next-line react-compiler/react-compiler
     isKeyboardShownRef.current = keyboardState?.isKeyboardShown ?? false;
 
     const panResponder = useRef(

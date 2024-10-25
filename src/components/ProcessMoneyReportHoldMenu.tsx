@@ -60,7 +60,8 @@ function ProcessMoneyReportHoldMenu({
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
-    // We need to use shouldUseNarrowLayout instead of shouldUseNarrowLayout to apply the correct modal type
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const onSubmit = (full: boolean) => {
