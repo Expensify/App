@@ -255,6 +255,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 
         if (onboardingModalNavigator) {
             if (onboardingModalNavigator.state) {
+                // Build the routes list based on the current onboarding step, so going back will go to the previous step instead of closing the onboarding flow
                 routes.push({
                     ...onboardingModalNavigator,
                     state: getOnboardingAdaptedState(onboardingModalNavigator.state),
