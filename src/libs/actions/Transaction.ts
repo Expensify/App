@@ -127,7 +127,8 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
     if (!recentWaypointAlreadyExists && waypoint !== null) {
         const clonedWaypoints = lodashClone(recentWaypoints);
-        clonedWaypoints.unshift(waypoint);
+        const updatedWaypoint = {...waypoint, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        clonedWaypoints.unshift(updatedWaypoint);
         Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER));
     }
 }
@@ -135,6 +136,9 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
 function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean): Promise<void | void[]> {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
+    if (index === -1) {
+        return Promise.resolve();
+    }
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
     const totalWaypoints = Object.keys(existingWaypoints).length;
 
@@ -144,7 +148,7 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
         return Promise.resolve();
     }
 
-    const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0] ?? {});
+    const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed.at(0) ?? {});
 
     // When there are only two waypoints we are adding empty waypoint back
     if (totalWaypoints === 2 && (index === 0 || index === totalWaypoints - 1)) {
@@ -476,6 +480,20 @@ function mockGetBackupRoute(transactionID: string) {
 
 
 /**
+ * Sanitizes the waypoints by removing the pendingAction property.
+ *
+ * @param waypoints - The collection of waypoints to sanitize.
+ * @returns The sanitized collection of waypoints.
+ */
+function sanitizeRecentWaypoints(waypoints: WaypointCollection): WaypointCollection {
+    return Object.entries(waypoints).reduce((acc, [key, waypoint]) => {
+        const {pendingAction, ...rest} = waypoint as RecentWaypoint;
+        acc[key] = rest;
+        return acc;
+    }, {} as WaypointCollection);
+}
+
+/**
  * Gets the route for a set of waypoints
  * Used so we can generate a map view of the provided waypoints
  */
@@ -491,7 +509,7 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
     
     const parameters: GetRouteParams = {
         transactionID,
-        waypoints: JSON.stringify(waypoints),
+        waypoints: JSON.stringify(sanitizeRecentWaypoints(waypoints)),
     };
 
     let command;
@@ -567,7 +585,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticDissmidedViolationReportActions[index].reportActionID]: optimisticDissmidedViolationReportActions[index] as ReportAction,
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
         },
     }));
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
@@ -615,7 +633,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticDissmidedViolationReportActions[index].reportActionID]: null,
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: null,
         },
     }));
 
@@ -627,7 +645,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticDissmidedViolationReportActions[index].reportActionID]: {
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: {
                 pendingAction: null,
             },
         },
@@ -723,6 +741,18 @@ function openDraftDistanceExpense() {
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
 
+function getRecentWaypoints() {
+    return recentWaypoints;
+}
+
+function getAllTransactionViolationsLength() {
+    return allTransactionViolations.length;
+}
+
+function getAllTransactions() {
+    return Object.keys(allTransactions ?? {}).length;
+}
+
 export {
     addStop,
     createInitialWaypoints,
@@ -736,4 +766,8 @@ export {
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
+    getRecentWaypoints,
+    sanitizeRecentWaypoints,
+    getAllTransactionViolationsLength,
+    getAllTransactions,
 };

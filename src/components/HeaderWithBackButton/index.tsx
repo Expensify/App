@@ -7,6 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -60,6 +61,7 @@ function HeaderWithBackButton({
     shouldOverlayDots = false,
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
+    shouldDisplaySearchRouter = false,
     progressBarPercentage,
     style,
 }: HeaderWithBackButtonProps) {
@@ -262,6 +264,7 @@ function HeaderWithBackButton({
                         </Tooltip>
                     )}
                 </View>
+                {shouldDisplaySearchRouter && <SearchButton style={styles.mr5} />}
             </View>
         </View>
     );

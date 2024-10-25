@@ -21,6 +21,7 @@ const defaultPlugins = [
 
     '@babel/transform-runtime',
     '@babel/plugin-proposal-class-properties',
+    ['@babel/plugin-transform-object-rest-spread', {useBuiltIns: true, loose: true}],
 
     // We use `@babel/plugin-transform-class-properties` for transforming ReactNative libraries and do not use it for our own
     // source code transformation as we do not use class property assignment.

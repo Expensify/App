@@ -14,11 +14,11 @@ function AccountingConnectionConfirmationModal({integrationToConnect, onCancel, 
 
     return (
         <ConfirmModal
-            title={translate('workspace.accounting.connectTitle', integrationToConnect)}
+            title={translate('workspace.accounting.connectTitle', {connectionName: integrationToConnect})}
             isVisible
             onConfirm={onConfirm}
             onCancel={onCancel}
-            prompt={translate('workspace.accounting.connectPrompt', integrationToConnect)}
+            prompt={translate('workspace.accounting.connectPrompt', {connectionName: integrationToConnect})}
             confirmText={translate('workspace.accounting.setup')}
             cancelText={translate('common.cancel')}
             success

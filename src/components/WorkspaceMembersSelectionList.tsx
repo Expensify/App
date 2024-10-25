@@ -94,7 +94,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
         setApprover(approver.login);
     };
 
-    const headerMessage = useMemo(() => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
+    const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
 
     return (
         <SelectionList

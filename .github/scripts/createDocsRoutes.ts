@@ -93,7 +93,10 @@ function pushOrCreateEntry<TKey extends HubEntriesKey>(hubs: Hub[], hub: string,
 }
 
 function getOrderFromArticleFrontMatter(path: string): number | undefined {
-    const frontmatter = fs.readFileSync(path, 'utf8').split('---')[1];
+    const frontmatter = fs.readFileSync(path, 'utf8').split('---').at(1);
+    if (!frontmatter) {
+        return;
+    }
     const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
     return frontmatterObject.order as number | undefined;
 }

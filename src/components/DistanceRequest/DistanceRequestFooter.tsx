@@ -107,7 +107,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                     pitchEnabled={false}
                     initialState={{
                         zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                        location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
+                        location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
                     }}
                     directionCoordinates={(transaction?.routes?.route0?.geometry?.coordinates as Array<[number, number]>) ?? []}
                     style={[styles.mapView, styles.mapEditView]}

@@ -30,7 +30,7 @@ function WorkspacesSectionHeader() {
             </View>
             <Tooltip text={translate('workspace.new.newWorkspace')}>
                 <PressableWithFeedback
-                    accessible={false}
+                    accessibilityLabel={translate('workspace.new.newWorkspace')}
                     role={CONST.ROLE.BUTTON}
                     onPress={() => {
                         const activeRoute = Navigation.getActiveRouteWithoutParams();

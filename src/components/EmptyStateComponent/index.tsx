@@ -18,10 +18,10 @@ function EmptyStateComponent({
     SkeletonComponent,
     headerMediaType,
     headerMedia,
-    buttonText,
-    buttonAction,
+    buttons,
     containerStyles,
     title,
+    titleStyles,
     subtitle,
     headerStyles,
     headerContentStyles,
@@ -30,7 +30,7 @@ function EmptyStateComponent({
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
         if (!event) {
@@ -82,7 +82,10 @@ function EmptyStateComponent({
     }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo, lottieWebViewStyles]);
 
     return (
-        <ScrollView contentContainerStyle={[styles.emptyStateScrollView, {minHeight: minModalHeight}, containerStyles]}>
+        <ScrollView
+            contentContainerStyle={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}
+            style={styles.flex1}
+        >
             <View style={styles.skeletonBackground}>
                 <SkeletonComponent
                     gradientOpacityEnabled
@@ -92,18 +95,25 @@ function EmptyStateComponent({
             <View style={styles.emptyStateForeground}>
                 <View style={styles.emptyStateContent}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
-                    <View style={isSmallScreenWidth ? styles.p5 : styles.p8}>
-                        <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{title}</Text>
-                        <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
-                        {!!buttonText && !!buttonAction && (
-                            <Button
-                                success
-                                onPress={buttonAction}
-                                text={buttonText}
-                                style={[styles.mt5]}
-                                large
-                            />
-                        )}
+                    <View style={shouldUseNarrowLayout ? styles.p5 : styles.p8}>
+                        <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
+                        {typeof subtitle === 'string' ? <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text> : subtitle}
+                        <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : undefined]}>
+                            {buttons?.map(({buttonText, buttonAction, success}, index) => (
+                                <View
+                                    // eslint-disable-next-line react/no-array-index-key
+                                    key={index}
+                                    style={styles.flex1}
+                                >
+                                    <Button
+                                        success={success}
+                                        onPress={buttonAction}
+                                        text={buttonText}
+                                        large
+                                    />
+                                </View>
+                            ))}
+                        </View>
                     </View>
                 </View>
             </View>

@@ -46,12 +46,12 @@ function findFirstItem<TResource>(sortedItems: TResource[], page: string[], getI
  */
 function findLastItem<TResource>(sortedItems: TResource[], page: string[], getID: (item: TResource) => string): ItemWithIndex | null {
     for (let i = page.length - 1; i >= 0; i--) {
-        const id = page[i];
+        const id = page.at(i);
         if (id === CONST.PAGINATION_END_ID) {
             return {id, index: sortedItems.length - 1};
         }
         const index = sortedItems.findIndex((item) => getID(item) === id);
-        if (index !== -1) {
+        if (index !== -1 && id) {
             return {id, index};
         }
     }
@@ -121,10 +121,15 @@ function mergeAndSortContinuousPages<TResource>(sortedItems: TResource[], pages:
         return b.lastIndex - a.lastIndex;
     });
 
-    const result = [sortedPages[0]];
+    const result = [sortedPages.at(0)];
     for (let i = 1; i < sortedPages.length; i++) {
-        const page = sortedPages[i];
-        const prevPage = result[result.length - 1];
+        const page = sortedPages.at(i);
+        const prevPage = result.at(-1);
+
+        if (!page || !prevPage) {
+            // eslint-disable-next-line no-continue
+            continue;
+        }
 
         // Current page is inside the previous page, skip
         if (page.lastIndex <= prevPage.lastIndex && page.lastID !== CONST.PAGINATION_END_ID) {
@@ -151,45 +156,67 @@ function mergeAndSortContinuousPages<TResource>(sortedItems: TResource[], pages:
         result.push(page);
     }
 
-    return result.map((page) => page.ids);
+    return result.map((page) => page?.ids ?? []);
 }
 
 /**
  * Returns the page of items that contains the item with the given ID, or the first page if null.
+ * Also returns whether next / previous pages can be fetched.
  * See unit tests for example of inputs and expected outputs.
  *
  * Note: sortedItems should be sorted in descending order.
  */
-function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, getID: (item: TResource) => string, id?: string): TResource[] {
+function getContinuousChain<TResource>(
+    sortedItems: TResource[],
+    pages: Pages,
+    getID: (item: TResource) => string,
+    id?: string,
+): {data: TResource[]; hasNextPage: boolean; hasPreviousPage: boolean} {
     if (pages.length === 0) {
-        return id ? [] : sortedItems;
+        return {data: id ? [] : sortedItems, hasNextPage: false, hasPreviousPage: false};
     }
 
     const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getID);
 
-    let page: PageWithIndex;
+    let page: PageWithIndex = {
+        ids: [],
+        firstID: '',
+        firstIndex: 0,
+        lastID: '',
+        lastIndex: 0,
+    };
 
     if (id) {
         const index = sortedItems.findIndex((item) => getID(item) === id);
 
         // If we are linking to an action that doesn't exist in Onyx, return an empty array
         if (index === -1) {
-            return [];
+            return {data: [], hasNextPage: false, hasPreviousPage: false};
         }
 
         const linkedPage = pagesWithIndexes.find((pageIndex) => index >= pageIndex.firstIndex && index <= pageIndex.lastIndex);
 
+        const item = sortedItems.at(index);
         // If we are linked to an action in a gap return it by itself
-        if (!linkedPage) {
-            return [sortedItems[index]];
+        if (!linkedPage && item) {
+            return {data: [item], hasNextPage: false, hasPreviousPage: false};
         }
 
-        page = linkedPage;
+        if (linkedPage) {
+            page = linkedPage;
+        }
     } else {
-        page = pagesWithIndexes[0];
+        const pageAtIndex0 = pagesWithIndexes.at(0);
+        if (pageAtIndex0) {
+            page = pageAtIndex0;
+        }
     }
 
-    return page ? sortedItems.slice(page.firstIndex, page.lastIndex + 1) : sortedItems;
+    if (!page) {
+        return {data: sortedItems, hasNextPage: false, hasPreviousPage: false};
+    }
+
+    return {data: sortedItems.slice(page.firstIndex, page.lastIndex + 1), hasNextPage: page.lastID !== CONST.PAGINATION_END_ID, hasPreviousPage: page.firstID !== CONST.PAGINATION_START_ID};
 }
 
 export default {mergeAndSortContinuousPages, getContinuousChain};

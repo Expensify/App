@@ -41,7 +41,7 @@ function getExportMenuItem(
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO: {
             const type = nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}`) : undefined;
-            const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, type) : undefined;
+            const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', {integration: currentConnectionName, type}) : undefined;
             let data: Account[];
             let title: string | undefined = '';
             let exportType: string | undefined = '';
@@ -75,7 +75,7 @@ function getExportMenuItem(
         }
         case CONST.POLICY.CONNECTIONS.NAME.XERO: {
             const type = translate('workspace.xero.xeroBankAccount');
-            const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, type) : undefined;
+            const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', {integration: currentConnectionName, type}) : undefined;
             const exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_XERO_EXPORT_BANK_ACCOUNT;
             return {
                 description,
@@ -91,7 +91,7 @@ function getExportMenuItem(
                 : undefined;
             let title: string | undefined = '';
             let exportType: string | undefined = '';
-            const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, type) : undefined;
+            const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', {integration: currentConnectionName, type}) : undefined;
             let data: SelectorType[];
             switch (config?.nonreimbursableExpensesExportDestination) {
                 case CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL:
@@ -119,7 +119,7 @@ function getExportMenuItem(
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
             const isVendor = exportConfig?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL;
             const type = exportConfig?.nonReimbursable ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`) : undefined;
-            const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, type) : undefined;
+            const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', {integration: currentConnectionName, type}) : undefined;
             const activeDefaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
 
             return {

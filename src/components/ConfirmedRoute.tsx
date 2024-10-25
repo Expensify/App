@@ -112,7 +112,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
             pitchEnabled={false}
             initialState={{
                 zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
+                location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
             }}
             directionCoordinates={coordinates as Array<[number, number]>}
             style={[styles.mapView, shouldHaveBorderRadius && styles.br4]}

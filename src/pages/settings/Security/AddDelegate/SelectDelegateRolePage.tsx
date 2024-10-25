@@ -23,8 +23,8 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
         value: role,
-        text: translate('delegate.role', role),
-        alternateText: translate('delegate.roleDescription', role),
+        text: translate('delegate.role', {role}),
+        alternateText: translate('delegate.roleDescription', {role}),
         isSelected: role === route.params.role,
         keyForList: role,
     }));
