@@ -405,6 +405,7 @@ function WorkspacesListPage() {
                         />
                     </View>
                 </ScrollView>
+                {shouldUseNarrowLayout && <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
             </ScreenWrapper>
         );
     }
