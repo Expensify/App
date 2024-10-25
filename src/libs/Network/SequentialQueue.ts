@@ -8,7 +8,7 @@ import * as QueuedOnyxUpdates from '@userActions/QueuedOnyxUpdates';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
-import {ConflictActionData, ConflictData} from '@src/types/onyx/Request';
+import type {ConflictData} from '@src/types/onyx/Request';
 import * as NetworkStore from './NetworkStore';
 
 type RequestError = Error & {
