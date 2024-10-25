@@ -218,7 +218,7 @@ function goUp(fallbackRoute: Route) {
         return;
     }
 
-    const distanceToPop = targetState.routes.length - indexOfFallbackRoute - 1;
+    const distanceToPop = targetState.routes.length - indexOfFallbackRoute;
     navigationRef.current.dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
 }
 

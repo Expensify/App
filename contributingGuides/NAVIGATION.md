@@ -343,3 +343,14 @@ Linked issue: https://github.com/Expensify/App/pull/44138
 3. Press reply in thread. 
 4. Press the "From" link in the displayed header.
 5. Verify if the link correctly redirects to the chat opened in the first step.
+
+#### QBO - Preferred exporter/Export date tab do not auto-close after value selected
+
+Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-2433342220
+
+Precondition: Workspace with QBO integration connected.
+
+1. Go to Workspace > Accounting.
+2. Click on Export > Preferred exporter (or Export date).
+3. Click on value.
+4. Verify if the value chosen in the third step is selected and the app redirects to the Export page.
