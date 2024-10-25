@@ -79,4 +79,18 @@ describe('RequestConflictUtils', () => {
             expect(result).toEqual({conflictAction: {type: 'delete', indices: [0], pushNewRequest: true}});
         },
     );
+
+    it('resolveCommentDeletionConflicts should return push when an OpenReport as thread is found', () => {
+        const reportActionID = '2';
+        const persistedRequests = [
+            {command: 'CloseAccount'},
+            {command: 'AddComment', data: {reportActionID}},
+            {command: 'OpenReport', data: {parentReportActionID: reportActionID}},
+            {command: 'AddComment', data: {reportActionID: '3'}},
+            {command: 'OpenReport'},
+        ];
+        const originalReportID = '1';
+        const result = resolveCommentDeletionConflicts(persistedRequests, reportActionID, originalReportID);
+        expect(result).toEqual({conflictAction: {type: 'push'}});
+    });
 });
