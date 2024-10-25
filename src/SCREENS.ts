@@ -219,6 +219,7 @@ const SCREENS = {
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         RECEIPT: 'Money_Request_Receipt',
         STATE_SELECTOR: 'Money_Request_State_Selector',
+        STEP_ATTENDEES: 'Money_Request_Attendee',
     },
 
     TRANSACTION_DUPLICATE: {

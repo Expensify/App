@@ -253,6 +253,7 @@ function IOURequestStepScan({
                 IOU.requestMoney(
                     report,
                     0,
+                    transaction?.attendees,
                     transaction?.currency ?? 'USD',
                     transaction?.created ?? '',
                     '',
@@ -264,7 +265,7 @@ function IOURequestStepScan({
                 );
             }
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.created, transaction?.currency],
+        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
     );
     const navigateToConfirmationStep = useCallback(
         (file: FileObject, source: string, locationPermissionGranted = false) => {
@@ -346,6 +347,7 @@ function IOURequestStepScan({
                                 IOU.requestMoney(
                                     report,
                                     0,
+                                    transaction?.attendees,
                                     transaction?.currency ?? 'USD',
                                     transaction?.created ?? '',
                                     '',
@@ -389,6 +391,7 @@ function IOURequestStepScan({
         [
             backTo,
             transaction?.isFromGlobalCreate,
+            transaction?.attendees,
             transaction?.currency,
             transaction?.created,
             iouType,
