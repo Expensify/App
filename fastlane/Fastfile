@@ -400,7 +400,7 @@ platform :ios do
   end
 
   desc "Upload HybridApp to TestFlight"
-    lane :upload_testflight do
+    lane :upload_testflight_hybrid do
       upload_to_testflight(
         api_key_path: "./ios/ios-fastlane-json-key.json",
         distribute_external: true,
