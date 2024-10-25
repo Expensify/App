@@ -82,6 +82,14 @@ function isEditFocused(): boolean {
     return !!editComposerRef.current?.isFocused();
 }
 
+/**
+ * Utility function to blur both main composer and edit composer.
+ */
+function blurAll(): void {
+    composerRef.current?.blur();
+    editComposerRef.current?.blur();
+}
+
 export default {
     composerRef,
     onComposerFocus,
@@ -90,4 +98,5 @@ export default {
     isFocused,
     editComposerRef,
     isEditFocused,
+    blurAll,
 };
