@@ -799,17 +799,18 @@ jobs:
 #          mv ./desktop-staging-sourcemaps-artifact/merged-source-map.js.map ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map
 #          mv ./web-staging-sourcemaps-artifact/merged-source-map.js.map ./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map
 #
-#      # TODO: Add HybridApp artifacts to the release
 #      - name: Upload artifacts to GitHub Release
 #        continue-on-error: true
 #        run: |
 #          gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
 #            ./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
 #            ./android-build-artifact/app-production-release.aab \
+#            ./android-build-artifact/Expensify-release.aab#Android-HybridApp.aab \
 #            ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
 #            ./desktop-staging-build-artifact/NewExpensify.dmg#NewExpensifyStaging.dmg \
 #            ./ios-sourcemaps-artifact/main.jsbundle.map#ios-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
 #            ./ios-build-artifact/New\ Expensify.ipa \
+#            ./ios-build-artifact/Expensify.ipa#iOS-HybridApp.ipa \
 #            ./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
 #            ./web-staging-build-tar-gz-artifact/webBuild.tar.gz#stagingWebBuild.tar.gz \
 #            ./web-staging-build-zip-artifact/webBuild.zip#stagingWebBuild.zip
@@ -856,7 +857,6 @@ jobs:
 #          mv ./desktop-sourcemaps-artifact/merged-source-map.js.map ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map
 #          mv ./web-sourcemaps-artifact/merged-source-map.js.map ./web-sourcemaps-artifact/web-merged-source-map.js.map
 #
-#      # TODO: Add HybridApp artifacts to the release
 #      - name: Upload artifacts to GitHub Release
 #        continue-on-error: true
 #        run: |
