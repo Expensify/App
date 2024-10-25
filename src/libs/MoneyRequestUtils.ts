@@ -43,7 +43,7 @@ function addLeadingZero(amount: string): string {
 function amountRegex(decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH): string {
     return decimals === 0
         ? `^\\d{0,${amountMaxLength}}$` // Don't allow decimal point if decimals === 0
-        : `^\\d{0,${amountMaxLength}}(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
+        : `^\\d{0,${amountMaxLength}}(?:(?:\\.|\\,)\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
 }
 
 /**
