@@ -321,7 +321,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
             />
             <SearchRouterList
                 textInputValue={textInputValue}
-                setTextInputValue={onSearchChange}
+                updateSearchValue={onSearchChange}
+                setTextInputValue={setTextInputValue}
                 reportForContextualSearch={contextualReportData}
                 recentSearches={sortedRecentSearches?.slice(0, 5)}
                 recentReports={recentReports}

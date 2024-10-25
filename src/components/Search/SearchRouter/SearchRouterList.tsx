@@ -33,8 +33,11 @@ type SearchRouterListProps = {
     /** value of TextInput */
     textInputValue: string;
 
-    /** Callback to update text input when selecting contextual or autocomplete suggestion */
-    setTextInputValue: (newSearchQuery: string) => void;
+    /** Callback to update text input value along with autocomplete suggestions */
+    updateSearchValue: (newValue: string) => void;
+
+    /** Callback to update text input value */
+    setTextInputValue: (text: string) => void;
 
     /** Recent searches */
     recentSearches: Array<ItemWithQuery & {timestamp: string}> | undefined;
@@ -98,7 +101,8 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 function SearchRouterList(
     {
         textInputValue,
-        setTextInputValue: updateTextInputValue,
+        updateSearchValue: updateTextInputValue,
+        setTextInputValue,
         reportForContextualSearch,
         recentSearches,
         autocompleteItems,
@@ -212,6 +216,26 @@ function SearchRouterList(
         [closeRouter, textInputValue, onSearchSubmit, updateTextInputValue],
     );
 
+    const onArrowFocus = useCallback(
+        (focusedItem: OptionData | SearchQueryItem) => {
+            if (!isSearchQueryItem(focusedItem) || focusedItem.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION || !textInputValue) {
+                return;
+            }
+            const lastColonIndex = textInputValue.lastIndexOf(':');
+            const lastCommaIndex = textInputValue.lastIndexOf(',');
+            const trimmedUserSearchQuery = lastColonIndex > lastCommaIndex ? textInputValue.slice(0, lastColonIndex + 1) : textInputValue.slice(0, lastCommaIndex + 1);
+            setTextInputValue(`${trimmedUserSearchQuery}${focusedItem?.query} `);
+        },
+        [setTextInputValue, textInputValue],
+    );
+
+    const getItemHeight = useCallback((item: OptionData | SearchQueryItem) => {
+        if (isSearchQueryItem(item)) {
+            return 44;
+        }
+        return 64;
+    }, []);
+
     return (
         <SelectionList<OptionData | SearchQueryItem>
             sections={sections}
@@ -220,11 +244,13 @@ function SearchRouterList(
             containerStyle={[styles.mh100]}
             sectionListStyle={[shouldUseNarrowLayout ? styles.ph5 : styles.ph2, styles.pb2]}
             listItemWrapperStyle={[styles.pr3, styles.pl3]}
+            getItemHeight={getItemHeight}
             onLayout={setPerformanceTimersEnd}
             ref={ref}
             showScrollIndicator={!shouldUseNarrowLayout}
             sectionTitleStyles={styles.mhn2}
             shouldSingleExecuteRowSelect
+            onArrowFocus={onArrowFocus}
         />
     );
 }
