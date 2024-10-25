@@ -1002,7 +1002,7 @@ function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<P
         },
     ];
 
-    const parameters: TogglePlatformMuteParams = {authToken, platform};
+    const parameters: TogglePlatformMuteParams = {authToken, platformToMute: platform};
 
     API.write(WRITE_COMMANDS.TOGGLE_PLATFORM_MUTE, parameters, {
         optimisticData,

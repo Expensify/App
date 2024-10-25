@@ -2,7 +2,7 @@ import type Platform from '@libs/getPlatform/types';
 
 type TogglePlatformMuteParams = {
     authToken: string;
-    platform: Platform;
+    platformToMute: Platform;
 };
 
 export default TogglePlatformMuteParams;
