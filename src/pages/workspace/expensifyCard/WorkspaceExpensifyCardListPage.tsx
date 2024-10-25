@@ -47,12 +47,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
     const policy = usePolicy(policyID);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
-    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-
-    const isBankAccountVerified = bankAccountsList?.[paymentBankAccountID]?.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+    const isBankAccountVerified = !!cardOnWaitlist;
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
