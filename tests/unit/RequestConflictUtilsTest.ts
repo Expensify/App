@@ -80,6 +80,20 @@ describe('RequestConflictUtils', () => {
         },
     );
 
+    it('resolveCommentDeletionConflicts should return push when an OpenReport as thread is found', () => {
+        const reportActionID = '2';
+        const persistedRequests = [
+            {command: 'CloseAccount'},
+            {command: 'AddComment', data: {reportActionID}},
+            {command: 'OpenReport', data: {parentReportActionID: reportActionID}},
+            {command: 'AddComment', data: {reportActionID: '3'}},
+            {command: 'OpenReport'},
+        ];
+        const originalReportID = '1';
+        const result = resolveCommentDeletionConflicts(persistedRequests, reportActionID, originalReportID);
+        expect(result).toEqual({conflictAction: {type: 'push'}});
+    });
+
     it('resolveEditCommentWithNewAddCommentRequest should return delete and replace when update comment are found and new comment is added', () => {
         const reportActionID = '2';
         const persistedRequests = [

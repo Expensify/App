@@ -51,14 +51,16 @@ function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], requ
 }
 
 function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], reportActionID: string, originalReportID: string): ConflictActionData {
-    const indices: number[] = [];
+    const commentIndicesToDelete: number[] = [];
     const commentCouldBeThread: Record<string, number> = {};
     let addCommentFound = false;
     persistedRequests.forEach((request, index) => {
         // If the request will open a Thread, we should not delete the comment and we should send all the requests
         if (request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.parentReportActionID === reportActionID && reportActionID in commentCouldBeThread) {
             const indexToRemove = commentCouldBeThread[reportActionID];
-            indices.splice(indexToRemove, 1);
+            commentIndicesToDelete.splice(indexToRemove, 1);
+            // The new message performs some changes in Onyx, we want to keep those changes.
+            addCommentFound = false;
             return;
         }
 
@@ -70,12 +72,12 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
         // doesn't know about it yet.
         if (addNewMessage.has(request.command) && !request.isRollbacked) {
             addCommentFound = true;
-            commentCouldBeThread[reportActionID] = index;
+            commentCouldBeThread[reportActionID] = commentIndicesToDelete.length;
         }
-        indices.push(index);
+        commentIndicesToDelete.push(index);
     });
 
-    if (indices.length === 0) {
+    if (commentIndicesToDelete.length === 0) {
         return {
             conflictAction: {
                 type: 'push',
@@ -100,7 +102,7 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
     return {
         conflictAction: {
             type: 'delete',
-            indices,
+            indices: commentIndicesToDelete,
             pushNewRequest: !addCommentFound,
         },
     };
