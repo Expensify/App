@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {navigateToConciergeChat} from '@libs/actions/Report';
 import type {ObjectType, OnyxDataType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -236,7 +237,10 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                         text={translate('common.delete')}
                         onPress={() => {
                             onDelete();
-                            Navigation.goBack();
+                            // Dismiss the current report screen and replace it with Concierge Chat
+                            Navigation.setShouldPopAllStateOnUP(true);
+                            Navigation.goBack(undefined, undefined, true);
+                            navigateToConciergeChat();
                         }}
                     />
                 </View>
