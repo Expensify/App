@@ -17,7 +17,7 @@ import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNav
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import SearchPageBottomTab from './SearchPageBottomTab';
@@ -33,13 +33,13 @@ function SearchPage({route}: SearchPageProps) {
     const {q, name} = route.params;
 
     const {queryJSON, policyID} = useMemo(() => {
-        const parsedQuery = SearchUtils.buildSearchQueryJSON(q);
-        const extractedPolicyID = parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery);
+        const parsedQuery = SearchQueryUtils.buildSearchQueryJSON(q);
+        const extractedPolicyID = parsedQuery && SearchQueryUtils.getPolicyIDFromSearchQuery(parsedQuery);
 
         return {queryJSON: parsedQuery, policyID: extractedPolicyID};
     }, [q]);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
     const {clearSelectedTransactions} = useSearchContext();
 
     const isSearchNameModified = name === q;

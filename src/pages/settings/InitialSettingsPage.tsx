@@ -333,6 +333,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 isPaneMenu
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
+                                shouldIconUseAutoWidthStyle
                             />
                         );
                     })}

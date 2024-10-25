@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
@@ -44,7 +44,6 @@ const ACCESS_VARIANTS = {
 >;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
-
 type AccessOrNotFoundWrapperChildrenProps = {
     /** The report that holds the transaction */
     report: OnyxEntry<OnyxTypes.Report>;
@@ -85,15 +84,20 @@ type AccessOrNotFoundWrapperProps = {
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
-type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {shouldShowFullScreenFallback: boolean; isMoneyRequest: boolean};
+type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {
+    isFeatureEnabled: boolean;
+    isPolicyNotAccessible: boolean;
+    isMoneyRequest: boolean;
+};
 
-function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageNotFoundViewProps, isMoneyRequest}: PageNotFoundFallbackProps) {
+function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEnabled, isPolicyNotAccessible, isMoneyRequest}: PageNotFoundFallbackProps) {
+    const shouldShowFullScreenFallback = !isFeatureEnabled || isPolicyNotAccessible;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     return (
         <NotFoundPage
             shouldForceFullScreen={shouldShowFullScreenFallback}
             onBackButtonPress={() => {
-                if (shouldShowFullScreenFallback) {
+                if (isPolicyNotAccessible) {
                     Navigation.goUp(ROUTES.SETTINGS_WORKSPACES);
                     return;
                 }
@@ -117,8 +121,8 @@ function AccessOrNotFoundWrapper({
     featureName,
     ...props
 }: AccessOrNotFoundWrapperProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? '-1'}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? '-1'}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
     const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
@@ -161,8 +165,6 @@ function AccessOrNotFoundWrapper({
         setIsPolicyFeatureEnabled(isFeatureEnabled);
     }, [pendingField, isOffline, isFeatureEnabled]);
 
-    const childrenProps = useMemo(() => ({report, policy, isLoadingReportData}), [report, policy, isLoadingReportData]);
-
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;
     }
@@ -172,13 +174,14 @@ function AccessOrNotFoundWrapper({
             <PageNotFoundFallback
                 policyID={policyID}
                 isMoneyRequest={isMoneyRequest}
-                shouldShowFullScreenFallback={!isFeatureEnabled || isPolicyNotAccessible}
+                isFeatureEnabled={isFeatureEnabled}
+                isPolicyNotAccessible={isPolicyNotAccessible}
                 fullPageNotFoundViewProps={fullPageNotFoundViewProps}
             />
         );
     }
 
-    return callOrReturn(props.children, childrenProps);
+    return callOrReturn(props.children, {report, policy, isLoadingReportData});
 }
 
 export type {AccessVariant};

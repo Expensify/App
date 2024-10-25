@@ -8,7 +8,7 @@ import getPolicyIDFromState from '@libs/Navigation/getPolicyIDFromState';
 import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -84,7 +84,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                 const lastRoute = state.routes.at(-1);
                 if (lastRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
                     const currentParams = lastRoute.params as RootStackParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-                    const queryJSON = SearchUtils.buildSearchQueryJSON(currentParams.q);
+                    const queryJSON = SearchQueryUtils.buildSearchQueryJSON(currentParams.q);
                     if (!queryJSON) {
                         return null;
                     }
@@ -97,7 +97,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
 
                     const newAction = StackActions.push(SCREENS.SEARCH.CENTRAL_PANE, {
                         ...currentParams,
-                        q: SearchUtils.buildSearchQueryString(queryJSON),
+                        q: SearchQueryUtils.buildSearchQueryString(queryJSON),
                     });
 
                     setActiveWorkspaceID(action.payload.policyID);
@@ -159,7 +159,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
 
             if (action.type === 'PUSH' && action.payload.name === SCREENS.SEARCH.CENTRAL_PANE) {
                 const currentParams = action.payload.params as RootStackParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-                const queryJSON = SearchUtils.buildSearchQueryJSON(currentParams.q);
+                const queryJSON = SearchQueryUtils.buildSearchQueryJSON(currentParams.q);
 
                 if (!queryJSON) {
                     return null;
@@ -183,7 +183,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                         ...action.payload,
                         params: {
                             ...action.payload.params,
-                            q: SearchUtils.buildSearchQueryString(queryJSON),
+                            q: SearchQueryUtils.buildSearchQueryString(queryJSON),
                         },
                     },
                 };

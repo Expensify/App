@@ -1,7 +1,7 @@
 import {useNavigationState} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import ActiveWorkspaceContext from '@components/ActiveWorkspace/ActiveWorkspaceContext';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -23,12 +23,12 @@ function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
         }
 
         if (queryFromRouteParam) {
-            const queryJSON = SearchUtils.buildSearchQueryJSON(queryFromRouteParam);
+            const queryJSON = SearchQueryUtils.buildSearchQueryJSON(queryFromRouteParam);
             if (!queryJSON) {
                 setActiveWorkspaceID(undefined);
                 return;
             }
-            setActiveWorkspaceID(SearchUtils.getPolicyIDFromSearchQuery(queryJSON));
+            setActiveWorkspaceID(SearchQueryUtils.getPolicyIDFromSearchQuery(queryJSON));
             return;
         }
 
