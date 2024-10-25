@@ -10,6 +10,7 @@ import type {RootStackParamList, StackNavigationAction} from '@navigation/types'
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import getMinimalAction from './getMinimalAction';
 
 function createActionWithPolicyID(action: StackActionType, policyID: string): StackActionType | undefined {
@@ -47,6 +48,10 @@ function shouldCheckFullScreenRouteMatching(action: StackNavigationAction): acti
     return action !== undefined && action.type === 'PUSH' && action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 }
 
+function isNavigatingToAttachmentScreen(focusedRouteName?: string) {
+    return focusedRouteName === SCREENS.ATTACHMENTS;
+}
+
 export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
@@ -59,6 +64,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
     const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
+    const focusedRouteFromPath = findFocusedRoute(stateFromPath);
     const currentState = navigation.getRootState() as NavigationState<RootStackParamList>;
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
@@ -75,7 +81,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     if (type === CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
-    } else if (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
+    }
+    // Attachments screen is a special case where we want to navigate to it without adding it to the browser history.
+    else if (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE && !isNavigatingToAttachmentScreen(focusedRouteFromPath?.name)) {
         // We want to PUSH by default to add entries to the browser history.
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
