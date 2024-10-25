@@ -34,9 +34,13 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
+import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
+import type {SubstitutionMap} from './getQueryWithSubstitutions';
+import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import SearchRouterInput from './SearchRouterInput';
 import SearchRouterList from './SearchRouterList';
-import type {ItemWithQuery} from './SearchRouterList';
+import type {AutocompleteItemData} from './SearchRouterList';
 
 type SearchRouterProps = {
     onRouterClose: () => void;
@@ -48,15 +52,20 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<ItemWithQuery[] | undefined>([]);
+    const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<AutocompleteItemData[] | undefined>([]);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
 
+    const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const [textInputValue, debouncedInputValue, setTextInputValue] = useDebouncedState('', 500);
     const contextualReportID = useNavigationState<Record<string, {reportID: string}>, string | undefined>((state) => {
         return state?.routes.at(-1)?.params?.reportID;
     });
+
+    const cleanQuery = useMemo(() => {
+        return getQueryWithSubstitutions(textInputValue, autocompleteSubstitutions);
+    }, [autocompleteSubstitutions, textInputValue]);
 
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const policy = usePolicy(activeWorkspaceID);
@@ -69,9 +78,11 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const cardAutocompleteList = Object.values(cardList ?? {}).map((card) => card.bank);
     const personalDetailsForParticipants = usePersonalDetails();
     const participantsAutocompleteList = Object.values(personalDetailsForParticipants)
-        .filter((details) => details && details?.login)
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        .map((details) => details?.login as string);
+        .filter((details): details is NonNullable<PersonalDetails> => !!(details && details?.login))
+        .map((details) => ({
+            name: details.login ?? '',
+            accountID: details?.accountID,
+        }));
 
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
@@ -161,8 +172,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                         .slice(0, 10);
                     setAutocompleteSuggestions(
                         filteredTags.map((tagName) => ({
-                            text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG}:${tagName}`,
-                            query: `${SearchQueryUtils.sanitizeSearchValue(tagName)}`,
+                            filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                            text: `${SearchQueryUtils.sanitizeSearchValue(tagName)}`,
                         })),
                     );
                     return;
@@ -177,8 +188,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                         .slice(0, 10);
                     setAutocompleteSuggestions(
                         filteredCategories.map((categoryName) => ({
-                            text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY}:${categoryName}`,
-                            query: `${SearchQueryUtils.sanitizeSearchValue(categoryName)}`,
+                            filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                            text: `${SearchQueryUtils.sanitizeSearchValue(categoryName)}`,
                         })),
                     );
                     return;
@@ -191,8 +202,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                         .slice(0, 10);
                     setAutocompleteSuggestions(
                         filteredCurrencies.map((currencyName) => ({
-                            text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}:${currencyName}`,
-                            query: `${currencyName}`,
+                            filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+                            text: currencyName,
                         })),
                     );
                     return;
@@ -202,25 +213,27 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                         .filter((tax) => tax.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(tax.toLowerCase()))
                         .sort()
                         .slice(0, 10);
-                    setAutocompleteSuggestions(
-                        filteredTaxRates.map((tax) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE}:${tax}`, query: `${SearchQueryUtils.sanitizeSearchValue(tax)}`})),
-                    );
+                    setAutocompleteSuggestions(filteredTaxRates.map((tax) => ({filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE, text: SearchQueryUtils.sanitizeSearchValue(tax)})));
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
                     const filteredParticipants = participantsAutocompleteList
-                        .filter((participant) => participant.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.toLowerCase()))
+                        .filter((participant) => participant.name.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                         .sort()
                         .slice(0, 10);
-                    setAutocompleteSuggestions(filteredParticipants.map((participant) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}:${participant}`, query: `${participant}`})));
+                    setAutocompleteSuggestions(
+                        filteredParticipants.map((participant) => ({filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, text: participant.name, autocompleteID: `${participant.accountID}`})),
+                    );
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO: {
                     const filteredParticipants = participantsAutocompleteList
-                        .filter((participant) => participant.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.toLowerCase()))
+                        .filter((participant) => participant.name.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                         .sort()
                         .slice(0, 10);
-                    setAutocompleteSuggestions(filteredParticipants.map((participant) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${participant}`, query: `${participant}`})));
+                    setAutocompleteSuggestions(
+                        filteredParticipants.map((participant) => ({filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, text: participant.name, autocompleteID: `${participant.accountID}`})),
+                    );
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
@@ -228,14 +241,21 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                         .filter((chat) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()))
                         .sort((chatA, chatB) => (chatA > chatB ? 1 : -1))
                         .slice(0, 10);
-                    setAutocompleteSuggestions(filteredChats.map((chat) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${chat.text}`, query: `${chat.reportID}`})));
+                    setAutocompleteSuggestions(
+                        filteredChats.map((chat) => ({
+                            filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                            // text: SearchQueryUtils.sanitizeSearchValue(chat.text ?? ''),
+                            text: chat.text ?? '',
+                            autocompleteID: chat.reportID,
+                        })),
+                    );
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE: {
                     const filteredTypes = typeAutocompleteList
                         .filter((type) => type.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(type.toLowerCase()))
                         .sort();
-                    setAutocompleteSuggestions(filteredTypes.map((type) => ({text: `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${type}`, query: `${type}`})));
+                    setAutocompleteSuggestions(filteredTypes.map((type) => ({filterKey: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, text: type})));
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
@@ -243,7 +263,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                         .filter((status) => status.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(status))
                         .sort()
                         .slice(0, 10);
-                    setAutocompleteSuggestions(filteredStatuses.map((status) => ({text: `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${status}`, query: `${status}`})));
+                    setAutocompleteSuggestions(filteredStatuses.map((status) => ({filterKey: CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, text: status})));
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE: {
@@ -252,8 +272,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                         .sort();
                     setAutocompleteSuggestions(
                         filteredExpenseTypes.map((expenseType) => ({
-                            text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE}:${expenseType}`,
-                            query: `${expenseType}`,
+                            filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
+                            text: expenseType,
                         })),
                     );
                     return;
@@ -265,8 +285,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                         .slice(0, 10);
                     setAutocompleteSuggestions(
                         filteredCards.map((card) => ({
-                            text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID}:${card}`,
-                            query: `${card}`,
+                            filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+                            text: card,
                         })),
                     );
                     return;
@@ -302,13 +322,17 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
             setTextInputValue(newUserQuery);
             const autocompleteParsedQuery = parseForAutocomplete(newUserQuery);
             updateAutocomplete(autocompleteParsedQuery?.autocomplete?.value ?? '', autocompleteParsedQuery?.ranges ?? [], autocompleteParsedQuery?.autocomplete?.key);
+
+            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
+            setAutocompleteSubstitutions(updatedSubstitutionsMap);
+
             if (newUserQuery) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
             } else {
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
         },
-        [autocompleteSuggestions, setTextInputValue, updateAutocomplete],
+        [autocompleteSubstitutions,autocompleteSuggestions, setTextInputValue, updateAutocomplete],
     );
 
     const onSearchSubmit = useCallback(
@@ -325,11 +349,20 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         [allTaxRates, cardList, onRouterClose, setTextInputValue],
     );
 
+    const updateSubstitutionsMap = (key: string, value: string) => {
+        const substitutions = {...autocompleteSubstitutions, [key]: {value}};
+        console.log('updateSubstitutionsMap', substitutions);
+
+        setAutocompleteSubstitutions(substitutions);
+    };
+
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         onRouterClose();
     });
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
+
+    console.log('[ROUTER]', {user: textInputValue, cleanQuery, autocompleteSubstitutions});
 
     return (
         <View
@@ -366,6 +399,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 autocompleteItems={autocompleteSuggestions}
                 onSearchSubmit={onSearchSubmit}
                 closeRouter={onRouterClose}
+                onAutocompleteSuggestionClick={updateSubstitutionsMap}
                 ref={listRef}
             />
         </View>

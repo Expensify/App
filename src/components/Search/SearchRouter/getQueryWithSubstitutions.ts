@@ -4,9 +4,10 @@ import * as parser from '@libs/SearchParser/autocompleteParser';
 type SubstitutionEntry = {value: string};
 type SubstitutionMap = Record<string, SubstitutionEntry>;
 
-const getSubstitutionsKey = (filterName: string, value: string) => `${filterName}:${value}`;
+const getSubstitutionMapKey = (filterName: string, value: string) => `${filterName}:${value}`;
 
 function getQueryWithSubstitutions(changedQuery: string, substitutions: SubstitutionMap) {
+    console.log('getQueryWithSubstitutions', changedQuery, substitutions);
     const parsed = parser.parse(changedQuery) as {ranges: SearchAutocompleteQueryRange[]};
 
     const searchAutocompleteQueryRanges = parsed.ranges;
@@ -15,11 +16,12 @@ function getQueryWithSubstitutions(changedQuery: string, substitutions: Substitu
         return changedQuery;
     }
 
+    debugger;
     let resultQuery = changedQuery;
     let lengthDiff = 0;
 
     for (const range of searchAutocompleteQueryRanges) {
-        const itemKey = getSubstitutionsKey(range.key, range.value);
+        const itemKey = getSubstitutionMapKey(range.key, range.value);
         const substitutionEntry = substitutions[itemKey];
 
         if (substitutionEntry) {
@@ -35,5 +37,5 @@ function getQueryWithSubstitutions(changedQuery: string, substitutions: Substitu
     return resultQuery;
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {getQueryWithSubstitutions};
+export {getQueryWithSubstitutions, getSubstitutionMapKey};
+export type {SubstitutionMap};

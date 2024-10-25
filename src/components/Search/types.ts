@@ -80,6 +80,7 @@ type SearchQueryJSON = {
     flatFilters: QueryFilters;
 } & SearchQueryAST;
 
+// Fixme [Search] remove duplicate
 type AutocompleteRange = {
     key: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS & typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
     length: number;

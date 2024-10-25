@@ -12,7 +12,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
-    query?: string;
+    searchQuery?: string;
+    autocompleteID?: string;
     searchItemType?: ValueOf<typeof CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE>;
 };
 

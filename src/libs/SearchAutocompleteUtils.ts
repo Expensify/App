@@ -68,11 +68,20 @@ function getAutocompleteTaxList(allTaxRates: Record<string, string[]>, policy?: 
     return Object.keys(allTaxRates).map((taxRateName) => taxRateName);
 }
 
-function trimSearchQueryForAutocomplete(searchQuery: string) {
-    const lastColonIndex = searchQuery.lastIndexOf(':');
-    const lastCommaIndex = searchQuery.lastIndexOf(',');
-    const trimmedUserSearchQuery = lastColonIndex > lastCommaIndex ? searchQuery.slice(0, lastColonIndex + 1) : searchQuery.slice(0, lastCommaIndex + 1);
-    return trimmedUserSearchQuery;
+/**
+ * Given a query string, this function parses it with the autocomplete parser
+ * and returns only the part of the string before autocomplete.
+ *
+ * Ex: "test from:john@doe" -> "test from:"
+ */
+function getQueryWithoutAutocompletedPart(searchQuery: string) {
+    const parsedQuery = parseForAutocomplete(searchQuery);
+    if (!parsedQuery?.autocomplete) {
+        return searchQuery;
+    }
+
+    const sliceEnd = parsedQuery.autocomplete.start;
+    return searchQuery.slice(0, sliceEnd);
 }
 
 export {
@@ -82,5 +91,5 @@ export {
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
     getAutocompleteTaxList,
-    trimSearchQueryForAutocomplete,
+    getQueryWithoutAutocompletedPart,
 };

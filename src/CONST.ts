@@ -5807,15 +5807,15 @@ const CONST = {
             CURRENCY: 'currency',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
-            FROM: 'from',
-            TO: 'to',
+            FROM: 'from', // Fixme substitute with accountID
+            TO: 'to', // Fixme substitute with accountID
             CATEGORY: 'category',
             TAG: 'tag',
-            TAX_RATE: 'taxRate',
-            CARD_ID: 'cardID',
+            TAX_RATE: 'taxRate', // Fixme substitute with tax id?
+            CARD_ID: 'cardID', // Fixme substitue bank id?
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
-            IN: 'in',
+            IN: 'in', // Fixme substitute with reportID
         },
         EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
