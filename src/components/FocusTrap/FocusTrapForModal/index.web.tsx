@@ -1,6 +1,7 @@
 import FocusTrap from 'focus-trap-react';
 import React from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
@@ -9,6 +10,7 @@ function FocusTrapForModal({children, active, initialFocus = false}: FocusTrapFo
         <FocusTrap
             active={active}
             focusTrapOptions={{
+                onActivate: blurActiveElement,
                 trapStack: sharedTrapStack,
                 clickOutsideDeactivates: true,
                 initialFocus,
