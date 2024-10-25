@@ -181,11 +181,11 @@ function SearchRouterList(
                 if (!item?.query) {
                     return;
                 }
-                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
+                if (item?.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
                     updateSearchValue(`${item?.query} `);
                     return;
                 }
-                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
+                if (item?.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const trimmedUserSearchQuery = trimSearchQueryForAutocomplete(textInputValue);
                     updateSearchValue(`${trimmedUserSearchQuery}${item?.query} `);
                     return;
@@ -207,7 +207,7 @@ function SearchRouterList(
 
     const onArrowFocus = useCallback(
         (focusedItem: OptionData | SearchQueryItem) => {
-            if (!isSearchQueryItem(focusedItem) || focusedItem.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION || !textInputValue) {
+            if (!isSearchQueryItem(focusedItem) || focusedItem?.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION || !textInputValue) {
                 return;
             }
             const trimmedUserSearchQuery = trimSearchQueryForAutocomplete(textInputValue);
