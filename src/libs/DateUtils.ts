@@ -10,7 +10,7 @@ import {
     endOfMonth,
     endOfWeek,
     format,
-    formatDistanceToNow,
+    formatDistance,
     getDate,
     getDay,
     isAfter,
@@ -249,7 +249,8 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZon
  */
 function datetimeToRelative(locale: Locale, datetime: string): string {
     const date = getLocalDateFromDatetime(locale, datetime);
-    return formatDistanceToNow(date, {addSuffix: true, locale: locale === CONST.LOCALES.EN ? enGB : es});
+    const now = getLocalDateFromDatetime(locale);
+    return formatDistance(date, now, {addSuffix: true, locale: locale === CONST.LOCALES.EN ? enGB : es});
 }
 
 /**
