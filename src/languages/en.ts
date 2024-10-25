@@ -2431,12 +2431,9 @@ const translations = {
                 "We'll create an itemized vendor bill for each Expensify report and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
             deepDiveExpensifyCard: 'Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with',
             deepDiveExpensifyCardIntegration: 'our integration.',
-            outOfPocketLocationEnabledDescription:
-                'QuickBooks Desktop doesn’t support locations on vendor bills or checks. As you have locations enabled on your workspace, these export options are unavailable.',
             outOfPocketTaxEnabledDescription:
                 "QuickBooks Desktop doesn't support taxes on journal entry exports. As you have taxes enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledError: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
-            outOfPocketLocationEnabledError: 'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
             accounts: {
                 [CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Credit card',
                 [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Vendor bill',
@@ -2504,10 +2501,8 @@ const translations = {
             customersDescription: 'Choose how to handle QuickBooks Online customers/projects in Expensify.',
             locationsDescription: 'Choose how to handle QuickBooks Online locations in Expensify.',
             taxesDescription: 'Choose how to handle QuickBooks Online taxes in Expensify.',
-            locationsAdditionalDescription:
-                'QuickBooks Online doesn’t support locations on vendor bills or checks. As you have locations enabled on your workspace, these export options are unavailable.',
-            outOfPocketLocationEnabledDescription:
-                'QuickBooks Online doesn’t support locations on vendor bills or checks. As you have locations enabled on your workspace, these export options are unavailable.',
+            locationsLineItemsRestrictionDescription:
+                "QuickBooks Online does not support Locations at the line-level for Checks or Vendor Bills. If you'd like to have locations at the line-level, make sure you are using Journal Entries and Credit/Debit Card expenses.",
             taxesJournalEntrySwitchNote: "QuickBooks Online doesn't support taxes on journal entries. Please change your export option to vendor bill or check.",
             exportDescription: 'Configure how Expensify data exports to QuickBooks Online.',
             date: 'Export date',
@@ -2557,7 +2552,6 @@ const translations = {
             outOfPocketTaxEnabledDescription:
                 "QuickBooks Online doesn't support taxes on journal entry exports. As you have taxes enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledError: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
-            outOfPocketLocationEnabledError: 'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
             advancedConfig: {
                 autoSyncDescription: 'Expensify will automatically sync with QuickBooks Online every day.',
                 inviteEmployees: 'Invite employees',
@@ -2612,8 +2606,9 @@ const translations = {
             notImported: 'Not imported',
             notConfigured: 'Not configured',
             trackingCategoriesOptions: {
-                default: 'Xero contact default',
-                tag: 'Tags',
+                [CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.DEFAULT]: 'Xero contact default',
+                [CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.TAG]: 'Tags',
+                [CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD]: 'Report fields',
             },
             exportDescription: 'Configure how Expensify data exports to Xero.',
             purchaseBill: 'Purchase bill',
