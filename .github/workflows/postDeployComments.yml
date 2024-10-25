@@ -15,8 +15,16 @@ on:
         description: Android deploy status
         required: true
         type: string
+      android_hybrid:
+        description: Android HybridApp deploy status
+        required: true
+        type: string
       ios:
         description: iOS deploy status
+        required: true
+        type: string
+      ios_hybrid:
+        description: iOS HybridApp deploy status
         required: true
         type: string
       web:
