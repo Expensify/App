@@ -268,32 +268,31 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
     const allViolations = Object.keys(data).filter((item) => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)) ?? {};
     const allTransactions = isTransactionEntry(key) ? transaction : Object.keys(data).filter((item) => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) ?? {};
 
-    // TODO: update isSettled to take report object instead of connect to Onyx
-    if (ReportUtils.isSettled(report?.reportID)) {
+    if (ReportUtils.isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
 
     // TODO: create function to determine if report is done
-    if (ReportUtils.isSettled(report?.reportID)) {
-        return CONST.SEARCH.ACTION_TYPES.DONE;
-    }
+    // if (ReportUtils.isSettled(report?.reportID)) {
+    //     return CONST.SEARCH.ACTION_TYPES.DONE;
+    // }
 
-    if (IOU.canIOUBePaid(report, chatReport, policy, allTransactions, false)) {
-        return CONST.SEARCH.ACTION_TYPES.PAY;
-    }
+    // if (IOU.canIOUBePaid(report, chatReport, policy, allTransactions, false)) {
+    //     return CONST.SEARCH.ACTION_TYPES.PAY;
+    // }
 
-    if (IOU.canApproveIOU(report, policy)) {
-        return CONST.SEARCH.ACTION_TYPES.APPROVE;
-    }
+    // if (IOU.canApproveIOU(report, policy)) {
+    //     return CONST.SEARCH.ACTION_TYPES.APPROVE;
+    // }
 
-    if (IOU.canReportBeSubmitted(report, policy, currentUserAccountID, transaction)) {
-        return CONST.SEARCH.ACTION_TYPES.SUBMIT;
-    }
+    // if (IOU.canReportBeSubmitted(report, policy, currentUserAccountID, transaction)) {
+    //     return CONST.SEARCH.ACTION_TYPES.SUBMIT;
+    // }
 
-    const hasViolations = isTransactionEntry(key) ? TransactionUtils.hasViolation(transaction.transactionID, violations) : ReportUtils.hasViolations(report.reportID, allViolations);
-    if (hasViolations) {
-        return CONST.SEARCH.ACTION_TYPES.REVIEW;
-    }
+    // const hasViolations = isTransactionEntry(key) ? TransactionUtils.hasViolation(transaction.transactionID, violations) : ReportUtils.hasViolations(report.reportID, allViolations);
+    // if (hasViolations) {
+    //     return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    // }
 
     return CONST.SEARCH.ACTION_TYPES.VIEW;
 }
