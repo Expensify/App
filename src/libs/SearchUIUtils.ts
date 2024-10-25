@@ -261,12 +261,18 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
     }
 
     const transaction = isTransactionEntry(key) ? data[key] : null;
-    const report = transaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key];
+    const report = transaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : (data[key] as SearchReport);
+
+    // We don't need to run the logic if this is not a transaction or iou/expense report
+    if (!ReportUtils.isMoneyRequestReport(report)) {
+        return CONST.SEARCH.ACTION_TYPES.VIEW;
+    }
+
     const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
-    const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${transaction?.policyID}`] ?? {};
+    const allTransactions = Object.values(data).filter((item) => item?.transactionID && item?.reportID === report.reportID);
+    const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
     const violations = data[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? {};
     const allViolations = Object.keys(data).filter((item) => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)) ?? {};
-    const allTransactions = isTransactionEntry(key) ? transaction : Object.keys(data).filter((item) => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) ?? {};
 
     if (ReportUtils.isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
@@ -276,9 +282,9 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
-    // if (IOU.canIOUBePaid(report, chatReport, policy, allTransactions, false)) {
-    //     return CONST.SEARCH.ACTION_TYPES.PAY;
-    // }
+    if (IOU.canIOUBePaid(report, chatReport, policy, allTransactions, false)) {
+        return CONST.SEARCH.ACTION_TYPES.PAY;
+    }
 
     // if (IOU.canApproveIOU(report, policy)) {
     //     return CONST.SEARCH.ACTION_TYPES.APPROVE;
@@ -348,6 +354,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
+                action: getAction(data, key, currentUserAccountID),
                 keyForList: reportItem.reportID,
                 from: data.personalDetailsList?.[reportItem.accountID ?? -1],
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,

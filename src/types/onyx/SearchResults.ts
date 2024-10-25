@@ -81,6 +81,9 @@ type SearchReport = {
     /** The ID of the report */
     reportID?: string;
 
+    /** ID of the chat report */
+    chatReportID?: string;
+
     /** The name of the report */
     reportName?: string;
 

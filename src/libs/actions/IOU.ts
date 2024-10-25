@@ -7044,7 +7044,7 @@ function canIOUBePaid(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
-    transactions?: OnyxTypes.Transaction[],
+    transactions?: OnyxTypes.Transaction[] | SearchTransaction[],
     onlyShowPayElsewhere = false,
 ) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
