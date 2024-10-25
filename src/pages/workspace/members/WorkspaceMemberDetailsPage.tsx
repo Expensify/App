@@ -61,7 +61,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [allCardsList] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [adminsCardList] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [memberCardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
@@ -89,11 +90,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [policyID, workspaceAccountID]);
 
     const memberCards = useMemo(() => {
-        if (!allCardsList) {
+        const cardsList = isSelectedMemberOwner ? adminsCardList : memberCardList;
+        if (!cardsList) {
             return [];
         }
-        return Object.values(allCardsList ?? {}).filter((card) => card.accountID === accountID && workspaceAccountID.toString() === card.fundID);
-    }, [allCardsList, accountID, workspaceAccountID]);
+        return Object.values(cardsList ?? {}).filter((card) => card.accountID === accountID && workspaceAccountID.toString() === card.fundID);
+    }, [adminsCardList, memberCardList, isSelectedMemberOwner, accountID, workspaceAccountID]);
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
