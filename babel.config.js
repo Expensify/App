@@ -8,7 +8,7 @@ const ReactCompilerConfig = {
         enableTreatRefLikeIdentifiersAsRefs: true,
     },
     // We exclude 'tests' directory from compilation, but still compile components imported in test files.
-    sources: (filename) => !filename.includes('tests/'),
+    sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/'),
 };
 
 /**
