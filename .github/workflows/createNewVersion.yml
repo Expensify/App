@@ -152,7 +152,7 @@ jobs:
             ./app/config/config.json \
             ./iOS/Expensify/Expensify-Info.plist\
             ./iOS/SmartScanExtension/Info.plist \
-          git commit -m "Update version to ${{ steps.createNewVersion.outputs.NEW_VERSION }}"
+          git commit -m "Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
 
       - name: Update main branch
         run: git push origin main
