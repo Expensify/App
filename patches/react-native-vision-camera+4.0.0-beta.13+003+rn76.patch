@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-vision-camera/android/CMakeLists.txt b/node_modules/react-native-vision-camera/android/CMakeLists.txt
+index 9bcd4ea..7362a5d 100644
+--- a/node_modules/react-native-vision-camera/android/CMakeLists.txt
++++ b/node_modules/react-native-vision-camera/android/CMakeLists.txt
+@@ -63,7 +63,7 @@ target_link_libraries(
+         ${LOG_LIB}                          # <-- Logcat logger
+         android                             # <-- Android JNI core
+         ReactAndroid::jsi                   # <-- RN: JSI
+-        ReactAndroid::reactnativejni        # <-- RN: React Native JNI bindings
++        ReactAndroid::reactnative        # <-- RN: React Native JNI bindings
+         fbjni::fbjni                        # <-- fbjni
+ )
+ 

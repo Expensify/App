@@ -1,0 +1,30 @@
+diff --git a/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt b/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt
+index db67583..b4ee404 100644
+--- a/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt
++++ b/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt
+@@ -37,22 +37,9 @@ target_include_directories(
+ 
+ target_link_libraries(
+   ${LIB_TARGET_NAME}
+-  fbjni
+-  folly_runtime
+-  glog
+-  jsi
+-  react_codegen_rncore
+-  react_debug
+-  react_nativemodule_core
+-  react_render_componentregistry
+-  react_utils
+-  react_render_core
+-  react_render_debug
+-  react_render_graphics
+-  react_render_mapbuffer
+-  rrc_view
+-  turbomodulejsijni
+-  yoga
++    ReactAndroid::reactnative
++    ReactAndroid::jsi
++    fbjni::fbjni
+ )
+ 
+ target_compile_options(
