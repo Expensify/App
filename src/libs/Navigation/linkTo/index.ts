@@ -2,6 +2,7 @@ import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef, NavigationState, PartialState, StackActionType} from '@react-navigation/native';
 import {findFocusedRoute, StackActions} from '@react-navigation/native';
 import {getMatchingFullScreenRouteForRoute, isFullScreenName} from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
+import normalizePath from '@libs/Navigation/linkingConfig/normalizePath';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import getStateFromPath from '@navigation/getStateFromPath';
@@ -57,8 +58,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
 
-    const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
-    const pathWithoutPolicyID = getPathWithoutPolicyID(`/${path}`) as Route;
+    const normalizedPath = normalizePath(path);
+    const extractedPolicyID = extractPolicyIDFromPath(normalizedPath);
+    const pathWithoutPolicyID = getPathWithoutPolicyID(normalizedPath) as Route;
 
     // This is the state generated with the default getStateFromPath function.
     // It won't include the whole state that will be generated for this path but the focused route will be correct.

@@ -161,7 +161,7 @@ function getRouteParamsToCompare(routeParams: Record<string, string | undefined>
     return omit(routeParams, routeParamsIgnore);
 }
 
-function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | NavigationPartialRoute, minimalAction: Writable<NavigationAction>) {
+function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | NavigationPartialRoute, minimalAction: Writable<NavigationAction>, compareParams: boolean) {
     if (!minimalAction.payload) {
         return false;
     }
@@ -176,6 +176,10 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
         return false;
     }
 
+    if (!compareParams) {
+        return true;
+    }
+
     if (!('params' in minimalAction.payload)) {
         return false;
     }
@@ -186,7 +190,21 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
     return shallowCompare(routeParams, minimalActionParams);
 }
 
-function goUp(fallbackRoute: Route) {
+type GoUpOptions = {
+    /** If we should compare params when searching for a route in state to go up to.
+     * There are situations where we want to compare params when going up e.g. goUp to a specific report.
+     * Sometimes we want to go up and update params of screen e.g. country picker.
+     * In that case we want to goUp to a country picker with any params so we don't compare them. */
+    compareParams?: boolean;
+};
+
+const defaultGoUpOptions: Required<GoUpOptions> = {
+    compareParams: true,
+};
+
+function goUp(fallbackRoute: Route, options?: GoUpOptions) {
+    const compareParams = options?.compareParams ?? defaultGoUpOptions.compareParams;
+
     if (!canNavigate('goBack')) {
         return;
     }
@@ -210,11 +228,18 @@ function goUp(fallbackRoute: Route) {
         return;
     }
 
-    const indexOfFallbackRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction));
+    const indexOfFallbackRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
 
     if (indexOfFallbackRoute === -1) {
         const replaceAction = {...minimalAction, type: 'REPLACE'} as NavigationAction;
         navigationRef.current.dispatch(replaceAction);
+        return;
+    }
+
+    // If we are not comparing params, we want to use navigate action because it will replace params in the route already existing in the state if necessary.
+    // This part will need refactor after migrating to react-navigation 7. We will use popTo instead.
+    if (!compareParams) {
+        navigationRef.current.dispatch(minimalAction);
         return;
     }
 
