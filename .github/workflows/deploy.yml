@@ -270,14 +270,6 @@ jobs:
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
-# TODO: Fix Sourcemaps
-#      - name: Upload Android sourcemaps artifact
-#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: android-sourcemaps-artifact
-#          path: ../Android/build/generated/sourcemaps/react/release/index.android.bundle.map
-
       - name: Upload Android build artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
@@ -505,6 +497,7 @@ jobs:
           ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - uses: actions/setup-node@v4
+        id: setup-node
         with:
           node-version-file: 'Mobile-Expensify/react-native/.nvmrc'
           cache-dependency-path: 'Mobile-Expensify/react-native'
@@ -581,9 +574,7 @@ jobs:
 
       - name: Build iOS HybridApp
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: | 
-          export SOURCEMAP_FILE="$(pwd)/../main.jsbundle.map";
-          bundle exec fastlane ios build_hybrid
+        run: bundle exec fastlane ios build_hybrid
 
 #      - name: Upload release build to TestFlight
 #        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -603,14 +594,6 @@ jobs:
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.ipaPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-# TODO: Fix Sourcemaps
-#      - name: Upload iOS sourcemaps artifact
-#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: ios-sourcemaps-artifact
-#          path: ./main.jsbundle.map
 
       - name: Upload iOS build artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}

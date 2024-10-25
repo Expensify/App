@@ -143,7 +143,7 @@ jobs:
           BUILD_NUMBER=$(echo "$NEW_VERSION" | awk -F'-' '{print $2}')
           tools/buildtools/bump-version-automatically.sh "$SHORT_APP_VERSION" "$BUILD_NUMBER"
         env:
-          NEW_VERSION: ${{ steps.createNewVersion.outputs.NEW_VERSION }}
+          NEW_VERSION: ${{ needs.createNewVersion.outputs.NEW_VERSION }}
 
       - name: Commit new version
         run: |
