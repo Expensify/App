@@ -23,7 +23,9 @@ const intlPolyfill: IntlPolyfill = () => {
 
     // Required to polyfill DateTimeFormat on iOS
     // see: https://github.com/facebook/hermes/issues/1172#issuecomment-1776156538
-    polyfillDateTimeFormat();
+
+    // Removing polyfill for testing on ad-hoc build, it is the potential cause of the lag when opening the report
+    // polyfillDateTimeFormat();
 
     polyfillListFormat();
 };
