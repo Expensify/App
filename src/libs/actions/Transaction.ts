@@ -204,16 +204,16 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, newTransaction);
 }
 
-function getOnyxDataForRouteRequest(transactionID: string, transactionState: TransactionState = CONST.TRANSACTION_STATE.CURRENT): OnyxData {
+function getOnyxDataForRouteRequest(transactionID: string, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT): OnyxData {
     let keyPrefix;
     switch (transactionState) {
-        case CONST.TRANSACTION_STATE.DRAFT:
+        case CONST.TRANSACTION.STATE.DRAFT:
             keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
             break;
-        case CONST.TRANSACTION_STATE.BACKUP:
+        case CONST.TRANSACTION.STATE.BACKUP:
             keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_BACKUP;
             break;
-        case CONST.TRANSACTION_STATE.CURRENT:
+        case CONST.TRANSACTION.STATE.CURRENT:
         default:
             keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION;
             break;
@@ -261,224 +261,6 @@ function getOnyxDataForRouteRequest(transactionID: string, transactionState: Tra
     };
 }
 
-function mockGetBackupRoute(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {
-        "routes": {
-            "route0": {
-                "distance": 154384.844,
-                "geometry": {
-                    "coordinates": [
-                        [
-                            107.61964,
-                            -6.917596
-                        ],
-                        [
-                            107.621458,
-                            -6.918055
-                        ],
-                        [
-                            107.621155,
-                            -6.919264
-                        ],
-                        [
-                            107.621862,
-                            -6.92007
-                        ],
-                        [
-                            107.617256,
-                            -6.922397
-                        ],
-                        [
-                            107.586943,
-                            -6.918774
-                        ],
-                        [
-                            107.585588,
-                            -6.926812
-                        ],
-                        [
-                            107.552806,
-                            -6.938898
-                        ],
-                        [
-                            107.541552,
-                            -6.912423
-                        ],
-                        [
-                            107.507715,
-                            -6.867412
-                        ],
-                        [
-                            107.504802,
-                            -6.856305
-                        ],
-                        [
-                            107.50362,
-                            -6.841229
-                        ],
-                        [
-                            107.471934,
-                            -6.809238
-                        ],
-                        [
-                            107.447898,
-                            -6.798421
-                        ],
-                        [
-                            107.439988,
-                            -6.779357
-                        ],
-                        [
-                            107.440242,
-                            -6.74621
-                        ],
-                        [
-                            107.431506,
-                            -6.708104
-                        ],
-                        [
-                            107.442126,
-                            -6.666515
-                        ],
-                        [
-                            107.427061,
-                            -6.653178
-                        ],
-                        [
-                            107.428849,
-                            -6.642103
-                        ],
-                        [
-                            107.421426,
-                            -6.611517
-                        ],
-                        [
-                            107.434251,
-                            -6.579176
-                        ],
-                        [
-                            107.424954,
-                            -6.559044
-                        ],
-                        [
-                            107.446783,
-                            -6.484271
-                        ],
-                        [
-                            107.444693,
-                            -6.467799
-                        ],
-                        [
-                            107.426815,
-                            -6.442001
-                        ],
-                        [
-                            107.424102,
-                            -6.423177
-                        ],
-                        [
-                            107.402604,
-                            -6.392909
-                        ],
-                        [
-                            107.334314,
-                            -6.355931
-                        ],
-                        [
-                            107.277154,
-                            -6.349437
-                        ],
-                        [
-                            107.256766,
-                            -6.349048
-                        ],
-                        [
-                            107.235902,
-                            -6.355155
-                        ],
-                        [
-                            107.206996,
-                            -6.349584
-                        ],
-                        [
-                            107.099379,
-                            -6.29197
-                        ],
-                        [
-                            106.981406,
-                            -6.249348
-                        ],
-                        [
-                            106.957583,
-                            -6.256527
-                        ],
-                        [
-                            106.916207,
-                            -6.258484
-                        ],
-                        [
-                            106.889886,
-                            -6.244657
-                        ],
-                        [
-                            106.880764,
-                            -6.247631
-                        ],
-                        [
-                            106.833371,
-                            -6.240614
-                        ],
-                        [
-                            106.815565,
-                            -6.224157
-                        ],
-                        [
-                            106.811859,
-                            -6.219031
-                        ],
-                        [
-                            106.817977,
-                            -6.214838
-                        ],
-                        [
-                            106.822696,
-                            -6.195377
-                        ],
-                        [
-                            106.822922,
-                            -6.194464
-                        ]
-                    ],
-                    "type": "LineString"
-                }
-            }
-        },
-        "comment": {
-            "waypoints": {
-                "waypoint0": {
-                    "keyForList": "Bandung_1726892371069",
-                    "lat": -6.9174639,
-                    "lng": 107.6191228,
-                    "address": "Bandung, Bandung City, West Java, Indonesia",
-                    "name": "Bandung"
-                },
-                "waypoint1": {
-                    "keyForList": "Jakarta_1726892375416",
-                    "lat": -6.1944491,
-                    "lng": 106.8229198,
-                    "address": "Jakarta, Indonesia",
-                    "name": "Jakarta"
-                }
-            },
-            "customUnit": {
-                "quantity": 154384.844
-            }
-        }
-    }
-    )
-}
-
-
 /**
  * Sanitizes the waypoints by removing the pendingAction property.
  *
@@ -499,14 +281,7 @@ function sanitizeRecentWaypoints(waypoints: WaypointCollection): WaypointCollect
  */
 
 
-function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION_STATE.CURRENT) {
-    /** For testing, remove when new API endpoint ready, waypoints: Bandung, Jakarta */
-    if (routeType === CONST.TRANSACTION_STATE.BACKUP)
-    {
-        mockGetBackupRoute(transactionID);
-        return;
-    }
-    
+function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION.STATE.CURRENT) {
     const parameters: GetRouteParams = {
         transactionID,
         waypoints: JSON.stringify(sanitizeRecentWaypoints(waypoints)),

@@ -81,8 +81,8 @@ function IOURequestStepDistance({
 
     const backupWaypoints = !!transactionBackup?.pendingFields?.waypoints ? transactionBackup?.comment?.waypoints : undefined;
 
-    const { shouldFetchRoute, validatedWaypoints } = useFetchRoute(transaction, waypoints, action, IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION_STATE.DRAFT : CONST.TRANSACTION_STATE.CURRENT);
-    useFetchRoute(transactionBackup, backupWaypoints, action, CONST.TRANSACTION_STATE.BACKUP);
+    const { shouldFetchRoute, validatedWaypoints } = useFetchRoute(transaction, waypoints, action, IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
+    useFetchRoute(transactionBackup, backupWaypoints, action, CONST.TRANSACTION.STATE.BACKUP);
 
     const waypointsList = Object.keys(waypoints);
     const previousWaypoints = usePrevious(waypoints);

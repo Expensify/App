@@ -11,7 +11,7 @@ import usePrevious from './usePrevious';
 import TransactionState from '@src/types/utils/TransactionStateType';
 import CONST from '@src/CONST';
 
-export default function useFetchRoute(transaction: OnyxEntry<Transaction>, waypoints: WaypointCollection | undefined, action: IOUAction, transactionState: TransactionState = CONST.TRANSACTION_STATE.CURRENT) {
+export default function useFetchRoute(transaction: OnyxEntry<Transaction>, waypoints: WaypointCollection | undefined, action: IOUAction, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT) {
     const {isOffline} = useNetwork();
     const hasRouteError = !!transaction?.errorFields?.route;
     const hasRoute = TransactionUtils.hasRoute(transaction);

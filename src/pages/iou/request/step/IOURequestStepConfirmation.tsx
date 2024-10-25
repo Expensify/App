@@ -145,7 +145,7 @@ function IOURequestStepConfirmation({
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
 
-    useFetchRoute(transaction, transaction?.comment?.waypoints, action, IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION_STATE.DRAFT : CONST.TRANSACTION_STATE.CURRENT);
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
