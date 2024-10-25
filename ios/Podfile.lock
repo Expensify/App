@@ -26,6 +26,7 @@ PODS:
   - AppAuth/Core (1.7.5)
   - AppAuth/ExternalUserAgent (1.7.5):
     - AppAuth/Core
+  - AppLogs (0.1.0)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
   - EXAV (15.0.0):
@@ -1570,6 +1571,27 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-app-logs (0.3.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-blob-util (0.19.4):
     - DoubleConversion
     - glog
@@ -2386,7 +2408,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.164):
+  - RNLiveMarkdown (0.1.176):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2406,9 +2428,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/newarch (= 0.1.164)
+    - RNLiveMarkdown/newarch (= 0.1.176)
     - Yoga
-  - RNLiveMarkdown/newarch (0.1.164):
+  - RNLiveMarkdown/newarch (0.1.176):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2737,6 +2759,7 @@ PODS:
 
 DEPENDENCIES:
   - AirshipServiceExtension
+  - AppLogs (from `../node_modules/react-native-app-logs/AppLogsPod`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXAV (from `../node_modules/expo-av/ios`)
@@ -2787,6 +2810,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - "react-native-airship (from `../node_modules/@ua/react-native-airship`)"
+  - react-native-app-logs (from `../node_modules/react-native-app-logs`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - "react-native-cameraroll (from `../node_modules/@react-native-camera-roll/camera-roll`)"
   - react-native-config (from `../node_modules/react-native-config`)
@@ -2901,6 +2925,8 @@ SPEC REPOS:
     - Turf
 
 EXTERNAL SOURCES:
+  AppLogs:
+    :path: "../node_modules/react-native-app-logs/AppLogsPod"
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   DoubleConversion:
@@ -2998,6 +3024,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-airship:
     :path: "../node_modules/@ua/react-native-airship"
+  react-native-app-logs:
+    :path: "../node_modules/react-native-app-logs"
   react-native-blob-util:
     :path: "../node_modules/react-native-blob-util"
   react-native-cameraroll:
@@ -3150,7 +3178,8 @@ SPEC CHECKSUMS:
   AirshipFrameworkProxy: dbd862dc6fb21b13e8b196458d626123e2a43a50
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
-  boost: 0c2e343d736fc58bf0ffd9df5c7a904819eb18b0
+  AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
+  boost: 1dca942403ed9342f98334bf4c3621f011aa7946
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXAV: 8996468e7e113e59d13c6530a0f5f54ee542439e
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
@@ -3226,6 +3255,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: b0b4ace5b62b269f3838df26ba2d8b4f39f90783
   React-microtasksnativemodule: 0b7db04c18f6bb01ef5b1f9007c3229abecc35dd
   react-native-airship: e10f6823d8da49bbcb2db4bdb16ff954188afccc
+  react-native-app-logs: ee32b6e80bf8d1b883dfc5ac96efa7c1bd9a06a5
   react-native-blob-util: 221c61c98ae507b758472ac4d2d489119d1a6c44
   react-native-cameraroll: 478a0c1fcdd39f08f6ac272b7ed06e92b2c7c129
   react-native-config: 742a9e0a378a78d0eaff1fb3477d8c0ae222eb51
@@ -3285,7 +3315,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 364e6862a112045bb5c5d35601f0bdb0304af979
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 3e1d1dbb71cfd8bd49906272a1769e193b9fffe7
+  RNLiveMarkdown: 9d22024c70bcced5ef7bb8900f2c1a8b96f767e8
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
@@ -3304,6 +3334,6 @@ SPEC CHECKSUMS:
   VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
   Yoga: f8ec45ce98bba1bc93dd28f2ee37215180e6d2b6
 
-PODFILE CHECKSUM: 2cc128f07fbbdd7cce6284dbb3422c46b3a79029
+PODFILE CHECKSUM: 5a2343a46b9010028fa516182b5ff5257d4d4d0d
 
 COCOAPODS: 1.15.2
