@@ -353,12 +353,13 @@ const runTests = async (): Promise<void> => {
 
     // Calculate statistics and write them to our work file
     Logger.info('Calculating statics and writing results');
-    compare(results.main, results.delta, {
+    await compare(results.main, results.delta, {
         outputFile: `${config.OUTPUT_DIR}/output.md`,
         outputFormat: 'all',
         metricForTest,
         skippedTests,
     });
+    Logger.info('Finished calculating statics and writing results, stopping the test server');
 
     await server.stop();
 };
