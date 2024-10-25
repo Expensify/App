@@ -28,21 +28,6 @@ function getTopmostReportId(state: NavigationState | NavigationState<RootStackPa
         return;
     }
 
-    // const directReportParams = topmostCentralPane.params;
-    // const directReportIdParam = directReportParams && 'reportID' in directReportParams && directReportParams?.reportID;
-
-    // if (!topmostCentralPane.state && !directReportIdParam) {
-    //     return;
-    // }
-
-    // if (directReportIdParam) {
-    //     return directReportIdParam;
-    // }
-
-    if (!topmostReport) {
-        return;
-    }
-
     const topmostReportId = topmostReport.params && 'reportID' in topmostReport.params && topmostReport.params?.reportID;
     if (typeof topmostReportId !== 'string') {
         return;

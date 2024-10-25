@@ -218,7 +218,7 @@ function goUp(fallbackRoute: Route) {
         return;
     }
 
-    const distanceToPop = targetState.routes.length - indexOfFallbackRoute - 1;
+    const distanceToPop = targetState.routes.length - indexOfFallbackRoute;
     navigationRef.current.dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
 }
 
@@ -390,22 +390,18 @@ function switchPolicyID(policyID?: string) {
 type NavigateToReportWithPolicyCheckPayload = {report?: OnyxEntry<Report>; reportID?: string; reportActionID?: string; referrer?: string; policyIDToCheck?: string};
 
 function navigateToReportWithPolicyCheck({report, reportID, reportActionID, referrer, policyIDToCheck}: NavigateToReportWithPolicyCheckPayload, ref = navigationRef) {
-    const targetReport = reportID ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : report;
-    if (!targetReport) {
-        return;
-    }
-
+    const targetReport = reportID ? {reportID, ...ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]} : report;
     const policyID = policyIDToCheck ?? getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
     const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
     const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !ReportUtils.doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
     if ((shouldOpenAllWorkspace && !policyID) || !shouldOpenAllWorkspace) {
-        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport.reportID, reportActionID, referrer));
+        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID ?? '-1', reportActionID, referrer));
         return;
     }
 
     const params: Record<string, string> = {
-        reportID: targetReport.reportID,
+        reportID: targetReport?.reportID ?? '-1',
     };
 
     if (reportActionID) {
