@@ -54,10 +54,13 @@ function OptionRowLHNData({
             transactionViolations,
             invoiceReceiverPolicy,
         });
+        // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
+            // eslint-disable-next-line react-compiler/react-compiler
             return optionItemRef.current;
         }
 
+        // eslint-disable-next-line react-compiler/react-compiler
         optionItemRef.current = item;
 
         return item;
