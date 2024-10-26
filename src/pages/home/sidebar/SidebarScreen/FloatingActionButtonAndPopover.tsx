@@ -30,6 +30,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {getNavatticURL} from '@libs/TourUtils';
+import variables from '@styles/variables';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
@@ -458,8 +459,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                                   displayInDefaultIconColor: true,
                                   contentFit: 'contain' as ImageContentFit,
                                   icon: Expensicons.NewWorkspace,
-                                  iconWidth: 46,
-                                  iconHeight: 40,
+                                  iconWidth: variables.h40,
+                                  iconHeight: variables.w46,
                                   text: translate('workspace.new.newWorkspace'),
                                   description: translate('workspace.new.getTheExpensifyCardAndMore'),
                                   onSelected: () => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()),

@@ -215,7 +215,6 @@ export default {
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
-    fabIconWidth: 46,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -265,6 +264,7 @@ export default {
     h20: 20,
     h28: 28,
     h36: 36,
+    h40: 40,
     h112: 112,
     h172: 172,
     w20: 20,
@@ -272,6 +272,7 @@ export default {
     w36: 36,
     w40: 40,
     w44: 44,
+    w46: 46,
     w52: 52,
     w80: 80,
     w92: 92,
