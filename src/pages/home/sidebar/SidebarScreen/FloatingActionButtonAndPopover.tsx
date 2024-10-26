@@ -146,7 +146,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [isLoading] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
