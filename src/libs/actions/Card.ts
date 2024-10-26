@@ -100,20 +100,11 @@ function reportVirtualExpensifyCardFraud(cardID: number, validateCode: string): 
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD, parameters, {optimisticData, successData, failureData})
             .then((response): string | undefined => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
-                        // eslint-disable-next-line prefer-promise-reject-errors
-                        reject('validateCodeForm.error.incorrectMagicCode');
-                        return;
-                    }
-
-                    // eslint-disable-next-line prefer-promise-reject-errors
-                    reject();
                     return;
                 }
                 resolve((response as ExpensifyCardID).newCardID.toString());
             })
-            // eslint-disable-next-line prefer-promise-reject-errors
-            .catch(() => reject('cardPage.cardDetailsLoadingFailure'));
+            .catch(() => reject());
     });
 }
 

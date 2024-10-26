@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -27,6 +28,7 @@ function ReportVirtualCardFraudPage({
 }: ReportVirtualCardFraudPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD);
@@ -34,6 +36,7 @@ function ReportVirtualCardFraudPage({
 
     const virtualCard = cardList?.[cardID];
     const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard);
+    const validateError = ErrorUtils.getLatestErrorMessageField(virtualCard);
 
     if (isEmptyObject(virtualCard)) {
         return;
@@ -48,9 +51,19 @@ function ReportVirtualCardFraudPage({
             if (!newCardID) {
                 return;
             }
+            setIsValidateCodeActionModalVisible(false);
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(newCardID));
         });
-        setIsValidateCodeActionModalVisible(false);
+    };
+
+    const sendValidateCode = () => {
+        const primaryLogin = account?.primaryLogin ?? '';
+
+        if (loginList?.[primaryLogin]?.validateCodeSent) {
+            return;
+        }
+
+        requestValidateCodeAction();
     };
 
     return (
@@ -72,7 +85,11 @@ function ReportVirtualCardFraudPage({
             </View>
             <ValidateCodeActionModal
                 handleSubmitForm={handleValidateCodeEntered}
-                clearError={() => {}}
+                sendValidateCode={sendValidateCode}
+                validateError={validateError}
+                clearError={() => {
+                    Card.clearCardListErrors(virtualCard.cardID);
+                }}
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isVisible={isValidateCodeActionModalVisible}
                 title={translate('cardPage.validateCardTitle')}
