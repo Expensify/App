@@ -21,7 +21,7 @@ type ReportActionHighlightProviderProps = {
 };
 
 // Context provider component
-function ReportActionHighlightProvider({children}: ReportActionHighlightProviderProps): JSX.Element {
+function ReportActionHighlightProvider({children}: ReportActionHighlightProviderProps) {
     const [linkedReportActionID, setLinkedReportActionID] = useState<string | null>(null);
 
     const setHighlight = useCallback((id: string) => {
