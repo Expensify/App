@@ -113,7 +113,7 @@ function reportVirtualExpensifyCardFraud(cardID: number, validateCode: string): 
  * @param cardID - id of the card that is going to be replaced
  * @param reason - reason for replacement
  */
-function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReason) {
+function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReason, validateCode: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const optimisticData: OnyxUpdate[] = [
             {
@@ -124,12 +124,26 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
                     errors: null,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                value: {
+                    isLoading: true,
+                },
+            },
         ];
 
         const successData: OnyxUpdate[] = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
+                value: {
+                    isLoading: false,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.VALIDATE_ACTION_CODE,
                 value: {
                     isLoading: false,
                 },
@@ -144,11 +158,19 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
                     isLoading: false,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                value: {
+                    isLoading: false,
+                },
+            },
         ];
 
         const parameters: RequestReplacementExpensifyCardParams = {
             cardID,
             reason,
+            validateCode,
         };
 
         // eslint-disable-next-line rulesdir/no-api-side-effects-method

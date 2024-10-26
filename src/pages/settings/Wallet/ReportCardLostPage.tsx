@@ -2,17 +2,19 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SingleOptionSelector from '@components/SingleOptionSelector';
 import Text from '@components/Text';
+import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {requestValidateCodeAction} from '@libs/actions/User';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -88,24 +90,19 @@ function ReportCardLostPage({
 
     const {translate} = useLocalize();
 
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [reason, setReason] = useState<Option>();
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
     const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
 
-    const prevIsLoading = usePrevious(formData?.isLoading);
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
+    const validateError = getLatestErrorMessageField(physicalCard);
 
     const {paddingBottom} = useStyledSafeAreaInsets();
 
     const formattedAddress = PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails ?? {});
-
-    useEffect(() => {
-        if (!isEmptyObject(physicalCard?.errors) || !(prevIsLoading && !formData?.isLoading)) {
-            return;
-        }
-
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
-    }, [formData?.isLoading, prevIsLoading, physicalCard?.errors, cardID]);
 
     useEffect(() => {
         if (formData?.isLoading && isEmptyObject(physicalCard?.errors)) {
@@ -116,7 +113,7 @@ function ReportCardLostPage({
     }, [formData?.isLoading, physicalCard?.errors]);
 
     if (isEmptyObject(physicalCard)) {
-        return <NotFoundPage />;
+        return;
     }
 
     const handleSubmitFirstStep = () => {
@@ -135,8 +132,27 @@ function ReportCardLostPage({
             setShouldShowAddressError(true);
             return;
         }
+        setIsValidateCodeActionModalVisible(true);
+    };
 
-        CardActions.requestReplacementExpensifyCard(physicalCard.cardID, reason?.key as ReplacementReason);
+    const sendValidateCode = () => {
+        const primaryLogin = account?.primaryLogin ?? '';
+
+        if (loginList?.[primaryLogin]?.validateCodeSent) {
+            return;
+        }
+
+        requestValidateCodeAction();
+    };
+
+    const handleValidateCodeEntered = (validateCode: string) => {
+        CardActions.requestReplacementExpensifyCard(physicalCard.cardID, reason?.key as ReplacementReason, validateCode).then((newCardID) => {
+            if (!newCardID) {
+                return;
+            }
+            setIsValidateCodeActionModalVisible(false);
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(newCardID));
+        });
     };
 
     const handleOptionSelect = (option: Option) => {
@@ -188,6 +204,18 @@ function ReportCardLostPage({
                             message={translate('reportCardLostOrDamaged.addressError')}
                             isLoading={formData?.isLoading}
                             buttonText={isDamaged ? translate('reportCardLostOrDamaged.shipNewCardButton') : translate('reportCardLostOrDamaged.deactivateCardButton')}
+                        />
+                        <ValidateCodeActionModal
+                            handleSubmitForm={handleValidateCodeEntered}
+                            sendValidateCode={sendValidateCode}
+                            validateError={validateError}
+                            clearError={() => {
+                                CardActions.clearCardListErrors(physicalCard.cardID);
+                            }}
+                            onClose={() => setIsValidateCodeActionModalVisible(false)}
+                            isVisible={isValidateCodeActionModalVisible}
+                            title={translate('cardPage.validateCardTitle')}
+                            description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
                         />
                     </>
                 ) : (
