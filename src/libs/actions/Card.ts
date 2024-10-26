@@ -114,46 +114,52 @@ function reportVirtualExpensifyCardFraud(cardID: number, validateCode: string): 
  * @param reason - reason for replacement
  */
 function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReason) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-            value: {
-                isLoading: true,
-                errors: null,
+    return new Promise((resolve, reject) => {
+        const optimisticData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
             },
-        },
-    ];
+        ];
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-            value: {
-                isLoading: false,
+        const successData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
+                value: {
+                    isLoading: false,
+                },
             },
-        },
-    ];
+        ];
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-            value: {
-                isLoading: false,
+        const failureData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
+                value: {
+                    isLoading: false,
+                },
             },
-        },
-    ];
+        ];
 
-    const parameters: RequestReplacementExpensifyCardParams = {
-        cardID,
-        reason,
-    };
+        const parameters: RequestReplacementExpensifyCardParams = {
+            cardID,
+            reason,
+        };
 
-    API.write(WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD, parameters, {
-        optimisticData,
-        successData,
-        failureData,
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD, parameters, {optimisticData, successData, failureData})
+            .then((response): string | undefined => {
+                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    return;
+                }
+                resolve((response as ExpensifyCardID).newCardID.toString());
+            })
+            .catch(() => reject());
     });
 }
 
