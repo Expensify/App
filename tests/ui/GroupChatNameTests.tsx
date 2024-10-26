@@ -41,10 +41,6 @@ let transitionEndCB: () => void;
 
 jest.mock('@react-navigation/native');
 
-beforeAll(() => {
-    TestHelper.beforeAllSetupUITests();
-});
-
 const REPORT_ID = '1';
 const USER_A_ACCOUNT_ID = 1;
 const USER_A_EMAIL = 'user_a@test.com';
