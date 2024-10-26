@@ -1798,6 +1798,11 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        popoverIconCircle: {
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: variables.buttonBorderRadius,
+        },
+
         rightLabelMenuItem: {
             fontSize: variables.fontSizeLabel,
             color: theme.textSupporting,
@@ -5262,6 +5267,11 @@ const styles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        integrationIcon: {
+            overflow: 'hidden',
+            borderRadius: variables.buttonBorderRadius,
         },
 
         colorGreenSuccess: {
