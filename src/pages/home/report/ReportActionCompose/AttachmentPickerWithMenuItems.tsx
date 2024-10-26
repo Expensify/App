@@ -12,6 +12,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -23,6 +24,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as IOU from '@userActions/IOU';
+import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import DelegateNoAccessModal from '@src/components/DelegateNoAccessModal';
@@ -86,6 +88,8 @@ type AttachmentPickerWithMenuItemsProps = {
 
     /** The personal details of everyone in the report */
     reportParticipantIDs?: number[];
+
+    shouldDisableAttachmentItem?: boolean;
 };
 
 /**
@@ -110,6 +114,7 @@ function AttachmentPickerWithMenuItems({
     onItemSelected,
     actionButtonRef,
     raiseIsScrollLikelyLayoutTriggered,
+    shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
     const isFocused = useIsFocused();
     const theme = useTheme();
@@ -120,6 +125,7 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const {canUseCombinedTrackSubmit} = usePermissions();
 
     /**
      * Returns the list of IOU Options
@@ -141,8 +147,8 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.SUBMIT]: {
-                icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
-                text: translate('iou.submitExpense'),
+                icon: canUseCombinedTrackSubmit ? getIconForAction(CONST.IOU.TYPE.CREATE) : getIconForAction(CONST.IOU.TYPE.REQUEST),
+                text: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.submitExpense'),
                 onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.PAY]: {
@@ -157,8 +163,8 @@ function AttachmentPickerWithMenuItems({
                 },
             },
             [CONST.IOU.TYPE.TRACK]: {
-                icon: getIconForAction(CONST.IOU.TYPE.TRACK),
-                text: translate('iou.trackExpense'),
+                icon: canUseCombinedTrackSubmit ? getIconForAction(CONST.IOU.TYPE.CREATE) : getIconForAction(CONST.IOU.TYPE.TRACK),
+                text: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.trackExpense'),
                 onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.INVOICE]: {
@@ -168,10 +174,15 @@ function AttachmentPickerWithMenuItems({
             },
         };
 
-        return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
+        const moneyRequestOptionsList = ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
             ...options[option],
         }));
-    }, [translate, report, policy, reportParticipantIDs, isDelegateAccessRestricted]);
+
+        return canUseCombinedTrackSubmit
+            ? // Removes track option for the workspace with the canUseCombinedTrackSubmit enabled
+              moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text))
+            : moneyRequestOptionsList;
+    }, [translate, canUseCombinedTrackSubmit, report, policy, reportParticipantIDs, isDelegateAccessRestricted]);
 
     /**
      * Determines if we can show the task option
@@ -229,13 +240,7 @@ function AttachmentPickerWithMenuItems({
                     {
                         icon: Expensicons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
-                        onSelected: () => {
-                            if (Browser.isSafari()) {
-                                return;
-                            }
-                            triggerAttachmentPicker();
-                        },
-                        shouldCallAfterModalHide: true,
+                        disabled: shouldDisableAttachmentItem,
                     },
                 ];
                 return (
@@ -322,8 +327,14 @@ function AttachmentPickerWithMenuItems({
                                 // In order for the file picker to open dynamically, the click
                                 // function must be called from within a event handler that was initiated
                                 // by the user on Safari.
-                                if (index === menuItems.length - 1 && Browser.isSafari()) {
-                                    triggerAttachmentPicker();
+                                if (index === menuItems.length - 1) {
+                                    if (Browser.isSafari()) {
+                                        triggerAttachmentPicker();
+                                        return;
+                                    }
+                                    Modal.close(() => {
+                                        triggerAttachmentPicker();
+                                    });
                                 }
                             }}
                             anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}

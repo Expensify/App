@@ -50,7 +50,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
@@ -199,8 +198,8 @@ function ReportActionItem({
     const popoverAnchorRef = useRef<Exclude<ReportActionContextMenu.ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const {canUseP2PDistanceRequests} = usePermissions();
-
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || -1}`);
@@ -342,7 +341,6 @@ function ReportActionItem({
                 return;
             }
 
-            ReportActionComposeFocusManager.blurAll();
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
             ReportActionContextMenu.showContextMenu(
@@ -611,7 +609,7 @@ function ReportActionItem({
                                 success
                                 style={[styles.w100, styles.requestPreviewBox]}
                                 text={translate('bankAccount.addBankAccount')}
-                                onPress={() => BankAccounts.openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? linkedReport?.reportID)}
+                                onPress={() => BankAccounts.openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? linkedReport?.reportID, isUserValidated)}
                                 pressOnEnter
                                 large
                             />
@@ -707,7 +705,13 @@ function ReportActionItem({
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getRemovedFromApprovalChainMessage(action)} />;
         } else if (
-            ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
+            ReportActionsUtils.isActionOfType(
+                action,
+                CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
+                CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+                CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
+            )
         ) {
             children = (
                 <IssueCardMessage
