@@ -105,7 +105,6 @@ import type {
     ReportActionReactions,
     ReportUserIsTyping,
 } from '@src/types/onyx';
-import type IntroSelected from '@src/types/onyx/IntroSelected';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -272,13 +271,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     waitForCollectionCallback: true,
     callback: (value) => (allReportDraftComments = value),
-});
-
-let introSelected: IntroSelected | undefined = {};
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (val) => (introSelected = val),
 });
 
 let environmentURL: string;
@@ -3394,7 +3386,7 @@ function completeOnboarding(
                       workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID ?? '-1')}`,
                       workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID ?? '-1')}`,
                       workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID ?? '-1')}`,
-                      navatticURL: getNavatticURL(environment, introSelected?.choice),
+                      navatticURL: getNavatticURL(environment, engagementChoice),
                   })
                 : task.description;
         const currentTask = ReportUtils.buildOptimisticTaskReport(
