@@ -1801,6 +1801,8 @@ const styles = (theme: ThemeColors) =>
         popoverIconCircle: {
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: variables.buttonBorderRadius,
+            height: variables.w40,
+            width: variables.fabIconWidth,
         },
 
         rightLabelMenuItem: {
