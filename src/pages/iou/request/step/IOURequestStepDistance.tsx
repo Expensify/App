@@ -87,6 +87,8 @@ function IOURequestStepDistance({
         action,
         IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT,
     );
+
+    // When online, fetch the backup route to ensure the map is populated even if the user does not save the transaction
     useFetchRoute(transactionBackup, backupWaypoints, action, CONST.TRANSACTION.STATE.BACKUP);
 
     const waypointsList = Object.keys(waypoints);
