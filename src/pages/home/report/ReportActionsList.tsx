@@ -288,6 +288,7 @@ function ReportActionsList({
                 if (modal === undefined) {
                     return;
                 }
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (modal?.willAlertModalBecomeVisible || modal?.isVisible) {
                     removeHighlight();
                 }
