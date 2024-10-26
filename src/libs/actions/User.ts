@@ -54,15 +54,6 @@ import * as Session from './Session';
 
 let currentUserAccountID = -1;
 let currentEmail = '';
-let authToken = '';
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserAccountID = value?.accountID ?? -1;
-        currentEmail = value?.email ?? '';
-        authToken = value?.authToken ?? '';
-    },
-});
 
 let myPersonalDetails: OnyxEntry<OnyxPersonalDetails>;
 Onyx.connect({
@@ -1002,7 +993,7 @@ function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<P
         },
     ];
 
-    const parameters: TogglePlatformMuteParams = {authToken, platformToMute: platform};
+    const parameters: TogglePlatformMuteParams = {platformToMute: platform};
 
     API.write(WRITE_COMMANDS.TOGGLE_PLATFORM_MUTE, parameters, {
         optimisticData,
