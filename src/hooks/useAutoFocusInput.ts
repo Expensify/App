@@ -1,15 +1,15 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
+import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
-import {AnimatedTextInputRef} from '@components/RNTextInput';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 
 type UseAutoFocusInput = {
-    inputCallbackRef: (ref: AnimatedTextInputRef | null) => void;
-    inputRef: RefObject<AnimatedTextInputRef | null>;
+    inputCallbackRef: (ref: TextInput | null) => void;
+    inputRef: RefObject<TextInput | null>;
 };
 
 export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
@@ -18,7 +18,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
 
     const {splashScreenState} = useSplashScreenStateContext();
 
-    const inputRef = useRef<AnimatedTextInputRef | null>(null);
+    const inputRef = useRef<TextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -53,7 +53,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         }, []),
     );
 
-    const inputCallbackRef = (ref: AnimatedTextInputRef | null) => {
+    const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;
         if (isInputInitialized) {
             return;
