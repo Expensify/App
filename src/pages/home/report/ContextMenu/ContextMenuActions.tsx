@@ -89,6 +89,7 @@ type ContextMenuActionPayload = {
     anchorRef?: MutableRefObject<View | null>;
     moneyRequestAction: ReportAction | undefined;
     hasCard?: boolean;
+    removeHighlight?: () => void;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -184,7 +185,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
             return !ReportUtils.shouldDisableThread(reportAction, reportID);
         },
-        onPress: (closePopover, {reportAction, reportID}) => {
+        onPress: (closePopover, {reportAction, reportID, removeHighlight}) => {
             const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -197,6 +198,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 });
                 return;
             }
+            removeHighlight?.();
             Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '-1', reportAction, originalReportID);
         },
         getDescription: () => {},

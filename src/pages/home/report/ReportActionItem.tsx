@@ -208,7 +208,7 @@ function ReportActionItem({
     const isActionableWhisper =
         ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action) || ReportActionsUtils.isActionableReportMentionWhisper(action);
     const originalMessage = ReportActionsUtils.getOriginalMessage(action);
-    const {linkedReportActionID: contextlinkedReportActionID, setHighlight, highlightedBackgroundColorIfNeeded} = useContext(ReportActionHighlightContext);
+    const {linkedReportActionID: contextlinkedReportActionID, setHighlight} = useContext(ReportActionHighlightContext);
     useEffect(() => {
         if (!isReportActionLinked) {
             return;
@@ -947,6 +947,9 @@ function ReportActionItem({
         : [];
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
+
+    const highlightedBackgroundColorStyles =
+        isReportActionLinked && contextlinkedReportActionID === action.reportActionID ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {};
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
@@ -965,7 +968,7 @@ function ReportActionItem({
                 isDisabled={draftMessage !== undefined}
             >
                 {(hovered) => (
-                    <View style={isReportActionLinked && contextlinkedReportActionID === action.reportActionID ? highlightedBackgroundColorIfNeeded : {}}>
+                    <View style={highlightedBackgroundColorStyles}>
                         {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
                         {shouldDisplayContextMenu && (
                             <MiniReportActionContextMenu

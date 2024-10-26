@@ -1,6 +1,6 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {MutableRefObject, RefObject} from 'react';
-import React, {memo, useMemo, useRef, useState} from 'react';
+import React, {memo, useContext, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
@@ -9,6 +9,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ContextMenuItemHandle} from '@components/ContextMenuItem';
 import ContextMenuItem from '@components/ContextMenuItem';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import {ReportActionHighlightContext} from '@components/ReportActionHighlightProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useEnvironment from '@hooks/useEnvironment';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -181,6 +182,8 @@ function BaseReportActionContextMenu({
 
     const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, reportAction), [reportID, reportAction]);
 
+    const {removeHighlight} = useContext(ReportActionHighlightContext);
+
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
@@ -322,6 +325,7 @@ function BaseReportActionContextMenu({
                             setIsEmojiPickerActive,
                             moneyRequestAction,
                             hasCard: !!card,
+                            removeHighlight: isMini ? removeHighlight : () => {},
                         };
 
                         if ('renderContent' in contextAction) {
