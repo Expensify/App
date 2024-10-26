@@ -1,23 +1,24 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
-import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
+import {AnimatedTextInputRef} from '@components/RNTextInput';
+import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 
 type UseAutoFocusInput = {
-    inputCallbackRef: (ref: TextInput | null) => void;
-    inputRef: RefObject<TextInput | null>;
+    inputCallbackRef: (ref: AnimatedTextInputRef | null) => void;
+    inputRef: RefObject<AnimatedTextInputRef | null>;
 };
 
-export default function useAutoFocusInput(): UseAutoFocusInput {
+export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
 
     const {splashScreenState} = useSplashScreenStateContext();
 
-    const inputRef = useRef<TextInput | null>(null);
+    const inputRef = useRef<AnimatedTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -25,6 +26,9 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
             return;
         }
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
+            if (inputRef.current && isMultiline) {
+                moveSelectionToEnd(inputRef.current);
+            }
             inputRef.current?.focus();
             setIsScreenTransitionEnded(false);
         });
@@ -49,10 +53,13 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
         }, []),
     );
 
-    const inputCallbackRef = (ref: TextInput | null) => {
+    const inputCallbackRef = (ref: AnimatedTextInputRef | null) => {
         inputRef.current = ref;
         if (isInputInitialized) {
             return;
+        }
+        if (ref && isMultiline) {
+            scrollToBottom(ref);
         }
         setIsInputInitialized(true);
     };
