@@ -658,6 +658,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 featureName: (featureName: string) => decodeURIComponent(featureName),
                             },
                         },
+                        [SCREENS.WORKSPACE.DOWNGRADE]: {
+                            path: ROUTES.WORKSPACE_DOWNGRADE.route,
+                        },
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
                         },

@@ -442,6 +442,7 @@ const translations = {
         drafts: 'Drafts',
         finished: 'Finished',
         upgrade: 'Upgrade',
+        downgrade: 'Downgrade',
         companyID: 'Company ID',
         userID: 'User ID',
         disable: 'Disable',

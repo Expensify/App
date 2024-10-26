@@ -433,6 +433,7 @@ const translations = {
         drafts: 'Borradores',
         finished: 'Finalizados',
         upgrade: 'Mejora',
+        downgrade: 'Degradar',
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
