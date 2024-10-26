@@ -199,7 +199,7 @@ function FloatingActionButtonAndPopover(
     const {environment} = useEnvironment();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const navatticURL = getNavatticURL(environment, introSelected?.choice);
-    const [hasSeenTour = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
 
