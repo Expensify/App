@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getIconForAction from '@libs/getIconForAction';
@@ -182,6 +183,7 @@ function FloatingActionButtonAndPopover(
     ref: ForwardedRef<FloatingActionButtonAndPopoverRef>,
 ) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${quickActionReport?.reportID ?? -1}`);
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
@@ -468,11 +470,9 @@ function FloatingActionButtonAndPopover(
                     ...(!hasSeenTour
                         ? [
                               {
-                                  icon: Expensicons.Tour,
-                                  displayInDefaultIconColor: true,
-                                  contentFit: 'contain' as ImageContentFit,
-                                  iconWidth: 46,
-                                  iconHeight: 40,
+                                  icon: Expensicons.Binoculars,
+                                  iconStyles: styles.popoverIconCircle,
+                                  iconFill: theme.icon,
                                   text: translate('tour.takeATwoMinuteTour'),
                                   description: translate('tour.exploreExpensify'),
                                   onSelected: () => {
