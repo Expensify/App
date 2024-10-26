@@ -2,7 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
 import ImageSVG from '@components/ImageSVG';
 import ScrollView from '@components/ScrollView';
@@ -94,9 +94,12 @@ function SignInPageLayout(
     DomUtils.addCSS(DomUtils.getAutofilledInputStyle(themes[CONST.THEME.DARK].text, `.${cssClass}`), 'sign-in-autofill-input');
 
     useEffect(() => {
-        if (![CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].includes(getPlatform())) {
+        const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+        const isDesktop = getPlatform() === CONST.PLATFORM.DESKTOP;
+        if (!isWeb && !isDesktop) {
             return;
         }
+        // add css class to body only for web and desktop
         document.body.classList.add(cssClass);
         return () => {
             document.body.classList.remove(cssClass);
