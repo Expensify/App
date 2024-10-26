@@ -54,6 +54,13 @@ import * as Session from './Session';
 
 let currentUserAccountID = -1;
 let currentEmail = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        currentUserAccountID = value?.accountID ?? -1;
+        currentEmail = value?.email ?? '';
+    },
+});
 
 let myPersonalDetails: OnyxEntry<OnyxPersonalDetails>;
 Onyx.connect({
