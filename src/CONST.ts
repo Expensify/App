@@ -297,6 +297,9 @@ const CONST = {
     // Regex to get link in href prop inside of <a/> component
     REGEX_LINK_IN_ANCHOR: /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi,
 
+    // Regex to read violation value from string given by backend
+    VIOLATION_LIMIT_REGEX: /[^0-9]+/g,
+
     MERCHANT_NAME_MAX_LENGTH: 255,
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
@@ -470,6 +473,19 @@ const CONST = {
             BUSINESS: 'BUSINESS',
             PERSONAL: 'PERSONAL',
         },
+    },
+    NON_USD_BANK_ACCOUNT: {
+        STEP: {
+            COUNTRY: 'CountryStep',
+            BANK_INFO: 'BankInfoStep',
+            BUSINESS_INFO: 'BusinessInfoStep',
+            BENEFICIAL_OWNER_INFO: 'BeneficialOwnerInfoStep',
+            SIGNER_INFO: 'SignerInfoStep',
+            AGREEMENTS: 'AgreementsStep',
+            FINISH: 'FinishStep',
+        },
+        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        STEP_HEADER_HEIGHT: 40,
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -1566,6 +1582,7 @@ const CONST = {
         TRACKING_CATEGORY_OPTIONS: {
             DEFAULT: 'DEFAULT',
             TAG: 'TAG',
+            REPORT_FIELD: 'REPORT_FIELD',
         },
     },
 
@@ -1616,6 +1633,12 @@ const CONST = {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'journal_entry',
+    },
+
+    QUICKBOOKS_NON_REIMBURSABLE_ACCOUNT_TYPE: {
+        CREDIT_CARD: 'credit_card',
+        DEBIT_CARD: 'debit_card',
+        VENDOR_BILL: 'bill',
     },
 
     QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE: {
@@ -2531,6 +2554,13 @@ const CONST = {
             VISA: 'vcf',
             AMEX: 'gl1025',
             STRIPE: 'stripe',
+            CITIBANK: 'oauth.citibank.com',
+            CAPITAL_ONE: 'oauth.capitalone.com',
+            BANK_OF_AMERICA: 'oauth.bankofamerica.com',
+            CHASE: 'oauth.chase.com',
+            BREX: 'oauth.brex.com',
+            WELLS_FARGO: 'oauth.wellsfargo.com',
+            AMEX_DIRECT: 'oauth.americanexpressfdx.com',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
@@ -2584,6 +2614,7 @@ const CONST = {
             MONTHLY: 'monthly',
         },
         CARD_TITLE_INPUT_LIMIT: 255,
+        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
     },
     COMPANY_CARDS: {
         CONNECTION_ERROR: 'connectionError',
@@ -2617,6 +2648,15 @@ const CONST = {
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
             OTHER: 'Other',
+        },
+        BANK_CONNECTIONS: {
+            WELLS_FARGO: 'wellsfargo',
+            BANK_OF_AMERICA: 'bankofamerica',
+            CHASE: 'chase',
+            BREX: 'brex',
+            CAPITAL_ONE: 'capitalone',
+            CITI_BANK: 'citibank',
+            AMEX: 'americanexpressfdx',
         },
         AMEX_CUSTOM_FEED: {
             CORPORATE: 'American Express Corporate Cards',
@@ -4802,10 +4842,11 @@ const CONST = {
                         '\n' +
                         'Here’s how to request money:\n' +
                         '\n' +
-                        '1. Click the green *+* button.\n' +
-                        '2. Choose *Split expense*.\n' +
-                        '3. Scan a receipt or enter an amount.\n' +
-                        '4. Add your friend(s) to the request.\n' +
+                        '1. Hit the green *+* button.\n' +
+                        '2. Choose *Start chat*.\n' +
+                        '3. Enter any email, SMS, or name of who you want to split with.\n' +
+                        '4. From within the chat, hit the *+* button on the message bar, and hit *Split expense*.\n' +
+                        '5. Create the expense by selecting Manual, Scan or Distance.\n' +
                         '\n' +
                         'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
                 },
@@ -5706,6 +5747,7 @@ const CONST = {
             KEYWORD: 'keyword',
             IN: 'in',
         },
+        EMPTY_VALUE: 'none',
     },
 
     REFERRER: {
@@ -5907,6 +5949,21 @@ const CONST = {
     // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.
     ERROR_WINDOW_RELOAD_TIMEOUT: 60000,
 
+    INDICATOR_STATUS: {
+        HAS_USER_WALLET_ERRORS: 'hasUserWalletErrors',
+        HAS_PAYMENT_METHOD_ERROR: 'hasPaymentMethodError',
+        HAS_POLICY_ERRORS: 'hasPolicyError',
+        HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
+        HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
+        HAS_SYNC_ERRORS: 'hasSyncError',
+        HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
+        HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
+        HAS_LOGIN_LIST_ERROR: 'hasLoginListError',
+        HAS_WALLET_TERMS_ERRORS: 'hasWalletTermsErrors',
+        HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
+        HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
+    },
+
     DEBUG: {
         DETAILS: 'details',
         JSON: 'json',
@@ -5933,6 +5990,12 @@ const CONST = {
         IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION: 'isWaitingForAssigneeToCompleteAction',
         HAS_CHILD_REPORT_AWAITING_ACTION: 'hasChildReportAwaitingAction',
         HAS_MISSING_INVOICE_BANK_ACCOUNT: 'hasMissingInvoiceBankAccount',
+    },
+
+    RBR_REASONS: {
+        HAS_ERRORS: 'hasErrors',
+        HAS_VIOLATIONS: 'hasViolations',
+        HAS_TRANSACTION_THREAD_VIOLATIONS: 'hasTransactionThreadViolations',
     },
 } as const;
 
