@@ -662,7 +662,9 @@ function MoneyRequestConfirmationList({
     }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants]);
 
     useEffect(() => {
-        if (!isDistanceRequest || isMovingTransactionFromTrackExpense) {
+        if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat)) {
+            // We don't want to recalculate the distance merchant when moving a transaction from Track Expense to a 1:1 chat.
+            // When moving to a policy chat (e.g. sharing with an accountant), we should recalculate the distance merchant with the policy's rate.
             return;
         }
 
@@ -685,6 +687,7 @@ function MoneyRequestConfirmationList({
         translate,
         toLocaleDigit,
         isDistanceRequest,
+        isPolicyExpenseChat,
         transaction,
         transactionID,
         action,

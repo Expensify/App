@@ -466,7 +466,15 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
  * Set custom unit rateID for the transaction draft
  */
 function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID}}});
+    const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: {
+                customUnitRateID,
+                ...!isFakeP2PRate && {defaultP2PRate: null}
+            },
+        },
+    });
 }
 
 /** Set the distance rate of a new  transaction */
