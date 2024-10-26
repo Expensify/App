@@ -1,4 +1,5 @@
 function scrollToBottom(input: HTMLInputElement) {
+    // eslint-disable-next-line no-param-reassign
     input.scrollTop = input.scrollHeight;
 }
 

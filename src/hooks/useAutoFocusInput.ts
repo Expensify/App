@@ -36,7 +36,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isScreenTransitionEnded, isInputInitialized, splashScreenState]);
+    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState]);
 
     useFocusEffect(
         useCallback(() => {
