@@ -1,5 +1,9 @@
+import type {RouteProp} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {createContext, useCallback, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useLayoutEffect, useMemo, useState} from 'react';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type SCREENS from '@src/SCREENS';
 
 // Define the context type
 type ReportActionHighlightContextType = {
@@ -22,7 +26,13 @@ type ReportActionHighlightProviderProps = {
 
 // Context provider component
 function ReportActionHighlightProvider({children}: ReportActionHighlightProviderProps) {
-    const [linkedReportActionID, setLinkedReportActionID] = useState<string | null>(null);
+    const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
+    const reportActionID = route.params?.reportActionID;
+    const [linkedReportActionID, setLinkedReportActionID] = useState<string | null>(reportActionID ?? null);
+
+    useLayoutEffect(() => {
+        setLinkedReportActionID(reportActionID ?? null);
+    }, [reportActionID]);
 
     const setHighlight = useCallback((id: string) => {
         setLinkedReportActionID(id);

@@ -5,7 +5,7 @@ import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFo
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import {runOnUI, useSharedValue} from 'react-native-reanimated';
+import {runOnJS, runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
@@ -355,9 +355,9 @@ function ReportActionCompose({
             return;
         }
 
-        removeHighlight();
         // This will cause onCleared to be triggered where we actually send the message
         clearComposer();
+        runOnJS(removeHighlight)();
     }, [isSendDisabled, isReportReadyForDisplay, composerRefShared, removeHighlight]);
 
     // eslint-disable-next-line react-compiler/react-compiler

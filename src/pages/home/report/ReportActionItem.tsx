@@ -208,13 +208,7 @@ function ReportActionItem({
     const isActionableWhisper =
         ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action) || ReportActionsUtils.isActionableReportMentionWhisper(action);
     const originalMessage = ReportActionsUtils.getOriginalMessage(action);
-    const {linkedReportActionID: contextlinkedReportActionID, setHighlight} = useContext(ReportActionHighlightContext);
-    useEffect(() => {
-        if (!isReportActionLinked) {
-            return;
-        }
-        setHighlight(linkedReportActionID);
-    }, [isReportActionLinked, linkedReportActionID, setHighlight]);
+    const {linkedReportActionID: contextlinkedReportActionID} = useContext(ReportActionHighlightContext);
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
     const isOriginalMessageAnObject = originalMessage && typeof originalMessage === 'object';
