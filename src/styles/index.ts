@@ -1798,6 +1798,11 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        popoverIconCircle: {
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: variables.buttonBorderRadius,
+        },
+
         rightLabelMenuItem: {
             fontSize: variables.fontSizeLabel,
             color: theme.textSupporting,
