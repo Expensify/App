@@ -140,7 +140,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
     const policyID = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.policyID ?? '-1';
 
     if (reportActionOriginalMessage?.movedToReportID) {
-        return "Moved this expense"; // todo: copy needed
+        return 'Moved this expense'; // todo: copy needed
     }
 
     const removalFragments: string[] = [];

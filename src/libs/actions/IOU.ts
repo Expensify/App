@@ -471,7 +471,7 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
         comment: {
             customUnit: {
                 customUnitRateID,
-                ...!isFakeP2PRate && {defaultP2PRate: null}
+                ...(!isFakeP2PRate && {defaultP2PRate: null}),
             },
         },
     });
