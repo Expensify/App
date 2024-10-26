@@ -482,7 +482,7 @@ function FloatingActionButtonAndPopover(
                               },
                           ]
                         : []),
-                    ...(!isLoading && !Policy.hasActiveChatEnabledPolicies(allPolicies) && hasSeenTour
+                    ...(!isLoading && !Policy.hasActiveChatEnabledPolicies(allPolicies)
                         ? [
                               {
                                   displayInDefaultIconColor: true,
