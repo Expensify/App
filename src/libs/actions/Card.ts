@@ -20,10 +20,9 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CompanyCardFeed, OnyxUpdateEvent, OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {Card, CompanyCardFeed} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, ExpensifyCardID, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 
 type ReplacementReason = 'damaged' | 'stolen';
 
