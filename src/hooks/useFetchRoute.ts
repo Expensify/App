@@ -4,14 +4,19 @@ import type {OnyxEntry} from 'react-native-onyx';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as TransactionAction from '@userActions/Transaction';
 import type {IOUAction} from '@src/CONST';
+import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type TransactionState from '@src/types/utils/TransactionStateType';
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
-import TransactionState from '@src/types/utils/TransactionStateType';
-import CONST from '@src/CONST';
 
-export default function useFetchRoute(transaction: OnyxEntry<Transaction>, waypoints: WaypointCollection | undefined, action: IOUAction, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT) {
+export default function useFetchRoute(
+    transaction: OnyxEntry<Transaction>,
+    waypoints: WaypointCollection | undefined,
+    action: IOUAction,
+    transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT,
+) {
     const {isOffline} = useNetwork();
     const hasRouteError = !!transaction?.errorFields?.route;
     const hasRoute = TransactionUtils.hasRoute(transaction);
@@ -29,7 +34,7 @@ export default function useFetchRoute(transaction: OnyxEntry<Transaction>, waypo
         }
 
         TransactionAction.getRoute(transaction.transactionID, validatedWaypoints, transactionState);
-    }, [shouldFetchRoute, transaction?.transactionID, validatedWaypoints, isOffline, action]);
+    }, [shouldFetchRoute, transaction?.transactionID, validatedWaypoints, isOffline, action, transactionState]);
 
     return {shouldFetchRoute, validatedWaypoints};
 }

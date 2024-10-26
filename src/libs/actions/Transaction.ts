@@ -280,7 +280,6 @@ function sanitizeRecentWaypoints(waypoints: WaypointCollection): WaypointCollect
  * Used so we can generate a map view of the provided waypoints
  */
 
-
 function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION.STATE.CURRENT) {
     const parameters: GetRouteParams = {
         transactionID,
