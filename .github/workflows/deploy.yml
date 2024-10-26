@@ -168,7 +168,7 @@ jobs:
     needs: prep
     runs-on: ubuntu-latest-xl
     # Only deploy HybridApp to staging
-    if: ${{ github.ref != 'refs/heads/production' }}
+    if: ${{ github.ref == 'refs/heads/staging' }}
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
@@ -182,14 +182,10 @@ jobs:
           submodules: true
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          #TODO: REMOVE THIS LINE BEFORE MERGING
-          fetch-depth: 0
 
       - name: Update submodule
         run: |
           git submodule update --init
-          # TODO: REMOVE THIS LINE BEFORE MERGING
-          git checkout andrew-mobile-deploy
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -223,7 +219,7 @@ jobs:
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
 
-      - name: Load files 1Password
+      - name: Load files from 1Password
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
@@ -467,7 +463,7 @@ jobs:
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
     # Only deploy HybridApp to staging
-    if: ${{ github.ref != 'refs/heads/production' }}
+    if: ${{ github.ref == 'refs/heads/staging' }}
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
@@ -479,14 +475,10 @@ jobs:
           submodules: true
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          # TODO: REMOVE THIS LINE BEFORE MERGING
-          fetch-depth: 0
 
       - name: Update submodule
         run: |
           git submodule update --init
-          # TODO: REMOVE THIS LINE BEFORE MERGING
-          git checkout andrew-mobile-deploy
 
       - name: Configure MapBox SDK
         run: |
@@ -534,7 +526,7 @@ jobs:
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
 
-      - name: Load files 1Password
+      - name: Load files from 1Password
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
