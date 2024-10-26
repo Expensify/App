@@ -20,6 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Report from '@libs/actions/Report';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -80,17 +81,16 @@ function IOURequestStepDistance({
     );
 
     const backupWaypoints = transactionBackup?.pendingFields?.waypoints ? transactionBackup?.comment?.waypoints : undefined;
-
+    // When online, fetch the backup route to ensure the map is populated even if the user does not save the transaction.
+    // Fetch the backup route first to ensure the backup transaction map is updated before the main transaction map.
+    // This prevents a scenario where the main map loads, the user dismisses the map editor, and the backup map has not yet loaded due to delay.
+    useFetchRoute(transactionBackup, backupWaypoints, action, CONST.TRANSACTION.STATE.BACKUP);
     const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(
         transaction,
         waypoints,
         action,
         IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT,
     );
-
-    // When online, fetch the backup route to ensure the map is populated even if the user does not save the transaction
-    useFetchRoute(transactionBackup, backupWaypoints, action, CONST.TRANSACTION.STATE.BACKUP);
-
     const waypointsList = Object.keys(waypoints);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
@@ -225,6 +225,12 @@ function IOURequestStepDistance({
                 return;
             }
             TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '-1', IOUUtils.shouldUseTransactionDraft(action));
+
+            // If the user opens IOURequestStepDistance in offline mode and then goes online, re-open the report to fill in missing fields from the transaction backup
+            if (!transaction?.reportID) {
+                return;
+            }
+            Report.openReport(transaction?.reportID);
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
