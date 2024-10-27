@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -33,7 +34,7 @@ function WebsiteBusiness({onNext, isEditing}: SubStepProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.website && !ValidationUtils.isValidWebsite(values.website)) {
+            if (values.website && !ValidationUtils.isValidWebsite(Str.sanitizeURL(values.website))) {
                 errors.website = translate('bankAccount.error.website');
             }
 

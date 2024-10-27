@@ -49,7 +49,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME, INPUT_IDS.COMPANY_WEBSITE]);
 
             if (values.companyWebsite) {
-                if (!ValidationUtils.isValidWebsite(values.companyWebsite)) {
+                if (!ValidationUtils.isValidWebsite(Str.sanitizeURL(values.companyWebsite, CONST.URL_DEFAULT_SCHEME))) {
                     errors.companyWebsite = translate('bankAccount.error.website');
                 } else {
                     const domain = Url.extractUrlDomain(values.companyWebsite);

@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {CompanyStepProps} from '@src/types/form/ReimbursementAccountForm';
@@ -16,7 +17,7 @@ function getInitialSubstepForBusinessInfo(data: CompanyStepProps): number {
         return 1;
     }
 
-    if (!ValidationUtils.isValidWebsite(data[businessInfoStepKeys.COMPANY_WEBSITE])) {
+    if (!ValidationUtils.isValidWebsite(Str.sanitizeURL(data[businessInfoStepKeys.COMPANY_WEBSITE]))) {
         return 2;
     }
 
