@@ -105,6 +105,7 @@ function BaseReportActionContextMenu({
     draftMessage = '',
     reportActionID,
     reportID,
+    originalReportID,
     checkIfContextMenuActive,
     disabledActions = [],
     setIsEmojiPickerActive,
@@ -120,7 +121,7 @@ function BaseReportActionContextMenu({
     const {isProduction} = useEnvironment();
     const threedotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         canEvict: false,
     });
     const transactionID = ReportActionsUtils.getLinkedTransactionID(reportActionID, reportID);
@@ -178,8 +179,6 @@ function BaseReportActionContextMenu({
 
     const areHoldRequirementsMet =
         !isInvoiceReport && isMoneyRequestOrReport && !ReportUtils.isArchivedRoom(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
-
-    const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, reportAction), [reportID, reportAction]);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     let filteredContextMenuActions = ContextMenuActions.filter(
