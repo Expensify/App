@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {OnyxEntry, useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
@@ -7,9 +7,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTag, PolicyTags} from '@src/types/onyx';
+import type {PolicyTag, PolicyTags, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type SelectedTagOption = {
@@ -40,11 +41,15 @@ type TagPickerProps = {
 
     /** Indicates which tag list index was selected */
     tagListIndex: number;
+
+    /** Current Transaction */
+    currentTransaction: OnyxEntry<Transaction>;
 };
 
-function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShowDisabledAndSelectedOption = false, onSubmit}: TagPickerProps) {
+function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShowDisabledAndSelectedOption = false, onSubmit, currentTransaction}: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
@@ -55,6 +60,8 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
     const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTagsCountBelowThreshold;
+    const currentlySelectedTag = TransactionUtils.getTagUptoIndex(currentTransaction, tagListIndex);
+    const hasDependentTags = useMemo(() => PolicyUtils.hasDependentTags(policy, policyTags), [policy, policyTags]);
 
     const selectedOptions: SelectedTagOption[] = useMemo(() => {
         if (!selectedTag) {
@@ -72,7 +79,13 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
 
     const enabledTags: PolicyTags | Array<PolicyTag | SelectedTagOption> = useMemo(() => {
         if (!shouldShowDisabledAndSelectedOption) {
-            return policyTagList.tags;
+            // we should only filter according to the parentTagsFilter when we have dependent tag and we are not on the first parent tag
+            return hasDependentTags && !!currentlySelectedTag
+                ? Object.values(policyTagList.tags).filter((tag) => {
+                      // Make sure to return the comparison result
+                      return tag.rules?.parentTagsFilter === `^${currentlySelectedTag.replace(',', '\\:')}$`;
+                  })
+                : policyTagList.tags;
         }
         const selectedNames = selectedOptions.map((s) => s.name);
 

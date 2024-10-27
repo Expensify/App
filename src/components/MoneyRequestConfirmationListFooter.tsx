@@ -292,6 +292,8 @@ function MoneyRequestConfirmationListFooter({
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID}), [reportID]);
 
+    const hasDependentTags = useMemo(() => PolicyUtils.hasDependentTags(policy, policyTags), [policy, policyTags]);
+
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
     const classifiedFields = [
@@ -467,7 +469,9 @@ function MoneyRequestConfirmationListFooter({
         },
         ...policyTagLists.map(({name, required, tags}, index) => {
             const isTagRequired = required ?? false;
-            const shouldShow = shouldShowTags && (!isMultilevelTags || OptionsListUtils.hasEnabledOptions(tags));
+            const shouldShowDependentTag = index === 0 ? true : !!TransactionUtils.getTagForDisplay(transaction, index - 1);
+            const shouldShow = hasDependentTags ? shouldShowDependentTag : shouldShowTags && (!isMultilevelTags || OptionsListUtils.hasEnabledOptions(tags));
+
             return {
                 item: (
                     <MenuItemWithTopDescription

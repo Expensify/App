@@ -1156,6 +1156,16 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
     };
 }
 
+function getTagUptoIndex(transaction: OnyxInputOrEntry<Transaction>, tagIndex?: number): string {
+    if (tagIndex !== undefined) {
+        const tagsArray = getTagArrayFromName(transaction?.tag ?? '');
+        // Get tags from start up to (but not including) tagIndex of the current child tag and join them back into a string
+        return tagsArray.slice(0, tagIndex).join(',') ?? '';
+    }
+
+    return transaction?.tag ?? '';
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -1241,6 +1251,7 @@ export {
     getCardName,
     hasReceiptSource,
     shouldShowAttendees,
+    getTagUptoIndex,
 };
 
 export type {TransactionChanges};

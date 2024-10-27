@@ -140,9 +140,16 @@ function isValidMoneyRequestType(iouType: string): boolean {
  * @param tagIndex - the index of a tag list
  * @returns
  */
-function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number): string {
+function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number, hasDependentTag?: boolean, policyTagListsLength?: number): string {
     const tagArray = TransactionUtils.getTagArrayFromName(transactionTags);
     tagArray[tagIndex] = tag;
+
+    // If hasDependentTag is true, clear tags greater than tagIndex up to policyTagListsLength
+    if (hasDependentTag) {
+        for (let i = tagIndex + 1; i < (policyTagListsLength ? policyTagListsLength : 0); i++) {
+            tagArray[i] = ''; // Clear the child dependent tags
+        }
+    }
 
     while (tagArray.length > 0 && !tagArray.at(-1)) {
         tagArray.pop();

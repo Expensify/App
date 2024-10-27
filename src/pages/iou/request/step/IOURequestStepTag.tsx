@@ -63,6 +63,7 @@ function IOURequestStepTag({
     const reportAction = reportActions?.[report?.parentReportActionID ?? reportActionID] ?? null;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const hasDependentTags = useMemo(() => PolicyUtils.hasDependentTags(policy, policyTags), [policy, policyTags]);
 
     const shouldShowTag = transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists);
 
@@ -78,7 +79,7 @@ function IOURequestStepTag({
     const updateTag = (selectedTag: Partial<ReportUtils.OptionData>) => {
         const isSelectedTag = selectedTag.searchText === tag;
         const searchText = selectedTag.searchText ?? '';
-        const updatedTag = IOUUtils.insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex);
+        const updatedTag = IOUUtils.insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex, hasDependentTags, policyTagLists.length);
         if (isEditingSplitBill) {
             IOU.setDraftSplitTransaction(transactionID, {tag: updatedTag});
             navigateBack();
@@ -140,6 +141,7 @@ function IOURequestStepTag({
                         tagListIndex={tagListIndex}
                         selectedTag={tag}
                         onSubmit={updateTag}
+                        currentTransaction={currentTransaction}
                     />
                 </>
             )}
