@@ -1,5 +1,5 @@
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -208,8 +208,13 @@ function ReportActionItem({
     const isActionableWhisper =
         ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action) || ReportActionsUtils.isActionableReportMentionWhisper(action);
     const originalMessage = ReportActionsUtils.getOriginalMessage(action);
-    const {linkedReportActionID: contextlinkedReportActionID} = useContext(ReportActionHighlightContext);
-
+    const {linkedReportActionID: contextlinkedReportActionID, setHighlight} = useContext(ReportActionHighlightContext);
+    useLayoutEffect(() => {
+        if (!isReportActionLinked) {
+            return;
+        }
+        setHighlight(linkedReportActionID);
+    }, [isReportActionLinked, linkedReportActionID, setHighlight]);
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
     const isOriginalMessageAnObject = originalMessage && typeof originalMessage === 'object';
     const hasResolutionInOriginalMessage = isOriginalMessageAnObject && 'resolution' in originalMessage;

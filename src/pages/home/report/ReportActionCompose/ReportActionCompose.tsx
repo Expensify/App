@@ -5,7 +5,7 @@ import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFo
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import {runOnJS, runOnUI, useSharedValue} from 'react-native-reanimated';
+import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
@@ -261,6 +261,8 @@ function ReportActionCompose({
         setIsAttachmentPreviewActive(false);
     }, [updateShouldShowSuggestionMenuToFalse]);
 
+    const {removeHighlight} = useContext(ReportActionHighlightContext);
+
     /**
      * Add a new comment to this chat
      */
@@ -276,9 +278,10 @@ function ReportActionCompose({
             } else {
                 Performance.markStart(CONST.TIMING.MESSAGE_SENT, {message: newCommentTrimmed});
                 onSubmit(newCommentTrimmed);
+                removeHighlight();
             }
         },
-        [onSubmit, reportID],
+        [onSubmit, reportID, removeHighlight],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -341,8 +344,6 @@ function ReportActionCompose({
         clear: (() => void) | undefined;
     }>({clear: undefined});
 
-    const {removeHighlight} = useContext(ReportActionHighlightContext);
-
     const handleSendMessage = useCallback(() => {
         'worklet';
 
@@ -357,8 +358,7 @@ function ReportActionCompose({
 
         // This will cause onCleared to be triggered where we actually send the message
         clearComposer();
-        runOnJS(removeHighlight)();
-    }, [isSendDisabled, isReportReadyForDisplay, composerRefShared, removeHighlight]);
+    }, [isSendDisabled, isReportReadyForDisplay, composerRefShared]);
 
     // eslint-disable-next-line react-compiler/react-compiler
     onSubmitAction = handleSendMessage;
