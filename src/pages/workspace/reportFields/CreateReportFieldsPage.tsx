@@ -56,7 +56,7 @@ function CreateReportFieldsPage({
             });
             Navigation.goBack();
         },
-        [policyID],
+        [availableListValuesLength, policyID],
     );
 
     const validateForm = useCallback(
