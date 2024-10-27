@@ -34,7 +34,7 @@ function WebsiteBusiness({onNext, isEditing}: SubStepProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.website && !ValidationUtils.isValidWebsite(Str.sanitizeURL(values.website))) {
+            if (values.website && !ValidationUtils.isValidWebsite(Str.sanitizeURL(values.website, CONST.URL_DEFAULT_SCHEME))) {
                 errors.website = translate('bankAccount.error.website');
             }
 
