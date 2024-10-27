@@ -351,13 +351,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     const multiLevelTagEmptyStateComponentSubtitle = (
-        <>
-            <Text>
-                {translate('workspace.tags.multiLevelEmptyTags.subtitlePt1')}
-                <TextLink href={CONST.FORMATING_TAG_FILES_HELPDOT_ARTICLE_LINK}>{translate('workspace.tags.multiLevelEmptyTags.learnMore')}</TextLink>
-                {translate('workspace.tags.multiLevelEmptyTags.subtitlePt2')}
-            </Text>
-        </>
+        <Text>
+            {translate('workspace.tags.multiLevelEmptyTags.subtitlePt1')}
+            <TextLink href={CONST.FORMATING_TAG_FILES_HELPDOT_ARTICLE_LINK}>{translate('workspace.tags.multiLevelEmptyTags.learnMore')}</TextLink>
+            {translate('workspace.tags.multiLevelEmptyTags.subtitlePt2')}
+        </Text>
     );
 
     return (

@@ -58,7 +58,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const policyID = route.params.policyID ?? '-1';
     const backTo = route.params.backTo;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -81,37 +81,35 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const hasDependentTags = useMemo(() => PolicyUtils.hasDependentTags(policy, policyTags), [policy, policyTags]);
     const confirmModalPrompt = (
-        <>
-            <Text>
-                {translate('workspace.tags.switchTagLevelsDescription')}
-                {translate('workspace.tags.switchTagLevelsPromptPt1')}
-                {hasDependentTags && (
-                    <TextLink
-                        onPress={() => {
-                            if (isOffline) {
-                                Modal.close(() => setIsOfflineModalVisible(true));
-                                return;
-                            }
+        <Text>
+            {translate('workspace.tags.switchTagLevelsDescription')}
+            {translate('workspace.tags.switchTagLevelsPromptPt1')}
+            {hasDependentTags && (
+                <TextLink
+                    onPress={() => {
+                        if (isOffline) {
+                            Modal.close(() => setIsOfflineModalVisible(true));
+                            return;
+                        }
 
-                            Tag.downloadTagsCSV(policyID, () => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
-                        }}
-                    >
-                        {translate('workspace.tags.exportTags')}
-                    </TextLink>
-                )}
+                        Tag.downloadTagsCSV(policyID, () => {
+                            setIsDownloadFailureModalVisible(true);
+                        });
+                    }}
+                >
+                    {translate('workspace.tags.exportTags')}
+                </TextLink>
+            )}
 
-                {translate('workspace.tags.exportTags')}
-                {translate('workspace.tags.switchTagLevelsPromptPt2')}
-                {/* Update the link when article is available */}
-                <TextLink href="/">{translate('workspace.tags.switchTagLevelsPromptLearnMore')}</TextLink>
-                {translate('workspace.tags.switchTagLevelsPromptPt3')}
-            </Text>
-        </>
+            {translate('workspace.tags.exportTags')}
+            {translate('workspace.tags.switchTagLevelsPromptPt2')}
+            {/* Update the link when article is available */}
+            <TextLink href="/">{translate('workspace.tags.switchTagLevelsPromptLearnMore')}</TextLink>
+            {translate('workspace.tags.switchTagLevelsPromptPt3')}
+        </Text>
     );
 
-    const getTagsSettings = (policy: OnyxEntry<OnyxTypes.Policy>) => (
+    const getTagsSettings = () => (
         <View style={styles.flexGrow1}>
             {!isMultiLevelTags && (
                 <OfflineWithFeedback
@@ -187,7 +185,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
-            {({policy}) => (
+            {() => (
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
@@ -197,7 +195,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                         title={translate('common.settings')}
                         onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
                     />
-                    {isOffline && isLoading ? <FullPageOfflineBlockingView>{getTagsSettings(policy)}</FullPageOfflineBlockingView> : getTagsSettings(policy)}
+                    {isOffline && isLoading ? <FullPageOfflineBlockingView>{getTagsSettings()}</FullPageOfflineBlockingView> : getTagsSettings()}
                     <ConfirmModal
                         title={translate('workspace.tags.switchTagLevels')}
                         prompt={confirmModalPrompt}
@@ -222,7 +220,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                     <DecisionModal
                         title={translate('common.downloadFailedTitle')}
                         prompt={translate('common.downloadFailedDescription')}
-                        isSmallScreenWidth={isSmallScreenWidth}
+                        isSmallScreenWidth={shouldUseNarrowLayout}
                         onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
                         secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isDownloadFailureModalVisible}
