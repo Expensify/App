@@ -76,8 +76,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const hasSyncError = PolicyUtils.hasSyncError(policy, isSyncInProgress);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
-    const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
-    const canSelectMultiple = !isMultiLevelTags && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
+    const [policyTagLists, isMultiLevelTags, hasDependentTags] = useMemo(
+        () => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags), PolicyUtils.hasDependentTags(policy, policyTags)],
+        [policyTags, policy],
+    );
+    const canSelectMultiple = !hasDependentTags && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
     const fetchTags = useCallback(() => {
         Tag.openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -112,11 +115,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 keyForList: String(policyTagList.orderWeight),
                 isSelected: selectedTags[policyTagList.name] && canSelectMultiple,
                 pendingAction: getPendingAction(policyTagList),
+
                 enabled: true,
                 required: policyTagList.required,
                 rightElement: (
                     <ListItemRightCaretWithLabel
-                        labelText={policyTagList.required && !!Object.values(policyTagList?.tags ?? {}).some((tag) => tag.enabled) ? translate('common.required') : undefined}
+                        shouldShowCaret
+                        labelText={
+                            policyTagList.required && !!Object.values(policyTagList?.tags ?? {}).some((tag) => tag.enabled) ? translate('common.required') : translate('common.notRequired')
+                        }
                     />
                 ),
             }));
@@ -163,6 +170,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('statusPage.status')}
+                isMultiLevelTags={isMultiLevelTags}
             />
         );
     };
@@ -221,8 +229,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-
-        if (!hasAccountingConnections) {
+        if (!hasAccountingConnections && !isMultiLevelTags) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
@@ -251,7 +258,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             }
         }
 
-        if (enabledTagCount > 0) {
+        if (enabledTagCount > 0 && !isMultiLevelTags) {
             options.push({
                 icon: Expensicons.DocumentSlash,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
@@ -263,7 +270,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             });
         }
 
-        if (disabledTagCount > 0) {
+        if (disabledTagCount > 0 && !isMultiLevelTags) {
             options.push({
                 icon: Expensicons.Document,
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
@@ -271,6 +278,46 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 onSelected: () => {
                     setSelectedTags({});
                     Tag.setWorkspaceTagEnabled(policyID, tagsToEnable, 0);
+                },
+            });
+        }
+
+        let requiredTagCount = 0;
+        const tagListIndexesToMarkNotRequired: number[] = [];
+
+        let notRequiredTagCount = 0;
+        const tagListIndexesToMarkRequired: number[] = [];
+
+        for (const tagName of selectedTagsArray) {
+            if (tagListKeyedByName[tagName]?.required) {
+                requiredTagCount++;
+                tagListIndexesToMarkNotRequired.push(tagListKeyedByName[tagName]?.orderWeight ?? 0);
+            } else {
+                notRequiredTagCount++;
+                tagListIndexesToMarkRequired.push(tagListKeyedByName[tagName]?.orderWeight ?? 0);
+            }
+        }
+
+        if (requiredTagCount > 0) {
+            options.push({
+                icon: Expensicons.DocumentSlash,
+                text: translate('workspace.tags.markNotRequired'),
+                value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                onSelected: () => {
+                    setSelectedTags({});
+                    Tag.setPolicyTagListsRequired(policyID, tagListIndexesToMarkNotRequired, false);
+                },
+            });
+        }
+
+        if (notRequiredTagCount > 0) {
+            options.push({
+                icon: Expensicons.Document,
+                text: translate('workspace.tags.markRequireTitle', {count: notRequiredTagCount}),
+                value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+                onSelected: () => {
+                    setSelectedTags({});
+                    Tag.setPolicyTagListsRequired(policyID, tagListIndexesToMarkRequired, true);
                 },
             });
         }
@@ -307,7 +354,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             },
         ];
 
-        if (hasVisibleTags) {
+        if (hasVisibleTags && !hasDependentTags) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('spreadsheet.downloadCSV'),
@@ -317,6 +364,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     Modal.close(() => {
+                        if (policy?.isUsingMultiLevelTags) {
+                            Tag.downloadMultiLeveltagsCSV(policyID, () => {
+                                setIsDownloadFailureModalVisible(true);
+                            });
+                            return;
+                        }
                         Tag.downloadTagsCSV(policyID, () => {
                             setIsDownloadFailureModalVisible(true);
                         });
@@ -374,7 +427,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         }
                         Navigation.goBack(backTo);
                     }}
-                    shouldShowThreeDotsButton={!policy?.hasMultipleTagLists}
+                    shouldShowThreeDotsButton={true}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                 >

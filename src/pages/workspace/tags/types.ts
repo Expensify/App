@@ -5,6 +5,7 @@ type TagListItem = ListItem & {
     value: string;
     enabled: boolean;
     orderWeight?: number;
+    required?: boolean;
 };
 
 type PolicyTag = {

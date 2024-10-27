@@ -8,9 +8,10 @@ type CustomListHeaderProps = {
     canSelectMultiple: boolean | undefined;
     leftHeaderText?: string | undefined;
     rightHeaderText?: string | undefined;
+    isMultiLevelTags?: boolean | undefined;
 };
 
-function CustomListHeader({canSelectMultiple, leftHeaderText = '', rightHeaderText = ''}: CustomListHeaderProps) {
+function CustomListHeader({canSelectMultiple, leftHeaderText = '', rightHeaderText = '', isMultiLevelTags = false}: CustomListHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -25,7 +26,7 @@ function CustomListHeader({canSelectMultiple, leftHeaderText = '', rightHeaderTe
             ]}
         >
             <Text style={styles.searchInputStyle}>{leftHeaderText}</Text>
-            <View style={[StyleUtils.getMinimumWidth(60)]}>
+            <View style={[isMultiLevelTags ? StyleUtils.getMinimumWidth(100) : StyleUtils.getMinimumWidth(60)]}>
                 <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{rightHeaderText}</Text>
             </View>
         </View>

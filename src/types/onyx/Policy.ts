@@ -1713,6 +1713,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Policy invoicing details */
         invoice?: PolicyInvoicingDetails;
 
+        /** Whether the workspace  has multi-level tags enabled (remove this after https://github.com/Expensify/App/pull/51539 is merged*/
+        isUsingMultiLevelTags?: boolean;
+
         /** Tax data */
         tax?: {
             /** Whether or not the policy has tax tracking enabled */

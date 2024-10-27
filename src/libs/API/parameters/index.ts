@@ -182,6 +182,7 @@ export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceRei
 export type {default as SetWorkspaceDefaultSpendCategoryParams} from './SetWorkspaceDefaultSpendCategoryParams';
 export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
 export type {default as SetPolicyTagsRequired} from './SetPolicyTagsRequired';
+export type {default as SetPolicyTagListsRequired} from './SetPolicyTagListsRequired';
 export type {default as RenamePolicyTaglistParams} from './RenamePolicyTaglistParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
 export type {default as TrackExpenseParams} from './TrackExpenseParams';
@@ -323,6 +324,7 @@ export type {default as ExportMembersSpreadsheetParams} from './ExportCategories
 export type {default as ImportTagsSpreadsheetParams} from './ImportTagsSpreadsheet';
 export type {default as ExportCategoriesSpreadsheetParams} from './ExportCategoriesSpreadsheet';
 export type {default as ExportTagsSpreadsheetParams} from './ExportTagsSpreadsheet';
+export type {default as ExportMultiLevelTagsSpreadsheetParams} from './ExportMultiLevelTagsSpreadsheetParams';
 export type {default as UpdateXeroGenericTypeParams} from './UpdateXeroGenericTypeParams';
 export type {default as UpdateCardSettlementFrequencyParams} from './UpdateCardSettlementFrequencyParams';
 export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSettlementAccountParams';

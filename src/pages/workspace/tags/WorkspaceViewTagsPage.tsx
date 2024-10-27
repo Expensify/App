@@ -95,7 +95,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     errors: tag.errors ?? undefined,
                     enabled: tag.enabled,
                     isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+                    rightElement: (
+                        <ListItemRightCaretWithLabel
+                            shouldShowCaret
+                            labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
+                        />
+                    ),
                 })),
         [currentPolicyTag, selectedTags, canSelectMultiple, translate],
     );
@@ -133,7 +138,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 <View>
                     <Text style={[styles.searchInputStyle]}>{translate('common.name')}</Text>
                 </View>
-                <View style={[StyleUtils.getMinimumWidth(60)]}>
+                <View style={[StyleUtils.getMinimumWidth(100)]}>
                     <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
                 </View>
             </View>
@@ -289,6 +294,19 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
+                <OfflineWithFeedback
+                    errors={currentPolicyTag.errors}
+                    onClose={() => Tag.clearPolicyTagListErrors(policyID, currentPolicyTag.orderWeight)}
+                    pendingAction={currentPolicyTag.pendingAction}
+                    errorRowStyles={styles.mh5}
+                >
+                    <MenuItemWithTopDescription
+                        title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}
+                        description={translate(`workspace.tags.customTagName`)}
+                        onPress={navigateToEditTag}
+                        shouldShowRightIcon
+                    />
+                </OfflineWithFeedback>
                 {!hasDependentTags && (
                     <View style={[styles.pv4, styles.ph5]}>
                         <ToggleSettingOptionRow
@@ -303,19 +321,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         />
                     </View>
                 )}
-                <OfflineWithFeedback
-                    errors={currentPolicyTag.errors}
-                    onClose={() => Tag.clearPolicyTagListErrors(policyID, currentPolicyTag.orderWeight)}
-                    pendingAction={currentPolicyTag.pendingAction}
-                    errorRowStyles={styles.mh5}
-                >
-                    <MenuItemWithTopDescription
-                        title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}
-                        description={translate(`workspace.tags.customTagName`)}
-                        onPress={navigateToEditTag}
-                        shouldShowRightIcon
-                    />
-                </OfflineWithFeedback>
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}

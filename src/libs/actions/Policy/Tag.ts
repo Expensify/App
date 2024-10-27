@@ -883,6 +883,61 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED, parameters, onyxData);
 }
 
+function setPolicyTagListsRequired(policyID: string, tagListIndexes: number[], requireTagList: boolean) {
+    const policyTags = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {});
+
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    tagListIndexes.map((tagListIndex) => {
+        const policyTag = policyTags?.[tagListIndex];
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            value: {
+                [policyTag.name]: {
+                    required: requireTagList,
+                    pendingFields: {required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {required: null},
+                },
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            value: {
+                [policyTag.name]: {
+                    pendingFields: {required: null},
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            value: {
+                [policyTag.name]: {
+                    required: policyTag.required,
+                    pendingFields: {required: null},
+                    errorFields: {
+                        required: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
+                    },
+                },
+            },
+        });
+    });
+
+    const parameters = {
+        policyID,
+        tagListIndexes,
+        requireTagList,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED, parameters, {optimisticData, successData, failureData});
+}
+
 function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: number, glCode: string) {
     const tagListName = PolicyUtils.getTagListName(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`], tagListIndex);
     const policyTagToUpdate = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[tagName] ?? {};
@@ -1040,10 +1095,35 @@ function downloadTagsCSV(policyID: string, onDownloadFailed: () => void) {
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+function downloadMultiLeveltagsCSV(policyID: string, onDownloadFailed: () => void) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV, {
+        policyID,
+    });
+    const fileName = 'MultiLeveTags.csv';
+
+    const formData = new FormData();
+    Object.entries(finalParameters).forEach(([key, value]) => {
+        formData.append(key, String(value));
+    });
+
+    fileDownload(
+        ApiUtils.getCommandURL({
+            command: WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV,
+        }),
+        fileName,
+        '',
+        false,
+        formData,
+        CONST.NETWORK.METHOD.POST,
+        onDownloadFailed,
+    );
+}
+
 export {
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
     setPolicyTagsRequired,
+    setPolicyTagListsRequired,
     createPolicyTag,
     clearPolicyTagErrors,
     clearPolicyTagListErrors,
@@ -1058,6 +1138,7 @@ export {
     setPolicyTagApprover,
     importPolicyTags,
     downloadTagsCSV,
+    downloadMultiLeveltagsCSV,
 };
 
 export type {NewCustomUnit};
