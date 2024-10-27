@@ -22,7 +22,7 @@ type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
     onPressOut?: () => void;
 };
 
-function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onPressIn, onPressOut}: BaseAnchorForAttachmentsOnlyProps) {
+function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onPressIn, onPressOut, isDeleted}: BaseAnchorForAttachmentsOnlyProps) {
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
 
@@ -63,6 +63,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                         shouldShowDownloadIcon={!!sourceID && !isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
                         isUsedAsChatAttachment
+                        isDeleted={!!isDeleted}
                         isUploading={!sourceID}
                     />
                 </PressableWithoutFeedback>
