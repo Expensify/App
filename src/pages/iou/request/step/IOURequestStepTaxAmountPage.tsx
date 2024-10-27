@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -15,28 +15,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagLists, Transaction} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepTaxAmountPageOnyxProps = {
-    policy: OnyxEntry<Policy>;
-    policyCategories: OnyxEntry<PolicyCategories>;
-
-    /** Collection of tag list on a policy */
-    policyTags: OnyxEntry<PolicyTagLists>;
-
-    /** The draft transaction that holds data to be persisted on the current transaction */
-    splitDraftTransaction: OnyxEntry<Transaction>;
+type IOURequestStepTaxAmountPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT> & {
+    transaction: OnyxEntry<Transaction>;
 };
-
-type IOURequestStepTaxAmountPageProps = IOURequestStepTaxAmountPageOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT> & {
-        transaction: OnyxEntry<Transaction>;
-    };
 
 function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, currency: string | undefined, isEditing: boolean): number | undefined {
     if (!transaction?.amount && !transaction?.modifiedAmount) {
@@ -58,13 +46,18 @@ function IOURequestStepTaxAmountPage({
         params: {action, iouType, reportID, transactionID, backTo, currency: selectedCurrency = ''},
     },
     transaction,
-    report,
-    policy,
-    policyTags,
-    policyCategories,
-    splitDraftTransaction,
+    report: reportReal,
+    reportDraft,
 }: IOURequestStepTaxAmountPageProps) {
     const {translate} = useLocalize();
+    const policyID = IOU.getIOURequestPolicyID(transaction, reportReal ?? reportDraft) ?? '-1';
+
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID ?? 0}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const report = reportReal ?? reportDraft;
+
     const textInput = useRef<BaseTextInputRef | null>();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
@@ -176,26 +169,8 @@ function IOURequestStepTaxAmountPage({
 
 IOURequestStepTaxAmountPage.displayName = 'IOURequestStepTaxAmountPage';
 
-const IOURequestStepTaxAmountPageWithOnyx = withOnyx<IOURequestStepTaxAmountPageProps, IOURequestStepTaxAmountPageOnyxProps>({
-    splitDraftTransaction: {
-        key: ({route}) => {
-            const transactionID = route?.params.transactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-        },
-    },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
-    },
-    policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
-    },
-    policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
-    },
-})(IOURequestStepTaxAmountPage);
-
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepTaxAmountPageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxAmountPageWithOnyx);
+const IOURequestStepTaxAmountPageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxAmountPage);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTaxAmountPageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTaxAmountPageWithWritableReportOrNotFound);
 
