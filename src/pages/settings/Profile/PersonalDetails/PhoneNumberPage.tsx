@@ -64,7 +64,7 @@ function PhoneNumberPage() {
             }
             return errors;
         },
-        [translate],
+        [translate, validateLoginError],
     );
 
     return (
