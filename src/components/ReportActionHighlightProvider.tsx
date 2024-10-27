@@ -1,7 +1,6 @@
 import type {ReactNode} from 'react';
 import React, {createContext, useCallback, useMemo, useState} from 'react';
 
-
 // Define the context type
 type ReportActionHighlightContextType = {
     linkedReportActionID: string | null;
