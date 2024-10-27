@@ -181,9 +181,6 @@ function BaseReportActionContextMenu({
     const areHoldRequirementsMet =
         !isInvoiceReport && isMoneyRequestOrReport && !ReportUtils.isArchivedRoom(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
 
-
-    const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, reportAction), [reportID, reportAction]);
-
     const {removeHighlight} = useContext(ReportActionHighlightContext);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
