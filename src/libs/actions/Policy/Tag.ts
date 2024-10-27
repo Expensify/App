@@ -10,6 +10,7 @@ import type {
     SetPolicyTagApproverParams,
     SetPolicyTagsEnabled,
     SetPolicyTagsRequired,
+    TogglePolicyMultiLevelTags,
     UpdatePolicyTagGLCodeParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -1040,6 +1041,55 @@ function downloadTagsCSV(policyID: string, onDownloadFailed: () => void) {
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+function togglePolicyMultiLevelTags(policyID: string, isUsingMultiLevelTags: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isUsingMultiLevelTags,
+                    errors: {isUsingMultiLevelTags: null},
+                    pendingFields: {
+                        isUsingMultiLevelTags: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    errors: {isUsingMultiLevelTags: null},
+                    pendingFields: {
+                        isUsingMultiLevelTags: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isUsingMultiLevelTags: !isUsingMultiLevelTags,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
+                    pendingFields: {
+                        isUsingMultiLevelTags: null,
+                    },
+                },
+            },
+        ],
+    };
+    const parameters: TogglePolicyMultiLevelTags = {
+        policyID,
+        isUsingMultiLevelTags,
+    };
+
+    API.write(WRITE_COMMANDS.TOGGLE_POLICY_MULTI_LEVEL_TAGS, parameters, onyxData);
+}
+
 export {
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
@@ -1058,6 +1108,7 @@ export {
     setPolicyTagApprover,
     importPolicyTags,
     downloadTagsCSV,
+    togglePolicyMultiLevelTags,
 };
 
 export type {NewCustomUnit};

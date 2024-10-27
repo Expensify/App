@@ -1703,6 +1703,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the workspace has multiple levels of tags enabled */
         hasMultipleTagLists?: boolean;
 
+        /** Whether the workspace  has multi-level tags enabled */
+        isUsingMultiLevelTags: boolean;
+
         /**
          * Whether or not the policy has tax tracking enabled
          *

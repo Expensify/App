@@ -1,18 +1,22 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import ConfirmModal from '@components/ConfirmModal';
+import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Tag from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,6 +24,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Modal from '@userActions/Modal';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,6 +58,8 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const policyID = route.params.policyID ?? '-1';
     const backTo = route.params.backTo;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
@@ -67,6 +74,42 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
         [policyID],
     );
     const isQuickSettingsFlow = !!backTo;
+    const [showWarningSwitchTagLevelsModal, setShowWarningSwitchTagLevelsModal] = useState(false);
+    const isUsingMultiLevelTags = policy?.isUsingMultiLevelTags ?? false;
+    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
+    const hasDependentTags = useMemo(() => PolicyUtils.hasDependentTags(policy, policyTags), [policy, policyTags]);
+    const confirmModalPrompt = (
+        <>
+            <Text>
+                {translate('workspace.tags.switchTagLevelsDescription')}
+                {translate('workspace.tags.switchTagLevelsPromptPt1')}
+                {hasDependentTags && (
+                    <TextLink
+                        onPress={() => {
+                            if (isOffline) {
+                                Modal.close(() => setIsOfflineModalVisible(true));
+                                return;
+                            }
+
+                            Tag.downloadTagsCSV(policyID, () => {
+                                setIsDownloadFailureModalVisible(true);
+                            });
+                        }}
+                    >
+                        {translate('workspace.tags.exportTags')}
+                    </TextLink>
+                )}
+
+                {translate('workspace.tags.exportTags')}
+                {translate('workspace.tags.switchTagLevelsPromptPt2')}
+                {/* Update the link when article is available */}
+                <TextLink href="/">{translate('workspace.tags.switchTagLevelsPromptLearnMore')}</TextLink>
+                {translate('workspace.tags.switchTagLevelsPromptPt3')}
+            </Text>
+        </>
+    );
 
     const getTagsSettings = (policy: OnyxEntry<OnyxTypes.Policy>) => (
         <View style={styles.flexGrow1}>
@@ -106,6 +149,24 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                     />
                 </View>
             </OfflineWithFeedback>
+            <OfflineWithFeedback
+                errors={policy?.errorFields?.isUsingMultiLevelTags}
+                pendingAction={policy?.pendingFields?.isUsingMultiLevelTags}
+                errorRowStyles={styles.mh5}
+            >
+                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                    <Text style={[styles.textNormal]}>{translate('workspace.tags.useMultiLevelTag')}</Text>
+                    <Switch
+                        isOn={policy?.isUsingMultiLevelTags ?? false}
+                        accessibilityLabel={translate('workspace.tags.useMultiLevelTag')}
+                        onToggle={() => {
+                            // Put a condition here to directly download in case no tag are present
+                            setShowWarningSwitchTagLevelsModal(true);
+                        }}
+                        disabled={!policy?.areTagsEnabled || isConnectedToAccounting}
+                    />
+                </View>
+            </OfflineWithFeedback>
             {canUseWorkspaceRules && policy?.areRulesEnabled && (
                 <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -137,6 +198,36 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                         onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
                     />
                     {isOffline && isLoading ? <FullPageOfflineBlockingView>{getTagsSettings(policy)}</FullPageOfflineBlockingView> : getTagsSettings(policy)}
+                    <ConfirmModal
+                        title={translate('workspace.tags.switchTagLevels')}
+                        prompt={confirmModalPrompt}
+                        confirmText={translate('workspace.tags.switchTagLevels')}
+                        cancelText={translate('common.cancel')}
+                        isVisible={showWarningSwitchTagLevelsModal}
+                        onConfirm={() => {
+                            Tag.togglePolicyMultiLevelTags(policyID, !isUsingMultiLevelTags);
+                            setShowWarningSwitchTagLevelsModal(false);
+                        }}
+                        onCancel={() => setShowWarningSwitchTagLevelsModal(false)}
+                        danger
+                    />
+                    <ConfirmModal
+                        isVisible={isOfflineModalVisible}
+                        onConfirm={() => setIsOfflineModalVisible(false)}
+                        title={translate('common.youAppearToBeOffline')}
+                        prompt={translate('common.thisFeatureRequiresInternet')}
+                        confirmText={translate('common.buttonConfirm')}
+                        shouldShowCancelButton={false}
+                    />
+                    <DecisionModal
+                        title={translate('common.downloadFailedTitle')}
+                        prompt={translate('common.downloadFailedDescription')}
+                        isSmallScreenWidth={isSmallScreenWidth}
+                        onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
+                        secondOptionText={translate('common.buttonConfirm')}
+                        isVisible={isDownloadFailureModalVisible}
+                        onClose={() => setIsDownloadFailureModalVisible(false)}
+                    />
                 </ScreenWrapper>
             )}
         </AccessOrNotFoundWrapper>

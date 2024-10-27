@@ -3432,6 +3432,14 @@ const translations = {
         tags: {
             tagName: 'Tag name',
             requiresTag: 'Members must tag all expenses',
+            useMultiLevelTag: 'Use multiple levels of tags',
+            switchTagLevels: 'Switch Tag levels',
+            switchTagLevelsDescription: 'Switching tag levels will erase all current tags. ',
+            switchTagLevelsPromptPt1: 'We suggest you first ',
+            exportTags: 'make a backup',
+            switchTagLevelsPromptPt2: ' by exporting your tags. ',
+            switchTagLevelsPromptLearnMore: 'Learn more',
+            switchTagLevelsPromptPt3: ' about tag levels.',
             trackBillable: 'Track billable expenses',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
@@ -3445,6 +3453,12 @@ const translations = {
             emptyTags: {
                 title: "You haven't created any tags",
                 subtitle: 'Add a tag to track projects, locations, departments, and more.',
+            },
+            multiLevelEmptyTags: {
+                title: "You haven't created any tags",
+                subtitlePt1: 'Import a spreadsheet to add multi-level tags for tracking projects, locations, departments, and more. ',
+                learnMore: 'Learn more',
+                subtitlePt2: ' about formatting tag files.',
             },
             deleteTag: 'Delete tag',
             deleteTags: 'Delete tags',

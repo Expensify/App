@@ -3476,6 +3476,14 @@ const translations = {
         tags: {
             tagName: 'Nombre de etiqueta',
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
+            useMultiLevelTag: 'Usar múltiples niveles de etiquetas',
+            switchTagLevels: 'Switch Tag levels',
+            switchTagLevelsDescription: 'Switching tag levels will erase all current tags. ',
+            switchTagLevelsPromptPt1: 'We suggest you first',
+            exportTags: 'make a backup',
+            switchTagLevelsPromptPt2: ' by exporting your tags. ',
+            switchTagLevelsPromptLearnMore: 'Learn more',
+            switchTagLevelsPromptPt3: ' about tag levels.',
             trackBillable: 'Permitir marcar gastos como facturables',
             customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
@@ -3489,6 +3497,12 @@ const translations = {
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
+            },
+            multiLevelEmptyTags: {
+                title: "You haven't created any tags",
+                subtitlePt1: 'Import a spreadsheet to add multi-level tags for tracking projects, locations, departments, and more. ',
+                learnMore: 'Learn more',
+                subtitlePt2: ' about formatting tag files.',
             },
             deleteTag: 'Eliminar etiqueta',
             deleteTags: 'Eliminar etiquetas',

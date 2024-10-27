@@ -323,6 +323,7 @@ export type {default as ExportMembersSpreadsheetParams} from './ExportCategories
 export type {default as ImportTagsSpreadsheetParams} from './ImportTagsSpreadsheet';
 export type {default as ExportCategoriesSpreadsheetParams} from './ExportCategoriesSpreadsheet';
 export type {default as ExportTagsSpreadsheetParams} from './ExportTagsSpreadsheet';
+export type {default as TogglePolicyMultiLevelTags} from './TogglePolicyMultiLevelTags';
 export type {default as UpdateXeroGenericTypeParams} from './UpdateXeroGenericTypeParams';
 export type {default as UpdateCardSettlementFrequencyParams} from './UpdateCardSettlementFrequencyParams';
 export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSettlementAccountParams';

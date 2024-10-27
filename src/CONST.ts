@@ -4296,6 +4296,7 @@ const CONST = {
         SUBMITTER: 'submitter',
     },
     DELEGATE_ROLE_HELPDOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
+    FORMATING_TAG_FILES_HELPDOT_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',

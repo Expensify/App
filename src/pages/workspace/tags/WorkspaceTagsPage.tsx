@@ -84,6 +84,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isQuickSettingsFlow = !!backTo;
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
+    const isUsingMultiLevelTags = policy?.isUsingMultiLevelTags ?? false;
 
     useFocusEffect(fetchTags);
 
@@ -201,7 +202,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTagsArray.length === 0) {
             return (
                 <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                    {!hasAccountingConnections && !isMultiLevelTags && (
+                    {!hasAccountingConnections && !isMultiLevelTags && !isUsingMultiLevelTags && (
                         <Button
                             success
                             onPress={navigateToCreateTagPage}
@@ -349,6 +350,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
+    const multiLevelTagEmptyStateComponentSubtitle = (
+        <>
+            <Text>
+                {translate('workspace.tags.multiLevelEmptyTags.subtitlePt1')}
+                <TextLink href={CONST.FORMATING_TAG_FILES_HELPDOT_ARTICLE_LINK}>{translate('workspace.tags.multiLevelEmptyTags.learnMore')}</TextLink>
+                {translate('workspace.tags.multiLevelEmptyTags.subtitlePt2')}
+            </Text>
+        </>
+    );
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -399,7 +410,33 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         color={theme.spinner}
                     />
                 )}
-                {!hasVisibleTags && !isLoading && (
+                {!hasVisibleTags && !isLoading && isUsingMultiLevelTags && (
+                    <EmptyStateComponent
+                        SkeletonComponent={TableListItemSkeleton}
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                        headerMedia={LottieAnimations.GenericEmptyState}
+                        title={translate('workspace.tags.emptyTags.title')}
+                        subtitle={multiLevelTagEmptyStateComponentSubtitle}
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                        headerContentStyles={styles.emptyStateFolderWebStyles}
+                        buttons={[
+                            {
+                                buttonText: translate('spreadsheet.importSpreadsheet'),
+                                buttonAction: () => {
+                                    if (isOffline) {
+                                        Modal.close(() => setIsOfflineModalVisible(true));
+                                        return;
+                                    }
+                                    Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID));
+                                },
+                                success: true,
+                            },
+                        ]}
+                    />
+                )}
+
+                {!hasVisibleTags && !isLoading && !isUsingMultiLevelTags && (
                     <EmptyStateComponent
                         SkeletonComponent={TableListItemSkeleton}
                         headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}

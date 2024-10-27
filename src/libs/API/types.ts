@@ -149,6 +149,7 @@ const WRITE_COMMANDS = {
     EXPORT_CATEGORIES_CSV: 'ExportCategoriesCSV',
     EXPORT_MEMBERS_CSV: 'ExportMembersCSV',
     EXPORT_TAGS_CSV: 'ExportTagsCSV',
+    TOGGLE_POLICY_MULTI_LEVEL_TAGS: 'TogglePolicyMultiLevelTags',
     EXPORT_REPORT_TO_CSV: 'ExportReportToCSV',
     RENAME_WORKSPACE_CATEGORY: 'RenameWorkspaceCategory',
     CREATE_POLICY_TAG: 'CreatePolicyTag',
@@ -567,6 +568,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.EXPORT_CATEGORIES_CSV]: Parameters.ExportCategoriesSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_MEMBERS_CSV]: Parameters.ExportMembersSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_TAGS_CSV]: Parameters.ExportTagsSpreadsheetParams;
+    [WRITE_COMMANDS.TOGGLE_POLICY_MULTI_LEVEL_TAGS]: Parameters.TogglePolicyMultiLevelTags;
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES]: Parameters.DeleteWorkspaceCategoriesParams;
