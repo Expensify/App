@@ -117,7 +117,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Check out
+      - name: Check out `App` repo
         uses: actions/checkout@v4
         with:
           ref: main
@@ -125,7 +125,7 @@ jobs:
           # This is a workaround to allow pushes to a protected branch
           token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
-      - name: Checkout
+      - name: Check out `Mobile-Expensify` repo
         uses: actions/checkout@v4
         with:
           repository: 'Expensify/Mobile-Expensify'
