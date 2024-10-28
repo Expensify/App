@@ -16,7 +16,7 @@ import GitUtils from '@github/libs/GitUtils';
 import * as VersionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
 import asMutable from '@src/types/utils/asMutable';
-import * as Log from '../../scripts/utils/Logger';
+import * as Log from '../../../scripts/utils/Logger';
 
 const DUMMY_DIR = path.resolve(os.homedir(), 'DumDumRepo');
 const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
