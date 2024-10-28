@@ -41,14 +41,13 @@ defaultFilter
 
       return value
         .filter((filter) => filter.length > 0)
-        .map(({ start, length }) => ({
+        .map((filter) => ({
           key,
-          start,
-          length,
+          ...filter,
         }));
     }
 
-freeTextFilter = _ identifier _ { autocomplete = null; }
+freeTextFilter = _ (identifier/ ",") _ { autocomplete = null; }
 
 autocompleteKey "key"
   = @(
