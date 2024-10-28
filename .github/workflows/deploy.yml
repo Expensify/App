@@ -96,7 +96,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: /tmp/artifacts
-          pattern: android-artifact-*
+          pattern: android-*-artifact
           merge-multiple: true
 
       - name: Log downloaded artifact paths
@@ -788,7 +788,7 @@ jobs:
         run: |
           gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
             ./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./android-build-artifact/app-production-release.aab \
+            ./android-aab-artifact/app-production-release.aab \
             ./android-hybrid-build-artifact/Expensify-release.aab#Android-HybridApp.aab \
             ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./desktop-staging-build-artifact/NewExpensify.dmg#NewExpensifyStaging.dmg \
