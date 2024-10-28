@@ -27,7 +27,7 @@ import isReportOpenInRHP from '@libs/Navigation/isReportOpenInRHP';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import FreeTrial from '@pages/settings/Subscription/FreeTrialBadge';
+import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';

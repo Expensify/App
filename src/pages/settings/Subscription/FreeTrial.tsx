@@ -10,12 +10,12 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-type FreeTrialBadgeProps = {
+type FreeTrialProps = {
     badgeStyles?: StyleProp<ViewStyle>;
     pressable?: boolean;
 };
 
-function FreeTrial({badgeStyles, pressable = false}: FreeTrialBadgeProps) {
+function FreeTrial({badgeStyles, pressable = false}: FreeTrialProps) {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
@@ -51,6 +51,6 @@ function FreeTrial({badgeStyles, pressable = false}: FreeTrialBadgeProps) {
     );
 }
 
-FreeTrial.displayName = 'FreeTrialBadge';
+FreeTrial.displayName = 'FreeTrial';
 
 export default FreeTrial;

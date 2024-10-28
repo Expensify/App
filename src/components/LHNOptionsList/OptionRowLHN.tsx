@@ -28,7 +28,7 @@ import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import FreeTrial from '@pages/settings/Subscription/FreeTrialBadge';
+import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
