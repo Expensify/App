@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-compiler-healthcheck/dist/index.js b/node_modules/react-compiler-healthcheck/dist/index.js
-index b427385..4bf23db 100755
+index 5a4060d..460339b 100755
 --- a/node_modules/react-compiler-healthcheck/dist/index.js
 +++ b/node_modules/react-compiler-healthcheck/dist/index.js
-@@ -69154,7 +69154,7 @@ var reactCompilerCheck = {
+@@ -56969,7 +56969,7 @@ var reactCompilerCheck = {
        compile(source, path);
      }
    },
@@ -11,11 +11,11 @@ index b427385..4bf23db 100755
      const totalComponents =
        SucessfulCompilation.length +
        countUniqueLocInEvents(OtherFailures) +
-@@ -69164,6 +69164,50 @@ var reactCompilerCheck = {
+@@ -56979,6 +56979,50 @@ var reactCompilerCheck = {
          `Successfully compiled ${SucessfulCompilation.length} out of ${totalComponents} components.`
        )
      );
-+    
++
 +    if (verbose) {
 +      for (const compilation of [...SucessfulCompilation, ...ActionableFailures, ...OtherFailures]) {
 +        const filename = compilation.fnLoc?.filename;
@@ -38,33 +38,33 @@ index b427385..4bf23db 100755
 +        if (compilation.kind === "CompileError") {
 +          const { reason, severity, loc } = compilation.detail;
 +
-+            const lnNo = loc.start?.line;
-+            const colNo = loc.start?.column;
++          const lnNo = loc.start?.line;
++          const colNo = loc.start?.column;
 +
-+            const isTodo = severity === ErrorSeverity.Todo;
++          const isTodo = severity === ErrorSeverity.Todo;
 +
-+            console.log(
-+              chalk[isTodo ? 'yellow' : 'red'](
-+                `Failed to compile ${
-+                  filename
-+                }${
-+                  lnNo !== undefined ? `:${lnNo}${
-+                    colNo !== undefined ? `:${colNo}` : ""
-+                  }.` : ""
-+                }`
-+              ),
-+              chalk[isTodo ? 'yellow' : 'red'](reason? `Reason: ${reason}` : "")
-+            );
-+            console.log("\n");
++          console.log(
++            chalk[isTodo ? 'yellow' : 'red'](
++              `Failed to compile ${
++                filename
++              }${
++                lnNo !== undefined ? `:${lnNo}${
++                  colNo !== undefined ? `:${colNo}` : ""
++                }.` : ""
++              }`
++            ),
++            chalk[isTodo ? 'yellow' : 'red'](reason? `Reason: ${reason}` : "")
++          );
++          console.log("\n");
 +        }
 +      }
 +    }
    },
  };
  const JsFileExtensionRE = /(js|ts|jsx|tsx)$/;
-@@ -69200,9 +69244,16 @@ function main() {
-         type: "string",
-         default: "**/+(*.{js,mjs,jsx,ts,tsx}|package.json)",
+@@ -57015,9 +57059,16 @@ function main() {
+         type: 'string',
+         default: '**/+(*.{js,mjs,jsx,ts,tsx}|package.json)',
        })
 +      .option('verbose', {
 +        description: 'run with verbose logging',
@@ -73,13 +73,13 @@ index b427385..4bf23db 100755
 +        alias: 'v',
 +      })
        .parseSync();
-     const spinner = ora("Checking").start();
+     const spinner = ora('Checking').start();
      let src = argv.src;
 +    let verbose = argv.verbose;
      const globOptions = {
        onlyFiles: true,
        ignore: [
-@@ -69222,7 +69273,7 @@ function main() {
+@@ -57037,7 +57088,7 @@ function main() {
        libraryCompatCheck.run(source, path);
      }
      spinner.stop();
