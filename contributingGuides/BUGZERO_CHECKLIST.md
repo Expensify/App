@@ -31,7 +31,7 @@ Who reported the bug:
 
     Link to comment:
 
-- [ ] **[Contributor]** If the regression was CRITICAL (eg. interrupts a core flow) A discussion in [#expensify-open-source](https://app.slack.com/client/E047TPA624F/C01GTK53T8Q) has been started about whether any other steps should be taken (e.g. updating the PR review checklist) in order to catch this type of bug sooner.
+- [ ] **[Contributor]** If the regression was CRITICAL (e.g. interrupts a core flow) A discussion in [#expensify-open-source](https://app.slack.com/client/E047TPA624F/C01GTK53T8Q) has been started about whether any other steps should be taken (e.g. updating the PR review checklist) in order to catch this type of bug sooner.
 
     Link to discussion:
 
