@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {NativeModules} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,18 +12,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Account} from '@src/types/onyx';
 import SessionExpiredPage from './ErrorPage/SessionExpiredPage';
 
-type LogInWithShortLivedAuthTokenPageOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
-};
+type LogInWithShortLivedAuthTokenPageProps = StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
-type LogInWithShortLivedAuthTokenPageProps = LogInWithShortLivedAuthTokenPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
-
-function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedAuthTokenPageProps) {
+function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenPageProps) {
     const {email = '', shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     useEffect(() => {
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
@@ -71,6 +65,4 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
 
 LogInWithShortLivedAuthTokenPage.displayName = 'LogInWithShortLivedAuthTokenPage';
 
-export default withOnyx<LogInWithShortLivedAuthTokenPageProps, LogInWithShortLivedAuthTokenPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(LogInWithShortLivedAuthTokenPage);
+export default LogInWithShortLivedAuthTokenPage;

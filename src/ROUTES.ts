@@ -208,6 +208,7 @@ const ROUTES = {
     },
     SETTINGS_LEGAL_NAME: 'settings/profile/legal-name',
     SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',
+    SETTINGS_PHONE_NUMBER: 'settings/profile/phone',
     SETTINGS_ADDRESS: 'settings/profile/address',
     SETTINGS_ADDRESS_COUNTRY: {
         route: 'settings/profile/address/country',
@@ -1450,13 +1451,25 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/classes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/classes/displayed-as',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/classes/displayed-as` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/customers',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/customers` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/customers/displayed-as',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/customers/displayed-as` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/locations',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/locations` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/locations/displayed-as',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/locations/displayed-as` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/taxes',
