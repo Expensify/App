@@ -1,6 +1,8 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -9,6 +11,12 @@ type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
 /** Substeps to setup a reimbursement bank account */
 type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
+
+/** Additional data where details of the non-USD reimbursements account are stored */
+type AdditionalData = {
+    /** Country of the reimbursement account */
+    [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
+};
 
 /** Model of ACH data */
 type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps> & {
@@ -50,6 +58,9 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     /** Bank Account setup type (plaid or manual) */
     setupType?: string;
+
+    /** Additional data for the non USD account in setup */
+    additionalData?: AdditionalData;
 };
 
 /** The step in an reimbursement account's ach data */
