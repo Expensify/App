@@ -1,11 +1,10 @@
 import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
-import type {Phrase, PhraseParameters} from '@libs/Localize';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import type {AccountData} from '@src/types/onyx/Fund';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -20,10 +19,7 @@ type BillingStatusResult = {
     rightIcon?: IconAsset;
 };
 
-function getBillingStatus(
-    translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
-    accountData?: AccountData,
-): BillingStatusResult | undefined {
+function getBillingStatus(translate: LocaleContextProps['translate'], accountData?: AccountData): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
     const amountOwed = SubscriptionUtils.getAmountOwed();
@@ -40,7 +36,7 @@ function getBillingStatus(
         case SubscriptionUtils.PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED:
             return {
                 title: translate('subscription.billingBanner.policyOwnerAmountOwed.title'),
-                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwed.subtitle', {date: endDateFormatted}),
+                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwed.subtitle', {date: endDateFormatted ?? ''}),
                 isError: true,
                 isRetryAvailable: true,
             };
@@ -55,7 +51,7 @@ function getBillingStatus(
         case SubscriptionUtils.PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING:
             return {
                 title: translate('subscription.billingBanner.policyOwnerUnderInvoicing.title'),
-                subtitle: translate('subscription.billingBanner.policyOwnerUnderInvoicing.subtitle', {date: endDateFormatted}),
+                subtitle: translate('subscription.billingBanner.policyOwnerUnderInvoicing.subtitle', {date: endDateFormatted ?? ''}),
                 isError: true,
                 isAddButtonDark: true,
             };
@@ -142,13 +138,5 @@ function getNextBillingDate(): string {
     return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
 }
 
-function shouldShowPreTrialBillingBanner(): boolean {
-    return !SubscriptionUtils.isUserOnFreeTrial() && !SubscriptionUtils.hasUserFreeTrialEnded();
-}
-
-export default {
-    getBillingStatus,
-    shouldShowPreTrialBillingBanner,
-    getNextBillingDate,
-};
+export default {getBillingStatus, getNextBillingDate};
 export type {BillingStatusResult};

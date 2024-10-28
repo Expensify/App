@@ -1,13 +1,15 @@
-import React, {memo} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import React, {memo, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
+import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,6 +34,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const {translate} = useLocalize();
 
     const htmlAttribs = tnode.attributes;
+    const isDeleted = isDeletedNode(tnode);
 
     // There are two kinds of images that need to be displayed:
     //
@@ -63,7 +66,10 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
     const fileType = FileUtils.getFileType(attachmentSourceAttribute);
-    const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.Gallery;
+    const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
+    const [hasLoadFailed, setHasLoadFailed] = useState(true);
+    const theme = useTheme();
+
     const thumbnailImageComponent = (
         <ThumbnailImage
             previewSourceURL={previewSource}
@@ -72,7 +78,12 @@ function ImageRenderer({tnode}: ImageRendererProps) {
             fallbackIcon={fallbackIcon}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
+            isDeleted={isDeleted}
             altText={alt}
+            onLoadFailure={() => setHasLoadFailed(true)}
+            onMeasure={() => setHasLoadFailed(false)}
+            fallbackIconBackground={theme.highlightBG}
+            fallbackIconColor={theme.border}
         />
     );
 
@@ -90,7 +101,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     return;
                                 }
 
-                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, source, accountID);
+                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, source, accountID, isAttachmentOrReceipt);
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {
@@ -111,6 +122,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                             shouldUseHapticsOnLongPress
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            disabled={hasLoadFailed}
                         >
                             {thumbnailImageComponent}
                         </PressableWithoutFocus>
@@ -123,13 +135,20 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
 ImageRenderer.displayName = 'ImageRenderer';
 
-export default withOnyx<ImageRendererProps, ImageRendererWithOnyxProps>({
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(
-    memo(
-        ImageRenderer,
-        (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.user?.shouldUseStagingServer === nextProps.user?.shouldUseStagingServer,
-    ),
+const ImageRendererMemorize = memo(
+    ImageRenderer,
+    (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.user?.shouldUseStagingServer === nextProps.user?.shouldUseStagingServer,
 );
+
+function ImageRendererWrapper(props: CustomRendererProps<TBlock>) {
+    const [user] = useOnyx(ONYXKEYS.USER);
+    return (
+        <ImageRendererMemorize
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            user={user}
+        />
+    );
+}
+
+export default ImageRendererWrapper;

@@ -61,6 +61,7 @@ function ReportFieldsListValuesPage({
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here to use the mobile selection mode on small screens only
     // See https://github.com/Expensify/App/issues/48724 for more details
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const {selectionMode} = useMobileSelectionMode();
@@ -96,13 +97,8 @@ function ReportFieldsListValuesPage({
                 text: value,
                 keyForList: value,
                 isSelected: selectedValues[value] && canSelectMultiple,
-                enabled: !disabledListValues[index] ?? true,
-                rightElement: (
-                    <ListItemRightCaretWithLabel
-                        shouldShowCaret={false}
-                        labelText={disabledListValues[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
-                    />
-                ),
+                enabled: !disabledListValues.at(index) ?? true,
+                rightElement: <ListItemRightCaretWithLabel labelText={disabledListValues.at(index) ? translate('workspace.common.disabled') : translate('workspace.common.enabled')} />,
             }))
             .sort((a, b) => localeCompare(a.value, b.value));
         return [{data, isDisabled: false}];
@@ -163,7 +159,7 @@ function ReportFieldsListValuesPage({
                     styles.flex1,
                     styles.flexRow,
                     styles.justifyContentBetween,
-                    // Required padding accounting for the checkbox and the right arrow in multi-select mode
+                    // Required padding accounting for the checkbox in multi-select mode
                     canSelectMultiple && styles.pl3,
                 ]}
             >
@@ -190,13 +186,13 @@ function ReportFieldsListValuesPage({
             }
             const enabledValues = selectedValuesArray.filter((valueName) => {
                 const index = listValues?.indexOf(valueName) ?? -1;
-                return !disabledListValues?.[index];
+                return !disabledListValues?.at(index);
             });
 
             if (enabledValues.length > 0) {
                 const valuesToDisable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
                     const index = listValues?.indexOf(valueName) ?? -1;
-                    if (!disabledListValues?.[index] && index !== -1) {
+                    if (!disabledListValues?.at(index) && index !== -1) {
                         acc.push(index);
                     }
 
@@ -222,13 +218,13 @@ function ReportFieldsListValuesPage({
 
             const disabledValues = selectedValuesArray.filter((valueName) => {
                 const index = listValues?.indexOf(valueName) ?? -1;
-                return disabledListValues?.[index];
+                return disabledListValues?.at(index);
             });
 
             if (disabledValues.length > 0) {
                 const valuesToEnable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
                     const index = listValues?.indexOf(valueName) ?? -1;
-                    if (disabledListValues?.[index] && index !== -1) {
+                    if (disabledListValues?.at(index) && index !== -1) {
                         acc.push(index);
                     }
 
@@ -258,7 +254,7 @@ function ReportFieldsListValuesPage({
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedValuesArray.length})}
+                    customText={translate('workspace.common.selected', {count: selectedValuesArray.length})}
                     options={options}
                     isSplitButton={false}
                     style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
@@ -315,9 +311,9 @@ function ReportFieldsListValuesPage({
                         subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
                         SkeletonComponent={TableListItemSkeleton}
                         headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                        headerMedia={Illustrations.EmptyStateExpenses}
-                        headerStyles={styles.emptyFolderBG}
-                        headerContentStyles={styles.emptyStateFolderIconSize}
+                        headerMedia={Illustrations.FolderWithPapers}
+                        headerStyles={styles.emptyFolderDarkBG}
+                        headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
                     />
                 )}
                 {!shouldShowEmptyState && (

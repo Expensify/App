@@ -3,7 +3,12 @@ import isObject from 'lodash/isObject';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {RemovePolicyConnectionParams, UpdateManyPolicyConnectionConfigurationsParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
+import type {
+    RemovePolicyConnectionParams,
+    SyncPolicyToQuickbooksDesktopParams,
+    UpdateManyPolicyConnectionConfigurationsParams,
+    UpdatePolicyConnectionConfigParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -163,6 +168,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.SAGE_INTACCT_SYNC_CHECK_CONNECTION};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.QBD: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD};
+        }
         default:
             return undefined;
     }
@@ -173,8 +181,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
  *
  * @param policyID - ID of the policy for which the sync is needed
  * @param connectionName - Name of the connection, QBO/Xero
+ * @param forceDataRefresh - If true, it will trigger a full data refresh
  */
-function syncConnection(policyID: string, connectionName: PolicyConnectionName | undefined) {
+function syncConnection(policyID: string, connectionName: PolicyConnectionName | undefined, forceDataRefresh = false) {
     if (!connectionName) {
         return;
     }
@@ -203,17 +212,19 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
         },
     ];
 
-    API.read(
-        syncConnectionData.readCommand,
-        {
-            policyID,
-            idempotencyKey: policyID,
-        },
-        {
-            optimisticData,
-            failureData,
-        },
-    );
+    const parameters: SyncPolicyToQuickbooksDesktopParams = {
+        policyID,
+        idempotencyKey: policyID,
+    };
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
+        parameters.forceDataRefresh = forceDataRefresh;
+    }
+
+    API.read(syncConnectionData.readCommand, parameters, {
+        optimisticData,
+        failureData,
+    });
 }
 
 function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
@@ -287,17 +298,6 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
 }
 
 function hasSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): boolean {
-    // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        if (
-            !isSyncInProgress &&
-            (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false)
-        ) {
-            return true;
-        }
-        return false;
-    }
-
     const connection = policy?.connections?.[connectionName];
 
     if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
@@ -307,9 +307,6 @@ function hasSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionNam
 }
 
 function isAuthenticationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName) {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        return false;
-    }
     const connection = policy?.connections?.[connectionName];
     return connection?.lastSync?.isAuthenticationError === true;
 }
@@ -370,12 +367,15 @@ function isConnectionInProgress(connectionSyncProgress: OnyxEntry<PolicyConnecti
         return false;
     }
 
+    const qboConnection = policy?.connections?.quickbooksOnline;
+
     const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
     return (
-        !!connectionSyncProgress?.stageInProgress &&
-        (connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE || !policy?.connections?.[connectionSyncProgress.connectionName]) &&
-        isValid(lastSyncProgressDate) &&
-        differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES
+        (!!connectionSyncProgress?.stageInProgress &&
+            (connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE || !policy?.connections?.[connectionSyncProgress.connectionName]) &&
+            isValid(lastSyncProgressDate) &&
+            differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES) ||
+        (!!qboConnection && !qboConnection?.data && !!qboConnection?.config?.credentials)
     );
 }
 

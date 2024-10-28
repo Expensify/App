@@ -89,6 +89,7 @@ function SuggestionMention(
     const {translate, formatPhoneNumber} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
+    // eslint-disable-next-line react-compiler/react-compiler
     suggestionValuesRef.current = suggestionValues;
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -137,8 +138,10 @@ function SuggestionMention(
 
     // Used to detect if the selection has changed since the last suggestion insertion
     // If so, we reset the suggestionInsertionIndexRef
+    // eslint-disable-next-line react-compiler/react-compiler
     const hasSelectionChanged = !(selection.end === selection.start && selection.start === suggestionInsertionIndexRef.current);
     if (hasSelectionChanged) {
+        // eslint-disable-next-line react-compiler/react-compiler
         suggestionInsertionIndexRef.current = null;
     }
 
@@ -171,7 +174,7 @@ function SuggestionMention(
             }
 
             // Otherwise, the emails must be of the same private domain, so we should remove the domain part
-            return displayText.split('@')[0];
+            return displayText.split('@').at(0);
         },
         [currentUserPersonalDetails.login],
     );
@@ -193,7 +196,10 @@ function SuggestionMention(
     const insertSelectedMention = useCallback(
         (highlightedMentionIndexInner: number) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
-            const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
+            const mentionObject = suggestionValues.suggestedMentions.at(highlightedMentionIndexInner);
+            if (!mentionObject || highlightedMentionIndexInner === -1) {
+                return;
+            }
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
@@ -357,7 +363,7 @@ function SuggestionMention(
             const leftString = newValue.substring(afterLastBreakLineIndex, selectionEnd);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord: string = words.at(-1) ?? '';
-            const secondToLastWord = words[words.length - 3];
+            const secondToLastWord = words.at(-3);
 
             let atSignIndex: number | undefined;
             let suggestionWord = '';

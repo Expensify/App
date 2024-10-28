@@ -88,7 +88,7 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onSelectRow={updateSubsidiary}
-            initiallyFocusedOptionKey={netsuiteConfig?.subsidiaryID ?? subsidiaryListSections?.[0]?.keyForList}
+            initiallyFocusedOptionKey={netsuiteConfig?.subsidiaryID ?? subsidiaryListSections?.at(0)?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack()}
             title="workspace.netsuite.subsidiary"

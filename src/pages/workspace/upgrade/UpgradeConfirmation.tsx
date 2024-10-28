@@ -20,7 +20,7 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade}: Props) {
             heading={translate('workspace.upgrade.completed.headline')}
             description={
                 <>
-                    {translate('workspace.upgrade.completed.successMessage', policyName)}{' '}
+                    {translate('workspace.upgrade.completed.successMessage', {policyName})}{' '}
                     <TextLink
                         style={styles.link}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}

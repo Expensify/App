@@ -19,6 +19,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
+import type {BackToParams} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Url from '@libs/Url';
 import * as UserUtils from '@libs/UserUtils';
@@ -34,7 +35,7 @@ type ShareCodePageOnyxProps = {
     policy?: OnyxEntry<Policy>;
 };
 
-type ShareCodePageProps = ShareCodePageOnyxProps;
+type ShareCodePageProps = ShareCodePageOnyxProps & BackToParams;
 
 /**
  * When sharing a policy (workspace) only return user avatar that is user defined. Default ws avatars have separate logic.
@@ -53,7 +54,7 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
     return policy.avatarURL as ImageSourcePropType;
 }
 
-function ShareCodePage({report, policy}: ShareCodePageProps) {
+function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -106,7 +107,7 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
         <ScreenWrapper testID={ShareCodePage.displayName}>
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
-                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID) : undefined)}
+                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo) : undefined)}
                 shouldShowBackButton
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
@@ -146,7 +147,7 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
                     <MenuItem
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
                         icon={Expensicons.Cash}
-                        onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, Navigation.getActiveRouteWithoutParams()))}
+                        onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, Navigation.getActiveRoute()))}
                         shouldShowRightIcon
                     />
                 </View>

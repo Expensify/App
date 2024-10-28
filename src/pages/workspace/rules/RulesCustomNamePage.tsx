@@ -40,7 +40,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         translate('workspace.rules.expenseReportRules.customNameTotalExample'),
     ] as const satisfies string[];
 
-    const customNameDefaultValue = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].defaultValue;
+    const customNameDefaultValue = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue;
 
     const validateCustomName = ({customName}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM> = {};
@@ -66,7 +66,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     title={translate('workspace.rules.expenseReportRules.customNameTitle')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <View style={[styles.ph5, styles.pt3, styles.pb4]}>
+                <View style={[styles.ph5, styles.pb4]}>
                     <Text>
                         {translate('workspace.rules.expenseReportRules.customNameDescription')}
                         <TextLink

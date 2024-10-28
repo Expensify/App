@@ -40,14 +40,15 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     {translate('workspace.common.moreFeatures').toLowerCase()}
                 </TextLink>{' '}
                 {variant === 'unlock' ? (
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', featureName)}</Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', {featureName})}</Text>
                 ) : (
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.enableFeatureSubtitle', featureName)}</Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.enableFeatureSubtitle', {featureName})}</Text>
                 )}
             </Text>
         );
     };
 
+    const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
     const optionItems = [
         {
             title: translate('workspace.rules.expenseReportRules.customReportNamesTitle'),
@@ -62,33 +63,25 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             onToggle: (isEnabled: boolean) => PolicyActions.enablePolicyDefaultReportTitle(policyID, isEnabled),
             subMenuItems: [
                 <OfflineWithFeedback
-                    pendingAction={
-                        !policy?.pendingFields?.shouldShowCustomReportTitleOption && policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.defaultValue
-                            ? policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.defaultValue
-                            : null
-                    }
+                    pendingAction={!policy?.pendingFields?.shouldShowCustomReportTitleOption && reportTitlePendingFields.defaultValue ? reportTitlePendingFields.defaultValue : null}
                     key="customName"
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.customNameTitle')}
-                        title={policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].defaultValue}
+                        title={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue}
                         shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM_NAME.getRoute(policyID))}
                     />
                 </OfflineWithFeedback>,
                 <ToggleSettingOptionRow
-                    pendingAction={
-                        !policy?.pendingFields?.shouldShowCustomReportTitleOption && policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.deletable
-                            ? policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.deletable
-                            : null
-                    }
+                    pendingAction={!policy?.pendingFields?.shouldShowCustomReportTitleOption && reportTitlePendingFields.deletable ? reportTitlePendingFields.deletable : null}
                     key="preventMembersFromChangingCustomNames"
                     title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
                     switchAccessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
                     titleStyle={styles.pv2}
-                    isActive={!policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].deletable}
+                    isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
                     onToggle={(isEnabled) => PolicyActions.setPolicyPreventMemberCreatedTitle(policyID, isEnabled)}
                 />,
             ],
@@ -142,7 +135,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
-                        title={`${policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE}%`}
+                        title={`${Math.round((policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE) * 100)}%`}
                         shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID))}

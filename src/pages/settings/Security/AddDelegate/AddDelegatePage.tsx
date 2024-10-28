@@ -27,30 +27,20 @@ function useOptions() {
     const existingDelegates = useMemo(() => account?.delegatedAccess?.delegates?.map((delegate) => delegate.email) ?? [], [account?.delegatedAccess?.delegates]);
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
-            optionsList.reports,
-            optionsList.personalDetails,
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions({
+            reports: optionsList.reports,
+            personalDetails: optionsList.personalDetails,
             betas,
-            '',
-            [],
-            [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
-            false,
-            true,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            true,
-            false,
-            false,
-            0,
-        );
 
-        const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '');
+            excludeLogins: [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
+
+            maxRecentReportsToShow: 0,
+        });
+
+        const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
 
         if (isLoading) {
+            // eslint-disable-next-line react-compiler/react-compiler
             setIsLoading(false);
         }
 
@@ -72,7 +62,7 @@ function useOptions() {
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0 || !!filteredOptions.currentUserOption,
+            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
             !!filteredOptions.userToInvite,
             debouncedSearchValue,
         );

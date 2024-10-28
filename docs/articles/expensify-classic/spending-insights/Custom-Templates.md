@@ -199,3 +199,9 @@ This formula will output a subset of the string in question. It is important to 
 `{expense:merchant|substr:0:4}` would output "Star" for a merchant named Starbucks. This is because we are telling it to start at position 0 and be of 4 character length. 
 
 `{expense:merchant|substr:4:5}` would output "bucks" for a merchant named Starbucks. This is because we are telling it to start at position 4 and be of 5 character length. 
+
+# FAQs
+
+**Can I export one line per report?**
+
+No, the custom template always exports one line per expense. At the moment it is not possible to create a template that will export one line per report.

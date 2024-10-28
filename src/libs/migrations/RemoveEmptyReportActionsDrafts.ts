@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import type {OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
@@ -38,7 +38,7 @@ export default function (): Promise<void> {
                                 hasUnmigratedDraft = true;
                                 Log.info(`[Migrate Onyx] Migrating draft for report action ${reportActionID}`);
 
-                                if (_.isEmpty(reportActionDraft)) {
+                                if (isEmpty(reportActionDraft)) {
                                     Log.info(`[Migrate Onyx] Removing draft for report action ${reportActionID}`);
                                     return;
                                 }

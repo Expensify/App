@@ -1,22 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import dateAdd from 'date-fns/add';
-import dateSubtract from 'date-fns/sub';
+import {add as dateAdd} from 'date-fns';
+import {sub as dateSubtract} from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
 import type {Video} from './libs/actions/Report';
+import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
-import type {Unit} from './types/onyx/Policy';
-
-type RateAndUnit = {
-    unit: Unit;
-    rate: number;
-    currency: string;
-};
-type CurrencyDefaultMileageRate = Record<string, RateAndUnit>;
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -84,6 +77,12 @@ const onboardingChoices = {
     ...backendOnboardingChoices,
 } as const;
 
+const signupQualifiers = {
+    INDIVIDUAL: 'individual',
+    VSB: 'vsb',
+    SMB: 'smb',
+} as const;
+
 const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     video: {
@@ -130,10 +129,22 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
 
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
+type OnboardingCompanySizeType = ValueOf<typeof onboardingCompanySize>;
+
+type OnboardingAccountingType = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
+
 const onboardingInviteTypes = {
     IOU: 'iou',
     INVOICE: 'invoice',
     CHAT: 'chat',
+} as const;
+
+const onboardingCompanySize = {
+    MICRO: '1-10',
+    SMALL: '11-50',
+    MEDIUM_SMALL: '51-100',
+    MEDIUM: '101-1000',
+    LARGE: '1001+',
 } as const;
 
 type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
@@ -171,7 +182,7 @@ const CONST = {
     },
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
-    WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT],
+    WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
     ANDROID_PACKAGE_NAME,
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
@@ -187,10 +198,15 @@ const CONST = {
         IN: 'in',
         OUT: 'out',
     },
+    POPOVER_ACCOUNT_SWITCHER_POSITION: {
+        horizontal: 12,
+        vertical: 80,
+    },
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
-    ANIMATION_PAY_BUTTON_DURATION: 200,
-    ANIMATION_PAY_BUTTON_HIDE_DELAY: 1000,
+    ANIMATION_PAID_DURATION: 200,
+    ANIMATION_PAID_CHECKMARK_DELAY: 300,
+    ANIMATION_PAID_BUTTON_HIDE_DELAY: 1000,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
@@ -199,6 +215,9 @@ const CONST = {
     API_ATTACHMENT_VALIDATIONS: {
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
+
+        // 10 megabytes in bytes, this is limit set on servers for receipt images, do not update without wider internal discussion
+        RECEIPT_MAX_SIZE: 10485760,
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
@@ -277,6 +296,9 @@ const CONST = {
 
     // Regex to get link in href prop inside of <a/> component
     REGEX_LINK_IN_ANCHOR: /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi,
+
+    // Regex to read violation value from string given by backend
+    VIOLATION_LIMIT_REGEX: /[^0-9]+/g,
 
     MERCHANT_NAME_MAX_LENGTH: 255,
 
@@ -452,6 +474,19 @@ const CONST = {
             PERSONAL: 'PERSONAL',
         },
     },
+    NON_USD_BANK_ACCOUNT: {
+        STEP: {
+            COUNTRY: 'CountryStep',
+            BANK_INFO: 'BankInfoStep',
+            BUSINESS_INFO: 'BusinessInfoStep',
+            BENEFICIAL_OWNER_INFO: 'BeneficialOwnerInfoStep',
+            SIGNER_INFO: 'SignerInfoStep',
+            AGREEMENTS: 'AgreementsStep',
+            FINISH: 'FinishStep',
+        },
+        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        STEP_HEADER_HEIGHT: 40,
+    },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
         CORPORATION: 'Corp',
@@ -467,12 +502,14 @@ const CONST = {
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
-        WORKSPACE_FEEDS: 'workspaceFeeds',
         COMPANY_CARD_FEEDS: 'companyCardFeeds',
+        DIRECT_FEEDS: 'directFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         NEW_DOT_COPILOT: 'newDotCopilot',
         WORKSPACE_RULES: 'workspaceRules',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
+        CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
+        NEW_DOT_QBD: 'quickbooksDesktopOnNewDot',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -715,14 +752,22 @@ const CONST = {
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
-    SAGE_INTACCT_HELP_LINK:
-        "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_HELP: 'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds',
+    COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
+    COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL:
+        'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds#what-is-the-difference-between-commercial-card-feeds-and-your-direct-bank-connections',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
+    CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
+    DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
+    NAVATTIC: {
+        ADMIN_TOUR: 'https://expensify.navattic.com/kh204a7',
+        EMPLOYEE_TOUR: 'https://expensify.navattic.com/35609gb',
+    },
+
     OLDDOT_URLS: {
         ADMIN_POLICIES_URL: 'admin_policies',
         ADMIN_DOMAINS_URL: 'admin_domains',
@@ -794,6 +839,7 @@ const CONST = {
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
+                CARD_ASSIGNED: 'CARDASSIGNED',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
@@ -838,6 +884,7 @@ const CONST = {
                 SHARE: 'SHARE', // OldDot Action
                 STRIPE_PAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
+                SUBMITTED_AND_CLOSED: 'SUBMITTEDCLOSED',
                 TAKE_CONTROL: 'TAKECONTROL', // OldDot Action
                 TASK_CANCELLED: 'TASKCANCELLED',
                 TASK_COMPLETED: 'TASKCOMPLETED',
@@ -1010,6 +1057,7 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 99,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
+        MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS: 20,
         OWNER_EMAIL_FAKE: '__FAKE__',
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
@@ -1040,6 +1088,7 @@ const CONST = {
         },
     },
     COMPOSER: {
+        NATIVE_ID: 'composer',
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
         MAX_LINES_FULL: -1,
@@ -1075,7 +1124,7 @@ const CONST = {
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        CHAT_FINDER_RENDER: 'search_render',
+        SEARCH_ROUTER_RENDER: 'search_router_render',
         CHAT_RENDER: 'chat_render',
         OPEN_REPORT: 'open_report',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
@@ -1097,6 +1146,9 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
+        SEARCH_CONVERT_SEARCH_VALUES: 'search_convert_search_values',
+        SEARCH_MAKE_TREE: 'search_make_tree',
+        SEARCH_BUILD_TREE: 'search_build_tree',
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
     },
@@ -1153,6 +1205,7 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
+        INCORRECT_MAGIC_CODE: 451,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -1262,6 +1315,7 @@ const CONST = {
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
         PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
+        PRESENCE_ACTIVE_GUIDES: 'presence-activeGuides',
     },
 
     EMOJI_SPACER: 'SPACER',
@@ -1451,6 +1505,25 @@ const CONST = {
     },
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
+    QUICKBOOKS_DESKTOP_CONFIG: {
+        EXPORT_DATE: 'exportDate',
+        EXPORTER: 'exporter',
+        MARK_CHECKS_TO_BE_PRINTED: 'markChecksToBePrinted',
+        REIMBURSABLE_ACCOUNT: 'reimbursableAccount',
+        NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
+        REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        SHOULD_AUTO_CREATE_VENDOR: 'shouldAutoCreateVendor',
+        NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'nonReimbursableBillDefaultVendor',
+        AUTO_SYNC: 'autoSync',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        MAPPINGS: {
+            CLASSES: 'classes',
+            CUSTOMERS: 'customers',
+        },
+        IMPORT_ITEMS: 'importItems',
+    },
+
     QUICKBOOKS_CONFIG: {
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CLASSES: 'syncClasses',
@@ -1507,6 +1580,7 @@ const CONST = {
         TRACKING_CATEGORY_OPTIONS: {
             DEFAULT: 'DEFAULT',
             TAG: 'TAG',
+            REPORT_FIELD: 'REPORT_FIELD',
         },
     },
 
@@ -1557,6 +1631,18 @@ const CONST = {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'journal_entry',
+    },
+
+    QUICKBOOKS_NON_REIMBURSABLE_ACCOUNT_TYPE: {
+        CREDIT_CARD: 'credit_card',
+        DEBIT_CARD: 'debit_card',
+        VENDOR_BILL: 'bill',
+    },
+
+    QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE: {
+        VENDOR_BILL: 'VENDOR_BILL',
+        CHECK: 'CHECK',
+        JOURNAL_ENTRY: 'JOURNAL_ENTRY',
     },
 
     SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE: {
@@ -1829,12 +1915,19 @@ const CONST = {
         VENDOR_BILL: 'bill',
     },
 
+    QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE: {
+        CREDIT_CARD: 'CREDIT_CARD_CHARGE',
+        CHECK: 'CHECK',
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
     MISSING_PERSONAL_DETAILS_INDEXES: {
         MAPPING: {
             LEGAL_NAME: 0,
             DATE_OF_BIRTH: 1,
             ADDRESS: 2,
             PHONE_NUMBER: 3,
+            CONFIRM: 4,
         },
         INDEX_LIST: ['1', '2', '3', '4'],
     },
@@ -2033,6 +2126,7 @@ const CONST = {
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
+        LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS: 7,
         PAYMENT_TYPE: {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
@@ -2054,6 +2148,7 @@ const CONST = {
             INVOICE: 'invoice',
             SUBMIT: 'submit',
             TRACK: 'track',
+            CREATE: 'create',
         },
         REQUEST_TYPE: {
             DISTANCE: 'distance',
@@ -2095,6 +2190,9 @@ const CONST = {
         },
         ACCESS_VARIANTS: {
             CREATE: 'create',
+        },
+        PAGE_INDEX: {
+            CONFIRM: 'confirm',
         },
         PAYMENT_SELECTED: {
             BBA: 'BBA',
@@ -2153,7 +2251,6 @@ const CONST = {
 
     POLICY: {
         TYPE: {
-            FREE: 'free',
             PERSONAL: 'personal',
 
             // Often referred to as "control" workspaces
@@ -2162,7 +2259,15 @@ const CONST = {
             // Often referred to as "collect" workspaces
             TEAM: 'team',
         },
-        FIELD_LIST_TITLE_FIELD_ID: 'text_title',
+        RULE_CONDITIONS: {
+            MATCHES: 'matches',
+        },
+        FIELDS: {
+            TAG: 'tag',
+            CATEGORY: 'category',
+            FIELD_LIST_TITLE: 'text_title',
+            TAX: 'tax',
+        },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         ROLE: {
             ADMIN: 'admin',
@@ -2172,7 +2277,7 @@ const CONST = {
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
         AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS: 10000,
         AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS: 10000,
-        RANDOM_AUDIT_DEFAULT_PERCENTAGE: 5,
+        RANDOM_AUDIT_DEFAULT_PERCENTAGE: 0.05,
 
         AUTO_REPORTING_FREQUENCIES: {
             INSTANT: 'instant',
@@ -2274,6 +2379,7 @@ const CONST = {
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
+                QBD: 'quickbooksDesktop',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
@@ -2283,6 +2389,7 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'sage-intacct',
+                QBD: 'quickbooks-desktop',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -2294,9 +2401,16 @@ const CONST = {
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
             },
+            AUTH_HELP_LINKS: {
+                intacct:
+                    "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
+                netsuite:
+                    'https://help.expensify.com/articles/expensify-classic/connections/netsuite/Netsuite-Troubleshooting#expensierror-ns0109-failed-to-login-to-netsuite-please-verify-your-credentials',
+            },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
                 STARTING_IMPORT_XERO: 'startingImportXero',
+                STARTING_IMPORT_QBD: 'startingImportQBD',
                 QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
                 QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
                 QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',
@@ -2313,6 +2427,17 @@ const CONST = {
                 QBO_SYNC_APPLY_CUSTOMERS: 'quickbooksOnlineSyncApplyCustomers',
                 QBO_SYNC_APPLY_PEOPLE: 'quickbooksOnlineSyncApplyEmployees',
                 QBO_SYNC_APPLY_CLASSES_LOCATIONS: 'quickbooksOnlineSyncApplyClassesLocations',
+                QBD_IMPORT_TITLE: 'quickbooksDesktopImportTitle',
+                QBD_IMPORT_ACCOUNTS: 'quickbooksDesktopImportAccounts',
+                QBD_IMPORT_APPROVE_CERTIFICATE: 'quickbooksDesktopImportApproveCertificate',
+                QBD_IMPORT_DIMENSIONS: 'quickbooksDesktopImportDimensions',
+                QBD_IMPORT_CLASSES: 'quickbooksDesktopImportClasses',
+                QBD_IMPORT_CUSTOMERS: 'quickbooksDesktopImportCustomers',
+                QBD_IMPORT_VENDORS: 'quickbooksDesktopImportVendors',
+                QBD_IMPORT_EMPLOYEES: 'quickbooksDesktopImportEmployees',
+                QBD_IMPORT_MORE: 'quickbooksDesktopImportMore',
+                QBD_IMPORT_GENERIC: 'quickbooksDesktopImportSavePolicy',
+                QBD_WEB_CONNECTOR_REMINDER: 'quickbooksDesktopWebConnectorReminder',
                 JOB_DONE: 'jobDone',
                 XERO_SYNC_STEP: 'xeroSyncStep',
                 XERO_SYNC_XERO_REIMBURSED_REPORTS: 'xeroSyncXeroReimbursedReports',
@@ -2381,6 +2506,8 @@ const CONST = {
         DEFAULT_RATE: 'Default Rate',
         RATE_DECIMALS: 3,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
+        MILES_TO_KILOMETERS: 1.609344,
+        KILOMETERS_TO_MILES: 0.621371,
     },
 
     TERMS: {
@@ -2424,6 +2551,14 @@ const CONST = {
             MASTER_CARD: 'cdf',
             VISA: 'vcf',
             AMEX: 'gl1025',
+            STRIPE: 'stripe',
+            CITIBANK: 'oauth.citibank.com',
+            CAPITAL_ONE: 'oauth.capitalone.com',
+            BANK_OF_AMERICA: 'oauth.bankofamerica.com',
+            CHASE: 'oauth.chase.com',
+            BREX: 'oauth.brex.com',
+            WELLS_FARGO: 'oauth.wellsfargo.com',
+            AMEX_DIRECT: 'oauth.americanexpressfdx.com',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
@@ -2438,6 +2573,7 @@ const CONST = {
         },
     },
     EXPENSIFY_CARD: {
+        NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
@@ -2476,18 +2612,53 @@ const CONST = {
             MONTHLY: 'monthly',
         },
         CARD_TITLE_INPUT_LIMIT: 255,
+        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
     },
     COMPANY_CARDS: {
+        CONNECTION_ERROR: 'connectionError',
         STEP: {
+            SELECT_BANK: 'SelectBank',
+            SELECT_FEED_TYPE: 'SelectFeedType',
             CARD_TYPE: 'CardType',
             CARD_INSTRUCTIONS: 'CardInstructions',
             CARD_NAME: 'CardName',
             CARD_DETAILS: 'CardDetails',
+            BANK_CONNECTION: 'BankConnection',
+            AMEX_CUSTOM_FEED: 'AmexCustomFeed',
         },
         CARD_TYPE: {
             AMEX: 'amex',
             VISA: 'visa',
             MASTERCARD: 'mastercard',
+            STRIPE: 'stripe',
+        },
+        FEED_TYPE: {
+            CUSTOM: 'customFeed',
+            DIRECT: 'directFeed',
+        },
+        BANKS: {
+            AMEX: 'American Express',
+            BANK_OF_AMERICA: 'Bank of America',
+            BREX: 'Brex',
+            CAPITAL_ONE: 'Capital One',
+            CHASE: 'Chase',
+            CITI_BANK: 'Citibank',
+            STRIPE: 'Stripe',
+            WELLS_FARGO: 'Wells Fargo',
+            OTHER: 'Other',
+        },
+        BANK_CONNECTIONS: {
+            WELLS_FARGO: 'wellsfargo',
+            BANK_OF_AMERICA: 'bankofamerica',
+            CHASE: 'chase',
+            BREX: 'brex',
+            CAPITAL_ONE: 'capitalone',
+            CITI_BANK: 'citibank',
+            AMEX: 'americanexpressfdx',
+        },
+        AMEX_CUSTOM_FEED: {
+            CORPORATE: 'American Express Corporate Cards',
+            BUSINESS: 'American Express Business Cards',
         },
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
@@ -2684,11 +2855,7 @@ const CONST = {
         CONCIERGE_DM: 'NewExpensifyConciergeDM',
         WORKSPACE_INITIAL: 'WorkspaceHome',
         WORKSPACE_PROFILE: 'WorkspaceProfile',
-        WORKSPACE_CARD: 'WorkspaceCorporateCards',
-        WORKSPACE_REIMBURSE: 'WorkspaceReimburseReceipts',
-        WORKSPACE_BILLS: 'WorkspacePayBills',
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
-        WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
         WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
         WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
@@ -2771,6 +2938,7 @@ const CONST = {
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 1000,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
+    STATE_CHARACTER_LIMIT: 32,
 
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
@@ -2799,11 +2967,13 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
+        DOWNLOAD: 'download',
         EXPORT: 'export',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
         CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
+        DEBUG: 'debug',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -3153,6 +3323,63 @@ const CONST = {
         YE: 'Yemen',
         ZM: 'Zambia',
         ZW: 'Zimbabwe',
+    },
+
+    ALL_EUROPEAN_COUNTRIES: {
+        AL: 'Albania',
+        AD: 'Andorra',
+        AT: 'Austria',
+        BY: 'Belarus',
+        BE: 'Belgium',
+        BA: 'Bosnia & Herzegovina',
+        BG: 'Bulgaria',
+        HR: 'Croatia',
+        CY: 'Cyprus',
+        CZ: 'Czech Republic',
+        DK: 'Denmark',
+        EE: 'Estonia',
+        FO: 'Faroe Islands',
+        FI: 'Finland',
+        FR: 'France',
+        GE: 'Georgia',
+        DE: 'Germany',
+        GI: 'Gibraltar',
+        GR: 'Greece',
+        GL: 'Greenland',
+        HU: 'Hungary',
+        IS: 'Iceland',
+        IE: 'Ireland',
+        IM: 'Isle of Man',
+        IT: 'Italy',
+        JE: 'Jersey',
+        XK: 'Kosovo',
+        LV: 'Latvia',
+        LI: 'Liechtenstein',
+        LT: 'Lithuania',
+        LU: 'Luxembourg',
+        MT: 'Malta',
+        MD: 'Moldova',
+        MC: 'Monaco',
+        ME: 'Montenegro',
+        NL: 'Netherlands',
+        MK: 'North Macedonia',
+        NO: 'Norway',
+        PL: 'Poland',
+        PT: 'Portugal',
+        RO: 'Romania',
+        RU: 'Russia',
+        SM: 'San Marino',
+        RS: 'Serbia',
+        SK: 'Slovakia',
+        SI: 'Slovenia',
+        ES: 'Spain',
+        SJ: 'Svalbard & Jan Mayen',
+        SE: 'Sweden',
+        CH: 'Switzerland',
+        TR: 'Turkey',
+        UA: 'Ukraine',
+        GB: 'United Kingdom',
+        VA: 'Vatican City',
     },
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
@@ -4000,7 +4227,6 @@ const CONST = {
         SEARCH_ISSUES: 'https://github.com/Expensify/App/issues',
     },
 
-    CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
     TRAVEL_DOT_URL: 'https://travel.expensify.com',
     STAGING_TRAVEL_DOT_URL: 'https://staging.travel.expensify.com',
@@ -4139,6 +4365,7 @@ const CONST = {
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
     TAB: {
+        DEBUG_TAB_ID: 'DebugTab',
         NEW_CHAT_TAB_ID: 'NewChatTab',
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
@@ -4185,7 +4412,7 @@ const CONST = {
         PADDING: 32,
         DEFAULT_ZOOM: 15,
         SINGLE_MARKER_ZOOM: 15,
-        DEFAULT_COORDINATE: [-122.4021, 37.7911],
+        DEFAULT_COORDINATE: [-122.4021, 37.7911] as [number, number],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
         ANIMATION_DURATION_ON_CENTER_ME: 1000,
         CENTER_BUTTON_FADE_DURATION: 300,
@@ -4197,7 +4424,6 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
-        ON_RETURN_TO_OLD_DOT: 'onReturnToOldDot',
     },
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
@@ -4256,6 +4482,7 @@ const CONST = {
     },
 
     BACK_BUTTON_NATIVE_ID: 'backButton',
+    EMOJI_PICKER_BUTTON_NATIVE_ID: 'emojiPickerButton',
 
     /**
      * The maximum count of items per page for SelectionList.
@@ -4363,6 +4590,11 @@ const CONST = {
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
     },
+    RTER_VIOLATION_TYPES: {
+        BROKEN_CARD_CONNECTION: 'brokenCardConnection',
+        BROKEN_CARD_CONNECTION_530: 'brokenCardConnection530',
+        SEVEN_DAY_HOLD: 'sevenDayHold',
+    },
     REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
 
     REPORT_VIOLATIONS: {
@@ -4444,7 +4676,9 @@ const CONST = {
     ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
+    ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
+    ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_CONCIERGE: {
         [onboardingChoices.EMPLOYER]:
@@ -4532,19 +4766,19 @@ const CONST = {
                         'Here’s how to set up categories:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to Workspaces.\n' +
+                        '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Categories*.\n' +
-                        '5. Enable and disable default categories.\n' +
-                        '6. Click *Add categories* to make your own.\n' +
-                        '7. For more controls like requiring a category for every expense, click *Settings*.\n' +
+                        '5. Add or import your own categories.\n' +
+                        "6. Disable any default categories you don't need.\n" +
+                        '7. Require a category for every expense in *Settings*.\n' +
                         '\n' +
                         `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
                 },
                 {
                     type: 'setupTags',
                     autoCompleted: false,
-                    title: 'Set up tags (optional)',
+                    title: 'Set up tags',
                     description: ({workspaceMoreFeaturesLink}) =>
                         'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags you can upgrade to a control plan.\n' +
                         '\n' +
@@ -4663,10 +4897,11 @@ const CONST = {
                         '\n' +
                         'Here’s how to request money:\n' +
                         '\n' +
-                        '1. Click the green *+* button.\n' +
-                        '2. Choose *Split expense*.\n' +
-                        '3. Scan a receipt or enter an amount.\n' +
-                        '4. Add your friend(s) to the request.\n' +
+                        '1. Hit the green *+* button.\n' +
+                        '2. Choose *Start chat*.\n' +
+                        '3. Enter any email, SMS, or name of who you want to split with.\n' +
+                        '4. From within the chat, hit the *+* button on the message bar, and hit *Split expense*.\n' +
+                        '5. Create the expense by selecting Manual, Scan or Distance.\n' +
                         '\n' +
                         'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
                 },
@@ -5409,7 +5644,7 @@ const CONST = {
             "rate": 2377,
             "unit": "km"
         }
-    }`) as CurrencyDefaultMileageRate,
+    }`) as Record<string, MileageRate>,
 
     EXIT_SURVEY: {
         REASONS: {
@@ -5423,6 +5658,7 @@ const CONST = {
         INITIAL_URL: 'INITIAL_URL',
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
+        LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
     },
 
     RESERVATION_TYPE: {
@@ -5515,6 +5751,7 @@ const CONST = {
                 SENT: 'sent',
                 ATTACHMENTS: 'attachments',
                 LINKS: 'links',
+                PINNED: 'pinned',
             },
         },
         TABLE_COLUMNS: {
@@ -5565,6 +5802,7 @@ const CONST = {
             KEYWORD: 'keyword',
             IN: 'in',
         },
+        EMPTY_VALUE: 'none',
     },
 
     REFERRER: {
@@ -5648,6 +5886,14 @@ const CONST = {
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.description` as const,
                 icon: 'IntacctSquare',
+            },
+            [this.POLICY.CONNECTIONS.NAME.QBD]: {
+                id: this.POLICY.CONNECTIONS.NAME.QBD,
+                alias: 'qbd',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.QBD}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.QBD}.description` as const,
+                icon: 'QBDSquare',
             },
             approvals: {
                 id: 'approvals' as const,
@@ -5751,7 +5997,60 @@ const CONST = {
         ICON_HEIGHT: 160,
 
         CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
+        MEMBERS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles#import-a-group-of-members',
         TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
+    },
+
+    // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.
+    ERROR_WINDOW_RELOAD_TIMEOUT: 60000,
+
+    INDICATOR_STATUS: {
+        HAS_USER_WALLET_ERRORS: 'hasUserWalletErrors',
+        HAS_PAYMENT_METHOD_ERROR: 'hasPaymentMethodError',
+        HAS_POLICY_ERRORS: 'hasPolicyError',
+        HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
+        HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
+        HAS_SYNC_ERRORS: 'hasSyncError',
+        HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
+        HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
+        HAS_LOGIN_LIST_ERROR: 'hasLoginListError',
+        HAS_WALLET_TERMS_ERRORS: 'hasWalletTermsErrors',
+        HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
+        HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
+    },
+
+    DEBUG: {
+        DETAILS: 'details',
+        JSON: 'json',
+        REPORT_ACTIONS: 'actions',
+        REPORT_ACTION_PREVIEW: 'preview',
+    },
+
+    REPORT_IN_LHN_REASONS: {
+        HAS_DRAFT_COMMENT: 'hasDraftComment',
+        HAS_GBR: 'hasGBR',
+        PINNED_BY_USER: 'pinnedByUser',
+        HAS_IOU_VIOLATIONS: 'hasIOUViolations',
+        HAS_ADD_WORKSPACE_ROOM_ERRORS: 'hasAddWorkspaceRoomErrors',
+        IS_UNREAD: 'isUnread',
+        IS_ARCHIVED: 'isArchived',
+        IS_SELF_DM: 'isSelfDM',
+        IS_FOCUSED: 'isFocused',
+        DEFAULT: 'default',
+    },
+
+    REQUIRES_ATTENTION_REASONS: {
+        HAS_JOIN_REQUEST: 'hasJoinRequest',
+        IS_UNREAD_WITH_MENTION: 'isUnreadWithMention',
+        IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION: 'isWaitingForAssigneeToCompleteAction',
+        HAS_CHILD_REPORT_AWAITING_ACTION: 'hasChildReportAwaitingAction',
+        HAS_MISSING_INVOICE_BANK_ACCOUNT: 'hasMissingInvoiceBankAccount',
+    },
+
+    RBR_REASONS: {
+        HAS_ERRORS: 'hasErrors',
+        HAS_VIOLATIONS: 'hasViolations',
+        HAS_TRANSACTION_THREAD_VIOLATIONS: 'hasTransactionThreadViolations',
     },
 } as const;
 
@@ -5765,6 +6064,18 @@ type FeedbackSurveyOptionID = ValueOf<Pick<ValueOf<typeof CONST.FEEDBACK_SURVEY_
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInviteType};
+export type {
+    Country,
+    IOUAction,
+    IOUType,
+    OnboardingPurposeType,
+    OnboardingCompanySizeType,
+    IOURequestType,
+    SubscriptionType,
+    FeedbackSurveyOptionID,
+    CancellationType,
+    OnboardingInviteType,
+    OnboardingAccountingType,
+};
 
 export default CONST;

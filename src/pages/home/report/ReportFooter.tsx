@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -129,32 +130,42 @@ function ReportFooter({
              * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
              * Group 3: Title is remaining characters
              */
-            const taskRegex = /^\[\]\s+(?:@([^\s@]+(?:@\w+\.\w+)?))?\s*([\s\S]*)/;
+            // The regex is copied from the expensify-common CONST file, but the domain is optional to accept short mention
+            const emailWithOptionalDomainRegex =
+                /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
+            const taskRegex = `^\\[\\]\\s+(?:@(?:${emailWithOptionalDomainRegex.source}))?\\s*([\\s\\S]*)`;
 
             const match = text.match(taskRegex);
             if (!match) {
                 return false;
             }
-            const title = match[2] ? match[2].trim().replace(/\n/g, ' ') : undefined;
+            let title = match[3] ? match[3].trim().replace(/\n/g, ' ') : undefined;
             if (!title) {
                 return false;
             }
 
-            const mention = match[1] ? match[1].trim() : undefined;
-            const mentionWithDomain = ReportUtils.addDomainToShortMention(mention ?? '') ?? mention;
+            const mention = match[1] ? match[1].trim() : '';
+            const mentionWithDomain = ReportUtils.addDomainToShortMention(mention) ?? mention;
+            const isValidMention = Str.isValidEmail(mentionWithDomain);
 
             let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
             let assigneeChatReport;
             if (mentionWithDomain) {
-                assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? undefined;
-                if (!Object.keys(assignee ?? {}).length) {
-                    const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
-                    const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
-                    assignee = optimisticDataForNewAssignee.assignee;
-                    assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+                if (isValidMention) {
+                    assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? undefined;
+                    if (!Object.keys(assignee ?? {}).length) {
+                        const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
+                        const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
+                        assignee = optimisticDataForNewAssignee.assignee;
+                        assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+                    }
+                } else {
+                    // If the mention is not valid, include it on the title.
+                    // The mention could be invalid if it's a short mention and failed to be converted to a full mention.
+                    title = `@${mentionWithDomain} ${title}`;
                 }
             }
-            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID);
+            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true);
             return true;
         },
         [allPersonalDetails, report.policyID, report.reportID],

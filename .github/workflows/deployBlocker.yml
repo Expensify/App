@@ -29,23 +29,6 @@ jobs:
           escaped_title=$(echo "$GH_ISSUE_TITLE" | sed -e 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&#039;/g; s/|/\&verbar;/g')
           echo "GH_ISSUE_TITLE=$escaped_title" >> "$GITHUB_ENV"
 
-      - name: 'Post the issue in the #expensify-open-source slack room'
-        if: ${{ success() }}
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#expensify-open-source',
-              attachments: [{
-                color: "#DB4545",
-                text: '💥 New Deploy Blocker: <${{ github.event.issue.html_url }}|${{ env.GH_ISSUE_TITLE }}>. If you have any idea which PR could be causing this, please comment in the issue.'
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
       - name: Comment on deploy blocker
         run: |
           gh issue comment ${{ github.event.issue.number }} --body "$(cat <<'EOF'

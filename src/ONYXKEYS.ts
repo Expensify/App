@@ -1,8 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
-import type {OnboardingPurposeType} from './CONST';
+import type {OnboardingCompanySizeType, OnboardingPurposeType} from './CONST';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
+import type {Attendee} from './types/onyx/IOU';
 import type Onboarding from './types/onyx/Onboarding';
 import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';
@@ -32,6 +33,7 @@ const ONYXKEYS = {
 
     /** Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe */
     PERSISTED_REQUESTS: 'networkRequestQueue',
+    PERSISTED_ONGOING_REQUESTS: 'networkOngoingRequestQueue',
 
     /** Stores current date */
     CURRENT_DATE: 'currentDate',
@@ -67,14 +69,6 @@ const ONYXKEYS = {
 
     /** Contains all the info for Tasks */
     TASK: 'task',
-
-    /**
-     * Contains all the info for Workspace Rate and Unit while editing.
-     *
-     * Note: This is not under the COLLECTION key as we can edit rate and unit
-     * for one workspace only at a time. And we don't need to store
-     * rates and units for different workspaces at the same time. */
-    WORKSPACE_RATE_AND_UNIT: 'workspaceRateAndUnit',
 
     /** Contains a list of all currencies available to the user - user can
      * select a currency based on the list */
@@ -119,6 +113,9 @@ const ONYXKEYS = {
     /** Boolean flag only true when first set */
     NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'nvp_isFirstTimeNewExpensifyUser',
 
+    /** This NVP contains list of at most 5 recent attendees */
+    NVP_RECENT_ATTENDEES: 'nvp_expensify_recentAttendees',
+
     /** This NVP contains information about whether the onboarding flow was completed or not */
     NVP_ONBOARDING: 'nvp_onboarding',
 
@@ -139,6 +136,9 @@ const ONYXKEYS = {
 
     /** The NVP with the last payment method used per policy */
     NVP_LAST_PAYMENT_METHOD: 'nvp_private_lastPaymentMethod',
+
+    /** Last date (yyyy-MM-dd HH:mm:ss) when the location permission prompt was shown. */
+    NVP_LAST_LOCATION_PERMISSION_PROMPT: 'nvp_lastLocalPermissionPrompt',
 
     /** This NVP holds to most recent waypoints that a person has used when creating a distance expense */
     NVP_RECENT_WAYPOINTS: 'nvp_expensify_recentWaypoints',
@@ -215,8 +215,8 @@ const ONYXKEYS = {
     /** The NVP containing all information related to educational tooltip in workspace chat */
     NVP_WORKSPACE_TOOLTIP: 'workspaceTooltip',
 
-    /** Whether to hide save search rename tooltip */
-    NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP: 'nvp_should_hide_saved_search_rename_tooltip',
+    /** Whether to show save search rename tooltip */
+    SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP: 'shouldShowSavedSearchRenameTooltip',
 
     /**  Whether to hide gbr tooltip */
     NVP_SHOULD_HIDE_GBR_TOOLTIP: 'nvp_should_hide_gbr_tooltip',
@@ -337,11 +337,17 @@ const ONYXKEYS = {
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_PURPOSE_SELECTED: 'onboardingPurposeSelected',
 
+    /** Onboarding customized choices to display to the user based on their profile when signing up */
+    ONBOARDING_CUSTOM_CHOICES: 'onboardingCustomChoices',
+
     /** Onboarding error message to be displayed to the user */
     ONBOARDING_ERROR_MESSAGE: 'onboardingErrorMessage',
 
     /** Onboarding policyID selected by the user during Onboarding flow */
     ONBOARDING_POLICY_ID: 'onboardingPolicyID',
+
+    /** Onboarding company size selected by the user during Onboarding flow */
+    ONBOARDING_COMPANY_SIZE: 'onboardingCompanySize',
 
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_ADMINS_CHAT_REPORT_ID: 'onboardingAdminsChatReportID',
@@ -427,11 +433,20 @@ const ONYXKEYS = {
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
 
+    /** Stores the information if user loaded the Onyx state through Import feature  */
+    IS_USING_IMPORTED_STATE: 'isUsingImportedState',
+
     /** Stores the information about the saved searches */
     SAVED_SEARCHES: 'nvp_savedSearches',
 
+    /** Stores the information about the recent searches */
+    RECENT_SEARCHES: 'nvp_recentSearches',
+
     /** Stores recently used currencies */
     RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
+
+    /** Company cards custom names */
+    NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES: 'nvp_expensify_ccCustomNames',
 
     /** Collection Keys */
     COLLECTION: {
@@ -530,8 +545,6 @@ const ONYXKEYS = {
         WORKSPACE_SETTINGS_FORM_DRAFT: 'workspaceSettingsFormDraft',
         WORKSPACE_DESCRIPTION_FORM: 'workspaceDescriptionForm',
         WORKSPACE_DESCRIPTION_FORM_DRAFT: 'workspaceDescriptionFormDraft',
-        WORKSPACE_RATE_AND_UNIT_FORM: 'workspaceRateAndUnitForm',
-        WORKSPACE_RATE_AND_UNIT_FORM_DRAFT: 'workspaceRateAndUnitFormDraft',
         WORKSPACE_TAX_CUSTOM_NAME: 'workspaceTaxCustomName',
         WORKSPACE_TAX_CUSTOM_NAME_DRAFT: 'workspaceTaxCustomNameDraft',
         WORKSPACE_COMPANY_CARD_FEED_NAME: 'workspaceCompanyCardFeedName',
@@ -554,8 +567,6 @@ const ONYXKEYS = {
         DISPLAY_NAME_FORM_DRAFT: 'displayNameFormDraft',
         ONBOARDING_PERSONAL_DETAILS_FORM: 'onboardingPersonalDetailsForm',
         ONBOARDING_PERSONAL_DETAILS_FORM_DRAFT: 'onboardingPersonalDetailsFormDraft',
-        ONBOARDING_PERSONAL_WORK: 'onboardingWorkForm',
-        ONBOARDING_PERSONAL_WORK_DRAFT: 'onboardingWorkFormDraft',
         ROOM_NAME_FORM: 'roomNameForm',
         ROOM_NAME_FORM_DRAFT: 'roomNameFormDraft',
         REPORT_DESCRIPTION_FORM: 'reportDescriptionForm',
@@ -692,6 +703,12 @@ const ONYXKEYS = {
         RULES_MAX_EXPENSE_AMOUNT_FORM_DRAFT: 'rulesMaxExpenseAmountFormDraft',
         RULES_MAX_EXPENSE_AGE_FORM: 'rulesMaxExpenseAgeForm',
         RULES_MAX_EXPENSE_AGE_FORM_DRAFT: 'rulesMaxExpenseAgeFormDraft',
+        DEBUG_REPORT_PAGE_FORM: 'debugReportPageForm',
+        DEBUG_REPORT_PAGE_FORM_DRAFT: 'debugReportPageFormDraft',
+        DEBUG_REPORT_ACTION_PAGE_FORM: 'debugReportActionPageForm',
+        DEBUG_REPORT_ACTION_PAGE_FORM_DRAFT: 'debugReportActionPageFormDraft',
+        DEBUG_DETAILS_FORM: 'debugDetailsForm',
+        DEBUG_DETAILS_FORM_DRAFT: 'debugDetailsFormDraft',
     },
 } as const;
 
@@ -702,7 +719,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: FormTypes.WorkspaceSettingsForm;
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM]: FormTypes.WorkspaceCategoryForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAG_FORM]: FormTypes.WorkspaceTagForm;
-    [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM]: FormTypes.WorkspaceRateAndUnitForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME]: FormTypes.WorkspaceTaxCustomName;
     [ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME]: FormTypes.WorkspaceCompanyCardFeedName;
     [ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM]: FormTypes.WorkspaceCompanyCardEditName;
@@ -713,7 +729,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM]: FormTypes.ProfileSettingsForm;
     [ONYXKEYS.FORMS.DISPLAY_NAME_FORM]: FormTypes.DisplayNameForm;
     [ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM]: FormTypes.DisplayNameForm;
-    [ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK]: FormTypes.WorkForm;
     [ONYXKEYS.FORMS.ROOM_NAME_FORM]: FormTypes.RoomNameForm;
     [ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM]: FormTypes.ReportDescriptionForm;
     [ONYXKEYS.FORMS.LEGAL_NAME_FORM]: FormTypes.LegalNameForm;
@@ -786,6 +801,9 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM]: FormTypes.RulesMaxExpenseAmountForm;
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM]: FormTypes.RulesMaxExpenseAgeForm;
     [ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM]: FormTypes.SearchSavedSearchRenameForm;
+    [ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM]: FormTypes.DebugReportForm;
+    [ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM]: FormTypes.DebugReportActionForm;
+    [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -838,7 +856,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean;
-    [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: string;
+    [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: OnyxTypes.CompanyCardFeed;
 };
 
 type OnyxValuesMapping = {
@@ -851,12 +869,14 @@ type OnyxValuesMapping = {
 
     // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
     [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;
-    [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch[];
+    [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
+    [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.Request[];
+    [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.Request;
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
@@ -869,7 +889,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
     [ONYXKEYS.PERSONAL_DETAILS_METADATA]: Record<string, OnyxTypes.PersonalDetailsMetadata>;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
-    [ONYXKEYS.WORKSPACE_RATE_AND_UNIT]: OnyxTypes.WorkspaceRateAndUnit;
     [ONYXKEYS.CURRENCY_LIST]: OnyxTypes.CurrencyList;
     [ONYXKEYS.UPDATE_AVAILABLE]: boolean;
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
@@ -890,10 +909,12 @@ type OnyxValuesMapping = {
     // The value of this nvp is a string representation of the date when the block expires, or an empty string if the user is not blocked
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
+    [ONYXKEYS.NVP_RECENT_ATTENDEES]: Attendee[];
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
+    [ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT]: string;
     [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
@@ -947,6 +968,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
     [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: OnboardingPurposeType;
+    [ONYXKEYS.ONBOARDING_COMPANY_SIZE]: OnboardingCompanySizeType;
+    [ONYXKEYS.ONBOARDING_CUSTOM_CHOICES]: OnboardingPurposeType[] | [];
     [ONYXKEYS.ONBOARDING_ERROR_MESSAGE]: string;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
@@ -986,9 +1009,10 @@ type OnyxValuesMapping = {
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;
     [ONYXKEYS.LAST_ROUTE]: string;
-    [ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP]: boolean;
+    [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
+    [ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP]: boolean;
+    [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
 };
-
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
 
 type OnyxCollectionKey = keyof OnyxCollectionValuesMapping;

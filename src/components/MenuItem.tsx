@@ -114,6 +114,9 @@ type MenuItemBaseProps = {
     /** Any additional styles to pass to the icon container. */
     iconStyles?: StyleProp<ViewStyle>;
 
+    /** Additional styles to pass to the icon itself */
+    additionalIconStyles?: StyleProp<ViewStyle>;
+
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: IconAsset;
 
@@ -330,6 +333,12 @@ type MenuItemBaseProps = {
 
     /** Should selected item be marked with checkmark */
     shouldShowSelectedItemCheck?: boolean;
+
+    /** Handles what to do when hiding the tooltip */
+    onHideTooltip?: () => void;
+
+    /** Should use auto width for the icon container. */
+    shouldIconUseAutoWidthStyle?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -416,7 +425,7 @@ function MenuItem(
         titleWithTooltips,
         displayInDefaultIconColor = false,
         contentFit = 'cover',
-        isPaneMenu = false,
+        isPaneMenu = true,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
         onBlur,
@@ -427,7 +436,10 @@ function MenuItem(
         tooltipShiftHorizontal = 0,
         tooltipShiftVertical = 0,
         renderTooltipContent,
+        additionalIconStyles,
         shouldShowSelectedItemCheck = false,
+        onHideTooltip,
+        shouldIconUseAutoWidthStyle = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -441,6 +453,7 @@ function MenuItem(
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+    const firstIcon = floatRightAvatars.at(0);
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,
@@ -559,6 +572,7 @@ function MenuItem(
                 shiftHorizontal={tooltipShiftHorizontal}
                 shiftVertical={tooltipShiftVertical}
                 shouldAutoDismiss
+                onHideTooltip={onHideTooltip}
             >
                 <View>
                     <Hoverable>
@@ -617,10 +631,22 @@ function MenuItem(
                                                         />
                                                     )}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (
-                                                        <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]} />
+                                                        <View
+                                                            style={[
+                                                                styles.popoverMenuIcon,
+                                                                iconStyles,
+                                                                shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
+                                                            ]}
+                                                        />
                                                     )}
                                                     {icon && !Array.isArray(icon) && (
-                                                        <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]}>
+                                                        <View
+                                                            style={[
+                                                                styles.popoverMenuIcon,
+                                                                iconStyles,
+                                                                shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
+                                                            ]}
+                                                        >
                                                             {typeof icon !== 'string' &&
                                                                 iconType === CONST.ICON_TYPE_ICON &&
                                                                 (!shouldShowLoadingSpinnerIcon ? (
@@ -641,6 +667,7 @@ function MenuItem(
                                                                                       isPaneMenu,
                                                                                   )
                                                                         }
+                                                                        additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
                                                                     <ActivityIndicator
@@ -771,13 +798,13 @@ function MenuItem(
                                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                                     </View>
                                                 )}
-                                                {floatRightAvatars?.length > 0 && (
+                                                {floatRightAvatars?.length > 0 && firstIcon && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
                                                         {shouldShowSubscriptRightAvatar ? (
                                                             <SubscriptAvatar
                                                                 backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
-                                                                mainAvatar={floatRightAvatars[0]}
-                                                                secondaryAvatar={floatRightAvatars[1]}
+                                                                mainAvatar={firstIcon}
+                                                                secondaryAvatar={floatRightAvatars.at(1)}
                                                                 size={floatRightAvatarSize ?? fallbackAvatarSize}
                                                             />
                                                         ) : (

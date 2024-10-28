@@ -16,6 +16,7 @@ function BaseListItem<TItem extends ListItem>({
     item,
     pressableStyle,
     wrapperStyle,
+    pressableWrapperStyle,
     containerStyle,
     isDisabled = false,
     shouldPreventEnterKeySubmit = false,
@@ -99,6 +100,7 @@ function BaseListItem<TItem extends ListItem>({
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
+                wrapperStyle={pressableWrapperStyle}
             >
                 <View style={wrapperStyle}>
                     {typeof children === 'function' ? children(hovered) : children}
@@ -116,7 +118,7 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {!item.isSelected && !!item.brickRoadIndicator && shouldDisplayRBR && (
+                    {(!item.isSelected || item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
                                 src={Expensicons.DotIndicator}
