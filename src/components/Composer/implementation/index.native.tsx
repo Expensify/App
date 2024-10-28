@@ -60,7 +60,7 @@ function Composer(
     }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
 
     useEffect(() => {
-        if (!textInput.current || !selection || isComposerFullSize) {
+        if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
             return;
         }
 
