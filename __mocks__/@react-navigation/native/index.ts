@@ -16,8 +16,9 @@ const {triggerTransitionEnd, addListener} = isJestEnv
           addListener: () => {},
       };
 
+const realOrMockedUseNavigation = isJestEnv ? realReactNavigation.useNavigation : {};
 const useNavigation = () => ({
-    ...realReactNavigation.useNavigation,
+    ...realOrMockedUseNavigation,
     navigate: isJestEnv ? jest.fn() : () => {},
     getState: () => ({
         routes: [],
