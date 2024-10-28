@@ -15,7 +15,7 @@ type UnitItemType = {
 };
 
 type UnitPickerProps = {
-    defaultValue: Unit;
+    defaultValue?: Unit;
     onOptionSelected: (unit: UnitItemType) => void;
 };
 

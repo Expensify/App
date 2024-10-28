@@ -119,7 +119,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     cameraRef.current?.setCamera({
                         zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
                         animationDuration: 1500,
-                        centerCoordinate: waypoints[0].coordinate,
+                        centerCoordinate: waypoints.at(0)?.coordinate,
                     });
                 } else {
                     const {southWest, northEast} = utils.getBounds(
@@ -282,8 +282,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         <Button
                             onPress={centerMap}
                             iconFill={theme.icon}
-                            iconStyles={styles.ml1}
-                            medium
                             icon={Expensicons.Crosshair}
                             accessibilityLabel={translate('common.center')}
                         />

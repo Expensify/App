@@ -1,7 +1,7 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -13,14 +13,25 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
-function ConfirmationStep() {
+type ConfirmationStepProps = {
+    /** ID of the policy that the card will be issued under */
+    policyID: string;
+
+    /** Route to navigate to */
+    backTo?: Route;
+};
+
+function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -28,12 +39,27 @@ function ConfirmationStep() {
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
     const data = issueNewCard?.data;
+    const isSuccessful = issueNewCard?.isSuccessful;
+
+    const submitButton = useRef<View>(null);
+
+    useEffect(() => {
+        submitButton.current?.focus();
+    }, []);
+
+    useEffect(() => {
+        if (!isSuccessful) {
+            return;
+        }
+        Navigation.navigate(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID ?? '-1'));
+        Card.clearIssueNewCardFlow();
+    }, [backTo, policyID, isSuccessful]);
 
     const submit = () => {
-        // TODO: the logic will be created when CreateExpensifyCard is ready
-        Navigation.goBack();
-        Card.clearIssueNewCardFlow();
+        Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);
     };
+
+    const errorMessage = ErrorUtils.getLatestErrorMessage(issueNewCard);
 
     const editStep = (step: IssueNewCardStep) => {
         Card.setIssueNewCardStepAndData({step, isEditing: true});
@@ -66,11 +92,11 @@ function ConfirmationStep() {
                 style={styles.pt0}
                 contentContainerStyle={styles.flexGrow1}
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
-                    title={PersonalDetailsUtils.getPersonalDetailByEmail(data?.assigneeEmail ?? '')?.displayName}
+                    title={PersonalDetailsUtils.getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName')}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
                 />
@@ -99,13 +125,14 @@ function ConfirmationStep() {
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
                 />
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
-                    <Button
+                    <FormAlertWithSubmitButton
+                        buttonRef={submitButton}
+                        message={errorMessage}
+                        isAlertVisible={!!errorMessage}
                         isDisabled={isOffline}
-                        success
-                        large
-                        style={[styles.w100]}
-                        onPress={submit}
-                        text={translate('workspace.card.issueCard')}
+                        isLoading={issueNewCard?.isLoading}
+                        onSubmit={submit}
+                        buttonText={translate('workspace.card.issueCard')}
                     />
                 </View>
             </ScrollView>

@@ -5,17 +5,19 @@ import BOTTOM_TAB_SCREENS from '@components/FocusTrap/BOTTOM_TAB_SCREENS';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import type FocusTrapProps from './FocusTrapProps';
 
-function FocusTrapForScreen({children}: FocusTrapProps) {
+function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
     const isFocused = useIsFocused();
     const route = useRoute();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const isActive = useMemo(() => {
+        if (typeof focusTrapSettings?.active !== 'undefined') {
+            return focusTrapSettings.active;
+        }
         // Focus trap can't be active on bottom tab screens because it would block access to the tab bar.
         if (BOTTOM_TAB_SCREENS.find((screen) => screen === route.name)) {
             return false;
@@ -27,38 +29,28 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
         }
 
         // Focus trap can't be active on these screens if the layout is wide because they may be displayed side by side.
-        if (WIDE_LAYOUT_INACTIVE_SCREENS.includes(route.name) && !isSmallScreenWidth) {
+        if (WIDE_LAYOUT_INACTIVE_SCREENS.includes(route.name) && !shouldUseNarrowLayout) {
             return false;
         }
         return true;
-    }, [isFocused, isSmallScreenWidth, route.name]);
+    }, [isFocused, shouldUseNarrowLayout, route.name, focusTrapSettings?.active]);
 
     return (
         <FocusTrap
             active={isActive}
             paused={!isFocused}
+            containerElements={focusTrapSettings?.containerElements?.length ? focusTrapSettings.containerElements : undefined}
             focusTrapOptions={{
+                onActivate: () => {
+                    (document?.activeElement as HTMLElement)?.blur();
+                },
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,
                 fallbackFocus: document.body,
                 delayInitialFocus: CONST.ANIMATED_TRANSITION,
-                initialFocus: (focusTrapContainers) => {
-                    if (!canFocusInputOnScreenFocus()) {
-                        return false;
-                    }
-
-                    const isFocusedElementInsideContainer = focusTrapContainers?.some((container) => container.contains(document.activeElement));
-                    if (isFocusedElementInsideContainer) {
-                        return false;
-                    }
-                    return undefined;
-                },
-                setReturnFocus: (element) => {
-                    if (document.activeElement && document.activeElement !== document.body) {
-                        return false;
-                    }
-                    return element;
-                },
+                initialFocus: false,
+                setReturnFocus: false,
+                ...(focusTrapSettings?.focusTrapOptions ?? {}),
             }}
         >
             {children}

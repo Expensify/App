@@ -51,11 +51,11 @@ describe('actions/PolicyMember', () => {
             Member.acceptJoinRequest(fakeReport.reportID, fakeReportAction);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`,
                     waitForCollectionCallback: false,
                     callback: (reportActions) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
 
                         const reportAction = reportActions?.[fakeReportAction.reportActionID] as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
 
@@ -70,11 +70,11 @@ describe('actions/PolicyMember', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`,
                     waitForCollectionCallback: false,
                     callback: (reportActions) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
 
                         const reportAction = reportActions?.[fakeReportAction.reportActionID];
 
@@ -107,11 +107,11 @@ describe('actions/PolicyMember', () => {
             Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policy) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
                         expect(employee?.role).toBe(CONST.POLICY.ROLE.ADMIN);
 
@@ -122,11 +122,11 @@ describe('actions/PolicyMember', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policy) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
                         expect(employee?.pendingAction).toBeFalsy();
                         resolve();
@@ -147,11 +147,11 @@ describe('actions/PolicyMember', () => {
             Member.requestWorkspaceOwnerChange(fakePolicy.id);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policy) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         expect(policy?.errorFields).toBeFalsy();
                         expect(policy?.isLoading).toBeTruthy();
                         expect(policy?.isChangeOwnerSuccessful).toBeFalsy();
@@ -163,11 +163,11 @@ describe('actions/PolicyMember', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policy) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
                         expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
                         expect(policy?.isChangeOwnerFailed)?.toBeFalsy();
@@ -198,11 +198,11 @@ describe('actions/PolicyMember', () => {
             Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeCard);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policy) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         expect(policy?.errorFields).toBeFalsy();
                         expect(policy?.isLoading).toBeTruthy();
                         expect(policy?.isChangeOwnerSuccessful).toBeFalsy();
@@ -214,11 +214,11 @@ describe('actions/PolicyMember', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policy) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
                         expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
                         expect(policy?.isChangeOwnerFailed)?.toBeFalsy();

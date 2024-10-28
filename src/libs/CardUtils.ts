@@ -1,14 +1,19 @@
-import lodash from 'lodash';
+import groupBy from 'lodash/groupBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
+import localeCompare from './LocaleCompare';
 import * as Localize from './Localize';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -102,7 +107,7 @@ function getDomainCards(cardList: OnyxEntry<CardList>): Record<string, Card[]> {
     // Check for domainName to filter out personal credit cards.
     const activeCards = Object.values(cardList ?? {}).filter((card) => !!card?.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.some((element) => element === card.state));
 
-    return lodash.groupBy(activeCards, (card) => card.domainName);
+    return groupBy(activeCards, (card) => card.domainName);
 }
 
 /**
@@ -166,6 +171,132 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
 }
 
+function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
+    const {cardList, ...cards} = cardsList ?? {};
+    return Object.values(cards).sort((cardA: Card, cardB: Card) => {
+        const userA = personalDetails?.[cardA.accountID ?? '-1'] ?? {};
+        const userB = personalDetails?.[cardB.accountID ?? '-1'] ?? {};
+
+        const aName = PersonalDetailsUtils.getDisplayNameOrDefault(userA);
+        const bName = PersonalDetailsUtils.getDisplayNameOrDefault(userB);
+
+        return localeCompare(aName, bName);
+    });
+}
+
+function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: string): string {
+    if (!lastFourPAN) {
+        return '';
+    }
+
+    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? '';
+}
+
+function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK): IconAsset {
+    const feedIcons = {
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: Illustrations.VisaCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: Illustrations.AmexCardCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: Illustrations.MasterCardCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: Illustrations.AmexCardCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: Illustrations.BankOfAmericaCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: Illustrations.CapitalOneCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: Illustrations.ChaseCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: Illustrations.CitibankCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: Illustrations.WellsFargoCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: Illustrations.BrexCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: Illustrations.StripeCompanyCardDetail,
+        [CONST.EXPENSIFY_CARD.BANK]: ExpensifyCardImage,
+    };
+
+    if (cardFeed.startsWith(CONST.EXPENSIFY_CARD.BANK)) {
+        return ExpensifyCardImage;
+    }
+
+    if (feedIcons[cardFeed]) {
+        return feedIcons[cardFeed];
+    }
+
+    // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, cdfbmo
+    const feedKey = (Object.keys(feedIcons) as CompanyCardFeed[]).find((feed) => cardFeed.startsWith(feed));
+
+    if (feedKey) {
+        return feedIcons[feedKey];
+    }
+
+    return Illustrations.AmexCompanyCards;
+}
+
+function getCardFeedName(feedType: CompanyCardFeed): string {
+    const feedNamesMapping = {
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'Mastercard',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: 'American Express',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: 'Stripe',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: 'American Express',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: 'Bank of America',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: 'Capital One',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: 'Chase',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: 'Citibank',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: 'Wells Fargo',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: 'Brex',
+    };
+
+    return feedNamesMapping[feedType];
+}
+
+const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>): IconAsset => {
+    const iconMap: Record<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>, IconAsset> = {
+        [CONST.COMPANY_CARDS.BANKS.AMEX]: Illustrations.AmexCardCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA]: Illustrations.BankOfAmericaCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE]: Illustrations.CapitalOneCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.CHASE]: Illustrations.ChaseCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.CITI_BANK]: Illustrations.CitibankCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.WELLS_FARGO]: Illustrations.WellsFargoCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.BREX]: Illustrations.BrexCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.STRIPE]: Illustrations.StripeCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.OTHER]: Illustrations.OtherCompanyCardDetail,
+    };
+    return iconMap[bank];
+};
+
+// We will simplify the logic below once we have #50450 #50451 implemented
+const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) => {
+    const banksWithFeedType = [
+        CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA,
+        CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE,
+        CONST.COMPANY_CARDS.BANKS.CHASE,
+        CONST.COMPANY_CARDS.BANKS.CITI_BANK,
+        CONST.COMPANY_CARDS.BANKS.WELLS_FARGO,
+    ];
+
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
+        return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
+    }
+
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.AMEX) {
+        return CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED;
+    }
+
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.BREX) {
+        return CONST.COMPANY_CARDS.STEP.BANK_CONNECTION;
+    }
+
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER) {
+        return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
+    }
+
+    if (banksWithFeedType.includes(selectedBank)) {
+        return CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE;
+    }
+
+    return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
+};
+
+function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed {
+    const defaultFeed = Object.keys(cardFeeds?.settings?.companyCards ?? {}).at(0) as CompanyCardFeed;
+    return lastSelectedFeed ?? defaultFeed;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -180,4 +311,11 @@ export {
     getMCardNumberString,
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
+    sortCardsByCardholderName,
+    getCompanyCardNumber,
+    getCardFeedIcon,
+    getCardFeedName,
+    getBankCardDetailsImage,
+    getSelectedFeed,
+    getCorrectStepForSelectedBank,
 };

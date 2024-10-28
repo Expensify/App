@@ -71,6 +71,7 @@ function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimburse
                             innerStyles={[styles.pr2, styles.pl4, styles.h13]}
                             success
                             isDisabled={!!pendingAction || !isEmptyObject(errors)}
+                            large
                         />
                         <MenuItem
                             title={translate('workspace.bankAccount.startOver')}

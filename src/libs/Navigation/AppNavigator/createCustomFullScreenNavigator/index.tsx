@@ -3,7 +3,7 @@ import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/na
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
@@ -21,7 +21,7 @@ function CustomFullScreenNavigator(props: FullScreenNavigatorProps) {
         initialRouteName: props.initialRouteName,
     });
 
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
         if (!navigationRef.isReady()) {
@@ -30,7 +30,7 @@ function CustomFullScreenNavigator(props: FullScreenNavigatorProps) {
         // We need to separately reset state of this navigator to trigger getRehydratedState.
         navigation.reset(navigation.getState());
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout]);
 
     return (
         <NavigationContent>

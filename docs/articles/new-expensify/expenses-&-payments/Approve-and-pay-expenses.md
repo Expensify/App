@@ -4,17 +4,24 @@ description: Approve, hold, or pay expenses submitted to you
 ---
 <div id="new-expensify" markdown="1">
 
-When expenses are sent to you for approval, you have the option to:
-- Approve and pay the expenses.
-- Hold the expenses if payment needs to be delayed or if the expenses require additional information before they can be approved.
+As a workspace admin, you can set an approval workflow for the expenses submitted to you. Expenses can be,
+
+- Instantly submitted without needing approval.
+- Submitted at a desired frequency (daily, weekly, monthly) and follow an approval workflow. 
+
+**Setting approval workflow and submission frequencies**
+
+Approval workflow settings and submission frequencies can be set in the Workflow settings of your workspace. 
+
+# Manually approve expense
+
+When someone sends an expense or a group of expenses to you for approval, you’ll receive the expense in Expensify Chat for the related workspace. Chats with new updates appear with a green dot to the right of the chat message. Concierge also sends you an email notification for the new expense.
 
 {% include info.html %}
-If your workspace does not require expense approvals, or if the expense is sent to you by a friend, you will not need to approve the expense and instead can immediately pay the expense when you are ready.
+If an expense is sent to you by a friend, you will not need to approve the expense. Instead, you can immediately pay the expense when you are ready. 
 {% include end-info.html %}
 
 # Approve expenses
-
-When someone sends an expense or a group of expenses to you for approval, you’ll receive the expense in Expensify Chat for the related workspace. Chats with new updates appear with a green dot to the right of the chat message. Concierge also sends you an email notification for the new expense.
 
 To approve an expense,
 
@@ -27,7 +34,7 @@ To approve an expense,
    - **Request changes**: You can add a comment to the expense’s chat thread in your Expensify Chat inbox to request changes to the expense details.
 
 {% include info.html %}
-Admins can modify an expense, if needed.
+If the transaction is pending (a common occurrence with recent company card expenses or SmartScan expenses), you’ll need to wait until the transaction posts before approving it.
 {% include end-info.html %}
 
 ![The approve button in an expense]({{site.url}}/assets/images/ExpensifyHelp_ApproveExpense_1.png){:width="100%"}
@@ -57,12 +64,28 @@ Once the expense has been approved, you can now pay the expense.
 Held expenses will not be available for payment until they have been approved.
 {% include end-info.html %}
 
+# Unapprove an expense
+
+Some details of approved expenses and reports cannot be edited. If you need to edit an expense that has been approved, admins and the last approver have the option to unapprove reports. 
+
+1. Click the workspace logo in the top left corner.
+2. Select the workspace associated with the expense report.
+3. Find the approved report by searching for the submitter.
+4. Click the dropdown arrow at the top of the report to view the report actions.
+5. Click **Unapprove**.
+
+The unapproved report will return to an editable state, and the submitter will receive an email and chat notification that the expense has been unapproved.
+
+{% include info.html %}
+Reports that have been paid cannot be unapproved. If the approved expense has already been exported to an accounting package, you’ll see a warning that unapproving an expense can cause data discrepancies and Expensify Card reconciliation issues. Ideally, you’ll want to delete the data that has already been exported to the accounting package before approving the expense again.
+{% include end-info.html %}
+
 # Pay expenses
 
 Once you’ve approved an expense&mdash;or if the expense does not require approval&mdash;you’ll be able to pay it.
 
 {% include info.html %}
-To pay expenses within Expensify, you’ll need to set up your Expensify Wallet.  
+To pay expenses within Expensify, you’ll need to [set up your Expensify Wallet](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Set-up-your-wallet).  
 {% include end-info.html %}
 
 To pay an expense,
@@ -72,5 +95,15 @@ To pay an expense,
 3. Select a payment option.
    - Click **Pay** to pay the full expense within Expensify. If the expenses contain one that has been held, the pay amount will only include the expenses that have not been held. Then you’ll select your payment method.
    - Click **Pay Elsewhere** to indicate that a payment has been sent using a method outside of Expensify, such as cash or a check. This will label the expense as Paid.
+
+# FAQ
+
+**Why was an expense automatically approved?**
+
+We refer to this as **Instant Submit**. If a workspace doesn’t have Delayed Submission enabled, an expense report will automatically be submitted.
+
+**Why is an employee expense showing as ‘pending?’**
+
+An Expensify Card expense will show as pending if the merchant hasn’t posted it. This is usually the case with hotel holds, or card rental holds. A hold will normally last no more than 7-10 business days unless it’s a hotel hold, which can last 31 days. 
 
 </div>

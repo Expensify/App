@@ -5,7 +5,9 @@ import ConfirmModal from '@components/ConfirmModal';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
+import CONST from '@src/CONST';
 import type {LocationPermissionModalProps} from './types';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: LocationPermissionModalProps) {
@@ -14,6 +16,8 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
     useEffect(() => {
         if (!startPermissionFlow) {
@@ -32,8 +36,10 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     }, [startPermissionFlow]);
 
     const handledBlockedPermission = (cb: () => void) => () => {
-        if (hasError && Linking.openSettings) {
-            Linking.openSettings();
+        if (hasError) {
+            if (Linking.openSettings) {
+                Linking.openSettings();
+            }
             setShowModal(false);
             setHasError(false);
             resetPermissionFlow();
@@ -63,12 +69,25 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         setHasError(false);
     };
 
+    const getConfirmText = (): string => {
+        if (!hasError) {
+            return translate('common.continue');
+        }
+
+        return isWeb ? translate('common.buttonConfirm') : translate('common.settings');
+    };
+
+    const closeModal = () => {
+        setShowModal(false);
+        resetPermissionFlow();
+    };
     return (
         <ConfirmModal
             isVisible={showModal}
             onConfirm={grantLocationPermission}
             onCancel={skipLocationPermission}
-            confirmText={hasError ? translate('common.settings') : translate('common.continue')}
+            onBackdropPress={closeModal}
+            confirmText={getConfirmText()}
             cancelText={translate('common.notNow')}
             prompt={translate(hasError ? 'receipt.locationErrorMessage' : 'receipt.locationAccessMessage')}
             promptStyles={[styles.textLabelSupportingEmptyValue, styles.mb4]}

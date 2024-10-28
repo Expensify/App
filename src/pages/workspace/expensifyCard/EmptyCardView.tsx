@@ -5,26 +5,25 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
+import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
-const HEADER_HEIGHT = 80;
-const BUTTON_HEIGHT = 40;
-const BUTTON_MARGIN = 12;
-
 function EmptyCardView() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const headerHeight = isSmallScreenWidth ? HEADER_HEIGHT + BUTTON_HEIGHT + BUTTON_MARGIN : HEADER_HEIGHT;
+    const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout);
 
     return (
         <ScrollView>
-            <View style={[{height: windowHeight - headerHeight}, styles.mt5]}>
+            <View style={[{height: windowHeight - headerHeight}, styles.pt5]}>
                 <EmptyStateComponent
                     SkeletonComponent={CardRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
@@ -34,11 +33,10 @@ function EmptyCardView() {
                             overflow: 'hidden',
                             backgroundColor: colors.green700,
                         },
-                        isSmallScreenWidth && {maxHeight: 250},
+                        shouldUseNarrowLayout && {maxHeight: 250},
                     ]}
                     title={translate('workspace.expensifyCard.issueAndManageCards')}
                     subtitle={translate('workspace.expensifyCard.getStartedIssuing')}
-                    emptyStateForegroundStyles={isSmallScreenWidth && {justifyContent: 'flex-start'}}
                     minModalHeight={500}
                 />
             </View>

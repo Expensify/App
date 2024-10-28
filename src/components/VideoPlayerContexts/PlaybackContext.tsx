@@ -4,6 +4,7 @@ import type {View} from 'react-native';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import usePrevious from '@hooks/usePrevious';
+import Visibility from '@libs/Visibility';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {PlaybackContext, StatusCallback} from './types';
 
@@ -19,6 +20,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const prevCurrentReportID = usePrevious(currentReportID);
     const videoResumeTryNumberRef = useRef<number>(0);
     const playVideoPromiseRef = useRef<Promise<AVPlaybackStatus>>();
+    const isPlayPendingRef = useRef(false);
 
     const pauseVideo = useCallback(() => {
         currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false});
@@ -29,6 +31,10 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [currentVideoPlayerRef]);
 
     const playVideo = useCallback(() => {
+        if (!Visibility.isVisible()) {
+            isPlayPendingRef.current = true;
+            return;
+        }
         currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
             const newStatus: AVPlaybackStatusToSet = {shouldPlay: true};
             if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
@@ -94,11 +100,22 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         // This prevents the video that plays when the app opens from being interrupted when currentReportID
         // is initially empty or '-1', or when it changes from empty/'-1' to another value
         // after the report screen in the central pane is mounted on the large screen.
-        if (!currentReportID || !prevCurrentReportID || currentReportID === '-1' || prevCurrentReportID === '-1') {
+        if (!currentReportID || !prevCurrentReportID || currentReportID === '-1' || prevCurrentReportID === '-1' || currentReportID === prevCurrentReportID) {
             return;
         }
         resetVideoPlayerData();
     }, [currentReportID, prevCurrentReportID, resetVideoPlayerData]);
+
+    useEffect(() => {
+        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+            if (!Visibility.isVisible() || !isPlayPendingRef.current) {
+                return;
+            }
+            playVideo();
+            isPlayPendingRef.current = false;
+        });
+        return unsubscribeVisibilityListener;
+    }, [playVideo]);
 
     const contextValue = useMemo(
         () => ({

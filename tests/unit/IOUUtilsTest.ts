@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
@@ -114,17 +115,34 @@ describe('IOUUtils', () => {
             expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD')).toBe(33);
         });
     });
+
+    describe('insertTagIntoTransactionTagsString', () => {
+        test('Inserting a tag into tag string should update the tag', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString(':NY:Texas', 'California', 2)).toBe(':NY:California');
+        });
+
+        test('Inserting a tag into an index with no tags should update the tag', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('::California', 'NY', 1)).toBe(':NY:California');
+        });
+
+        test('Inserting a tag with colon in name into tag string should keep the colon in tag', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'City \\: \\:', 1)).toBe('East:City \\: \\::California');
+        });
+
+        test('Remove a tag from tagString', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:City \\: \\::California', '', 1)).toBe('East::California');
+        });
+    });
 });
 
 describe('isValidMoneyRequestType', () => {
     test('Return true for valid iou type', () => {
-        expect(IOUUtils.temporary_isValidMoneyRequestType('submit')).toBe(true);
-        expect(IOUUtils.temporary_isValidMoneyRequestType('split')).toBe(true);
-        expect(IOUUtils.temporary_isValidMoneyRequestType('pay')).toBe(true);
-        expect(IOUUtils.temporary_isValidMoneyRequestType('track')).toBe(true);
+        Object.values(CONST.IOU.TYPE).forEach((iouType) => {
+            expect(IOUUtils.isValidMoneyRequestType(iouType)).toBe(true);
+        });
     });
 
     test('Return false for invalid iou type', () => {
-        expect(IOUUtils.temporary_isValidMoneyRequestType('money')).toBe(false);
+        expect(IOUUtils.isValidMoneyRequestType('money')).toBe(false);
     });
 });

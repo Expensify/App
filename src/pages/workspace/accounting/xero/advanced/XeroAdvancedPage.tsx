@@ -4,7 +4,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentXeroOrganizationName, settingsPendingAction} from '@libs/PolicyUtils';
@@ -12,6 +11,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {updateXeroAutoSync, updateXeroSyncSyncReimbursedReports} from '@userActions/connections/Xero';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -29,9 +29,9 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const getSelectedAccountName = useMemo(
         () => (accountID: string) => {
             const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountID);
-            return selectedAccount?.name ?? bankAccounts?.[0]?.name ?? '';
+            return selectedAccount?.name ?? translate('workspace.xero.notConfigured');
         },
-        [bankAccounts],
+        [bankAccounts, translate],
     );
 
     const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID ?? '-1');
@@ -59,9 +59,13 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 wrapperStyle={styles.mv3}
                 isActive={!!autoSync?.enabled}
                 onToggle={() =>
-                    Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.AUTO_SYNC, {
-                        enabled: !autoSync?.enabled,
-                    })
+                    updateXeroAutoSync(
+                        policyID,
+                        {
+                            enabled: !autoSync?.enabled,
+                        },
+                        {enabled: autoSync?.enabled ?? undefined},
+                    )
                 }
                 pendingAction={settingsPendingAction([CONST.XERO_CONFIG.ENABLED], pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.ENABLED)}
@@ -75,11 +79,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={styles.mv3}
                 isActive={!!sync?.syncReimbursedReports}
-                onToggle={() =>
-                    Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
-                        syncReimbursedReports: !sync?.syncReimbursedReports,
-                    })
-                }
+                onToggle={() => updateXeroSyncSyncReimbursedReports(policyID, !sync?.syncReimbursedReports, sync?.syncReimbursedReports)}
                 pendingAction={settingsPendingAction([CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS], pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}

@@ -5,6 +5,7 @@ const closeModals: Array<(isNavigating?: boolean) => void> = [];
 
 let onModalClose: null | (() => void);
 let isNavigate: undefined | boolean;
+let shouldCloseAll: boolean | undefined;
 
 /**
  * Allows other parts of the app to call modal close function
@@ -31,20 +32,23 @@ function closeTop() {
     }
     if (onModalClose) {
         closeModals[closeModals.length - 1](isNavigate);
+        closeModals.pop();
         return;
     }
     closeModals[closeModals.length - 1]();
+    closeModals.pop();
 }
 
 /**
  * Close modal in other parts of the app
  */
-function close(onModalCloseCallback: () => void, isNavigating = true) {
+function close(onModalCloseCallback: () => void, isNavigating = true, shouldCloseAllModals = false) {
     if (closeModals.length === 0) {
         onModalCloseCallback();
         return;
     }
     onModalClose = onModalCloseCallback;
+    shouldCloseAll = shouldCloseAllModals;
     isNavigate = isNavigating;
     closeTop();
 }
@@ -53,7 +57,7 @@ function onModalDidClose() {
     if (!onModalClose) {
         return;
     }
-    if (closeModals.length) {
+    if (closeModals.length && shouldCloseAll) {
         closeTop();
         return;
     }

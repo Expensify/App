@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
-import type {ParentNavigationSummaryParams} from '@src/languages/types';
+import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import ROUTES from '@src/ROUTES';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
@@ -44,7 +44,7 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
                 if (isVisibleAction && !isOffline) {
                     // Pop the chat report screen before navigating to the linked report action.
-                    Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID));
+                    Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID), true);
                 }
             }}
             accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}

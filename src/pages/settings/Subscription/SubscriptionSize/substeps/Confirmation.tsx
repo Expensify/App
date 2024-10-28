@@ -10,7 +10,6 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {formatSubscriptionEndDate, getNewSubscriptionRenewalDate} from '@pages/settings/Subscription/utils';
-import * as FormActions from '@userActions/FormActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
 
@@ -31,7 +30,6 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
     const formattedSubscriptionEndDate = formatSubscriptionEndDate(privateSubscription?.endDate);
 
     const onClosePress = () => {
-        FormActions.clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM);
         Navigation.goBack();
     };
 

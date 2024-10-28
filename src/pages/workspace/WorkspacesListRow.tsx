@@ -71,8 +71,6 @@ type BrickRoadIndicatorIconProps = {
 
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
     switch (workspaceType) {
-        case CONST.POLICY.TYPE.FREE:
-            return Illustrations.HandCard;
         case CONST.POLICY.TYPE.CORPORATE:
             return Illustrations.ShieldYellow;
         case CONST.POLICY.TYPE.TEAM:
@@ -115,12 +113,10 @@ function WorkspacesListRow({
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
+    const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID).at(0);
 
     const userFriendlyWorkspaceType = useMemo(() => {
         switch (workspaceType) {
-            case CONST.POLICY.TYPE.FREE:
-                return translate('workspace.type.free');
             case CONST.POLICY.TYPE.CORPORATE:
                 return translate('workspace.type.control');
             case CONST.POLICY.TYPE.TEAM:

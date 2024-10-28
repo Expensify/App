@@ -32,6 +32,7 @@ function ConfirmationStep({onNext, onMove}: SubStepProps) {
     const isLoading = walletAdditionalDetails?.isLoading ?? false;
     const error = ErrorUtils.getLatestErrorMessage(walletAdditionalDetails ?? {});
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
+    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 
     return (
         <SafeAreaConsumer>
@@ -76,7 +77,7 @@ function ConfirmationStep({onNext, onMove}: SubStepProps) {
                         }}
                     />
                     <MenuItemWithTopDescription
-                        description={translate('personalInfoStep.last4SSN')}
+                        description={translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN')}
                         title={values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4]}
                         shouldShowRightIcon
                         onPress={() => {

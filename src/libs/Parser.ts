@@ -15,7 +15,7 @@ Onyx.connect({
                 return;
             }
 
-            accountIDToNameMap[personalDetails.accountID] = personalDetails.login ?? personalDetails.displayName ?? String(personalDetails.accountID);
+            accountIDToNameMap[personalDetails.accountID] = personalDetails.login ?? personalDetails.displayName ?? '';
         });
     },
 });
@@ -42,6 +42,10 @@ class ExpensiMarkWithContext extends ExpensiMark {
             accountIDToName: extras?.accountIDToName ?? accountIDToNameMap,
             cacheVideoAttributes: extras?.cacheVideoAttributes,
         });
+    }
+
+    truncateHTML(htmlString: string, limit: number, extras?: {ellipsis: string | undefined}): string {
+        return super.truncateHTML(htmlString, limit, extras);
     }
 }
 

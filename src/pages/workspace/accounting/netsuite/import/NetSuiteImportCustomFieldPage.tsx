@@ -14,12 +14,11 @@ import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import type {ThemeStyles} from '@styles/index';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -123,29 +122,27 @@ function NetSuiteImportCustomFieldPage({
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID))}
         >
             {data.length === 0 ? listEmptyComponent : listHeaderComponent}
-            <OfflineWithFeedback
-                errors={ErrorUtils.getLatestErrorField(config ?? {}, importCustomField)}
-                errorRowStyles={[styles.ph5]}
-                pendingAction={config?.syncOptions?.pendingFields?.[importCustomField]}
-                onClose={() => Policy.clearNetSuiteErrorField(policyID, importCustomField)}
-            >
-                {data.map((record, index) => (
+            {data.map((record, index) => (
+                <OfflineWithFeedback
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`${record.internalID}-${index}`}
+                    pendingAction={settingsPendingAction([`${importCustomField}_${index}`], config?.pendingFields)}
+                >
                     <MenuItemWithTopDescription
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={`${record.internalID}-${index}`}
                         description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
                         shouldShowRightIcon
                         title={'listName' in record ? record.listName : record.segmentName}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, index))}
+                        brickRoadIndicator={areSettingsInErrorFields([`${importCustomField}_${index}`], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
-                ))}
-            </OfflineWithFeedback>
+                </OfflineWithFeedback>
+            ))}
 
             <FixedFooter style={[styles.mtAuto, styles.pt3]}>
                 <Button
                     success
                     large
-                    isDisabled={!!config?.syncOptions?.pendingFields?.[importCustomField]}
+                    isDisabled={!!config?.pendingFields?.[importCustomField]}
                     onPress={() => {
                         if (importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS) {
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD.getRoute(policyID));

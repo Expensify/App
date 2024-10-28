@@ -87,7 +87,7 @@ For multiple workspaces connected to the same accounting system:
 
 ## Credit Card Configuration is Missing
 
-**Sage Intacct: Credit Card Configuration is Missing**
+**Sage Intacct: Credit Card Configuration is Missing / You haven't yet set up credit cards in Sage Intacct**
 
 When attempting to export non-reimbursable (company card) expenses to Sage Intacct, you may encounter an error stating “Credit Card Configuration is Missing” or “Charge Card Configuration is Missing.” This occurs because Sage Intacct requires a credit card account to be set up in order to export these expenses as credit card transactions.
 

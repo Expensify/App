@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type Form from './Form';
 
-const INPUT_IDS = {
+const FILTER_KEYS = {
     TYPE: 'type',
     STATUS: 'status',
     DATE_AFTER: 'dateAfter',
@@ -13,28 +13,44 @@ const INPUT_IDS = {
     MERCHANT: 'merchant',
     DESCRIPTION: 'description',
     REPORT_ID: 'reportID',
+    LESS_THAN: 'lessThan',
+    GREATER_THAN: 'greaterThan',
+    TAX_RATE: 'taxRate',
+    EXPENSE_TYPE: 'expenseType',
+    TAG: 'tag',
     KEYWORD: 'keyword',
+    FROM: 'from',
+    TO: 'to',
+    IN: 'in',
 } as const;
 
-type InputID = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof FILTER_KEYS>;
 
 type SearchAdvancedFiltersForm = Form<
     InputID,
     {
-        [INPUT_IDS.TYPE]: string;
-        [INPUT_IDS.DATE_AFTER]: string;
-        [INPUT_IDS.DATE_BEFORE]: string;
-        [INPUT_IDS.STATUS]: string;
-        [INPUT_IDS.CURRENCY]: string[];
-        [INPUT_IDS.CATEGORY]: string[];
-        [INPUT_IDS.POLICY_ID]: string;
-        [INPUT_IDS.CARD_ID]: string[];
-        [INPUT_IDS.MERCHANT]: string;
-        [INPUT_IDS.DESCRIPTION]: string;
-        [INPUT_IDS.REPORT_ID]: string;
-        [INPUT_IDS.KEYWORD]: string;
+        [FILTER_KEYS.TYPE]: string;
+        [FILTER_KEYS.STATUS]: string;
+        [FILTER_KEYS.DATE_AFTER]: string;
+        [FILTER_KEYS.DATE_BEFORE]: string;
+        [FILTER_KEYS.CURRENCY]: string[];
+        [FILTER_KEYS.CATEGORY]: string[];
+        [FILTER_KEYS.POLICY_ID]: string;
+        [FILTER_KEYS.CARD_ID]: string[];
+        [FILTER_KEYS.MERCHANT]: string;
+        [FILTER_KEYS.DESCRIPTION]: string;
+        [FILTER_KEYS.REPORT_ID]: string;
+        [FILTER_KEYS.LESS_THAN]: string;
+        [FILTER_KEYS.GREATER_THAN]: string;
+        [FILTER_KEYS.KEYWORD]: string;
+        [FILTER_KEYS.TAX_RATE]: string[];
+        [FILTER_KEYS.EXPENSE_TYPE]: string[];
+        [FILTER_KEYS.TAG]: string[];
+        [FILTER_KEYS.FROM]: string[];
+        [FILTER_KEYS.TO]: string[];
+        [FILTER_KEYS.IN]: string[];
     }
 >;
 
 export type {SearchAdvancedFiltersForm};
-export default INPUT_IDS;
+export default FILTER_KEYS;

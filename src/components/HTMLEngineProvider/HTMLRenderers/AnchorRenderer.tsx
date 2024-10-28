@@ -23,13 +23,16 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const {environmentURL} = useEnvironment();
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-    const tNodeChild = tnode?.domNode?.children?.[0];
+    const tNodeChild = tnode?.domNode?.children?.at(0);
     const displayName = tNodeChild && 'data' in tNodeChild && typeof tNodeChild.data === 'string' ? tNodeChild.data : '';
-    const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
+    const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
     const internalNewExpensifyPath = Link.getInternalNewExpensifyPath(attrHref);
     const internalExpensifyPath = Link.getInternalExpensifyPath(attrHref);
     const isVideo = attrHref && Str.isVideo(attrHref);
+
+    const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
+    const textDecorationLineStyle = isDeleted ? styles.underlineLineThrough : {};
 
     if (!HTMLEngineUtils.isChildOfComment(tnode)) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
@@ -51,12 +54,10 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             <AnchorForAttachmentsOnly
                 source={tryResolveUrlFromApiRoot(attrHref)}
                 displayName={displayName}
+                isDeleted={isDeleted}
             />
         );
     }
-
-    const hasStrikethroughStyle = 'textDecorationLine' in parentStyle && parentStyle.textDecorationLine === 'line-through';
-    const textDecorationLineStyle = hasStrikethroughStyle ? styles.underlineLineThrough : {};
 
     return (
         <AnchorForCommentsOnly

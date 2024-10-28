@@ -1,9 +1,9 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import useLocalize from '@hooks/useLocalize';
@@ -31,12 +31,15 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
+    const formRef = useRef<FormRef | null>(null);
 
     const config = policy?.connections?.netsuite?.options?.config;
     const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);
 
     const handleFinishStep = useCallback(() => {
-        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
+        InteractionManager.runAfterInteractions(() => {
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
+        });
     }, [policyID]);
 
     const {
@@ -65,6 +68,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
             return;
         }
         ref.current?.movePrevious();
+        formRef.current?.resetErrors();
         prevScreen();
     };
 
@@ -86,13 +90,16 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.TRANSACTION_FIELD_ID:
                     if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.TRANSACTION_FIELD_ID])) {
                         const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customLists.fields.transactionFieldID`);
-                        errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel);
+                        errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {fieldName: fieldLabel});
                     } else if (customLists.find((customList) => customList.transactionFieldID.toLowerCase() === values[INPUT_IDS.TRANSACTION_FIELD_ID].toLowerCase())) {
                         errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.customLists.errors.uniqueTransactionFieldIDError');
                     }
                     return errors;
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.MAPPING:
-                    return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.MAPPING]);
+                    if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
+                        errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
+                    }
+                    return errors;
                 default:
                     return errors;
             }
@@ -110,7 +117,13 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     mapping: formValues[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                 },
             ]);
-            Connections.updateNetSuiteCustomLists(policyID, updatedCustomLists, customLists);
+            Connections.updateNetSuiteCustomLists(
+                policyID,
+                updatedCustomLists,
+                customLists,
+                `${CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}_${customLists.length}`,
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            );
             nextScreen();
         },
         [customLists, nextScreen, policyID],
@@ -145,6 +158,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
             </View>
             <View style={[styles.flexGrow1, styles.mt3]}>
                 <FormProvider
+                    ref={formRef}
                     formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM}
                     submitButtonText={screenIndex === formSteps.length - 1 ? translate('common.confirm') : translate('common.next')}
                     onSubmit={screenIndex === formSteps.length - 1 ? updateNetSuiteCustomLists : handleNextScreen}
@@ -153,8 +167,9 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     submitButtonStyles={[styles.ph5, styles.mb0]}
                     shouldUseScrollView={!selectionListForm}
                     enabledWhenOffline
-                    isSubmitDisabled={!!config?.syncOptions?.pendingFields?.customLists}
+                    isSubmitDisabled={!!config?.pendingFields?.customLists}
                     submitFlexEnabled={submitFlexAllowed}
+                    shouldHideFixErrorsAlert={screenIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.MAPPING}
                 >
                     <SubStep
                         isEditing={isEditing}

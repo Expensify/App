@@ -17,6 +17,7 @@ import * as Report from '@userActions/Report';
 import * as Subscription from '@userActions/Subscription';
 import type {CancellationType, FeedbackSurveyOptionID} from '@src/CONST';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationPage() {
@@ -98,6 +99,7 @@ function RequestEarlyCancellationPage() {
     const surveyContent = useMemo(
         () => (
             <FeedbackSurvey
+                formID={ONYXKEYS.FORMS.REQUEST_EARLY_CANCELLATION_FORM}
                 title={translate('subscription.subscriptionSettings.helpUsImprove')}
                 description={translate('subscription.requestEarlyCancellation.subtitle')}
                 onSubmit={handleSubmit}
@@ -105,6 +107,7 @@ function RequestEarlyCancellationPage() {
                 footerText={<Text style={[styles.mb2, styles.mt4]}>{acknowledgementText}</Text>}
                 isNoteRequired
                 isLoading={isLoading}
+                enabledWhenOffline={false}
             />
         ),
         [acknowledgementText, isLoading, styles.flex1, styles.mb2, styles.mt4, translate],

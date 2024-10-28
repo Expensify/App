@@ -1,3 +1,4 @@
+import isObject from 'lodash/isObject';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -7,6 +8,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Connections, NetSuiteCustomFormID, NetSuiteCustomList, NetSuiteCustomSegment, NetSuiteMappingValues} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -34,6 +36,36 @@ function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPoli
     API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, parameters, {optimisticData});
 }
 
+function createPendingFields<TSettingName extends keyof Connections['netsuite']['options']['config']>(
+    settingName: TSettingName,
+    settingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
+    pendingValue: OnyxCommon.PendingAction,
+) {
+    if (!isObject(settingValue)) {
+        return {[settingName]: pendingValue};
+    }
+
+    return Object.keys(settingValue).reduce<Record<string, OnyxCommon.PendingAction>>((acc, setting) => {
+        acc[setting] = pendingValue;
+        return acc;
+    }, {});
+}
+
+function createErrorFields<TSettingName extends keyof Connections['netsuite']['options']['config']>(
+    settingName: TSettingName,
+    settingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
+    errorValue: OnyxCommon.Errors | null,
+) {
+    if (!isObject(settingValue)) {
+        return {[settingName]: errorValue};
+    }
+
+    return Object.keys(settingValue).reduce<OnyxCommon.ErrorFields>((acc, setting) => {
+        acc[setting] = errorValue;
+        return acc;
+    }, {});
+}
+
 function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite']['options']['config']>(
     policyID: string,
     settingName: TSettingName,
@@ -50,12 +82,8 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
                         options: {
                             config: {
                                 [settingName]: settingValue ?? null,
-                                pendingFields: {
-                                    [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                },
-                                errorFields: {
-                                    [settingName]: null,
-                                },
+                                pendingFields: createPendingFields(settingName, settingValue, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
+                                errorFields: createErrorFields(settingName, settingValue, null),
                             },
                         },
                     },
@@ -74,12 +102,8 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
                         options: {
                             config: {
                                 [settingName]: oldSettingValue ?? null,
-                                pendingFields: {
-                                    [settingName]: null,
-                                },
-                                errorFields: {
-                                    [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                                },
+                                pendingFields: createPendingFields(settingName, settingValue, null),
+                                errorFields: createErrorFields(settingName, settingValue, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')),
                             },
                         },
                     },
@@ -98,12 +122,8 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
                         options: {
                             config: {
                                 [settingName]: settingValue ?? null,
-                                pendingFields: {
-                                    [settingName]: null,
-                                },
-                                errorFields: {
-                                    [settingName]: null,
-                                },
+                                pendingFields: createPendingFields(settingName, settingValue, null),
+                                errorFields: createErrorFields(settingName, settingValue, null),
                             },
                         },
                     },
@@ -119,7 +139,15 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
     settingName: TSettingName,
     settingValue: Partial<Connections['netsuite']['options']['config']['syncOptions'][TSettingName]>,
     oldSettingValue: Partial<Connections['netsuite']['options']['config']['syncOptions'][TSettingName]>,
+    modifiedFieldID?: string,
+    pendingAction?: OnyxCommon.PendingAction,
 ) {
+    let syncOptionsOptimisticValue;
+    if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        syncOptionsOptimisticValue = {
+            [settingName]: settingValue ?? null,
+        };
+    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -129,14 +157,12 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
                     netsuite: {
                         options: {
                             config: {
-                                syncOptions: {
-                                    [settingName]: settingValue ?? null,
-                                    pendingFields: {
-                                        [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                    },
+                                syncOptions: syncOptionsOptimisticValue,
+                                pendingFields: {
+                                    [modifiedFieldID ?? settingName]: pendingAction ?? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
                                 errorFields: {
-                                    [settingName]: null,
+                                    [modifiedFieldID ?? settingName]: null,
                                 },
                             },
                         },
@@ -146,6 +172,16 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
         },
     ];
 
+    let syncOptionsAfterFailure;
+    let pendingFieldsAfterFailure;
+    if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        syncOptionsAfterFailure = {
+            [settingName]: oldSettingValue ?? null,
+        };
+        pendingFieldsAfterFailure = {
+            [modifiedFieldID ?? settingName]: null,
+        };
+    }
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -155,14 +191,10 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
                     netsuite: {
                         options: {
                             config: {
-                                syncOptions: {
-                                    [settingName]: oldSettingValue ?? null,
-                                    pendingFields: {
-                                        [settingName]: null,
-                                    },
-                                },
+                                syncOptions: syncOptionsAfterFailure,
+                                pendingFields: pendingFieldsAfterFailure,
                                 errorFields: {
-                                    [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    [modifiedFieldID ?? settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                                 },
                             },
                         },
@@ -181,14 +213,11 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
                     netsuite: {
                         options: {
                             config: {
-                                syncOptions: {
-                                    [settingName]: settingValue ?? null,
-                                    pendingFields: {
-                                        [settingName]: null,
-                                    },
+                                pendingFields: {
+                                    [modifiedFieldID ?? settingName]: null,
                                 },
                                 errorFields: {
-                                    [settingName]: null,
+                                    [modifiedFieldID ?? settingName]: null,
                                 },
                             },
                         },
@@ -287,7 +316,7 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
     policyID: string,
     mappingName: TMappingName,
     mappingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
-    oldMappingValue?: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
+    oldMappingValue?: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES> | null,
 ) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -302,13 +331,13 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                     syncOptions: {
                                         mapping: {
                                             [mappingName]: mappingValue,
-                                            pendingFields: {
-                                                [mappingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                            },
                                         },
                                     },
                                     errorFields: {
                                         [mappingName]: null,
+                                    },
+                                    pendingFields: {
+                                        [mappingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                     },
                                 },
                             },
@@ -329,12 +358,12 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                     syncOptions: {
                                         mapping: {
                                             [mappingName]: mappingValue,
-                                            pendingFields: {
-                                                [mappingName]: null,
-                                            },
                                         },
                                     },
                                     errorFields: {
+                                        [mappingName]: null,
+                                    },
+                                    pendingFields: {
                                         [mappingName]: null,
                                     },
                                 },
@@ -356,13 +385,13 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                     syncOptions: {
                                         mapping: {
                                             [mappingName]: oldMappingValue,
-                                            pendingFields: {
-                                                [mappingName]: null,
-                                            },
                                         },
                                     },
                                     errorFields: {
                                         [mappingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    },
+                                    pendingFields: {
+                                        [mappingName]: null,
                                     },
                                 },
                             },
@@ -427,15 +456,15 @@ function updateNetSuiteCustomersJobsMapping(
                                         mapping: {
                                             customers: mappingValue.customersMapping,
                                             jobs: mappingValue.jobsMapping,
-                                            pendingFields: {
-                                                customers: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                                jobs: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                            },
                                         },
                                     },
                                     errorFields: {
                                         customers: null,
                                         jobs: null,
+                                    },
+                                    pendingFields: {
+                                        customers: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                        jobs: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                     },
                                 },
                             },
@@ -457,13 +486,13 @@ function updateNetSuiteCustomersJobsMapping(
                                         mapping: {
                                             customers: mappingValue.customersMapping,
                                             jobs: mappingValue.jobsMapping,
-                                            pendingFields: {
-                                                customers: null,
-                                                jobs: null,
-                                            },
                                         },
                                     },
                                     errorFields: {
+                                        customers: null,
+                                        jobs: null,
+                                    },
+                                    pendingFields: {
                                         customers: null,
                                         jobs: null,
                                     },
@@ -487,15 +516,15 @@ function updateNetSuiteCustomersJobsMapping(
                                         mapping: {
                                             customers: oldMappingValue.customersMapping,
                                             jobs: oldMappingValue.jobsMapping,
-                                            pendingFields: {
-                                                customers: null,
-                                                jobs: null,
-                                            },
                                         },
                                     },
                                     errorFields: {
                                         customers: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                                         jobs: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    },
+                                    pendingFields: {
+                                        customers: null,
+                                        jobs: null,
                                     },
                                 },
                             },
@@ -539,8 +568,14 @@ function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, i
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_CROSS_SUBSIDIARY_CUSTOMER_CONFIGURATION, params, onyxData);
 }
 
-function updateNetSuiteCustomSegments(policyID: string, records: NetSuiteCustomSegment[], oldRecords: NetSuiteCustomSegment[]) {
-    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, records, oldRecords);
+function updateNetSuiteCustomSegments(
+    policyID: string,
+    records: NetSuiteCustomSegment[],
+    oldRecords: NetSuiteCustomSegment[],
+    modifiedSegmentID: string,
+    pendingAction: OnyxCommon.PendingAction,
+) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, records, oldRecords, modifiedSegmentID, pendingAction);
 
     API.write(
         WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_SEGMENTS,
@@ -552,8 +587,8 @@ function updateNetSuiteCustomSegments(policyID: string, records: NetSuiteCustomS
     );
 }
 
-function updateNetSuiteCustomLists(policyID: string, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[]) {
-    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, records, oldRecords);
+function updateNetSuiteCustomLists(policyID: string, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[], modifiedListID: string, pendingAction: OnyxCommon.PendingAction) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, records, oldRecords, modifiedListID, pendingAction);
     API.write(
         WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS,
         {

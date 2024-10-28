@@ -1,3 +1,4 @@
+// eslint-disable-next-line lodash/import-scope
 import type {DebouncedFunc} from 'lodash';
 
 /**

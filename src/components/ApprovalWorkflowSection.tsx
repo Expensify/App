@@ -1,11 +1,10 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -17,30 +16,37 @@ type ApprovalWorkflowSectionProps = {
     /** Single workflow displayed in this component */
     approvalWorkflow: ApprovalWorkflow;
 
-    /** ID of the policy */
-    policyId?: string;
+    /** A function that is called when the section is pressed */
+    onPress: () => void;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, policyId}: ApprovalWorkflowSectionProps) {
+function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const openApprovalsEdit = useCallback(
-        () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyId ?? '', approvalWorkflow.approvers[0].email)),
-        [approvalWorkflow.approvers, policyId],
-    );
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
     const approverTitle = useCallback(
         (index: number) =>
             approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
         [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
     );
 
+    const members = useMemo(() => {
+        if (approvalWorkflow.isDefault) {
+            return translate('workspace.common.everyone');
+        }
+
+        return OptionsListUtils.sortAlphabetically(approvalWorkflow.members, 'displayName')
+            .map((m) => m.displayName)
+            .join(', ');
+    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
+
     return (
         <PressableWithoutFeedback
             accessibilityRole="button"
-            style={[styles.border, isSmallScreenWidth ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
-            onPress={openApprovalsEdit}
+            style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
+            onPress={onPress}
             accessibilityLabel={translate('workflowsPage.addApprovalsTitle')}
         >
             <View style={[styles.flex1]}>
@@ -65,12 +71,13 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: ApprovalWorkflowS
                     style={styles.p0}
                     titleStyle={styles.textLabelSupportingNormal}
                     descriptionTextStyle={styles.textNormalThemeText}
-                    description={approvalWorkflow.isDefault ? translate('workspace.common.everyone') : approvalWorkflow.members.map((m) => m.displayName).join(', ')}
+                    description={members}
+                    numberOfLinesDescription={4}
                     icon={Expensicons.Users}
                     iconHeight={20}
                     iconWidth={20}
                     iconFill={theme.icon}
-                    onPress={openApprovalsEdit}
+                    onPress={onPress}
                     shouldRemoveBackground
                 />
 
@@ -88,7 +95,7 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: ApprovalWorkflowS
                             iconHeight={20}
                             iconWidth={20}
                             iconFill={theme.icon}
-                            onPress={openApprovalsEdit}
+                            onPress={onPress}
                             shouldRemoveBackground
                         />
                     </View>

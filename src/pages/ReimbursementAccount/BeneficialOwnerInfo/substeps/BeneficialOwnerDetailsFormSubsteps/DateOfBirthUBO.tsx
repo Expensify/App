@@ -62,7 +62,7 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
-            submitButtonStyles={[styles.pb5, styles.mb0]}
+            submitButtonStyles={[styles.mb0]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('beneficialOwnerInfoStep.enterTheDateOfBirthOfTheOwner')}</Text>
             <InputWrapper

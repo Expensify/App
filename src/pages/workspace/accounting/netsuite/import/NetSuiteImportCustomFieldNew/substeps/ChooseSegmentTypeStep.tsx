@@ -1,4 +1,6 @@
-import React from 'react';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import FormHelpMessage from '@components/FormHelpMessage';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
@@ -10,21 +12,32 @@ import CONST from '@src/CONST';
 function ChooseSegmentTypeStep({onNext, customSegmentType, setCustomSegmentType}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [selectedType, setSelectedType] = useState(customSegmentType);
+    const [isError, setIsError] = useState(false);
 
     const selectionData = [
         {
             text: translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentTitle`),
             keyForList: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT,
-            isSelected: customSegmentType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT,
+            isSelected: selectedType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT,
             value: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT,
         },
         {
             text: translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.recordTitle`),
             keyForList: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD,
-            isSelected: customSegmentType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD,
+            isSelected: selectedType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD,
             value: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD,
         },
     ];
+
+    const onConfirm = () => {
+        if (!selectedType) {
+            setIsError(true);
+        } else {
+            setCustomSegmentType?.(selectedType);
+            onNext();
+        }
+    };
 
     return (
         <>
@@ -35,12 +48,26 @@ function ChooseSegmentTypeStep({onNext, customSegmentType, setCustomSegmentType}
             <SelectionList
                 sections={[{data: selectionData}]}
                 ListItem={RadioListItem}
-                initiallyFocusedOptionKey={customSegmentType}
+                initiallyFocusedOptionKey={selectedType}
                 onSelectRow={(selected) => {
-                    setCustomSegmentType?.(selected.value);
-                    onNext();
+                    setSelectedType(selected.value);
+                    setIsError(false);
                 }}
-            />
+                shouldSingleExecuteRowSelect
+                shouldUpdateFocusedIndex
+                showConfirmButton
+                confirmButtonText={translate('common.next')}
+                onConfirm={onConfirm}
+            >
+                {isError && (
+                    <View style={[styles.ph5, styles.mb5]}>
+                        <FormHelpMessage
+                            isError={isError}
+                            message={translate('common.error.pleaseSelectOne')}
+                        />
+                    </View>
+                )}
+            </SelectionList>
         </>
     );
 }

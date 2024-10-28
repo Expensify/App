@@ -38,7 +38,7 @@ function WorkspaceEditTaxPage({
     const currentTaxID = PolicyUtils.getCurrentTaxID(policy, taxID);
     const currentTaxRate = currentTaxID && policy?.taxRates?.taxes?.[currentTaxID];
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const canEditTaxRate = policy && PolicyUtils.canEditTaxRate(policy, taxID);
+    const canEditTaxRate = policy && PolicyUtils.canEditTaxRate(policy, currentTaxID ?? taxID);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
     const shouldShowDeleteMenuItem = canEditTaxRate && !hasAccountingConnections;
@@ -145,7 +145,13 @@ function WorkspaceEditTaxPage({
                             titleStyle={styles.flex1}
                             onPress={() => {
                                 if (!PolicyUtils.isControlPolicy(policy)) {
-                                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.taxCodes.alias));
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                            policyID,
+                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.taxCodes.alias,
+                                            ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID),
+                                        ),
+                                    );
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID));
