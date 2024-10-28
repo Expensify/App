@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -67,6 +67,7 @@ function UploadFile({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const containerRef = useRef<HTMLDivElement | View>(null);
 
     const handleFileUpload = (files: FileObject[]) => {
         const totalSize = files.reduce((sum, file) => sum + (file.size ?? 0), 0);
@@ -100,8 +101,13 @@ function UploadFile({
         onUpload(newFilesToUpload);
     };
 
+    console.log(containerRef?.current?.offsetWidth);
+
     return (
-        <View style={[styles.alignItemsStart, style]}>
+        <View
+            style={[styles.alignItemsStart, style]}
+            ref={containerRef}
+        >
             <AttachmentPicker
                 acceptedFileTypes={acceptedFileTypes}
                 fileLimit={fileLimit}
@@ -130,7 +136,12 @@ function UploadFile({
                         fill={theme.icon}
                         medium
                     />
-                    <Text style={[styles.ml2, styles.mr2, styles.textBold, styles.breakWord]}>{file.name}</Text>
+                    <Text
+                        style={[styles.ml2, styles.mr2, styles.textBold, styles.breakWord, styles.w100]}
+                        numberOfLines={2}
+                    >
+                        {file.name}
+                    </Text>
                     <PressableWithFeedback
                         onPress={() => onRemove(file?.uri ?? '')}
                         role={CONST.ROLE.BUTTON}
