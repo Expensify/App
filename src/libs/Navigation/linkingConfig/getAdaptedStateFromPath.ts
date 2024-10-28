@@ -67,7 +67,7 @@ function getMatchingFullScreenRouteForRoute(route: NavigationPartialRoute, polic
 
         return {
             name: SCREENS.SEARCH.CENTRAL_PANE,
-            params: pick(route.params, paramsFromRoute),
+            params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
         };
     }
 
@@ -84,23 +84,22 @@ function getMatchingFullScreenRouteForRoute(route: NavigationPartialRoute, polic
 
     // @TODO We can think about handling it in one condition.
     if (RELATIONS.RHP_TO_WORKSPACE[route.name]) {
-        const paramsFromRoute = getParamsFromRoute(SCREENS.SEARCH.CENTRAL_PANE);
+        const paramsFromRoute = getParamsFromRoute(RELATIONS.RHP_TO_WORKSPACE[route.name]);
 
         return createSplitNavigator(
             {
                 name: SCREENS.WORKSPACE.INITIAL,
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
             {
                 name: RELATIONS.RHP_TO_WORKSPACE[route.name] as keyof WorkspaceSplitNavigatorParamList,
-                params: {
-                    ...pick(route.params, paramsFromRoute),
-                },
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
     }
 
     if (RELATIONS.RHP_TO_SETTINGS[route.name]) {
-        const paramsFromRoute = getParamsFromRoute(SCREENS.SEARCH.CENTRAL_PANE);
+        const paramsFromRoute = getParamsFromRoute(RELATIONS.RHP_TO_SETTINGS[route.name]);
 
         return createSplitNavigator(
             {
@@ -108,9 +107,7 @@ function getMatchingFullScreenRouteForRoute(route: NavigationPartialRoute, polic
             },
             {
                 name: RELATIONS.RHP_TO_SETTINGS[route.name] as keyof SettingsSplitNavigatorParamList,
-                params: {
-                    ...pick(route.params, paramsFromRoute),
-                },
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
     }
@@ -205,7 +202,6 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
     // On SCREENS.SEARCH.CENTRAL_PANE policyID is stored differently inside search query ("q" param), so we're handling this case
     const focusedRoute = findFocusedRoute(state);
     const policyIDFromQuery = extractPolicyIDFromQuery(focusedRoute);
-
     return getAdaptedState(state, policyID ?? policyIDFromQuery);
 };
 
