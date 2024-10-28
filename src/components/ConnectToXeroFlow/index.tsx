@@ -29,7 +29,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    if (isRequire2FAModalOpen) {
+    if (!is2FAEnabled) {
         return (
             <RequireTwoFactorAuthenticationModal
                 onSubmit={() => {
@@ -39,7 +39,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
                 onCancel={() => {
                     setIsRequire2FAModalOpen(false);
                 }}
-                isVisible
+                isVisible={isRequire2FAModalOpen}
                 description={translate('twoFactorAuth.twoFactorAuthIsRequiredDescription')}
             />
         );
