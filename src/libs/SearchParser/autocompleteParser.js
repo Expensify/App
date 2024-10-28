@@ -233,7 +233,7 @@ function peg$parse(input, options) {
       if (!value) {
         autocomplete = {
           key,
-          value: "",
+          value: '',
           start: location().end.offset,
           length: 0,
         };
