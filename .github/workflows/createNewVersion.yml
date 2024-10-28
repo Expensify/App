@@ -117,6 +117,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify
+          # This is a workaround to allow pushes to a protected branch
+          token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
