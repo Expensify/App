@@ -67,7 +67,7 @@ type ValidInputs =
     | typeof CountryPicker
     | typeof StatePicker
     | typeof ConstantSelector
-    | typeof UploadFile;
+    | typeof UploadFile
     | typeof PushRowWithModal;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart';
