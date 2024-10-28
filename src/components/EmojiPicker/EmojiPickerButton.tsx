@@ -1,8 +1,8 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {memo, useEffect, useRef} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type PressableProps from '@components/Pressable/GenericPressable/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -20,7 +20,7 @@ type EmojiPickerButtonProps = {
     emojiPickerID?: string;
 
     /** A callback function when the button is pressed */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onPress?: PressableProps['onPress'];
 
     /** Emoji popup anchor offset shift vertical */
     shiftVertical?: number;
@@ -37,7 +37,7 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
 
-    const openEmojiPicker = (e: GestureResponderEvent | KeyboardEvent) => {
+    const openEmojiPicker: PressableProps['onPress'] = (e) => {
         if (!isFocused) {
             return;
         }

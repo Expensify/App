@@ -88,7 +88,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
     useAnimatedReaction(
         () => keyboard.state.value,
         (lastState) => {
-            if (lastState === syncLocalWorkletStateL.lastState) {
+            if (lastState === syncLocalWorkletStateL.value) {
                 return;
             }
             // eslint-disable-next-line react-compiler/react-compiler
