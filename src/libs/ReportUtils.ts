@@ -13,7 +13,7 @@ import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
-import {FallbackAvatar, QBOCircle, XeroCircle} from '@components/Icon/Expensicons';
+import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
@@ -44,7 +44,7 @@ import type {
     TransactionViolation,
     UserWallet,
 } from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
@@ -417,6 +417,7 @@ type OptimisticTaskReport = Pick<
 type TransactionDetails = {
     created: string;
     amount: number;
+    attendees: Attendee[];
     taxAmount?: number;
     taxCode?: string;
     currency: string;
@@ -3007,6 +3008,7 @@ function getTransactionDetails(transaction: OnyxInputOrEntry<Transaction>, creat
     return {
         created: TransactionUtils.getFormattedCreated(transaction, createdDateFormat),
         amount: TransactionUtils.getAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
+        attendees: TransactionUtils.getAttendees(transaction),
         taxAmount: TransactionUtils.getTaxAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
         taxCode: TransactionUtils.getTaxCode(transaction),
         currency: TransactionUtils.getCurrency(transaction),
@@ -3584,6 +3586,9 @@ function getModifiedExpenseOriginalMessage(
     if ('merchant' in transactionChanges) {
         originalMessage.oldMerchant = TransactionUtils.getMerchant(oldTransaction);
         originalMessage.merchant = transactionChanges?.merchant;
+    }
+    if ('attendees' in transactionChanges) {
+        [originalMessage.oldAttendees, originalMessage.attendees] = TransactionUtils.getFormattedAttendees(transactionChanges?.attendees, TransactionUtils.getAttendees(oldTransaction));
     }
 
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
@@ -4515,6 +4520,9 @@ function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, re
         total,
         participants: {
             [currentUserAccountID ?? -1]: {
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            },
+            [receiverAccountID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             },
         },
@@ -8245,11 +8253,18 @@ function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): str
 
 function getIntegrationIcon(connectionName?: ConnectionName) {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-        return XeroCircle;
+        return XeroSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
-        return QBOCircle;
+        return QBOSquare;
     }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+        return NetSuiteSquare;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
+        return IntacctSquare;
+    }
+
     return undefined;
 }
 
