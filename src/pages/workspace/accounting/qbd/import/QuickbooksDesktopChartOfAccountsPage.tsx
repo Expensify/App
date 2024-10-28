@@ -3,7 +3,6 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ErrorUtils from '@libs/ErrorUtils';
