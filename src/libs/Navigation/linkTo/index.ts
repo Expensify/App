@@ -78,7 +78,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);
     const currentFocusedRoute = findFocusedRoute(currentState);
 
-    // For type safety. It shouldn't every happen.
+    // For type safety. It shouldn't ever happen.
     if (!focusedRouteFromPath || !currentFocusedRoute) {
         return;
     }
