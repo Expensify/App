@@ -71,6 +71,7 @@ function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: Disp
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
+            shouldRemoveSafePaddingBottomWhenKeyboardShown
             shouldEnableMaxHeight
             testID={DisplayNamePage.displayName}
         >

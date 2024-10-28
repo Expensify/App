@@ -11,6 +11,7 @@ import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {useSafePaddingBottomValue} from '@hooks/useSafePaddingBottomStyle';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -69,6 +70,9 @@ type ScreenWrapperProps = {
     /** Whether KeyboardAvoidingView should be enabled. Use false for screens where this functionality is not necessary */
     shouldEnableKeyboardAvoidingView?: boolean;
 
+    /** Whether to remove the safe padding bottom (produced by `useSafePaddingBottomStyle`) when the keyboard is shown */
+    shouldRemoveSafePaddingBottomWhenKeyboardShown?: boolean;
+
     /** Whether picker modal avoiding should be enabled. Should be enabled when there's a picker at the bottom of a
      *  scrollable form, gives a subtly better UX if disabled on non-scrollable screens with a submit button */
     shouldEnablePickerAvoiding?: boolean;
@@ -119,6 +123,7 @@ function ScreenWrapper(
         includeSafeAreaPaddingBottom = true,
         shouldEnableKeyboardAvoidingView = true,
         shouldEnablePickerAvoiding = true,
+        shouldRemoveSafePaddingBottomWhenKeyboardShown = false,
         headerGapStyles,
         children,
         shouldShowOfflineIndicator = true,
@@ -152,6 +157,7 @@ function ScreenWrapper(
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
+    const safePaddingBottom = useSafePaddingBottomValue();
     const keyboardState = useKeyboardState();
     const {isDevelopment} = useEnvironment();
     const {isOffline} = useNetwork();
@@ -271,6 +277,7 @@ function ScreenWrapper(
                                     style={[styles.w100, styles.h100, {maxHeight}, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
                                     behavior={keyboardAvoidingViewBehavior}
                                     enabled={shouldEnableKeyboardAvoidingView}
+                                    keyboardVerticalOffset={shouldRemoveSafePaddingBottomWhenKeyboardShown ? -safePaddingBottom : undefined}
                                 >
                                     <PickerAvoidingView
                                         style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
