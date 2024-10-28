@@ -7,7 +7,7 @@ import {shallowCompare} from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import getStateFromPath from '@navigation/getStateFromPath';
 import linkingConfig from '@navigation/linkingConfig';
-import type {RootStackParamList, StackNavigationAction} from '@navigation/types';
+import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootStackParamList, StackNavigationAction} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
@@ -31,18 +31,14 @@ function createActionWithPolicyID(action: StackActionType, policyID: string): St
     };
 }
 
-function shouldDispatchAction(currentState: NavigationState<RootStackParamList>, stateFromPath: PartialState<NavigationState<RootStackParamList>>) {
+function areNamesAndParamsEqual(currentState: NavigationState<RootStackParamList>, stateFromPath: PartialState<NavigationState<RootStackParamList>>) {
     const currentFocusedRoute = findFocusedRoute(currentState);
     const targetFocusedRoute = findFocusedRoute(stateFromPath);
 
     const areNamesEqual = currentFocusedRoute?.name === targetFocusedRoute?.name;
     const areParamsEqual = shallowCompare(currentFocusedRoute?.params as Record<string, unknown> | undefined, targetFocusedRoute?.params as Record<string, unknown> | undefined);
 
-    if (areNamesEqual && areParamsEqual) {
-        return false;
-    }
-
-    return true;
+    return areNamesEqual && areParamsEqual;
 }
 
 function shouldCheckFullScreenRouteMatching(action: StackNavigationAction): action is StackNavigationAction & {type: 'PUSH'; payload: {name: typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR}} {
@@ -51,6 +47,17 @@ function shouldCheckFullScreenRouteMatching(action: StackNavigationAction): acti
 
 function isNavigatingToAttachmentScreen(focusedRouteName?: string) {
     return focusedRouteName === SCREENS.ATTACHMENTS;
+}
+
+function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRoute, newRoute: NavigationPartialRoute) {
+    if (currentRoute.name !== SCREENS.REPORT || newRoute.name !== SCREENS.REPORT) {
+        return false;
+    }
+
+    const currentParams = currentRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+    const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+
+    return currentParams.reportID === newParams.reportID;
 }
 
 export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string) {
@@ -66,14 +73,17 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
     const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
-    const focusedRouteFromPath = findFocusedRoute(stateFromPath);
     const currentState = navigation.getRootState() as NavigationState<RootStackParamList>;
-    const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
-    // We don't want to dispatch action to push/replace with exactly the same route that is already focused.
-    if (!shouldDispatchAction(currentState, stateFromPath)) {
+    const focusedRouteFromPath = findFocusedRoute(stateFromPath);
+    const currentFocusedRoute = findFocusedRoute(currentState);
+
+    // For type safety. It shouldn't every happen.
+    if (!focusedRouteFromPath || !currentFocusedRoute) {
         return;
     }
+
+    const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
     // If there is no action, just reset the whole state.
     if (!action) {
@@ -81,15 +91,29 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         return;
     }
 
+    // We don't want to dispatch action to push/replace with exactly the same route that is already focused.
+    if (areNamesAndParamsEqual(currentState, stateFromPath)) {
+        return;
+    }
+
     if (type === CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
     }
-    // Attachments screen is a special case where we want to navigate to it without adding it to the browser history.
-    else if (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE && !isNavigatingToAttachmentScreen(focusedRouteFromPath?.name)) {
+
+    // Attachment screen - This is a special case. We want to navigate to it instead of push. If there is no screen on the stack, it will be pushed.
+    // If not, it will be replaced. This way, navigating between one attachment screen and another won't be added to the browser history.
+    // Report screen - Also a special case. If we are navigating to the report with same reportID we want to replace it (navigate will do that).
+    // This covers the case when we open a specific message in report (reportActionID).
+    else if (
+        action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
+        !isNavigatingToAttachmentScreen(focusedRouteFromPath?.name) &&
+        !isNavigatingToReportWithSameReportID(currentFocusedRoute, focusedRouteFromPath)
+    ) {
         // We want to PUSH by default to add entries to the browser history.
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
+    // Handle deep links including policyID as /w/:policyID.
     if (extractedPolicyID) {
         const actionWithPolicyID = createActionWithPolicyID(action as StackActionType, extractedPolicyID);
         if (!actionWithPolicyID) {
@@ -100,7 +124,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         return;
     }
 
-    // If we deeplink to a RHP page, we want to make sure we have the correct full screen route under the overlay.
+    // If we deep link to a RHP page, we want to make sure we have the correct full screen route under the overlay.
     if (shouldCheckFullScreenRouteMatching(action)) {
         const newFocusedRoute = findFocusedRoute(stateFromPath);
         if (newFocusedRoute) {
