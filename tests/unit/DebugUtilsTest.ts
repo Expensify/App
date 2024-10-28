@@ -254,6 +254,12 @@ describe('DebugUtils', () => {
             }).not.toThrow();
         });
 
+        it('does not throw SyntaxError when value is an empty string', () => {
+            expect(() => {
+                DebugUtils.validateConstantEnum('', MOCK_CONST_ENUM);
+            }).not.toThrow();
+        });
+
         it('does not throw SyntaxError when value is a valid string representation of a constant enum', () => {
             expect(() => {
                 DebugUtils.validateConstantEnum('foo', MOCK_CONST_ENUM);
@@ -379,6 +385,14 @@ describe('DebugUtils', () => {
             it('does not throw SyntaxError', () => {
                 expect(() => {
                     DebugUtils.validateObject('undefined', {});
+                }).not.toThrow();
+            });
+        });
+
+        describe('value is null', () => {
+            it('does not throw SyntaxError', () => {
+                expect(() => {
+                    DebugUtils.validateObject('null', {});
                 }).not.toThrow();
             });
         });
