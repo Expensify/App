@@ -55,6 +55,7 @@ function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinks
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
                     {summaryItems.map(({description, title, shouldShowRightIcon, onPress}) => (
                         <MenuItemWithTopDescription
+                            key={`${title}_${description}`}
                             description={description}
                             title={title}
                             shouldShowRightIcon={shouldShowRightIcon}
