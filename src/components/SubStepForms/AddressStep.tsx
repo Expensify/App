@@ -75,7 +75,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
             if (zipCode && !ValidationUtils.isValidZipCode(zipCode as string)) {
                 // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.street] = translate('bankAccount.error.zipCode');
+                errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
             }
 
             return errors;
