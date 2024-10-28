@@ -2245,6 +2245,10 @@ const translations = {
     countryStep: {
         confirmBusinessBank: 'Confirm business bank account currency and country',
         confirmCurrency: 'Confirm currency and country',
+        yourBusiness: 'Your business bank account currency must match your workspace currency.',
+        youCanChange: 'You can change your workspace currency in your',
+        findCountry: 'Find country',
+        selectCountry: 'Select country',
     },
     signerInfoStep: {
         signerInfo: 'Signer info',
