@@ -101,8 +101,6 @@ jobs:
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-<<<<<<< HEAD
-=======
 
   createNewHybridVersion:
     runs-on: macos-latest
@@ -192,4 +190,3 @@ jobs:
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
->>>>>>> 73b7785 (Merge pull request #51602 from Expensify/andrew-fix-commit)
