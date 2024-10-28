@@ -1116,6 +1116,17 @@ const styles = (theme: ThemeColors) =>
             height: 25,
         },
 
+        deletedAttachmentIndicator: {
+            zIndex: 20,
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+        },
+
+        deletedIndicatorOverlay: {
+            opacity: 0.8,
+        },
+
         // Actions
         actionAvatar: {
             borderRadius: 20,
@@ -2891,8 +2902,9 @@ const styles = (theme: ThemeColors) =>
 
         sectionMenuItem: {
             borderRadius: 8,
-            paddingHorizontal: 8,
-            height: 56,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            height: 52,
             alignItems: 'center',
         },
 
@@ -5250,6 +5262,11 @@ const styles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        integrationIcon: {
+            overflow: 'hidden',
+            borderRadius: variables.buttonBorderRadius,
         },
 
         colorGreenSuccess: {

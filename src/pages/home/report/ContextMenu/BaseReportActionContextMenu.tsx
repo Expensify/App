@@ -104,13 +104,15 @@ function BaseReportActionContextMenu({
     draftMessage = '',
     reportActionID,
     reportID,
+    originalReportID,
     checkIfContextMenuActive,
     disabledActions = [],
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const menuItemRefs = useRef<MenuItemRefs>({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
@@ -118,7 +120,7 @@ function BaseReportActionContextMenu({
     const {isProduction} = useEnvironment();
     const threedotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         canEvict: false,
     });
     const transactionID = ReportActionsUtils.getLinkedTransactionID(reportActionID, reportID);
@@ -139,8 +141,6 @@ function BaseReportActionContextMenu({
     const sourceID = ReportUtils.getSourceIDFromReportAction(reportAction);
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
-
-    const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, reportAction), [reportID, reportAction]);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     let filteredContextMenuActions = ContextMenuActions.filter(
@@ -261,7 +261,7 @@ function BaseReportActionContextMenu({
 
     return (
         (isVisible || shouldKeepOpen) && (
-            <FocusTrapForModal active={!isMini}>
+            <FocusTrapForModal active={!isMini && !isSmallScreenWidth}>
                 <View
                     ref={contentRef}
                     style={wrapperStyle}
