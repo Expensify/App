@@ -24,11 +24,20 @@ function useOnboardingFlowRouter() {
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
 
     useEffect(() => {
-        if (isLoadingOnyxValue(isOnboardingCompletedMetadata, isHybridAppOnboardingCompletedMetadata, isSingleNewDotEntryMetadata)) {
+        if (isLoadingOnyxValue(isOnboardingCompletedMetadata)) {
+            return;
+        }
+
+        if (NativeModules.HybridAppModule && isLoadingOnyxValue(isHybridAppOnboardingCompletedMetadata, isSingleNewDotEntryMetadata)) {
             return;
         }
 
         if (NativeModules.HybridAppModule) {
+            // For single entries, such as using the Travel feature from OldDot, we should not initiate the onboarding flow.
+            if (isSingleNewDotEntry) {
+                return;
+            }
+
             // When user is transitioning from OldDot to NewDot, we usually show the explanation modal
             if (isHybridAppOnboardingCompleted === false && !isSingleNewDotEntry) {
                 Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
