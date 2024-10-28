@@ -159,7 +159,7 @@ function WorkspaceSwitcherPage() {
     return (
         <ScreenWrapper
             testID={WorkspaceSwitcherPage.displayName}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom={true}
         >
             {({didScreenTransitionEnd}) => (
                 <>
@@ -196,6 +196,7 @@ function WorkspaceSwitcherPage() {
                         shouldShowListEmptyContent={shouldShowCreateWorkspace}
                         initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
                         showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                        shouldHandleSafeAreaPaddings={false}
                     />
                 </>
             )}

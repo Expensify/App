@@ -106,6 +106,7 @@ function BaseSelectionList<TItem extends ListItem>(
         scrollEventThrottle,
         contentContainerStyle,
         shouldHighlightSelectedItem = false,
+        shouldHandleSafeAreaPaddings = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -671,7 +672,7 @@ function BaseSelectionList<TItem extends ListItem>(
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
-                <View style={[styles.flex1, (!isKeyboardShown || !!footerContent || showConfirmButton) && safeAreaPaddingBottomStyle, containerStyle]}>
+                <View style={[styles.flex1, (!isKeyboardShown || !!footerContent || showConfirmButton) && shouldHandleSafeAreaPaddings && safeAreaPaddingBottomStyle, containerStyle]}>
                     {shouldShowTextInput && (
                         <View style={[styles.ph5, styles.pb3]}>
                             <TextInput

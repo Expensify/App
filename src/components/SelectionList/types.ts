@@ -594,6 +594,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether we highlight all the selected items */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Whether safe area paddings should be handled */
+    shouldHandleSafeAreaPaddings?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
