@@ -42,6 +42,9 @@ const useLinkBuilder = isJestEnv ? realReactNavigation.useLinkBuilder : () => nu
 const useLinkProps = isJestEnv ? realReactNavigation.useLinkProps : () => null;
 const useLinkTo = isJestEnv ? realReactNavigation.useLinkTo : () => null;
 const useScrollToTop = isJestEnv ? realReactNavigation.useScrollToTop : () => null;
+const useRoute = isJestEnv ? realReactNavigation.useRoute : () => ({params: {}});
+const useFocusEffect = isJestEnv ? realReactNavigation.useFocusEffect : (callback: () => void) => callback();
+
 export {
     // Overriden modules
     useIsFocused,
@@ -61,6 +64,8 @@ export {
     useLinkProps,
     useLinkTo,
     useScrollToTop,
+    useRoute,
+    useFocusEffect,
 };
 
 export type {NativeNavigationMock};
