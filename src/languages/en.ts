@@ -3101,14 +3101,17 @@ const translations = {
                         processorLabel: 'Processor ID',
                         bankLabel: 'Financial institution (bank) ID',
                         companyLabel: 'Company ID',
+                        helpLabel: 'Where do I find these IDs?',
                     },
                     gl1025: {
                         title: `What's the Amex delivery file name?`,
                         fileNameLabel: 'Delivery file name',
+                        helpLabel: 'Where do I find the delivery file name?',
                     },
                     cdf: {
                         title: `What's the Mastercard distribution ID?`,
                         distributionLabel: 'Distribution ID',
+                        helpLabel: 'Where do I find the distribution ID?',
                     },
                 },
                 amexCorporate: 'Select this if the front of your cards say “Corporate”',
