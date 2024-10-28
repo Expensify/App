@@ -1,4 +1,4 @@
-import resolveDuplicationConflictAction from '@libs/actions/RequestConflictUtils';
+import {resolveDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import type {WriteCommand} from '@libs/API/types';
 
 describe('RequestConflictUtils', () => {
