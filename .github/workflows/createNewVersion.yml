@@ -144,11 +144,32 @@ jobs:
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - name: Generate version
+      - name: Generate HybridApp version
         run: |
+          # Generate all flavors of the version
           SHORT_APP_VERSION=$(echo "$NEW_VERSION" | awk -F'-' '{print $1}')
           BUILD_NUMBER=$(echo "$NEW_VERSION" | awk -F'-' '{print $2}')
-          tools/buildtools/bump-version-automatically.sh "$SHORT_APP_VERSION" "$BUILD_NUMBER"
+          FULL_APP_VERSION="$SHORT_APP_VERSION.$BUILD_NUMBER"
+          ANDROID_VERSION_CODE=$(echo $FULL_APP_VERSION | ruby -e "puts '05%02d%02d%02d%02d' % STDIN.read.split('.')")
+          
+          # File paths to update
+          ANDROID_MANIFEST_FILE="Android/AndroidManifest.xml"
+          IOS_INFO_PLIST_FILE="iOS/Expensify/Expensify-Info.plist"
+          IOS_SHARE_EXTENSION_PLIST_FILE="iOS/SmartScanExtension/Info.plist"
+          JS_CONFIG_FILE="app/config/config.json" 
+          
+          # Update Android HybridApp Version
+          sed -i .bak -E  "s/versionName=\"([0-9\.]*)\"/versionName=\"$FULL_APP_VERSION\"/" $ANDROID_MANIFEST_FILE
+          sed -i .bak -E "s/versionCode=\"([0-9]*)\"/versionCode=\"$ANDROID_VERSION_CODE\"/" $ANDROID_MANIFEST_FILE
+          
+          # Update iOS HybridApp Version
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_APP_VERSION" $IOS_INFO_PLIST_FILE
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $FULL_APP_VERSION" $IOS_INFO_PLIST_FILE
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_APP_VERSION" $IOS_SHARE_EXTENSION_PLIST_FILE
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $FULL_APP_VERSION" $IOS_SHARE_EXTENSION_PLIST_FILE
+          
+          # Update JS HybridApp Version
+          sed -i .bak -E  "s/\"version\": \"([0-9\.]*)\"/\"version\": \"$FULL_APP_VERSION\"/" $JS_CONFIG_FILE
         env:
           NEW_VERSION: ${{ needs.createNewVersion.outputs.NEW_VERSION }}
 
