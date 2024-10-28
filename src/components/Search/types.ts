@@ -41,6 +41,8 @@ type SearchContext = {
     clearSelectedTransactions: (hash?: number) => void;
     shouldShowStatusBarLoading: boolean;
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
+    setLastSearchType: (type: string | undefined) => void;
+    lastSearchType: string | undefined;
 };
 
 type ASTNode = {
@@ -56,9 +58,10 @@ type QueryFilter = {
 
 type AdvancedFiltersKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 
-type QueryFilters = {
-    [K in AdvancedFiltersKeys]?: QueryFilter[];
-};
+type QueryFilters = Array<{
+    key: AdvancedFiltersKeys;
+    filters: QueryFilter[];
+}>;
 
 type SearchQueryString = string;
 

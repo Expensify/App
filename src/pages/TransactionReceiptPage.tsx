@@ -27,7 +27,8 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const imageSource = tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const isLocalFile = receiptURIs.isLocalFile;
-    const readonly = route.params.readonly ?? false;
+    const readonly = route.params.readonly === 'true';
+    const isFromReviewDuplicates = route.params.isFromReviewDuplicates === 'true';
 
     const parentReportAction = ReportActionUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
@@ -61,7 +62,8 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isTrackExpenseReport || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID ? !transaction : (moneyRequestReportID ?? '-1') !== transaction?.reportID;
+    const shouldShowNotFoundPage =
+        isTrackExpenseReport || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID || isFromReviewDuplicates ? !transaction : (moneyRequestReportID ?? '-1') !== transaction?.reportID;
 
     return (
         <AttachmentModal

@@ -83,6 +83,7 @@ export default {
     iconSizeExtraLarge: 40,
     iconSizeSuperLarge: 60,
     iconSizeUltraLarge: 80,
+    iconSizeMenuItem: 32,
     iconBottomBar: 24,
     sidebarAvatarSize: 28,
     iconHeader: 48,
@@ -167,6 +168,7 @@ export default {
     modalContentMaxWidth: 360,
     listItemHeightNormal: 64,
     popoverWidth: 375,
+    searchRouterPopoverWidth: 512,
     bankAccountActionPopoverRightSpacing: 32,
     bankAccountActionPopoverTopSpacing: 14,
     addPaymentPopoverRightSpacing: 23,
@@ -251,6 +253,9 @@ export default {
     composerTooltipShiftHorizontal: 10,
     composerTooltipShiftVertical: -10,
     gbrTooltipShiftHorizontal: -20,
+
+    inlineImagePreviewMinSize: 64,
+    inlineImagePreviewMaxSize: 148,
 
     minimalTopBarOffset: -26,
     searchHeaderHeight: 80,

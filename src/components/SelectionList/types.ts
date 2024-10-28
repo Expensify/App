@@ -17,6 +17,7 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -101,6 +102,9 @@ type ListItem = {
 
     /** Whether this option is selected */
     isSelected?: boolean;
+
+    /** Whether the option can show both selected and error indicators */
+    canShowSeveralIndicators?: boolean;
 
     /** Whether the checkbox should be disabled */
     isDisabledCheckbox?: boolean;
@@ -231,6 +235,9 @@ type TransactionListItemType = ListItem &
 
         /** Key used internally by React */
         keyForList: string;
+
+        /** Attendees in the transaction */
+        attendees?: Attendee[];
     };
 
 type ReportActionListItemType = ListItem &
@@ -287,6 +294,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show RBR */
     shouldDisplayRBR?: boolean;
+
+    /** Whether we highlight all the selected items */
+    shouldHighlightSelectedItem?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -581,6 +591,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Additional styles to apply to scrollable content */
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether we highlight all the selected items */
+    shouldHighlightSelectedItem?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

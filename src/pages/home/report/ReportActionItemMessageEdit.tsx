@@ -164,6 +164,22 @@ function ReportActionItemMessageEdit(
         };
     }, []);
 
+    useEffect(
+        // Remove focus callback on unmount to avoid stale callbacks
+        () => {
+            if (textInputRef.current) {
+                ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
+            }
+            return () => {
+                if (ReportActionComposeFocusManager.editComposerRef.current !== textInputRef.current) {
+                    return;
+                }
+                ReportActionComposeFocusManager.clear(true);
+            };
+        },
+        [],
+    );
+
     // We consider the report action active if it's focused, its emoji picker is open or its context menu is open
     const isActive = useCallback(
         () => isFocusedRef.current || EmojiPickerAction.isActive(action.reportActionID) || ReportActionContextMenu.isActiveReportAction(action.reportActionID),
@@ -184,14 +200,6 @@ function ReportActionItemMessageEdit(
             focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
         }, true);
     }, [focus]);
-
-    useEffect(
-        // Remove focus callback on unmount to avoid stale callbacks
-        () => () => {
-            ReportActionComposeFocusManager.clear(true);
-        },
-        [],
-    );
 
     useEffect(
         () => {
@@ -235,6 +243,7 @@ function ReportActionItemMessageEdit(
      */
     const debouncedSaveDraft = useMemo(
         () =>
+            // eslint-disable-next-line react-compiler/react-compiler
             lodashDebounce((newDraft: string) => {
                 Report.saveReportActionDraft(reportID, action, newDraft);
                 isCommentPendingSaved.current = false;
@@ -512,6 +521,9 @@ function ReportActionItemMessageEdit(
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
+                                if (textInputRef.current) {
+                                    ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
+                                }
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
                                         reportScrollManager.scrollToIndex(index, true);
@@ -548,6 +560,7 @@ function ReportActionItemMessageEdit(
 
                     <Suggestions
                         ref={suggestionsRef}
+                        // eslint-disable-next-line react-compiler/react-compiler
                         isComposerFocused={textInputRef.current?.isFocused()}
                         updateComment={updateDraft}
                         measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
