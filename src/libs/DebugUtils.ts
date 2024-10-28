@@ -14,6 +14,7 @@ import type {TransactionViolationData} from '@src/types/onyx/TransactionViolatio
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -974,10 +975,14 @@ function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: O
     return null;
 }
 
-function getTransactionID(reportActions: OnyxEntry<ReportActions>) {
-    return Object.values(reportActions ?? {})
-        .map((reportAction) => ReportActionsUtils.getLinkedTransactionID(reportAction))
-        .find(Boolean);
+function getTransactionID(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>) {
+    const transactionID = TransactionUtils.getTransactionID(report?.reportID ?? '-1');
+
+    return Number(transactionID) > 0
+        ? transactionID
+        : Object.values(reportActions ?? {})
+              .map((reportAction) => ReportActionsUtils.getLinkedTransactionID(reportAction))
+              .find(Boolean);
 }
 
 const DebugUtils = {
