@@ -63,14 +63,21 @@ autocompleteKey "key"
     )
 
 identifier
-  = parts:(quotedString / alphanumeric)+ {
+  = parts:(quotedString / alphanumeric)|1.., ","| empty:","? {
       const ends = location();
       const value = parts.flat();
+      if (empty) {
+        value.push("");
+      }
       let count = ends.start.offset;
       const result = [];
       value.forEach((filter) => {
+        let word = filter;
+        if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
+          word = word.slice(1, -1);
+        }
         result.push({
-          value: filter,
+          value: word,
           start: count,
           length: filter.length,
         });
