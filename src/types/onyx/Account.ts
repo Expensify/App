@@ -29,14 +29,20 @@ type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
 /** Delegate errors */
 type DelegateErrors = {
-    /** Errors while adding a delegate */
+    /** Errors while adding a delegate keyed by email */
     addDelegate?: Record<string, OnyxCommon.Errors>;
 
-    /** Errors while updating a delegate's role */
+    /** Errors while updating a delegate's role keyed by email */
     updateDelegateRole?: Record<string, OnyxCommon.Errors>;
 
-    /** Errors while removing a delegate */
+    /** Errors while removing a delegate keyed by email */
     removeDelegate?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while connecting as a delegate keyed by email */
+    connect?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while disconnecting as a delegate. No email needed here. */
+    disconnect?: OnyxCommon.Errors;
 };
 
 /** Model of delegated access data */
