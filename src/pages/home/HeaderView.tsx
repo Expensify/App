@@ -120,6 +120,8 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
         />
     );
 
+    const freeTrialButton = <FreeTrial pressable />;
+
     const renderAdditionalText = () => {
         if (shouldShowSubtitle() || isPersonalExpenseChat || !policyName || !isEmptyObject(parentNavigationSubtitleData) || isSelfDM) {
             return null;
@@ -280,7 +282,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 )}
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrial pressable />}
+                                {!shouldUseNarrowLayout && freeTrialButton}
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
@@ -303,7 +305,8 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                     </View>
                 )}
             </View>
-            {!isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+            {!isLoading && shouldUseNarrowLayout && <View style={[styles.pb3, styles.ph5]}>{freeTrialButton}</View>}
+            {!isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.m2]}>{joinButton}</View>}
         </View>
     );
 }
