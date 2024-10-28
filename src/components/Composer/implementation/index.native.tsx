@@ -60,11 +60,11 @@ function Composer(
     }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
 
     useEffect(() => {
-        if (!textInput.current || !selection) {
+        if (!textInput.current || !selection || isComposerFullSize) {
             return;
         }
 
-        // We are setting selection twice to trigger a scroll to the cursor on change of composer size.
+        // We are setting selection twice to trigger a scroll to the cursor on toggling to smaller composer size.
         textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
         textInput.current?.setSelection(selection.start, selection.start);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
