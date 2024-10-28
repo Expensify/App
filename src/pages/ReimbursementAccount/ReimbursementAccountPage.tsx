@@ -143,6 +143,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
 
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID ?? '-1';
@@ -177,7 +178,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue());
 
-    function getBankAccountFields<T extends InputID>(fieldNames: T[]): Pick<ACHDataReimbursementAccount, T> {
+    function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
         return {
             ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
         };
@@ -438,8 +439,8 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const policyCurrency = policy?.outputCurrency ?? '';
     // TODO once nonUSD flow is complete update the flag below to reflect all supported currencies, this will be updated in - https://github.com/Expensify/App/issues/50912
     const hasUnsupportedCurrency = policyCurrency !== CONST.CURRENCY.USD;
-    // TODO remove isDevelopment flag once nonUSD flow is complete, this will be updated in - https://github.com/Expensify/App/issues/50912
-    const hasForeignCurrency = SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency) && isDevelopment;
+    // TODO remove isDevelopment and isDebugModeEnabled flags once nonUSD flow is complete, this will be updated in - https://github.com/Expensify/App/issues/50912
+    const hasForeignCurrency = SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency) && (isDevelopment || isDebugModeEnabled);
 
     if (userHasPhonePrimaryEmail) {
         errorText = translate('bankAccount.hasPhoneLoginError');
