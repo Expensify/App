@@ -36,6 +36,7 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import GoogleTagManager from '@libs/GoogleTagManager';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
@@ -3414,6 +3415,7 @@ function categorizeTrackedExpense(
     comment: string,
     merchant: string,
     created: string,
+    isDraftPolicy: boolean,
     category?: string,
     tag?: string,
     taxCode = '',
@@ -3470,6 +3472,12 @@ function categorizeTrackedExpense(
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
+
+    // If a draft policy was used, then the CategorizeTrackedExpense command will create a real one
+    // so let's track that conversion here
+    if (isDraftPolicy) {
+        GoogleTagManager.publishEvent('workspace_created', userAccountID);
+    }
 }
 
 function shareTrackedExpense(
@@ -3769,6 +3777,7 @@ function trackExpense(
     payeeAccountID: number,
     participant: Participant,
     comment: string,
+    isDraftPolicy: boolean,
     receipt?: Receipt,
     category?: string,
     tag?: string,
@@ -3864,6 +3873,7 @@ function trackExpense(
                 comment,
                 merchant,
                 created,
+                isDraftPolicy,
                 category,
                 tag,
                 taxCode,

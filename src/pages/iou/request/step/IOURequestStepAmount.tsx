@@ -249,6 +249,7 @@ function IOURequestStepAmount({
                         currentUserPersonalDetails.accountID,
                         participants.at(0) ?? {},
                         '',
+                        false,
                     );
                     return;
                 }
