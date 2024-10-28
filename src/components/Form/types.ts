@@ -15,6 +15,7 @@ import type DatePicker from '@components/DatePicker';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import type PercentageForm from '@components/PercentageForm';
 import type Picker from '@components/Picker';
+import type PushRowWithModal from '@components/PushRowWithModal';
 import type RadioButtons from '@components/RadioButtons';
 import type RoomNameInput from '@components/RoomNameInput';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
@@ -67,6 +68,7 @@ type ValidInputs =
     | typeof StatePicker
     | typeof ConstantSelector
     | typeof UploadFile;
+    | typeof PushRowWithModal;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart';
 type ValueTypeMap = {
