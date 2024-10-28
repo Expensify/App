@@ -14,23 +14,17 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 type EmptyCardViewProps = {
-    /** Title of the empty state */
-    title: string;
-
-    /** Subtitle of the empty state */
-    subtitle: string;
-
-    /** Whether the header buttons are displayed */
-    areHeaderButtonsDisplayed: boolean;
+    /** Whether the bank account is verified */
+    isBankAccountVerified: boolean;
 };
 
-function EmptyCardView({title, subtitle, areHeaderButtonsDisplayed}: EmptyCardViewProps) {
+function EmptyCardView({isBankAccountVerified}: EmptyCardViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, areHeaderButtonsDisplayed);
+    const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
     return (
         <ScrollView>
@@ -38,17 +32,22 @@ function EmptyCardView({title, subtitle, areHeaderButtonsDisplayed}: EmptyCardVi
                 <EmptyStateComponent
                     SkeletonComponent={CardRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                    headerMedia={Illustrations.EmptyCardState}
-                    headerStyles={[
-                        {
-                            overflow: 'hidden',
-                            backgroundColor: colors.green700,
-                        },
-                        shouldUseNarrowLayout && {maxHeight: 250},
-                    ]}
-                    title={title}
-                    subtitle={subtitle}
-                    minModalHeight={500}
+                    headerMedia={isBankAccountVerified ? Illustrations.EmptyCardState : Illustrations.CompanyCardsPendingState}
+                    headerStyles={
+                        isBankAccountVerified
+                            ? [
+                                  {
+                                      overflow: 'hidden',
+                                      backgroundColor: colors.green700,
+                                  },
+                                  shouldUseNarrowLayout && {maxHeight: 250},
+                              ]
+                            : [styles.emptyStateCardIllustrationContainer, {backgroundColor: colors.ice800}]
+                    }
+                    title={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'issueAndManageCards' : 'verificationInProgress'}`)}
+                    subtitle={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'getStartedIssuing' : 'verifyingTheDetails'}`)}
+                    headerContentStyles={isBankAccountVerified ? null : styles.pendingStateCardIllustration}
+                    minModalHeight={isBankAccountVerified ? 500 : 400}
                 />
             </View>
             <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>

@@ -126,11 +126,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && isBankAccountVerified && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
             {isEmptyObject(cardsList) ? (
-                <EmptyCardView
-                    areHeaderButtonsDisplayed={isBankAccountVerified}
-                    title={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'issueAndManageCards' : 'verificationInProgress'}`)}
-                    subtitle={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'getStartedIssuing' : 'verifyingTheDetails'}`)}
-                />
+                <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
             ) : (
                 <FlatList
                     data={sortedCards}
