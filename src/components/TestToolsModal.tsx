@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,7 +30,6 @@ type TestToolsModalOnyxProps = {
 type TestToolsModalProps = TestToolsModalOnyxProps;
 
 function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}: TestToolsModalProps) {
-    const {isProduction} = useEnvironment();
     const {windowWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -64,7 +62,7 @@ function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}:
                         />
                     </TestToolRow>
                 )}
-                {!isProduction && <TestToolMenu />}
+                <TestToolMenu />
             </View>
         </Modal>
     );
