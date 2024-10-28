@@ -116,12 +116,6 @@ Onyx.connect({
     callback: (value) => (lastDayFreeTrial = value),
 });
 
-let userBillingFundID: OnyxEntry<number>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_BILLING_FUND_ID,
-    callback: (value) => (userBillingFundID = value),
-});
-
 let userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
@@ -428,7 +422,7 @@ function hasUserFreeTrialEnded(): boolean {
  * Whether the user has a payment card added to its account.
  */
 function doesUserHavePaymentCardAdded(): boolean {
-    return userBillingFundID !== undefined;
+    return getCardForSubscriptionBilling() !== undefined;
 }
 
 /**
