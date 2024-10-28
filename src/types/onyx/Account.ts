@@ -20,15 +20,24 @@ type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the user validation code was sent */
     validateCodeSent?: boolean;
 
-    /** Field-specific server side errors keyed by microtime */
-    errorFields?: OnyxCommon.ErrorFields;
-
     /** Whether the user is loading */
     isLoading?: boolean;
 
     /** The accountID of a delegate when they aren't in the personalDetails. */
     optimisticAccountID?: number;
 }>;
+
+/** Delegate errors */
+type DelegateErrors = {
+    /** Errors while adding a delegate */
+    addDelegate?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while updating a delegate's role */
+    updateDelegateRole?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while removing a delegate */
+    removeDelegate?: Record<string, OnyxCommon.Errors>;
+};
 
 /** Model of delegated access data */
 type DelegatedAccess = {
@@ -41,8 +50,8 @@ type DelegatedAccess = {
     /** The email of original user when they are acting as a delegate for another account */
     delegate?: string;
 
-    /** Authentication failure errors when disconnecting as a copilot */
-    errorFields?: OnyxCommon.ErrorFields;
+    /** Field-specific server side errors keyed by microtime */
+    errorFields?: DelegateErrors;
 };
 
 /** Model of user account */
