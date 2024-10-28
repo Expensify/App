@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,17 +18,9 @@ import TestToolMenu from './TestToolMenu';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
-type TestToolsModalOnyxProps = {
-    /** Whether the test tools modal is open */
-    isTestToolsModalOpen: OnyxEntry<boolean>;
-
-    /** Whether or not logs should be stored */
-    shouldStoreLogs: OnyxEntry<boolean>;
-};
-
-type TestToolsModalProps = TestToolsModalOnyxProps;
-
-function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}: TestToolsModalProps) {
+function TestToolsModal() {
+    const [isTestToolsModalOpen = false] = useOnyx(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN);
+    const [shouldStoreLogs = false] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
     const {windowWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -70,11 +61,4 @@ function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}:
 
 TestToolsModal.displayName = 'TestToolsModal';
 
-export default withOnyx<TestToolsModalProps, TestToolsModalOnyxProps>({
-    isTestToolsModalOpen: {
-        key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
-    },
-    shouldStoreLogs: {
-        key: ONYXKEYS.SHOULD_STORE_LOGS,
-    },
-})(TestToolsModal);
+export default TestToolsModal;
