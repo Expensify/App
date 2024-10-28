@@ -19,7 +19,6 @@ import ROUTES from '@src/ROUTES';
 function QuickbooksDesktopClassesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {canUseNewDotQBD} = usePermissions();
     const policyID = policy?.id ?? '-1';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const isSwitchOn = !!(qbdConfig?.mappings?.classes && qbdConfig.mappings.classes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
@@ -30,11 +29,10 @@ function QuickbooksDesktopClassesPage({policy}: WithPolicyProps) {
             displayName={QuickbooksDesktopClassesPage.displayName}
             headerTitle="workspace.qbd.classes"
             title="workspace.qbd.classesDescription"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] Will be removed when release
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID))}
         >
