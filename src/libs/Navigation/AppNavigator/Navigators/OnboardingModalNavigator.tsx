@@ -16,6 +16,8 @@ import OnboardingPurpose from '@pages/OnboardingPurpose';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
+import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain';
+import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 
 const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 
@@ -51,6 +53,14 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
                                 component={OnboardingPersonalDetails}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.PRIVATE_DOMAIN}
+                                component={OnboardingPrivateDomain}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.WORKSPACES}
+                                component={OnboardingWorkspaces}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.EMPLOYEES}

@@ -79,14 +79,35 @@ function adaptOnboardingRouteState() {
                 {...currentRoute},
             ],
         } as Readonly<PartialState<NavigationState>>;
-    } else {
+    }
+    else if (currentRoute?.name === SCREENS.ONBOARDING.PRIVATE_DOMAIN && !selectedPurpose) {
+        adaptedOnboardingModalNavigatorState = {
+            index: 3,
+            routes: [
+                {
+                    name: SCREENS.ONBOARDING.PERSONAL_DETAILS,
+                    params: currentRoute?.params,
+                },  
+                {
+                    name: SCREENS.ONBOARDING.PRIVATE_DOMAIN,
+                    params: currentRoute?.params,
+                },        
+                {
+                    name: SCREENS.ONBOARDING.WORKSPACES,
+                    params: currentRoute?.params,
+                },  
+                {...currentRoute},
+            ],
+        } as Readonly<PartialState<NavigationState>>;
+    }
+    else {
         adaptedOnboardingModalNavigatorState = {
             index: 1,
             routes: [
                 {
                     name: SCREENS.ONBOARDING.PURPOSE,
                     params: currentRoute?.params,
-                },
+                },        
                 {...currentRoute},
             ],
         } as Readonly<PartialState<NavigationState>>;
@@ -103,9 +124,9 @@ function adaptOnboardingRouteState() {
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
-function startOnboardingFlow() {
+function startOnboardingFlow(isPrivateDomain?: boolean) {
     const currentRoute = navigationRef.getCurrentRoute();
-    const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config, false);
+    const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootStackParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
@@ -117,7 +138,7 @@ function startOnboardingFlow() {
     } as PartialState<NavigationState>);
 }
 
-function getOnboardingInitialPath(): string {
+function getOnboardingInitialPath(isPrivateDomain?: boolean): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const isVsb = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
@@ -126,6 +147,9 @@ function getOnboardingInitialPath(): string {
         return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
     }
     const isIndividual = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
+    if (isPrivateDomain) {
+        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
+    }
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }

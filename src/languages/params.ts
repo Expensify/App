@@ -538,8 +538,14 @@ type ImportedTypesParams = {
     importedTypes: string[];
 };
 
+type WorkspaceYouMayJoin = {
+    domain: string;
+    email: string;
+};
+
 type CompanyCardBankName = {
     bankName: string;
+
 };
 
 export type {
@@ -740,4 +746,5 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    WorkspaceYouMayJoin
 };
