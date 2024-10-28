@@ -4,6 +4,7 @@
 
 <details>
 <summary>Bug classification</summary>
+<!-- Please keep the "1a." text in tact on all of the options below so that the results can be easily parsed by a script. Each of the "Other" options should be last on the list which is why they have a "z" in the selector (eg. "1z."). This allows the list to grow if someone desires to add more options down the road. -->
 
 Source of bug:
   - [ ] 1a. Result of the original design (eg. a case wasn't considered)
@@ -11,7 +12,7 @@ Source of bug:
   - [ ] 1c. Backend bug
   - [ ] 1z. Other:
 
-How bug was reported:
+Where bug was reported:
   - [ ] 2a. Reported on production
   - [ ] 2b. Reported on staging (deploy blocker)
   - [ ] 2c. Reported on a PR
