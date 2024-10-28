@@ -59,16 +59,16 @@ function Composer(
         inputCallbackRef(autoFocus ? textInput.current : null);
     }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
 
-    useEffect(() => {
-        if (!textInput.current || !selection) {
-            return;
-        }
+    // useEffect(() => {
+    //     if (!textInput.current || !selection) {
+    //         return;
+    //     }
 
-        // We are setting selection twice to trigger a scroll to the cursor on change of composer size.
-        textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
-        textInput.current?.setSelection(selection.start, selection.start);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isComposerFullSize]);
+    //     // We are setting selection twice to trigger a scroll to the cursor on change of composer size.
+    //     textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
+    //     textInput.current?.setSelection(selection.start, selection.start);
+    //     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    // }, [isComposerFullSize]);
 
     /**
      * Set the TextInput Ref
