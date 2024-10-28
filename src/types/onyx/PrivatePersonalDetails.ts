@@ -18,7 +18,7 @@ type Address = {
     zip?: string;
 
     /** Country code */
-    country?: Country | '';
+    country?: string;
 
     /** Zip post code */
     zipPostCode?: string;

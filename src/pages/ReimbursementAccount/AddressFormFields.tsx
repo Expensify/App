@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {State} from '@components/StateSelector';
@@ -34,14 +35,34 @@ type AddressFormProps = {
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
+
+    /** Additional styles to apply to container */
+    containerStyles?: StyleProp<ViewStyle>;
+
+    /** Indicates if country selector should be displayed */
+    shouldDisplayCountrySelector?: boolean;
+
+    /** Indicates if state selector should be displayed */
+    shouldDisplayStateSelector?: boolean;
 };
 
-function AddressFormFields({shouldSaveDraft = false, defaultValues, values, errors, inputKeys, onFieldChange, streetTranslationKey}: AddressFormProps) {
+function AddressFormFields({
+    shouldSaveDraft = false,
+    defaultValues,
+    values,
+    errors,
+    inputKeys,
+    onFieldChange,
+    streetTranslationKey,
+    containerStyles,
+    shouldDisplayCountrySelector = false,
+    shouldDisplayStateSelector = true,
+}: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     return (
-        <>
+        <View style={containerStyles}>
             <View>
                 <InputWrapper
                     InputComponent={AddressSearch}
@@ -55,7 +76,7 @@ function AddressFormFields({shouldSaveDraft = false, defaultValues, values, erro
                     errorText={errors?.street ? translate('bankAccount.error.addressStreet') : ''}
                     renamedInputKeys={inputKeys}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                    isLimitedToUSA
+                    isLimitedToUSA={!shouldDisplayCountrySelector}
                 />
             </View>
             <InputWrapper
@@ -72,17 +93,19 @@ function AddressFormFields({shouldSaveDraft = false, defaultValues, values, erro
                 containerStyles={styles.mt6}
             />
 
-            <View style={[styles.mt3, styles.mhn5]}>
-                <InputWrapper
-                    InputComponent={StateSelector}
-                    inputID={inputKeys.state ?? 'stateInput'}
-                    shouldSaveDraft={shouldSaveDraft}
-                    value={values?.state as State}
-                    defaultValue={defaultValues?.state}
-                    onInputChange={(value) => onFieldChange?.({state: value})}
-                    errorText={errors?.state ? translate('bankAccount.error.addressState') : ''}
-                />
-            </View>
+            {shouldDisplayStateSelector && (
+                <View style={[styles.mt3, styles.mhn5]}>
+                    <InputWrapper
+                        InputComponent={StateSelector}
+                        inputID={inputKeys.state ?? 'stateInput'}
+                        shouldSaveDraft={shouldSaveDraft}
+                        value={values?.state as State}
+                        defaultValue={defaultValues?.state}
+                        onInputChange={(value) => onFieldChange?.({state: value})}
+                        errorText={errors?.state ? translate('bankAccount.error.addressState') : ''}
+                    />
+                </View>
+            )}
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={inputKeys.zipCode ?? 'zipCodeInput'}
@@ -99,7 +122,7 @@ function AddressFormFields({shouldSaveDraft = false, defaultValues, values, erro
                 hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
                 containerStyles={styles.mt3}
             />
-        </>
+        </View>
     );
 }
 
