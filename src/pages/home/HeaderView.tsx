@@ -306,7 +306,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                     </View>
                 )}
             </View>
-            {!isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.m2]}>{joinButton}</View>}
+            {!isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
             {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && <View style={[styles.pb3, styles.ph5]}>{freeTrialButton}</View>}
         </View>
     );
