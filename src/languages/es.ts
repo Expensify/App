@@ -3157,6 +3157,7 @@ const translations = {
             assignCard: 'Asignar tarjeta',
             cardNumber: 'Número de la tarjeta',
             customFeed: 'Fuente personalizada',
+            feedName: ({feedName}: CompanyCardFeedNameParams) => `Tarjetas ${feedName}`,
             directFeed: 'Fuente directa',
             whoNeedsCardAssigned: '¿Quién necesita una tarjeta?',
             chooseCard: 'Elige una tarjeta',
