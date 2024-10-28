@@ -204,13 +204,13 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 if (!autocompleteType || range.key !== autocompleteType) {
                     return;
                 }
-                alreadyAutocompletedKeys.push(range.value);
+                alreadyAutocompletedKeys.push(range.value.toLowerCase());
             });
             switch (autocompleteType) {
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG: {
                     const autocompleteList = autocompleteValue ? tagAutocompleteList : recentTagsAutocompleteList ?? [];
                     const filteredTags = autocompleteList
-                        .filter((tag) => tag?.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(tag))
+                        .filter((tag) => tag.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(tag))
                         .sort()
                         .slice(0, 10);
                     setAutocompleteSuggestions(
@@ -225,7 +225,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     const autocompleteList = autocompleteValue ? categoryAutocompleteList : recentCategoriesAutocompleteList;
                     const filteredCategories = autocompleteList
                         .filter((category) => {
-                            return category?.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(category);
+                            return category.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(category.toLowerCase());
                         })
                         .sort()
                         .slice(0, 10);
@@ -240,7 +240,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY: {
                     const autocompleteList = autocompleteValue ? currencyAutocompleteList : recentCurrencyAutocompleteList ?? [];
                     const filteredCurrencies = autocompleteList
-                        .filter((currency) => currency?.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(currency))
+                        .filter((currency) => currency.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(currency.toLowerCase()))
                         .sort()
                         .slice(0, 10);
                     setAutocompleteSuggestions(
@@ -253,7 +253,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE: {
                     const filteredTaxRates = taxAutocompleteList
-                        .filter((tax) => tax.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(tax))
+                        .filter((tax) => tax.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(tax.toLowerCase()))
                         .sort()
                         .slice(0, 10);
                     setAutocompleteSuggestions(filteredTaxRates.map((tax) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE}:${tax}`, query: `${tax}`})));
@@ -261,7 +261,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
                     const filteredParticipants = participantsAutocompleteList
-                        .filter((participant) => participant.includes(autocompleteValue))
+                        .filter((participant) => participant.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.toLowerCase()))
                         .sort()
                         .slice(0, 10);
                     setAutocompleteSuggestions(filteredParticipants.map((participant) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}:${participant}`, query: `${participant}`})));
@@ -269,7 +269,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO: {
                     const filteredParticipants = participantsAutocompleteList
-                        .filter((participant) => participant.includes(autocompleteValue))
+                        .filter((participant) => participant.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.toLowerCase()))
                         .sort()
                         .slice(0, 10);
                     setAutocompleteSuggestions(filteredParticipants.map((participant) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${participant}`, query: `${participant}`})));
@@ -277,27 +277,31 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
                     const filteredChats = searchOptions.recentReports
-                        .filter((chat) => chat.text?.includes(autocompleteValue))
+                        .filter((chat) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()))
                         .sort((chatA, chatB) => (chatA > chatB ? 1 : -1))
                         .slice(0, 10);
                     setAutocompleteSuggestions(filteredChats.map((chat) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${chat.text}`, query: `${chat.reportID}`})));
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE: {
-                    const filteredTypes = typeAutocompleteList.filter((type) => type.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(type)).sort();
+                    const filteredTypes = typeAutocompleteList
+                        .filter((type) => type.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(type.toLowerCase()))
+                        .sort();
                     setAutocompleteSuggestions(filteredTypes.map((type) => ({text: `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${type}`, query: `${type}`})));
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
                     const filteredStatuses = statusAutocompleteList
-                        .filter((status) => status.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(status))
+                        .filter((status) => status.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(status))
                         .sort()
                         .slice(0, 10);
                     setAutocompleteSuggestions(filteredStatuses.map((status) => ({text: `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${status}`, query: `${status}`})));
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE: {
-                    const filteredExpenseTypes = expenseTypes.filter((expenseType) => expenseType.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(expenseType)).sort();
+                    const filteredExpenseTypes = expenseTypes
+                        .filter((expenseType) => expenseType.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(expenseType))
+                        .sort();
                     setAutocompleteSuggestions(
                         filteredExpenseTypes.map((expenseType) => ({
                             text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE}:${expenseType}`,
@@ -308,7 +312,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
                     const filteredCards = cardAutocompleteList
-                        .filter((card) => card.includes(autocompleteValue) && !alreadyAutocompletedKeys.includes(card))
+                        .filter((card) => card.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(card.toLowerCase()))
                         .sort()
                         .slice(0, 10);
                     setAutocompleteSuggestions(
