@@ -24,6 +24,13 @@ function createUpdateCommentMatcher(reportActionID: string) {
     };
 }
 
+function createOpenReportMatcher(reportID: string) {
+    return function (request: OnyxRequest) {
+        // If report is being opened as a thread, we should not replace it as it has to be handle as a new request.
+        return request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID && request.data?.parentReportActionID === '-1';
+    };
+}
+
 /**
  * Determines the appropriate action for handling duplication conflicts in persisted requests.
  *
@@ -107,4 +114,4 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
     };
 }
 
-export {resolveDuplicationConflictAction, resolveCommentDeletionConflicts, createUpdateCommentMatcher};
+export {resolveDuplicationConflictAction, resolveCommentDeletionConflicts, createUpdateCommentMatcher, createOpenReportMatcher};
