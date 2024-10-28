@@ -40,7 +40,7 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
         return mileageRates;
     }
 
-    const distanceUnit = PolicyUtils.getCustomUnit(policy);
+    const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
     if (!distanceUnit?.rates) {
         return mileageRates;
     }
@@ -78,7 +78,7 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
         return undefined;
     }
 
-    const distanceUnit = PolicyUtils.getCustomUnit(policy);
+    const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
     if (!distanceUnit?.rates) {
         return;
     }
@@ -302,8 +302,8 @@ function getCustomUnitRateID(reportID: string, shouldUseDefault?: boolean) {
  * Get taxable amount from a specific distance rate, taking into consideration the tax claimable amount configured for the distance rate
  */
 function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, distance: number) {
-    const distanceUnit = PolicyUtils.getCustomUnit(policy);
-    const customUnitRate = PolicyUtils.getCustomUnitRate(policy, customUnitRateID);
+    const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
+    const customUnitRate = PolicyUtils.getDistanceRateCustomUnitRate(policy, customUnitRateID);
     if (!distanceUnit || !distanceUnit?.customUnitID || !customUnitRate) {
         return 0;
     }
