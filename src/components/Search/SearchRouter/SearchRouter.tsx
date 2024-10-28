@@ -216,7 +216,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     setAutocompleteSuggestions(
                         filteredTags.map((tagName) => ({
                             text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG}:${tagName}`,
-                            query: `${tagName}`,
+                            query: `${SearchQueryUtils.sanitizeSearchValue(tagName)}`,
                         })),
                     );
                     return;
@@ -232,7 +232,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     setAutocompleteSuggestions(
                         filteredCategories.map((categoryName) => ({
                             text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY}:${categoryName}`,
-                            query: `${categoryName}`,
+                            query: `${SearchQueryUtils.sanitizeSearchValue(categoryName)}`,
                         })),
                     );
                     return;
@@ -256,7 +256,9 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                         .filter((tax) => tax.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(tax.toLowerCase()))
                         .sort()
                         .slice(0, 10);
-                    setAutocompleteSuggestions(filteredTaxRates.map((tax) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE}:${tax}`, query: `${tax}`})));
+                    setAutocompleteSuggestions(
+                        filteredTaxRates.map((tax) => ({text: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE}:${tax}`, query: `${SearchQueryUtils.sanitizeSearchValue(tax)}`})),
+                    );
                     return;
                 }
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
