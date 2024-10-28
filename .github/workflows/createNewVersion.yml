@@ -117,6 +117,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+<<<<<<< HEAD
       - name: Check out `App` repo
         uses: actions/checkout@v4
         with:
@@ -126,6 +127,9 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
       - name: Check out `Mobile-Expensify` repo
+=======
+      - name: Checkout
+>>>>>>> a912193 (Merge pull request #50014 from Expensify/andrew-mobile-deploy)
         uses: actions/checkout@v4
         with:
           repository: 'Expensify/Mobile-Expensify'
@@ -144,6 +148,7 @@ jobs:
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
+<<<<<<< HEAD
       - name: Generate HybridApp version
         run: |
           # Generate all flavors of the version
@@ -170,6 +175,13 @@ jobs:
           
           # Update JS HybridApp Version
           sed -i .bak -E  "s/\"version\": \"([0-9\.]*)\"/\"version\": \"$FULL_APP_VERSION\"/" $JS_CONFIG_FILE
+=======
+      - name: Generate version
+        run: |
+          SHORT_APP_VERSION=$(echo "$NEW_VERSION" | awk -F'-' '{print $1}')
+          BUILD_NUMBER=$(echo "$NEW_VERSION" | awk -F'-' '{print $2}')
+          tools/buildtools/bump-version-automatically.sh "$SHORT_APP_VERSION" "$BUILD_NUMBER"
+>>>>>>> a912193 (Merge pull request #50014 from Expensify/andrew-mobile-deploy)
         env:
           NEW_VERSION: ${{ needs.createNewVersion.outputs.NEW_VERSION }}
 
@@ -179,7 +191,11 @@ jobs:
             ./Android/AndroidManifest.xml \
             ./app/config/config.json \
             ./iOS/Expensify/Expensify-Info.plist\
+<<<<<<< HEAD
             ./iOS/SmartScanExtension/Info.plist
+=======
+            ./iOS/SmartScanExtension/Info.plist \
+>>>>>>> a912193 (Merge pull request #50014 from Expensify/andrew-mobile-deploy)
           git commit -m "Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
 
       - name: Update main branch
