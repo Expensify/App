@@ -101,3 +101,63 @@ jobs:
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+  createNewHybridVersion:
+    runs-on: macos-latest
+    needs: [validateActor, createNewVersion]
+    if: ${{ fromJSON(needs.validateActor.outputs.HAS_WRITE_ACCESS) }}
+    defaults:
+      run:
+        working-directory: Mobile-Expensify
+    steps:
+      - name: Run turnstyle
+        uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'Expensify/Mobile-Expensify'
+          submodules: true
+          path: 'Mobile-Expensify'
+          token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
+      - name: Update submodule
+        run: |
+          cd react-native
+          git submodule update --init
+
+      - name: Setup git for OSBotify
+        uses: ./.github/actions/composite/setupGitForOSBotify
+        id: setupGitForOSBotify
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Generate version
+        run: |
+          SHORT_APP_VERSION=$(echo "$NEW_VERSION" | awk -F'-' '{print $1}')
+          BUILD_NUMBER=$(echo "$NEW_VERSION" | awk -F'-' '{print $2}')
+          tools/buildtools/bump-version-automatically.sh "$SHORT_APP_VERSION" "$BUILD_NUMBER"
+        env:
+          NEW_VERSION: ${{ needs.createNewVersion.outputs.NEW_VERSION }}
+
+      - name: Commit new version
+        run: |
+          git add \
+            ./Android/AndroidManifest.xml \
+            ./app/config/config.json \
+            ./iOS/Expensify/Expensify-Info.plist\
+            ./iOS/SmartScanExtension/Info.plist \
+          git commit -m "Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
+
+      - name: Update main branch
+        run: git push origin main
+
+      - name: Announce failed workflow in Slack
+        if: ${{ failure() }}
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
