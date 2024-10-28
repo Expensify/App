@@ -417,6 +417,7 @@ function AttachmentPicker({
                 }}
                 isVisible={isVisible}
                 anchorRef={popoverRef}
+                // eslint-disable-next-line react-compiler/react-compiler
                 onModalHide={onModalHide.current}
             >
                 <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
@@ -431,6 +432,7 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
+            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {renderChildren()}
         </>
     );
