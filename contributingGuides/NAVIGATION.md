@@ -410,3 +410,17 @@ Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-243236062
 4. Press arrow on the side of attachment modal to navigate to the second image.
 5. Close the modal with X in the corner.
 6. Verify that the modal is now fully closed.
+
+### Navigate instead of push for reports with same reportID
+
+Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-2433351709
+
+1. Open app on wide layout web.
+2. Go to report A (any report).
+3. Go to report B (any report with message).
+4. Press reply in thread. 
+5. Press on header subtitle.
+6. Press on the report B in the sidebar.
+7. Verify that the message you replied to is no longer highlighted.
+8. Press the browsers back button.
+9. Verify that you are on the A report.
