@@ -150,7 +150,7 @@ jobs:
           SHORT_APP_VERSION=$(echo "$NEW_VERSION" | awk -F'-' '{print $1}')
           BUILD_NUMBER=$(echo "$NEW_VERSION" | awk -F'-' '{print $2}')
           FULL_APP_VERSION="$SHORT_APP_VERSION.$BUILD_NUMBER"
-          ANDROID_VERSION_CODE=$(echo $FULL_APP_VERSION | ruby -e "puts '05%02d%02d%02d%02d' % STDIN.read.split('.')")
+          ANDROID_VERSION_CODE=$(echo "$FULL_APP_VERSION" | ruby -e "puts '05%02d%02d%02d%02d' % STDIN.read.split('.')")
           
           # File paths to update
           ANDROID_MANIFEST_FILE="Android/AndroidManifest.xml"
