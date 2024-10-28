@@ -261,7 +261,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
     }
 
     const transaction = isTransactionEntry(key) ? data[key] : null;
-    const report = transaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : (data[key] as SearchReport);
+    const report = (transaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key]) as SearchReport;
 
     // We don't need to run the logic if this is not a transaction or iou/expense report
     if (!ReportUtils.isMoneyRequestReport(report)) {
@@ -269,7 +269,8 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
     }
 
     const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
-    const allTransactions = Object.values(data).filter((item) => item?.transactionID && item?.reportID === report.reportID);
+    const allReportTransactions = isReportEntry(key) ? Object.entries(data).filter(([itemKey, value]) => isTransactionEntry(itemKey) && (value as SearchTransaction)?.reportID === report.reportID).map(item => item[1]) : [];
+    console.log('over here', allReportTransactions)
     const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
     const violations = data[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? {};
     const allViolations = Object.keys(data).filter((item) => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)) ?? {};
@@ -282,7 +283,8 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
-    if (IOU.canIOUBePaid(report, chatReport, policy, allTransactions, false)) {
+    // TODO: Fix TS error
+    if (IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, false)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 
