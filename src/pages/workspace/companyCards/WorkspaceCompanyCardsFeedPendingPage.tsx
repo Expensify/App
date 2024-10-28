@@ -17,7 +17,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     const subtitle = (
         <Text>
             {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
-            <TextLink onPress={() => ReportInstance.navigateToConciergeChat()}> {CONST?.CONCIERGE_CHAT_NAME}</TextLink>
+            <TextLink onPress={() => ReportInstance.navigateToConciergeChat()}> {CONST?.CONCIERGE_CHAT_NAME}</TextLink>.
         </Text>
     );
 

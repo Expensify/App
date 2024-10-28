@@ -950,6 +950,7 @@ const translations = {
         error: {
             invalidCategoryLength: 'La longitud de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
             invalidAmount: 'Por favor, ingresa un importe válido antes de continuar.',
+            invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `El importe máximo del impuesto es ${amount}`,
             invalidSplit: 'La suma de las partes debe ser igual al importe total.',
             invalidSplitParticipants: 'Introduce un importe superior a cero para al menos dos participantes.',
@@ -1784,6 +1785,7 @@ const translations = {
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
             hasInvalidCharacter: 'El nombre sólo puede incluir caracteres latinos.',
+            invalidPhoneNumber: `Asegúrese de que el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         },
     },
     resendValidationForm: {
@@ -2268,6 +2270,10 @@ const translations = {
     countryStep: {
         confirmBusinessBank: 'Confirmar moneda y país de la cuenta bancaria comercial',
         confirmCurrency: 'Confirmar moneda y país',
+        yourBusiness: 'La moneda de su cuenta bancaria comercial debe coincidir con la moneda de su espacio de trabajo.',
+        youCanChange: 'Puede cambiar la moneda de su espacio de trabajo en su',
+        findCountry: 'Encontrar país',
+        selectCountry: 'Seleccione su país',
     },
     signerInfoStep: {
         signerInfo: 'Información del firmante',
