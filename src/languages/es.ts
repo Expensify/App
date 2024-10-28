@@ -433,7 +433,6 @@ const translations = {
         drafts: 'Borradores',
         finished: 'Finalizados',
         upgrade: 'Mejora',
-        downgrade: 'Degradar',
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
@@ -4103,6 +4102,9 @@ const translations = {
                 moreDetails: 'para obtener más información.',
                 gotIt: 'Entendido, gracias.',
             },
+        },
+        downgrade: {
+            title: 'Bajar de nivel tu espacio de trabajo',
         },
         restrictedAction: {
             restricted: 'Restringido',

@@ -16,7 +16,7 @@ function WorkspaceDowngradePage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <HeaderWithBackButton
-                title={translate('common.downgrade')}
+                title={translate('workspace.downgrade.title')}
                 onBackButtonPress={() => {
                     Navigation.goBack();
                 }}
