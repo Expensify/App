@@ -245,7 +245,6 @@ function BaseValidateCodeForm({
                         onPress={validateAndSubmitForm}
                         style={[styles.mt4]}
                         success
-                        pressOnEnter
                         large
                         isLoading={account?.isLoading}
                     />
