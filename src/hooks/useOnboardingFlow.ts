@@ -33,13 +33,13 @@ function useOnboardingFlowRouter() {
         }
 
         if (NativeModules.HybridAppModule) {
-            // For single entries, such as using the Travel feature from OldDot, we should not initiate the onboarding flow.
+            // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
             if (isSingleNewDotEntry) {
                 return;
             }
 
             // When user is transitioning from OldDot to NewDot, we usually show the explanation modal
-            if (isHybridAppOnboardingCompleted === false && !isSingleNewDotEntry) {
+            if (isHybridAppOnboardingCompleted === false) {
                 Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
             }
 
