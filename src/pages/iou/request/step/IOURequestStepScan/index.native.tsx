@@ -139,6 +139,7 @@ function IOURequestStepScan({
 
     const tapGesture = Gesture.Tap()
         .enabled(device?.supportsFocus ?? false)
+        // eslint-disable-next-line react-compiler/react-compiler
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 
@@ -252,6 +253,7 @@ function IOURequestStepScan({
                 IOU.requestMoney(
                     report,
                     0,
+                    transaction?.attendees,
                     transaction?.currency ?? 'USD',
                     transaction?.created ?? '',
                     '',
@@ -263,7 +265,7 @@ function IOURequestStepScan({
                 );
             }
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.created, transaction?.currency],
+        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
     );
     const navigateToConfirmationStep = useCallback(
         (file: FileObject, source: string, locationPermissionGranted = false) => {
@@ -345,6 +347,7 @@ function IOURequestStepScan({
                                 IOU.requestMoney(
                                     report,
                                     0,
+                                    transaction?.attendees,
                                     transaction?.currency ?? 'USD',
                                     transaction?.created ?? '',
                                     '',
@@ -388,6 +391,7 @@ function IOURequestStepScan({
         [
             backTo,
             transaction?.isFromGlobalCreate,
+            transaction?.attendees,
             transaction?.currency,
             transaction?.created,
             iouType,
@@ -480,6 +484,8 @@ function IOURequestStepScan({
             return;
         }
 
+        setDidCapturePhoto(true);
+
         camera?.current
             ?.takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
@@ -490,26 +496,34 @@ function IOURequestStepScan({
                 const source = getPhotoSource(photo.path);
                 IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
 
-                FileUtils.readFileAsync(source, photo.path, (file) => {
-                    if (isEditing) {
-                        updateScanAndNavigate(file, source);
-                        return;
-                    }
-                    setDidCapturePhoto(true);
-                    if (shouldSkipConfirmation) {
-                        setFileResize(file);
-                        setFileSource(source);
-                        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
-                        if (gpsRequired) {
-                            const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
-                            if (shouldStartLocationPermissionFlow) {
-                                setStartLocationPermissionFlow(true);
-                                return;
+                FileUtils.readFileAsync(
+                    source,
+                    photo.path,
+                    (file) => {
+                        if (isEditing) {
+                            updateScanAndNavigate(file, source);
+                            return;
+                        }
+                        if (shouldSkipConfirmation) {
+                            setFileResize(file);
+                            setFileSource(source);
+                            const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
+                            if (gpsRequired) {
+                                const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
+                                if (shouldStartLocationPermissionFlow) {
+                                    setStartLocationPermissionFlow(true);
+                                    return;
+                                }
                             }
                         }
-                    }
-                    navigateToConfirmationStep(file, source, false);
-                });
+                        navigateToConfirmationStep(file, source, false);
+                    },
+                    () => {
+                        setDidCapturePhoto(false);
+                        showCameraAlert();
+                        Log.warn('Error reading photo');
+                    },
+                );
             })
             .catch((error: string) => {
                 setDidCapturePhoto(false);
@@ -683,7 +697,9 @@ function IOURequestStepScan({
 
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScan);
+const IOURequestStepScanWithOnyx = IOURequestStepScan;
+
+const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScanWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails, true);
 // eslint-disable-next-line rulesdir/no-negated-variables
