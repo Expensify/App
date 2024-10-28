@@ -145,6 +145,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
 
     const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
     const shouldDisplaySearchRouter = !isReportInRHP;
+    const isChatUsedForOnboarding = ReportUtils.isChatUsedForOnboarding(report);
 
     return (
         <View
@@ -282,7 +283,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 )}
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                {!shouldUseNarrowLayout && freeTrialButton}
+                                {!shouldUseNarrowLayout && isChatUsedForOnboarding && freeTrialButton}
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
@@ -305,8 +306,8 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                     </View>
                 )}
             </View>
-            {!isLoading && shouldUseNarrowLayout && <View style={[styles.pb3, styles.ph5]}>{freeTrialButton}</View>}
             {!isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.m2]}>{joinButton}</View>}
+            {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && <View style={[styles.pb3, styles.ph5]}>{freeTrialButton}</View>}
         </View>
     );
 }
