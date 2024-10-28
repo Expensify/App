@@ -47,7 +47,11 @@ function connect(email: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegators: delegatedAccess.delegators.map((delegator) => (delegator.email === email ? {...delegator, errorFields: {connect: null}} : delegator)),
+                    errorFields: {
+                        connect: {
+                            [email]: null,
+                        },
+                    },
                 },
             },
         },
@@ -59,7 +63,11 @@ function connect(email: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegators: delegatedAccess.delegators.map((delegator) => (delegator.email === email ? {...delegator, errorFields: undefined} : delegator)),
+                    errorFields: {
+                        connect: {
+                            [email]: null,
+                        },
+                    },
                 },
             },
         },
@@ -71,9 +79,11 @@ function connect(email: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegators: delegatedAccess.delegators.map((delegator) =>
-                        delegator.email === email ? {...delegator, errorFields: {connect: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError')}} : delegator,
-                    ),
+                    errorFields: {
+                        connect: {
+                            [email]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
+                        },
+                    },
                 },
             },
         },
@@ -112,7 +122,7 @@ function disconnect() {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    errorFields: {connect: null},
+                    errorFields: {disconnect: null},
                 },
             },
         },
@@ -136,7 +146,7 @@ function disconnect() {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    errorFields: {connect: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError')},
+                    errorFields: {disconnect: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError')},
                 },
             },
         },
