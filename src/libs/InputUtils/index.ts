@@ -1,8 +1,19 @@
-import type {TextInput} from 'react-native';
+import type {MoveSelectiontoEnd, ScrollToBottom} from './types';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function scrollToBottom(_input: TextInput) {}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function moveSelectionToEnd(_input: TextInput) {}
+const scrollToBottom: ScrollToBottom = (input) => {
+    if (!('scrollTop' in input)) {
+        return;
+    }
+    // eslint-disable-next-line no-param-reassign
+    input.scrollTop = input.scrollHeight;
+};
+
+const moveSelectionToEnd: MoveSelectiontoEnd = (input) => {
+    if (!('setSelectionRange' in input)) {
+        return;
+    }
+    const length = input.value.length;
+    input.setSelectionRange(length, length);
+};
 
 export {scrollToBottom, moveSelectionToEnd};
