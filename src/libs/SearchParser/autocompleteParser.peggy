@@ -1,0 +1,89 @@
+// This file defines the grammar that's used by [Peggy](https://peggyjs.org/) to generate the autocompleteParser.js file.
+// The autocompleteParser is setup to parse our custom search syntax and output information needed for autocomplete and syntax highlighting to work.
+//
+// Here's the general grammar structure:
+//
+// query: the entry point for the parser and rule to process the values returned by the filterList rule. It takes filters as an argument and returns the final ranges and autocomplete objects.
+// filterList: a rule to process information returned by filter rule.
+// filter: an abstract rule to simplify the filterList rule. It takes all filter types.
+// defaultFilter: a rule to process the default values returned by the defaultKey autocompleteKey. It updates the autocomplete field.
+// freeTextFilter: a rule to process text that isn't a filter that needs autocomplete. It resets the autocomplete field (it means the user started a new filter).
+// autocompleteKey: a rule to match pre-defined search syntax fields that need autocomplete, e.g. tag, currency, etc.
+//
+// filter, logicalAnd, operator, alphanumeric, quotedString are defined in baseRules.peggy grammar.
+//
+// per-parser initializer (code executed before every parse).
+{ let autocomplete = null; }
+
+query = _ ranges:filterList? _ { return { autocomplete, ranges }; }
+
+filterList
+  = filters:filter|.., logicalAnd| { return filters.filter(Boolean).flat(); }
+
+filter = @(defaultFilter / freeTextFilter)
+
+defaultFilter
+  = _ key:autocompleteKey _ op:operator _ value:identifier? {
+      if (!value) {
+        autocomplete = {
+          key,
+          value: null,
+          start: location().end.offset,
+          length: 0,
+        };
+        return;
+      }
+
+      autocomplete = {
+        key,
+        ...value[value.length - 1],
+      };
+
+      return value
+        .filter((filter) => filter.length > 0)
+        .map(({ start, length }) => ({
+          key,
+          start,
+          length,
+        }));
+    }
+
+freeTextFilter = _ identifier _ { autocomplete = null; }
+
+autocompleteKey "key"
+  = @(
+      "in"
+      / "currency"
+      / "tag"
+      / "category"
+      / "to"
+      / "taxRate"
+      / "from"
+      / "expenseType"
+      / "type"
+      / "status"
+    )
+
+identifier
+  = parts:(quotedString / alphanumeric)|1.., ","| empty:","? {
+      const ends = location();
+      const value = parts.flat();
+      if (empty) {
+        value.push("");
+      }
+      let count = ends.start.offset;
+      const result = [];
+      value.forEach((filter) => {
+        let word = filter;
+        if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
+          word = word.slice(1, -1);
+        }
+        result.push({
+          value: word,
+          start: count,
+          length: filter.length,
+        });
+        count += filter.length + 1;
+      });
+      return result;
+    }
