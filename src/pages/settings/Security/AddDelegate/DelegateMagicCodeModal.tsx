@@ -23,16 +23,17 @@ function DelegateMagicCodeModal({login, role, onClose}: DelegateMagicCodeModalPr
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
-    const validateLoginError = ErrorUtils.getLatestErrorField(currentDelegate, 'addDelegate');
+    const addDelegateErrors = account?.delegatedAccess?.errorFields?.addDelegate?.[login];
+    const validateLoginError = ErrorUtils.getLatestError(addDelegateErrors);
 
     useEffect(() => {
-        if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!currentDelegate.errorFields?.addDelegate) {
+        if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!addDelegateErrors) {
             return;
         }
 
         // Dismiss modal on successful magic code verification
         Navigation.navigate(ROUTES.SETTINGS_SECURITY);
-    }, [login, currentDelegate, role]);
+    }, [login, currentDelegate, role, addDelegateErrors]);
 
     const onBackButtonPress = () => {
         onClose?.();
@@ -43,7 +44,7 @@ function DelegateMagicCodeModal({login, role, onClose}: DelegateMagicCodeModalPr
         if (!validateLoginError) {
             return;
         }
-        Delegate.clearAddDelegateErrors(currentDelegate?.email ?? '', 'addDelegate');
+        Delegate.clearDelegateErrorsByField(currentDelegate?.email ?? '', 'addDelegate');
     };
 
     const sendValidateCode = () => {

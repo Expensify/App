@@ -127,7 +127,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
             setValidateCode(text);
             setFormError({});
             if (validateLoginError) {
-                Delegate.clearAddDelegateErrors(currentDelegate?.email ?? '', 'updateDelegateRole');
+                Delegate.clearDelegateErrorsByField(currentDelegate?.email ?? '', 'updateDelegateRole');
             }
         },
         [currentDelegate?.email, validateLoginError],
