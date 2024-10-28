@@ -9,7 +9,7 @@ import {isSafari} from '@libs/Browser';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
-import useModalNavigatorOptions from '@libs/Navigation/AppNavigator/useModalNavigatorOptions';
+import useSideModalScreenOptions from '@libs/Navigation/AppNavigator/useSideModalScreenOptions';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -26,7 +26,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const customInterpolator = useModalCardStyleInterpolator();
-    const modalNavigatorOptions = useModalNavigatorOptions();
+    const modalNavigatorOptions = useSideModalScreenOptions();
 
     const screenOptions = useMemo(() => {
         // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator

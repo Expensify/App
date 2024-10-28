@@ -10,7 +10,7 @@ import type {ThemeStyles} from '@src/styles';
 
 type GetModalStackScreenOptions = (styles: ThemeStyles) => PlatformStackNavigationOptions;
 
-function useModalScreenOptions(getScreenOptions?: GetModalStackScreenOptions) {
+function useModalStackScreenOptions(getScreenOptions?: GetModalStackScreenOptions) {
     const styles = useThemeStyles();
     const customInterpolator = useModalCardStyleInterpolator();
 
@@ -35,5 +35,5 @@ function useModalScreenOptions(getScreenOptions?: GetModalStackScreenOptions) {
     return getScreenOptions?.(styles) ?? defaultSubRouteOptions;
 }
 
-export default useModalScreenOptions;
+export default useModalStackScreenOptions;
 export type {GetModalStackScreenOptions};

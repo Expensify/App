@@ -35,8 +35,8 @@ import type {
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
-import type {GetModalStackScreenOptions} from './useModalScreenOptions';
-import useModalScreenOptions from './useModalScreenOptions';
+import type {GetModalStackScreenOptions} from './useModalStackScreenOptions';
+import useModalStackScreenOptions from './useModalStackScreenOptions';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -50,7 +50,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     const ModalStackNavigator = createPlatformStackNavigator<ParamList>();
 
     function ModalStack() {
-        const screenOptions = useModalScreenOptions(getScreenOptions);
+        const screenOptions = useModalStackScreenOptions(getScreenOptions);
 
         return (
             <ModalStackNavigator.Navigator screenOptions={screenOptions}>

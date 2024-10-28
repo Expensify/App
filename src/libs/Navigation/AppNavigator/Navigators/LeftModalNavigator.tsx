@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useModalNavigatorOptions from '@libs/Navigation/AppNavigator/useModalNavigatorOptions';
+import useSideModalScreenOptions from '@libs/Navigation/AppNavigator/useSideModalScreenOptions';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navigation/types';
@@ -21,7 +21,7 @@ const Stack = createPlatformStackNavigator<LeftModalNavigatorParamList>();
 function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const screenOptions = useModalNavigatorOptions('horizontal-inverted');
+    const screenOptions = useSideModalScreenOptions('horizontal-inverted');
 
     return (
         <NoDropZone>

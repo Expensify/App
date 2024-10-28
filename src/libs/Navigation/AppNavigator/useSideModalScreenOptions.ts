@@ -5,12 +5,12 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
 /**
- * Modal stack navigator screen options generator function
+ * Side modal screen options generator function
  * @param gestureDirection - The gesture direction of dismissing the modal
  * @returns The screen options object
  */
-const useModalNavigatorOptions = (gestureDirection: GestureDirection = 'horizontal'): PlatformStackNavigationOptions => {
-    const themeStyles = useThemeStyles();
+const useSideModalScreenOptions = (gestureDirection: GestureDirection = 'horizontal'): PlatformStackNavigationOptions => {
+    const styles = useThemeStyles();
 
     let universalGestureDirection: PlatformStackNavigationOptions['gestureDirection'] | undefined;
     let webGestureDirection: GestureDirection | undefined;
@@ -25,11 +25,11 @@ const useModalNavigatorOptions = (gestureDirection: GestureDirection = 'horizont
         animation: Animations.SLIDE_FROM_RIGHT,
         gestureDirection: universalGestureDirection,
         web: {
-            cardStyle: themeStyles.navigationScreenCardStyle,
+            cardStyle: styles.navigationScreenCardStyle,
             cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
             ...(webGestureDirection && {gestureDirection: webGestureDirection}),
         },
     };
 };
 
-export default useModalNavigatorOptions;
+export default useSideModalScreenOptions;
