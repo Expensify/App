@@ -226,6 +226,7 @@ function IOURequestStepAmount({
                     IOU.requestMoney(
                         report,
                         backendAmount,
+                        transaction?.attendees,
                         currency,
                         transaction?.created ?? '',
                         CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,

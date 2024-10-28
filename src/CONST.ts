@@ -297,6 +297,9 @@ const CONST = {
     // Regex to get link in href prop inside of <a/> component
     REGEX_LINK_IN_ANCHOR: /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi,
 
+    // Regex to read violation value from string given by backend
+    VIOLATION_LIMIT_REGEX: /[^0-9]+/g,
+
     MERCHANT_NAME_MAX_LENGTH: 255,
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
@@ -1577,6 +1580,7 @@ const CONST = {
         TRACKING_CATEGORY_OPTIONS: {
             DEFAULT: 'DEFAULT',
             TAG: 'TAG',
+            REPORT_FIELD: 'REPORT_FIELD',
         },
     },
 
@@ -1627,6 +1631,12 @@ const CONST = {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'journal_entry',
+    },
+
+    QUICKBOOKS_NON_REIMBURSABLE_ACCOUNT_TYPE: {
+        CREDIT_CARD: 'credit_card',
+        DEBIT_CARD: 'debit_card',
+        VENDOR_BILL: 'bill',
     },
 
     QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE: {
@@ -2644,6 +2654,7 @@ const CONST = {
         },
         BANK_CONNECTIONS: {
             WELLS_FARGO: 'wellsfargo',
+            BANK_OF_AMERICA: 'bankofamerica',
             CHASE: 'chase',
             BREX: 'brex',
             CAPITAL_ONE: 'capitalone',
@@ -4834,10 +4845,11 @@ const CONST = {
                         '\n' +
                         'Here’s how to request money:\n' +
                         '\n' +
-                        '1. Click the green *+* button.\n' +
-                        '2. Choose *Split expense*.\n' +
-                        '3. Scan a receipt or enter an amount.\n' +
-                        '4. Add your friend(s) to the request.\n' +
+                        '1. Hit the green *+* button.\n' +
+                        '2. Choose *Start chat*.\n' +
+                        '3. Enter any email, SMS, or name of who you want to split with.\n' +
+                        '4. From within the chat, hit the *+* button on the message bar, and hit *Split expense*.\n' +
+                        '5. Create the expense by selecting Manual, Scan or Distance.\n' +
                         '\n' +
                         'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
                 },
