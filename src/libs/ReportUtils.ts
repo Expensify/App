@@ -5046,7 +5046,7 @@ function buildOptimisticReportPreview(
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const message = getReportPreviewMessage(iouReport);
     const created = DateUtils.getDBTime();
-    const reportActorAccountID = isInvoiceReport(iouReport) ? iouReport.ownerAccountID : iouReport?.managerID ?? -1;
+    const reportActorAccountID = (isInvoiceReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     return {
         reportActionID: reportActionID ?? NumberUtils.rand64(),
         reportID: chatReport?.reportID,
