@@ -5,11 +5,11 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
 /**
- * Side modal screen options generator function
+ * Side modal stack screen options generator function
  * @param gestureDirection - The gesture direction of dismissing the modal
  * @returns The screen options object
  */
-const useSideModalScreenOptions = (gestureDirection: GestureDirection = 'horizontal'): PlatformStackNavigationOptions => {
+const useSideModalStackScreenOptions = (gestureDirection: GestureDirection = 'horizontal'): PlatformStackNavigationOptions => {
     const styles = useThemeStyles();
 
     let universalGestureDirection: PlatformStackNavigationOptions['gestureDirection'] | undefined;
@@ -32,4 +32,4 @@ const useSideModalScreenOptions = (gestureDirection: GestureDirection = 'horizon
     };
 };
 
-export default useSideModalScreenOptions;
+export default useSideModalStackScreenOptions;

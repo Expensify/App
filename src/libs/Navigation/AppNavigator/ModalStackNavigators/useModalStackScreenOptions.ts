@@ -24,6 +24,9 @@ function useModalStackScreenOptions(getScreenOptions?: GetModalStackScreenOption
         (): PlatformStackNavigationOptions => ({
             ...hideKeyboardOnSwipe,
             headerShown: false,
+            native: {
+                contentStyle: {...styles.navigationScreenCardStyle, backgroundColor: 'red'},
+            },
             web: {
                 cardStyle: styles.navigationScreenCardStyle,
                 cardStyleInterpolator,
