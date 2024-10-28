@@ -27,7 +27,7 @@ defaultFilter
       if (!value) {
         autocomplete = {
           key,
-          value: null,
+          value: "",
           start: location().end.offset,
           length: 0,
         };

@@ -60,7 +60,7 @@ const tests = [
         expected: {
             autocomplete: {
                 key: 'category',
-                value: null,
+                value: '',
                 start: 9,
                 length: 0,
             },
