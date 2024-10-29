@@ -70,7 +70,6 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
-
     useEffect(() => {
         if (isFocusedScreen) {
             return;
