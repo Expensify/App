@@ -59,14 +59,15 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         }
 
         User.generateStatementPDF(yearMonth);
-    }, [isWalletStatementGenerating, walletStatement?.[yearMonth], yearMonth]);
+    }, [isWalletStatementGenerating, walletStatement, yearMonth]);
 
     useEffect(() => {
         // If the statement generate is complete, download it automatically.
+        // eslint-disable-next-line rulesdir/prefer-early-return
         if (prevIsWalletStatementGenerating && !isWalletStatementGenerating && walletStatement?.[yearMonth]) {
             processDownload();
         }
-    }, [prevIsWalletStatementGenerating, isWalletStatementGenerating, processDownload, walletStatement?.[yearMonth]]);
+    }, [prevIsWalletStatementGenerating, isWalletStatementGenerating, processDownload, walletStatement, yearMonth]);
 
     const year = yearMonth?.substring(0, 4) || getYear(new Date());
     const month = yearMonth?.substring(4) || getMonth(new Date());
