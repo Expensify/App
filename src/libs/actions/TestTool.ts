@@ -1,5 +1,6 @@
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -14,7 +15,13 @@ Onyx.connect({
  * Throttle the toggle to make the modal stay open if you accidentally tap an extra time, which is easy to do.
  */
 function toggleTestToolsModal() {
-    const toggle = () => Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, !isTestToolsModalOpen);
+    const toggle = () => {
+        if (!isTestToolsModalOpen) {
+            Modal.close(() => Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, !isTestToolsModalOpen));
+            return;
+        }
+        Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, !isTestToolsModalOpen);
+    };
     const throttledToggle = throttle(toggle, CONST.TIMING.TEST_TOOLS_MODAL_THROTTLE_TIME);
     throttledToggle();
 }
