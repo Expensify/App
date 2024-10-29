@@ -412,9 +412,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                         shouldShowTextInput={shouldShowTextInput}
                         textInputLabel={translate('selectionList.findMember')}
                         textInputValue={searchValue}
-                        onChangeText={(value) => {
-                            setSearchValue(value);
-                        }}
+                        onChangeText={setSearchValue}
                         headerMessage={headerMessage}
                         ListItem={TableListItem}
                         onSelectRow={openMemberDetails}
