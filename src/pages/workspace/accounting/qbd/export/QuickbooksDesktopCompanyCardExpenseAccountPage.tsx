@@ -3,7 +3,6 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ConnectionUtils from '@libs/ConnectionUtils';
@@ -25,7 +24,6 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const {vendors} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === qbdConfig?.export?.nonReimbursableBillDefaultVendor);
-    const {canUseNewDotQBD} = usePermissions();
     const nonReimbursable = qbdConfig?.export?.nonReimbursable;
     const nonReimbursableAccount = qbdConfig?.export?.nonReimbursableAccount;
 
@@ -58,8 +56,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
             displayName={QuickbooksDesktopCompanyCardExpenseAccountPage.displayName}
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.qbd.exportCompanyCardsDescription"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] remove it once the QBD beta is done
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
