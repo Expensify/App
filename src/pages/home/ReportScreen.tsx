@@ -353,6 +353,26 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         !isCurrentReportLoadedFromOnyx ||
         isLoading;
 
+    console.log({
+        isLoading,
+        isLoadingApp,
+        '!reportIDFromRoute': !reportIDFromRoute,
+        '!isSidebarLoaded': !isSidebarLoaded,
+        '!isInNarrowPaneModal': !isInNarrowPaneModal,
+        isPersonalDetailsEmpty: PersonalDetailsUtils.isPersonalDetailsEmpty(),
+    });
+    console.log({
+        shouldShowSkeleton,
+        isLinkingToMessage: isLinkingToMessage,
+        '!isLinkedMessagePageReady': !isLinkedMessagePageReady,
+        '!isLinkingToMessage': !isLinkingToMessage,
+        '!isInitialPageReady': !isInitialPageReady,
+        'isEmptyObject(reportOnyx)': isEmptyObject(reportOnyx),
+        isLoadingReportOnyx: isLoadingReportOnyx,
+        '!isCurrentReportLoadedFromOnyx': !isCurrentReportLoadedFromOnyx,
+        isLoading: isLoading,
+    });
+
     const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
