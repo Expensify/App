@@ -96,7 +96,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: /tmp/artifacts
-          pattern: android-artifact-*
+          pattern: android-*-artifact
           merge-multiple: true
 
       - name: Log downloaded artifact paths
@@ -266,7 +266,7 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: android-build-artifact
+          name: android-hybrid-build-artifact
           path: ${{ env.aabPath }}
 
       - name: Set current App version in Env
@@ -583,7 +583,7 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: ios-build-artifact
+          name: ios-hybrid-build-artifact
           path: ${{ env.ipaPath }}
 
       - name: Warn deployers if iOS production deploy failed
@@ -690,7 +690,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web]
+    needs: [buildAndroid, uploadAndroid, submitAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -788,13 +788,13 @@ jobs:
         run: |
           gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
             ./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./android-build-artifact/app-production-release.aab \
-            ./android-build-artifact/Expensify-release.aab#Android-HybridApp.aab \
+            ./android-aab-artifact/app-production-release.aab \
+            ./android-hybrid-build-artifact/Expensify-release.aab#Android-HybridApp.aab \
             ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./desktop-staging-build-artifact/NewExpensify.dmg#NewExpensifyStaging.dmg \
             ./ios-sourcemaps-artifact/main.jsbundle.map#ios-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./ios-build-artifact/New\ Expensify.ipa \
-            ./ios-build-artifact/Expensify.ipa#iOS-HybridApp.ipa \
+            ./ios-hybrid-build-artifact/Expensify.ipa#iOS-HybridApp.ipa \
             ./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./web-staging-build-tar-gz-artifact/webBuild.tar.gz#stagingWebBuild.tar.gz \
             ./web-staging-build-zip-artifact/webBuild.zip#stagingWebBuild.zip

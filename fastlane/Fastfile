@@ -428,7 +428,8 @@ platform :ios do
       app_id: "1:1008697809946:ios:3ffad71f664f2886",
       dsym_path: ENV[KEY_DSYM_PATH],
       gsp_path: "./ios/GoogleService-Info.plist",
-      binary_path: "./ios/Pods/FirebaseCrashlytics/upload-symbols"
+      # Assuming we are running this from the react-native submodule directory for HybridApp
+      binary_path: "../iOS/Pods/FirebaseCrashlytics/upload-symbols"
     )
     end
 
