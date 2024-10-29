@@ -1,3 +1,4 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
@@ -10,18 +11,8 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {TransactionViolation} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {
-    ListItemDataType,
-    ListItemType,
-    SearchDataTypes,
-    SearchPersonalDetails,
-    SearchPolicy,
-    SearchReport,
-    SearchTransaction,
-    SearchTransactionAction,
-} from '@src/types/onyx/SearchResults';
+import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import * as IOU from './actions/IOU';
 import * as Report from './actions/Report';
 import * as CurrencyUtils from './CurrencyUtils';
@@ -293,7 +284,9 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
             ? data[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`]
             : undefined;
     const violations = data[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? {};
-    const allViolations = Object.keys(data).filter((item) => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)) ?? {};
+    const allViolations = (Object.entries(data)
+        .filter(([itemKey]) => itemKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS))
+        .map((item) => item[1]) ?? undefined) as unknown as OnyxCollection<OnyxTypes.TransactionViolations>;
 
     if (ReportUtils.isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
@@ -311,9 +304,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    // TODO: update allHavePendingRTERViolation to take in array of transactions
-    // TODO: update hasBrokenConnectionViolation to take in violations instead of connecting directly to Onyx
-    if (IOU.canReportBeSubmitted(report, policy, currentUserAccountID, transaction)) {
+    if (IOU.canReportBeSubmitted(report, policy, currentUserAccountID, transaction, allViolations)) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 

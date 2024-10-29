@@ -7112,11 +7112,12 @@ function canReportBeSubmitted(
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
     currentUserAccountID: number,
     transaction?: OnyxTypes.Transaction | SearchTransaction,
+    violations?: OnyxCollection<OnyxTypes.TransactionViolations>,
 ) {
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
-    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
-    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', moneyRequestReport, policy);
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1'], violations);
+    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', moneyRequestReport, policy, violations);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     return (
