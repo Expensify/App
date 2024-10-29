@@ -16,6 +16,7 @@ import Navigation, {navigationRef} from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -72,7 +73,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     }
     const {reportID, mentionDisplayText} = mentionDetails;
 
-    let navigationRoute: string | undefined = reportID ? ROUTES.REPORT_WITH_ID.getRoute(reportID) : undefined;
+    let navigationRoute: Route | undefined = reportID ? ROUTES.REPORT_WITH_ID.getRoute(reportID) : undefined;
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
     const backTo = Navigation.getActiveRoute();
     if (topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
