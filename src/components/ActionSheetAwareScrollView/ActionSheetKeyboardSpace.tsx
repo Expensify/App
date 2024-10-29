@@ -1,7 +1,7 @@
 import React, {useContext, useEffect} from 'react';
 import type {ViewProps} from 'react-native';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
-import Reanimated, {runOnJS, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring, withTiming} from 'react-native-reanimated';
+import Reanimated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring, withTiming} from 'react-native-reanimated';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -75,9 +75,9 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
     const keyboard = useAnimatedKeyboard();
 
     // similar to using `global` in worklet but it's just a local object
-    const syncLocalWorkletStateL = useSharedValue(KeyboardState.UNKNOWN);
+    const syncLocalWorkletState = useSharedValue(KeyboardState.UNKNOWN);
     const {windowHeight} = useWindowDimensions();
-    const {currentActionSheetState, transitionActionSheetStateWorklet: transition, transitionActionSheetState, resetStateMachine} = useContext(ActionSheetAwareScrollViewContext);
+    const {currentActionSheetState, transitionActionSheetStateWorklet: transition, resetStateMachine} = useContext(ActionSheetAwareScrollViewContext);
 
     // Reset state machine when component unmounts
     // eslint-disable-next-line arrow-body-style
@@ -88,16 +88,16 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
     useAnimatedReaction(
         () => keyboard.state.value,
         (lastState) => {
-            if (lastState === syncLocalWorkletStateL.value) {
+            if (lastState === syncLocalWorkletState.value) {
                 return;
             }
             // eslint-disable-next-line react-compiler/react-compiler
-            syncLocalWorkletStateL.value = lastState;
+            syncLocalWorkletState.value = lastState;
 
             if (lastState === KeyboardState.OPEN) {
-                runOnJS(transitionActionSheetState)({type: Actions.OPEN_KEYBOARD});
+                transition({type: Actions.OPEN_KEYBOARD});
             } else if (lastState === KeyboardState.CLOSED) {
-                runOnJS(transitionActionSheetState)({type: Actions.CLOSE_KEYBOARD});
+                transition({type: Actions.CLOSE_KEYBOARD});
             }
         },
         [],
@@ -125,9 +125,9 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 ? previousPayload.fy + safeArea.top + previousPayload.height - (windowHeight - previousPayload.popoverHeight)
                 : 0;
 
-        const isOpeningKeyboard = syncLocalWorkletStateL.value === 1;
-        const isClosingKeyboard = syncLocalWorkletStateL.value === 3;
-        const isClosedKeyboard = syncLocalWorkletStateL.value === 4;
+        const isOpeningKeyboard = syncLocalWorkletState.value === 1;
+        const isClosingKeyboard = syncLocalWorkletState.value === 3;
+        const isClosedKeyboard = syncLocalWorkletState.value === 4;
         // Depending on the current and sometimes previous state we can return
         // either animation or just a value
         switch (current.state) {
