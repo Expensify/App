@@ -266,7 +266,7 @@ jobs:
           status: custom
           custom_payload: |
             {
-              channel: '#newdot-quality',
+              channel: '#quality',
               attachments: [{
                 color: 'danger',
                 text: `🔴 Performance regression detected in PR ${{ inputs.PR_NUMBER }}\nDetected in <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow.`,
