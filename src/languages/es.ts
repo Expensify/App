@@ -591,7 +591,6 @@ const translations = {
     login: {
         hero: {
             header: 'Viajes y gastos, a la velocidad del chat',
-            body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
         },
     },
     thirdPartySignIn: {
