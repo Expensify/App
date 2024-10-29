@@ -542,11 +542,11 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
     const policyCategoryExpenseRule = CategoryUtils.getCategoryExpenseRule(policy?.rules?.expenseRules ?? [], policyCategory.oldName);
     const approvalRules = policy?.rules?.approvalRules ?? [];
     const expenseRules = policy?.rules?.expenseRules ?? [];
-    const mccGroup = policy?.mccGroup ?? [];
+    const mccGroup = policy?.mccGroup ?? {};
     const updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
-    const clonedMccGroup: never[] | Record<string, MccGroup> = lodashCloneDeep(mccGroup);
-    const updatedMccGroups = CategoryUtils.updateCategoryInMccGroups(clonedMccGroup, policyCategory.oldName, policyCategory.newName);
+    const clonedMccGroup: Record<string, MccGroup> = lodashCloneDeep(mccGroup);
+    const updatedMccGroup = CategoryUtils.updateCategoryInMccGroup(clonedMccGroup, policyCategory.oldName, policyCategory.newName);
 
     if (policyCategoryExpenseRule) {
         const ruleIndex = updatedExpenseRules.findIndex((rule) => rule.id === policyCategoryExpenseRule.id);
@@ -599,7 +599,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         approvalRules: updatedApprovalRules,
                         expenseRules: updatedExpenseRules,
                     },
-                    mccGroup: updatedMccGroups,
+                    mccGroup: updatedMccGroup,
                 },
             },
         ],
@@ -643,7 +643,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                     rules: {
                         approvalRules,
                     },
-                    mccGroup: updatedMccGroups,
+                    mccGroup: updatedMccGroup,
                 },
             },
         ],

@@ -68,14 +68,14 @@ function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: st
     return categoryDefaultTaxRate;
 }
 
-function updateCategoryInMccGroups(mccGroups: never[] | Record<string, MccGroup>, oldCategoryName: string, newCategoryName: string): Record<string, MccGroup> {
+function updateCategoryInMccGroup(mccGroups: Record<string, MccGroup>, oldCategoryName: string, newCategoryName: string) {
     const updatedGroups: Record<string, MccGroup> = {};
 
     for (const [key, group] of Object.entries(mccGroups || {})) {
-        updatedGroups[key] = group.category === oldCategoryName ? {...group, category: newCategoryName, pendingAction: 'update'} : group;
+        updatedGroups[key] = group.category === oldCategoryName ? {...group, category: newCategoryName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : group;
     }
 
     return updatedGroups;
 }
 
-export {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryExpenseRule, getCategoryDefaultTaxRate, updateCategoryInMccGroups};
+export {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryExpenseRule, getCategoryDefaultTaxRate, updateCategoryInMccGroup};
