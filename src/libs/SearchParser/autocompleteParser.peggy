@@ -27,7 +27,7 @@ defaultFilter
       if (!value) {
         autocomplete = {
           key,
-          value: null,
+          value: '',
           start: location().end.offset,
           length: 0,
         };
@@ -39,14 +39,15 @@ defaultFilter
         ...value[value.length - 1],
       };
 
-      return value.map(({ start, length }) => ({
-        key,
-        start,
-        length,
-      }));
+      return value
+        .filter((filter) => filter.length > 0)
+        .map((filter) => ({
+          key,
+          ...filter,
+        }));
     }
 
-freeTextFilter = _ identifier _ { autocomplete = null; }
+freeTextFilter = _ (identifier/ ",") _ { autocomplete = null; }
 
 autocompleteKey "key"
   = @(
@@ -63,14 +64,21 @@ autocompleteKey "key"
     )
 
 identifier
-  = parts:(quotedString / alphanumeric)+ {
+  = parts:(quotedString / alphanumeric)|1.., ","| empty:","? {
       const ends = location();
       const value = parts.flat();
+      if (empty) {
+        value.push("");
+      }
       let count = ends.start.offset;
       const result = [];
       value.forEach((filter) => {
+        let word = filter;
+        if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
+          word = word.slice(1, -1);
+        }
         result.push({
-          value: filter,
+          value: word,
           start: count,
           length: filter.length,
         });
