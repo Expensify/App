@@ -1,4 +1,3 @@
-/* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';

@@ -210,7 +210,6 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     }
     return (
         <View
-            // eslint-disable-next-line react-compiler/react-compiler
             ref={viewRef(scrollableRef)}
             onLayout={onContainerLayoutChanged}
             style={[styles.imageViewContainer, styles.overflowAuto, styles.pRelative]}

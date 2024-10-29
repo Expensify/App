@@ -315,7 +315,6 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
                     login={login}
                     onLoginChanged={setLogin}
                     blurOnSubmit={account?.validated === false}
-                    // eslint-disable-next-line react-compiler/react-compiler
                     scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
                 />
                 {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}

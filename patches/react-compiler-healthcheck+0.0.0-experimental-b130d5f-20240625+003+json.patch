@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-compiler-healthcheck/dist/index.js b/node_modules/react-compiler-healthcheck/dist/index.js
-index 17b0f96..e386e34 100755
+index fa2ab22..93be1fb 100755
 --- a/node_modules/react-compiler-healthcheck/dist/index.js
 +++ b/node_modules/react-compiler-healthcheck/dist/index.js
-@@ -56972,16 +56972,28 @@ var reactCompilerCheck = {
+@@ -69157,16 +69157,28 @@ var reactCompilerCheck = {
        compile(source, path);
      }
    },
@@ -24,7 +24,7 @@ index 17b0f96..e386e34 100755
 +        )
 +      );
 +    }
-+
++    
 +    if (json) {
 +      const extractFileName = (output) => output.fnLoc.filename;
 +      const successfulFiles = SucessfulCompilation.map(extractFileName);
@@ -34,10 +34,10 @@ index 17b0f96..e386e34 100755
 +        failure: unsuccessfulFiles,
 +      }));
 +    }
- 
+     
      if (verbose) {
        for (const compilation of [...SucessfulCompilation, ...ActionableFailures, ...OtherFailures]) {
-@@ -57068,10 +57080,17 @@ function main() {
+@@ -69253,10 +69265,17 @@ function main() {
          default: false,
          alias: 'v',
        })
@@ -48,14 +48,14 @@ index 17b0f96..e386e34 100755
 +        alias: 'j',
 +      })
        .parseSync();
-     const spinner = ora('Checking').start();
+     const spinner = ora("Checking").start();
      let src = argv.src;
      let verbose = argv.verbose;
 +    let json = argv.json;
      const globOptions = {
        onlyFiles: true,
        ignore: [
-@@ -57091,9 +57110,11 @@ function main() {
+@@ -69276,9 +69295,12 @@ function main() {
        libraryCompatCheck.run(source, path);
      }
      spinner.stop();
@@ -63,6 +63,7 @@ index 17b0f96..e386e34 100755
 -    strictModeCheck.report();
 -    libraryCompatCheck.report();
 +    reactCompilerCheck.report(verbose, json);
++    // using json option we only want to get list of files
 +    if (!json) {
 +      strictModeCheck.report();
 +      libraryCompatCheck.report();

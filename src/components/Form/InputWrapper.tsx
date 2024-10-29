@@ -76,7 +76,6 @@ function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>(p
     const {registerInput} = useContext(FormContext);
 
     const {shouldSetTouchedOnBlurOnly, blurOnSubmit, shouldSubmitForm} = computeComponentSpecificRegistrationParams(props as InputComponentBaseProps);
-    // eslint-disable-next-line react-compiler/react-compiler
     const {key, ...registerInputProps} = registerInput(inputID, shouldSubmitForm, {ref, valueType, ...rest, shouldSetTouchedOnBlurOnly, blurOnSubmit});
 
     return (

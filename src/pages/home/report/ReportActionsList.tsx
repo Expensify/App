@@ -254,7 +254,6 @@ function ReportActionsList({
         for (let index = 0; index < sortedVisibleReportActions.length; index++) {
             const reportAction = sortedVisibleReportActions.at(index);
 
-            // eslint-disable-next-line react-compiler/react-compiler
             if (reportAction && shouldDisplayNewMarker(reportAction, index)) {
                 return reportAction.reportActionID;
             }
@@ -311,7 +310,6 @@ function ReportActionsList({
             : report.lastVisibleActionCreated;
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
-    // eslint-disable-next-line react-compiler/react-compiler
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
@@ -583,7 +581,6 @@ function ReportActionsList({
     );
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
-    // eslint-disable-next-line react-compiler/react-compiler
     const canShowHeader = isOffline || hasHeaderRendered.current;
 
     const contentContainerStyle: StyleProp<ViewStyle> = useMemo(
@@ -597,7 +594,6 @@ function ReportActionsList({
         loadOlderChats(true);
     }, [loadOlderChats]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const listFooterComponent = useMemo(() => {
         // Skip this hook on the first render (when online), as we are not sure if more actions are going to be loaded,
         // Therefore showing the skeleton on footer might be misleading.
@@ -633,7 +629,6 @@ function ReportActionsList({
         [onContentSizeChange],
     );
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const retryLoadNewerChatsError = useCallback(() => {
         loadNewerChats(true);
     }, [loadNewerChats]);
@@ -641,7 +636,6 @@ function ReportActionsList({
     const listHeaderComponent = useMemo(() => {
         // In case of an error we want to display the header no matter what.
         if (!canShowHeader && !hasLoadingNewerReportActionsError) {
-            // eslint-disable-next-line react-compiler/react-compiler
             hasHeaderRendered.current = true;
             return null;
         }

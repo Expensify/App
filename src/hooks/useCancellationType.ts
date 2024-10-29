@@ -21,7 +21,6 @@ function useCancellationType(): CancellationType | undefined {
         }
 
         // There are no new items in the cancellation details NVP
-        // eslint-disable-next-line react-compiler/react-compiler
         if (previousCancellationDetails.current?.length === cancellationDetails?.length) {
             return;
         }

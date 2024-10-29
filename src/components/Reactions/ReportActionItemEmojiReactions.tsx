@@ -104,7 +104,6 @@ function ReportActionItemEmojiReactions({
             if (reactionCount === 0) {
                 return null;
             }
-            // eslint-disable-next-line react-compiler/react-compiler
             totalReactionCount += reactionCount;
 
             const onPress = () => {

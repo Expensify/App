@@ -59,11 +59,9 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
         setScreenIndex(bodyContent.length - 1);
     }, [bodyContent]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     return {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         componentToRender: bodyContent.at(screenIndex) as ComponentType<SubStepProps & TProps>,
-        // eslint-disable-next-line react-compiler/react-compiler
         isEditing: isEditing.current,
         screenIndex,
         prevScreen,

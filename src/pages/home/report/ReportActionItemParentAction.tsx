@@ -105,7 +105,6 @@ function ReportActionItemParentAction({
     return (
         <View style={[styles.pRelative]}>
             <AnimatedEmptyStateBackground />
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {allAncestors.map((ancestor) => (
                 <OfflineWithFeedback
                     key={ancestor.reportAction.reportActionID}

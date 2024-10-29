@@ -145,7 +145,6 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
     }, [loadOptions]);
 
     return (
-        // eslint-disable-next-line react-compiler/react-compiler
         <OptionsListContext.Provider value={useMemo(() => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized.current}), [options, initializeOptions])}>
             {children}
         </OptionsListContext.Provider>

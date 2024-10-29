@@ -65,7 +65,6 @@ function FilePicker({children, acceptableFileTypes = ''}: FilePickerProps): Reac
                 }}
                 accept={acceptableFileTypes}
             />
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {children({
                 openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {
                     onPicked.current = newOnPicked;

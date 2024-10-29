@@ -43,7 +43,6 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         const items: PopoverMenuItem[] = [];
 
         if (!isOffline && !isLocalFile) {
-            // eslint-disable-next-line react-compiler/react-compiler
             items.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),

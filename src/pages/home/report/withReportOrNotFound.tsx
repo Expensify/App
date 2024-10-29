@@ -85,7 +85,6 @@ export default function (
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
-                // eslint-disable-next-line react-compiler/react-compiler
                 if (shouldShowNotFoundPage && contentShown.current) {
                     return null;
                 }
@@ -99,9 +98,7 @@ export default function (
                 }
             }
 
-            // eslint-disable-next-line react-compiler/react-compiler
             if (!contentShown.current) {
-                // eslint-disable-next-line react-compiler/react-compiler
                 contentShown.current = true;
             }
 

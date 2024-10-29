@@ -336,7 +336,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         }
         const newSliderValue = clamp(locationX, [0, sliderContainerSize]);
         const newScale = newScaleValue(newSliderValue, sliderContainerSize);
-        // eslint-disable-next-line react-compiler/react-compiler
         translateSlider.value = newSliderValue;
         const differential = newScale / scale.value;
         scale.value = newScale;

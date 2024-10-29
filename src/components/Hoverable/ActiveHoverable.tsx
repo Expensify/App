@@ -1,4 +1,3 @@
-/* eslint-disable react-compiler/react-compiler */
 import type {Ref} from 'react';
 import {cloneElement, forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';

@@ -96,7 +96,6 @@ function ConsolePage() {
             .reverse();
     }, [capturedLogs, shouldStoreLogs]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const logsList = useMemo(() => getLogs(), [getLogs]);
 
     const filteredLogsList = useMemo(() => logsList.filter((log) => log.message.includes(activeFilterIndex)), [activeFilterIndex, logsList]);

@@ -52,7 +52,6 @@ function useOptions() {
         const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '');
 
         if (isLoading) {
-            // eslint-disable-next-line react-compiler/react-compiler
             setIsLoading(false);
         }
 

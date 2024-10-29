@@ -69,7 +69,6 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
             hoverDimmingValue={1}
             pressDimmingValue={0.8}
         >
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
             <Animated.View style={[styles.switchThumb, styles.switchThumbTransformation(offsetX.current)]}>
                 {(!!disabled || !!showLockIcon) && (
                     <Icon
