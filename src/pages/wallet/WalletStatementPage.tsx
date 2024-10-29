@@ -1,19 +1,18 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format, getMonth, getYear} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import React, {useCallback, useEffect} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WalletStatementModal from '@components/WalletStatementModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useThemePreference from '@hooks/useThemePreference';
 import DateUtils from '@libs/DateUtils';
 import fileDownload from '@libs/fileDownload';
-import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
 import type {WalletStatementNavigatorParamList} from '@navigation/types';
 import * as User from '@userActions/User';
@@ -21,19 +20,15 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {WalletStatement} from '@src/types/onyx';
 
-type WalletStatementOnyxProps = {
-    walletStatement: OnyxEntry<WalletStatement>;
-};
+type WalletStatementPageProps = StackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
 
-type WalletStatementPageProps = WalletStatementOnyxProps & StackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
-
-function WalletStatementPage({walletStatement, route}: WalletStatementPageProps) {
+function WalletStatementPage({route}: WalletStatementPageProps) {
+    const [walletStatement] = useOnyx(ONYXKEYS.WALLET_STATEMENT);
     const themePreference = useThemePreference();
     const yearMonth = route.params.yearMonth ?? null;
     const isWalletStatementGenerating = walletStatement?.isGenerating ?? false;
-
+    const prevIsWalletStatementGenerating = usePrevious(isWalletStatementGenerating);
     const {translate, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -49,7 +44,7 @@ function WalletStatementPage({walletStatement, route}: WalletStatementPageProps)
         DateUtils.setLocale(preferredLocale);
     }, [preferredLocale]);
 
-    const processDownload = () => {
+    const processDownload = useCallback(() => {
         if (isWalletStatementGenerating) {
             return;
         }
@@ -64,7 +59,14 @@ function WalletStatementPage({walletStatement, route}: WalletStatementPageProps)
         }
 
         User.generateStatementPDF(yearMonth);
-    };
+    }, [isWalletStatementGenerating, walletStatement?.[yearMonth], yearMonth]);
+
+    useEffect(() => {
+        // If the statement generate is complete, download it automatically.
+        if (prevIsWalletStatementGenerating && !isWalletStatementGenerating && walletStatement?.[yearMonth]) {
+            processDownload();
+        }
+    }, [prevIsWalletStatementGenerating, isWalletStatementGenerating, processDownload, walletStatement?.[yearMonth]]);
 
     const year = yearMonth?.substring(0, 4) || getYear(new Date());
     const month = yearMonth?.substring(4) || getMonth(new Date());
@@ -93,8 +95,4 @@ function WalletStatementPage({walletStatement, route}: WalletStatementPageProps)
 
 WalletStatementPage.displayName = 'WalletStatementPage';
 
-export default withOnyx<WalletStatementPageProps, WalletStatementOnyxProps>({
-    walletStatement: {
-        key: ONYXKEYS.WALLET_STATEMENT,
-    },
-})(WalletStatementPage);
+export default WalletStatementPage;
