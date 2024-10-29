@@ -283,7 +283,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         ReportUtils.isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
             ? data[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`]
             : undefined;
-    const violations = data[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? {};
     const allViolations = (Object.entries(data)
         .filter(([itemKey]) => itemKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS))
         .map((item) => item[1]) ?? undefined) as unknown as OnyxCollection<OnyxTypes.TransactionViolations>;
@@ -308,10 +307,10 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
-    // const hasViolations = isTransactionEntry(key) ? TransactionUtils.hasViolation(transaction.transactionID, violations) : ReportUtils.hasViolations(report.reportID, allViolations);
-    // if (hasViolations) {
-    //     return CONST.SEARCH.ACTION_TYPES.REVIEW;
-    // }
+    const hasViolations = transaction ? TransactionUtils.hasViolation(transaction.transactionID, allViolations) : ReportUtils.hasViolations(report.reportID, allViolations);
+    if (hasViolations) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
 
     return CONST.SEARCH.ACTION_TYPES.VIEW;
 }
