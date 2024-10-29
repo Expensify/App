@@ -157,7 +157,7 @@ function SuggestionMention(
         useCallback(() => {
             const foundSuggestionsCount = suggestionValues.suggestedMentions.length;
             if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5 && isGroupPolicyReport) {
-                ReportUserActions.searchInServer(value, policyID);
+                ReportUserActions.searchInServer(suggestionValues.mentionPrefix, policyID);
             }
         }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value, isGroupPolicyReport]),
         CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
