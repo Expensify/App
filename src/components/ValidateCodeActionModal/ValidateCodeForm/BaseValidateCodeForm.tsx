@@ -233,7 +233,8 @@ function BaseValidateCodeForm({
                     style={[styles.mt4]}
                     success
                     large
-                    isLoading={account?.isLoading ?? validateCodeAction?.isLoading}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
+                    isLoading={account?.isLoading || validateCodeAction?.isLoading}
                 />
             </OfflineWithFeedback>
         </>
