@@ -1146,9 +1146,6 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
-        SEARCH_CONVERT_SEARCH_VALUES: 'search_convert_search_values',
-        SEARCH_MAKE_TREE: 'search_make_tree',
-        SEARCH_BUILD_TREE: 'search_build_tree',
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
     },
@@ -6017,6 +6014,7 @@ const CONST = {
         HAS_WALLET_TERMS_ERRORS: 'hasWalletTermsErrors',
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
+        HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
     },
 
     DEBUG: {
