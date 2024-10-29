@@ -40,6 +40,9 @@ type ScreenWrapperProps = {
     /** Returns a function as a child to pass insets to or a node to render without insets */
     children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
 
+    /** Content to display under the offline indicator */
+    bottomContent?: ReactNode;
+
     /** A unique ID to find the screen wrapper in tests */
     testID: string;
 
@@ -131,6 +134,7 @@ function ScreenWrapper(
         shouldShowOfflineIndicatorInWideScreen = false,
         shouldUseCachedViewportHeight = false,
         focusTrapSettings,
+        bottomContent,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -305,6 +309,7 @@ function ScreenWrapper(
                                                     <ImportedStateIndicator />
                                                 </>
                                             )}
+                                            {bottomContent}
                                         </ScreenWrapperStatusContext.Provider>
                                     </PickerAvoidingView>
                                 </KeyboardAvoidingView>

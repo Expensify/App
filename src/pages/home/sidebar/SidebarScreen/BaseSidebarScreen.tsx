@@ -50,6 +50,7 @@ function BaseSidebarScreen() {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
+            bottomContent={<BottomTabBar selectedTab={SCREENS.HOME} />}
         >
             {({insets}) => (
                 <>
@@ -64,7 +65,6 @@ function BaseSidebarScreen() {
                             insets={insets}
                         />
                     </View>
-                    <BottomTabBar selectedTab={SCREENS.HOME} />
                 </>
             )}
         </ScreenWrapper>

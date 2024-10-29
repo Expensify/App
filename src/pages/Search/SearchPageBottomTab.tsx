@@ -89,6 +89,7 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
             offlineIndicatorStyle={styles.mtAuto}
+            bottomContent={<BottomTabBar selectedTab={SCREENS.SEARCH.CENTRAL_PANE} />}
         >
             {!selectionMode?.isEnabled ? (
                 <>
@@ -121,7 +122,6 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
                 onSearchListScroll={scrollHandler}
                 contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
             />
-            <BottomTabBar selectedTab={SCREENS.SEARCH.CENTRAL_PANE} />
         </ScreenWrapper>
     );
 }

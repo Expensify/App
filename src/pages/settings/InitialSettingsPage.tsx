@@ -411,6 +411,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID={InitialSettingsPage.displayName}
+            bottomContent={<BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
         >
             {headerContent}
             <ScrollView
@@ -434,7 +435,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     onCancel={() => toggleSignoutConfirmModal(false)}
                 />
             </ScrollView>
-            <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />
         </ScreenWrapper>
     );
 }

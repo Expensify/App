@@ -378,6 +378,7 @@ function WorkspacesListPage() {
                 shouldEnableMaxHeight
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
+                bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
@@ -405,7 +406,6 @@ function WorkspacesListPage() {
                         />
                     </View>
                 </ScrollView>
-                {shouldUseNarrowLayout && <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
             </ScreenWrapper>
         );
     }
@@ -415,6 +415,7 @@ function WorkspacesListPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
+            bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
         >
             <View style={styles.flex1}>
                 <HeaderWithBackButton
@@ -444,7 +445,6 @@ function WorkspacesListPage() {
                 cancelText={translate('common.cancel')}
                 danger
             />
-            {shouldUseNarrowLayout && <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
         </ScreenWrapper>
     );
 }
