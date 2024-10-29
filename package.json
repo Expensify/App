@@ -3,8 +3,8 @@
   "version": "9.0.54-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
-  "license": "MIT",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "configure-mapbox": "./scripts/setup-mapbox-sdk-walkthrough.sh",
