@@ -73,6 +73,7 @@ export type {default as UpdateGroupChatMemberRolesParams} from './UpdateGroupCha
 export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams';
 export type {default as UpdatePolicyAddressParams} from './UpdatePolicyAddressParams';
 export type {default as UpdateLegalNameParams} from './UpdateLegalNameParams';
+export type {default as UpdatePhoneNumberParams} from './UpdatePhoneNumberParams';
 export type {default as UpdateNewsletterSubscriptionParams} from './UpdateNewsletterSubscriptionParams';
 export type {default as UpdatePersonalInformationForBankAccountParams} from './UpdatePersonalInformationForBankAccountParams';
 export type {default as UpdatePreferredEmojiSkinToneParams} from './UpdatePreferredEmojiSkinToneParams';
@@ -335,8 +336,8 @@ export type {default as UnassignCompanyCard} from './UnassignCompanyCard';
 export type {default as UpdateCompanyCard} from './UpdateCompanyCard';
 export type {default as UpdateCompanyCardNameParams} from './UpdateCompanyCardNameParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
+export type {default as SetPersonalDetailsAndShipExpensifyCardsParams} from './SetPersonalDetailsAndShipExpensifyCardsParams';
 export type {default as RequestFeedSetupParams} from './RequestFeedSetupParams';
-export type {default as SetMissingPersonalDetailsAndShipExpensifyCardParams} from './SetMissingPersonalDetailsAndShipExpensifyCardParams';
 export type {default as SetInvoicingTransferBankAccountParams} from './SetInvoicingTransferBankAccountParams';
 export type {default as ConnectPolicyToQuickBooksDesktopParams} from './ConnectPolicyToQuickBooksDesktopParams';
 export type {default as UpdateQuickbooksDesktopExpensesExportDestinationTypeParams} from './UpdateQuickbooksDesktopExpensesExportDestinationTypeParams';
