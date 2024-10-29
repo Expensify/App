@@ -40,12 +40,20 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
         switch (feature.id) {
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
+                Navigation.goBack();
+                if (route.params.backTo) {
+                    Navigation.navigate(route.params.backTo);
+                }
+                return;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
+                Navigation.dismissModal();
                 return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
+                Navigation.dismissModal();
                 return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
         }
     }, [feature, policyID, route.params.backTo]);
@@ -55,7 +63,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
 
-        Policy.upgradeToCorporate(policy.id, feature.name);
+        Policy.upgradeToCorporate(policy.id, feature?.name);
     };
 
     const confirmUpgrade = useCallback(() => {
@@ -104,7 +112,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 title={translate('common.upgrade')}
                 onBackButtonPress={() => {
                     if (isUpgraded) {
-                        Navigation.dismissModal();
                         goBack();
                     } else {
                         Navigation.goBack();
@@ -113,10 +120,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             />
             {isUpgraded && (
                 <UpgradeConfirmation
-                    onConfirmUpgrade={() => {
-                        Navigation.dismissModal();
-                        goBack();
-                    }}
+                    onConfirmUpgrade={goBack}
                     policyName={policy.name}
                 />
             )}
