@@ -61,9 +61,9 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         User.generateStatementPDF(yearMonth);
     }, [isWalletStatementGenerating, walletStatement, yearMonth]);
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         // If the statement generate is complete, download it automatically.
-        // eslint-disable-next-line rulesdir/prefer-early-return
         if (prevIsWalletStatementGenerating && !isWalletStatementGenerating && walletStatement?.[yearMonth]) {
             processDownload();
         }
