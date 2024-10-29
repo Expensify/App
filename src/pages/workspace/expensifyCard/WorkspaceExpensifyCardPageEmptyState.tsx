@@ -57,12 +57,12 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const isSetupUnfinished = !eligibleBankAccounts.length && reimbursementAccountStatus && reimbursementAccountStatus !== CONST.BANK_ACCOUNT.STATE.OPEN;
 
     const startFlow = useCallback(() => {
-        if (!eligibleBankAccounts.length || isSetupUnfinished) {
+        if (!eligibleBankAccounts.length) {
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policy?.id, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id ?? '-1')));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policy?.id ?? '-1'));
         }
-    }, [eligibleBankAccounts.length, isSetupUnfinished, policy?.id]);
+    }, [eligibleBankAccounts.length, policy?.id]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
