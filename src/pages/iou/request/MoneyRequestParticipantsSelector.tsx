@@ -5,7 +5,6 @@ import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {Linking} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import {ContactsNitroModule} from '@modules/ContactsNitroModule/src';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -24,11 +23,11 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ContactUtils from '@libs/ContactUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getAvatarForContact} from '@libs/RandomAvatarUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import saveLastRoute from '@libs/saveLastRoute';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
@@ -38,8 +37,10 @@ import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import {requestContactPermission} from './ContactPermission';
+import contactImport from './ContactImport';
+import type {ContactImportResult} from './ContactImport/types';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -94,6 +95,7 @@ function MoneyRequestParticipantsSelector({
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [contacts, setContacts] = useState<Array<OptionsListUtils.SearchOption<PersonalDetails>>>([]);
     const [isContactPermissionBlocked, setContactPermissionBlocked] = useState(false);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
@@ -122,12 +124,11 @@ function MoneyRequestParticipantsSelector({
 
         const optionList = OptionsListUtils.getFilteredOptions(
             options.reports,
-            options.personalDetails,
+            options.personalDetails.concat(contacts),
             betas,
             '',
             participants as Participant[],
             CONST.EXPENSIFY_EMAILS,
-
             // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to submit an expense from their admin on their own Workspace Chat.
             (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
@@ -158,6 +159,7 @@ function MoneyRequestParticipantsSelector({
         return optionList;
     }, [
         action,
+        contacts,
         areOptionsInitialized,
         betas,
         canUseP2PDistanceRequests,
@@ -197,7 +199,6 @@ function MoneyRequestParticipantsSelector({
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, canUseP2PDistanceRequests, iouRequestType, isCategorizeOrShareAction, action]);
 
-    const [contacts, setContacts] = useState<ReportUtils.OptionData[]>([]);
     /**
      * Returns the sections needed for the OptionsSelector
      * @returns {Array}
@@ -225,7 +226,7 @@ function MoneyRequestParticipantsSelector({
             shouldShow: chatOptions.recentReports.length > 0,
         });
 
-        const contactData: ReportUtils.OptionData[] = contacts.concat(chatOptions.personalDetails);
+        const contactData: ReportUtils.OptionData[] = chatOptions.personalDetails;
         newSections.push({
             title: translate('common.contacts'),
             data: contactData,
@@ -265,26 +266,13 @@ function MoneyRequestParticipantsSelector({
         personalDetails,
         translate,
         cleanSearchTerm,
-        contacts,
     ]);
 
     useEffect(() => {
-        requestContactPermission().then((response) => {
-            setContactPermissionBlocked(response === 'blocked');
-
-            if (response === 'granted') {
-                ContactsNitroModule.getAll(['FIRST_NAME', 'LAST_NAME', 'PHONE_NUMBERS', 'EMAIL_ADDRESSES', 'IMAGE_DATA']).then((deviceContacts) => {
-                    setContacts(
-                        deviceContacts.map((contact) => ({
-                            text: `${contact?.firstName} ${contact?.lastName}`,
-                            alternateText: `${contact?.emailAddresses?.[0]?.value ?? ''}`,
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            icons: [{source: contact?.imageData || getAvatarForContact(`${contact?.firstName}${contact?.lastName}`), type: 'avatar'}],
-                            reportID: '',
-                        })),
-                    );
-                });
-            }
+        contactImport().then(({contactList, isPermissionBlocked}: ContactImportResult) => {
+            setContactPermissionBlocked(isPermissionBlocked);
+            const usersFromContact = ContactUtils.getContacts(contactList);
+            setContacts(usersFromContact);
         });
     }, []);
 
