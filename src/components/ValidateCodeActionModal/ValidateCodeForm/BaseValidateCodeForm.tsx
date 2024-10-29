@@ -118,6 +118,7 @@ function BaseValidateCodeForm({
                 clearTimeout(focusTimeoutRef.current);
             }
 
+            // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
             if (!Browser.isMobileSafari()) {
                 focusTimeoutRef.current = setTimeout(() => {
                     inputValidateCodeRef.current?.focusLastSelected();
