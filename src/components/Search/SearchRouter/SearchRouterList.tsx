@@ -154,7 +154,7 @@ function SearchRouterList(
     });
 
     if (autocompleteData && autocompleteData.length > 0) {
-        sections.push({title: translate('search.autocomplete'), data: autocompleteData});
+        sections.push({title: translate('search.suggestions'), data: autocompleteData});
     }
 
     const recentSearchesData = recentSearches?.map(({query, timestamp}) => {

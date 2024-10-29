@@ -10,7 +10,7 @@ function parseForAutocomplete(text: string) {
         const parsedAutocomplete = autocompleteParser.parse(text) as SearchAutocompleteResult;
         return parsedAutocomplete;
     } catch (e) {
-        console.error(`Error when parsing autocopmlete query}"`, e);
+        console.error(`Error when parsing autocopmlete query"`, e);
     }
 }
 
@@ -33,7 +33,7 @@ function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTag
     if (!singlePolicyRecentTags) {
         const uniqueTagNames = new Set<string>();
         Object.values(allRecentTags ?? {})
-            .map((testVar) => Object.values(testVar ?? {}))
+            .map((recentTag) => Object.values(recentTag ?? {}))
             .flat(2)
             .forEach((tag) => uniqueTagNames.add(tag));
         return Array.from(uniqueTagNames);

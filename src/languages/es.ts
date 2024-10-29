@@ -4393,7 +4393,7 @@ const translations = {
         recentChats: 'Chats recientes',
         searchIn: 'Buscar en',
         searchPlaceholder: 'Busca algo',
-        autocomplete: 'Autocompletar',
+        suggestions: 'Sugerencias',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
