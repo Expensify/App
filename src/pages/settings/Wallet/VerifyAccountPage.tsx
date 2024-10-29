@@ -45,7 +45,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
         setIsValidateCodeActionModalVisible(false);
 
-        if (!navigateBackTo) {
+        if (!navigateForwardTo) {
             return;
         }
 
