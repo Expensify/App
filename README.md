@@ -274,7 +274,7 @@ web: `npm run symbolicate-release:web`
     - Perfetto UI (https://ui.perfetto.dev/)
     - Google Chrome's Tracing UI (chrome://tracing)
 
----
+----
 
 # App Structure and Conventions
 
