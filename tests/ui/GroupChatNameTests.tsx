@@ -174,7 +174,7 @@ describe('Tests for group chat name', () => {
             return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D'));
         }));
 
-    it('Should show all 8 names in LHN when 8 participants are present', () =>
+    it('Should show limited names in LHN when 8 participants are present', () =>
         signInAndGetApp('', participantAccountIDs8).then(() => {
             // Verify the sidebar links are rendered
             const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
@@ -189,7 +189,7 @@ describe('Tests for group chat name', () => {
             const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameText = screen.queryByLabelText(displayNameHintText);
 
-            return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E, F, G, H'));
+            return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E'));
         }));
 
     it('Check if group name shows fine for report header', () =>
