@@ -1,3 +1,4 @@
+// @TODO remove this file before merging to the main.
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 

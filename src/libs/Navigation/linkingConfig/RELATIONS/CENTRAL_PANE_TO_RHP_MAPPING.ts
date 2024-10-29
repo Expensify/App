@@ -1,3 +1,4 @@
+// @TODO: Remove this file before merging to the main.
 import type {SplitNavigatorScreenName} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import WORKSPACE_SCREEN_TO_RHP_MAPPING from './WORKSPACE_SCREEN_TO_RHP_MAPPING';
