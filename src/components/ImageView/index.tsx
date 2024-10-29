@@ -18,7 +18,6 @@ import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
 import type ImageViewProps from './types';
 
-
 type ZoomDelta = {offsetX: number; offsetY: number};
 
 function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageViewProps) {
