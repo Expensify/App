@@ -312,7 +312,7 @@ Magic links are used for secure login without passwords. When prompted:
 1. Check your email for the Expensify Magic Link.
 2. Click the link in your email, and it will log you in to Expensify without needing to enter a password.
 
-#### [Sign out] How do I sign out?
+#### [Sign out] How do I sign out of Expensify?
 To sign out of Expensify:
 1. Press **Settings** in the Expensify app.
 2. Scroll to the bottom and press **Sign Out**.
@@ -506,6 +506,41 @@ To delete a workspace:
 2. Press **Workspaces**.
 3. Select the workspace and press **Delete Workspace**.
 4. Confirm the deletion.
+
+### Subscription Management
+
+#### [Manage subscription] How do I manage my subscription in New Expensify?
+To manage your subscription:
+1. Open the New Expensify app on your device.
+2. Press the profile icon in the bottom-left corner to access Account Settings.
+3. Navigate to the Workspaces section.
+4. Press **Subscription** under Workspaces to view and manage your subscription.
+
+#### [Add payment card] How do I add a payment card?
+To add a payment card for your subscription:
+1. In the Subscriptions section, look for the option to **Add Payment Card**.
+2. Enter your payment card details securely.
+
+#### [View subscription details] How do I view my subscription details?
+To view the details of your current subscription plan:
+1. Go to the Subscription section where you can see the number of seats, billing information, and next renewal date.
+
+#### [Auto-renew] How do I manage auto-renew settings?
+To manage your auto-renew settings:
+1. In Subscription Settings, check when your subscription will automatically renew.
+2. Adjust settings as needed for auto-renewal and seat increase options.
+
+#### [Early cancellation] How do I request an early cancellation?
+To request an early cancellation of your subscription:
+1. Find the **Request Early Cancellation** option in the Subscriptions section.
+2. Note that not all customers may be eligible for early cancellation.
+
+#### [Pricing information] Where can I find more about pricing plans?
+For more detailed pricing information, please visit the Billing Page [coming soon!]
+
+### Billing and Subscriptions
+#### [Billing page] What's coming soon on the billing page?
+We're excited to announce that a new billing page is coming soon that will provide a more streamlined and comprehensive view of your billing information and subscription management features.
 
 ## FAQ
 You've got questions? We've got answers!

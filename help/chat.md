@@ -49,14 +49,6 @@ When a workspace is created, two special chat rooms are automatically generated:
 
 * **#announce**: Intended for company-wide announcements. By default, all Workspace Members can post here, but permissions can be adjusted to allow only Admins to post.
 
-## Managing Messages
-
-### [Edit or delete messages] How do I edit or delete messages in Expensify Chat?
-You can manage your own messages by editing or deleting them. Note that deleting a message cannot be undone.
-
-- **Edit message**: Allows you to reopen a message to make changes. Once a message is updated, an “edited” label will appear next to it.
-- **Delete message**: Permanently removes a message or image for all viewers.
-
 ## Platforms
 Expensify Chat works across multiple platforms, ensuring you can stay connected with your team wherever you are:
 * **Web app** - Access Expensify Chat through your browser, with full support for chat rooms, file sharing, and emoji reactions.
@@ -66,6 +58,7 @@ Expensify Chat works across multiple platforms, ensuring you can stay connected 
 ## How To
 
 ### Create a chat room
+To create a chat room in Expensify Chat:
 1. Navigate to the **Chat** section of the Expensify app.
 2. Press **Create Room**.
 3. Enter a name for the room and choose whether to make it public or private.
@@ -73,12 +66,14 @@ Expensify Chat works across multiple platforms, ensuring you can stay connected 
 5. Press **Create** to finalize the room.
 
 ### Send a direct message
+To send a direct message:
 1. Press **New Message** from the chat screen.
 2. Enter the email address or phone number of the person you want to message.
 3. Type your message and press **Send**.
 4. Optionally, attach files or images by pressing the attachment icon.
 
 ### React to a message
+To react to a message:
 1. Hover over the message you want to react to.
 2. Press the **emoji** icon that appears below the message.
 3. Choose an emoji from the list, and it will be added to the message.
@@ -95,6 +90,7 @@ To start a conversation thread:
 To return to the conversation where the thread originated, press the link at the top of the thread.
 
 ### [Search message] Search for a message
+To search for a message:
 1. Press the **Search** bar at the top of the chat screen.
 2. Enter the keyword, phrase, or file name you are looking for.
 3. Filter results by chat room or direct message (optional).
@@ -106,10 +102,12 @@ Expensify Chat allows you to connect with individuals or groups through private 
 #### Start a private 1-on-1 chat
 You cannot add more people to a private chat. If you wish to add more people to the conversation later, you’ll need to create a group chat.
 
+To start a private 1-on-1 chat:
 1. Press the + button in the menu and select **Start Chat**.
 2. Enter the name, email, or phone number of the person you want to chat with and select their name to start a new chat.
 
 #### Start a group chat
+To start a group chat:
 1. Press the + button in the menu and select **Start Chat**.
 2. Enter the name, email, or phone number of the person you want to chat with and select **Add to group**. Repeat this step until all desired participants are added. Group participants are listed with a green checkmark.
 3. Press **Next** (or **Create chat** if you add only one person to the group).
@@ -119,6 +117,7 @@ You cannot add more people to a private chat. If you wish to add more people to 
 5. Press **Start group**.
 
 #### Start a chat room
+To start a chat room:
 1. Press the + button in the menu and select **Start Chat**.
 2. Select the #Room tab at the top.
 3. Enter a name for the room. Note: It cannot be the same as another room in the Workspace.
@@ -139,12 +138,6 @@ You can invite people to a chat group or room in several ways:
 * **Invite with mention**: In the message field, type @ followed by the person’s name or email address. Enter a message if desired, then press the Send icon.
 * **Invite from the Members pane**: Open the chat group or room, press the header, go to **Members**, and select **Invite member**. Choose contacts and press **Invite**.
 * **Share chat link or QR code**: Open the chat group or room, press the header, and select **Share**. Copy the link or present the QR code for others to scan.
-
-### FAQs
-
-**How do I remove someone from a chat group or room?**
-
-Currently, members have to remove themselves from a chat.
 
 ## FAQ
 
@@ -174,3 +167,7 @@ Yes, when creating a new chat room, you can choose to make it private. Private r
 
 ### How do I manage notifications in Expensify Chat?
 You can manage your notifications from the **Settings** section of the Expensify app. Here, you can customize notification preferences for chat messages, mentions, and other activity.
+
+**How do I remove someone from a chat group or room?**
+
+Currently, members have to remove themselves from a chat.
