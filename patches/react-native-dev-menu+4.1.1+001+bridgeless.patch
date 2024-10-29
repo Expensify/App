@@ -1,0 +1,50 @@
+diff --git a/node_modules/react-native-dev-menu/android/src/main/java/com/zoontek/rndevmenu/RNDevMenuModule.java b/node_modules/react-native-dev-menu/android/src/main/java/com/zoontek/rndevmenu/RNDevMenuModule.java
+index f662034..61459d9 100755
+--- a/node_modules/react-native-dev-menu/android/src/main/java/com/zoontek/rndevmenu/RNDevMenuModule.java
++++ b/node_modules/react-native-dev-menu/android/src/main/java/com/zoontek/rndevmenu/RNDevMenuModule.java
+@@ -48,23 +48,29 @@ public class RNDevMenuModule extends ReactContextBaseJavaModule {
+     }
+ 
+     try {
+-      ReactApplication application = (ReactApplication)getReactApplicationContext()
+-        .getCurrentActivity()
+-        .getApplication();
+-
+-      DevSupportManager manager = application
+-        .getReactNativeHost()
+-        .getReactInstanceManager()
+-        .getDevSupportManager();
+-
+-      manager.addCustomDevOption(name, new DevOptionHandler() {
+-        @Override
+-        public void onOptionSelected() {
+-          getReactApplicationContext()
+-            .getJSModule(RCTDeviceEventEmitter.class)
+-            .emit("customDevOptionTap", name);
++      DevSupportManager devSupportManager;
++      ReactApplicationContext context = getReactApplicationContext();
++      if (context.getApplicationContext() instanceof ReactApplication) {
++        if (context.isBridgeless()) {
++          devSupportManager =
++                  ((ReactApplication) context.getApplicationContext())
++                          .getReactHost()
++                          .getDevSupportManager();
++        } else {
++          devSupportManager =
++                  ((ReactApplication) context.getApplicationContext())
++                          .getReactNativeHost()
++                          .getReactInstanceManager()
++                          .getDevSupportManager();
++        }
++        if (devSupportManager != null) {
++          devSupportManager.addCustomDevOption(name, () -> getReactApplicationContext()
++                  .getJSModule(RCTDeviceEventEmitter.class)
++                  .emit("customDevOptionTap", name));
++        } else {
++          throw new RuntimeException("[RNDevMenu] DevSupportManager is not available");
+         }
+-      });
++      }
+ 
+       mNames.add(name);
+       promise.resolve(null);
