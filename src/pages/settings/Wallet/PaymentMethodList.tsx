@@ -277,7 +277,8 @@ function PaymentMethodList({
                             : undefined,
                     icon,
                     iconStyles: [styles.assignedCardsIconContainer],
-                    iconSize: variables.iconSizeExtraLarge,
+                    iconWidth: variables.bankCardWidth,
+                    iconHeight: variables.bankCardHeight,
                 });
             });
             return assignedCardsGrouped;
