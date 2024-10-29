@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {PolicySelector, ReportActionsSelector} from '@hooks/useReportIDs';
+import type {PolicySelector} from '@hooks/useReportIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, TransactionViolation} from '@src/types/onyx';
@@ -88,7 +88,6 @@ function getOrderedReportIDs(
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PolicySelector>,
     priorityMode: OnyxEntry<PriorityMode>,
-    allReportActions: OnyxCollection<ReportActionsSelector>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
