@@ -1,14 +1,9 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
+import AddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,9 +23,8 @@ const INPUT_KEYS = {
 const STEP_FIELDS = [COMPANY_STREET, COMPANY_CITY, COMPANY_STATE, COMPANY_ZIP_CODE, COMPANY_COUNTRY];
 const STEP_FIELDS_WITHOUT_STATE = [COMPANY_STREET, COMPANY_CITY, COMPANY_ZIP_CODE, COMPANY_COUNTRY];
 
-function Address({onNext, isEditing}: AddressProps) {
+function Address({onNext, onMove, isEditing}: AddressProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -52,23 +46,6 @@ function Address({onNext, isEditing}: AddressProps) {
 
     const shouldDisplayStateSelector = defaultValues.country === CONST.COUNTRY.US || defaultValues.country === CONST.COUNTRY.CA || defaultValues.country === '';
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, shouldDisplayStateSelector ? STEP_FIELDS : STEP_FIELDS_WITHOUT_STATE);
-
-            if (values[COMPANY_STREET] && !ValidationUtils.isValidAddress(values[COMPANY_STREET])) {
-                errors[COMPANY_STREET] = translate('bankAccount.error.addressStreet');
-            }
-
-            if (values[COMPANY_ZIP_CODE] && !ValidationUtils.isValidZipCode(values[COMPANY_ZIP_CODE])) {
-                errors[COMPANY_ZIP_CODE] = translate('bankAccount.error.zipCode');
-            }
-
-            return errors;
-        },
-        [shouldDisplayStateSelector, translate],
-    );
-
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: shouldDisplayStateSelector ? STEP_FIELDS : STEP_FIELDS_WITHOUT_STATE,
         onNext,
@@ -76,25 +53,20 @@ function Address({onNext, isEditing}: AddressProps) {
     });
 
     return (
-        <FormProvider
+        <AddressStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+            formTitle={translate('businessInfoStep.enterYourCompanysAddress')}
+            formPOBoxDisclaimer={translate('common.noPO')}
             onSubmit={handleSubmit}
-            validate={validate}
-            style={[styles.flexGrow1]}
-            submitButtonStyles={[styles.mh5]}
-        >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5]}>{translate('businessInfoStep.enterTheNameOfYourBusiness')}</Text>
-            <AddressFormFields
-                inputKeys={INPUT_KEYS}
-                shouldSaveDraft={!isEditing}
-                streetTranslationKey="common.companyAddress"
-                containerStyles={[styles.mh5]}
-                defaultValues={defaultValues}
-                shouldDisplayCountrySelector
-                shouldDisplayStateSelector={shouldDisplayStateSelector}
-            />
-        </FormProvider>
+            stepFields={STEP_FIELDS}
+            inputFieldsIDs={INPUT_KEYS}
+            defaultValues={defaultValues}
+            shouldDisplayStateSelector={shouldDisplayStateSelector}
+            shouldDisplayCountrySelector
+        />
     );
 }
 

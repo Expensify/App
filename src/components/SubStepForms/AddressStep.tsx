@@ -45,6 +45,21 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
 
     /** Should show help links */
     shouldShowHelpLinks?: boolean;
+
+    /** Indicates if country selector should be displayed */
+    shouldDisplayCountrySelector?: boolean;
+
+    /** Indicates if state selector should be displayed */
+    shouldDisplayStateSelector?: boolean;
+
+    /** Label for the state selector */
+    stateSelectorLabel?: string;
+
+    /** The title of the state selector modal */
+    stateSelectorModalHeaderTitle?: string;
+
+    /** The title of the state selector search input */
+    stateSelectorSearchInputTitle?: string;
 };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -58,6 +73,11 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     defaultValues,
     shouldShowHelpLinks,
     isEditing,
+    shouldDisplayCountrySelector = false,
+    shouldDisplayStateSelector = true,
+    stateSelectorLabel,
+    stateSelectorModalHeaderTitle,
+    stateSelectorSearchInputTitle,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -73,14 +93,14 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             }
 
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
-            if (zipCode && !ValidationUtils.isValidZipCode(zipCode as string)) {
+            if (zipCode && !shouldDisplayCountrySelector && !ValidationUtils.isValidZipCode(zipCode as string)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
             }
 
             return errors;
         },
-        [inputFieldsIDs.street, inputFieldsIDs.zipCode, stepFields, translate],
+        [inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, stepFields, translate],
     );
 
     return (
@@ -99,6 +119,11 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     streetTranslationKey="common.streetAddress"
                     defaultValues={defaultValues}
                     shouldSaveDraft={!isEditing}
+                    shouldDisplayStateSelector={shouldDisplayStateSelector}
+                    shouldDisplayCountrySelector={shouldDisplayCountrySelector}
+                    stateSelectorLabel={stateSelectorLabel}
+                    stateSelectorModalHeaderTitle={stateSelectorModalHeaderTitle}
+                    stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
                 />
                 {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
             </View>

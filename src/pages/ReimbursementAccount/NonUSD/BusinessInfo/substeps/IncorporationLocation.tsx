@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import PROVINCES from '@pages/ReimbursementAccount/NonUSD/mockedCanadianProvinces';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,6 +37,7 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
 
     const [selectedCountry, setSelectedCountry] = useState<string>(countryInitialValue);
     const [selectedIncorporationState, setSelectedIncorporationState] = useState<string>(selectedIncorporationStateInitialValue);
+    const shouldGatherState = selectedCountry === CONST.COUNTRY.US || selectedCountry === CONST.COUNTRY.CA;
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -64,8 +64,8 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
         FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[FORMATION_INCORPORATION_STATE]: selectedIncorporationState});
     }, [selectedIncorporationState, selectedCountry]);
 
-    const provincesListOptions = (Object.keys(PROVINCES) as Array<keyof typeof PROVINCES>).reduce((acc, key) => {
-        acc[PROVINCES[key].provinceISO] = PROVINCES[key].provinceName;
+    const provincesListOptions = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce((acc, key) => {
+        acc[COMMON_CONST.PROVINCES[key].provinceISO] = COMMON_CONST.PROVINCES[key].provinceName;
         return acc;
     }, {} as Record<string, string>);
 
@@ -83,7 +83,7 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
             submitButtonStyles={[styles.mh5]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.whereWasTheBusinessIncorporated')}</Text>
-            {(selectedCountry === CONST.COUNTRY.US || selectedCountry === CONST.COUNTRY.CA) && (
+            {shouldGatherState && (
                 <InputWrapper
                     InputComponent={PushRowWithModal}
                     optionsList={selectedCountry === CONST.COUNTRY.US ? statesListOptions : provincesListOptions}

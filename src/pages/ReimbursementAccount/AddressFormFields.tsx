@@ -1,10 +1,10 @@
+import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {State} from '@components/StateSelector';
-import StateSelector from '@components/StateSelector';
+import PushRowWithModal from '@components/PushRowWithModal';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,6 +44,15 @@ type AddressFormProps = {
 
     /** Indicates if state selector should be displayed */
     shouldDisplayStateSelector?: boolean;
+
+    /** Label for the state selector */
+    stateSelectorLabel?: string;
+
+    /** The title of the state selector modal */
+    stateSelectorModalHeaderTitle?: string;
+
+    /** The title of the state selector search input */
+    stateSelectorSearchInputTitle?: string;
 };
 
 function AddressFormFields({
@@ -57,9 +66,22 @@ function AddressFormFields({
     containerStyles,
     shouldDisplayCountrySelector = false,
     shouldDisplayStateSelector = true,
+    stateSelectorLabel,
+    stateSelectorModalHeaderTitle,
+    stateSelectorSearchInputTitle,
 }: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const provincesListOptions = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce((acc, key) => {
+        acc[COMMON_CONST.PROVINCES[key].provinceISO] = COMMON_CONST.PROVINCES[key].provinceName;
+        return acc;
+    }, {} as Record<string, string>);
+
+    const statesListOptions = (Object.keys(COMMON_CONST.STATES) as Array<keyof typeof COMMON_CONST.STATES>).reduce((acc, key) => {
+        acc[COMMON_CONST.STATES[key].stateISO] = COMMON_CONST.STATES[key].stateName;
+        return acc;
+    }, {} as Record<string, string>);
 
     return (
         <View style={containerStyles}>
@@ -92,16 +114,21 @@ function AddressFormFields({
                 errorText={errors?.city ? translate('bankAccount.error.addressCity') : ''}
                 containerStyles={styles.mt6}
             />
-
             {shouldDisplayStateSelector && (
                 <View style={[styles.mt3, styles.mhn5]}>
                     <InputWrapper
-                        InputComponent={StateSelector}
-                        inputID={inputKeys.state ?? 'stateInput'}
+                        InputComponent={PushRowWithModal}
+                        optionsList={shouldDisplayCountrySelector && defaultValues?.country === CONST.COUNTRY.US ? statesListOptions : provincesListOptions}
+                        selectedOption={defaultValues?.state ?? ''}
+                        onOptionChange={(value) => {
+                            onFieldChange?.({state: value});
+                        }}
                         shouldSaveDraft={shouldSaveDraft}
-                        value={values?.state as State}
-                        defaultValue={defaultValues?.state}
-                        onInputChange={(value) => onFieldChange?.({state: value})}
+                        description={stateSelectorLabel ?? translate('common.state')}
+                        modalHeaderTitle={stateSelectorModalHeaderTitle ?? translate('common.state')}
+                        searchInputTitle={stateSelectorSearchInputTitle ?? translate('common.state')}
+                        value={values?.state}
+                        inputID={inputKeys.state ?? 'stateInput'}
                         errorText={errors?.state ? translate('bankAccount.error.addressState') : ''}
                     />
                 </View>
@@ -122,6 +149,23 @@ function AddressFormFields({
                 hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
                 containerStyles={styles.mt3}
             />
+            {shouldDisplayCountrySelector && (
+                <View style={[styles.mt3, styles.mhn5]}>
+                    <InputWrapper
+                        InputComponent={PushRowWithModal}
+                        inputID={inputKeys?.country ?? 'country'}
+                        shouldSaveDraft={shouldSaveDraft}
+                        optionsList={CONST.ALL_COUNTRIES}
+                        selectedOption={defaultValues?.country ?? ''}
+                        onOptionChange={(value) => onFieldChange?.({[inputKeys?.country ?? 'country']: value})}
+                        description={translate('common.country')}
+                        modalHeaderTitle={translate('countryStep.selectCountry')}
+                        searchInputTitle={translate('countryStep.findCountry')}
+                        value={values?.country}
+                        defaultValue={defaultValues?.country}
+                    />
+                </View>
+            )}
         </View>
     );
 }
