@@ -87,7 +87,7 @@ function ReportActionItemSingle({
     const delegatePersonalDetails = personalDetails[action?.delegateAccountID ?? ''];
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport, ReportUtils.isPolicyExpenseChat(report));
+    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport, report);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
