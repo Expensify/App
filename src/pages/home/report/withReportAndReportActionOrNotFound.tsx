@@ -38,13 +38,15 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 ): ComponentType<TProps & RefAttributes<TRef>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
-        const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || '-1'}`);
         const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`);
         const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
         const [betas] = useOnyx(ONYXKEYS.BETAS);
         const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
         const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`, {canEvict: false});
-        const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? '-1'}`, {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID || '-1'}`, {
             selector: (parentReportActions) => {
                 const parentReportActionID = report?.parentReportActionID;
                 if (!parentReportActionID) {
