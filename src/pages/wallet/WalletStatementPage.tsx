@@ -81,6 +81,7 @@ function WalletStatementPage({walletStatement, route}: WalletStatementPageProps)
             <HeaderWithBackButton
                 title={Str.recapitalize(title)}
                 shouldShowDownloadButton={!isOffline || isWalletStatementGenerating}
+                isDownloading={isWalletStatementGenerating}
                 onDownloadButtonPress={processDownload}
             />
             <FullPageOfflineBlockingView>
