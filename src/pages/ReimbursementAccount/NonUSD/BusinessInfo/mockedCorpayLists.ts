@@ -1,3 +1,5 @@
+// TODO - Remove this file once GetCorpayOnboardingFields method is fully implemented. It should when we start work on https://github.com/Expensify/App/issues/50905
+
 const annualVolumeRange = [
     {
         id: '0',
