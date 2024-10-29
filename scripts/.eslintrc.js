@@ -1,5 +1,3 @@
-const path = require('path');
-
 module.exports = {
     rules: {
         // For all these Node.js scripts, we do not want to disable `console` statements
@@ -8,8 +6,5 @@ module.exports = {
         '@lwc/lwc/no-async-await': 'off',
         'no-await-in-loop': 'off',
         'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
-    },
-    parserOptions: {
-        project: path.resolve(__dirname, './tsconfig.json'),
     },
 };

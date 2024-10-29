@@ -3,6 +3,5 @@
     "compilerOptions": {
         "incremental": false,
         "esModuleInterop": true
-    },
-    "include": ["./**/*",],
+    }
 }

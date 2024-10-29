@@ -2,6 +2,5 @@
     "extends": "../tsconfig.json",
     "ts-node": {
         "require": ["tsconfig-paths/register"]
-    },
-    "include": ["./**/*",],
+    }
 }
