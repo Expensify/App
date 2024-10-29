@@ -274,7 +274,10 @@ function AttachmentView({
                         isImage={isFileImage}
                         onPress={onPress}
                         onError={() => {
-                            !isOffline && setImageError(true);
+                            if (isOffline) {
+                                return ;
+                            }
+                            setImageError(true);
                         }}
                     />
                 </View>
