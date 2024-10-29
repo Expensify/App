@@ -134,7 +134,7 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
 
     adminIDs.forEach((id) => {
         participants[id] = {
-            hidden: false,
+            notificationPreference: 'always',
             role: CONST.REPORT.ROLE.ADMIN,
         };
     });

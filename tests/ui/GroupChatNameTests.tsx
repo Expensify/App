@@ -41,6 +41,8 @@ let transitionEndCB: () => void;
 
 jest.mock('@react-navigation/native');
 
+TestHelper.setupApp();
+
 const REPORT_ID = '1';
 const USER_A_ACCOUNT_ID = 1;
 const USER_A_EMAIL = 'user_a@test.com';
@@ -69,6 +71,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
     const participants: Record<number, Participant> = {};
     participantAccountIDs?.forEach((id) => {
         participants[id] = {
+            notificationPreference: 'always',
             hidden: false,
             role: id === 1 ? CONST.REPORT.ROLE.ADMIN : CONST.REPORT.ROLE.MEMBER,
         } as Participant;
