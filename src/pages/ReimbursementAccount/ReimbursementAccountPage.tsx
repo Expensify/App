@@ -202,6 +202,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         }
         return achData?.state === BankAccount.STATE.PENDING || [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''].includes(getStepToOpenFromRouteParams(route));
     }, [achData?.state, hasInProgressVBBA, route]);
+
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue());
 
     useEffect(() => {
