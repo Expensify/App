@@ -38,7 +38,7 @@ function ValidateCodeActionModal({
     }, [onClose, clearError]);
 
     useEffect(() => {
-        if (!firstRenderRef.current || !isVisible) {
+        if (!firstRenderRef.current || !isVisible || hasMagicCodeBeenSent) {
             return;
         }
         firstRenderRef.current = false;
