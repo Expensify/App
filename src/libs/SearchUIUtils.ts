@@ -279,6 +279,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
     }
 
     const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
+    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`] ?? undefined;
     const allReportTransactions = (
         isReportEntry(key)
             ? Object.entries(data)
@@ -287,6 +288,10 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
             : []
     ) as SearchTransaction[];
     const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
+    const invoiceReceiverPolicy =
+        ReportUtils.isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
+            ? data[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`]
+            : undefined;
     const violations = data[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? {};
     const allViolations = Object.keys(data).filter((item) => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)) ?? {};
 
@@ -298,11 +303,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
-    // TODO: pass reportNameValuePairs here so we don't get it in ReportUtils.isArchivedRoom and canApproveIOU
-    // TODO: pass receiver policy so that we don't get it from Onyx in PolicyUtils.getPolicy
-    // TODO: pass policy to ReportUtils.isPayer and isPaidGroupPolicy
-    // TODO: in Auth, send invoiceReceiver as accountID if type is individual
-    if (IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, false)) {
+    if (IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 

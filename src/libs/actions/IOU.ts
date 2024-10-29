@@ -7046,11 +7046,13 @@ function canIOUBePaid(
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
     transactions?: OnyxTypes.Transaction[] | SearchTransaction[],
     onlyShowPayElsewhere = false,
+    chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
+    invoiceReceiverPolicy?: SearchPolicy,
 ) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(chatReport?.reportID);
+    const reportNameValuePairs = chatReportRNVP ?? ReportUtils.getReportNameValuePairs(chatReport?.reportID);
     const isChatReportArchived = ReportUtils.isArchivedRoom(chatReport, reportNameValuePairs);
-    const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
+    const iouSettled = ReportUtils.isSettled(iouReport);
 
     if (isEmptyObject(iouReport)) {
         return false;
@@ -7072,7 +7074,7 @@ function canIOUBePaid(
         if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
             return chatReport?.invoiceReceiver?.accountID === userAccountID;
         }
-        return PolicyUtils.getPolicy(chatReport?.invoiceReceiver?.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
+        return (invoiceReceiverPolicy ?? PolicyUtils.getPolicy(chatReport?.invoiceReceiver?.policyID))?.role === CONST.POLICY.ROLE.ADMIN;
     }
 
     const isPayer = ReportUtils.isPayer(
@@ -7082,6 +7084,7 @@ function canIOUBePaid(
         },
         iouReport,
         onlyShowPayElsewhere,
+        policy,
     );
 
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
