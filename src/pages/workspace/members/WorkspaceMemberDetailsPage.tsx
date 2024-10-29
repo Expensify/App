@@ -316,8 +316,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     displayInDefaultIconColor
                                                     iconStyles={styles.cardIcon}
                                                     contentFit="contain"
-                                                    iconWidth={variables.cardIconWidth}
-                                                    iconHeight={variables.cardIconHeight}
+                                                    iconWidth={variables.iconSizeExtraLarge}
+                                                    iconHeight={variables.iconSizeExtraLarge}
                                                     onPress={() => navigateToDetails(memberCard)}
                                                     shouldShowRightIcon
                                                 />
