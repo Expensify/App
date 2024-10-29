@@ -63,7 +63,6 @@ function WalletStatementPage({walletStatement, route}: WalletStatementPageProps)
             return;
         }
 
-        Growl.show(translate('statementPage.generatingPDF'), CONST.GROWL.SUCCESS, 3000);
         User.generateStatementPDF(yearMonth);
     };
 
