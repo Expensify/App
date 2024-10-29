@@ -61,11 +61,20 @@ function getAutocompleteRecentCategories(allRecentCategories: OnyxCollection<Rec
     return Object.values(singlePolicyRecentCategories ?? {}).map((category) => category);
 }
 
-function getAutocompleteTaxList(allTaxRates: Record<string, string[]>, policy?: OnyxEntry<Policy>) {
+function getAutocompleteTaxList(taxRates: Record<string, string[]>, policy?: OnyxEntry<Policy>) {
     if (policy) {
-        return Object.keys(policy?.taxRates?.taxes ?? {}).map((taxRateName) => taxRateName);
+        const policyTaxes = policy?.taxRates?.taxes ?? {};
+
+        return Object.keys(policyTaxes).map((taxID) => ({
+            taxRateName: policyTaxes[taxID].name,
+            taxRateIds: [taxID],
+        }));
     }
-    return Object.keys(allTaxRates).map((taxRateName) => taxRateName);
+
+    return Object.keys(taxRates).map((taxName) => ({
+        taxRateName: taxName,
+        taxRateIds: taxRates[taxName].map((id) => taxRates[id] ?? id).flat(),
+    }));
 }
 
 /**

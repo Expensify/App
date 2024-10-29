@@ -7,7 +7,6 @@ type SubstitutionMap = Record<string, SubstitutionEntry>;
 const getSubstitutionMapKey = (filterName: string, value: string) => `${filterName}:${value}`;
 
 function getQueryWithSubstitutions(changedQuery: string, substitutions: SubstitutionMap) {
-    console.log('getQueryWithSubstitutions', changedQuery, substitutions);
     const parsed = parser.parse(changedQuery) as {ranges: SearchAutocompleteQueryRange[]};
 
     const searchAutocompleteQueryRanges = parsed.ranges;
@@ -16,7 +15,6 @@ function getQueryWithSubstitutions(changedQuery: string, substitutions: Substitu
         return changedQuery;
     }
 
-    debugger;
     let resultQuery = changedQuery;
     let lengthDiff = 0;
 
