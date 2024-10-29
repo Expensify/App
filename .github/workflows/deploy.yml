@@ -182,6 +182,7 @@ jobs:
           submodules: true
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          fetch-depth: 0
 
       - name: Update submodule
         run: |
@@ -478,6 +479,7 @@ jobs:
           submodules: true
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          fetch-depth: 0
 
       - name: Update submodule
         run: |
