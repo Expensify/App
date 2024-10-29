@@ -33,7 +33,7 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
     return route.params !== undefined && 'reportID' in route.params && typeof route.params.reportID === 'string';
 }
 
-function getMatchingFullScreenRouteForRoute(route: NavigationPartialRoute, policyID?: string) {
+function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: string) {
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     if (isRouteWithBackToParam(route)) {
         const stateForBackTo = getStateFromPath(route.params.backTo, config);
@@ -57,7 +57,7 @@ function getMatchingFullScreenRouteForRoute(route: NavigationPartialRoute, polic
             return undefined;
         }
         // If not, get the matching full screen route for the back to state.
-        return getMatchingFullScreenRouteForRoute(focusedStateForBackToRoute, policyID);
+        return getMatchingFullScreenRoute(focusedStateForBackToRoute, policyID);
     }
 
     if (RELATIONS.SEARCH_TO_RHP.includes(route.name)) {
@@ -117,7 +117,7 @@ function getMatchingFullScreenRouteForRoute(route: NavigationPartialRoute, polic
 // It is the reports split navigator with report. If the reportID is defined in the focused route, we want to use it for the default report.
 // This is separated from getMatchingFullScreenRoute because we want to use it only for the initial state.
 // We don't want to make this route mandatory e.g. after deep linking or opening a specific flow.
-function getDefaultFullScreenRouteForRoute(route?: NavigationPartialRoute, policyID?: string) {
+function getDefaultFullScreenRoute(route?: NavigationPartialRoute, policyID?: string) {
     // We will use it if the reportID is not defined. Router of this navigator has logic to fill it with a report.
     const fallbackRoute = {
         name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
@@ -166,7 +166,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         const focusedRoute = findFocusedRoute(state);
 
         if (focusedRoute) {
-            const matchingRootRoute = getMatchingFullScreenRouteForRoute(focusedRoute, policyID);
+            const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute, policyID);
             // If there is a matching root route, add it to the state.
             if (matchingRootRoute) {
                 return {
@@ -175,7 +175,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             }
         }
 
-        const defaultFullScreenRoute = getDefaultFullScreenRouteForRoute(focusedRoute, policyID);
+        const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute, policyID);
 
         // If not, add the default full screen route.
         return {
@@ -212,4 +212,4 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
 };
 
 export default getAdaptedStateFromPath;
-export {getMatchingFullScreenRouteForRoute, isFullScreenName};
+export {getMatchingFullScreenRoute, isFullScreenName};
