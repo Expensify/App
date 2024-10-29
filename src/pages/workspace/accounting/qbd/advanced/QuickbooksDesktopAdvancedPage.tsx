@@ -1,7 +1,6 @@
 import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -19,7 +18,6 @@ function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
-    const {canUseNewDotQBD} = usePermissions();
 
     const qbdToggleSettingItems = [
         {
@@ -50,9 +48,8 @@ function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
         <ConnectionLayout
             displayName={QuickbooksDesktopAdvancedPage.displayName}
             headerTitle="workspace.accounting.advanced"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] remove it once the QBD beta is done
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}

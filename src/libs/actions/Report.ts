@@ -2782,11 +2782,22 @@ function leaveGroupChat(reportID: string) {
         return;
     }
 
+    // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
+    // The remaining parts of the report object will be removed after the API call is successful.
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: null,
+            value: {
+                reportID: null,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+            },
         },
     ];
     // Clean up any quick actions for the report we're leaving from
@@ -2798,8 +2809,27 @@ function leaveGroupChat(reportID: string) {
         });
     }
 
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: Object.keys(report).reduce<Record<string, null>>((acc, key) => {
+                acc[key] = null;
+                return acc;
+            }, {}),
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: report,
+        },
+    ];
+
     navigateToMostRecentReport(report);
-    API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData});
+    API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
 /** Leave a report by setting the state to submitted and closed */
