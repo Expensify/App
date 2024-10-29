@@ -42,14 +42,7 @@ function reportVirtualExpensifyCardFraud(cardID: number, validateCode: string): 
         const optimisticData: OnyxUpdate[] = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
-                value: {
-                    isLoading: true,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: true,
                 },
@@ -59,14 +52,7 @@ function reportVirtualExpensifyCardFraud(cardID: number, validateCode: string): 
         const successData: OnyxUpdate[] = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
-                value: {
-                    isLoading: false,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
                 },
@@ -76,14 +62,7 @@ function reportVirtualExpensifyCardFraud(cardID: number, validateCode: string): 
         const failureData: OnyxUpdate[] = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
-                value: {
-                    isLoading: false,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
                 },
@@ -117,15 +96,7 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
         const optimisticData: OnyxUpdate[] = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-                value: {
-                    isLoading: true,
-                    errors: null,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: true,
                 },
@@ -135,14 +106,7 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
         const successData: OnyxUpdate[] = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-                value: {
-                    isLoading: false,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
                 },
@@ -152,14 +116,7 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
         const failureData: OnyxUpdate[] = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-                value: {
-                    isLoading: false,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
                 },

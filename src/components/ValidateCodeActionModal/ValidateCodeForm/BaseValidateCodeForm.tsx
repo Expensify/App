@@ -88,7 +88,7 @@ function BaseValidateCodeForm({
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
     const [account = {}] = useOnyx(ONYXKEYS.ACCOUNT);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
-    const shouldDisableResendValidateCode = !!isOffline || account?.isLoading || validateCodeAction?.isLoading;
+    const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useImperativeHandle(innerRef, () => ({
@@ -234,7 +234,7 @@ function BaseValidateCodeForm({
                     success
                     large
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
-                    isLoading={account?.isLoading || validateCodeAction?.isLoading}
+                    isLoading={account?.isLoading}
                 />
             </OfflineWithFeedback>
         </>
