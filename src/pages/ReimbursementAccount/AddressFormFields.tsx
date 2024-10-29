@@ -55,6 +55,16 @@ type AddressFormProps = {
     stateSelectorSearchInputTitle?: string;
 };
 
+const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce((acc, key) => {
+    acc[COMMON_CONST.PROVINCES[key].provinceISO] = COMMON_CONST.PROVINCES[key].provinceName;
+    return acc;
+}, {} as Record<string, string>);
+
+const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typeof COMMON_CONST.STATES>).reduce((acc, key) => {
+    acc[COMMON_CONST.STATES[key].stateISO] = COMMON_CONST.STATES[key].stateName;
+    return acc;
+}, {} as Record<string, string>);
+
 function AddressFormFields({
     shouldSaveDraft = false,
     defaultValues,
@@ -72,16 +82,6 @@ function AddressFormFields({
 }: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    const provincesListOptions = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce((acc, key) => {
-        acc[COMMON_CONST.PROVINCES[key].provinceISO] = COMMON_CONST.PROVINCES[key].provinceName;
-        return acc;
-    }, {} as Record<string, string>);
-
-    const statesListOptions = (Object.keys(COMMON_CONST.STATES) as Array<keyof typeof COMMON_CONST.STATES>).reduce((acc, key) => {
-        acc[COMMON_CONST.STATES[key].stateISO] = COMMON_CONST.STATES[key].stateName;
-        return acc;
-    }, {} as Record<string, string>);
 
     return (
         <View style={containerStyles}>
@@ -118,7 +118,7 @@ function AddressFormFields({
                 <View style={[styles.mt3, styles.mhn5]}>
                     <InputWrapper
                         InputComponent={PushRowWithModal}
-                        optionsList={shouldDisplayCountrySelector && defaultValues?.country === CONST.COUNTRY.US ? statesListOptions : provincesListOptions}
+                        optionsList={shouldDisplayCountrySelector && defaultValues?.country === CONST.COUNTRY.US ? STATES_LIST_OPTIONS : PROVINCES_LIST_OPTIONS}
                         selectedOption={defaultValues?.state ?? ''}
                         onOptionChange={(value) => {
                             onFieldChange?.({state: value});
