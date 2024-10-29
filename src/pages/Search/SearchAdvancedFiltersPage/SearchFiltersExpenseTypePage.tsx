@@ -8,7 +8,7 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getExpenseTypeTranslationKey} from '@libs/SearchUtils';
+import {getExpenseTypeTranslationKey} from '@libs/SearchUIUtils';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,7 +56,6 @@ function SearchFiltersExpenseTypePage() {
             />
             <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
-                    pickerTitle={translate('search.expenseType')}
                     items={expenseTypesItems}
                     initiallySelectedItems={initiallySelectedItems}
                     onSaveSelection={updateExpenseTypeFilter}
