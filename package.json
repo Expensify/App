@@ -172,7 +172,7 @@
     "react-native-tab-view": "^3.5.2",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-view-shot": "3.8.0",
-    "react-native-vision-camera": "4.0.0-beta.13",
+    "react-native-vision-camera": "github:mrousavy/react-native-vision-camera#feat/official-arch-support-GIT-RELEASE",
     "react-native-web": "^0.19.12",
     "react-native-webview": "13.8.6",
     "react-plaid-link": "3.3.2",
