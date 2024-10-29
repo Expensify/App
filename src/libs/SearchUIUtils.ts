@@ -303,6 +303,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
     }
 
     // TODO: update allHavePendingRTERViolation to take in array of transactions
+    // TODO: update hasBrokenConnectionViolation to take in violations instead of connecting directly to Onyx
     if (IOU.canReportBeSubmitted(report, policy, currentUserAccountID, transaction)) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
