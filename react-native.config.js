@@ -8,9 +8,8 @@ module.exports = {
     },
     assets: ['./assets/fonts/native'],
     dependencies: {
-       [pak.name]: {
-         root: path.join(__dirname, 'modules', 'contactsNitroModule'),
-      },
+        [pak.name]: {
+            root: path.join(__dirname, 'modules', 'contactsNitroModule'),
+        },
     },
 };
-
