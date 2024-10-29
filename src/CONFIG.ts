@@ -83,7 +83,7 @@ export default {
     },
     CAPTURE_METRICS: get(Config, 'CAPTURE_METRICS', 'false') === 'true',
     ONYX_METRICS: get(Config, 'ONYX_METRICS', 'false') === 'true',
-    DEV_PORT: (process.env.PORT as string | undefined) ?? 8082,
+    DEV_PORT: process.env.PORT ?? 8082,
     E2E_TESTING: get(Config, 'E2E_TESTING', 'false') === 'true',
     SEND_CRASH_REPORTS: get(Config, 'SEND_CRASH_REPORTS', 'false') === 'true',
     IS_USING_WEB_PROXY: getPlatform() === 'web' && useWebProxy,

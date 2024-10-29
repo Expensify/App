@@ -1,5 +1,5 @@
 diff --git a/node_modules/expo-modules-core/build/ts-declarations/global.d.ts b/node_modules/expo-modules-core/build/ts-declarations/global.d.ts
-index 16b897c..345a765 100644
+index 16b897c..81eefc3 100644
 --- a/node_modules/expo-modules-core/build/ts-declarations/global.d.ts
 +++ b/node_modules/expo-modules-core/build/ts-declarations/global.d.ts
 @@ -47,28 +47,26 @@ type ViewConfig = {
@@ -15,7 +15,7 @@ index 16b897c..345a765 100644
 +        EXPO_ROUTER_APP_ROOT?: string;
 +        EXPO_BASE_URL?: string;
 +        EXPO_OS?: string;
-+        [key: string]: any;
++        [key: string]: string | undefined;
 +    };
 +    [key: string]: any;
 +}
@@ -47,7 +47,7 @@ index 16b897c..345a765 100644
  //# sourceMappingURL=global.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/expo-modules-core/src/ts-declarations/global.ts b/node_modules/expo-modules-core/src/ts-declarations/global.ts
-index 94f487a..84cc6fb 100644
+index 94f487a..3df23c6 100644
 --- a/node_modules/expo-modules-core/src/ts-declarations/global.ts
 +++ b/node_modules/expo-modules-core/src/ts-declarations/global.ts
 @@ -62,31 +62,25 @@ type ViewConfig = {
@@ -63,7 +63,7 @@ index 94f487a..84cc6fb 100644
 +    EXPO_ROUTER_APP_ROOT?: string;
 +    EXPO_BASE_URL?: string;
 +    EXPO_OS?: string;
-+    [key: string]: any;
++    [key: string]: string | undefined;
 +  };
 +  [key: string]: any;
 +}
