@@ -189,6 +189,11 @@ type GetUserToInviteConfig = {
     selectedOptions?: Array<Partial<ReportUtils.OptionData>>;
     reportActions?: ReportActions;
     showChatPreviewLine?: boolean;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    avatar?: UserUtils.AvatarSource;
 };
 
 type MemberForList = {
@@ -1771,6 +1776,102 @@ function getUserToInviteOption({
     return userToInvite;
 }
 
+function getUserToInviteContactOption({
+    searchValue,
+    excludeUnknownUsers = false,
+    optionsToExclude = [],
+    selectedOptions = [],
+    firstName,
+    lastName,
+    email,
+    phone,
+    avatar,
+}: GetUserToInviteConfig): SearchOption<PersonalDetails> | null {
+    // If email is provided, use it as the primary identifier
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const effectiveSearchValue = email || searchValue;
+
+    // Handle phone number parsing for either provided phone or searchValue
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const phoneToCheck = phone || searchValue;
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(phoneToCheck)));
+
+    const isCurrentUserLogin = isCurrentUser({login: effectiveSearchValue} as PersonalDetails);
+    const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === effectiveSearchValue);
+
+    // Validate email (either provided email or searchValue)
+    const isValidEmail = Str.isValidEmail(effectiveSearchValue) && !Str.isDomainEmail(effectiveSearchValue) && !Str.endsWith(effectiveSearchValue, CONST.SMS.DOMAIN);
+
+    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
+
+    const isInOptionToExclude =
+        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(effectiveSearchValue).toLowerCase()) !==
+        -1;
+
+    if (!effectiveSearchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber) || isInOptionToExclude || excludeUnknownUsers) {
+        return null;
+    }
+
+    // Generates an optimistic account ID for new users not yet saved in Onyx
+    const optimisticAccountID = UserUtils.generateAccountID(effectiveSearchValue);
+
+    // Construct display name if firstName/lastName are provided
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const displayName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || effectiveSearchValue;
+
+    // Create the base user details that will be used in both item and participantsList
+    const userDetails = {
+        accountID: optimisticAccountID,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        avatar: avatar || FallbackAvatar,
+        firstName: firstName ?? '',
+        lastName: lastName ?? '',
+        displayName,
+        login: effectiveSearchValue,
+        pronouns: '',
+        phoneNumber: phone ?? '',
+        validated: true,
+    };
+
+    const userToInvite = {
+        item: userDetails,
+        text: displayName,
+        alternateText: displayName !== effectiveSearchValue ? effectiveSearchValue : undefined,
+        brickRoadIndicator: null,
+        icons: [
+            {
+                source: userDetails.avatar,
+                type: CONST.ICON_TYPE_AVATAR,
+                name: effectiveSearchValue,
+                id: optimisticAccountID,
+            },
+        ],
+        tooltipText: null,
+        participantsList: [userDetails],
+        accountID: optimisticAccountID,
+        login: effectiveSearchValue,
+        reportID: '',
+        phoneNumber: phone ?? '',
+        hasDraftComment: false,
+        keyForList: optimisticAccountID.toString(),
+        isDefaultRoom: false,
+        isPinned: false,
+        isWaitingOnBankAccount: false,
+        isIOUReportOwner: false,
+        iouReportAmount: 0,
+        isChatRoom: false,
+        shouldShowSubscript: false,
+        isPolicyExpenseChat: false,
+        isOwnPolicyExpenseChat: false,
+        isExpenseReport: false,
+        lastMessageText: '',
+        isBold: true,
+        isOptimisticAccount: true,
+    };
+
+    return userToInvite;
+}
+
 /**
  * Check whether report has violations
  */
@@ -2655,6 +2756,7 @@ export {
     getFirstKeyForList,
     canCreateOptimisticPersonalDetailOption,
     getUserToInviteOption,
+    getUserToInviteContactOption,
     shouldShowViolations,
     getPersonalDetailSearchTerms,
     getCurrentUserSearchTerms,
@@ -2663,6 +2765,45 @@ export {
     getAlternateText,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasReportErrors,
+    // processContact,
 };
 
-export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
+export type {
+    MemberForList,
+    CategorySection,
+    CategoryTreeSection,
+    Options,
+    OptionList,
+    SearchOption,
+    PayeePersonalDetails,
+    Category,
+    Tax,
+    TaxRatesOption,
+    Option,
+    OptionTree,
+    GetUserToInviteConfig,
+};
+
+// const real = {
+//     accountID: 18555667,
+//     login: 'taras@margelo.com',
+//     isPolicyExpenseChat: false,
+//     reportID: '2529121295195253',
+//     policyID: '_FAKE_',
+//     selected: true,
+//     iouType: 'submit',
+// };
+// const fake = {
+//     accountID: 1396220542,
+//     login: 'taras@margelo.qw',
+//     selected: true,
+//     iouType: 'submit',
+// };
+// const fakeMy = {
+//     accountID: 1237625657,
+//     login: 'baby_test.hermann@gmail.com',
+//     isPolicyExpenseChat: false,
+//     reportID: '',
+//     selected: true,
+//     iouType: 'submit',
+// };
