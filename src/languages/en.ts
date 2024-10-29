@@ -12,7 +12,7 @@ import type {
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
     AssignCardParams,
-    AssignedYouCardParams,
+    AssignedCardParams,
     AssigneeParams,
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
@@ -953,6 +953,7 @@ const translations = {
         error: {
             invalidCategoryLength: 'The category name exceeds 255 characters. Please shorten it or choose a different category.',
             invalidAmount: 'Please enter a valid amount before continuing.',
+            invalidIntegerAmount: 'Please enter a whole dollar amount before continuing.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximum tax amount is ${amount}`,
             invalidSplit: 'The sum of splits must equal the total amount.',
             invalidSplitParticipants: 'Please enter an amount greater than zero for at least two participants.',
@@ -1783,6 +1784,7 @@ const translations = {
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
             hasInvalidCharacter: 'Name can only include Latin characters.',
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
+            invalidPhoneNumber: `Please ensure the phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         },
     },
     resendValidationForm: {
@@ -2245,6 +2247,10 @@ const translations = {
     countryStep: {
         confirmBusinessBank: 'Confirm business bank account currency and country',
         confirmCurrency: 'Confirm currency and country',
+        yourBusiness: 'Your business bank account currency must match your workspace currency.',
+        youCanChange: 'You can change your workspace currency in your',
+        findCountry: 'Find country',
+        selectCountry: 'Select country',
     },
     signerInfoStep: {
         signerInfo: 'Signer info',
@@ -3104,7 +3110,7 @@ const translations = {
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
                     heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
-                    vcf: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructionson how to set up your Visa Commercial Cards.\n\n2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them toenable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
+                    vcf: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructions on how to set up your Visa Commercial Cards.\n\n2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them toenable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
                     gl1025: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) to find out if American Express can enable a custom feed for your program.\n\n2. Once the feed is enabled, Amex will send you a production letter.\n\n3. *Once you have the feed information, continue to the next screen.*`,
                     cdf: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructions on how to set up your Mastercard Commercial Cards.\n\n 2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
                     stripe: `1. Visit Stripe’s Dashboard, and go to [Settings](${CONST.COMPANY_CARDS_STRIPE_HELP}).\n\n2. Under Product Integrations, click Enable next to Expensify.\n\n3. Once the feed is enabled, click Submit below and we’ll work on adding it.`,
@@ -3158,7 +3164,7 @@ const translations = {
             brokenConnectionErrorFirstPart: `Card feed connection is broken. Please `,
             brokenConnectionErrorLink: 'log into your bank ',
             brokenConnectionErrorSecondPart: 'so we can establish the connection again.',
-            assignedYouCard: ({link}: AssignedYouCardParams) => `assigned you a ${link}! Imported transactions will appear in this chat.`,
+            assignedCard: ({assignee, link}: AssignedCardParams) => `assigned ${assignee} a ${link}! Imported transactions will appear in this chat.`,
             companyCard: 'company card',
             chooseCardFeed: 'Choose card feed',
         },

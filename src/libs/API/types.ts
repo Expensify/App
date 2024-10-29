@@ -57,6 +57,7 @@ const WRITE_COMMANDS = {
     UPDATE_DISPLAY_NAME: 'UpdateDisplayName',
     UPDATE_LEGAL_NAME: 'UpdateLegalName',
     UPDATE_DATE_OF_BIRTH: 'UpdateDateOfBirth',
+    UPDATE_PHONE_NUMBER: 'UpdatePhoneNumber',
     UPDATE_HOME_ADDRESS: 'UpdateHomeAddress',
     UPDATE_POLICY_ADDRESS: 'SetPolicyAddress',
     UPDATE_AUTOMATIC_TIMEZONE: 'UpdateAutomaticTimezone',
@@ -467,6 +468,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DISPLAY_NAME]: Parameters.UpdateDisplayNameParams;
     [WRITE_COMMANDS.UPDATE_LEGAL_NAME]: Parameters.UpdateLegalNameParams;
     [WRITE_COMMANDS.UPDATE_DATE_OF_BIRTH]: Parameters.UpdateDateOfBirthParams;
+    [WRITE_COMMANDS.UPDATE_PHONE_NUMBER]: Parameters.UpdatePhoneNumberParams;
     [WRITE_COMMANDS.UPDATE_POLICY_ADDRESS]: Parameters.UpdatePolicyAddressParams;
     [WRITE_COMMANDS.UPDATE_HOME_ADDRESS]: Parameters.UpdateHomeAddressParams;
     [WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE]: Parameters.UpdateAutomaticTimezoneParams;
