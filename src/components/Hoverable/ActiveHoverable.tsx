@@ -132,7 +132,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
 
             onBlur?.(event);
         },
-        [onBlur],
+        [onBlur, shouldFreezeCapture],
     );
 
     const handleAndForwardOnMouseMove = useCallback(
