@@ -11,7 +11,7 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import {RootStackParamList, State} from '@libs/Navigation/types';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
