@@ -500,7 +500,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                             ref={buttonRef as ForwardedRef<View>}
                                                             onPress={() => {
                                                                 if (!isUserValidated) {
-                                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_ENABLE_PAYMENTS));
+                                                                    Navigation.navigate(
+                                                                        ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_WALLET, ROUTES.SETTINGS_ENABLE_PAYMENTS),
+                                                                    );
                                                                     return;
                                                                 }
                                                                 Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
