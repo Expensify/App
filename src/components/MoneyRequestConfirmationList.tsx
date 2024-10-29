@@ -35,7 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -85,6 +85,9 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** IOU amount */
     iouAmount: number;
+
+    /** IOU attendees list */
+    iouAttendees?: Attendee[];
 
     /** IOU comment */
     iouComment?: string;
@@ -195,6 +198,7 @@ function MoneyRequestConfirmationList({
     policyID = '',
     reportID = '',
     receiptPath = '',
+    iouAttendees,
     iouComment,
     receiptFilename = '',
     iouCreated,
@@ -290,7 +294,12 @@ function MoneyRequestConfirmationList({
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
         : CurrencyUtils.convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
-
+    const formattedAmountPerAttendee = isDistanceRequestWithPendingRoute
+        ? ''
+        : CurrencyUtils.convertToDisplayString(
+              (shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount) / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1),
+              isDistanceRequest ? currency : iouCurrencyCode,
+          );
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
@@ -902,8 +911,10 @@ function MoneyRequestConfirmationList({
             didConfirm={!!didConfirm}
             distance={distance}
             formattedAmount={formattedAmount}
+            formattedAmountPerAttendee={formattedAmountPerAttendee}
             formError={formError}
             hasRoute={hasRoute}
+            iouAttendees={iouAttendees}
             iouCategory={iouCategory}
             iouComment={iouComment}
             iouCreated={iouCreated}
@@ -1013,6 +1024,7 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
             prevProps.policyID === nextProps.policyID &&
             prevProps.reportID === nextProps.reportID &&
             prevProps.receiptPath === nextProps.receiptPath &&
+            prevProps.iouAttendees === nextProps.iouAttendees &&
             prevProps.iouComment === nextProps.iouComment &&
             prevProps.receiptFilename === nextProps.receiptFilename &&
             prevProps.iouCreated === nextProps.iouCreated &&

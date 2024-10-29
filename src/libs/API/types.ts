@@ -57,6 +57,7 @@ const WRITE_COMMANDS = {
     UPDATE_DISPLAY_NAME: 'UpdateDisplayName',
     UPDATE_LEGAL_NAME: 'UpdateLegalName',
     UPDATE_DATE_OF_BIRTH: 'UpdateDateOfBirth',
+    UPDATE_PHONE_NUMBER: 'UpdatePhoneNumber',
     UPDATE_HOME_ADDRESS: 'UpdateHomeAddress',
     UPDATE_POLICY_ADDRESS: 'SetPolicyAddress',
     UPDATE_AUTOMATIC_TIMEZONE: 'UpdateAutomaticTimezone',
@@ -175,6 +176,7 @@ const WRITE_COMMANDS = {
     DELETE_REPORT_FIELD: 'RemoveReportField',
     SET_REPORT_NAME: 'RenameReport',
     COMPLETE_SPLIT_BILL: 'CompleteSplitBill',
+    UPDATE_MONEY_REQUEST_ATTENDEES: 'UpdateMoneyRequestAttendees',
     UPDATE_MONEY_REQUEST_DATE: 'UpdateMoneyRequestDate',
     UPDATE_MONEY_REQUEST_BILLABLE: 'UpdateMoneyRequestBillable',
     UPDATE_MONEY_REQUEST_MERCHANT: 'UpdateMoneyRequestMerchant',
@@ -465,6 +467,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DISPLAY_NAME]: Parameters.UpdateDisplayNameParams;
     [WRITE_COMMANDS.UPDATE_LEGAL_NAME]: Parameters.UpdateLegalNameParams;
     [WRITE_COMMANDS.UPDATE_DATE_OF_BIRTH]: Parameters.UpdateDateOfBirthParams;
+    [WRITE_COMMANDS.UPDATE_PHONE_NUMBER]: Parameters.UpdatePhoneNumberParams;
     [WRITE_COMMANDS.UPDATE_POLICY_ADDRESS]: Parameters.UpdatePolicyAddressParams;
     [WRITE_COMMANDS.UPDATE_HOME_ADDRESS]: Parameters.UpdateHomeAddressParams;
     [WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE]: Parameters.UpdateAutomaticTimezoneParams;
@@ -592,6 +595,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_REPORT_NAME]: Parameters.SetReportNameParams;
     [WRITE_COMMANDS.DELETE_REPORT_FIELD]: Parameters.DeleteReportFieldParams;
     [WRITE_COMMANDS.COMPLETE_SPLIT_BILL]: Parameters.CompleteSplitBillParams;
+    [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE]: Parameters.UpdateMoneyRequestParams;
