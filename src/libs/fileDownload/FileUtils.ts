@@ -285,15 +285,6 @@ function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatS
         });
 }
 
-function isOfflineFile(receiptUri?: string | number): boolean {
-    if (!receiptUri) {
-        return false;
-    }
-    return (
-        typeof receiptUri === 'number' || receiptUri?.startsWith('blob:') || receiptUri?.startsWith('file:') || (receiptUri?.startsWith('/') && !receiptUri?.startsWith('/chat-attachments'))
-    );
-}
-
 function isLocalFile(receiptUri?: string | number): boolean {
     if (!receiptUri) {
         return false;
@@ -351,7 +342,6 @@ export {
     appendTimeToFileName,
     readFileAsync,
     base64ToFile,
-    isOfflineFile,
     isLocalFile,
     validateImageForCorruption,
     isImage,
