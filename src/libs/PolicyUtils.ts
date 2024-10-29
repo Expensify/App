@@ -49,11 +49,17 @@ type ConnectionWithLastSyncData = {
 };
 
 let allPolicies: OnyxCollection<Policy>;
+let activePolicyId: OnyxEntry<string>;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
+});
+
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (value) => (activePolicyId = value),
 });
 
 /**
@@ -126,15 +132,15 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
 /**
  * Retrieves the distance custom unit object for the given policy
  */
-function getCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
+function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
 }
 
 /**
  * Retrieves custom unit rate object from the given customUnitRateID
  */
-function getCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
-    const distanceUnit = getCustomUnit(policy);
+function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
+    const distanceUnit = getDistanceRateCustomUnit(policy);
     return distanceUnit?.rates[customUnitRateID];
 }
 
@@ -376,7 +382,7 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
 }
 
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
-    const distanceUnit = getCustomUnit(policy);
+    const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? 0;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
     const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
@@ -1050,6 +1056,14 @@ function hasPolicyFeedsError(feeds: Record<string, CardFeedData>, feedToSkip?: s
     return Object.entries(feeds).filter(([feedName, feedData]) => feedName !== feedToSkip && !!feedData.errors).length > 0;
 }
 
+function getAllPoliciesLength() {
+    return Object.keys(allPolicies ?? {}).length;
+}
+
+function getActivePolicy(): OnyxEntry<Policy> {
+    return getPolicy(activePolicyId);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1134,8 +1148,8 @@ export {
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
     getSageIntacctBankAccounts,
-    getCustomUnit,
-    getCustomUnitRate,
+    getDistanceRateCustomUnit,
+    getDistanceRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
     navigateWhenEnableFeature,
@@ -1165,6 +1179,8 @@ export {
     hasUnsupportedIntegration,
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
+    getAllPoliciesLength,
+    getActivePolicy,
 };
 
 export type {MemberEmailsToAccountIDs};
