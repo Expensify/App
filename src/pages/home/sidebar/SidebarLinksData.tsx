@@ -50,6 +50,7 @@ function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMod
 
     const isLoading = isLoadingApp;
     const currentReportIDRef = useRef(currentReportID);
+    // eslint-disable-next-line react-compiler/react-compiler
     currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
     return (

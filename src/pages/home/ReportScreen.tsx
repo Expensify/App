@@ -227,6 +227,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
     const wasReportAccessibleRef = useRef(false);
+    // eslint-disable-next-line react-compiler/react-compiler
     if (firstRenderRef.current) {
         Timing.start(CONST.TIMING.CHAT_RENDER);
         Performance.markStart(CONST.TIMING.CHAT_RENDER);
@@ -384,7 +385,9 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return false;
         }
 
+        // eslint-disable-next-line react-compiler/react-compiler
         if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            // eslint-disable-next-line react-compiler/react-compiler
             return true;
         }
 
