@@ -307,7 +307,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 
-    // TODO: pass reportNameValuePairs to ReportUtils.getReportNameValuePairs
     if (IOU.canApproveIOU(report, policy)) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
