@@ -750,5 +750,5 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
-    CurrencyCodeParams
+    CurrencyCodeParams,
 };
