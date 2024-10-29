@@ -35,8 +35,16 @@ jobs:
       - name: Determine "baseline ref" (prev merge commit)
         id: getBaselineRef
         run: |
-          previous_merge=$(git rev-list --merges HEAD~1 | head -n 1)
-          git checkout "$previous_merge"
+          # Get the name of the current branch
+          current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+          if [ "$current_branch" = "main" ]; then
+            # On the main branch, find the previous merge commit
+            previous_merge=$(git rev-list --merges HEAD~1 | head -n 1)
+          else
+            # On a feature branch, find the common ancestor of the current branch and main
+            previous_merge=$(git merge-base HEAD main)
+          fi
           echo "$previous_merge"
           echo "BASELINE_REF=$previous_merge" >> "$GITHUB_OUTPUT"
 
