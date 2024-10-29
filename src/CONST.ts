@@ -475,6 +475,9 @@ const CONST = {
         },
     },
     NON_USD_BANK_ACCOUNT: {
+        ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
+        FILE_LIMIT: 10,
+        TOTAL_FILES_SIZE_LIMIT: 5242880,
         STEP: {
             COUNTRY: 'CountryStep',
             BANK_INFO: 'BankInfoStep',
@@ -4239,6 +4242,7 @@ const CONST = {
     // The attribute used in the SelectionScraper.js helper to query all the DOM elements
     // that should be removed from the copied contents in the getHTMLOfSelection() method
     SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
+    INNER_BOX_SHADOW_ELEMENT: 'inner-box-shadow-element',
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
