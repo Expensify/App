@@ -767,13 +767,10 @@ function openReport(
         return;
     }
 
-    const optimisticReport: Report = reportActionsExist(reportID)
-        ? {
-              reportID,
-          }
+    const optimisticReport = reportActionsExist(reportID)
+        ? {}
         : {
               reportName: ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
-              reportID,
           };
 
     const optimisticData: OnyxUpdate[] = [
