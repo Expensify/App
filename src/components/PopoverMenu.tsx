@@ -323,6 +323,7 @@ function PopoverMenu({
                                             setFocusedIndex(menuIndex);
                                         }}
                                         wrapperStyle={StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, theme.activeComponentBG, theme.hoverComponentBG)}
+                                        shouldRemoveHoverBackground={item.isSelected}
                                         titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                                         // eslint-disable-next-line react/jsx-props-no-spreading
                                         {...menuItemProps}
