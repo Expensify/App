@@ -12,6 +12,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction, SearchTransactionAction, SearchPolicy} from '@src/types/onyx/SearchResults';
+import type {TransactionViolation} from '@src/types/onyx';
 import * as IOU from './actions/IOU';
 import * as Report from './actions/Report';
 import * as CurrencyUtils from './CurrencyUtils';
@@ -260,7 +261,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
-    const transaction = isTransactionEntry(key) ? data[key] : null;
+    const transaction = isTransactionEntry(key) ? data[key] : undefined;
     const report = (transaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key]) as SearchReport;
 
     // We don't need to run the logic if this is not a transaction or iou/expense report
@@ -269,8 +270,13 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
     }
 
     const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
-    const allReportTransactions = isReportEntry(key) ? Object.entries(data).filter(([itemKey, value]) => isTransactionEntry(itemKey) && (value as SearchTransaction)?.reportID === report.reportID).map(item => item[1]) : [];
-    console.log('over here', allReportTransactions)
+    const allReportTransactions = (
+        isReportEntry(key)
+            ? Object.entries(data)
+                  .filter(([itemKey, value]) => isTransactionEntry(itemKey) && (value as SearchTransaction)?.reportID === report.reportID)
+                  .map((item) => item[1])
+            : []
+    ) as SearchTransaction[];
     const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
     const violations = data[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? {};
     const allViolations = Object.keys(data).filter((item) => item.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)) ?? {};
@@ -283,11 +289,15 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
-    // TODO: Fix TS error
+    // TODO: pass reportNameValuePairs here so we don't get it in ReportUtils.isArchivedRoom and canApproveIOU
+    // TODO: pass receiver policy so that we don't get it from Onyx in PolicyUtils.getPolicy
+    // TODO: pass policy to ReportUtils.isPayer and isPaidGroupPolicy
+    // TODO: in Auth, send invoiceReceiver as accountID if type is individual
     if (IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, false)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 
+    // TODO: pass reportNameValuePairs to ReportUtils.getReportNameValuePairs
     if (IOU.canApproveIOU(report, policy)) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }

@@ -6,7 +6,9 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {InvoiceReceiver} from './Report';
 import type ReportActionName from './ReportActionName';
+import type {TransactionViolation} from './TransactionViolation';
 
 /** Types of search data */
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
@@ -79,7 +81,7 @@ type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 /** Model of report search result */
 type SearchReport = {
     /** The ID of the report */
-    reportID?: string;
+    reportID: string;
 
     /** ID of the chat report */
     chatReportID?: string;
@@ -115,7 +117,7 @@ type SearchReport = {
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
     /** Invoice room receiver data */
-    invoiceReceiver?: Record<string, string>;
+    invoiceReceiver?: InvoiceReceiver;
 
     /** Whether the report has a single transaction */
     isOneTransactionReport?: boolean;
@@ -213,7 +215,10 @@ type SearchPolicy = {
     employeeList?: Record<string, Record<string, string>>;
 
     /** Detailed settings for the autoReimbursement */
-    autoReimbursement?: Record<string, string>;
+    autoReimbursement?: {
+        /** The auto reimbursement limit */
+        limit: number;
+    };
 };
 
 /** Model of transaction search result */
@@ -347,7 +352,8 @@ type SearchResults = {
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy>;
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;

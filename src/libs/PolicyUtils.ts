@@ -35,6 +35,7 @@ import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import { SearchPolicy } from '@src/types/onyx/SearchResults';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -369,7 +370,7 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
+function isPaidGroupPolicy(policy: OnyxEntry<Policy> | SearchPolicy): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
@@ -424,7 +425,7 @@ function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): V
 /**
  * Checks if policy's approval mode is "optional", a.k.a. "Submit & Close"
  */
-function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
+function isSubmitAndClose(policy: OnyxInputOrEntry<Policy> | SearchPolicy): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
