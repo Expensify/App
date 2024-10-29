@@ -44,7 +44,7 @@ function ValidateCodeActionModal({
         firstRenderRef.current = false;
 
         sendValidateCode();
-    }, [isVisible, sendValidateCode]);
+    }, [isVisible, sendValidateCode, hasMagicCodeBeenSent]);
 
     return (
         <Modal
