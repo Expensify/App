@@ -9,7 +9,7 @@ type RequestMatcher = (request: OnyxRequest) => boolean;
 
 const addNewMessage = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 
-const commentsToBeDeleted = new Set<string>([
+const requestsToBeDeleted = new Set<string>([
     WRITE_COMMANDS.ADD_COMMENT,
     WRITE_COMMANDS.ADD_ATTACHMENT,
     WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT,
@@ -70,7 +70,7 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
             return;
         }
 
-        if (!commentsToBeDeleted.has(request.command) || request.data?.reportActionID !== reportActionID) {
+        if (!requestsToBeDeleted.has(request.command) || request.data?.reportActionID !== reportActionID) {
             return;
         }
 
