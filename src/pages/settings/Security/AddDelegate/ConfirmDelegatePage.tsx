@@ -77,13 +77,13 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                 login={login}
                 role={role}
                 onClose={() => {
+                    setIsValidateCodeActionModalVisible(false);
                     if (!showValidateActionModal) {
                         return;
                     }
                     Navigation.navigate(ROUTES.SETTINGS_SECURITY);
                 }}
                 isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
-                setIsValidateCodeActionModalVisible={setIsValidateCodeActionModalVisible}
             />
         </HeaderPageLayout>
     );
