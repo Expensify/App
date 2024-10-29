@@ -66,7 +66,7 @@ function DebugTransactionViolationCreatePage({
     const [draftTransactionViolation, setDraftTransactionViolation] = useState<string>(getInitialTransactionViolation());
     const [error, setError] = useState<string>();
 
-    const onEditJSON = useCallback(
+    const editJSON = useCallback(
         (updatedJSON: string) => {
             try {
                 DebugUtils.validateTransactionViolationJSON(updatedJSON);
@@ -81,7 +81,7 @@ function DebugTransactionViolationCreatePage({
         [translate],
     );
 
-    const onSave = useCallback(() => {
+    const createTransactionViolation = useCallback(() => {
         const parsedTransactionViolation = DebugUtils.stringToOnyxData(draftTransactionViolation, 'object') as TransactionViolation;
         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [...(transactionViolations ?? []), parsedTransactionViolation]);
         Navigation.navigate(ROUTES.DEBUG_TRANSACTION_TAB_VIOLATIONS.getRoute(transactionID));
@@ -114,7 +114,7 @@ function DebugTransactionViolationCreatePage({
                                 numberOfLines={18}
                                 multiline
                                 value={draftTransactionViolation}
-                                onChangeText={onEditJSON}
+                                onChangeText={editJSON}
                                 textInputContainerStyles={[styles.border, styles.borderBottom, styles.p5]}
                             />
                         </View>
@@ -123,7 +123,7 @@ function DebugTransactionViolationCreatePage({
                             success
                             text={translate('common.save')}
                             isDisabled={!draftTransactionViolation || !!error}
-                            onPress={onSave}
+                            onPress={createTransactionViolation}
                         />
                     </ScrollView>
                 </View>

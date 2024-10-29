@@ -33,7 +33,7 @@ function DebugTransactionViolationPage({
     const transactionViolation = useMemo(() => transactionViolations?.[Number(index)], [index, transactionViolations]);
     const styles = useThemeStyles();
 
-    const onSave = useCallback(
+    const saveChanges = useCallback(
         (data: Record<string, unknown>) => {
             const updatedTransactionViolations = [...(transactionViolations ?? [])];
             updatedTransactionViolations.splice(Number(index), 1, data as TransactionViolation);
@@ -42,7 +42,7 @@ function DebugTransactionViolationPage({
         [index, transactionID, transactionViolations],
     );
 
-    const onDelete = useCallback(() => {
+    const deleteTransactionViolation = useCallback(() => {
         const updatedTransactionViolations = [...(transactionViolations ?? [])];
         updatedTransactionViolations.splice(Number(index), 1);
         Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
@@ -74,8 +74,8 @@ function DebugTransactionViolationPage({
                                 <DebugDetails
                                     formType={CONST.DEBUG.FORMS.TRANSACTION_VIOLATION}
                                     data={transactionViolation}
-                                    onSave={onSave}
-                                    onDelete={onDelete}
+                                    onSave={saveChanges}
+                                    onDelete={deleteTransactionViolation}
                                     validate={DebugUtils.validateTransactionViolationDraftProperty}
                                 />
                             )}
