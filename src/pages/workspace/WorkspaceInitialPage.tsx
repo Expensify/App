@@ -367,6 +367,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             includeSafeAreaPaddingBottom
+            bottomContent={<BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
@@ -431,7 +432,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
