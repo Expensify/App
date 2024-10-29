@@ -86,4 +86,6 @@ When an admin manually exports a report, Expensify will warn them if the report 
 - If Auto Sync was disabled when your Workspace was linked to Xero, enabling it won’t impact existing reports that haven’t been exported.
 - If a report has been exported and reimbursed via ACH, it will be automatically marked as paid in Xero during the next sync.
 - If a report has been exported and marked as paid in Xero, it will be automatically marked as reimbursed in Expensify during the next sync.
-- If a report has not yet been exported to Xero, it won’t be automatically exported. {% include faq-end.md %}
+- If a report has not yet been exported to Xero, it won’t be automatically exported.
+
+{% include faq-end.md %}
