@@ -1,3 +1,4 @@
+import type {FileObject} from '@components/AttachmentModal';
 import type {Country} from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type Form from './Form';
@@ -53,6 +54,65 @@ const INPUT_IDS = {
     AMOUNT3: 'amount3',
     ADDITIONAL_DATA: {
         COUNTRY: 'country',
+        CORPAY: {
+            SWIFT_CODE: 'swiftCode',
+            BANK_NAME: 'bankName',
+            BANK_CITY: 'bankCity',
+            BANK_ADDRESS_LINE_1: 'bankAddress',
+            BANK_STATEMENT: 'bankStatement',
+            COMPANY_NAME: 'companyName',
+            COMPANY_STREET: 'companyStreet',
+            COMPANY_CITY: 'companyCity',
+            COMPANY_STATE: 'companyState',
+            COMPANY_ZIP_CODE: 'companyZipCode',
+            COMPANY_COUNTRY: 'companyCountry',
+            BUSINESS_CONTACT_NUMBER: 'businessContactNumber',
+            BUSINESS_CONFIRMATION_EMAIL: 'businessConfirmationEmail',
+            FORMATION_INCORPORATION_COUNTRY_CODE: 'formationIncorporationCountryCode',
+            FORMATION_INCORPORATION_STATE: 'formationIncorporationState',
+            BUSINESS_REGISTRATION_INCORPORATION_NUMBER: 'businessRegistrationIncorporationNumber',
+            COUNTRY_CODE: 'countryCode',
+            TAX_ID_EIN_NUMBER: 'taxIDEINNumber',
+            BUSINESS_CATEGORY: 'natureOfBusiness',
+            APPLICANT_TYPE_ID: 'applicantTypeID',
+            PURPOSE_OF_TRANSACTION_ID: 'purposeOfTransactionID',
+            CURRENCY_NEEDED: 'currencyNeeded',
+            TRADE_VOLUME: 'tradeVolume',
+            ANNUAL_VOLUME: 'annualVolume',
+            FUND_DESTINATION_COUNTRIES: 'fundDestinationCountries',
+            FUND_SOURCE_COUNTRIES: 'fundSourceCountries',
+            COMPANY_DIRECTORS_FULL_NAME: 'companyDirectorsFullName',
+            COMPANY_DIRECTORS_JOB_TITLE: 'companyDirectorsJobTitle',
+            COMPANY_DIRECTORS_OCCUPATION: 'companyDirectorsOccupation',
+            OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
+            ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE: 'anyIndividualOwn25PercentOrMore',
+            BENEFICIAL_OWNERS: 'beneficialOwners',
+            ENTITY_CHART: 'entityChart',
+            SIGNER_FULL_NAME: 'signerFullName',
+            SIGNER_DATE_OF_BIRTH: 'signerDateOfBirth',
+            SIGNER_JOB_TITLE: 'signerJobTitle',
+            SIGNER_EMAIL: 'signerEmail',
+            SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
+            SECOND_SIGNER_FULL_NAME: 'secondSignerFullName',
+            SECOND_SIGNER_DATE_OF_BIRTH: 'secondSignerDateOfBirth',
+            SECOND_SIGNER_JOB_TITLE: 'secondSignerJobTitle',
+            SECOND_SIGNER_EMAIL: 'secondSignerEmail',
+            SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'secondSignerCompleteResidentialAddress',
+            SIGNER_PROOF_OF_DIRECTOR: 'signerProofOfDirector',
+            SIGNER_COPY_OF_ID: 'signerCopyOfID',
+            SIGNER_ADDRESS_PROOF: 'signerAddressProof',
+            SIGNER_TAX_ID: 'signerTaxID',
+            SIGNER_PDS_AND_FSG: 'signerPDSAndFSG',
+            SECOND_SIGNER_PROOF_OF_DIRECTOR: 'secondSignerProofOfDirector',
+            SECOND_SIGNER_COPY_OF_ID: 'secondSignerCopyOfID',
+            SECOND_SIGNER_ADDRESS_PROOF: 'secondSignerAddressProof',
+            SECOND_SIGNER_TAX_ID: 'secondSignerTaxID',
+            SECOND_SIGNER_PDS_AND_FSG: 'secondSignerPDSAndFSG',
+            PROVIDE_TRUTHFUL_INFORMATION: 'provideTruthfulInformation',
+            AGREE_TO_TERMS_AND_CONDITIONS: 'agreeToTermsAndConditions',
+            CONSENT_TO_PRIVACY_NOTICE: 'consentToPrivacyNotice',
+            AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: 'authorizedToBindClientToAgreement',
+        },
     },
 } as const;
 
@@ -129,11 +189,68 @@ type ReimbursementAccountProps = {
 type NonUSDReimbursementAccountAdditionalProps = {
     /** Country of the reimbursement account */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_CODE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_NAME]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_CITY]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_ADDRESS_LINE_1]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STREET]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_CITY]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STATE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_ZIP_CODE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_COUNTRY]: Country | '';
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CONTACT_NUMBER]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CONFIRMATION_EMAIL]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FORMATION_INCORPORATION_COUNTRY_CODE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FORMATION_INCORPORATION_STATE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_REGISTRATION_INCORPORATION_NUMBER]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COUNTRY_CODE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.TAX_ID_EIN_NUMBER]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CATEGORY]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.APPLICANT_TYPE_ID]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PURPOSE_OF_TRANSACTION_ID]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.CURRENCY_NEEDED]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.TRADE_VOLUME]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_DESTINATION_COUNTRIES]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_SOURCE_COUNTRIES]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_DIRECTORS_FULL_NAME]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_DIRECTORS_JOB_TITLE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_DIRECTORS_OCCUPATION]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ENTITY_CHART]: FileObject[];
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_FULL_NAME]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_DATE_OF_BIRTH]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_JOB_TITLE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_FULL_NAME]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_DATE_OF_BIRTH]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_JOB_TITLE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PROOF_OF_DIRECTOR]: FileObject[];
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COPY_OF_ID]: FileObject[];
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_ADDRESS_PROOF]: FileObject[];
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_TAX_ID]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PDS_AND_FSG]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_PROOF_OF_DIRECTOR]: FileObject[];
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COPY_OF_ID]: FileObject[];
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_ADDRESS_PROOF]: FileObject[];
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_TAX_ID]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_PDS_AND_FSG]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION]: boolean;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.AGREE_TO_TERMS_AND_CONDITIONS]: boolean;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.CONSENT_TO_PRIVACY_NOTICE]: boolean;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT]: boolean;
 };
 
 type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
     Form<
         InputID,
+        // @ts-expect-error TODO: fix it - I have no idea why it is complaining here
         BeneficialOwnersStepBaseProps &
             BankAccountStepProps &
             CompanyStepProps &
