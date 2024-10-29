@@ -8034,12 +8034,16 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
     return (isChatThread(report) && !!getReportNotificationPreference(report)) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
-function getReportActionActorAccountID(reportAction: OnyxInputOrEntry<ReportAction>, iouReport: OnyxInputOrEntry<Report> | undefined, isPolicyExpenseChat: boolean): number | undefined {
+function getReportActionActorAccountID(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    iouReport: OnyxInputOrEntry<Report> | undefined,
+    isPolicyExpenseChatParam: boolean | undefined,
+): number | undefined {
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW: {
             const ownerAccountID = iouReport?.ownerAccountID ?? reportAction?.childOwnerAccountID;
             const actorAccountID = iouReport?.managerID ?? reportAction?.childManagerAccountID;
-            return isPolicyExpenseChat ? ownerAccountID : actorAccountID;
+            return isPolicyExpenseChatParam ? ownerAccountID : actorAccountID;
         }
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
