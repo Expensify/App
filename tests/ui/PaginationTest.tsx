@@ -275,6 +275,7 @@ describe('Pagination', () => {
 
     it('opens a chat and load initial messages', async () => {
         mockOpenReport(5, '5');
+
         await signInAndGetApp();
         await navigateToSidebarOption(REPORT_ID);
 
