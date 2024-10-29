@@ -1,13 +1,22 @@
 import type {ParamListBase, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
 import {StackRouter} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {FullScreenNavigatorRouterOptions} from './types';
 
 type StackState = StackNavigationState<ParamListBase> | PartialState<StackNavigationState<ParamListBase>>;
 
 const isAtLeastOneInState = (state: StackState, screenName: string): boolean => state.routes.some((route) => route.name === screenName);
+
+let isLoadingReportData = true;
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    initWithStoredValues: false,
+    callback: (value) => (isLoadingReportData = value ?? false),
+});
 
 function adaptStateIfNecessary(state: StackState) {
     const isNarrowLayout = getIsNarrowLayout();
@@ -17,7 +26,6 @@ function adaptStateIfNecessary(state: StackState) {
             ? workspaceCentralPane.params.policyID
             : undefined;
     const policy = PolicyUtils.getPolicy(policyID ?? '');
-    const isLoadingReportData = PolicyUtils.getIsLoadingReportData();
     const isPolicyAccessible = PolicyUtils.isPolicyAccessible(policy);
 
     // There should always be WORKSPACE.INITIAL screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.

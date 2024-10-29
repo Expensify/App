@@ -420,13 +420,15 @@ function getTopMostCentralPaneRouteFromRootState() {
 }
 
 function removeScreenFromNavigationState(screen: Screen) {
-    navigationRef.dispatch((state) => {
-        const routes = state.routes?.filter((item) => item.name !== screen);
+    isNavigationReady().then(() => {
+        navigationRef.dispatch((state) => {
+            const routes = state.routes?.filter((item) => item.name !== screen);
 
-        return CommonActions.reset({
-            ...state,
-            routes,
-            index: routes.length < state.routes.length ? state.index - 1 : state.index,
+            return CommonActions.reset({
+                ...state,
+                routes,
+                index: routes.length < state.routes.length ? state.index - 1 : state.index,
+            });
         });
     });
 }
