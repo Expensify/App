@@ -451,6 +451,8 @@ const ONYXKEYS = {
     /** Stores the information if HybridApp uses NewDot's sign in flow */
     USE_NEWDOT_SIGN_IN_PAGE: 'useNewDotSignInPage',
 
+    HYBRID_APP: 'hybridApp',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1016,6 +1018,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.USE_NEWDOT_SIGN_IN_PAGE]: boolean;
+    [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
 };
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
 
