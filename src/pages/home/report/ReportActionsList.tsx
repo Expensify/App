@@ -263,7 +263,7 @@ function ReportActionsList({
             const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? message.created < (userActiveSince.current ?? '') : true;
 
             // If the unread marker should be hidden or is not within the visible area, don't show the unread marker.
-            if (!ReportActionsUtils.shouldHideNewMarker(message) || !isWithinVisibleThreshold) {
+            if (ReportActionsUtils.shouldHideNewMarker(message) || !isWithinVisibleThreshold) {
                 return false;
             }
 
