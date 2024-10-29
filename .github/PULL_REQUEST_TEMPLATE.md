@@ -1,7 +1,7 @@
 <!-- If necessary, assign reviewers that know the area or changes well. Feel free to tag any additional reviewers you see fit. -->
 
-### Details
-<!-- Explanation of the change or anything fishy that is going on -->
+### Explanation of Change
+<!-- Explain what your change does and how it addresses the linked issue -->
 
 ### Fixed Issues
 <!---
