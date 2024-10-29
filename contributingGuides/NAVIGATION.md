@@ -424,3 +424,11 @@ Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-243335170
 7. Verify that the message you replied to is no longer highlighted.
 8. Press the browsers back button.
 9. Verify that you are on the A report.
+
+
+### Don't push the default full screen route if not necessary.
+
+1. Open app on wide layout web.
+2. Open search tab.
+3. Press track expense.
+4. Verify that the split navigator hasn't changed under the overlay.

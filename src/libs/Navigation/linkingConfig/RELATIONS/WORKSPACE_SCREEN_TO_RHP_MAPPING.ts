@@ -1,3 +1,4 @@
+// @TODO: Remove this file after before merging to the main
 import type {WorkspaceScreenName} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 

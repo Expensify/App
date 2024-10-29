@@ -1,7 +1,7 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef, NavigationState, PartialState, StackActionType} from '@react-navigation/native';
 import {findFocusedRoute, StackActions} from '@react-navigation/native';
-import {getMatchingFullScreenRouteForRoute, isFullScreenName} from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
+import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import normalizePath from '@libs/Navigation/linkingConfig/normalizePath';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
@@ -128,7 +128,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     if (shouldCheckFullScreenRouteMatching(action)) {
         const newFocusedRoute = findFocusedRoute(stateFromPath);
         if (newFocusedRoute) {
-            const matchingFullScreenRoute = getMatchingFullScreenRouteForRoute(newFocusedRoute);
+            const matchingFullScreenRoute = getMatchingFullScreenRoute(newFocusedRoute);
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
             if (matchingFullScreenRoute && lastFullScreenRoute && matchingFullScreenRoute.name !== lastFullScreenRoute.name) {

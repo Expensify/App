@@ -1,3 +1,4 @@
+// @TODO Remove this file before merging to the main.
 import type {SplitNavigatorLHNScreen, SplitNavigatorScreenName} from '@navigation/types';
 import SCREENS from '@src/SCREENS';
 
