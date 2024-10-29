@@ -168,7 +168,7 @@ function ScreenWrapper(
     const route = useRoute();
     const shouldReturnToOldDot = useMemo(() => {
         return !!route?.params && 'singleNewDotEntry' in route.params && route.params.singleNewDotEntry === 'true';
-    }, [route]);
+    }, [route?.params]);
 
     UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
         NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
