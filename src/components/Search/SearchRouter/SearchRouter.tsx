@@ -295,16 +295,20 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
 
     const onSearchChange = useCallback(
         (userQuery: string) => {
-            setTextInputValue(userQuery);
-            const autocompleteParsedQuery = parseForAutocomplete(userQuery);
+            let newUserQuery = userQuery;
+            if (autocompleteSuggestions && userQuery.endsWith(',')) {
+                newUserQuery = `${userQuery.slice(0, userQuery.length - 1).trim()},`;
+            }
+            setTextInputValue(newUserQuery);
+            const autocompleteParsedQuery = parseForAutocomplete(newUserQuery);
             updateAutocomplete(autocompleteParsedQuery?.autocomplete?.value ?? '', autocompleteParsedQuery?.ranges ?? [], autocompleteParsedQuery?.autocomplete?.key);
-            if (userQuery) {
+            if (newUserQuery) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
             } else {
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
         },
-        [setTextInputValue, updateAutocomplete],
+        [autocompleteSuggestions, setTextInputValue, updateAutocomplete],
     );
 
     const onSearchSubmit = useCallback(
