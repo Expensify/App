@@ -84,6 +84,7 @@ const SCREENS = {
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
             LEGAL_NAME: 'Settings_LegalName',
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
+            PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
             ADDRESS_COUNTRY: 'Settings_Address_Country',
             ADDRESS_STATE: 'Settings_Address_State',
@@ -175,6 +176,7 @@ const SCREENS = {
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',
+        SETTINGS_TAGS: 'SettingsTags',
         EXPENSIFY_CARD: 'ExpensifyCard',
         DOMAIN_CARD: 'DomainCard',
         RESTRICTED_ACTION: 'RestrictedAction',
@@ -218,6 +220,7 @@ const SCREENS = {
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         RECEIPT: 'Money_Request_Receipt',
         STATE_SELECTOR: 'Money_Request_State_Selector',
+        STEP_ATTENDEES: 'Money_Request_Attendee',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -244,6 +247,10 @@ const SCREENS = {
         SETTINGS_CATEGORY_CREATE: 'Settings_Category_Create',
         SETTINGS_CATEGORY_EDIT: 'Settings_Category_Edit',
         SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
+        SETTINGS_CATEGORIES_IMPORT: 'Settings_Categories_Import',
+        SETTINGS_CATEGORIES_IMPORTED: 'Settings_Categories_Imported',
+        SETTINGS_CATEGORY_PAYROLL_CODE: 'Settings_Category_Payroll_Code',
+        SETTINGS_CATEGORY_GL_CODE: 'Settings_Category_GL_Code',
     },
     EXPENSIFY_CARD: {
         EXPENSIFY_CARD_DETAILS: 'Expensify_Card_Details',
@@ -256,7 +263,19 @@ const SCREENS = {
         DOMAIN_CARD_REPORT_FRAUD: 'Domain_Card_Report_Fraud',
     },
 
-    SETTINGS_TAGS_ROOT: 'Settings_Tags',
+    SETTINGS_TAGS: {
+        SETTINGS_TAGS_ROOT: 'Settings_Tags',
+        SETTINGS_TAGS_SETTINGS: 'Settings_Tags_Settings',
+        SETTINGS_TAGS_EDIT: 'Settings_Tags_Edit',
+        SETTINGS_TAG_CREATE: 'Settings_Tag_Create',
+        SETTINGS_TAG_EDIT: 'Settings_Tag_Edit',
+        SETTINGS_TAG_SETTINGS: 'Settings_Tag_Settings',
+        SETTINGS_TAG_APPROVER: 'Settings_Tag_Approver',
+        SETTINGS_TAG_LIST_VIEW: 'Settings_Tag_List_View',
+        SETTINGS_TAG_GL_CODE: 'Settings_Tag_GL_Code',
+        SETTINGS_TAGS_IMPORT: 'Settings_Tags_Import',
+        SETTINGS_TAGS_IMPORTED: 'Settings_Tags_Imported',
+    },
 
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
@@ -314,6 +333,9 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_ADVANCED: 'Policy_Accounting_Quickbooks_Online_Advanced',
             QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
             QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
+            QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Classes_Displayed_As',
+            QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Customers_Displayed_As',
+            QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Locations_Displayed_As',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Account_Select',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Select',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense',
