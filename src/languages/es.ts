@@ -4109,7 +4109,7 @@ const translations = {
             },
         },
         downgrade: {
-            title: 'Bajar de nivel tu espacio de trabajo',
+            title: 'Desmejora tu espacio de trabajo',
         },
         restrictedAction: {
             restricted: 'Restringido',
