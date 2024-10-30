@@ -204,6 +204,9 @@ jobs:
         run: |
           npm install
           cd .. && npm install
+          
+          # Fixes https://github.com/Expensify/App/issues/51682
+          npm run grunt:build:shared
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -795,17 +798,17 @@ jobs:
         continue-on-error: true
         run: |
           gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
-            ./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
+            ./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap \
             ./android-aab-artifact/app-production-release.aab \
             ./android-hybrid-build-artifact/Expensify-release.aab#Android-HybridApp.aab \
-            ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
+            ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap \
             ./desktop-staging-build-artifact/NewExpensify.dmg#NewExpensifyStaging.dmg \
-            ./ios-sourcemaps-artifact/main.jsbundle.map#ios-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
+            ./ios-sourcemaps-artifact/main.jsbundle.map#ios-sourcemap \
             ./ios-build-artifact/New\ Expensify.ipa \
             ./ios-hybrid-build-artifact/Expensify.ipa#iOS-HybridApp.ipa \
-            ./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
+            ./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap \
             ./web-staging-build-tar-gz-artifact/webBuild.tar.gz#stagingWebBuild.tar.gz \
-            ./web-staging-build-zip-artifact/webBuild.zip#stagingWebBuild.zip
+            ./web-staging-build-zip-artifact/webBuild.zip#web-staging
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
