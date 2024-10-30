@@ -164,12 +164,16 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
+// this function will be used once https://github.com/Expensify/App/pull/51445 is merged
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function approveMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
 }
 
+// this function will be used once https://github.com/Expensify/App/pull/51445 is merged
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function payMoneyRequestOnSearch(hash: number, paymentType: string, reportsAndAmounts: string) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
