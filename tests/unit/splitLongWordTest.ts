@@ -5,7 +5,7 @@ describe('splitLongWord', () => {
         {
             word: 'thissadasdasdsadsadasdadsadasdasdasdasdasdasdasdasdasdsadsadggggggggggggggggg',
             maxLength: 4,
-            output: ['this', 'sada', 'sdas', 'dsad', 'sada', 'sdad', 'sada', 'sdas', 'dasd', 'asda', 'sdas', 'dasd', 'asda', 'sdsa', 'dsad', 'gggg', 'gggg', 'gggg', 'gggg', 'gggg', 'g'],
+            output: ['this', 'sada', 'sdas', 'dsad', 'sada', 'sdad', 'sada', 'sdas', 'dasd', 'asda', 'sdas', 'dasd', 'asda', 'sdsa', 'dsad', 'gggg', 'gggg', 'gggg', 'gggg', 'g'],
         },
         {
             word: 'https://www.google.com/search?q=google&oq=goog&gs_lcrp=EgZjaHJvbWUqEAgAEAAYgwEY4wIYsQMYgAQyEAgAEAAYgwEY4wIYsQMYgAQyEwgBEC4YgwEYxwEYsQMY0QMYgAQyDQgCEAAYgwEYsQMYgAQyBggDEEUYOzIGCAQQRRg8MgYIBRBFGDwyBggGEEUYPDIGCAcQBRhA0gEHNzM1ajBqN6gCALACAA&sourceid=chrome&ie=UTF-8',
