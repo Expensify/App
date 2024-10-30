@@ -1,6 +1,6 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -196,7 +196,13 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const isSearchResultsEmpty = !searchResults?.data || SearchUIUtils.isSearchResultsEmpty(searchResults);
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
-    const data = searchResults === undefined ? [] : SearchUIUtils.getSections(type, status, searchResults.data, searchResults.search);
+
+    const data = useMemo(() => {
+        if (searchResults === undefined) {
+            return [];
+        }
+        return SearchUIUtils.getSections(type, status, searchResults.data, searchResults.search);
+    }, [searchResults, status, type]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
