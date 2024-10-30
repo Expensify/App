@@ -1,5 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -8,6 +8,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
+import useThemePreference from '@hooks/useThemePreference';
 import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
@@ -83,6 +84,7 @@ function parseAndLogRoute(state: NavigationState) {
 
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, shouldShowRequire2FAModal}: NavigationRootProps) {
     const firstRenderRef = useRef(true);
+    const themePreference = useThemePreference();
     const theme = useTheme();
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
@@ -129,16 +131,17 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     }, []);
 
     // https://reactnavigation.org/docs/themes
-    const navigationTheme = useMemo(
-        () => ({
-            ...DefaultTheme,
+    const navigationTheme = useMemo(() => {
+        const defaultNavigationTheme = themePreference === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
+
+        return {
+            ...defaultNavigationTheme,
             colors: {
-                ...DefaultTheme.colors,
+                ...defaultNavigationTheme.colors,
                 background: theme.appBG,
             },
-        }),
-        [theme],
-    );
+        };
+    }, [theme.appBG, themePreference]);
 
     useEffect(() => {
         if (firstRenderRef.current) {
