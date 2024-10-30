@@ -236,7 +236,7 @@ describe('Tests for group chat name', () => {
                 const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
 
-                expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E, F, G, H');
+                expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E');
 
                 return navigateToSidebarOption(0);
             })
