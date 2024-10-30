@@ -275,7 +275,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         );
                     })}
 
-                    {directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                    {!!directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Mapbox.MapView>
                 {interactive && (
                     <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
