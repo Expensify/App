@@ -1,5 +1,3 @@
-//  RCTShareActionHandlerModule.m
-//  NewExpensify
 
 #import <Foundation/Foundation.h>
 #import "RCTShareActionHandlerModule.h"
@@ -104,7 +102,7 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
 
     NSDictionary *dict = @{
         @"id" : identifier,
-        @"content" : filePath, // For files that are not "text_to_read", keep the path
+        @"content" : filePath,
         @"mimeType" : mimeType,
         @"processedAt" : timestamp,
         @"aspectRatio" : @(aspectRatio)

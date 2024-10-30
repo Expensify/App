@@ -6,6 +6,7 @@ import com.expensify.chat.intentHandler.IntentHandlerConstants
 import com.facebook.react.bridge.Callback
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
+import android.util.Log
 import com.facebook.react.bridge.ReactMethod
 import org.json.JSONObject
 import java.io.File
@@ -32,24 +33,36 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
             }
 
             val shareObject = JSONObject(shareObjectString)
-            val imagePath = shareObject.optString("content")
+            val filePath = shareObject.optString("content")
+            Log.i("ShareActionHandlerModule", "processFiles filePath: $filePath")
             val mimeType = shareObject.optString("mimeType")
-            val fileUriPath = "file://$imagePath"
+            val fileUriPath = "file://$filePath"
+            val timestamp = System.currentTimeMillis()
 
-            val imageFile = File(imagePath)
-            if (!imageFile.exists()) {
+            val file = File(filePath)
+            if (!file.exists()) {
+                if (!filePath.startsWith("/data/")&& mimeType=="text/plain") {
+                    val textObject = JSONObject().apply {
+                        put("id", "text")
+                        put("content", filePath)
+                        put("mimeType", "txt")
+                        put("processedAt", timestamp)
+                    }
+                    callback.invoke(textObject.toString())
+                    return
+                }
+
                 callback.invoke("File does not exist", null)
                 return
             }
 
-            val timestamp = System.currentTimeMillis()
-            val identifier = imageFile.name
+            val identifier = file.name
 
             val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            BitmapFactory.decodeFile(imagePath, options)
+            BitmapFactory.decodeFile(filePath, options)
             val aspectRatio = if (options.outHeight != 0) options.outWidth.toFloat() / options.outHeight else 0.0f
 
-            val result = JSONObject().apply {
+            val fileData = JSONObject().apply {
                 put("id", identifier)
                 put("content", fileUriPath)
                 put("mimeType", mimeType)
@@ -57,7 +70,7 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
                 put("aspectRatio", aspectRatio)
             }
 
-            callback.invoke(result.toString())
+            callback.invoke(fileData.toString())
 
         } catch (e: Exception) {
             callback.invoke(e.toString(), null)
