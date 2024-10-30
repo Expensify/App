@@ -20,14 +20,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import * as SearchUIUtils from '@libs/SearchUIUtils';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const baseFilterConfig = {
     date: {
@@ -237,7 +237,7 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
     return filterValue
         ? Object.values(CONST.SEARCH.TRANSACTION_TYPE)
               .filter((expenseType) => filterValue.includes(expenseType))
-              .map((expenseType) => translate(SearchUtils.getExpenseTypeTranslationKey(expenseType)))
+              .map((expenseType) => translate(SearchUIUtils.getExpenseTypeTranslationKey(expenseType)))
               .join(', ')
         : undefined;
 }
@@ -266,8 +266,8 @@ function AdvancedSearchFilters() {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
     }
 
-    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
-    const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery()), [queryString]);
+    const queryString = useMemo(() => SearchQueryUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
+    const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(queryString || SearchQueryUtils.buildCannedSearchQuery()), [queryString]);
 
     const applyFiltersAndNavigate = () => {
         SearchActions.clearAllFilters();
@@ -287,7 +287,8 @@ function AdvancedSearchFilters() {
             return;
         }
 
-        if (isEmptyObject(savedSearches)) {
+        // We only want to show the tooltip once, the NVP will not be set if the user has not saved a search yet
+        if (!savedSearches) {
             SearchActions.showSavedSearchRenameTooltip();
         }
 
@@ -337,7 +338,7 @@ function AdvancedSearchFilters() {
         })
         .sort((a, b) => (a?.description ?? '')?.localeCompare(b?.description ?? ''));
 
-    const displaySearchButton = queryJSON && !SearchUtils.isCannedSearchQuery(queryJSON);
+    const displaySearchButton = queryJSON && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
 
     return (
         <>

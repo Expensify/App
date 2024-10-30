@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
@@ -271,6 +271,7 @@ function MoneyRequestAmountInput(
         });
     }, [amount, currency, onFormatAmount, formatAmountOnBlur, maxLength]);
 
+    const regex = useMemo(() => MoneyRequestUtils.amountRegex(decimals), [decimals]);
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
 
     const {setMouseDown, setMouseUp} = useMouseContext();
@@ -331,6 +332,7 @@ function MoneyRequestAmountInput(
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             contentWidth={contentWidth}
+            regex={regex}
         />
     );
 }

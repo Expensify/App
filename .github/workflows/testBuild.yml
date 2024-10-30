@@ -92,7 +92,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: /tmp/artifacts
-          pattern: android-artifact-*
+          pattern: android-*-artifact
           merge-multiple: true
 
       - name: Log downloaded artifact paths
