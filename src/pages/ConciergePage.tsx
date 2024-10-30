@@ -1,9 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, useOnyx,withOnyx} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -33,21 +32,23 @@ function ConciergePage({session}: ConciergePageProps) {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
 
-    useFocusEffect(() => {
-        if (session && 'authToken' in session) {
-            App.confirmReadyToOpenApp();
-            // Pop the concierge loading page before opening the concierge report.
-            Navigation.isNavigationReady().then(() => {
-                if (isUnmounted.current) {
-                    return;
-                }
-                Report.navigateToConciergeChat(true, () => !isUnmounted.current);
-            });
-        } else {
-            Navigation.navigate();
-        }
-    });
+    useFocusEffect(
+        useCallback(() => {
+            if (session && 'authToken' in session) {
+                App.confirmReadyToOpenApp();
+                Navigation.isNavigationReady().then(() => {
+                    if (isUnmounted.current || isLoadingReportData === undefined || !!isLoadingReportData) {
+                        return;
+                    }
+                    Report.navigateToConciergeChat(true, () => !isUnmounted.current);
+                });
+            } else {
+                Navigation.navigate();
+            }
+        }, [session, isLoadingReportData]),
+    );
 
     useEffect(() => {
         isUnmounted.current = false;
