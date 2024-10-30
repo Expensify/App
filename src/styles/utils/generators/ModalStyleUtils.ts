@@ -186,7 +186,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 };
 
                 // Allow this modal to be dismissed with a swipe down or swipe right
-                swipeDirection = ['right'];
+                swipeDirection = ['down', 'right'];
                 animationIn = 'fadeIn';
                 animationOut = 'fadeOut';
                 shouldAddTopSafeAreaMargin = false;
