@@ -125,6 +125,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    CardOnWaitlist,
     DismissedReferralBanners,
     Download,
     WorkspaceCardsList,
