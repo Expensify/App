@@ -1,6 +1,7 @@
 import lodashHas from 'lodash/has';
 import lodashIsEqual from 'lodash/isEqual';
 import lodashSet from 'lodash/set';
+import lodashDeepClone from 'lodash/cloneDeep';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -247,7 +248,7 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
  */
 function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean, shouldUpdateReceiptState = true): Transaction {
     // Only changing the first level fields so no need for deep clone now
-    const updatedTransaction = {...transaction};
+    const updatedTransaction = lodashDeepClone(transaction);
     let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart
@@ -299,7 +300,7 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
             const distance = NumberUtils.roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
-            lodashSet(updatedTransaction, 'pendingFields.waypoints', CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            lodashSet(updatedTransaction, 'pendingFields.merchant', CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
         }
     }
 
@@ -339,6 +340,7 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
     }
 
     updatedTransaction.pendingFields = {
+        ...(updatedTransaction?.pendingFields ?? {}),
         ...(Object.hasOwn(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -352,6 +354,8 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         ...(Object.hasOwn(transactionChanges, 'taxCode') && {taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'attendees') && {attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
+
+    console.log(updatedTransaction.pendingFields);
 
     return updatedTransaction;
 }
