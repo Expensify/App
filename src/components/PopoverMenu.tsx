@@ -8,6 +8,7 @@ import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -159,6 +160,7 @@ function PopoverMenu({
     shouldUpdateFocusedIndex = true,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -320,7 +322,8 @@ function PopoverMenu({
                                             }
                                             setFocusedIndex(menuIndex);
                                         }}
-                                        style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
+                                        wrapperStyle={StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, theme.activeComponentBG, theme.hoverComponentBG)}
+                                        shouldRemoveHoverBackground={item.isSelected}
                                         titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                                         // eslint-disable-next-line react/jsx-props-no-spreading
                                         {...menuItemProps}
