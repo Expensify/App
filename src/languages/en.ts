@@ -3510,7 +3510,7 @@ const translations = {
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
-                reimbursements: 'Reimburse employees',                
+                reimbursements: 'Reimburse employees',
                 companyCards: 'Manage company cards',
             },
             notFound: 'No workspace found',
