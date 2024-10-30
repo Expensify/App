@@ -605,7 +605,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
     const workspaceName = ReportUtils.getPolicyName(report);
 
     if (report?.description) {
-        welcomeMessage.messageHtml = report.description;
+        welcomeMessage.messageHtml = ReportUtils.getReportDescription(report);
         welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         return welcomeMessage;
     }

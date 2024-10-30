@@ -624,7 +624,7 @@ function IOURequestStepConfirmation({
                         ]}
                     />
                     {isLoading && <FullScreenLoadingIndicator />}
-                    {gpsRequired && (
+                    {!!gpsRequired && (
                         <LocationPermissionModal
                             startPermissionFlow={startLocationPermissionFlow}
                             resetPermissionFlow={() => setStartLocationPermissionFlow(false)}

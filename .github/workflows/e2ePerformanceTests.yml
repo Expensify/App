@@ -43,6 +43,7 @@ jobs:
             previous_merge=$(git rev-list --merges HEAD~1 | head -n 1)
           else
             # On a feature branch, find the common ancestor of the current branch and main
+            git fetch origin main:main
             previous_merge=$(git merge-base HEAD main)
           fi
           echo "$previous_merge"
@@ -60,7 +61,7 @@ jobs:
         id: getDeltaRef
         run: |
           if [ '${{ steps.getPullRequestDetails.outputs.IS_MERGED }}' == 'true' ]; then
-            echo "DELTA_REF=${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
+            echo "DELTA_REF=${{ steps.getPullRequestDetails.outputs.MERGE_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
           else
             # Set dummy git credentials
             git config --global user.email "test@test.com"
