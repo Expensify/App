@@ -508,7 +508,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     }, [route, isLinkedMessagePageReady, isLoadingReportOnyx, reportActionIDFromRoute]);
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
-    useEffect(() => {
+    useEffect(() => { 
         if (
             !shouldUseNarrowLayout ||
             !isFocused ||
