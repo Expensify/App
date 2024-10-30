@@ -26,7 +26,7 @@ describe('GoogleTagManagerTest', () => {
         return Onyx.clear();
     });
 
-    it('publishes a sign_up event during onboarding', async () => {
+    test('sign_up', async () => {
         // Given a new signed in account
         const accountID = 123456;
         await Onyx.merge(ONYXKEYS.SESSION, {accountID});
@@ -53,7 +53,7 @@ describe('GoogleTagManagerTest', () => {
         expect(GoogleTagManager.publishEvent).toBeCalledWith('sign_up', accountID);
     });
 
-    it('publishes a workspace_created event when the user creates their first one', async () => {
+    test('workspace_created', async () => {
         // Given a new signed in account
         const accountID = 123456;
         await Onyx.merge(ONYXKEYS.SESSION, {accountID});
@@ -70,7 +70,7 @@ describe('GoogleTagManagerTest', () => {
         expect(GoogleTagManager.publishEvent).toBeCalledWith('workspace_created', accountID);
     });
 
-    it('publishes a workspace_created event when tracking an expense on a draft policy', async () => {
+    test('workspace_created - categorizeTrackedExpense', async () => {
         // Given a new signed in account
         const accountID = 123456;
         await Onyx.merge(ONYXKEYS.SESSION, {accountID});
@@ -109,7 +109,7 @@ describe('GoogleTagManagerTest', () => {
         expect(GoogleTagManager.publishEvent).toBeCalledWith('workspace_created', accountID);
     });
 
-    it('publishes a paid_adoption event when a payment card is added', async () => {
+    test('paid_adoption - addPaymentCard', async () => {
         // Given a new signed in account
         const accountID = 123456;
         await Onyx.merge(ONYXKEYS.SESSION, {accountID});
@@ -128,7 +128,7 @@ describe('GoogleTagManagerTest', () => {
         expect(GoogleTagManager.publishEvent).toBeCalledWith('paid_adoption', accountID);
     });
 
-    it('publishes a paid_adoption event when a subscription payment card is added', async () => {
+    test('paid_adoption - addSubscriptionPaymentCard', async () => {
         // Given a new signed in account
         const accountID = 123456;
         await Onyx.merge(ONYXKEYS.SESSION, {accountID});
