@@ -152,7 +152,7 @@ function AccountSwitcher() {
                             >
                                 {currentUserPersonalDetails?.displayName}
                             </Text>
-                            {canSwitchAccounts && (
+                            {!!canSwitchAccounts && (
                                 <View style={styles.justifyContentCenter}>
                                     <Icon
                                         fill={theme.icon}
@@ -180,7 +180,7 @@ function AccountSwitcher() {
                     </View>
                 </View>
             </PressableWithFeedback>
-            {canSwitchAccounts && (
+            {!!canSwitchAccounts && (
                 <PopoverMenu
                     isVisible={shouldShowDelegatorMenu}
                     onClose={() => {

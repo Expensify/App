@@ -261,7 +261,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                     );
                 })}
             </View>
-            {savedSearches && Object.keys(savedSearches).length > 0 && (
+            {!!savedSearches && Object.keys(savedSearches).length > 0 && (
                 <>
                     <Text style={[styles.sectionTitle, styles.pb1, styles.mh3, styles.mt3]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
                     <ScrollView

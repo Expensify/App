@@ -643,7 +643,7 @@ function MenuItem(
                                                             ]}
                                                         />
                                                     )}
-                                                    {icon && !Array.isArray(icon) && (
+                                                    {!!icon && !Array.isArray(icon) && (
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,
@@ -679,7 +679,7 @@ function MenuItem(
                                                                         color={theme.textSupporting}
                                                                     />
                                                                 ))}
-                                                            {icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
+                                                            {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -702,7 +702,7 @@ function MenuItem(
                                                             )}
                                                         </View>
                                                     )}
-                                                    {secondaryIcon && (
+                                                    {!!secondaryIcon && (
                                                         <View style={[styles.popoverMenuIcon, iconStyles, isSecondaryIconHoverable && StyleUtils.getBackgroundAndBorderStyle(theme.border)]}>
                                                             <Icon
                                                                 contentFit={contentFit}
@@ -748,7 +748,7 @@ function MenuItem(
                                                                         {renderTitleContent()}
                                                                     </Text>
                                                                 )}
-                                                                {shouldShowTitleIcon && titleIcon && (
+                                                                {!!shouldShowTitleIcon && !!titleIcon && (
                                                                     <View style={[styles.ml2]}>
                                                                         <Icon
                                                                             src={titleIcon}
@@ -790,19 +790,19 @@ function MenuItem(
                                                 </View>
                                             </View>
                                             <View style={[styles.flexRow, styles.menuItemTextContainer, !hasPressableRightComponent && styles.pointerEventsNone]}>
-                                                {badgeText && (
+                                                {!!badgeText && (
                                                     <Badge
                                                         text={badgeText}
                                                         badgeStyles={badgeStyle}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
-                                                {(subtitle === 0 || subtitle) && (
+                                                {(subtitle === 0 || !!subtitle) && (
                                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
                                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                                     </View>
                                                 )}
-                                                {floatRightAvatars?.length > 0 && firstIcon && (
+                                                {floatRightAvatars?.length > 0 && !!firstIcon && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
                                                         {shouldShowSubscriptRightAvatar ? (
                                                             <SubscriptAvatar
