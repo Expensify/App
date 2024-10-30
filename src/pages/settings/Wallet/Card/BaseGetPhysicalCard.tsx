@@ -99,6 +99,7 @@ function BaseGetPhysicalCard({
     const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
     const cardToBeIssued = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
     const cardID = cardToBeIssued?.cardID.toString() ?? '-1';
+    const isSuccessful = cardToBeIssued?.isSuccessfull;
 
     useEffect(() => {
         if (isRouteSet.current || !privatePersonalDetails || !cardList) {
@@ -131,6 +132,16 @@ function BaseGetPhysicalCard({
         isRouteSet.current = true;
     }, [cardList, currentRoute, domain, domainCards.length, draftValues, loginList, cardToBeIssued, privatePersonalDetails]);
 
+    useEffect(() => {
+        if (!isSuccessful) {
+            return;
+        }
+        // Form draft data needs to be erased when the flow is complete,
+        // so that no stale data is left on Onyx
+        FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID.toString()));
+    }, [isSuccessful, cardID]);
+
     const onSubmit = useCallback(() => {
         const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
         if (isConfirmation) {
@@ -145,12 +156,8 @@ function BaseGetPhysicalCard({
             const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
             // If the current step of the get physical card flow is the confirmation page
             Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? -1, session?.authToken ?? '', updatedPrivatePersonalDetails, validateCode);
-            // Form draft data needs to be erased when the flow is complete,
-            // so that no stale data is left on Onyx
-            FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID.toString()));
         },
-        [cardID, cardToBeIssued?.cardID, draftValues, session?.authToken, privatePersonalDetails],
+        [cardToBeIssued?.cardID, draftValues, session?.authToken, privatePersonalDetails],
     );
 
     const sendValidateCode = useCallback(() => {

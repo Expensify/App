@@ -10,6 +10,7 @@ import type {
     VerifyIdentityParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import type {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type CONST from '@src/CONST';
@@ -281,6 +282,9 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
             value: {
                 [cardID]: {
                     state: 4, // NOT_ACTIVATED
+                    isLoading: true,
+                    errors: null,
+                    isSuccessfull: null,
                 },
             },
         },
@@ -291,7 +295,36 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
         },
     ];
 
-    API.write(WRITE_COMMANDS.REQUEST_PHYSICAL_EXPENSIFY_CARD, requestParams, {optimisticData});
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    state: 4, // NOT_ACTIVATED
+                    isLoading: false,
+                    errors: null,
+                    isSuccessfull: true,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    state: 4, // NOT_ACTIVATED
+                    isLoading: false,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.REQUEST_PHYSICAL_EXPENSIFY_CARD, requestParams, {optimisticData, failureData, successData});
 }
 
 function resetWalletAdditionalDetailsDraft() {
