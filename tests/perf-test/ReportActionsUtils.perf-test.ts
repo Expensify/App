@@ -89,11 +89,11 @@ describe('ReportActionsUtils', () => {
         } as unknown as ReportActions;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportActionsUtils.getLastVisibleAction(reportId, actionsToMerge));
+        await measureFunction(() => ReportActionsUtils.getLastVisibleAction(reportId, true, actionsToMerge));
     });
 
     test('[ReportActionsUtils] getMostRecentIOURequestActionID on 10k ReportActions', async () => {
-        const reportActionsArray = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, reportId);
+        const reportActionsArray = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, reportId, true);
 
         await waitForBatchedUpdates();
         await measureFunction(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActionsArray));
@@ -127,12 +127,12 @@ describe('ReportActionsUtils', () => {
         } as unknown as ReportActions;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportActionsUtils.getLastVisibleMessage(reportId, actionsToMerge));
+        await measureFunction(() => ReportActionsUtils.getLastVisibleMessage(reportId, true, actionsToMerge));
     });
 
     test('[ReportActionsUtils] getSortedReportActionsForDisplay on 10k ReportActions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, reportId));
+        await measureFunction(() => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, reportId, true));
     });
 
     test('[ReportActionsUtils] getLastClosedReportAction on 10k ReportActions', async () => {

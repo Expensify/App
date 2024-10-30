@@ -106,61 +106,66 @@ function ReportActionItemParentAction({
         <View style={[styles.pRelative]}>
             <AnimatedEmptyStateBackground />
             {/* eslint-disable-next-line react-compiler/react-compiler */}
-            {allAncestors.map((ancestor) => (
-                <OfflineWithFeedback
-                    key={ancestor.reportAction.reportActionID}
-                    shouldDisableOpacity={!!ancestor.reportAction?.pendingAction}
-                    pendingAction={ancestor.report?.pendingFields?.addWorkspaceRoom ?? ancestor.report?.pendingFields?.createChat}
-                    errors={ancestor.report?.errorFields?.addWorkspaceRoom ?? ancestor.report?.errorFields?.createChat}
-                    errorRowStyles={[styles.ml10, styles.mr2]}
-                    onClose={() => Report.navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
-                >
-                    <ThreadDivider
-                        ancestor={ancestor}
-                        isLinkDisabled={!ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID ?? '-1'])}
-                    />
-                    {ReportActionsUtils.isTripPreview(ancestor?.reportAction) ? (
-                        <OfflineWithFeedback pendingAction={ancestor.reportAction.pendingAction}>
-                            <TripDetailsView
-                                tripRoomReportID={ReportActionsUtils.getOriginalMessage(ancestor.reportAction)?.linkedReportID ?? '-1'}
-                                shouldShowHorizontalRule={false}
-                            />
-                        </OfflineWithFeedback>
-                    ) : (
-                        <ReportActionItem
-                            onPress={
-                                ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID ?? '-1'])
-                                    ? () => {
-                                          const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(
-                                              ancestor.reportAction,
-                                              ancestor.reportAction.reportActionID ?? '-1',
-                                              ancestor.report.reportID,
-                                          );
-                                          // Pop the thread report screen before navigating to the chat report.
-                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));
-                                          if (isVisibleAction && !isOffline) {
-                                              // Pop the chat report screen before navigating to the linked report action.
-                                              Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1', ancestor.reportAction.reportActionID));
-                                          }
-                                      }
-                                    : undefined
-                            }
-                            parentReportAction={parentReportAction}
-                            report={ancestor.report}
-                            reportActions={reportActions}
-                            transactionThreadReport={transactionThreadReport}
-                            action={ancestor.reportAction}
-                            displayAsGroup={false}
-                            isMostRecentIOUReportAction={false}
-                            shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
-                            index={index}
-                            isFirstVisibleReportAction={isFirstVisibleReportAction}
-                            shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                            hideThreadReplies
+            {allAncestors.map((ancestor) => {
+                const ancestorReport = ReportUtils.getReport(ancestor.report.reportID);
+                const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(ancestorReport);
+                return (
+                    <OfflineWithFeedback
+                        key={ancestor.reportAction.reportActionID}
+                        shouldDisableOpacity={!!ancestor.reportAction?.pendingAction}
+                        pendingAction={ancestor.report?.pendingFields?.addWorkspaceRoom ?? ancestor.report?.pendingFields?.createChat}
+                        errors={ancestor.report?.errorFields?.addWorkspaceRoom ?? ancestor.report?.errorFields?.createChat}
+                        errorRowStyles={[styles.ml10, styles.mr2]}
+                        onClose={() => Report.navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
+                    >
+                        <ThreadDivider
+                            ancestor={ancestor}
+                            isLinkDisabled={!ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID ?? '-1'])}
                         />
-                    )}
-                </OfflineWithFeedback>
-            ))}
+                        {ReportActionsUtils.isTripPreview(ancestor?.reportAction) ? (
+                            <OfflineWithFeedback pendingAction={ancestor.reportAction.pendingAction}>
+                                <TripDetailsView
+                                    tripRoomReportID={ReportActionsUtils.getOriginalMessage(ancestor.reportAction)?.linkedReportID ?? '-1'}
+                                    shouldShowHorizontalRule={false}
+                                />
+                            </OfflineWithFeedback>
+                        ) : (
+                            <ReportActionItem
+                                onPress={
+                                    ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID ?? '-1'])
+                                        ? () => {
+                                              const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(
+                                                  ancestor.reportAction,
+                                                  ancestor.reportAction.reportActionID ?? '-1',
+                                                  ancestor.report.reportID,
+                                                  canUserPerformWriteAction,
+                                              );
+                                              // Pop the thread report screen before navigating to the chat report.
+                                              Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));
+                                              if (isVisibleAction && !isOffline) {
+                                                  // Pop the chat report screen before navigating to the linked report action.
+                                                  Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1', ancestor.reportAction.reportActionID));
+                                              }
+                                          }
+                                        : undefined
+                                }
+                                parentReportAction={parentReportAction}
+                                report={ancestor.report}
+                                reportActions={reportActions}
+                                transactionThreadReport={transactionThreadReport}
+                                action={ancestor.reportAction}
+                                displayAsGroup={false}
+                                isMostRecentIOUReportAction={false}
+                                shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
+                                index={index}
+                                isFirstVisibleReportAction={isFirstVisibleReportAction}
+                                shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                                hideThreadReplies
+                            />
+                        )}
+                    </OfflineWithFeedback>
+                );
+            })}
             {shouldDisplayReplyDivider && <RepliesDivider shouldHideThreadDividerLine={shouldHideThreadDividerLine} />}
         </View>
     );

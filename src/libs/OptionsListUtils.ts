@@ -328,11 +328,14 @@ Onyx.connect({
                 lastReportActions[reportID] = firstReportAction;
             }
 
+            const report = ReportUtils.getReport(reportID);
+            const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
             const reportActionsForDisplay = sortedReportActions.filter(
                 (reportAction, actionKey) =>
-                    ReportActionUtils.shouldReportActionBeVisible(reportAction, actionKey, reportID) &&
+                    ReportActionUtils.shouldReportActionBeVisible(reportAction, actionKey, reportID, canUserPerformWriteAction) &&
                     !ReportActionUtils.isWhisperAction(reportAction) &&
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
@@ -590,7 +593,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const iouReport = ReportUtils.getReportOrDraftReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         const lastIOUMoneyReportAction = allSortedReportActions[iouReport?.reportID ?? '-1']?.find(
             (reportAction, key): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                ReportActionUtils.shouldReportActionBeVisible(reportAction, key, reportID) &&
+                ReportActionUtils.shouldReportActionBeVisible(reportAction, key, reportID, ReportUtils.canUserPerformWriteAction(report)) &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );

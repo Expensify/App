@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -24,6 +25,8 @@ function extractAttachments(
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const attachments: Attachment[] = [];
+    const report = ReportUtils.getReport(reportID);
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
     // We handle duplicate image sources by considering the first instance as original. Selecting any duplicate
     // and navigating back (<) shows the image preceding the first instance, not the selected duplicate's position.
@@ -96,7 +99,7 @@ function extractAttachments(
 
     const actions = [...(parentReportAction ? [parentReportAction] : []), ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];
     actions.forEach((action, key) => {
-        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key, reportID) || ReportActionsUtils.isMoneyRequestAction(action)) {
+        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key, reportID, canUserPerformWriteAction) || ReportActionsUtils.isMoneyRequestAction(action),) {
             return;
         }
 
