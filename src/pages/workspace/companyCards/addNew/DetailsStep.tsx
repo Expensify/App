@@ -31,6 +31,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const {canUseDirectFeeds} = usePermissions();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const feedProvider = addNewCard?.data?.feedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const bank = addNewCard?.data?.selectedBank;
@@ -48,7 +49,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
             .map(([key, value]) => `${key}: ${value}`)
             .join(', ');
 
-        CompanyCards.addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails);
+        CompanyCards.addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, lastSelectedFeed);
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
     };
 
