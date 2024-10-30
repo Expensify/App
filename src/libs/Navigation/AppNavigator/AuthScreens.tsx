@@ -9,6 +9,7 @@ import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import TestToolsModal from '@components/TestToolsModal';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
@@ -244,6 +245,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     let initialReportID: string | undefined;
     const isInitialRender = useRef(true);
+
+    // eslint-disable-next-line react-compiler/react-compiler
     if (isInitialRender.current) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
@@ -257,6 +260,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             initialReportID = initialReport?.reportID ?? '';
         }
 
+        // eslint-disable-next-line react-compiler/react-compiler
         isInitialRender.current = false;
     }
 
@@ -378,9 +382,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         const unsubscribeDebugShortcut = KeyboardShortcut.subscribe(
             debugShortcutConfig.shortcutKey,
-            () => {
-                toggleTestToolsModal();
-            },
+            () => Modal.close(toggleTestToolsModal),
             debugShortcutConfig.descriptionKey,
             debugShortcutConfig.modifiers,
             true,
@@ -578,6 +580,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         );
                     })}
                 </RootStack.Navigator>
+                <TestToolsModal />
                 <SearchRouterModal />
             </View>
             {didPusherInit && <ActiveGuidesEventListener />}
