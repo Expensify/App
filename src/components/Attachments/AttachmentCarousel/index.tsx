@@ -267,6 +267,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
 
                     scrollTo(scrollRef, newIndex * cellWidth, 0, true);
                 })
+                // eslint-disable-next-line react-compiler/react-compiler
                 .withRef(pagerRef as MutableRefObject<GestureType | undefined>),
         [attachments.length, canUseTouchScreen, cellWidth, page, scale, scrollRef],
     );

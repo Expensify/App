@@ -6,6 +6,7 @@ import type AddressSearch from '@components/AddressSearch';
 import type AmountForm from '@components/AmountForm';
 import type AmountPicker from '@components/AmountPicker';
 import type AmountTextInput from '@components/AmountTextInput';
+import type {FileObject} from '@components/AttachmentModal';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type CountryPicker from '@components/CountryPicker';
 import type CountrySelector from '@components/CountrySelector';
@@ -14,6 +15,7 @@ import type DatePicker from '@components/DatePicker';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import type PercentageForm from '@components/PercentageForm';
 import type Picker from '@components/Picker';
+import type PushRowWithModal from '@components/PushRowWithModal';
 import type RadioButtons from '@components/RadioButtons';
 import type RoomNameInput from '@components/RoomNameInput';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
@@ -21,6 +23,7 @@ import type StatePicker from '@components/StatePicker';
 import type StateSelector from '@components/StateSelector';
 import type TextInput from '@components/TextInput';
 import type TextPicker from '@components/TextPicker';
+import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
@@ -63,9 +66,11 @@ type ValidInputs =
     | typeof NetSuiteMenuWithTopDescriptionForm
     | typeof CountryPicker
     | typeof StatePicker
-    | typeof ConstantSelector;
+    | typeof ConstantSelector
+    | typeof UploadFile
+    | typeof PushRowWithModal;
 
-type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues';
+type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart';
 type ValueTypeMap = {
     string: string;
     boolean: boolean;
@@ -73,6 +78,7 @@ type ValueTypeMap = {
     country: Country | '';
     reportFields: string[];
     disabledListValues: boolean[];
+    entityChart: FileObject[];
 };
 type FormValue = ValueOf<ValueTypeMap>;
 

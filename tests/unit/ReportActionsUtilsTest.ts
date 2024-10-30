@@ -302,8 +302,12 @@ describe('ReportActionsUtils', () => {
                 },
             ];
 
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, '1');
-            expect(result).toStrictEqual(input);
+            // Expected output should have the `CREATED` action at last
+            // eslint-disable-next-line rulesdir/prefer-at
+            const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2), input[1]];
+
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, "1");
+            expect(result).toStrictEqual(expectedOutput);
         });
 
         it('should filter out closed actions', () => {
@@ -392,9 +396,13 @@ describe('ReportActionsUtils', () => {
                     ],
                 },
             ];
+
+            // Expected output should have the `CREATED` action at last and `CLOSED` action removed
+            // eslint-disable-next-line rulesdir/prefer-at
+            const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2, -1), input[1]];
+
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, '1');
-            input.pop();
-            expect(result).toStrictEqual(input);
+            expect(result).toStrictEqual(expectedOutput);
         });
 
         it('should filter out deleted, non-pending comments', () => {

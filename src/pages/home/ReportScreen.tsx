@@ -228,6 +228,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
     const wasReportAccessibleRef = useRef(false);
+    // eslint-disable-next-line react-compiler/react-compiler
     if (firstRenderRef.current) {
         Timing.start(CONST.TIMING.CHAT_RENDER);
         Performance.markStart(CONST.TIMING.CHAT_RENDER);
@@ -346,14 +347,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         [currentUserAccountID, linkedAction],
     );
 
-    /**
-     * Using logical OR operator because with nullish coalescing operator, when `isLoadingApp` is false, the right hand side of the operator
-     * is not evaluated. This causes issues where we have `isLoading` set to false and later set to true and then set to false again.
-     * Ideally, `isLoading` should be set initially to true and then set to false. We can achieve this by using logical OR operator.
-     */
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const isLoading = isLoadingApp || !reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty();
-
+    const isLoading = isLoadingApp ?? (!reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty());
     const shouldShowSkeleton =
         (isLinkingToMessage && !isLinkedMessagePageReady) ||
         (!isLinkingToMessage && !isInitialPageReady) ||
@@ -394,7 +388,9 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return false;
         }
 
+        // eslint-disable-next-line react-compiler/react-compiler
         if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            // eslint-disable-next-line react-compiler/react-compiler
             return true;
         }
 
@@ -738,7 +734,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                             needsOffscreenAlphaCompositing
                         >
                             {headerView}
-                            {report && ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                            {!!report && ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
                                         <View style={[styles.ph5, styles.pb3]}>
@@ -763,7 +759,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {!shouldShowSkeleton && report && (
+                                {!shouldShowSkeleton && !!report && (
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         hasNewerActions={hasNewerActions}
