@@ -288,13 +288,13 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
 
     let command;
     switch (routeType) {
-        case 'draft':
+        case CONST.TRANSACTION.STATE.DRAFT:
             command = READ_COMMANDS.GET_ROUTE_FOR_DRAFT;
             break;
-        case 'current':
+        case CONST.TRANSACTION.STATE.CURRENT:
             command = READ_COMMANDS.GET_ROUTE;
             break;
-        case 'backup':
+        case CONST.TRANSACTION.STATE.BACKUP:
             command = READ_COMMANDS.GET_ROUTE_FOR_BACKUP;
             break;
         default:
