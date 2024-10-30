@@ -92,7 +92,7 @@ function BaseValidateCodeForm({
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
-    const [isResend, setIsResend] = useState(false);
+    const [isResent, setIsResent] = useState(false);
 
     const timerRef = useRef<NodeJS.Timeout>();
 
