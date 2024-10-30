@@ -79,8 +79,8 @@ type MiniReport = {
     lastVisibleActionCreated?: string;
 };
 
-function ensureSingleSpacing(welcomeMessage: string) {
-    return welcomeMessage.replace(/\s+/g, ' ').trim();
+function ensureSingleSpacing(text: string) {
+    return text.replace(CONST.REGEX.WHITESPACE, ' ').trim();
 }
 
 /**
