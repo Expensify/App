@@ -69,6 +69,10 @@ function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: st
 }
 
 function updateCategoryInMccGroup(mccGroups: Record<string, MccGroup>, oldCategoryName: string, newCategoryName: string) {
+    if (oldCategoryName === newCategoryName) {
+        return mccGroups;
+    }
+
     const updatedGroups: Record<string, MccGroup> = {};
 
     for (const [key, group] of Object.entries(mccGroups || {})) {
