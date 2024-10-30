@@ -128,7 +128,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, bank))}
                                 />
                             </OfflineWithFeedback>
-                            {exportMenuItem && (
+                            {!!exportMenuItem && (
                                 <OfflineWithFeedback
                                     pendingAction={card?.nameValuePairs?.pendingFields?.exportAccountDetails}
                                     errorRowStyles={[styles.ph5, styles.mb3]}

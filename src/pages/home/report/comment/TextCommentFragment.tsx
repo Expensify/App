@@ -100,7 +100,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
             >
                 {convertToLTR(message ?? '')}
             </Text>
-            {fragment?.isEdited && (
+            {!!fragment?.isEdited && (
                 <>
                     <Text
                         style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}

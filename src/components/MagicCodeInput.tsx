@@ -429,7 +429,7 @@ function MagicCodeInput(
                     </View>
                 ))}
             </View>
-            {errorText && (
+            {!!errorText && (
                 <FormHelpMessage
                     isError
                     message={errorText}
