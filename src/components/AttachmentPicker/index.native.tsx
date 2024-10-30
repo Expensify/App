@@ -34,45 +34,45 @@ type Item = {
 };
 
 /**
- * See https://github.com/react-native-image-picker/react-native-image-picker/#options
- * for ImagePicker configuration options
- */
-const imagePickerOptions: Partial<CameraOptions | ImageLibraryOptions> = {
-    includeBase64: false,
-    saveToPhotos: false,
-    selectionLimit: 1,
-    includeExtra: false,
-    assetRepresentationMode: 'current',
-};
-
-/**
  * Return imagePickerOptions based on the type
  */
-const getImagePickerOptions = (type: string): CameraOptions => {
+const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions | ImageLibraryOptions => {
     // mediaType property is one of the ImagePicker configuration to restrict types'
     const mediaType = type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? 'photo' : 'mixed';
+
+    /**
+     * See https://github.com/react-native-image-picker/react-native-image-picker/#options
+     * for ImagePicker configuration options
+     */
     return {
         mediaType,
-        ...imagePickerOptions,
+        includeBase64: false,
+        saveToPhotos: false,
+        includeExtra: false,
+        assetRepresentationMode: 'current',
+        selectionLimit: fileLimit,
     };
 };
 
 /**
  * Return documentPickerOptions based on the type
  * @param {String} type
+ * @param {Number} fileLimit
  * @returns {Object}
  */
 
-const getDocumentPickerOptions = (type: string): DocumentPickerOptions => {
+const getDocumentPickerOptions = (type: string, fileLimit: number): DocumentPickerOptions => {
     if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
         return {
             type: [RNDocumentPicker.types.images],
             copyTo: 'cachesDirectory',
+            allowMultiSelection: fileLimit !== 1,
         };
     }
     return {
         type: [RNDocumentPicker.types.allFiles],
         copyTo: 'cachesDirectory',
+        allowMultiSelection: fileLimit !== 1,
     };
 };
 
@@ -111,13 +111,14 @@ function AttachmentPicker({
     type = CONST.ATTACHMENT_PICKER_TYPE.FILE,
     children,
     shouldHideCameraOption = false,
-    shouldHideGalleryOption = false,
     shouldValidateImage = true,
+    shouldHideGalleryOption = false,
+    fileLimit = 1,
 }: AttachmentPickerProps) {
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
 
-    const completeAttachmentSelection = useRef<(data: FileObject) => void>(() => {});
+    const completeAttachmentSelection = useRef<(data: FileObject[]) => void>(() => {});
     const onModalHide = useRef<() => void>();
     const onCanceled = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
@@ -143,7 +144,7 @@ function AttachmentPicker({
     const showImagePicker = useCallback(
         (imagePickerFunc: (options: CameraOptions, callback: Callback) => Promise<ImagePickerResponse>): Promise<Asset[] | void> =>
             new Promise((resolve, reject) => {
-                imagePickerFunc(getImagePickerOptions(type), (response: ImagePickerResponse) => {
+                imagePickerFunc(getImagePickerOptions(type, fileLimit), (response: ImagePickerResponse) => {
                     if (response.didCancel) {
                         // When the user cancelled resolve with no attachment
                         return resolve();
@@ -200,7 +201,7 @@ function AttachmentPicker({
                     }
                 });
             }),
-        [showGeneralAlert, type],
+        [fileLimit, showGeneralAlert, type],
     );
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
@@ -209,7 +210,7 @@ function AttachmentPicker({
      */
     const showDocumentPicker = useCallback(
         (): Promise<DocumentPickerResponse[] | void> =>
-            RNDocumentPicker.pick(getDocumentPickerOptions(type)).catch((error: Error) => {
+            RNDocumentPicker.pick(getDocumentPickerOptions(type, fileLimit)).catch((error: Error) => {
                 if (RNDocumentPicker.isCancel(error)) {
                     return;
                 }
@@ -217,7 +218,7 @@ function AttachmentPicker({
                 showGeneralAlert(error.message);
                 throw error;
             }),
-        [showGeneralAlert, type],
+        [fileLimit, showGeneralAlert, type],
     );
 
     const menuItemData: Item[] = useMemo(() => {
@@ -261,7 +262,7 @@ function AttachmentPicker({
      * @param onPickedHandler A callback that will be called with the selected attachment
      * @param onCanceledHandler A callback that will be called without a selected attachment
      */
-    const open = (onPickedHandler: (file: FileObject) => void, onCanceledHandler: () => void = () => {}) => {
+    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}) => {
         // eslint-disable-next-line react-compiler/react-compiler
         completeAttachmentSelection.current = onPickedHandler;
         onCanceled.current = onCanceledHandler;
@@ -286,7 +287,7 @@ function AttachmentPicker({
             }
             return getDataForUpload(fileData)
                 .then((result) => {
-                    completeAttachmentSelection.current(result);
+                    completeAttachmentSelection.current([result]);
                 })
                 .catch((error: Error) => {
                     showGeneralAlert(error.message);
@@ -301,63 +302,78 @@ function AttachmentPicker({
      * sends the selected attachment to the caller (parent component)
      */
     const pickAttachment = useCallback(
-        (attachments: Asset[] | DocumentPickerResponse[] | void = []): Promise<void> | undefined => {
+        (attachments: Asset[] | DocumentPickerResponse[] | void = []): Promise<void[]> | undefined => {
             if (!attachments || attachments.length === 0) {
                 onCanceled.current();
-                return Promise.resolve();
+                return Promise.resolve([]);
             }
-            const fileData = attachments[0];
 
-            if (!fileData) {
-                onCanceled.current();
-                return Promise.resolve();
-            }
-            /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-            const fileDataName = ('fileName' in fileData && fileData.fileName) || ('name' in fileData && fileData.name) || '';
-            const fileDataUri = ('fileCopyUri' in fileData && fileData.fileCopyUri) || ('uri' in fileData && fileData.uri) || '';
+            const filesToProcess = attachments.map((fileData) => {
+                if (!fileData) {
+                    onCanceled.current();
+                    return Promise.resolve();
+                }
 
-            const fileDataObject: FileResponse = {
-                name: fileDataName ?? '',
-                uri: fileDataUri,
-                size: ('size' in fileData && fileData.size) || ('fileSize' in fileData && fileData.fileSize) || null,
-                type: fileData.type ?? '',
-                width: ('width' in fileData && fileData.width) || undefined,
-                height: ('height' in fileData && fileData.height) || undefined,
-            };
+                /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+                const fileDataName = ('fileName' in fileData && fileData.fileName) || ('name' in fileData && fileData.name) || '';
+                const fileDataUri = ('fileCopyUri' in fileData && fileData.fileCopyUri) || ('uri' in fileData && fileData.uri) || '';
 
-            if (!shouldValidateImage && fileDataName && Str.isImage(fileDataName)) {
-                ImageSize.getSize(fileDataUri)
-                    .then(({width, height}) => {
-                        fileDataObject.width = width;
-                        fileDataObject.height = height;
-                        return fileDataObject;
-                    })
-                    .then((file) => {
-                        getDataForUpload(file)
-                            .then((result) => {
-                                completeAttachmentSelection.current(result);
-                            })
-                            .catch((error: Error) => {
-                                showGeneralAlert(error.message);
-                                throw error;
-                            });
-                    });
-                return;
-            }
-            /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
-            if (fileDataName && Str.isImage(fileDataName)) {
-                ImageSize.getSize(fileDataUri)
-                    .then(({width, height}) => {
-                        fileDataObject.width = width;
-                        fileDataObject.height = height;
-                        validateAndCompleteAttachmentSelection(fileDataObject);
-                    })
-                    .catch(() => showImageCorruptionAlert());
-            } else {
+                const fileDataObject: FileResponse = {
+                    name: fileDataName ?? '',
+                    uri: fileDataUri,
+                    size: ('size' in fileData && fileData.size) || ('fileSize' in fileData && fileData.fileSize) || null,
+                    type: fileData.type ?? '',
+                    width: ('width' in fileData && fileData.width) || undefined,
+                    height: ('height' in fileData && fileData.height) || undefined,
+                };
+
+                if (!shouldValidateImage && fileDataName && Str.isImage(fileDataName)) {
+                    return ImageSize.getSize(fileDataUri)
+                        .then(({width, height}) => {
+                            fileDataObject.width = width;
+                            fileDataObject.height = height;
+                            return fileDataObject;
+                        })
+                        .then((file) => {
+                            return getDataForUpload(file)
+                                .then((result) => completeAttachmentSelection.current([result]))
+                                .catch((error) => {
+                                    if (error instanceof Error) {
+                                        showGeneralAlert(error.message);
+                                    } else {
+                                        showGeneralAlert('An unknown error occurred');
+                                    }
+                                    throw error;
+                                });
+                        })
+                        .catch(() => {
+                            showImageCorruptionAlert();
+                        });
+                }
+
+                if (fileDataName && Str.isImage(fileDataName)) {
+                    return ImageSize.getSize(fileDataUri)
+                        .then(({width, height}) => {
+                            fileDataObject.width = width;
+                            fileDataObject.height = height;
+
+                            if (fileDataObject.width <= 0 || fileDataObject.height <= 0) {
+                                showImageCorruptionAlert();
+                                return Promise.resolve(); // Skip processing this corrupted file
+                            }
+
+                            return validateAndCompleteAttachmentSelection(fileDataObject);
+                        })
+                        .catch(() => {
+                            showImageCorruptionAlert();
+                        });
+                }
                 return validateAndCompleteAttachmentSelection(fileDataObject);
-            }
+            });
+
+            return Promise.all(filesToProcess);
         },
-        [validateAndCompleteAttachmentSelection, showImageCorruptionAlert, shouldValidateImage, showGeneralAlert],
+        [shouldValidateImage, validateAndCompleteAttachmentSelection, showGeneralAlert, showImageCorruptionAlert],
     );
 
     /**
@@ -417,6 +433,7 @@ function AttachmentPicker({
                 }}
                 isVisible={isVisible}
                 anchorRef={popoverRef}
+                // eslint-disable-next-line react-compiler/react-compiler
                 onModalHide={onModalHide.current}
             >
                 <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
@@ -431,6 +448,7 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
+            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {renderChildren()}
         </>
     );
