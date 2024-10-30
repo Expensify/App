@@ -8,8 +8,8 @@ import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InvoiceReceiver} from './Report';
 import type ReportActionName from './ReportActionName';
+import type ReportNameValuePairs from './ReportNameValuePairs';
 import type TransactionViolations from './TransactionViolation';
-import ReportNameValuePairs from './ReportNameValuePairs';
 
 /** Types of search data */
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
