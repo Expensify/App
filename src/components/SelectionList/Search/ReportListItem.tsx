@@ -94,7 +94,14 @@ function ReportListItem<TItem extends ListItem>({
     ];
 
     const handleOnButtonPress = () => {
-        onSelectRow(item);
+        switch (reportItem.action) {
+            case CONST.SEARCH.ACTION_TYPES.APPROVE:
+                return console.log('approve');
+            case CONST.SEARCH.ACTION_TYPES.PAY:
+                return console.log('pay');
+            default:
+                return onSelectRow(item);
+        }
     };
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
