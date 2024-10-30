@@ -10,7 +10,6 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 ## Performance Testing Strategy (`measureRenders`)
 
 - Before adding new tests, check if the proposed scenario or component is already covered in existing tests. Duplicate tests can slow down the CI suite, making it harder to spot meaningful regressions.
-- Review the current test suite to ensure your test scenario or component isn’t already being tested elsewhere.
 - Test only scenarios that cover new or unique interactions. Avoid testing repetitive user actions that could be captured within a single, comprehensive scenario.
 - Where applicable, use utility functions and helper methods to consolidate common actions (e.g., data mocking, scenario setup) across tests. This reduces redundancy and allows tests to be more focused and reusable.
 - The primary focus is on testing business cases rather than small, reusable parts that typically don't introduce regressions, although some tests in that area are still necessary.
