@@ -7116,7 +7116,7 @@ function canReportBeSubmitted(
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
     currentUserAccountID: number,
     transaction?: OnyxTypes.Transaction | SearchTransaction,
-    violations?: OnyxTypes.TransactionViolations,
+    violations?: OnyxCollection<OnyxTypes.TransactionViolations>,
 ) {
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);

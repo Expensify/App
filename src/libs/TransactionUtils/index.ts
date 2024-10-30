@@ -648,8 +648,8 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 /**
  * Check if there is broken connection violation.
  */
-function hasBrokenConnectionViolation(transactionID: string, allViolations?: TransactionViolations): boolean {
-    const violations = allViolations ?? getTransactionViolations(transactionID, allTransactionViolations);
+function hasBrokenConnectionViolation(transactionID: string, allViolations?: OnyxCollection<TransactionViolations>): boolean {
+    const violations = getTransactionViolations(transactionID, allViolations ?? allTransactionViolations);
     return !!violations?.find(
         (violation) =>
             violation.name === CONST.VIOLATIONS.RTER &&
@@ -664,7 +664,7 @@ function shouldShowBrokenConnectionViolation(
     transactionID: string,
     report: OnyxEntry<Report> | SearchReport,
     policy: OnyxEntry<Policy> | SearchPolicy,
-    allViolations?: TransactionViolations,
+    allViolations?: OnyxCollection<TransactionViolations>,
 ): boolean {
     return (
         hasBrokenConnectionViolation(transactionID, allViolations) &&
@@ -675,9 +675,9 @@ function shouldShowBrokenConnectionViolation(
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
-function allHavePendingRTERViolation(transactionIds: string[], searchTransactionViolations?: TransactionViolations): boolean {
+function allHavePendingRTERViolation(transactionIds: string[], searchTransactionViolations?: OnyxCollection<TransactionViolations>): boolean {
     const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
-        const transactionViolations = searchTransactionViolations ?? getTransactionViolations(transactionId, allTransactionViolations);
+        const transactionViolations = getTransactionViolations(transactionId, searchTransactionViolations ?? allTransactionViolations);
         return hasPendingRTERViolation(transactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);

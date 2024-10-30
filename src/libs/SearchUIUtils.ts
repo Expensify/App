@@ -21,6 +21,7 @@ import Navigation from './Navigation/Navigation';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
+import { OnyxCollection } from 'react-native-onyx';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -261,7 +262,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
     }
 
     const transaction = isTransactionEntry(key) ? data[key] : undefined;
-    const report = isReportEntry(key) ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : (data[key] as SearchReport);
+    const report = isTransactionEntry(key) ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key];
 
     // We don't need to run the logic if this is not a transaction or iou/expense report
     if (!ReportUtils.isMoneyRequestReport(report)) {
@@ -282,9 +283,9 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         ReportUtils.isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
             ? data[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`]
             : undefined;
-    const allViolations = Object.entries(data)
-        .filter(([itemKey]) => itemKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS))
-        .map((item) => item[1]);
+    const violationsCollection = Object.fromEntries(
+        Object.entries(data).filter(([itemKey]) => itemKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)),
+    ) as unknown as OnyxCollection<OnyxTypes.TransactionViolations>;
 
     if (ReportUtils.isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
@@ -302,11 +303,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    if (IOU.canReportBeSubmitted(report, policy, currentUserAccountID, transaction, allViolations)) {
+    if (IOU.canReportBeSubmitted(report, policy, currentUserAccountID, transaction, violationsCollection)) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
-    const hasViolations = transaction ? TransactionUtils.hasViolation(transaction.transactionID, allViolations) : ReportUtils.hasViolations(report.reportID, allViolations);
+    const hasViolations = transaction ? TransactionUtils.hasViolation(transaction.transactionID, violationsCollection) : ReportUtils.hasViolations(report.reportID, violationsCollection);
     if (hasViolations) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
