@@ -4065,9 +4065,6 @@ const translations = {
                 gotIt: 'Got it, thanks',
             },
         },
-        downgrade: {
-            title: 'Downgrade your workspace',
-        },
         restrictedAction: {
             restricted: 'Restricted',
             actionsAreCurrentlyRestricted: ({workspaceName}: ActionsAreCurrentlyRestricted) => `Actions on the ${workspaceName} workspace are currently restricted`,
