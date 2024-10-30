@@ -27,6 +27,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
+import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -177,6 +178,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             };
         });
     }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
+
+    useEffect(() => {
+        App.confirmReadyToOpenApp();
+    }, []);
 
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
         const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
