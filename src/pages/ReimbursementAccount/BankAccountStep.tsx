@@ -54,7 +54,7 @@ type BankAccountStepProps = {
     /** Should ValidateCodeActionModal be displayed or not */
     isValidateCodeActionModalVisible?: boolean;
 
-    /** Toggle ValidateCodeActionModal*/
+    /** Toggle ValidateCodeActionModal */
     toggleValidateCodeActionModal?: (isVisible: boolean) => void;
 };
 
