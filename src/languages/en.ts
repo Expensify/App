@@ -599,8 +599,7 @@ const translations = {
     },
     login: {
         hero: {
-            header: 'Manage spend, split expenses, and chat with your team.',
-            body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
+            header: 'Travel and expense, at the speed of chat',
         },
     },
     thirdPartySignIn: {
