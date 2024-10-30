@@ -3701,7 +3701,7 @@ const styles = (theme: ThemeColors) =>
             } satisfies AnchorPosition),
 
         iPhoneXSafeArea: {
-            backgroundColor: theme.inverse,
+            backgroundColor: theme.appBG,
             flex: 1,
         },
 
