@@ -32,6 +32,9 @@ jobs:
         with:
           fetch-depth: 0  # Fetches the entire history
 
+      - name: Fetch main branch
+        run: git fetch origin main:main
+
       - name: Determine "baseline ref" (prev merge commit)
         id: getBaselineRef
         run: |
