@@ -238,6 +238,7 @@ function AmountForm(
         forwardDeletePressedRef.current = key === 'delete' || (allowedOS.includes(operatingSystem ?? '') && event.nativeEvent.ctrlKey && key === 'd');
     };
 
+    const regex = useMemo(() => MoneyRequestUtils.amountRegex(decimals, amountMaxLength), [decimals, amountMaxLength]);
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
@@ -261,6 +262,7 @@ function AmountForm(
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                 inputMode={CONST.INPUT_MODE.DECIMAL}
                 errorText={errorText}
+                regex={regex}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
@@ -300,6 +302,7 @@ function AmountForm(
                     isCurrencyPressable={isCurrencyPressable}
                     style={[styles.iouAmountTextInput]}
                     containerStyle={[styles.iouAmountTextInputContainer]}
+                    regex={regex}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 />
