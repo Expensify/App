@@ -1,6 +1,5 @@
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,8 +8,8 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import searchCountryOptions from '@libs/searchCountryOptions';
 import type {CountryData} from '@libs/searchCountryOptions';
+import searchCountryOptions from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
 import type {Route} from '@src/ROUTES';
@@ -25,7 +24,6 @@ type RouteParams = {
 
 function StateSelectionPage() {
     const route = useRoute();
-    const navigation = useNavigation();
     const {translate} = useLocalize();
 
     const [searchValue, setSearchValue] = useState('');
@@ -57,26 +55,15 @@ function StateSelectionPage() {
         (option: CountryData) => {
             const backTo = params?.backTo ?? '';
 
-            // Determine navigation action based on "backTo" presence and route stack length.
-            if (navigation.getState()?.routes.length === 1) {
-                // If this is the only page in the navigation stack (examples include direct navigation to this page via URL or page reload).
-                if (isEmpty(backTo)) {
-                    // No "backTo": default back navigation.
-                    Navigation.goBack();
-                } else {
-                    // "backTo" provided: navigate back to "backTo" with state parameter.
-                    Navigation.goBack(appendParam(backTo, 'state', option.value));
-                }
-            } else if (!isEmpty(backTo)) {
-                // Most common case: Navigation stack has multiple routes and "backTo" is defined: navigate to "backTo" with state parameter.
-                Navigation.navigate(appendParam(backTo, 'state', option.value));
-            } else {
-                // This is a fallback block and should never execute if StateSelector is correctly appending the "backTo" route.
-                // Navigation stack has multiple routes but no "backTo" defined: default back navigation.
+            // Check the "backTo" parameter to decide navigation behavior
+            if (!backTo) {
                 Navigation.goBack();
+            } else {
+                // Set compareParams to false because we want to goUp to this particular screen and update params (state).
+                Navigation.goUp(appendParam(backTo, 'state', option.value), {compareParams: false});
             }
         },
-        [navigation, params?.backTo],
+        [params?.backTo],
     );
 
     return (

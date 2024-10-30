@@ -91,7 +91,7 @@ function StateSelector(
             onPress={() => {
                 const activeRoute = Navigation.getActiveRoute();
                 didOpenStateSelector.current = true;
-                Navigation.goUp(stateSelectorRoute.getRoute(stateCode, activeRoute, label), {compareParams: false});
+                Navigation.navigate(stateSelectorRoute.getRoute(stateCode, activeRoute, label));
             }}
             wrapperStyle={wrapperStyle}
         />
