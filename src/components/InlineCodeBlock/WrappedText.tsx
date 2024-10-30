@@ -133,3 +133,5 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
 WrappedText.displayName = 'WrappedText';
 
 export default WrappedText;
+
+export {splitLongWord};
