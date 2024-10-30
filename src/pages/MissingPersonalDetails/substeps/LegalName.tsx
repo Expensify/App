@@ -1,13 +1,8 @@
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
-import TextInput from '@components/TextInput';
+import FullNameStep from '@components/SubStepForms/FullNameStep';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
-import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
@@ -17,9 +12,13 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 const STEP_FIELDS = [INPUT_IDS.LEGAL_FIRST_NAME, INPUT_IDS.LEGAL_LAST_NAME];
 
-function LegalNameStep({isEditing, onNext, personalDetailsValues}: CustomSubStepProps) {
+function LegalName({isEditing, onNext, onMove, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
+
+    const defaultValues = {
+        firstName: personalDetailsValues[INPUT_IDS.LEGAL_FIRST_NAME],
+        lastName: personalDetailsValues[INPUT_IDS.LEGAL_LAST_NAME],
+    };
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
@@ -62,46 +61,23 @@ function LegalNameStep({isEditing, onNext, personalDetailsValues}: CustomSubStep
     });
 
     return (
-        <FormProvider
+        <FullNameStep<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
             formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
-            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+            formTitle={translate('privatePersonalDetails.enterLegalName')}
             onSubmit={handleSubmit}
-            validate={validate}
-            style={[styles.flexGrow1, styles.mt3]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
-            enabledWhenOffline
-        >
-            <View style={styles.ph5}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterLegalName')}</Text>
-                <View style={[styles.flex2, styles.mb5]}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.LEGAL_FIRST_NAME}
-                        name="lfname"
-                        label={translate('privatePersonalDetails.legalFirstName')}
-                        aria-label={translate('privatePersonalDetails.legalFirstName')}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={personalDetailsValues[INPUT_IDS.LEGAL_FIRST_NAME]}
-                        spellCheck={false}
-                    />
-                </View>
-                <View style={[styles.flex2, styles.mb5]}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.LEGAL_LAST_NAME}
-                        name="llname"
-                        label={translate('privatePersonalDetails.legalLastName')}
-                        aria-label={translate('privatePersonalDetails.legalLastName')}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={personalDetailsValues[INPUT_IDS.LEGAL_LAST_NAME]}
-                        spellCheck={false}
-                    />
-                </View>
-            </View>
-        </FormProvider>
+            customValidate={validate}
+            stepFields={STEP_FIELDS}
+            firstNameInputID={INPUT_IDS.LEGAL_FIRST_NAME}
+            lastNameInputID={INPUT_IDS.LEGAL_LAST_NAME}
+            defaultValues={defaultValues}
+            shouldShowHelpLinks={false}
+        />
     );
 }
 
-LegalNameStep.displayName = 'LegalNameStep';
+LegalName.displayName = 'LegalName';
 
-export default LegalNameStep;
+export default LegalName;
