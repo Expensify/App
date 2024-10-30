@@ -32,6 +32,9 @@ jobs:
         with:
           fetch-depth: 0  # Fetches the entire history
 
+      - name: Fetch main branch
+        run: git fetch origin main:main
+
       - name: Determine "baseline ref" (prev merge commit)
         id: getBaselineRef
         run: |
@@ -60,7 +63,7 @@ jobs:
         id: getDeltaRef
         run: |
           if [ '${{ steps.getPullRequestDetails.outputs.IS_MERGED }}' == 'true' ]; then
-            echo "DELTA_REF=${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
+            echo "DELTA_REF=${{ steps.getPullRequestDetails.outputs.MERGE_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
           else
             # Set dummy git credentials
             git config --global user.email "test@test.com"
@@ -229,6 +232,36 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Check if test has skipped tests
+        id: checkIfSkippedTestsDetected
+        run: |
+          if grep -q '⚠️' "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"; then
+            # Create an output to the GH action that the tests were skipped:
+            echo "skippedTestsDetected=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skippedTestsDetected=false" >> "$GITHUB_OUTPUT"
+            echo '✅ no skipped tests detected'
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: 'Announce skipped tests in Slack'
+        if: ${{ steps.checkIfSkippedTestsDetected.outputs.skippedTestsDetected == 'true' }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#e2e-announce',
+              attachments: [{
+                color: 'danger',
+                text: `⚠️ ${process.env.AS_REPO} Some of E2E tests were skipped on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow ⚠️`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
       - name: 'Announce regression in Slack'
         if: ${{ steps.checkIfRegressionDetected.outputs.performanceRegressionDetected == 'true' }}
         uses: 8398a7/action-slack@v3
@@ -236,7 +269,7 @@ jobs:
           status: custom
           custom_payload: |
             {
-              channel: '#newdot-quality',
+              channel: '#quality',
               attachments: [{
                 color: 'danger',
                 text: `🔴 Performance regression detected in PR ${{ inputs.PR_NUMBER }}\nDetected in <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow.`,
