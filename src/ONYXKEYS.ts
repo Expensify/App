@@ -533,7 +533,7 @@ const ONYXKEYS = {
         LAST_SELECTED_FEED: 'lastSelectedFeed_',
 
         /**  Whether the bank account chosen for Expensify Card in on verification waitlist */
-        NVP_EXPENSIFY_ON_CARD_WAITLIST: 'nvp_expensify_onCardWaitlist',
+        NVP_EXPENSIFY_ON_CARD_WAITLIST: 'nvp_expensify_onCardWaitlist_',
     },
 
     /** List of Form ids */
