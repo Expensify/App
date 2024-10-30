@@ -1,9 +1,5 @@
-//
 //  RCTShareActionHandlerModule.m
 //  NewExpensify
-//
-//  Created by Bartek Krasoń on 28/08/2024.
-//
 
 #import <Foundation/Foundation.h>
 #import "RCTShareActionHandlerModule.h"
@@ -11,8 +7,7 @@
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 NSString *const ShareExtensionGroupIdentifier = @"group.com.expensify.new";
-NSString *const ShareExtensionFilesKey = @"sharedImages";
-NSString *const ShareImageFileExtension = @".jpg";
+NSString *const ShareExtensionFilesKey = @"sharedFiles";
 
 @implementation RCTShareActionHandlerModule
 
@@ -30,70 +25,72 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
       return;
   }
 
-  NSURL *sharedImagesFolderPathURL = [groupURL URLByAppendingPathComponent:ShareExtensionFilesKey];
-  NSString *sharedImagesFolderPath = [sharedImagesFolderPathURL path];
+  NSURL *sharedFilesFolderPathURL = [groupURL URLByAppendingPathComponent:ShareExtensionFilesKey];
+  NSString *sharedFilesFolderPath = [sharedFilesFolderPathURL path];
 
-  // Set default to NULL so it is not used when app is launched regularly.
   [defaults setObject:NULL forKey:ShareExtensionFilesKey];
   [defaults synchronize];
 
-  // Get image file names
   NSError *error = nil;
-  NSArray *imageSrcPath = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:sharedImagesFolderPath error:&error];
-
-  if (imageSrcPath.count == 0) {
-      NSLog(@"handleShareAction Failed to find images in 'sharedImagesFolderPath' %@", sharedImagesFolderPath);
+  NSArray *fileSrcPath = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:sharedFilesFolderPath error:&error];
+  NSLog(@"handleShareAction fileSrcPath %@", fileSrcPath);
+  if (fileSrcPath.count == 0) {
+      NSLog(@"handleShareAction Failed to find files in 'sharedFilesFolderPath' %@", sharedFilesFolderPath);
       return;
   }
 
+  NSLog(@"handleShareAction shared %lu files", fileSrcPath.count);
 
-  NSLog(@"handleShareAction shared %lu images", imageSrcPath.count);
+  NSMutableArray *fileFinalPaths = [NSMutableArray array];
 
-  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-  NSString *documentsDirectory = [paths objectAtIndex:0];
-  NSMutableArray *imageFinalPaths = [NSMutableArray array];
-
-  for (int i = 0; i < imageSrcPath.count; i++) {
-    if (imageSrcPath[i] == NULL) {
-        NSLog(@"handleShareAction Invalid image in position %d, imageSrcPath[i] is nil", i);
+  for (NSString *source in fileSrcPath) {
+    if (source == NULL) {
+        NSLog(@"handleShareAction Invalid file");
         continue;
     }
-    NSLog(@"handleShareAction Valid image in position %d", i);
-    NSString *source = imageSrcPath[i]; // Store image source path
-    NSString *srcImageAbsolutePath = [sharedImagesFolderPath stringByAppendingPathComponent:source];
-
-    // Get dynamic file extension from the source file
-    NSString *fileExtension = [source pathExtension];
-    NSLog(@"handleShareAction File Extension %@", fileExtension);
-
-    // Save image to sharedImagesFolderPath.
-    NSString *imageName = [NSString stringWithFormat:@"%@.%@", [[NSUUID UUID] UUIDString], fileExtension]; // Append dynamic extension
-    NSString *path = [sharedImagesFolderPath stringByAppendingPathComponent:imageName];
-    NSLog(@"handleShareAction Native module target path %@", srcImageAbsolutePath);
-
-    // Add the file URI to imageFinalPaths
-    [imageFinalPaths addObject:srcImageAbsolutePath];
+    NSString *srcFileAbsolutePath = [sharedFilesFolderPath stringByAppendingPathComponent:source];
+    [fileFinalPaths addObject:srcFileAbsolutePath];
   }
   
-  NSMutableArray *imageObjectsArray = [[NSMutableArray alloc] init];
+  NSMutableArray *fileObjectsArray = [[NSMutableArray alloc] init];
 
-  for (NSString *imagePath in imageFinalPaths) {
-      NSString *extension = [imagePath pathExtension];
+  for (NSString *filePath in fileFinalPaths) {
+      NSString *extension = [filePath pathExtension];
+      NSString *fileName = [filePath lastPathComponent];
+
+      // Check if filename contains "text_to_read"
+      if ([fileName containsString:@"text_to_read"]) {
+          NSError *fileError = nil;
+          NSString *fileContent = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:&fileError];
+          if (fileError) {
+              NSLog(@"Failed to read file: %@, error: %@", filePath, fileError);
+              continue;
+          }
+
+          NSTimeInterval timestampInterval = [[NSDate date] timeIntervalSince1970] * 1000;
+          NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
+          NSString *identifier = [NSString stringWithFormat:@"%@_%@", (unsigned long)timestamp, filePath];
+
+          NSDictionary *dict = @{
+              @"id" : identifier,
+              @"content" : fileContent,
+              @"mimeType" : @"txt",
+              @"processedAt" : timestamp
+          };
+
+          [fileObjectsArray addObject:dict];
+          continue;
+      }
 
       UTType *type = [UTType typeWithFilenameExtension:extension conformingToType:UTTypeData];
-      NSString *mimeType = type.preferredMIMEType;
-
-      // If MIME type can't be inferred, set "application/octet-stream" as default
-      mimeType = mimeType ? mimeType : @"application/octet-stream";
+      NSString *mimeType = type.preferredMIMEType ? : @"application/octet-stream";
       
-      // Generate an ID based on current timestamp and file path
       NSTimeInterval timestampInterval = [[NSDate date] timeIntervalSince1970] * 1000;
       NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
-      NSString *identifier = [NSString stringWithFormat:@"%@_%@", (unsigned long)timestamp, imagePath];
+      NSString *identifier = [NSString stringWithFormat:@"%@_%@", (unsigned long)timestamp, filePath];
       
-      // Get the image aspcect ratio
       CGFloat aspectRatio = 1.0;
-      UIImage *image = [UIImage imageWithContentsOfFile:imagePath];
+      UIImage *image = [UIImage imageWithContentsOfFile:filePath];
       if (image) {
           CGFloat width = image.size.width;
           CGFloat height = image.size.height;
@@ -102,21 +99,21 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
               aspectRatio = width / height;
           }
       } else {
-          NSLog(@"Failed to load image from path: %@", imagePath);
+          NSLog(@"Failed to load image from path: %@", filePath);
       }
 
-      NSDictionary *dict = @{
-        @"id" : identifier, 
-        @"content" : imagePath,
+    NSDictionary *dict = @{
+        @"id" : identifier,
+        @"content" : filePath, // For files that are not "text_to_read", keep the path
         @"mimeType" : mimeType,
         @"processedAt" : timestamp,
         @"aspectRatio" : @(aspectRatio)
-      };
+    };
 
-      [imageObjectsArray addObject:dict];
-  }
+    [fileObjectsArray addObject:dict];
+    }
 
-  callback(@[imageObjectsArray]);
+    callback(@[fileObjectsArray]);
 }
 
 @end

@@ -38,7 +38,6 @@ function ShareRootPage() {
     }, [imageFileFormats]);
 
     useEffect(() => {
-        handleProcessFiles();
         const subscription = AppState.addEventListener('change', (nextAppState) => {
             if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
                 handleProcessFiles();
@@ -51,6 +50,11 @@ function ShareRootPage() {
             subscription.remove();
         };
     }, [handleProcessFiles]);
+
+    useEffect(() => {
+        handleProcessFiles();
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <ScreenWrapper

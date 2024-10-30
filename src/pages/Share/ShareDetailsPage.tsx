@@ -35,13 +35,15 @@ function ShareDetailsPage({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [tempShareFiles] = useOnyx(`${ONYXKEYS.COLLECTION.TEMP_SHARE_FILES}`);
 
-    const [message, setMessage] = useState('');
-
     const currentAttachment = useMemo(() => {
         return Object.values(tempShareFiles ?? {})
             .sort((a, b) => Number(b?.processedAt) - Number(a?.processedAt))
             .at(0);
     }, [tempShareFiles]);
+
+    const isTextShared = useMemo(() => currentAttachment?.mimeType === 'txt', [currentAttachment]);
+
+    const [message, setMessage] = useState(isTextShared ? currentAttachment?.content : '');
 
     const reportDisplay = OptionsListUtils.getReportDisplayOption(report);
 
@@ -96,6 +98,7 @@ function ShareDetailsPage({
                         <View style={[styles.pv5]}>
                             <TextInput
                                 value={message}
+                                multiline
                                 onChangeText={(value) => {
                                     setMessage(value);
                                 }}
@@ -103,13 +106,17 @@ function ShareDetailsPage({
                                 label={translate('share.messageInputLabel')}
                             />
                         </View>
-                        <View style={[styles.pt6, styles.pb2]}>
-                            <Text style={[styles.textLabelSupporting]}>{translate('common.attachment')}</Text>
-                        </View>
-                        <AttachmentPreview
-                            uri={currentAttachment?.content}
-                            aspectRatio={currentAttachment?.aspectRatio}
-                        />
+                        {!isTextShared && (
+                            <>
+                                <View style={[styles.pt6, styles.pb2]}>
+                                    <Text style={[styles.textLabelSupporting]}>{translate('common.attachment')}</Text>
+                                </View>
+                                <AttachmentPreview
+                                    uri={currentAttachment?.content}
+                                    aspectRatio={currentAttachment?.aspectRatio}
+                                />
+                            </>
+                        )}
                     </View>
 
                     <View style={[styles.flexGrow1, styles.flexColumn, styles.justifyContentEnd]}>
