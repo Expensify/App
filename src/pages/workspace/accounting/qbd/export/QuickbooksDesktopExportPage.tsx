@@ -5,7 +5,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -22,7 +21,6 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
     const policyOwner = policy?.owner ?? '';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const errorFields = qbdConfig?.errorFields;
-    const {canUseNewDotQBD} = usePermissions();
 
     const shouldShowVendorMenuItems = useMemo(
         () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
@@ -54,14 +52,14 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.accounting.exportCompanyCard'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)), // TODO: [QBD] should be updated to use new routes
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)),
             brickRoadIndicator: qbdConfig?.errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: qbdConfig?.export.nonReimbursable ? translate(`workspace.qbd.accounts.${qbdConfig?.export.nonReimbursable}`) : undefined,
+            title: qbdConfig?.export?.nonReimbursable ? translate(`workspace.qbd.accounts.${qbdConfig?.export?.nonReimbursable}`) : undefined,
             subscribedSettings: [
-                CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
-                CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
-                ...(shouldShowVendorMenuItems ? [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR] : []),
-                ...(shouldShowVendorMenuItems && qbdConfig?.shouldAutoCreateVendor ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] : []),
+                CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE,
+                CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+                ...(shouldShowVendorMenuItems ? [CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR] : []),
+                ...(shouldShowVendorMenuItems && qbdConfig?.shouldAutoCreateVendor ? [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] : []),
             ],
         },
         {
@@ -77,12 +75,11 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
             displayName={QuickbooksDesktopExportPage.displayName}
             headerTitle="workspace.accounting.export"
             title="workspace.qbd.exportDescription"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] remove it once the QBD beta is done
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >
