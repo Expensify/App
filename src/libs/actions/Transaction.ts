@@ -244,6 +244,14 @@ function getOnyxDataForRouteRequest(transactionID: string, transactionState: Tra
                     comment: {
                         isLoading: false,
                     },
+                    // When the user opens the distance request editor and changes the connection from offline to online,
+                    // the transaction's pendingFields and pendingAction will be removed, but not transactionBackup.
+                    // We clear the pendingFields and pendingAction for the backup here to ensure consistency with the transaction.
+                    // Without this, the map will not be clickable if the user dismisses the distance request editor without saving.
+                    ...(transactionState === CONST.TRANSACTION.STATE.BACKUP && {
+                        pendingFields: {waypoints: null},
+                        pendingAction: null,
+                    }),
                 },
             },
         ],
