@@ -262,7 +262,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
     }
 
     const transaction = isTransactionEntry(key) ? data[key] : undefined;
-    const report = (transaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key]) as SearchReport;
+    const report = isReportEntry(key) ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : (data[key] as SearchReport);
 
     // We don't need to run the logic if this is not a transaction or iou/expense report
     if (!ReportUtils.isMoneyRequestReport(report)) {
@@ -283,9 +283,9 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         ReportUtils.isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
             ? data[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`]
             : undefined;
-    const allViolations = (Object.entries(data)
+    const allViolations = Object.entries(data)
         .filter(([itemKey]) => itemKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS))
-        .map((item) => item[1]) ?? undefined) as unknown as OnyxCollection<OnyxTypes.TransactionViolations>;
+        .map((item) => item[1]);
 
     if (ReportUtils.isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;

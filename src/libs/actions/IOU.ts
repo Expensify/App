@@ -7112,11 +7112,11 @@ function canIOUBePaid(
 }
 
 function canReportBeSubmitted(
-    moneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
-    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
+    moneyRequestReport: OnyxEntry<OnyxTypes.Report> | SearchReport,
+    policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
     currentUserAccountID: number,
     transaction?: OnyxTypes.Transaction | SearchTransaction,
-    violations?: OnyxCollection<OnyxTypes.TransactionViolations>,
+    violations?: OnyxTypes.TransactionViolations,
 ) {
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);

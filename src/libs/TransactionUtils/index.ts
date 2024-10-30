@@ -675,9 +675,9 @@ function shouldShowBrokenConnectionViolation(
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
-function allHavePendingRTERViolation(transactionIds: string[], searchTransactionViolations?: OnyxCollection<TransactionViolations>): boolean {
+function allHavePendingRTERViolation(transactionIds: string[], searchTransactionViolations?: TransactionViolations): boolean {
     const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
-        const transactionViolations = getTransactionViolations(transactionId, searchTransactionViolations ?? allTransactionViolations);
+        const transactionViolations = searchTransactionViolations ?? getTransactionViolations(transactionId, allTransactionViolations);
         return hasPendingRTERViolation(transactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
