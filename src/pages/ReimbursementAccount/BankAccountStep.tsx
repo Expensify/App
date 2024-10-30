@@ -177,7 +177,7 @@ function BankAccountStep({
                                 title={translate('bankAccount.connectOnlineWithPlaid')}
                                 disabled={!!isPlaidDisabled}
                                 onPress={() => {
-                                    if (!!isPlaidDisabled) {
+                                    if (isPlaidDisabled) {
                                         return;
                                     }
                                     if (!account?.validated) {
