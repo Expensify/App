@@ -85,7 +85,9 @@ function ReportActionItemSingle({
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const policy = usePolicy(report?.policyID);
     const delegatePersonalDetails = personalDetails[action?.delegateAccountID ?? ''];
-    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
+    const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
+    const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport, report);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
@@ -94,12 +96,11 @@ function ReportActionItemSingle({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = ReportUtils.isTripRoom(report);
-    const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const icons = ReportUtils.getIcons(iouReport ?? null, personalDetails);
-    const displayAllActors = isReportPreviewAction && !isTripRoom && (icons ? icons.length > 1 : true);
+    const displayAllActors = isReportPreviewAction && !isTripRoom && !ReportUtils.isPolicyExpenseChat(report) && (icons ? icons.length > 1 : true);
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
-    const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
+
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
 
@@ -231,7 +232,7 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={Number(actorAccountID ?? -1)}
+                accountID={Number(icon.id ?? -1)}
                 delegateAccountID={Number(action?.delegateAccountID ?? -1)}
                 icon={icon}
             >
@@ -257,7 +258,7 @@ function ReportActionItemSingle({
                         <ReportActionItemFragment
                             style={[styles.flexShrink1]}
                             key={`person-${action?.reportActionID}-${0}`}
-                            accountID={actorAccountID ?? -1}
+                            accountID={Number(icon.id) ?? -1}
                             fragment={{...personArray.at(0), type: 'TEXT', text: displayName ?? ''}}
                             delegateAccountID={action?.delegateAccountID}
                             isSingleLine

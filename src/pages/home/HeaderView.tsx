@@ -23,8 +23,10 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import isReportOpenInRHP from '@libs/Navigation/isReportOpenInRHP';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
 import FreeTrialBadge from '@pages/settings/Subscription/FreeTrialBadge';
 import * as Report from '@userActions/Report';
@@ -90,7 +92,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const title = ReportUtils.getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
-    const reportDescription = ReportUtils.getReportDescriptionText(report);
+    const reportDescription = Parser.htmlToText(ReportUtils.getReportDescription(report));
     const policyName = ReportUtils.getPolicyName(report, true);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report?.reportID ?? '');
@@ -139,6 +141,9 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report?.reportID || !title;
+
+    const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
+    const shouldDisplaySearchRouter = !isReportInRHP;
 
     return (
         <View
@@ -280,7 +285,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
-                            <SearchButton />
+                            {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
                         </View>
                         <ConfirmModal
                             isVisible={isDeleteTaskConfirmModalVisible}
