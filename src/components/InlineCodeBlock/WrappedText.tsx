@@ -50,9 +50,9 @@ function containsEmoji(text: string): boolean {
  * If the word's length exceeds 'maxLength', it utilizes a regular expression to split the word into
  * substrings with a specified 'maxLength' and returns them as an array of strings.
  *
- * @param {string} word - The original word to be split.
- * @param {number} maxLength - The maximum length of each substring.
- * @return {string[]} An array of substrings derived from the original word.
+ * @param word The original word to be split.
+ * @param maxLength The maximum length of each substring.
+ * @return An array of substrings derived from the original word.
  *
  * @example
  * splitLongWord('longteststring', 4);
