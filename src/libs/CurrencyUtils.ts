@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {Currency} from '@src/types/onyx';
 import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
@@ -28,6 +29,11 @@ Onyx.connect({
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD): number {
     const decimals = currencyList?.[currency]?.decimals;
     return decimals ?? 2;
+}
+
+function getCurrency(currency: string = CONST.CURRENCY.USD): Currency | null {
+    const currencyItem = currencyList?.[currency];
+    return currencyItem;
 }
 
 /**
@@ -211,4 +217,5 @@ export {
     convertToDisplayStringWithoutCurrency,
     isValidCurrencyCode,
     convertToShortDisplayString,
+    getCurrency,
 };

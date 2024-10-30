@@ -60,6 +60,8 @@ type ValuePickerProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
+
+    selectedCurrency?: string;
 };
 
 export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValuePickerListItem};

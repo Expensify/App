@@ -79,6 +79,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         name={SCREENS.RIGHT_MODAL.NEW_CHAT}
                         component={ModalStackNavigators.NewChatModalStackNavigator}
                     />
+
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PROFILE}
                         component={ModalStackNavigators.ProfileModalStackNavigator}
@@ -92,9 +93,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.ReportDetailsModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION}
+                        component={ModalStackNavigators.WorkspaceConfirmationModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.REPORT_SETTINGS}
                         component={ModalStackNavigators.ReportSettingsModalStackNavigator}
                     />
+
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION}
                         component={ModalStackNavigators.ReportDescriptionModalStackNavigator}

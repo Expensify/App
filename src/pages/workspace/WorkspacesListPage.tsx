@@ -396,7 +396,12 @@ function WorkspacesListPage() {
                             subtitle={translate('workspace.emptyWorkspace.subtitle')}
                             ctaText={translate('workspace.new.newWorkspace')}
                             ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
-                            onCtaPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
+                            onCtaPress={() =>
+                                interceptAnonymousUser(
+                                    () => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION),
+                                    // App.createWorkspaceWithPolicyDraftAndNavigateToIt()
+                                )
+                            }
                             illustration={LottieAnimations.WorkspacePlanet}
                             // We use this style to vertically center the illustration, as the original illustration is not centered
                             illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
