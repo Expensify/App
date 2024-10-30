@@ -1988,7 +1988,7 @@ function getSendInvoiceInformation(
         policyCategories,
         optimisticRecentlyUsedCurrencies,
         companyName,
-        companyWebsite,
+        Str.sanitizeURL(companyWebsite ?? '', CONST.COMPANY_WEBSITE_DEFAULT_SCHEME),
     );
 
     return {
@@ -3741,7 +3741,7 @@ function sendInvoice(
         transactionID,
         transactionThreadReportID,
         companyName,
-        companyWebsite,
+        companyWebsite: Str.sanitizeURL(companyWebsite ?? '', CONST.COMPANY_WEBSITE_DEFAULT_SCHEME),
         ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: receiver.login ?? ''}),
     };
 

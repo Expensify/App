@@ -4464,7 +4464,7 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 invoice: {
-                    companyWebsite,
+                    companyWebsite: Str.sanitizeURL(companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME),
                     pendingFields: {
                         companyWebsite: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -4505,7 +4505,7 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string) {
     const parameters: UpdateInvoiceCompanyWebsiteParams = {
         authToken,
         policyID,
-        companyWebsite,
+        companyWebsite: Str.sanitizeURL(companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_WEBSITE, parameters, {optimisticData, successData, failureData});
