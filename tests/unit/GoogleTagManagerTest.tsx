@@ -16,21 +16,21 @@ jest.mock('@libs/GoogleTagManager');
 jest.mock('@libs/Navigation/AppNavigator/Navigators/Overlay');
 
 describe('GoogleTagManagerTest', () => {
+    const accountID = 123456;
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            initialKeyStates: {
+                session: {accountID},
+            },
         });
     });
     beforeEach(() => {
         jest.clearAllMocks();
-        return Onyx.clear();
     });
 
-    test('sign_up', async () => {
-        // Given a new signed in account
-        const accountID = 123456;
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID});
-
+    test('sign_up', () => {
         // When we render the OnboardingModal a few times
         const {rerender} = render(
             <NavigationContainer>
@@ -54,10 +54,6 @@ describe('GoogleTagManagerTest', () => {
     });
 
     test('workspace_created', async () => {
-        // Given a new signed in account
-        const accountID = 123456;
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID});
-
         // When we run the createWorkspace action a few times
         Policy.createWorkspace();
         await waitForBatchedUpdates();
@@ -70,11 +66,7 @@ describe('GoogleTagManagerTest', () => {
         expect(GoogleTagManager.publishEvent).toBeCalledWith('workspace_created', accountID);
     });
 
-    test('workspace_created - categorizeTrackedExpense', async () => {
-        // Given a new signed in account
-        const accountID = 123456;
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID});
-
+    test('workspace_created - categorizeTrackedExpense', () => {
         // When we categorize a tracked expense with a draft policy
         IOU.trackExpense(
             {reportID: '123'},
@@ -109,11 +101,7 @@ describe('GoogleTagManagerTest', () => {
         expect(GoogleTagManager.publishEvent).toBeCalledWith('workspace_created', accountID);
     });
 
-    test('paid_adoption - addPaymentCard', async () => {
-        // Given a new signed in account
-        const accountID = 123456;
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID});
-
+    test('paid_adoption - addPaymentCard', () => {
         // When we add a payment card
         PaymentMethods.addPaymentCard(accountID, {
             expirationDate: '2077-10-30',
@@ -128,11 +116,7 @@ describe('GoogleTagManagerTest', () => {
         expect(GoogleTagManager.publishEvent).toBeCalledWith('paid_adoption', accountID);
     });
 
-    test('paid_adoption - addSubscriptionPaymentCard', async () => {
-        // Given a new signed in account
-        const accountID = 123456;
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID});
-
+    test('paid_adoption - addSubscriptionPaymentCard', () => {
         // When we add a payment card
         PaymentMethods.addSubscriptionPaymentCard(accountID, {
             cardNumber: 'cardNumber',
