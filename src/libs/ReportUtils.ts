@@ -4258,12 +4258,17 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
     return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
 }
 
-function getReportDescriptionText(report: OnyxEntry<Report>): string {
+function getReportDescription(report: OnyxEntry<Report>): string {
     if (!report?.description) {
         return '';
     }
-
-    return Parser.htmlToText(report?.description);
+    try {
+        const reportDescription = report?.description;
+        const objectDescription = JSON.parse(reportDescription) as {html: string};
+        return objectDescription.html ?? '';
+    } catch (error) {
+        return report?.description ?? '';
+    }
 }
 
 function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
@@ -8447,7 +8452,7 @@ export {
     getReimbursementDeQueuedActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,
-    getReportDescriptionText,
+    getReportDescription,
     getReportFieldKey,
     getReportIDFromLink,
     getReportName,
