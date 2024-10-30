@@ -126,7 +126,7 @@ function createTaskAndNavigate(
     const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `task for ${title}`, parentReportID);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
-    const currentTime = DateUtils.getDBTimeWithSkew();
+    const currentTime = DateUtils.getDBTimeWithSkew(Date.now() + CONST.ANIMATED_TRANSITION);
     const lastCommentText = ReportUtils.formatReportLastMessageText(ReportActionsUtils.getReportActionText(optimisticAddCommentReport.reportAction));
     const parentReport = ReportUtils.getReport(parentReportID);
     const optimisticParentReport = {

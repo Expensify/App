@@ -22,6 +22,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -218,7 +219,7 @@ function ReportActionsList({
      * - marks a message as read/unread
      * - reads a new message as it is received
      */
-    const [unreadMarkerTime, setUnreadMarkerTime] = useState(report.lastReadTime ?? '');
+    const [unreadMarkerTime, setUnreadMarkerTime] = useState(ReportConnection.getReport(report.reportID)?.lastReadTime ?? '');
     useEffect(() => {
         setUnreadMarkerTime(report.lastReadTime ?? '');
 

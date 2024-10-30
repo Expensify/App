@@ -60,4 +60,12 @@ function updateReportData(reportID: string, reportData?: Partial<Report>) {
         ...reportData,
     };
 }
-export {getAllReports, getAllReportsNameMap, getAllReportsLength, updateReportData};
+
+function getReport(reportID: string) {
+    if (!reportID || !allReports) {
+        return;
+    }
+    return allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+}
+
+export {getAllReports, getAllReportsNameMap, getAllReportsLength, updateReportData, getReport};
