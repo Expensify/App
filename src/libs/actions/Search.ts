@@ -166,7 +166,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
 
 function approveMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
- 
+
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
 }
 
