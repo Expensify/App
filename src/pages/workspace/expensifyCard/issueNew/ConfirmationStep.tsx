@@ -14,6 +14,8 @@ import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import * as User from '@userActions/User';
@@ -37,6 +39,11 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
+    const contactMethod = UserUtils.getContactMethod();
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
+    const validateLoginError = ErrorUtils.getLatestErrorField(loginData, 'addedLogin');
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
@@ -132,8 +139,20 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             <ValidateCodeActionModal
                 handleSubmitForm={submit}
                 sendValidateCode={() => User.requestValidateCodeAction()}
-                clearError={() => {}}
-                onClose={() => setIsValidateCodeActionModalVisible(false)}
+                validateError={validateLoginError}
+                clearError={() => {
+                    if (!loginData) {
+                        return;
+                    }
+                    User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin');
+                }}
+                onClose={() => {
+                    if (loginData?.errorFields && pendingContactAction?.contactMethod) {
+                        User.clearContactMethod(pendingContactAction?.contactMethod);
+                        User.clearUnvalidatedNewContactMethodAction();
+                    }
+                    setIsValidateCodeActionModalVisible(false);
+                }}
                 isVisible={isValidateCodeActionModalVisible}
                 title={translate('cardPage.validateCardTitle')}
                 description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
