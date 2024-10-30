@@ -219,6 +219,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
+    const lastReportIDFromRoute = usePrevious(reportIDFromRoute);
     const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID});
@@ -577,7 +578,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
         // Therefore, we need to compare if the existing reportID is the same as the one in the route
         // before deciding that we shouldn't call OpenReport.
-        if (onyxReportID === prevReport?.reportID && (!onyxReportID || onyxReportID === reportIDFromRoute)) {
+        if (reportIDFromRoute === lastReportIDFromRoute && (!onyxReportID || onyxReportID === reportIDFromRoute)) {
             return;
         }
 
@@ -597,6 +598,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         prevReport?.chatType,
         prevReport,
         reportIDFromRoute,
+        lastReportIDFromRoute,
         isFocused,
         isDeletedParentAction,
         prevIsDeletedParentAction,
