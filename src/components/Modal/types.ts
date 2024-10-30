@@ -36,9 +36,6 @@ type BaseModalProps = Partial<ModalProps> & {
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
 
-    /** Callback method fired when the user requests to submit the modal content. */
-    onSubmit?: () => void;
-
     /** Callback method fired when the modal is hidden */
     onModalHide?: () => void;
 
