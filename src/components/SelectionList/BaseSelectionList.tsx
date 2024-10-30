@@ -278,9 +278,9 @@ function BaseSelectionList<TItem extends ListItem>(
             // in searchType chat, the focused item may move out of view. To prevent this, we will ensure that the focused item remains at
             // the top of the viewable area at all times by adjusting the viewOffset.
             if (searchType === 'chat') {
-                const firstPreviousItem = flattenedSections.allOptions[index - 1] ?? undefined;
+                const firstPreviousItem = index > 0 ? flattenedSections.allOptions.at(index - 1) : undefined;
                 const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeights[firstPreviousItem.keyForList] : 0;
-                const secondPreviousItem = flattenedSections.allOptions[index - 2] ?? undefined;
+                const secondPreviousItem = index > 1 ? flattenedSections.allOptions.at(index - 2) : undefined;
                 const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeights[secondPreviousItem.keyForList] : 0;
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
