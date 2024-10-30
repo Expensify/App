@@ -46,14 +46,6 @@ function DelegateMagicCodeModal({login, role, onClose}: DelegateMagicCodeModalPr
         Delegate.clearAddDelegateErrors(currentDelegate?.email ?? '', 'addDelegate');
     };
 
-    const sendValidateCode = () => {
-        if (currentDelegate?.validateCodeSent) {
-            return;
-        }
-
-        User.requestValidateCodeAction();
-    };
-
     return (
         <ValidateCodeActionModal
             clearError={clearError}
@@ -61,7 +53,8 @@ function DelegateMagicCodeModal({login, role, onClose}: DelegateMagicCodeModalPr
             validateError={validateLoginError}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('delegate.makeSureItIsYou')}
-            sendValidateCode={sendValidateCode}
+            sendValidateCode={() => User.requestValidateCodeAction()}
+            hasMagicCodeBeenSent={!!currentDelegate?.validateCodeSent}
             handleSubmitForm={(validateCode) => Delegate.addDelegate(login, role, validateCode)}
             description={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
         />
