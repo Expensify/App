@@ -9,7 +9,7 @@ const getOpacity: GetOpacity = ({routesLength, tabIndex, active, affectedTabs, p
 
         return position?.interpolate({
             inputRange,
-            outputRange: inputRange.map((i) => (affectedTabs.includes(tabIndex) && i === tabIndex && isActive ? activeValue : inactiveValue)),
+            outputRange: inputRange.map((i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? activeValue : inactiveValue)),
         });
     }
     return activeValue;
