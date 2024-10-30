@@ -384,15 +384,16 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
 
     const sortedActions = reportActions?.filter(Boolean).sort((first, second) => {
-        // First sort by timestamp
+        // First sort by action type, ensuring that `CREATED` actions always come first if they have the same or even a later timestamp as another action type
+        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
+            return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
+        }
+
+        // Then sort by timestamp
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
         }
 
-        // Then by action type, ensuring that `CREATED` actions always come first if they have the same timestamp as another action type
-        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
-            return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
-        }
         // Ensure that `REPORT_PREVIEW` actions always come after if they have the same timestamp as another action type
         if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) && first.actionName !== second.actionName) {
             return (first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? 1 : -1) * invertedMultiplier;
@@ -1226,6 +1227,9 @@ function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction):
 }
 
 function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
+    if (!action || !action.actionName) {
+        return false;
+    }
     return [
         CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
         CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
@@ -1748,11 +1752,12 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
     );
 }
 
-function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1') {
+function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1', shouldDisplayLinkToCard = false) {
     const cardIssuedActionOriginalMessage = isActionOfType(
         reportAction,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
         CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
     )
         ? getOriginalMessage(reportAction)
@@ -1764,9 +1769,10 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID));
-    const expensifyCardLink = shouldRenderHTML
-        ? `<a href='${environmentURL}/${navigateRoute}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
-        : Localize.translateLocal('cardPage.expensifyCard');
+    const expensifyCardLink =
+        shouldRenderHTML && shouldDisplayLinkToCard
+            ? `<a href='${environmentURL}/${navigateRoute}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
+            : Localize.translateLocal('cardPage.expensifyCard');
     const companyCardLink = shouldRenderHTML
         ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${Localize.translateLocal('workspace.companyCards.companyCard')}</a>`
         : Localize.translateLocal('workspace.companyCards.companyCard');
@@ -1788,7 +1794,7 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
             return Localize.translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
-            return Localize.translateLocal('workspace.companyCards.assignedYouCard', {link: companyCardLink});
+            return Localize.translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
             return Localize.translateLocal(`workspace.expensifyCard.${shouldShowAddMissingDetailsMessage ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, {assignee});
         default:

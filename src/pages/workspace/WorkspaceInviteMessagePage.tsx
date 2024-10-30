@@ -36,6 +36,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -53,9 +54,10 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
-    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
-    const [workspaceInviteMessageDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`);
+    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
+    const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult);
 
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
@@ -77,6 +79,9 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     }, [workspaceInviteMessageDraft, policy, translate]);
 
     useEffect(() => {
+        if (isOnyxLoading) {
+            return;
+        }
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
             setWelcomeNote(getDefaultWelcomeNote());
             return;
@@ -86,14 +91,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         }
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || !welcomeNote) {
-            return;
-        }
-        setWelcomeNote(getDefaultWelcomeNote());
-    }, [getDefaultWelcomeNote, invitedEmailsToAccountIDsDraft, welcomeNote]);
+    }, [isOnyxLoading]);
 
     const debouncedSaveDraft = lodashDebounce((newDraft: string | null) => {
         Policy.setWorkspaceInviteMessageDraft(route.params.policyID, newDraft);
@@ -116,7 +114,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
 
     const validate = (): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> => {
         const errorFields: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> = {};
-        if (isEmptyObject(invitedEmailsToAccountIDsDraft)) {
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft) && !isOnyxLoading) {
             errorFields.welcomeMessage = translate('workspace.inviteMessage.inviteNoMembersError');
         }
         return errorFields;
@@ -193,7 +191,6 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             autoCorrect={false}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            defaultValue={getDefaultWelcomeNote()}
                             value={welcomeNote}
                             onChangeText={(text: string) => {
                                 setWelcomeNote(text);

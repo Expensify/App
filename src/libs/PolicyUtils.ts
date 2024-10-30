@@ -132,15 +132,15 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
 /**
  * Retrieves the distance custom unit object for the given policy
  */
-function getCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
+function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
 }
 
 /**
  * Retrieves custom unit rate object from the given customUnitRateID
  */
-function getCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
-    const distanceUnit = getCustomUnit(policy);
+function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
+    const distanceUnit = getDistanceRateCustomUnit(policy);
     return distanceUnit?.rates[customUnitRateID];
 }
 
@@ -382,7 +382,7 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
 }
 
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
-    const distanceUnit = getCustomUnit(policy);
+    const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? 0;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
     const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
@@ -861,7 +861,7 @@ function getNetSuiteImportCustomFieldLabel(
     const mappingSet = new Set(fieldData.map((item) => item.mapping));
     const importedTypes = Array.from(mappingSet)
         .sort((a, b) => b.localeCompare(a))
-        .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping}.label`).toLowerCase());
+        .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping !== '' ? mapping : 'TAG'}.label`).toLowerCase());
     return translate(`workspace.netsuite.import.importCustomFields.label`, {importedTypes});
 }
 
@@ -1148,8 +1148,8 @@ export {
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
     getSageIntacctBankAccounts,
-    getCustomUnit,
-    getCustomUnitRate,
+    getDistanceRateCustomUnit,
+    getDistanceRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
     navigateWhenEnableFeature,

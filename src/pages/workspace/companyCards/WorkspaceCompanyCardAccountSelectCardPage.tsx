@@ -12,11 +12,11 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@libs/actions/Policy/Policy';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -57,7 +57,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             if (!exportMenuItem?.exportType) {
                 return;
             }
-            Policy.setCompanyCardExportAccount(workspaceAccountID, cardID, exportMenuItem.exportType, value, bank);
+            CompanyCards.setCompanyCardExportAccount(workspaceAccountID, cardID, exportMenuItem.exportType, value, bank);
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank));
         },
@@ -69,10 +69,10 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             policyID={policyID}
             headerContent={
                 <View style={[styles.mh5, styles.mb3]}>
-                    {exportMenuItem?.description && (
+                    {!!exportMenuItem?.description && (
                         <Text style={[styles.textNormal]}>
                             {translate('workspace.moreFeatures.companyCards.integrationExportTitleFirstPart', {integration: exportMenuItem.description})}{' '}
-                            {exportMenuItem && (
+                            {!!exportMenuItem && (
                                 <TextLink
                                     style={styles.link}
                                     onPress={exportMenuItem.onExportPagePress}
