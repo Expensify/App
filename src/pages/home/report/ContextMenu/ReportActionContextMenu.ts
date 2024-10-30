@@ -37,6 +37,7 @@ type ShowContextMenu = (
     shouldCloseOnTarget?: boolean,
     setIsEmojiPickerActive?: (state: boolean) => void,
     isOverflowMenu?: boolean,
+    isThreadFirstChat?: boolean,
 ) => void;
 
 type ReportActionContextMenu = {
@@ -119,6 +120,7 @@ function showContextMenu(
     shouldCloseOnTarget = false,
     setIsEmojiPickerActive = () => {},
     isOverflowMenu = false,
+    isThreadFirstChat = false,
 ) {
     if (!contextMenuRef.current) {
         return;
@@ -143,6 +145,7 @@ function showContextMenu(
             shouldCloseOnTarget,
             setIsEmojiPickerActive,
             isOverflowMenu,
+            isThreadFirstChat,
         );
     };
 

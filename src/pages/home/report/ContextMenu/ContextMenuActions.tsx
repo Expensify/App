@@ -64,6 +64,7 @@ type ShouldShow = (args: {
     reportID: string;
     isPinnedChat: boolean;
     isUnreadChat: boolean;
+    isThreadFirstChat: boolean;
     isOffline: boolean;
     isMini: boolean;
     isProduction: boolean;
@@ -178,11 +179,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.replyInThread',
         icon: Expensicons.ChatBubbleReply,
-        shouldShow: ({type, reportAction, reportID}) => {
+        shouldShow: ({type, reportAction, reportID, isThreadFirstChat}) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
             }
-            return !ReportUtils.shouldDisableThread(reportAction, reportID);
+            return !ReportUtils.shouldDisableThread(reportAction, reportID, isThreadFirstChat);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
@@ -301,12 +302,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
         icon: Expensicons.Bell,
-        shouldShow: ({reportAction, isArchivedRoom, reportID}) => {
+        shouldShow: ({reportAction, isArchivedRoom, reportID, isThreadFirstChat}) => {
             const childReportNotificationPreference = ReportUtils.getChildReportNotificationPreference(reportAction);
             const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
             const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(reportAction, reportID);
             const subscribed = childReportNotificationPreference !== 'hidden';
-            const isThreadFirstChat = ReportUtils.isThreadFirstChat(reportAction, reportID);
             const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction) || ReportActionsUtils.isActionableTrackExpense(reportAction);
             const isExpenseReportAction = ReportActionsUtils.isMoneyRequestAction(reportAction) || ReportActionsUtils.isReportPreviewAction(reportAction);
             return !subscribed && !isWhisperAction && !isExpenseReportAction && !isThreadFirstChat && (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom));

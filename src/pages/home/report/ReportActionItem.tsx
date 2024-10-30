@@ -132,6 +132,9 @@ type ReportActionItemProps = {
     /** If this is the first visible report action */
     isFirstVisibleReportAction: boolean;
 
+    /** True if this is the first chat preview of a thread */
+    isThreadFirstChat?: boolean;
+
     /** IF the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
 
@@ -155,6 +158,7 @@ function ReportActionItem({
     shouldShowSubscriptAvatar = false,
     onPress = undefined,
     isFirstVisibleReportAction = false,
+    isThreadFirstChat = false,
     shouldUseThreadDividerLine = false,
     hideThreadReplies = false,
     shouldDisplayContextMenu = true,
@@ -358,9 +362,11 @@ function ReportActionItem({
                 disabledActions,
                 false,
                 setIsEmojiPickerActive as () => void,
+                undefined,
+                isThreadFirstChat,
             );
         },
-        [draftMessage, action, reportID, toggleContextMenuFromActiveReportAction, originalReportID, shouldDisplayContextMenu, disabledActions, isArchivedRoom, isChronosReport],
+        [draftMessage, action, reportID, toggleContextMenuFromActiveReportAction, originalReportID, shouldDisplayContextMenu, disabledActions, isArchivedRoom, isChronosReport, isThreadFirstChat],
     );
 
     // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
@@ -975,6 +981,7 @@ function ReportActionItem({
                                 displayAsGroup={displayAsGroup}
                                 disabledActions={disabledActions}
                                 isVisible={hovered && draftMessage === undefined && !hasErrors}
+                                isThreadFirstChat={isThreadFirstChat}
                                 draftMessage={draftMessage}
                                 isChronosReport={isChronosReport}
                                 checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
