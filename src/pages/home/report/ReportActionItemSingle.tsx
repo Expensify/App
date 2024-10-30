@@ -85,7 +85,9 @@ function ReportActionItemSingle({
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const policy = usePolicy(report?.policyID);
     const delegatePersonalDetails = personalDetails[action?.delegateAccountID ?? ''];
-    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
+    const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
+    const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport, report);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
@@ -94,20 +96,13 @@ function ReportActionItemSingle({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = ReportUtils.isTripRoom(report);
-    const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const displayAllActors = isReportPreviewAction && !isTripRoom && !ReportUtils.isPolicyExpenseChat(report);
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
-    const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
+
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
 
-    if (isReportPreviewAction && ReportUtils.isPolicyExpenseChat(report)) {
-        avatarId = ownerAccountID;
-        avatarSource = personalDetails[ownerAccountID ?? -1]?.avatar;
-        displayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
-        actorHint = displayName;
-    }
     if (isWorkspaceActor) {
         displayName = ReportUtils.getPolicyName(report, undefined, policy);
         actorHint = displayName;
@@ -220,7 +215,7 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={Number(actorAccountID ?? -1)}
+                accountID={Number(icon.id ?? -1)}
                 delegateAccountID={Number(action?.delegateAccountID ?? -1)}
                 icon={icon}
             >
@@ -271,7 +266,7 @@ function ReportActionItemSingle({
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={actorAccountID ?? -1}
+                                    accountID={Number(icon.id) ?? -1}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
                                     delegateAccountID={action?.delegateAccountID}
                                     isSingleLine

@@ -12,7 +12,7 @@ type PushRowWithModalProps = {
     selectedOption: string;
 
     /** Function to call when the user selects an option */
-    onOptionChange: (value: string) => void;
+    onOptionChange: (option: string) => void;
 
     /** Additional styles to apply to container */
     wrapperStyles?: StyleProp<ViewStyle>;
@@ -31,6 +31,9 @@ type PushRowWithModalProps = {
 
     /** Text to display on error message */
     errorText?: string;
+
+    /** Function called whenever option changes */
+    onInputChange?: (value: string) => void;
 };
 
 function PushRowWithModal({
@@ -43,6 +46,7 @@ function PushRowWithModal({
     searchInputTitle,
     shouldAllowChange = true,
     errorText,
+    onInputChange = () => {},
 }: PushRowWithModalProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -56,6 +60,7 @@ function PushRowWithModal({
 
     const handleOptionChange = (value: string) => {
         onOptionChange(value);
+        onInputChange(value);
     };
 
     return (
