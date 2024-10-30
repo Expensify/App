@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.0.54-1",
+  "version": "9.0.55-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -107,7 +107,7 @@
     "date-fns-tz": "^3.2.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "2.0.100",
+    "expensify-common": "2.0.101",
     "expo": "51.0.31",
     "expo-av": "14.0.7",
     "expo-image": "1.12.15",
@@ -213,6 +213,7 @@
     "@perf-profiler/profiler": "^0.10.10",
     "@perf-profiler/reporter": "^0.9.0",
     "@perf-profiler/types": "^0.8.0",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.15",
     "@react-native-community/eslint-config": "3.2.0",
     "@react-native/babel-preset": "0.75.2",
     "@react-native/metro-config": "0.75.2",
@@ -308,6 +309,7 @@
     "react-compiler-runtime": "^19.0.0-beta-8a03594-20241020",
     "react-is": "^18.3.1",
     "react-native-clean-project": "^4.0.0-alpha4.0",
+    "react-refresh": "^0.14.2",
     "react-test-renderer": "18.3.1",
     "reassure": "^1.0.0-rc.4",
     "semver": "7.5.2",
@@ -367,13 +369,11 @@
   },
   "electronmon": {
     "patterns": [
-      "!node_modules",
-      "!node_modules/**/*",
-      "!**/*.map",
+      "!src/**",
       "!ios/**",
       "!android/**",
-      "*.test.*",
-      "*.spec.*"
+      "!tests/**",
+      "*.test.*"
     ]
   },
   "engines": {
