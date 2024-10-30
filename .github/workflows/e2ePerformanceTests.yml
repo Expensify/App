@@ -41,8 +41,6 @@ jobs:
           # Get the name of the current branch
           current_branch=$(git rev-parse --abbrev-ref HEAD)
 
-          echo "$current_branch"
-
           if [ "$current_branch" = "main" ]; then
             # On the main branch, find the previous merge commit
             previous_merge=$(git rev-list --merges HEAD~1 | head -n 1)
