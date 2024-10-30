@@ -37,7 +37,6 @@ import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Modal from '@userActions/Modal';
 // import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
-import * as Category from '@userActions/Policy/Category';
 import * as PerDiem from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 // import ROUTES from '@src/ROUTES';
@@ -229,11 +228,12 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         // Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_RATE_DETAILS.getRoute(policyID, rate.rateID, rate.subRateID));
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const dismissError = (item: PolicyOption) => {
-        Category.clearCategoryErrors(policyID, item.subRateID);
+        // TODO: Implement this when the editing feature is ready
     };
 
-    const handleDeleteCategories = () => {
+    const handleDeletePerDiemRates = () => {
         setSelectedPerDiem([]);
         // deleteWorkspaceCategories(policyID, selectedPerDiem);
         setDeletePerDiemConfirmModalVisible(false);
@@ -364,7 +364,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 </HeaderWithBackButton>
                 <ConfirmModal
                     isVisible={deletePerDiemConfirmModalVisible}
-                    onConfirm={handleDeleteCategories}
+                    onConfirm={handleDeletePerDiemRates}
                     onCancel={() => setDeletePerDiemConfirmModalVisible(false)}
                     title={translate('workspace.perDiem.deletePerDiemRate')}
                     prompt={translate('workspace.perDiem.areYouSureDelete', {count: selectedPerDiem.length})}
