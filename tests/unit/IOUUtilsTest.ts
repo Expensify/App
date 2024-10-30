@@ -147,7 +147,7 @@ describe('isValidMoneyRequestType', () => {
     });
 });
 
-describe('Check valid amout for IOU/Expense request', () => {
+describe('Check valid amount for IOU/Expense request', () => {
     test('IOU amount should be positive', () => {
         const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
         const iouTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
