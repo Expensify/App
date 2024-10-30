@@ -129,7 +129,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const {singleExecution} = useSingleExecution();
     const [itemHeights, setItemHeights] = useState<Record<string, number>>({});
 
-    const onItemLayout = (event: LayoutChangeEvent, itemKey: string) => {
+    const onItemLayout = (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
         if (!itemKey) {
             return;
         }
@@ -477,7 +477,7 @@ function BaseSelectionList<TItem extends ListItem>(
         };
 
         return (
-            <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item.keyForList)}>
+            <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                 <ListItem
                     item={item}
                     isFocused={isItemFocused}
