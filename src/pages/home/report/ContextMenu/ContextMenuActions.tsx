@@ -302,10 +302,10 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
         icon: Expensicons.Bell,
-        shouldShow: ({reportAction, isArchivedRoom, reportID, isThreadFirstChat}) => {
+        shouldShow: ({reportAction, isArchivedRoom, isThreadFirstChat}) => {
             const childReportNotificationPreference = ReportUtils.getChildReportNotificationPreference(reportAction);
             const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
-            const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(reportAction, reportID);
+            const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(reportAction, isThreadFirstChat);
             const subscribed = childReportNotificationPreference !== 'hidden';
             const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction) || ReportActionsUtils.isActionableTrackExpense(reportAction);
             const isExpenseReportAction = ReportActionsUtils.isMoneyRequestAction(reportAction) || ReportActionsUtils.isReportPreviewAction(reportAction);

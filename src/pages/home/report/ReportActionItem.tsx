@@ -138,8 +138,6 @@ type ReportActionItemProps = {
     /** IF the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
 
-    hideThreadReplies?: boolean;
-
     /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
 };
@@ -160,7 +158,6 @@ function ReportActionItem({
     isFirstVisibleReportAction = false,
     isThreadFirstChat = false,
     shouldUseThreadDividerLine = false,
-    hideThreadReplies = false,
     shouldDisplayContextMenu = true,
     parentReportActionForTransactionThread,
 }: ReportActionItemProps) {
@@ -796,7 +793,7 @@ function ReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
-        const shouldDisplayThreadReplies = !hideThreadReplies && ReportUtils.shouldDisplayThreadReplies(action, reportID);
+        const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(action, isThreadFirstChat);
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')

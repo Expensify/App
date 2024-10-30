@@ -1813,10 +1813,9 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
             return false;
         }
 
-        const linkedReport = isThreadFirstChat(reportAction, reportID) ? getReportOrDraftReport(report?.parentReportID) : report;
         if (isActionOwner) {
-            if (!isEmptyObject(linkedReport) && (isMoneyRequestReport(linkedReport) || isInvoiceReport(linkedReport))) {
-                return canDeleteTransaction(linkedReport);
+            if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
+                return canDeleteTransaction(report);
             }
             return true;
         }
@@ -7678,9 +7677,9 @@ function hasOnlyHeldExpenses(iouReportID: string): boolean {
 /**
  * Checks if thread replies should be displayed
  */
-function shouldDisplayThreadReplies(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string): boolean {
+function shouldDisplayThreadReplies(reportAction: OnyxInputOrEntry<ReportAction>, isThreadFirstChatParam: boolean): boolean {
     const hasReplies = (reportAction?.childVisibleActionCount ?? 0) > 0;
-    return hasReplies && !!reportAction?.childCommenterCount && !isThreadFirstChat(reportAction, reportID);
+    return hasReplies && !!reportAction?.childCommenterCount && !isThreadFirstChatParam;
 }
 
 /**

@@ -152,7 +152,6 @@ function ReportActionItemParentAction({
                             index={index}
                             isFirstVisibleReportAction={isFirstVisibleReportAction}
                             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                            hideThreadReplies
                             isThreadFirstChat
                         />
                     )}
