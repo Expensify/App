@@ -105,6 +105,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             inputID={INPUT_IDS.PROCESSOR_ID}
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.processorLabel')}
                             role={CONST.ROLE.PRESENTATION}
+                            maxLength={CONST.STANDARD_LENGTH_LIMIT}
                             containerStyles={[styles.mb6]}
                             ref={inputCallbackRef}
                         />
@@ -113,6 +114,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             inputID={INPUT_IDS.BANK_ID}
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.bankLabel')}
                             role={CONST.ROLE.PRESENTATION}
+                            maxLength={CONST.STANDARD_LENGTH_LIMIT}
                             containerStyles={[styles.mb6]}
                         />
                         <InputWrapper
@@ -120,6 +122,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             inputID={INPUT_IDS.COMPANY_ID}
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.companyLabel')}
                             role={CONST.ROLE.PRESENTATION}
+                            maxLength={CONST.STANDARD_LENGTH_LIMIT}
                             containerStyles={[styles.mb6]}
                         />
                     </>
@@ -131,6 +134,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         inputID={INPUT_IDS.DISTRIBUTION_ID}
                         label={translate('workspace.companyCards.addNewCard.feedDetails.cdf.distributionLabel')}
                         role={CONST.ROLE.PRESENTATION}
+                        maxLength={CONST.STANDARD_LENGTH_LIMIT}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
                     />
@@ -142,6 +146,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         inputID={INPUT_IDS.DELIVERY_FILE_NAME}
                         label={translate('workspace.companyCards.addNewCard.feedDetails.gl1025.fileNameLabel')}
                         role={CONST.ROLE.PRESENTATION}
+                        maxLength={CONST.STANDARD_LENGTH_LIMIT}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
                     />
