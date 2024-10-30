@@ -40,7 +40,7 @@ import * as Modal from '@userActions/Modal';
 import * as Category from '@userActions/Policy/Category';
 import * as PerDiem from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+// import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
@@ -219,13 +219,14 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     );
 
     const openSettings = () => {
+        // TODO: Uncomment this when the import feature is ready
         // Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_RATES_SETTINGS.getRoute(policyID));
-        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const openSubRateDetails = (rate: PolicyOption) => {
+        // TODO: Uncomment this when the import feature is ready
         // Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_RATE_DETAILS.getRoute(policyID, rate.rateID, rate.subRateID));
-        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rate.subRateID));
     };
 
     const dismissError = (item: PolicyOption) => {
@@ -299,13 +300,15 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             {
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
+                // eslint-disable-next-line rulesdir/prefer-early-return
                 onSelected: () => {
                     if (isOffline) {
                         Modal.close(() => setIsOfflineModalVisible(true));
+                        // eslint-disable-next-line no-useless-return
                         return;
                     }
+                    // TODO: Uncomment this when the import feature is ready
                     // Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
-                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyID));
                 },
             },
             {
@@ -324,7 +327,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         ];
 
         return menuItems;
-    }, [policyID, translate, isOffline]);
+    }, [translate, isOffline]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -392,13 +395,15 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         buttons={[
                             {
                                 buttonText: translate('spreadsheet.importSpreadsheet'),
+                                // eslint-disable-next-line rulesdir/prefer-early-return
                                 buttonAction: () => {
                                     if (isOffline) {
                                         setIsOfflineModalVisible(true);
+                                        // eslint-disable-next-line no-useless-return
                                         return;
                                     }
+                                    // TODO: Uncomment this when the import feature is ready
                                     // Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
-                                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyID));
                                 },
                                 success: true,
                             },
