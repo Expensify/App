@@ -63,6 +63,7 @@ import type {
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
     FeatureNameParams,
+    FileLimitParams,
     FiltersAmountBetweenParams,
     FormattedMaxLengthParams,
     ForwardedAmountParams,
@@ -500,6 +501,8 @@ const translations = {
         protectedPDFNotSupported: 'Password-protected PDF is not supported',
         attachmentImageResized: 'This image has been resized for previewing. Download for full resolution.',
         attachmentImageTooLarge: 'This image is too large to preview before uploading.',
+        tooManyFiles: ({fileLimit}: FileLimitParams) => `You can only upload up to ${fileLimit} files at a time.`,
+        sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Files exceeds ${maxUploadSizeInMB}MB. Please try again.`,
     },
     filePicker: {
         fileError: 'File error',
@@ -4362,6 +4365,7 @@ const translations = {
         recentChats: 'Recent chats',
         searchIn: 'Search in',
         searchPlaceholder: 'Search for something',
+        suggestions: 'Suggestions',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
