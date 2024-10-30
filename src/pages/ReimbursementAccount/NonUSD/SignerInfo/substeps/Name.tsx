@@ -1,15 +1,10 @@
-
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
-import TextInput from '@components/TextInput';
+import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,13 +14,14 @@ type NameProps = SubStepProps & {isSecondSigner: boolean};
 
 const {SIGNER_FULL_NAME, SECOND_SIGNER_FULL_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-function Name({onNext, isEditing, isSecondSigner}: NameProps) {
-    const inputID = isSecondSigner ? SECOND_SIGNER_FULL_NAME : SIGNER_FULL_NAME;
+function Name({onNext, onMove, isEditing, isSecondSigner}: NameProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+
+    const inputID = isSecondSigner ? SECOND_SIGNER_FULL_NAME : SIGNER_FULL_NAME;
     const defaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[inputID] ?? reimbursementAccountDraft?.[inputID] ?? '';
+
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, [inputID]);
@@ -46,25 +42,20 @@ function Name({onNext, isEditing, isSecondSigner}: NameProps) {
     });
 
     return (
-        <FormProvider
+        <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-            onSubmit={handleSubmit}
+            formTitle={translate('signerInfoStep.whatsYourName')}
             validate={validate}
-            style={[styles.mh5, styles.flexGrow1]}
-        >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('signerInfoStep.whatsYourName')}</Text>
-            <InputWrapper
-                InputComponent={TextInput}
-                label={translate('signerInfoStep.fullName')}
-                aria-label={translate('signerInfoStep.fullName')}
-                role={CONST.ROLE.PRESENTATION}
-                inputID={inputID}
-                containerStyles={[styles.mt6]}
-                defaultValue={defaultValue}
-                shouldSaveDraft={!isEditing}
-            />
-        </FormProvider>
+            onSubmit={handleSubmit}
+            inputId={inputID}
+            inputLabel={translate('signerInfoStep.fullName')}
+            inputMode={CONST.INPUT_MODE.TEXT}
+            defaultValue={defaultValue}
+            shouldShowHelpLinks={false}
+        />
     );
 }
 
