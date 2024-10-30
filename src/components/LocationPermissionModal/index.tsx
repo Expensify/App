@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
@@ -81,6 +81,9 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         setShowModal(false);
         resetPermissionFlow();
     };
+
+    const locationErrorMessage = useMemo(() => (isWeb ? 'receipt.allowLocationFromSetting' : 'receipt.locationErrorMessage'), [isWeb]);
+
     return (
         <ConfirmModal
             shouldShowCancelButton={!(isWeb && hasError)}
@@ -104,7 +107,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             iconHeight={120}
             shouldCenterIcon
             shouldReverseStackedButtons
-            prompt={translate(hasError ? (isWeb ? 'receipt.allowLocationFromSetting' : 'receipt.locationErrorMessage') : 'receipt.locationAccessMessage')}
+            prompt={translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage')}
         />
     );
 }
