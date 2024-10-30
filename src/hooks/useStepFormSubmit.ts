@@ -23,6 +23,7 @@ type UseStepFormSubmitParams<T extends keyof OnyxFormValuesMapping> = Pick<SubSt
 export default function useStepFormSubmit<T extends keyof OnyxFormValuesMapping>({formId, onNext, fieldIds, shouldSaveDraft}: UseStepFormSubmitParams<T>) {
     return useCallback(
         (values: FormOnyxValues<T>) => {
+            console.log(values, shouldSaveDraft, fieldIds);
             if (shouldSaveDraft) {
                 const stepValues = fieldIds.reduce((acc, key) => {
                     acc[key] = values[key];

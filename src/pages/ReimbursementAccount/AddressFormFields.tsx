@@ -18,9 +18,6 @@ type AddressFormProps = {
     /** Translate key for Street name */
     streetTranslationKey: TranslationPaths;
 
-    /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
-    onFieldChange?: <T>(value: T) => void;
-
     /** Default values */
     defaultValues?: Address;
 
@@ -71,7 +68,6 @@ function AddressFormFields({
     values,
     errors,
     inputKeys,
-    onFieldChange,
     streetTranslationKey,
     containerStyles,
     shouldDisplayCountrySelector = false,
@@ -94,7 +90,6 @@ function AddressFormFields({
                     containerStyles={styles.mt6}
                     value={values?.street}
                     defaultValue={defaultValues?.street}
-                    onInputChange={onFieldChange}
                     errorText={errors?.street ? translate('bankAccount.error.addressStreet') : ''}
                     renamedInputKeys={inputKeys}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
@@ -110,24 +105,21 @@ function AddressFormFields({
                 role={CONST.ROLE.PRESENTATION}
                 value={values?.city}
                 defaultValue={defaultValues?.city}
-                onChangeText={(value) => onFieldChange?.({city: value})}
                 errorText={errors?.city ? translate('bankAccount.error.addressCity') : ''}
                 containerStyles={styles.mt6}
             />
+
             {shouldDisplayStateSelector && (
                 <View style={[styles.mt3, styles.mhn5]}>
                     <InputWrapper
                         InputComponent={PushRowWithModal}
-                        optionsList={shouldDisplayCountrySelector && defaultValues?.country === CONST.COUNTRY.US ? STATES_LIST_OPTIONS : PROVINCES_LIST_OPTIONS}
-                        selectedOption={defaultValues?.state ?? ''}
-                        onOptionChange={(value) => {
-                            onFieldChange?.({state: value});
-                        }}
+                        optionsList={shouldDisplayCountrySelector && defaultValues?.country === CONST.COUNTRY.CA ? PROVINCES_LIST_OPTIONS : STATES_LIST_OPTIONS}
                         shouldSaveDraft={shouldSaveDraft}
                         description={stateSelectorLabel ?? translate('common.state')}
                         modalHeaderTitle={stateSelectorModalHeaderTitle ?? translate('common.state')}
                         searchInputTitle={stateSelectorSearchInputTitle ?? translate('common.state')}
                         value={values?.state}
+                        defaultValue={defaultValues?.state}
                         inputID={inputKeys.state ?? 'stateInput'}
                         errorText={errors?.state ? translate('bankAccount.error.addressState') : ''}
                     />
@@ -143,7 +135,6 @@ function AddressFormFields({
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 value={values?.zipCode}
                 defaultValue={defaultValues?.zipCode}
-                onChangeText={(value) => onFieldChange?.({zipCode: value})}
                 errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
@@ -156,13 +147,10 @@ function AddressFormFields({
                         inputID={inputKeys?.country ?? 'country'}
                         shouldSaveDraft={shouldSaveDraft}
                         optionsList={CONST.ALL_COUNTRIES}
-                        selectedOption={defaultValues?.country ?? ''}
-                        onOptionChange={(value) => onFieldChange?.({[inputKeys?.country ?? 'country']: value})}
                         description={translate('common.country')}
                         modalHeaderTitle={translate('countryStep.selectCountry')}
                         searchInputTitle={translate('countryStep.findCountry')}
                         value={values?.country}
-                        defaultValue={defaultValues?.country}
                     />
                 </View>
             )}

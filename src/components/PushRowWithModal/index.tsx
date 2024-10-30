@@ -8,11 +8,11 @@ type PushRowWithModalProps = {
     /** The list of options that we want to display where key is option code and value is option name */
     optionsList: Record<string, string>;
 
-    /** The currently selected option */
-    selectedOption: string;
+    /** Current value of the selected item */
+    value?: string;
 
-    /** Function to call when the user selects an option */
-    onOptionChange: (option: string) => void;
+    /** Function called whenever list item is selected */
+    onInputChange?: (value: string) => void;
 
     /** Additional styles to apply to container */
     wrapperStyles?: StyleProp<ViewStyle>;
@@ -31,14 +31,10 @@ type PushRowWithModalProps = {
 
     /** Text to display on error message */
     errorText?: string;
-
-    /** Function called whenever option changes */
-    onInputChange?: (value: string) => void;
 };
 
 function PushRowWithModal({
-    selectedOption,
-    onOptionChange,
+    value,
     optionsList,
     wrapperStyles,
     description,
@@ -58,16 +54,15 @@ function PushRowWithModal({
         setIsModalVisible(true);
     };
 
-    const handleOptionChange = (value: string) => {
-        onOptionChange(value);
-        onInputChange(value);
+    const handleOptionChange = (optionValue: string) => {
+        onInputChange(optionValue);
     };
 
     return (
         <>
             <MenuItemWithTopDescription
                 description={description}
-                title={optionsList[selectedOption]}
+                title={value ? optionsList[value] : ''}
                 shouldShowRightIcon={shouldAllowChange}
                 onPress={handleModalOpen}
                 wrapperStyle={wrapperStyles}
@@ -77,7 +72,7 @@ function PushRowWithModal({
             />
             <PushRowModal
                 isVisible={isModalVisible}
-                selectedOption={selectedOption}
+                selectedOption={value ?? ''}
                 onOptionChange={handleOptionChange}
                 onClose={handleModalClose}
                 optionsList={optionsList}
