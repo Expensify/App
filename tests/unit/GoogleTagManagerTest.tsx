@@ -1,9 +1,11 @@
 import {NavigationContainer} from '@react-navigation/native';
 import {render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import * as IOU from '@libs/actions/IOU';
 import * as Policy from '@libs/actions/Policy/Policy';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import OnboardingModalNavigator from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigator';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -62,7 +64,46 @@ describe('GoogleTagManagerTest', () => {
         await waitForBatchedUpdates();
         Policy.createWorkspace();
 
-        // Then we publish the sign_up event only once
+        // Then we publish a workspace_created event only once
+        expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
+        expect(GoogleTagManager.publishEvent).toBeCalledWith('workspace_created', accountID);
+    });
+
+    it('publishes a workspace_created event when tracking an expense on a draft policy', async () => {
+        // Given a new signed in account
+        const accountID = 123456;
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID});
+
+        // When we categorize a tracked expense with a draft policy
+        IOU.trackExpense(
+            {reportID: '123'},
+            1000,
+            'USD',
+            '2024-10-30',
+            'merchant',
+            undefined,
+            0,
+            {accountID},
+            'comment',
+            true,
+            undefined,
+            'category',
+            'tag',
+            'taxCode',
+            0,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            CONST.IOU.ACTION.CATEGORIZE,
+            'actionableWhisperReportActionID',
+            {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
+            'linkedTrackedExpenseReportID',
+        );
+
+        // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
         expect(GoogleTagManager.publishEvent).toBeCalledWith('workspace_created', accountID);
     });
