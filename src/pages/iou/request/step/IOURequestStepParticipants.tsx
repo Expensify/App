@@ -183,7 +183,7 @@ function IOURequestStepParticipants({
             testID={IOURequestStepParticipants.displayName}
             includeSafeAreaPaddingBottom={false}
         >
-            {skipConfirmation && (
+            {!!skipConfirmation && (
                 <FormHelpMessage
                     style={[styles.ph4, styles.mb4]}
                     isError={false}
