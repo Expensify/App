@@ -58,7 +58,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView>
-                {url && (
+                {!!url && (
                     <WebView
                         ref={webViewRef}
                         source={{

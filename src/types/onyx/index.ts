@@ -13,6 +13,7 @@ import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed} from './CardFeeds';
+import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
@@ -123,6 +124,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    CardOnWaitlist,
     DismissedReferralBanners,
     Download,
     WorkspaceCardsList,
