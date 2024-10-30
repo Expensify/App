@@ -131,8 +131,7 @@ function SearchRouterInputWrapper() {
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             <SearchRouterInput
                 value={value}
-                setValue={setValue}
-                updateSearch={() => jest.fn()}
+                updateSearch={(searchTerm) => setValue(searchTerm)}
                 isFullWidth={false}
             />
         </ComposeProviders>
