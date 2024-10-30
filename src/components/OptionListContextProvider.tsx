@@ -17,6 +17,8 @@ type OptionsListContextProps = {
     initializeOptions: () => void;
     /** Flag to check if the options are initialized */
     areOptionsInitialized: boolean;
+    /** Function to reset the options */
+    resetOptions: () => void;
 };
 
 type OptionsListProviderOnyxProps = {
@@ -36,6 +38,7 @@ const OptionsListContext = createContext<OptionsListContextProps>({
     },
     initializeOptions: () => {},
     areOptionsInitialized: false,
+    resetOptions: () => {},
 });
 
 const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails | null, personalDetail: PersonalDetails | null) =>
@@ -144,8 +147,22 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         areOptionsInitialized.current = true;
     }, [loadOptions]);
 
+    const resetOptions = useCallback(() => {
+        if (!areOptionsInitialized.current) {
+            return;
+        }
+
+        areOptionsInitialized.current = false;
+        setOptions({
+            reports: [],
+            personalDetails: [],
+        });
+    }, []);
+
     return (
-        <OptionsListContext.Provider value={useMemo(() => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized.current}), [options, initializeOptions])}>
+        <OptionsListContext.Provider
+            value={useMemo(() => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized.current, resetOptions}), [options, initializeOptions, resetOptions])}
+        >
             {children}
         </OptionsListContext.Provider>
     );
@@ -156,7 +173,7 @@ const useOptionsListContext = () => useContext(OptionsListContext);
 // Hook to use the OptionsListContext with an initializer to load the options
 const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
-    const {initializeOptions, options: optionsList, areOptionsInitialized} = useOptionsListContext();
+    const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
 
     useEffect(() => {
         if (!shouldInitialize || areOptionsInitialized) {
@@ -170,6 +187,7 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
         initializeOptions,
         options: optionsList,
         areOptionsInitialized,
+        resetOptions,
     };
 };
 
