@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -12,7 +12,8 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {LastPaymentMethod} from '@src/types/onyx';
+import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
 
 let currentUserEmail: string;
@@ -22,6 +23,26 @@ Onyx.connect({
         currentUserEmail = val?.email ?? '';
     },
 });
+
+let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+    callback: (val) => {
+        lastPaymentMethod = val;
+    },
+});
+
+function handleActionButtonPress(hash: number, item: SearchTransaction | SearchReport, callback: () => void) {
+    const lastPolicyPaymentMethod = item.policyID ? lastPaymentMethod?.policyID : null;
+    switch (item.action) {
+        case CONST.SEARCH.ACTION_TYPES.PAY:
+            return lastPolicyPaymentMethod ? payMoneyRequestOnSearch(hash, lastPolicyPaymentMethod, {[item.reportID]: 0}) : callback();
+        case CONST.SEARCH.ACTION_TYPES.APPROVE:
+            return approveMoneyRequestOnSearch(hash, [item.reportID]);
+        default:
+            return callback();
+    }
+}
 
 function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
@@ -164,20 +185,16 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-// this function will be used once https://github.com/Expensify/App/pull/51445 is merged
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function approveMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
 }
 
-// this function will be used once https://github.com/Expensify/App/pull/51445 is merged
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function payMoneyRequestOnSearch(hash: number, paymentType: string, reportsAndAmounts: string) {
+function payMoneyRequestOnSearch(hash: number, paymentType: string, reportsAndAmounts: Record<string, number>) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
-    API.write(WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, paymentType, reportsAndAmounts}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, paymentType, reportsAndAmounts: JSON.stringify(reportsAndAmounts)}, {optimisticData, finallyData});
 }
 
 function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
@@ -261,4 +278,7 @@ export {
     deleteSavedSearch,
     dismissSavedSearchRenameTooltip,
     showSavedSearchRenameTooltip,
+    payMoneyRequestOnSearch,
+    approveMoneyRequestOnSearch,
+    handleActionButtonPress,
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -10,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {handleActionButtonPress} from '@libs/actions/Search';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -69,6 +71,7 @@ function ReportListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
+    const {currentSearchHash} = useSearchContext();
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -94,14 +97,7 @@ function ReportListItem<TItem extends ListItem>({
     ];
 
     const handleOnButtonPress = () => {
-        switch (reportItem.action) {
-            case CONST.SEARCH.ACTION_TYPES.APPROVE:
-                return console.log('approve');
-            case CONST.SEARCH.ACTION_TYPES.PAY:
-                return console.log('pay');
-            default:
-                return onSelectRow(item);
-        }
+        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
     };
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
