@@ -20,7 +20,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceCompanyCardsListHeaderButtonsProps = {
     /** Current policy id */
