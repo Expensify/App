@@ -2,6 +2,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import * as IOU from '@libs/actions/IOU';
+import * as PaymentMethods from '@libs/actions/PaymentMethods';
 import * as Policy from '@libs/actions/Policy/Policy';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import OnboardingModalNavigator from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigator';
@@ -106,5 +107,45 @@ describe('GoogleTagManagerTest', () => {
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
         expect(GoogleTagManager.publishEvent).toBeCalledWith('workspace_created', accountID);
+    });
+
+    it('publishes a paid_adoption event when a payment card is added', async () => {
+        // Given a new signed in account
+        const accountID = 123456;
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID});
+
+        // When we add a payment card
+        PaymentMethods.addPaymentCard(accountID, {
+            expirationDate: '2077-10-30',
+            addressZipCode: 'addressZipCode',
+            cardNumber: 'cardNumber',
+            nameOnCard: 'nameOnCard',
+            securityCode: 'securityCode',
+        });
+
+        // Then we publish a paid_adoption event only once
+        expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
+        expect(GoogleTagManager.publishEvent).toBeCalledWith('paid_adoption', accountID);
+    });
+
+    it('publishes a paid_adoption event when a subscription payment card is added', async () => {
+        // Given a new signed in account
+        const accountID = 123456;
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID});
+
+        // When we add a payment card
+        PaymentMethods.addSubscriptionPaymentCard(accountID, {
+            cardNumber: 'cardNumber',
+            cardYear: 'cardYear',
+            cardMonth: 'cardMonth',
+            cardCVV: 'cardCVV',
+            addressName: 'addressName',
+            addressZip: 'addressZip',
+            currency: 'USD',
+        });
+
+        // Then we publish a paid_adoption event only once
+        expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
+        expect(GoogleTagManager.publishEvent).toBeCalledWith('paid_adoption', accountID);
     });
 });
