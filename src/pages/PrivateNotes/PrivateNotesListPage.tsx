@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import CONST from '@src/CONST';
@@ -93,7 +94,15 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo))}
+                onBackButtonPress={() => {
+                    if (ReportUtils.isOneOnOneChat(report)) {
+                        const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
+                        Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs.at(0), backTo));
+                        return;
+                    }
+
+                    Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+                }}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <ScrollView

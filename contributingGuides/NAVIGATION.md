@@ -448,3 +448,15 @@ Precondition: Use staging server (it can be set in Settings >> Troubleshoot)
 6. Note user redirected to page with the header Connect bank account and the option to disconnect your now set up bank account.
 7. Tap back button on connect bank account modal.
 8. Verify if the connect bank account modal is closed and the Workflows page is opened with the bank account added.
+
+#### App opens room details page when tapping RHP back button after saving Private notes in DM
+
+Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-2433321607
+
+1. Launch the app.
+2. Open DM with any user that does not have content in Private notes.
+3. Click on the chat header.
+4. Click Private notes.
+5. Enter anything and click Save.
+6. Click on the RHP back button.
+7. Verify if the Profile RHP Page is opened (URL in the format /a/:accountID).  
