@@ -356,7 +356,7 @@ function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
                     [policyTag.name]: {
                         tags: {
                             ...tagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, tagName) => {
-                                acc[tagName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+                                acc[tagName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
                                 return acc;
                             }, {}),
                         },
@@ -388,7 +388,11 @@ function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
                     [policyTag.name]: {
                         tags: {
                             ...tagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, tagName) => {
-                                acc[tagName] = {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.deleteFailureMessage')};
+                                acc[tagName] = {
+                                    pendingAction: null,
+                                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.deleteFailureMessage'),
+                                    enabled: !!policyTag?.tags[tagName]?.enabled,
+                                };
                                 return acc;
                             }, {}),
                         },

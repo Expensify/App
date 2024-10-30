@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -17,30 +16,24 @@ import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralP
 import Navigation from '@libs/Navigation/Navigation';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import * as ReportActions from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, Report} from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
 import EditReportFieldText from './EditReportFieldText';
 
-type EditReportFieldPageOnyxProps = {
-    /** The report object for the expense report */
-    report: OnyxEntry<Report>;
+type EditReportFieldPageProps = StackScreenProps<EditRequestNavigatorParamList, typeof SCREENS.EDIT_REQUEST.REPORT_FIELD>;
 
-    /** Policy to which the report belongs to */
-    policy: OnyxEntry<Policy>;
-};
-
-type EditReportFieldPageProps = EditReportFieldPageOnyxProps & StackScreenProps<EditRequestNavigatorParamList, typeof SCREENS.EDIT_REQUEST.REPORT_FIELD>;
-
-function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) {
+function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
-    const backTo = route.params.backTo;
+    const {backTo, reportID, policyID} = route.params;
     const fieldKey = ReportUtils.getReportFieldKey(route.params.fieldID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
     const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
@@ -90,7 +83,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
 
     const menuItems: PopoverMenuItem[] = [];
 
-    const isReportFieldDeletable = reportField.deletable && !isReportFieldTitle;
+    const isReportFieldDeletable = reportField.deletable && reportField?.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID;
 
     if (isReportFieldDeletable) {
         menuItems.push({icon: Expensicons.Trashcan, text: translate('common.delete'), onSelected: () => setIsDeleteModalVisible(true), shouldCallAfterModalHide: true});
@@ -159,11 +152,4 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
 
 EditReportFieldPage.displayName = 'EditReportFieldPage';
 
-export default withOnyx<EditReportFieldPageProps, EditReportFieldPageOnyxProps>({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-    },
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-    },
-})(EditReportFieldPage);
+export default EditReportFieldPage;

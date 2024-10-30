@@ -184,7 +184,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 shiftHorizontal={variables.gbrTooltipShiftHorizontal}
                 shiftVertical={variables.composerTooltipShiftVertical}
                 wrapperStyle={styles.quickActionTooltipWrapper}
-                onHideTooltip={() => User.dismissGBRTooltip()}
+                onHideTooltip={User.dismissGBRTooltip}
             >
                 <View>
                     <Hoverable>
@@ -324,7 +324,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                             />
                                         </View>
                                     )}
-                                    {hasDraftComment && optionItem.isAllowedToComment && (
+                                    {hasDraftComment && !!optionItem.isAllowedToComment && (
                                         <View
                                             style={styles.ml2}
                                             accessibilityLabel={translate('sidebarScreen.draftedMessage')}
@@ -336,7 +336,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                             />
                                         </View>
                                     )}
-                                    {!shouldShowGreenDotIndicator && !hasBrickError && optionItem.isPinned && (
+                                    {!shouldShowGreenDotIndicator && !hasBrickError && !!optionItem.isPinned && (
                                         <View
                                             style={styles.ml2}
                                             accessibilityLabel={translate('sidebarScreen.chatPinned')}

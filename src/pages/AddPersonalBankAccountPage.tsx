@@ -15,6 +15,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 function AddPersonalBankAccountPage() {
@@ -25,6 +26,21 @@ function AddPersonalBankAccountPage() {
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
+    const topMostCentralPane = Navigation.getTopMostCentralPaneRouteFromRootState();
+
+    const goBack = useCallback(() => {
+        switch (topMostCentralPane?.name) {
+            case SCREENS.SETTINGS.WALLET.ROOT:
+                Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
+                break;
+            case SCREENS.REPORT:
+                Navigation.closeRHPFlow();
+                break;
+            default:
+                Navigation.goBack();
+                break;
+        }
+    }, [topMostCentralPane]);
 
     const submitBankAccountForm = useCallback(() => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
@@ -45,10 +61,10 @@ function AddPersonalBankAccountPage() {
             } else if (shouldContinue && onSuccessFallbackRoute) {
                 PaymentMethods.continueSetup(onSuccessFallbackRoute);
             } else {
-                Navigation.goBack();
+                goBack();
             }
         },
-        [personalBankAccount],
+        [personalBankAccount, goBack],
     );
 
     useEffect(() => BankAccounts.clearPersonalBankAccount, []);
@@ -90,7 +106,7 @@ function AddPersonalBankAccountPage() {
                             text={translate('walletPage.chooseAccountBody')}
                             plaidData={plaidData}
                             isDisplayedInWalletFlow
-                            onExitPlaid={() => Navigation.navigate(ROUTES.SETTINGS_WALLET)}
+                            onExitPlaid={goBack}
                             receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                             selectedPlaidAccountID={selectedPlaidAccountId}
                         />

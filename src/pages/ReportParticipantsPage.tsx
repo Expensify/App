@@ -18,7 +18,6 @@ import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -50,6 +49,9 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const selectionListRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<TextInput>(null);
@@ -64,18 +66,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-
-    useEffect(
-        () => () => {
-            UserSearchPhraseActions.clearUserSearchPhrase();
-        },
-        [],
-    );
-
-    useEffect(() => {
-        UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchValue);
-    }, [debouncedSearchValue]);
+    const [searchValue, setSearchValue] = useState('');
 
     useEffect(() => {
         if (isFocused) {
@@ -209,9 +200,11 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         Report.removeFromGroupChat(report.reportID, accountIDsToRemove);
         setSearchValue('');
-        UserSearchPhraseActions.clearUserSearchPhrase();
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
+        InteractionManager.runAfterInteractions(() => {
+            UserSearchPhraseActions.clearUserSearchPhrase();
+        });
     };
 
     const changeUserRole = useCallback(
@@ -266,7 +259,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
             {
-                text: translate('workspace.people.removeMembersTitle'),
+                text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: Expensicons.RemoveMembers,
                 onSelected: () => setRemoveMembersConfirmModalVisible(true),
@@ -390,11 +383,14 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal
                     danger
-                    title={translate('workspace.people.removeMembersTitle')}
+                    title={translate('workspace.people.removeMembersTitle', {count: selectedMembers.length})}
                     isVisible={removeMembersConfirmModalVisible}
                     onConfirm={removeUsers}
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={translate('workspace.people.removeMembersPrompt')}
+                    prompt={translate('workspace.people.removeMembersPrompt', {
+                        count: selectedMembers.length,
+                        memberName: PersonalDetailsUtils.getPersonalDetailsByIDs(selectedMembers, currentUserAccountID).at(0)?.displayName ?? '',
+                    })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
                     onModalHide={() => {
@@ -416,9 +412,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                         shouldShowTextInput={shouldShowTextInput}
                         textInputLabel={translate('selectionList.findMember')}
                         textInputValue={searchValue}
-                        onChangeText={(value) => {
-                            setSearchValue(value);
-                        }}
+                        onChangeText={setSearchValue}
                         headerMessage={headerMessage}
                         ListItem={TableListItem}
                         onSelectRow={openMemberDetails}
