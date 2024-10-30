@@ -28,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import withPolicy from './withPolicy';
 
-function WorkspaceNamePage() {
+function WorkspaceConfirmationPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -90,7 +90,7 @@ function WorkspaceNamePage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={WorkspaceNamePage.displayName}
+            testID={WorkspaceConfirmationPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('workspace.editor.nameInputLabel')}
@@ -130,7 +130,7 @@ function WorkspaceNamePage() {
                 scrollContextEnabled
                 validate={validate}
                 onSubmit={(val) => {
-                    App.createWorkspaceWithPolicyDraftAndNavigateToIt('', val[INPUT_IDS.NAME], false, false, '', policyID, avatarFile as File);
+                    App.createWorkspaceWithPolicyDraftAndNavigateToIt('', val[INPUT_IDS.NAME], false, false, '', policyID, currencyCode, avatarFile as File);
                 }}
                 enabledWhenOffline
             >
@@ -164,6 +164,6 @@ function WorkspaceNamePage() {
     );
 }
 
-WorkspaceNamePage.displayName = 'WorkspaceNamePage';
+WorkspaceConfirmationPage.displayName = 'WorkspaceConfirmationPage';
 
-export default withPolicy(WorkspaceNamePage);
+export default withPolicy(WorkspaceConfirmationPage);
