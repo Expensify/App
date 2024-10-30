@@ -466,6 +466,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
             }
             contentContainerStyle={[contentContainerStyle, styles.pb3]}
             scrollEventThrottle={1}
+            searchType={type}
         />
     );
 }

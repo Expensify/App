@@ -597,6 +597,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether we highlight all the selected items */
     shouldHighlightSelectedItem?: boolean;
+
+    /** type of search from search page */
+    searchType?: string;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
