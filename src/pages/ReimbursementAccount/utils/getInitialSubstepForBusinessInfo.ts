@@ -18,7 +18,7 @@ function getInitialSubstepForBusinessInfo(data: CompanyStepProps): number {
         return 1;
     }
 
-    if (!ValidationUtils.isValidWebsite(Str.sanitizeURL(data[businessInfoStepKeys.COMPANY_WEBSITE], CONST.URL_DEFAULT_SCHEME))) {
+    if (!ValidationUtils.isValidWebsite(Str.sanitizeURL(data[businessInfoStepKeys.COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME))) {
         return 2;
     }
 
