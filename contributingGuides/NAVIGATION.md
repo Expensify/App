@@ -389,6 +389,7 @@ Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-243338180
 5. Click Group name field.
 6. Click Save.
 7. Verify if the app returs to group details RHP after saving group name.
+
 #### Going up to a screen with any params
 
 Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-2432694948
@@ -400,7 +401,7 @@ Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-243269494
 5. Select any country.
 6. Verify that the country you selected is actually visible in the form.
 
-### Change params of existing attachments screens instead of pushing new screen on the stack
+#### Change params of existing attachments screens instead of pushing new screen on the stack
 
 Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-2432360626
 
@@ -411,7 +412,7 @@ Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-243236062
 5. Close the modal with X in the corner.
 6. Verify that the modal is now fully closed.
 
-### Navigate instead of push for reports with same reportID
+#### Navigate instead of push for reports with same reportID
 
 Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-2433351709
 
@@ -426,9 +427,24 @@ Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-243335170
 9. Verify that you are on the A report.
 
 
-### Don't push the default full screen route if not necessary.
+#### Don't push the default full screen route if not necessary.
 
 1. Open app on wide layout web.
 2. Open search tab.
 3. Press track expense.
 4. Verify that the split navigator hasn't changed under the overlay.
+
+#### BA - Back button on connect bank account modal opens incorporation state modal
+
+Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-2433261611
+
+Precondition: Use staging server (it can be set in Settings >> Troubleshoot)
+
+1. Launch the app.
+2. Navigate to Settings >> Workspaces >> Workspace >> Workflows.
+3. Select Connect with Plaid option.
+4. Go through the Plaid flow (Added Wells Fargo details).
+5. Complete the Personal info, Company info & agreements section.
+6. Note user redirected to page with the header Connect bank account and the option to disconnect your now set up bank account.
+7. Tap back button on connect bank account modal.
+8. Verify if the connect bank account modal is closed and the Workflows page is opened with the bank account added.
