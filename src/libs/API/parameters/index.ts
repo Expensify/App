@@ -344,3 +344,4 @@ export type {default as UpdateInvoiceCompanyNameParams} from './UpdateInvoiceCom
 export type {default as UpdateInvoiceCompanyWebsiteParams} from './UpdateInvoiceCompanyWebsiteParams';
 export type {default as UpdateQuickbooksDesktopExpensesExportDestinationTypeParams} from './UpdateQuickbooksDesktopExpensesExportDestinationTypeParams';
 export type {default as UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams} from './UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams';
+export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
