@@ -99,6 +99,7 @@ function BaseSelectionList<TItem extends ListItem>(
         updateCellsBatchingPeriod = 50,
         removeClippedSubviews = true,
         shouldDelayFocus = true,
+        onArrowFocus = () => {},
         shouldUpdateFocusedIndex = false,
         onLongPressRow,
         shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
@@ -287,6 +288,10 @@ function BaseSelectionList<TItem extends ListItem>(
         disabledIndexes: disabledArrowKeyIndexes,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
+            const focusedItem = flattenedSections.allOptions.at(index);
+            if (focusedItem) {
+                onArrowFocus(focusedItem);
+            }
             (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
         },
         isFocused,

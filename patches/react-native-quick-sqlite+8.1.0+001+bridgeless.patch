@@ -1,0 +1,41 @@
+diff --git a/node_modules/react-native-quick-sqlite/ios/QuickSQLite.mm b/node_modules/react-native-quick-sqlite/ios/QuickSQLite.mm
+index 519f31a..308f746 100644
+--- a/node_modules/react-native-quick-sqlite/ios/QuickSQLite.mm
++++ b/node_modules/react-native-quick-sqlite/ios/QuickSQLite.mm
+@@ -12,12 +12,12 @@ @implementation QuickSQLite
+ 
+ RCT_EXPORT_MODULE(QuickSQLite)
+ 
++@synthesize bridge = _bridge;
+ 
+ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
+   NSLog(@"Installing QuickSQLite module...");
+ 
+-  RCTBridge *bridge = [RCTBridge currentBridge];
+-  RCTCxxBridge *cxxBridge = (RCTCxxBridge *)bridge;
++  RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
+   if (cxxBridge == nil) {
+     return @false;
+   }
+@@ -29,7 +29,7 @@ @implementation QuickSQLite
+     return @false;
+   }
+   auto &runtime = *jsiRuntime;
+-  auto callInvoker = bridge.jsCallInvoker;
++  auto callInvoker = cxxBridge.jsCallInvoker;
+ 
+   // Get appGroupID value from Info.plist using key "AppGroup"
+   NSString *appGroupID = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"ReactNativeQuickSQLite_AppGroup"];
+diff --git a/node_modules/react-native-quick-sqlite/src/index.ts b/node_modules/react-native-quick-sqlite/src/index.ts
+index b3e7fc7..7d8930a 100644
+--- a/node_modules/react-native-quick-sqlite/src/index.ts
++++ b/node_modules/react-native-quick-sqlite/src/index.ts
+@@ -15,7 +15,7 @@ if (global.__QuickSQLiteProxy == null) {
+   }
+ 
+   // Check if we are running on-device (JSI)
+-  if (global.nativeCallSyncHook == null || QuickSQLiteModule.install == null) {
++  if ((!global.nativeCallSyncHook && !global.RN$Bridgeless) || QuickSQLiteModule.install == null) {
+     throw new Error(
+       'Failed to install react-native-quick-sqlite: React Native is not running on-device. QuickSQLite can only be used when synchronous method invocations (JSI) are possible. If you are using a remote debugger (e.g. Chrome), switch to an on-device debugger (e.g. Flipper) instead.'
+     );
