@@ -7037,6 +7037,13 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, 
     const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);
     const unheldTotalIsZero = iouReport && iouReport.unheldTotal === 0;
 
+    const isControlOnAdvancedApprovalMode = PolicyUtils.isControlOnAdvancedApprovalMode(policy);
+    if (isControlOnAdvancedApprovalMode) {
+        const ownerAccountID = iouReport?.ownerAccountID ?? '-1';
+        const employee = policy?.employeeList?.[ownerAccountID];
+        return employee?.submitsTo === currentUserEmail && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport;
+    }
+
     return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !unheldTotalIsZero;
 }
 
