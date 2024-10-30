@@ -18,6 +18,7 @@ export default function createRandomTransaction(index: number): Transaction {
                 },
             },
         },
+        attendees: [{email: randWord()}],
         created: randPastDate().toISOString(),
         currency: CONST.CURRENCY.USD,
         merchant: randWord(),
