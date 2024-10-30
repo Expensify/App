@@ -88,7 +88,7 @@ You can also email receipts to SmartScan by sending them to receipts@expensify.c
 If you are an employee under a company workspace, you may not see all of the different expense type options depending on your company’s workspace settings.
 {% include end-info.html %}
 
-# FAQs
+{% include faq-begin.md %}
 
 **What’s the difference between a reimbursable and non-reimbursable expense?**
 
@@ -99,4 +99,5 @@ If you are an employee under a company workspace, you may not see all of the dif
 If you are an employee under a company workspace, your expenses may automatically be configured as reimbursable or non-reimbursable depending on the details that are entered. If an expense is incorrectly labeled, you must reach out to an admin to have it corrected.
 {% include end-info.html %}
 
+{% include faq-end.md %}
 </div>
