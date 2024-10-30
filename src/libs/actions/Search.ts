@@ -164,6 +164,18 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
+function approveMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+ 
+    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
+}
+
+function payMoneyRequestOnSearch(hash: number, paymentType: string, reportsAndAmounts: string) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+
+    API.write(WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, paymentType, reportsAndAmounts}, {optimisticData, finallyData});
+}
+
 function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
