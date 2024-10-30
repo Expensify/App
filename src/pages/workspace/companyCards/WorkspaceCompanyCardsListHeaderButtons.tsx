@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceCompanyCardsListHeaderButtonsProps = {
     /** Current policy id */
@@ -40,6 +41,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const feedName = CardUtils.getCardFeedName(selectedFeed);
     const isCustomFeed =
         CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD === selectedFeed || CONST.COMPANY_CARD.FEED_BANK_NAME.VISA === selectedFeed || CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX === selectedFeed;
+    const currentFeedData = cardFeeds?.settings?.companyCards?.[selectedFeed] ?? {pending: true, errors: {}};
 
     return (
         <OfflineWithFeedback
@@ -77,7 +79,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 <View style={[styles.flexRow, styles.gap2]}>
                     <Button
                         success
-                        isDisabled={!!cardFeeds?.settings?.companyCards?.[selectedFeed].pending || !!cardFeeds?.settings?.companyCards?.[selectedFeed].errors}
+                        isDisabled={currentFeedData.pending || !!currentFeedData.errors}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed))}
                         icon={Expensicons.Plus}
                         text={translate('workspace.companyCards.assignCard')}
