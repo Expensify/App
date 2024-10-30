@@ -34,7 +34,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, Report} from '@src/types/onyx';
-import type {ApprovalRule, CustomUnit, ExpenseRule} from '@src/types/onyx/Policy';
+import type {ApprovalRule, CustomUnit, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -542,8 +542,11 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
     const policyCategoryExpenseRule = CategoryUtils.getCategoryExpenseRule(policy?.rules?.expenseRules ?? [], policyCategory.oldName);
     const approvalRules = policy?.rules?.approvalRules ?? [];
     const expenseRules = policy?.rules?.expenseRules ?? [];
+    const mccGroup = policy?.mccGroup ?? {};
     const updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
+    const clonedMccGroup: Record<string, MccGroup> = lodashCloneDeep(mccGroup);
+    const updatedMccGroup = CategoryUtils.updateCategoryInMccGroup(clonedMccGroup, policyCategory.oldName, policyCategory.newName);
 
     if (policyCategoryExpenseRule) {
         const ruleIndex = updatedExpenseRules.findIndex((rule) => rule.id === policyCategoryExpenseRule.id);
@@ -596,6 +599,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         approvalRules: updatedApprovalRules,
                         expenseRules: updatedExpenseRules,
                     },
+                    mccGroup: updatedMccGroup,
                 },
             },
         ],
@@ -639,6 +643,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                     rules: {
                         approvalRules,
                     },
+                    mccGroup: updatedMccGroup,
                 },
             },
         ],

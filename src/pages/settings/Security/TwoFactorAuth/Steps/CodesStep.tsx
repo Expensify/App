@@ -69,7 +69,7 @@ function CodesStep({backTo}: CodesStepProps) {
             onBackButtonPress={() => TwoFactorAuthActions.quitAndNavigateBack(backTo)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                {isUserValidated && (
+                {!!isUserValidated && (
                     <Section
                         title={translate('twoFactorAuth.keepCodesSafe')}
                         icon={Illustrations.ShieldYellow}

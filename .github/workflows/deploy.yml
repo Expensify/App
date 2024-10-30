@@ -204,6 +204,9 @@ jobs:
         run: |
           npm install
           cd .. && npm install
+          
+          # Fixes https://github.com/Expensify/App/issues/51682
+          npm run grunt:build:shared
 
       - name: Setup Java
         uses: actions/setup-java@v4

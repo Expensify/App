@@ -101,7 +101,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                         keyboardShouldPersistTaps="always"
                     >
                         <View>
-                            {defaultUnit && (
+                            {!!defaultUnit && (
                                 <OfflineWithFeedback
                                     errors={ErrorUtils.getLatestErrorField(customUnit ?? {}, 'attributes')}
                                     pendingAction={customUnit?.pendingFields?.attributes}
@@ -116,7 +116,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     />
                                 </OfflineWithFeedback>
                             )}
-                            {policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
+                            {!!policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
                                 <OfflineWithFeedback
                                     errors={ErrorUtils.getLatestErrorField(customUnit ?? {}, 'defaultCategory')}
                                     pendingAction={customUnit?.pendingFields?.defaultCategory}

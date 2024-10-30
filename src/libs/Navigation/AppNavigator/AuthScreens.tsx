@@ -255,6 +255,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         isInitialRender.current = false;
     }
 
+    const isOnboardingCompletedRef = useRef(isOnboardingCompleted);
+
+    useEffect(() => {
+        isOnboardingCompletedRef.current = isOnboardingCompleted;
+    }, [isOnboardingCompleted]);
+
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -353,6 +359,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             searchShortcutConfig.shortcutKey,
             () => {
                 Session.checkIfActionIsAllowed(() => {
+                    if (!isOnboardingCompletedRef.current) {
+                        return;
+                    }
                     toggleSearchRouter();
                 })();
             },
@@ -373,7 +382,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         const unsubscribeDebugShortcut = KeyboardShortcut.subscribe(
             debugShortcutConfig.shortcutKey,
-            () => Modal.close(toggleTestToolsModal),
+            () => toggleTestToolsModal(),
             debugShortcutConfig.descriptionKey,
             debugShortcutConfig.modifiers,
             true,

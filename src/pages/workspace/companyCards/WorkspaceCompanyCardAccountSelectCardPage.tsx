@@ -69,10 +69,10 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             policyID={policyID}
             headerContent={
                 <View style={[styles.mh5, styles.mb3]}>
-                    {exportMenuItem?.description && (
+                    {!!exportMenuItem?.description && (
                         <Text style={[styles.textNormal]}>
                             {translate('workspace.moreFeatures.companyCards.integrationExportTitleFirstPart', {integration: exportMenuItem.description})}{' '}
-                            {exportMenuItem && (
+                            {!!exportMenuItem && (
                                 <TextLink
                                     style={styles.link}
                                     onPress={exportMenuItem.onExportPagePress}

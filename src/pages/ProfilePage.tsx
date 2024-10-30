@@ -281,7 +281,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID, navigateBackTo))}
                             />
                         )}
-                        {!isEmptyObject(report) && report.reportID && !isCurrentUser && (
+                        {!isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
                             <MenuItem
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
@@ -292,7 +292,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                         )}
-                        {isConcierge && guideCalendarLink && (
+                        {isConcierge && !!guideCalendarLink && (
                             <MenuItem
                                 title={translate('videoChatButtonAndMenu.tooltip')}
                                 icon={Expensicons.Phone}
@@ -302,7 +302,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 })}
                             />
                         )}
-                        {!!report?.reportID && isDebugModeEnabled && (
+                        {!!report?.reportID && !!isDebugModeEnabled && (
                             <MenuItem
                                 title={translate('debug.debug')}
                                 icon={Expensicons.Bug}
