@@ -80,24 +80,16 @@ type SearchQueryJSON = {
     flatFilters: QueryFilters;
 } & SearchQueryAST;
 
-// Fixme [Search] remove duplicate
-type AutocompleteRange = {
+type SearchAutocompleteResult = {
+    autocomplete: SearchAutocompleteQueryRange | null;
+    ranges: SearchAutocompleteQueryRange[];
+};
+
+type SearchAutocompleteQueryRange = {
     key: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS & typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
     length: number;
     start: number;
     value: string;
-};
-
-type SearchAutocompleteResult = {
-    autocomplete: AutocompleteRange | null;
-    ranges: AutocompleteRange[];
-};
-
-type SearchAutocompleteQueryRange = {
-    key: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
-    value: string;
-    start: number;
-    length: number;
 };
 
 export type {
@@ -119,6 +111,5 @@ export type {
     TripSearchStatus,
     ChatSearchStatus,
     SearchAutocompleteResult,
-    AutocompleteRange,
     SearchAutocompleteQueryRange,
 };

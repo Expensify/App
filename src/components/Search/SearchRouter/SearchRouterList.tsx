@@ -3,7 +3,7 @@ import type {ForwardedRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchQueryString} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SearchQueryListItem from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -56,7 +56,7 @@ type SearchRouterListProps = {
     autocompleteItems: AutocompleteItemData[] | undefined;
 
     /** Callback to submit query when selecting a list item */
-    onSearchSubmit: (query: SearchQueryJSON | undefined) => void;
+    onSearchSubmit: (query: SearchQueryString) => void;
 
     /** Context present when opening SearchRouter from a report, invoice or workspace page */
     reportForContextualSearch?: OptionData;
@@ -213,7 +213,7 @@ function SearchRouterList(
                     return;
                 }
 
-                onSearchSubmit(SearchQueryUtils.buildSearchQueryJSON(item.searchQuery));
+                onSearchSubmit(item.searchQuery);
             }
 
             // Handle selection of "Recent chat"

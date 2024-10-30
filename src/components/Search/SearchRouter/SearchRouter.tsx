@@ -6,7 +6,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import type {AutocompleteRange, SearchQueryJSON} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchQueryString} from '@components/Search/types';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -63,10 +63,6 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         return state?.routes.at(-1)?.params?.reportID;
     });
 
-    const cleanQuery = useMemo(() => {
-        return getQueryWithSubstitutions(textInputValue, autocompleteSubstitutions);
-    }, [autocompleteSubstitutions, textInputValue]);
-
     const {activeWorkspaceID} = useActiveWorkspace();
     const policy = usePolicy(activeWorkspaceID);
 
@@ -74,7 +70,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const cardAutocompleteList = Object.values(cardList ?? {}).map((card) => card.bank);
+    const cardAutocompleteList = Object.values(cardList);
     const personalDetailsForParticipants = usePersonalDetails();
     const participantsAutocompleteList = Object.values(personalDetailsForParticipants)
         .filter((details): details is NonNullable<PersonalDetails> => !!(details && details?.login))
@@ -155,7 +151,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const contextualReportData = contextualReportID ? searchOptions.recentReports?.find((option) => option.reportID === contextualReportID) : undefined;
 
     const updateAutocomplete = useCallback(
-        (autocompleteValue: string, ranges: AutocompleteRange[], autocompleteType?: ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS & typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>) => {
+        (autocompleteValue: string, ranges: SearchAutocompleteQueryRange[], autocompleteType?: ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS & typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>) => {
             const alreadyAutocompletedKeys: string[] = [];
             ranges.forEach((range) => {
                 if (!autocompleteType || range.key !== autocompleteType) {
@@ -282,15 +278,16 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                     }));
                     break;
                 }
-                // Fixme implement card autocomplete ids
                 case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
                     const filteredCards = cardAutocompleteList
-                        .filter((card) => card.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(card.toLowerCase()))
+                        .filter((card) => card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(card.bank.toLowerCase()))
                         .sort()
                         .slice(0, 10);
+
                     filteredAutocompleteSuggestions = filteredCards.map((card) => ({
                         filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-                        text: card,
+                        text: card.bank,
+                        autocompleteID: card.cardID.toString(),
                     }));
                     break;
                 }
@@ -340,17 +337,23 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     );
 
     const onSearchSubmit = useCallback(
-        (query: SearchQueryJSON | undefined) => {
-            if (!query) {
+        (queryString: SearchQueryString) => {
+            const cleanedQueryString = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
+            const queryJSON = SearchQueryUtils.buildSearchQueryJSON(cleanedQueryString);
+            if (!queryJSON) {
                 return;
             }
+
             onRouterClose();
-            const standardizedQuery = SearchQueryUtils.standardizeQueryJSON(query, cardList, allTaxRates);
-            const queryString = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: queryString}));
+
+            const computeNodeValueFn = SearchQueryUtils.getUpdatedAmountValue;
+            const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(queryJSON, computeNodeValueFn);
+            const query = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+
             setTextInputValue('');
         },
-        [allTaxRates, cardList, onRouterClose, setTextInputValue],
+        [autocompleteSubstitutions, onRouterClose, setTextInputValue],
     );
 
     const updateSubstitutionsMap = (key: string, value: string) => {
@@ -364,8 +367,6 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     });
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
-
-    // console.log('[ROUTER]', {user: textInputValue, cleanQuery, autocompleteSubstitutions});
 
     return (
         <View
@@ -383,7 +384,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 isFullWidth={shouldUseNarrowLayout}
                 updateSearch={onSearchChange}
                 onSubmit={() => {
-                    onSearchSubmit(SearchQueryUtils.buildSearchQueryJSON(cleanQuery));
+                    onSearchSubmit(textInputValue);
                 }}
                 routerListRef={listRef}
                 shouldShowOfflineMessage

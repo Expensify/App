@@ -5812,7 +5812,7 @@ const CONST = {
             CATEGORY: 'category',
             TAG: 'tag',
             TAX_RATE: 'taxRate',
-            CARD_ID: 'cardID', // Fixme substitute bank id?
+            CARD_ID: 'cardID',
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
