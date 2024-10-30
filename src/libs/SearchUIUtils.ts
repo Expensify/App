@@ -300,19 +300,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUs
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    const violationsCollection = Object.fromEntries(
-        Object.entries(data).filter(([itemKey]) => itemKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)),
-    ) as unknown as OnyxCollection<OnyxTypes.TransactionViolations>;
-
-    if (IOU.canReportBeSubmitted(report, policy, currentUserAccountID, transaction, violationsCollection)) {
-        return CONST.SEARCH.ACTION_TYPES.SUBMIT;
-    }
-
-    const hasViolations = transaction ? TransactionUtils.hasViolation(transaction.transactionID, violationsCollection) : ReportUtils.hasViolations(report.reportID, violationsCollection);
-    if (hasViolations) {
-        return CONST.SEARCH.ACTION_TYPES.REVIEW;
-    }
-
     return CONST.SEARCH.ACTION_TYPES.VIEW;
 }
 

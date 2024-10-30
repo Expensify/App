@@ -678,6 +678,7 @@ function shouldShowBrokenConnectionViolation(
 function allHavePendingRTERViolation(transactionIds: string[], searchTransactionViolations?: OnyxCollection<TransactionViolations>): boolean {
     const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
         const transactionViolations = getTransactionViolations(transactionId, searchTransactionViolations ?? allTransactionViolations);
+        console.log('over here', transactionViolations)
         return hasPendingRTERViolation(transactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
