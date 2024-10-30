@@ -3914,8 +3914,7 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     };
 
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
-    const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, canUserPerformWriteAction, optimisticReportActions as ReportActions);
+    const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageTranslationKey: report?.lastMessageTranslationKey,
@@ -3990,8 +3989,7 @@ function resolveActionableReportMentionWhisper(
     };
 
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
-    const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, canUserPerformWriteAction, optimisticReportActions as ReportActions);
+    const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageTranslationKey: report?.lastMessageTranslationKey,
