@@ -3336,7 +3336,7 @@ const translations = {
                 subtitle: 'Añade, actualiza y haz cumplir las tasas.',
             },
             perDiem: {
-                title: 'Per diem',
+                title: 'Dietas',
                 subtitle: 'Set Per diem rates to control daily employee spend.',
             },
             expensifyCard: {
@@ -4118,10 +4118,10 @@ const translations = {
                 onlyAvailableOnPlan: 'Las reglas están disponibles solo en el plan Control, que comienza en ',
             },
             perDiem: {
-                title: 'Per diem',
+                title: 'Dietas',
                 description:
-                    'Per diem is a great way to keep your daily costs compliant and predictable whenever your employees travel. Enjoy features like custom rates, default categories, and more granular details like destinations and subrates.',
-                onlyAvailableOnPlan: 'Per diem are only available on the Control plan, starting at ',
+                    'Las dietas (ej.: $100 por día para comidas) son una excelente forma de mantener los costos diarios predecibles y conformes con las políticas de la empresa, especialmente si tus empleados viajan por negocios. Disfruta de funciones como tasas personalizadas, categorías por defecto y detalles más específicos como destinos y subtasas.',
+                onlyAvailableOnPlan: 'Las dietas solo están disponibles en el plan Control, a partir de ',
             },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
