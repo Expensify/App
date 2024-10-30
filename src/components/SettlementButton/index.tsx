@@ -208,7 +208,9 @@ function SettlementButton({
             return;
         }
 
-        playSound(SOUNDS.SUCCESS);
+        if (!ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
+            playSound(SOUNDS.SUCCESS);
+        }
         onPress(iouPaymentType);
     };
 
