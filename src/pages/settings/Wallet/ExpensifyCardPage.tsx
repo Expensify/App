@@ -134,6 +134,9 @@ function ExpensifyCardPage({
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(cardsToShow?.at(0)?.availableSpend);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
 
+    const primaryLogin = account?.primaryLogin ?? '';
+    const loginData = loginList?.[primaryLogin];
+
     const goToGetPhysicalCardFlow = () => {
         let updatedDraftValues = draftValues;
         if (!draftValues) {
@@ -144,17 +147,6 @@ function ExpensifyCardPage({
         }
 
         GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(updatedDraftValues, privatePersonalDetails));
-    };
-
-    const sendValidateCode = () => {
-        const primaryLogin = account?.primaryLogin ?? '';
-        const loginData = loginList?.[primaryLogin];
-
-        if (loginData?.validateCodeSent) {
-            return;
-        }
-
-        requestValidateCodeAction();
     };
 
     if (isNotFound) {
@@ -310,9 +302,10 @@ function ExpensifyCardPage({
                     <ValidateCodeActionModal
                         handleSubmitForm={handleRevealDetails}
                         clearError={() => {}}
-                        sendValidateCode={sendValidateCode}
+                        sendValidateCode={() => requestValidateCodeAction()}
                         onClose={() => setIsValidateCodeActionModalVisible(false)}
                         isVisible={isValidateCodeActionModalVisible}
+                        hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                         title={translate('cardPage.validateCardTitle')}
                         description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
                     />
