@@ -1,3 +1,4 @@
+import {useNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
@@ -63,6 +64,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
     const defaultApprover = policy?.approver ?? policy?.owner;
     const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
+    const rhpRoutes = useNavigationState((state) => state.routes);
 
     useEffect(() => {
         const currentApprover = approvalWorkflow?.approvers[approverIndex];
@@ -163,9 +165,11 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
         } else {
-            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+            // If in the navigation state we have a RHP page to which we can return, then we call Navigation.goBack without any parameters
+            const backTo = rhpRoutes.length > 1 ? undefined : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
+            Navigation.goBack(backTo);
         }
-    }, [approvalWorkflow?.action, firstApprover, approverIndex, personalDetails, employeeList, route.params.policyID, selectedApproverEmail]);
+    }, [selectedApproverEmail, approvalWorkflow?.action, employeeList, personalDetails, approverIndex, route.params.policyID, rhpRoutes.length, firstApprover]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
