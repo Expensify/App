@@ -1963,6 +1963,7 @@ const translations = {
             lastName: 'Por favor, introduce los apellidos.',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor, añade una cuenta bancaria para depósitos o una tarjeta de débito.',
             validationAmounts: 'Los importes de validación que introduciste son incorrectos. Por favor, comprueba tu cuenta bancaria e inténtalo de nuevo.',
+            fullName: 'Please enter a valid full name.',
         },
     },
     addPersonalBankAccountPage: {

@@ -53,6 +53,12 @@ const INPUT_IDS = {
     AMOUNT2: 'amount2',
     AMOUNT3: 'amount3',
     ADDITIONAL_DATA: {
+        ACCOUNT_HOLDER_NAME: 'accountHolderName',
+        ADDRESS_STREET: 'addressStreet',
+        ADDRESS_CITY: 'addressCity',
+        ADDRESS_STATE: 'addressState',
+        ADDRESS_ZIP_CODE: 'addressZipCode',
+        ACCOUNT_HOLDER_COUNTRY: 'accountHolderCountry',
         COUNTRY: 'country',
         CORPAY: {
             SWIFT_CODE: 'swiftCode',

@@ -1943,6 +1943,7 @@ const translations = {
             lastName: 'Please enter a valid last name.',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit account or debit card.',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
+            fullName: 'Please enter a valid full name.',
         },
     },
     addPersonalBankAccountPage: {
