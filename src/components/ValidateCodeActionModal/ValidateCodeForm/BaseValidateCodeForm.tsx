@@ -155,7 +155,7 @@ function BaseValidateCodeForm({
      * Request a validate code / magic code be sent to verify this contact method
      */
     const resendValidateCode = () => {
-        if (hasMagicCodeBeenSent && !isResend) {
+        if (hasMagicCodeBeenSent && !isResent) {
             return;
         }
 
@@ -231,7 +231,7 @@ function BaseValidateCodeForm({
                             style={[styles.mr1]}
                             onPress={() => {
                                 resendValidateCode();
-                                setIsResend(true);
+                                setIsResent(true);
                             }}
                             underlayColor={theme.componentBG}
                             hoverDimmingValue={1}
