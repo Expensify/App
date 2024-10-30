@@ -96,6 +96,7 @@ function BaseVideoPlayer({
     const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
 
     const togglePlayCurrentVideo = useCallback(() => {
+        setIsEnded(false);
         videoResumeTryNumberRef.current = 0;
         if (!isCurrentlyURLSet) {
             updateCurrentlyPlayingURL(url);
@@ -107,9 +108,12 @@ function BaseVideoPlayer({
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
 
     const hideControl = useCallback(() => {
+        if (isEnded) {
+            return;
+        }
         // eslint-disable-next-line react-compiler/react-compiler
         controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
-    }, [controlsOpacity]);
+    }, [controlsOpacity, isEnded]);
     const debouncedHideControl = useMemo(() => debounce(hideControl, 1500), [hideControl]);
 
     useEffect(() => {
@@ -199,8 +203,11 @@ function BaseVideoPlayer({
                 onPlaybackStatusUpdate?.(status);
                 return;
             }
-
-            setIsEnded(status.didJustFinish && !status.isLooping);
+            if (status.didJustFinish) {
+                setIsEnded(status.didJustFinish && !status.isLooping);
+                setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
+                controlsOpacity.value = 1;
+            }
 
             if (prevIsMutedRef.current && prevVolumeRef.current === 0 && !status.isMuted) {
                 updateVolume(0.25);
