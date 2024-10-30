@@ -63,7 +63,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {canUseWorkspaceRules, canUseCompanyCardFeeds} = usePermissions();
+    const {canUseWorkspaceRules, canUseCompanyCardFeeds, canUsePerDiem} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -120,23 +120,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 setIsDisableExpensifyCardWarningModalOpen(true);
             },
         },
-        {
-            icon: Illustrations.PerDiem,
-            titleTranslationKey: 'workspace.moreFeatures.perDiem.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.perDiem.subtitle',
-            isActive: policy?.arePerDiemEnabled ?? false,
-            pendingAction: policy?.pendingFields?.arePerDiemEnabled,
-            action: (isEnabled: boolean) => {
-                if (!policyID) {
-                    return;
-                }
-                if (isEnabled && !isControlPolicy(policy)) {
-                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
-                    return;
-                }
-                PerDiem.enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID);
-            },
-        },
     ];
 
     if (canUseCompanyCardFeeds) {
@@ -161,6 +144,26 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
             disabledAction: () => {
                 setIsDisableCompanyCardsWarningModalOpen(true);
+            },
+        });
+    }
+
+    if (canUsePerDiem) {
+        spendItems.push({
+            icon: Illustrations.PerDiem,
+            titleTranslationKey: 'workspace.moreFeatures.perDiem.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.perDiem.subtitle',
+            isActive: policy?.arePerDiemEnabled ?? false,
+            pendingAction: policy?.pendingFields?.arePerDiemEnabled,
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                    return;
+                }
+                PerDiem.enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID);
             },
         });
     }
