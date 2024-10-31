@@ -6,7 +6,7 @@ In general, this help site is built around a few common principles:
 
 * **Consistency** - Every page of the site should follow a common pattern, as should every chapter on the page, and every section in the chapter
 * **Focus** - Every section should focus as much as possible on a single self-contained subset of the page, with complex subsets being broken into section groups rather than large singular sections
-* **Plain language** - All writing should target a 6th grade reading level, with very common language and simple phrasings.
+* **Plain language** - All writing should target a high-school reading level, with very common language and simple phrasings.
 
 
 ## Structure Rules
