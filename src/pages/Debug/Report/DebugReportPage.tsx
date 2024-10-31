@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {navigateToConciergeChatAndDeleteReport} from '@libs/actions/Report';
 import DebugUtils from '@libs/DebugUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -144,6 +145,7 @@ function DebugReportPage({
                                     }}
                                     onDelete={() => {
                                         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+                                        navigateToConciergeChatAndDeleteReport(reportID, true, true);
                                     }}
                                     validate={DebugUtils.validateReportDraftProperty}
                                 >

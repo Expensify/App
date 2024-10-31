@@ -237,10 +237,6 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                         text={translate('common.delete')}
                         onPress={() => {
                             onDelete();
-                            // Dismiss the current report screen and replace it with Concierge Chat
-                            Navigation.setShouldPopAllStateOnUP(true);
-                            Navigation.goBack(undefined, undefined, true);
-                            navigateToConciergeChat();
                         }}
                     />
                 </View>
