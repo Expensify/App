@@ -9,4 +9,8 @@ function setReadyToShowAuthScreens(readyToShowAuthScreens: boolean) {
     Onyx.merge(ONYXKEYS.HYBRID_APP, {readyToShowAuthScreens});
 }
 
-export {setIsSigningIn, setReadyToShowAuthScreens};
+function setReadyToSwitchToClassicExperience(readyToSwitchToClassicExperience: boolean) {
+    Onyx.merge(ONYXKEYS.HYBRID_APP, {readyToSwitchToClassicExperience});
+}
+
+export {setIsSigningIn, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience};

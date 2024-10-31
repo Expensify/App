@@ -5,6 +5,9 @@ type HybridApp = {
 
     /**  */
     readyToShowAuthScreens?: boolean;
+
+    /**  */
+    readyToSwitchToClassicExperience?: boolean;
 };
 
 export default HybridApp;

@@ -82,6 +82,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
     const network = useNetwork();
     const theme = useTheme();
@@ -236,6 +237,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     ...(NativeModules.HybridAppModule
                         ? {
                               action: () => {
+                                  if (!hybridApp?.readyToSwitchToClassicExperience) {
+                                      return;
+                                  }
                                   NativeModules.HybridAppModule.closeReactNativeApp(false, true);
                                   setInitialURL(undefined);
                               },
