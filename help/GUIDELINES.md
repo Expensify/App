@@ -1,6 +1,7 @@
-Please make the fewest changes to update this file to comply with the following rules:
+# New Help Guidelines
+This file outlines a series of specific rules.  Whenever editing any file on this site, please verify your changes comply with these rules.
 
-# Philosophy
+## General Philosophy
 In general, this help site is built around a few common principles:
 
 * **Consistency** - Every page of the site should follow a common pattern, as should every chapter on the page, and every section in the chapter
@@ -8,7 +9,7 @@ In general, this help site is built around a few common principles:
 * **Plain language** - All writing should target a 6th grade reading level, with very common language and simple phrasings.
 
 
-# Structure Rules
+## Structure Rules
 To avoid ambiguity, let's establish the following terms:
 
 * **Site** - All of the pages combine to create a single help "site" providing comprehensive details on the Expensify Superapp, which is a collection of multiple products combined into a single app.
@@ -21,10 +22,10 @@ To avoid ambiguity, let's establish the following terms:
 [Fr
 * **Header** - Each section has a "header", which describes the contents of that section.
 
-* **Body* - Each section has a "body", which contains the contents of that section.
+* **Body** - Each section has a "body", which contains the contents of that section.
 
 
-# Chapter Rules
+## Chapter Rules
 Every page has exactly four "top level" chapters, which are given `##` (H2) headers:
 
 * **Introduction** - This chapter is devoted to very high level, jargon-free marketing language explaining the benefits of the product in clear and simple prose.  The Introduction chapter has exactly three sections:
@@ -44,7 +45,7 @@ Every page has exactly four "top level" chapters, which are given `##` (H2) head
 Anything outside of these four chapters should be moved within the relevant chapter, following the section guidelines for that chapter.
 
 
-# Header Rules
+## Header Rules
 There are two kinds of headers:
 
 * **Short headers** - These are titles that are limited to 1-3 short words, such that it will fit into the "left hand nav" containing the table of contents, without "wrapping" around.  Short titles capitalize major words.  For example, this would be a short title:
@@ -62,10 +63,10 @@ There are two kinds of headers:
 * To avoid confusion, no two sections in the same chapter or section group should have the same short or long title.
 
 
-# Section Rules
+## Section Rules
 There are three kinds of sections:
 
-## Definition lists
+### Definition List Sections
 A "definition list" type section break a high level concept into smaller pieces, and consists of:
 
 * A "long header" describing the topic being deconstructed and defined, generally starting with "What", but never "How" or "Why".
@@ -86,7 +87,7 @@ An example of a definition list section follows:
     * **Tomato** - Some people don't know this is a fruit.  But it is.
     ```
 
-## How-to lists
+### How-to List Sections
 A "how-to list" type section gives sequential steps to accomplish a goal, and consists of:
 
 * A "long header" describing the goal of the tutorial, starting with "How".
@@ -113,7 +114,7 @@ An example of a how-to section follows:
     6. Press the **Send** button, to deliver it to its addressed recipient.
     ```
 
-## Frequently Asked Question (FAQ) section
+### Frequently Asked Question (FAQ) Sections
 A "FAQ" type section gives a detailed answer to a single question, often to explain the non-obvious reasoning behind something, and consists of:
 
 * A "long header", asking a specific question, generally starting with "Why"
@@ -123,21 +124,21 @@ A "FAQ" type section gives a detailed answer to a single question, often to expl
     * Note: A FAQ cannot have a numbered list -- move this to the Tutorials chapter and use a HowTo section
 
 
-# Section Groups
+## Section Group Rules
 When the Concepts, Tutorials, or FAQ chapters have 6 or more sections, those sections can optionally be split into two or more "section groups".  Each section group consists of:
 
 * A short header, named after the common theme of the sections of the section group
 * 3-6 sections, of any type
 
 
-# Cross Platform
+## Cross Platform Rules
 All instructions should be written in a fashion to work across all platforms (web, mobile, desktop, native, etc).  Accordingly, the language should to the greatest degree possible be written in such a fashion that works across all platforms.  Specifically:
 
 * Where possible, use a cross-platform verb.  For example, do not say "click" or "tap", say "press"
 * If there is no suitable cross-platform term, briefly explain how to do the equivalent action on both platforms.  For example, "right-click or long-tap to open the context menu..."
 * For anything that has no equivalent, clarify which platform the instruction refers to.  For example: "If you have a mouse, hover over the chat to see the hover menu..."
 
-# Language Guidelines
+## General Language Rules
 To ensure that the content always sounds consistent:
 
 * "You" always refers to the reader, who is a user and customer of Expensify
