@@ -18,7 +18,7 @@ import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} fr
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
-import {PersonalDetailsContext, PersonalDetailsProvider} from '@src/components/OnyxProvider';
+import {PersonalDetailsContext} from '@src/components/OnyxProvider';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
