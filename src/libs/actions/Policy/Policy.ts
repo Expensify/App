@@ -3738,7 +3738,7 @@ function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
 }
 
 function getAdminPolicies(): Policy[] {
-    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN);
+    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && policy.type !== CONST.POLICY.TYPE.PERSONAL);
 }
 
 function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
