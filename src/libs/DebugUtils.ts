@@ -1,16 +1,14 @@
+/* eslint-disable default-case */
+
 /* eslint-disable max-classes-per-file */
 import {isMatch, isValid} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
+import type {TupleToUnion, UnionToIntersection, ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, RecentWaypoint, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type {Message, Person} from '@src/types/onyx/ReportAction';
-import type {Comment, Receipt, SplitShare, TaxRate} from '@src/types/onyx/Transaction';
-import type {TransactionViolationData} from '@src/types/onyx/TransactionViolation';
+import type {Beta, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
@@ -48,42 +46,18 @@ type ConstantEnum = Record<string, string | number | boolean | Record<string, st
 
 type PropertyTypes = Array<'string' | 'number' | 'object' | 'boolean' | 'undefined'>;
 
-const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
+type PropertyDefinition<T> = Required<NonNullable<T>>;
 
-const REPORT_NUMBER_PROPERTIES: Array<keyof Report> = [
-    'lastMessageTimestamp',
-    'lastReadSequenceNumber',
-    'managerID',
-    'lastActorAccountID',
-    'ownerAccountID',
-    'total',
-    'unheldTotal',
-    'iouReportAmount',
-    'nonReimbursableTotal',
-] satisfies Array<keyof Report>;
+type ArrayElement<T extends Record<string, unknown>, K extends keyof T> = T[K] extends unknown[] | undefined ? PropertyDefinition<T[K]>[number] : never;
 
-const REPORT_BOOLEAN_PROPERTIES: Array<keyof Report> = [
-    'hasOutstandingChildRequest',
-    'hasOutstandingChildTask',
-    'isOwnPolicyExpenseChat',
-    'isPolicyExpenseChat',
-    'isPinned',
-    'hasParentAccess',
-    'isDeletedParentAction',
-    'openOnAdminRoom',
-    'isOptimisticReport',
-    'isWaitingOnBankAccount',
-    'isCancelledIOU',
-    'isLastMessageDeletedParentAction',
-    'isHidden',
-    'isChatRoom',
-    'isLoadingPrivateNotes',
-    'selected',
-] satisfies Array<keyof Report>;
-
-const REPORT_DATE_PROPERTIES: Array<keyof Report> = ['lastVisibleActionCreated', 'lastReadCreated', 'lastReadTime', 'lastMentionedTime', 'lastVisibleActionLastModified'] satisfies Array<
-    keyof Report
+type ObjectElement<T extends Record<string, unknown>, K extends keyof T> = UnionToIntersection<
+    T[K] extends Record<string, unknown> | undefined | null
+        ? ValueOf<PropertyDefinition<T[K]>> extends Record<string, unknown>
+            ? ValueOf<PropertyDefinition<T[K]>>
+            : PropertyDefinition<T[K]>
+        : never
 >;
+const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
 
 const REPORT_REQUIRED_PROPERTIES: Array<keyof Report> = ['reportID'] satisfies Array<keyof Report>;
 
@@ -105,35 +79,7 @@ const REPORT_ACTION_NUMBER_PROPERTIES: Array<keyof ReportAction> = [
     'timestamp',
 ] satisfies Array<keyof ReportAction>;
 
-const REPORT_ACTION_BOOLEAN_PROPERTIES: Array<keyof ReportAction> = [
-    'isLoading',
-    'automatic',
-    'shouldShow',
-    'isFirstItem',
-    'isAttachmentOnly',
-    'isAttachmentWithText',
-    'isNewestReportAction',
-    'isOptimisticAction',
-] satisfies Array<keyof ReportAction>;
-
-const REPORT_ACTION_DATE_PROPERTIES: Array<keyof ReportAction> = ['created', 'lastModified'] satisfies Array<keyof ReportAction>;
-
 const TRANSACTION_REQUIRED_PROPERTIES: Array<keyof Transaction> = ['transactionID', 'reportID', 'amount', 'created', 'currency', 'merchant'] satisfies Array<keyof Transaction>;
-
-const TRANSACTION_NUMBER_PROPERTIES: Array<keyof Transaction> = ['amount', 'taxAmount', 'modifiedAmount', 'cardID', 'originalAmount'] satisfies Array<keyof Transaction>;
-
-const TRANSACTION_DATE_PROPERTIES: Array<keyof Transaction> = ['created', 'modifiedCreated'] satisfies Array<keyof Transaction>;
-
-const TRANSACTION_BOOLEAN_PROPERTIES: Array<keyof Transaction> = [
-    'billable',
-    'participantsAutoAssigned',
-    'isFromGlobalCreate',
-    'reimbursable',
-    'hasEReceipt',
-    'isLoading',
-    'shouldShowOriginalAmount',
-    'managedCard',
-] satisfies Array<keyof Transaction>;
 
 const TRANSACTION_VIOLATION_REQUIRED_PROPERTIES: Array<keyof TransactionViolation> = ['type', 'name'] satisfies Array<keyof TransactionViolation>;
 
@@ -210,6 +156,10 @@ type OnyxData<T extends OnyxDataType> = (T extends 'number' ? number : T extends
  * @throws {SyntaxError} if type is object but the provided string does not represent an object
  */
 function stringToOnyxData<T extends OnyxDataType = 'string'>(data: string, type?: T): OnyxData<T> {
+    if (isEmptyValue(data)) {
+        return data as OnyxData<T>;
+    }
+
     let onyxData;
 
     switch (type) {
@@ -272,10 +222,27 @@ function onyxDataToDraftData(data: OnyxEntry<Record<string, unknown>>) {
 }
 
 /**
+ * Whether a string representation is an empty value
+ *
+ * @param value - string representantion
+ * @returns whether the value is an empty value
+ */
+function isEmptyValue(value: string): boolean {
+    switch (value) {
+        case 'undefined':
+        case 'null':
+        case '':
+            return true;
+        default:
+            return false;
+    }
+}
+
+/**
  * Validates if a string is a valid representation of a number.
  */
 function validateNumber(value: string) {
-    if (value === 'undefined' || value === '' || (!value.includes(' ') && !Number.isNaN(Number(value)))) {
+    if (isEmptyValue(value) || (!value.includes(' ') && !Number.isNaN(Number(value)))) {
         return;
     }
 
@@ -297,7 +264,7 @@ function validateBoolean(value: string) {
  * Validates if a string is a valid representation of a date.
  */
 function validateDate(value: string) {
-    if (value === 'undefined' || value === '' || ((isMatch(value, CONST.DATE.FNS_DB_FORMAT_STRING) || isMatch(value, CONST.DATE.FNS_FORMAT_STRING)) && isValid(new Date(value)))) {
+    if (isEmptyValue(value) || ((isMatch(value, CONST.DATE.FNS_DB_FORMAT_STRING) || isMatch(value, CONST.DATE.FNS_FORMAT_STRING)) && isValid(new Date(value)))) {
         return;
     }
 
@@ -315,7 +282,7 @@ function validateConstantEnum(value: string, constEnum: ConstantEnum) {
         return String(val);
     });
 
-    if (value === 'undefined' || value === '' || enumValues.includes(value)) {
+    if (isEmptyValue(value) || enumValues.includes(value)) {
         return;
     }
 
@@ -333,7 +300,7 @@ function validateArray<T extends 'string' | 'number' | 'boolean' | Record<string
         ? ConstantEnum
         : T,
 ) {
-    if (value === 'undefined') {
+    if (isEmptyValue(value)) {
         return;
     }
 
@@ -386,7 +353,7 @@ function validateArray<T extends 'string' | 'number' | 'boolean' | Record<string
  * Validates if a string is a valid representation of an object.
  */
 function validateObject<T extends Record<string, unknown>>(value: string, type: ObjectType<T>, collectionIndexType?: 'string' | 'number') {
-    if (value === 'undefined' || value === 'null') {
+    if (isEmptyValue(value)) {
         return;
     }
 
@@ -438,7 +405,7 @@ function validateObject<T extends Record<string, unknown>>(value: string, type: 
  * Validates if a string is a valid representation of a string.
  */
 function validateString(value: string) {
-    if (value === 'undefined') {
+    if (isEmptyValue(value)) {
         return;
     }
 
@@ -463,84 +430,324 @@ function validateString(value: string) {
  * @param value - value provided by the user
  */
 function validateReportDraftProperty(key: keyof Report, value: string) {
-    if (REPORT_REQUIRED_PROPERTIES.includes(key) && value === 'undefined') {
+    if (REPORT_REQUIRED_PROPERTIES.includes(key) && isEmptyValue(value)) {
         throw SyntaxError('debug.missingValue');
     }
-    if (key === 'privateNotes') {
-        return validateObject(
-            value,
-            {
-                note: 'string',
-            },
-            'number',
-        );
+    switch (key) {
+        case 'avatarUrl': {
+            return validateString(value);
+        }
+        case 'avatarFileName': {
+            return validateString(value);
+        }
+        case 'chatType': {
+            return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
+        }
+        case 'hasOutstandingChildRequest': {
+            return validateBoolean(value);
+        }
+        case 'hasOutstandingChildTask': {
+            return validateBoolean(value);
+        }
+        case 'icons': {
+            return validateArray<ArrayElement<Report, 'icons'>>(value, {
+                type: {
+                    [CONST.ICON_TYPE_AVATAR]: CONST.ICON_TYPE_AVATAR,
+                    [CONST.ICON_TYPE_WORKSPACE]: CONST.ICON_TYPE_WORKSPACE,
+                },
+                name: 'string',
+                source: 'string',
+                id: ['number', 'string'],
+                fallbackIcon: 'string',
+                fill: 'string',
+            });
+        }
+        case 'isOwnPolicyExpenseChat': {
+            return validateBoolean(value);
+        }
+        case 'isPolicyExpenseChat': {
+            return validateBoolean(value);
+        }
+        case 'isPinned': {
+            return validateBoolean(value);
+        }
+        case 'lastMessageText': {
+            return validateString(value);
+        }
+        case 'lastMessageTimestamp': {
+            return validateNumber(value);
+        }
+        case 'lastVisibleActionCreated': {
+            return validateString(value);
+        }
+        case 'lastReadCreated': {
+            return validateString(value);
+        }
+        case 'lastReadTime': {
+            return validateString(value);
+        }
+        case 'lastReadSequenceNumber': {
+            return validateNumber(value);
+        }
+        case 'lastMentionedTime': {
+            return validateString(value);
+        }
+        case 'policyAvatar': {
+            return validateString(value);
+        }
+        case 'policyName': {
+            return validateString(value);
+        }
+        case 'oldPolicyName': {
+            return validateString(value);
+        }
+        case 'hasParentAccess': {
+            return validateBoolean(value);
+        }
+        case 'description': {
+            return validateString(value);
+        }
+        case 'isDeletedParentAction': {
+            return validateBoolean(value);
+        }
+        case 'policyID': {
+            return validateString(value);
+        }
+        case 'reportName': {
+            return validateString(value);
+        }
+        case 'reportID': {
+            return validateString(value);
+        }
+        case 'reportActionID': {
+            return validateString(value);
+        }
+        case 'chatReportID': {
+            return validateString(value);
+        }
+        case 'stateNum': {
+            return validateConstantEnum(value, CONST.REPORT.STATE_NUM);
+        }
+        case 'statusNum': {
+            return validateConstantEnum(value, CONST.REPORT.STATUS_NUM);
+        }
+        case 'writeCapability': {
+            return validateConstantEnum(value, CONST.REPORT.WRITE_CAPABILITIES);
+        }
+        case 'type': {
+            return validateString(value);
+        }
+        case 'openOnAdminRoom': {
+            return validateBoolean(value);
+        }
+        case 'visibility': {
+            return validateConstantEnum(value, CONST.REPORT.VISIBILITY);
+        }
+        case 'cachedTotal': {
+            return validateString(value);
+        }
+        case 'invoiceReceiver': {
+            // TODO: ObjectElement doesn't handle this case correctly
+            return validateObject<ObjectElement<Report, 'invoiceReceiver'>>(value, {});
+        }
+        case 'lastMessageTranslationKey': {
+            return validateString(value);
+        }
+        case 'parentReportID': {
+            return validateString(value);
+        }
+        case 'parentReportActionID': {
+            return validateString(value);
+        }
+        case 'isOptimisticReport': {
+            return validateBoolean(value);
+        }
+        case 'managerID': {
+            return validateNumber(value);
+        }
+        case 'lastVisibleActionLastModified': {
+            return validateString(value);
+        }
+        case 'displayName': {
+            return validateString(value);
+        }
+        case 'lastMessageHtml': {
+            return validateString(value);
+        }
+        case 'lastActorAccountID': {
+            return validateNumber(value);
+        }
+        case 'lastActionType': {
+            return validateConstantEnum(value, CONST.REPORT.ACTIONS.TYPE);
+        }
+        case 'ownerAccountID': {
+            return validateNumber(value);
+        }
+        case 'ownerEmail': {
+            return validateString(value);
+        }
+        case 'participants': {
+            return validateObject<ObjectElement<Report, 'participants'>>(
+                value,
+                {
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
+                    role: CONST.REPORT.ROLE,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    pendingFields: 'object',
+                    hidden: 'boolean',
+                },
+                'number',
+            );
+        }
+        case 'total': {
+            return validateNumber(value);
+        }
+        case 'unheldTotal': {
+            return validateNumber(value);
+        }
+        case 'currency': {
+            return validateConstantEnum(value, CONST.CURRENCY);
+        }
+        case 'errors': {
+            return validateObject<ObjectElement<Report, 'errors'>>(value, {});
+        }
+        case 'errorFields': {
+            // TODO: ObjectElement doesn't handle this case correctly
+            return validateObject<ObjectElement<Report, 'errorFields'>>(value, {}, 'string');
+        }
+        case 'isWaitingOnBankAccount': {
+            return validateBoolean(value);
+        }
+        case 'isCancelledIOU': {
+            return validateBoolean(value);
+        }
+        case 'isLastMessageDeletedParentAction': {
+            return validateBoolean(value);
+        }
+        case 'iouReportID': {
+            return validateString(value);
+        }
+        case 'iouReportAmount': {
+            return validateNumber(value);
+        }
+        case 'preexistingReportID': {
+            return validateString(value);
+        }
+        case 'nonReimbursableTotal': {
+            return validateNumber(value);
+        }
+        case 'isHidden': {
+            return validateBoolean(value);
+        }
+        case 'isChatRoom': {
+            return validateBoolean(value);
+        }
+        case 'participantsList': {
+            return validateArray<ArrayElement<Report, 'participantsList'>>(value, {
+                displayName: 'string',
+                errorFields: 'object',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                firstName: 'string',
+                lastName: 'string',
+                avatar: 'string',
+                status: 'object',
+                pendingFields: 'object',
+                accountID: 'number',
+                validated: 'boolean',
+                phoneNumber: 'string',
+                avatarThumbnail: 'string',
+                originalFileName: 'string',
+                avatarUploading: 'boolean',
+                login: 'string',
+                pronouns: 'string',
+                localCurrencyCode: 'string',
+                timezone: 'object',
+                isOptimisticPersonalDetail: 'boolean',
+                fallbackIcon: 'string',
+            });
+        }
+        case 'text': {
+            return validateString(value);
+        }
+        case 'privateNotes': {
+            return validateObject<ObjectElement<Report, 'privateNotes'>>(
+                value,
+                {
+                    note: 'string',
+                    errors: 'string',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    pendingFields: 'object',
+                },
+                'number',
+            );
+        }
+        case 'isLoadingPrivateNotes': {
+            return validateBoolean(value);
+        }
+        case 'selected': {
+            return validateBoolean(value);
+        }
+        case 'pendingChatMembers': {
+            return validateArray<ArrayElement<Report, 'pendingChatMembers'>>(value, {
+                accountID: 'string',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                errors: 'object',
+            });
+        }
+        case 'transactionThreadReportID': {
+            return validateString(value);
+        }
+        case 'fieldList': {
+            return validateObject<ObjectElement<Report, 'fieldList'>>(
+                value,
+                {
+                    fieldID: 'string',
+                    type: 'string',
+                    name: 'string',
+                    keys: 'array',
+                    values: 'array',
+                    defaultValue: 'string',
+                    orderWeight: 'number',
+                    deletable: 'boolean',
+                    value: 'string',
+                    target: 'string',
+                    externalIDs: 'array',
+                    disabledOptions: 'array',
+                    isTax: 'boolean',
+                    externalID: 'string',
+                    origin: 'string',
+                    defaultExternalID: 'string',
+                },
+                'string',
+            );
+        }
+        case 'permissions': {
+            return validateArray<'constantEnum'>(value, CONST.REPORT.PERMISSIONS);
+        }
+        case 'tripData': {
+            return validateObject<ObjectElement<Report, 'tripData'>>(value, {
+                startDate: 'string',
+                endDate: 'string',
+                tripID: 'string',
+            });
+        }
+        case 'private_isArchived': {
+            return validateString(value);
+        }
+        case 'participantAccountIDs': {
+            return validateArray(value, 'number');
+        }
+        case 'visibleChatMemberAccountIDs': {
+            return validateArray(value, 'number');
+        }
+        case 'pendingAction': {
+            return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
+        }
+        case 'pendingFields': {
+            // TODO: ObjectElement doesn't handle this case correctly
+            return validateObject<ObjectElement<Report, 'pendingFields'>>(value, {});
+        }
     }
-    if (key === 'permissions') {
-        return validateArray<'constantEnum'>(value, CONST.REPORT.PERMISSIONS);
-    }
-    if (key === 'pendingChatMembers') {
-        return validateArray(value, {
-            accountID: 'string',
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-        });
-    }
-    if (key === 'participants') {
-        return validateObject(
-            value,
-            {
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
-            },
-            'number',
-        );
-    }
-    if (REPORT_NUMBER_PROPERTIES.includes(key)) {
-        return validateNumber(value);
-    }
-    if (REPORT_BOOLEAN_PROPERTIES.includes(key)) {
-        return validateBoolean(value);
-    }
-    if (REPORT_DATE_PROPERTIES.includes(key)) {
-        return validateDate(value);
-    }
-    if (key === 'tripData') {
-        return validateObject(value, {
-            startDate: 'string',
-            endDate: 'string',
-            tripID: 'string',
-        });
-    }
-    if (key === 'lastActionType') {
-        return validateConstantEnum(value, CONST.REPORT.ACTIONS.TYPE);
-    }
-    if (key === 'writeCapability') {
-        return validateConstantEnum(value, CONST.REPORT.WRITE_CAPABILITIES);
-    }
-    if (key === 'visibility') {
-        return validateConstantEnum(value, CONST.REPORT.VISIBILITY);
-    }
-    if (key === 'stateNum') {
-        return validateConstantEnum(value, CONST.REPORT.STATE_NUM);
-    }
-    if (key === 'statusNum') {
-        return validateConstantEnum(value, CONST.REPORT.STATUS_NUM);
-    }
-    if (key === 'chatType') {
-        return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
-    }
-    if (key === 'errorFields') {
-        return validateObject(value, {});
-    }
-    if (key === 'pendingFields') {
-        return validateObject(value, {});
-    }
-    if (key === 'visibleChatMemberAccountIDs') {
-        return validateArray(value, 'number');
-    }
-    if (key === 'participantAccountIDs') {
-        return validateArray(value, 'number');
-    }
-
-    validateString(value);
 }
 
 /**
@@ -550,79 +757,256 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
  * @param value - value provided by the user
  */
 function validateReportActionDraftProperty(key: keyof ReportAction, value: string) {
-    if (REPORT_ACTION_REQUIRED_PROPERTIES.includes(key) && value === 'undefined') {
+    if (REPORT_ACTION_REQUIRED_PROPERTIES.includes(key) && isEmptyValue(value)) {
         throw SyntaxError('debug.missingValue');
     }
-    if (REPORT_ACTION_NUMBER_PROPERTIES.includes(key)) {
-        return validateNumber(value);
+    switch (key) {
+        case 'reportID': {
+            return validateString(value);
+        }
+        case 'reportActionID': {
+            return validateString(value);
+        }
+        case 'parentReportID': {
+            return validateString(value);
+        }
+        case 'errors': {
+            // TODO: ObjectElement doesn't handle this case correctly
+            return validateObject<ObjectElement<ReportAction, 'errors'>>(value, {}, 'string');
+        }
+        case 'pendingAction': {
+            return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
+        }
+        case 'pendingFields': {
+            return validateObject<ObjectElement<ReportAction, 'pendingFields'>>(value, {
+                reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                reportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                sequenceNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                actionName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                actorAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                actor: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                person: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isLoading: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                automatic: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                shouldShow: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childReportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                accountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childOldestFourAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childCommenterCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childLastVisibleActionCreated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childVisibleActionCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childManagerAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childOwnerAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childStatusNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childStateNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childLastMoneyRequestComment: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childLastActorAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childMoneyRequestCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isFirstItem: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isAttachmentOnly: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isAttachmentWithText: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                lastModified: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                delegateAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                error: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childRecentReceiptTransactionIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                linkMetadata: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childReportNotificationPreference: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isNewestReportAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isOptimisticAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                adminAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                whisperedToAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                reportActionTimestamp: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                timestamp: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+            });
+        }
+        case 'sequenceNumber': {
+            return validateNumber(value);
+        }
+        case 'actionName': {
+            return validateConstantEnum(value, CONST.REPORT.ACTIONS.TYPE);
+        }
+        case 'actorAccountID': {
+            return validateNumber(value);
+        }
+        case 'actor': {
+            return validateString(value);
+        }
+        case 'person': {
+            return validateArray<ArrayElement<ReportAction, 'person'>>(value, {
+                type: 'string',
+                text: 'string',
+                style: 'string',
+            });
+        }
+        case 'created': {
+            return validateDate(value);
+        }
+        case 'isLoading': {
+            return validateBoolean(value);
+        }
+        case 'avatar': {
+            return validateString(value);
+        }
+        case 'automatic': {
+            return validateBoolean(value);
+        }
+        case 'shouldShow': {
+            return validateBoolean(value);
+        }
+        case 'childReportID': {
+            return validateString(value);
+        }
+        case 'childReportName': {
+            return validateString(value);
+        }
+        case 'childType': {
+            return validateString(value);
+        }
+        case 'accountID': {
+            return validateNumber(value);
+        }
+        case 'childOldestFourAccountIDs': {
+            return validateString(value);
+        }
+        case 'childCommenterCount': {
+            return validateNumber(value);
+        }
+        case 'childLastVisibleActionCreated': {
+            return validateString(value);
+        }
+        case 'childVisibleActionCount': {
+            return validateNumber(value);
+        }
+        case 'childManagerAccountID': {
+            return validateNumber(value);
+        }
+        case 'childOwnerAccountID': {
+            return validateNumber(value);
+        }
+        case 'childStatusNum': {
+            return validateConstantEnum(value, CONST.REPORT.STATUS_NUM);
+        }
+        case 'childStateNum': {
+            return validateConstantEnum(value, CONST.REPORT.STATE_NUM);
+        }
+        case 'childLastMoneyRequestComment': {
+            return validateString(value);
+        }
+        case 'childLastActorAccountID': {
+            return validateNumber(value);
+        }
+        case 'childMoneyRequestCount': {
+            return validateNumber(value);
+        }
+        case 'isFirstItem': {
+            return validateBoolean(value);
+        }
+        case 'isAttachmentOnly': {
+            return validateBoolean(value);
+        }
+        case 'isAttachmentWithText': {
+            return validateBoolean(value);
+        }
+        case 'receipt': {
+            return validateObject<ObjectElement<ReportAction, 'receipt'>>(value, {
+                state: 'string',
+                type: 'string',
+                name: 'string',
+                receiptID: 'string',
+                source: 'string',
+                filename: 'string',
+                reservationList: 'string',
+            });
+        }
+        case 'lastModified': {
+            return validateDate(value);
+        }
+        case 'delegateAccountID': {
+            return validateNumber(value);
+        }
+        case 'error': {
+            return validateString(value);
+        }
+        case 'childRecentReceiptTransactionIDs': {
+            return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
+        }
+        case 'linkMetadata': {
+            return validateArray<ArrayElement<ReportAction, 'linkMetadata'>>(value, {
+                url: 'string',
+                image: 'object',
+                description: 'string',
+                title: 'string',
+                publisher: 'string',
+                logo: 'object',
+            });
+        }
+        case 'childReportNotificationPreference': {
+            return validateConstantEnum(value, CONST.REPORT.NOTIFICATION_PREFERENCE);
+        }
+        case 'isNewestReportAction': {
+            return validateBoolean(value);
+        }
+        case 'isOptimisticAction': {
+            return validateBoolean(value);
+        }
+        case 'adminAccountID': {
+            return validateNumber(value);
+        }
+        case 'whisperedToAccountIDs': {
+            return validateArray(value, 'number');
+        }
+        case 'reportActionTimestamp': {
+            return validateString(value);
+        }
+        case 'timestamp': {
+            return validateString(value);
+        }
+        case 'message': {
+            // TODO: ArrayElement doesn't handle this case correctly
+            return validateArray<ArrayElement<ReportAction, 'message'>>(value, {
+                text: 'string',
+                html: ['string', 'undefined'],
+                type: 'string',
+                isDeletedParentAction: 'boolean',
+                policyID: 'string',
+                reportID: 'string',
+                currency: 'string',
+                amount: 'number',
+                style: 'string',
+                target: 'string',
+                href: 'string',
+                iconUrl: 'string',
+                isEdited: 'boolean',
+                isReversedTransaction: 'boolean',
+                whisperedTo: 'array',
+                moderationDecision: 'object',
+                translationKey: 'string',
+                taskReportID: 'string',
+                cancellationReason: 'string',
+                expenseReportID: 'string',
+                resolution: {
+                    ...CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION,
+                    ...CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION,
+                },
+                deleted: 'string',
+            } as never);
+        }
+        case 'originalMessage': {
+            // TODO: ObjectElement doesn't handle this case correctly
+            return validateObject<ObjectElement<ReportAction, 'originalMessage'>>(value, {});
+        }
+        case 'previousMessage': {
+            // TODO: ObjectElement doesn't handle this case correctly
+            return validateObject<ObjectElement<ReportAction, 'previousMessage'>>(value, {});
+        }
     }
-    if (REPORT_ACTION_BOOLEAN_PROPERTIES.includes(key)) {
-        return validateBoolean(value);
-    }
-    if (key === 'actionName') {
-        return validateConstantEnum(value, CONST.REPORT.ACTIONS.TYPE);
-    }
-    if (key === 'childStatusNum') {
-        return validateConstantEnum(value, CONST.REPORT.STATUS_NUM);
-    }
-    if (key === 'childStateNum') {
-        return validateConstantEnum(value, CONST.REPORT.STATE_NUM);
-    }
-    if (key === 'childReportNotificationPreference') {
-        return validateConstantEnum(value, CONST.REPORT.NOTIFICATION_PREFERENCE);
-    }
-    if (REPORT_ACTION_DATE_PROPERTIES.includes(key)) {
-        return validateDate(value);
-    }
-    if (key === 'whisperedToAccountIDs') {
-        return validateArray(value, 'number');
-    }
-    if (key === 'message') {
-        return validateArray<Message>(value, {
-            text: 'string',
-            html: ['string', 'undefined'],
-            type: 'string',
-            isDeletedParentAction: 'boolean',
-            policyID: 'string',
-            reportID: 'string',
-            currency: 'string',
-            amount: 'number',
-            style: 'string',
-            target: 'string',
-            href: 'string',
-            iconUrl: 'string',
-            isEdited: 'boolean',
-            isReversedTransaction: 'boolean',
-            whisperedTo: 'array',
-            moderationDecision: 'object',
-            translationKey: 'string',
-            taskReportID: 'string',
-            cancellationReason: 'string',
-            expenseReportID: 'string',
-            resolution: {
-                ...CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION,
-                ...CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION,
-            },
-            deleted: 'string',
-        });
-    }
-    if (key === 'person') {
-        return validateArray<Person>(value, {
-            type: 'string',
-            text: 'string',
-            style: 'string',
-        });
-    }
-    if (key === 'errors') {
-        return validateObject(value, {});
-    }
-    if (key === 'originalMessage') {
-        return validateObject(value, {});
-    }
-    if (key === 'childRecentReceiptTransactionIDs') {
-        return validateObject(value, {}, 'string');
-    }
-    validateString(value);
 }
 
 /**
@@ -632,228 +1016,437 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
  * @param value - value provided by the user
  */
 function validateTransactionDraftProperty(key: keyof Transaction, value: string) {
-    if (TRANSACTION_REQUIRED_PROPERTIES.includes(key) && value === 'undefined') {
+    if (TRANSACTION_REQUIRED_PROPERTIES.includes(key) && isEmptyValue(value)) {
         throw SyntaxError('debug.missingValue');
     }
-    if (TRANSACTION_NUMBER_PROPERTIES.includes(key)) {
-        return validateNumber(value);
-    }
-    if (TRANSACTION_BOOLEAN_PROPERTIES.includes(key)) {
-        return validateBoolean(value);
-    }
-    if (TRANSACTION_DATE_PROPERTIES.includes(key)) {
-        return validateDate(value);
-    }
-    if (key === 'iouRequestType') {
-        return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
-    }
-    if (key === 'status') {
-        return validateConstantEnum(value, CONST.TRANSACTION.STATUS);
-    }
-    if (key === 'mccGroup') {
-        return validateConstantEnum(value, CONST.MCC_GROUPS);
-    }
-    if (key === 'modifiedMCCGroup') {
-        return validateConstantEnum(value, CONST.MCC_GROUPS);
-    }
-    if (key === 'comment') {
-        return validateObject<Comment>(value, {
-            comment: 'string',
-            hold: 'string',
-            waypoints: 'object',
-            isLoading: 'boolean',
-            type: CONST.TRANSACTION.TYPE,
-            customUnit: 'object',
-            source: 'string',
-            originalTransactionID: 'string',
-            splits: 'array',
-            dismissedViolations: 'object',
-        });
-    }
-    if (key === 'modifiedWaypoints') {
-        return validateObject<RecentWaypoint>(
-            value,
-            {
-                name: 'string',
-                address: 'string',
-                lat: 'number',
-                lng: 'number',
+    switch (key) {
+        case 'iouRequestType':
+            return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
+        case 'reportID': {
+            return validateString(value);
+        }
+        case 'participants': {
+            return validateArray<ArrayElement<Transaction, 'participants'>>(value, {
+                accountID: 'number',
+                login: 'string',
+                displayName: 'string',
+                isPolicyExpenseChat: 'boolean',
+                isInvoiceRoom: 'boolean',
+                isOwnPolicyExpenseChat: 'boolean',
+                chatType: CONST.REPORT.CHAT_TYPE,
+                reportID: 'string',
+                policyID: 'string',
+                selected: 'boolean',
+                searchText: 'string',
+                alternateText: 'string',
+                firstName: 'string',
                 keyForList: 'string',
+                lastName: 'string',
+                phoneNumber: 'string',
+                text: 'string',
+                isSelected: 'boolean',
+                isSelfDM: 'boolean',
+                isSender: 'boolean',
+                iouType: CONST.IOU.TYPE,
+                ownerAccountID: 'number',
+                icons: 'array',
+                item: 'string',
+            });
+        }
+        case 'currency': {
+            return validateConstantEnum(value, CONST.CURRENCY);
+        }
+        case 'errors': {
+            // TODO: ObjectElement does not handle this case correctly
+            return validateObject<ObjectElement<Transaction, 'errors'>>(
+                value,
+                {
+                    source: 'string',
+                    filename: 'string',
+                },
+                'string',
+            );
+        }
+        case 'errorFields': {
+            return validateObject<ObjectElement<Transaction, 'errorFields'>>(
+                value,
+                {
+                    route: 'object',
+                },
+                'string',
+            );
+        }
+        case 'pendingAction': {
+            return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
+        }
+        case 'pendingFields': {
+            return validateObject<ObjectElement<Transaction, 'pendingFields'>>(
+                value,
+                {
+                    comment: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    hold: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isLoading: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    customUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    source: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    originalTransactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splits: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    dismissedViolations: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    customUnitID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    customUnitRateID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    quantity: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    defaultP2PRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    distanceUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    amount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    billable: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    category: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    filename: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    iouRequestType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedAttendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedCreated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedMerchant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedWaypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    participantsAutoAssigned: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    taxRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    parentTransactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    reimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    cardID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    status: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    hasEReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    mccGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedMCCGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    originalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    originalCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splitShares: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splitPayerAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    shouldShowOriginalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    actionableWhisperReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    linkedTrackedExpenseReportAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    linkedTrackedExpenseReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    bank: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    cardName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                },
+                'string',
+            );
+        }
+        case 'created': {
+            return validateDate(value);
+        }
+        case 'isLoading': {
+            return validateBoolean(value);
+        }
+        case 'receipt': {
+            return validateObject<ObjectElement<Transaction, 'receipt'>>(value, {
+                type: 'string',
+                source: 'string',
+                name: 'string',
+                filename: 'string',
+                state: CONST.IOU.RECEIPT_STATE,
+                receiptID: 'number',
+                reservationList: 'array',
+            });
+        }
+        case 'billable': {
+            return validateBoolean(value);
+        }
+        case 'reimbursable': {
+            return validateBoolean(value);
+        }
+        case 'tag': {
+            return validateString(value);
+        }
+        case 'category': {
+            return validateString(value);
+        }
+        case 'amount': {
+            return validateNumber(value);
+        }
+        case 'merchant': {
+            return validateString(value);
+        }
+        case 'taxRate': {
+            return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
+                keyForList: 'string',
+                text: 'string',
+                data: 'object',
+            });
+        }
+        case 'taxAmount': {
+            return validateNumber(value);
+        }
+        case 'modifiedAmount': {
+            return validateNumber(value);
+        }
+        case 'taxCode': {
+            return validateString(value);
+        }
+        case 'status': {
+            return validateConstantEnum(value, CONST.TRANSACTION.STATUS);
+        }
+        case 'cardID': {
+            return validateNumber(value);
+        }
+        case 'comment': {
+            return validateObject<ObjectElement<Transaction, 'comment'>>(value, {
+                comment: 'string',
+                hold: 'string',
+                waypoints: 'object',
+                isLoading: 'boolean',
+                type: CONST.TRANSACTION.TYPE,
+                customUnit: 'object',
+                source: 'string',
+                originalTransactionID: 'string',
+                splits: 'array',
+                dismissedViolations: 'object',
+            });
+        }
+        case 'attendees': {
+            return validateArray<ArrayElement<Transaction, 'attendees'>>(value, {
+                email: 'string',
+                displayName: 'string',
+                avatarUrl: 'string',
+                accountID: 'number',
+                text: 'string',
+                login: 'string',
+                searchText: 'string',
+                selected: 'boolean',
+                iouType: CONST.IOU.TYPE,
+                reportID: 'string',
+            });
+        }
+        case 'filename': {
+            return validateString(value);
+        }
+        case 'modifiedAttendees': {
+            return validateArray<ArrayElement<Transaction, 'attendees'>>(value, {
+                email: 'string',
+                displayName: 'string',
+                avatarUrl: 'string',
+                accountID: 'number',
+                text: 'string',
+                login: 'string',
+                searchText: 'string',
+                selected: 'boolean',
+                iouType: CONST.IOU.TYPE,
+                reportID: 'string',
+            });
+        }
+        case 'modifiedCreated': {
+            return validateDate(value);
+        }
+        case 'modifiedCurrency': {
+            return validateConstantEnum(value, CONST.CURRENCY);
+        }
+        case 'modifiedMerchant': {
+            return validateString(value);
+        }
+        case 'modifiedWaypoints': {
+            return validateObject<ObjectElement<Transaction, 'modifiedWaypoints'>>(
+                value,
+                {
+                    name: 'string',
+                    address: 'string',
+                    lat: 'number',
+                    lng: 'number',
+                    keyForList: 'string',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    street: 'string',
+                    city: 'string',
+                    state: 'string',
+                    zipCode: 'string',
+                    country: 'string',
+                    street2: 'string',
+                },
+                'string',
+            );
+        }
+        case 'participantsAutoAssigned': {
+            return validateBoolean(value);
+        }
+        case 'routes': {
+            return validateObject<ObjectElement<Transaction, 'routes'>>(
+                value,
+                {
+                    distance: 'number',
+                    geometry: 'object',
+                },
+                'string',
+            );
+        }
+        case 'transactionID': {
+            return validateString(value);
+        }
+        case 'isFromGlobalCreate': {
+            return validateBoolean(value);
+        }
+        case 'parentTransactionID': {
+            return validateString(value);
+        }
+        case 'hasEReceipt': {
+            return validateBoolean(value);
+        }
+        case 'mccGroup': {
+            return validateConstantEnum(value, CONST.MCC_GROUPS);
+        }
+        case 'modifiedMCCGroup': {
+            return validateConstantEnum(value, CONST.MCC_GROUPS);
+        }
+        case 'originalAmount': {
+            return validateNumber(value);
+        }
+        case 'originalCurrency': {
+            return validateConstantEnum(value, CONST.CURRENCY);
+        }
+        case 'splitShares': {
+            // TODO: ObjectElement doesn't handle this case correctly
+            return validateObject<ObjectElement<Transaction, 'splitShares'>>(
+                value,
+                {
+                    // amount: 'number',
+                    // isModified: 'boolean',
+                },
+                'number',
+            );
+        }
+        case 'splitPayerAccountIDs': {
+            return validateArray(value, 'number');
+        }
+        case 'shouldShowOriginalAmount': {
+            return validateBoolean(value);
+        }
+        case 'actionableWhisperReportActionID': {
+            return validateString(value);
+        }
+        case 'linkedTrackedExpenseReportAction': {
+            return validateObject<ReportAction>(value, {
+                accountID: 'number',
+                message: 'string',
+                created: 'string',
+                error: 'string',
+                avatar: 'string',
+                receipt: 'object',
+                reportID: 'string',
+                automatic: 'boolean',
+                reportActionID: 'string',
+                parentReportID: 'string',
+                errors: 'object',
+                isLoading: 'boolean',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-            },
-            'string',
-        );
+                pendingFields: 'object',
+                sequenceNumber: 'number',
+                actionName: CONST.REPORT.ACTIONS.TYPE,
+                actorAccountID: 'number',
+                actor: 'string',
+                person: 'array',
+                shouldShow: 'boolean',
+                childReportID: 'string',
+                childReportName: 'string',
+                childType: 'string',
+                childOldestFourAccountIDs: 'string',
+                childCommenterCount: 'number',
+                childLastVisibleActionCreated: 'string',
+                childVisibleActionCount: 'number',
+                childManagerAccountID: 'number',
+                childOwnerAccountID: 'number',
+                childStatusNum: CONST.REPORT.STATUS_NUM,
+                childStateNum: CONST.REPORT.STATE_NUM,
+                childLastMoneyRequestComment: 'string',
+                childLastActorAccountID: 'number',
+                childMoneyRequestCount: 'number',
+                isFirstItem: 'boolean',
+                isAttachmentOnly: 'boolean',
+                isAttachmentWithText: 'boolean',
+                lastModified: 'string',
+                delegateAccountID: 'number',
+                childRecentReceiptTransactionIDs: 'object',
+                linkMetadata: 'array',
+                childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
+                isNewestReportAction: 'boolean',
+                isOptimisticAction: 'boolean',
+                adminAccountID: 'number',
+                whisperedToAccountIDs: 'array',
+                reportActionTimestamp: 'string',
+                timestamp: 'string',
+                originalMessage: 'object',
+                previousMessage: 'object',
+            });
+        }
+        case 'linkedTrackedExpenseReportID': {
+            return validateString(value);
+        }
+        case 'bank': {
+            return validateString(value);
+        }
+        case 'cardName': {
+            return validateString(value);
+        }
+        case 'cardNumber': {
+            return validateNumber(value);
+        }
+        case 'managedCard': {
+            return validateBoolean(value);
+        }
     }
-    if (key === 'participants') {
-        return validateArray<Participant>(value, {
-            accountID: 'number',
-            login: 'string',
-            displayName: 'string',
-            isPolicyExpenseChat: 'boolean',
-            isInvoiceRoom: 'boolean',
-            isOwnPolicyExpenseChat: 'boolean',
-            chatType: CONST.REPORT.CHAT_TYPE,
-            reportID: 'string',
-            policyID: 'string',
-            selected: 'boolean',
-            searchText: 'string',
-            alternateText: 'string',
-            firstName: 'string',
-            keyForList: 'string',
-            lastName: 'string',
-            phoneNumber: 'string',
-            text: 'string',
-            isSelected: 'boolean',
-            isSelfDM: 'boolean',
-            isSender: 'boolean',
-            iouType: CONST.IOU.TYPE,
-            ownerAccountID: 'number',
-            icons: 'array',
-            item: 'string',
-        });
-    }
-    if (key === 'receipt') {
-        return validateObject<Receipt>(value, {
-            type: 'string',
-            source: 'string',
-            name: 'string',
-            filename: 'string',
-            state: CONST.IOU.RECEIPT_STATE,
-            receiptID: 'number',
-            reservationList: 'array',
-        });
-    }
-    if (key === 'splitPayerAccountIDs') {
-        return validateArray(value, 'number');
-    }
-    if (key === 'taxRate') {
-        return validateObject<TaxRate>(value, {
-            keyForList: 'string',
-            text: 'string',
-            data: 'object',
-        });
-    }
-    if (key === 'splitShares') {
-        return validateObject<SplitShare>(
-            value,
-            {
-                amount: 'number',
-                isModified: 'boolean',
-            },
-            'number',
-        );
-    }
-    if (key === 'linkedTrackedExpenseReportAction') {
-        return validateObject<ReportAction>(value, {
-            accountID: 'number',
-            message: 'string',
-            created: 'string',
-            error: 'string',
-            avatar: 'string',
-            receipt: 'object',
-            reportID: 'string',
-            automatic: 'boolean',
-            reportActionID: 'string',
-            parentReportID: 'string',
-            errors: 'object',
-            isLoading: 'boolean',
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-            pendingFields: 'object',
-            sequenceNumber: 'number',
-            actionName: CONST.REPORT.ACTIONS.TYPE,
-            actorAccountID: 'number',
-            actor: 'string',
-            person: 'array',
-            shouldShow: 'boolean',
-            childReportID: 'string',
-            childReportName: 'string',
-            childType: 'string',
-            childOldestFourAccountIDs: 'string',
-            childCommenterCount: 'number',
-            childLastVisibleActionCreated: 'string',
-            childVisibleActionCount: 'number',
-            childManagerAccountID: 'number',
-            childOwnerAccountID: 'number',
-            childStatusNum: CONST.REPORT.STATUS_NUM,
-            childStateNum: CONST.REPORT.STATE_NUM,
-            childLastMoneyRequestComment: 'string',
-            childLastActorAccountID: 'number',
-            childMoneyRequestCount: 'number',
-            isFirstItem: 'boolean',
-            isAttachmentOnly: 'boolean',
-            isAttachmentWithText: 'boolean',
-            lastModified: 'string',
-            delegateAccountID: 'number',
-            childRecentReceiptTransactionIDs: 'object',
-            linkMetadata: 'array',
-            childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
-            isNewestReportAction: 'boolean',
-            isOptimisticAction: 'boolean',
-            adminAccountID: 'number',
-            whisperedToAccountIDs: 'array',
-            reportActionTimestamp: 'string',
-            timestamp: 'string',
-            originalMessage: 'object',
-            previousMessage: 'object',
-        });
-    }
-    if (key === 'errors') {
-        return validateObject(value, {});
-    }
-    if (key === 'attendees') {
-        return validateArray<Attendee>(value, {
-            email: 'string',
-            displayName: 'string',
-            avatarUrl: 'string',
-            accountID: 'number',
-            text: 'string',
-            login: 'string',
-            searchText: 'string',
-            selected: 'boolean',
-            iouType: CONST.IOU.TYPE,
-            reportID: 'string',
-        });
-    }
-    validateString(value);
 }
 
 function validateTransactionViolationDraftProperty(key: keyof TransactionViolation, value: string) {
-    if (TRANSACTION_VIOLATION_REQUIRED_PROPERTIES.includes(key) && (value === 'undefined' || value === '')) {
+    if (TRANSACTION_VIOLATION_REQUIRED_PROPERTIES.includes(key) && isEmptyValue(value)) {
         throw SyntaxError('debug.missingValue');
     }
-    if (key === 'type') {
-        return validateConstantEnum(value, CONST.VIOLATION_TYPES);
+    switch (key) {
+        case 'type': {
+            return validateConstantEnum(value, CONST.VIOLATION_TYPES);
+        }
+        case 'name': {
+            return validateConstantEnum(value, CONST.VIOLATIONS);
+        }
+        case 'data': {
+            return validateObject<ObjectElement<TransactionViolation, 'data'>>(value, {
+                rejectedBy: 'string',
+                rejectReason: 'string',
+                formattedLimit: 'string',
+                surcharge: 'number',
+                invoiceMarkup: 'number',
+                maxAge: 'number',
+                tagName: 'string',
+                category: 'string',
+                brokenBankConnection: 'boolean',
+                isAdmin: 'boolean',
+                email: 'string',
+                isTransactionOlderThan7Days: 'boolean',
+                member: 'string',
+                taxName: 'string',
+                tagListIndex: 'number',
+                tagListName: 'string',
+                errorIndexes: 'array',
+                pendingPattern: 'string',
+                type: CONST.MODIFIED_AMOUNT_VIOLATION_DATA,
+                displayPercentVariance: 'number',
+                duplicates: 'array',
+                rterType: CONST.RTER_VIOLATION_TYPES,
+            });
+        }
     }
-    if (key === 'name') {
-        return validateConstantEnum(value, CONST.VIOLATIONS);
-    }
-    if (key === 'data') {
-        return validateObject<TransactionViolationData>(value, {
-            rejectedBy: 'string',
-            rejectReason: 'string',
-            formattedLimit: 'string',
-            surcharge: 'number',
-            invoiceMarkup: 'number',
-            maxAge: 'number',
-            tagName: 'string',
-            category: 'string',
-            brokenBankConnection: 'boolean',
-            isAdmin: 'boolean',
-            email: 'string',
-            isTransactionOlderThan7Days: 'boolean',
-            member: 'string',
-            taxName: 'string',
-            tagListIndex: 'number',
-            tagListName: 'string',
-            errorIndexes: 'array',
-            pendingPattern: 'string',
-            type: CONST.MODIFIED_AMOUNT_VIOLATION_DATA,
-            displayPercentVariance: 'number',
-            duplicates: 'array',
-            rterType: CONST.RTER_VIOLATION_TYPES,
-        });
-    }
-    validateString(value);
 }
 
 /**
@@ -870,7 +1463,7 @@ function validateReportActionJSON(json: string) {
     });
     Object.entries(parsedReportAction).forEach(([key, val]) => {
         try {
-            if (val !== 'undefined' && REPORT_ACTION_NUMBER_PROPERTIES.includes(key as keyof ReportAction) && typeof val !== 'number') {
+            if (!isEmptyValue(val as string) && REPORT_ACTION_NUMBER_PROPERTIES.includes(key as keyof ReportAction) && typeof val !== 'number') {
                 throw new NumberError();
             }
             validateReportActionDraftProperty(key as keyof ReportAction, onyxDataToString(val));
