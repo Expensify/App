@@ -39,36 +39,29 @@ You've got options, but use Expensify because it is:
 You are in the driver's seat, and we're here to earn your business.
 
 ## Concepts
-The Expensify Superapp has many parts, so let's break them down.
 
-### Superapp
-A "superapp" is a single app combining multiple products into one interconnected experience. Expensify isn't a "suite" of separate products but a single app performing multiple functions. Built on a common core:
+### Superapp Fundamentals
+#### [Superapp Introduction] What is a superapp?
+A superapp is a single app combining multiple products into one interconnected experience. Expensify isn't a "suite" of separate products but a single app performing multiple functions. Built on a common core:
 * **App** - The superapp experience runs on your mobile phone or desktop computer.
 * **Chats** - Chat is infused through the entire product, even if not used for enterprise-grade collaboration.
 * **Expense** - All products dealing with money ultimately deal with expenses.
-* **Workspace** - Expensify shines when used between groups sharing a "workspace."
-* **Domain** - Provides extra functionality for members on the same email "domain."
 
-These are the foundational concepts underpinning the superapp.
+#### [Domain Introduction] What is a domain?
+A domain groups users for advanced security. Join by validating your email:
+* **Name** - Corresponds to the "domain name" of your email address.
+* **Members** - Represents users with validated email contact methods.
+* **Group** - Each member belongs to one group, setting security rules.
 
-### App screens
-The Expensify App is your window to the connected world of Expensify. Main tools include:
+### Expensify Tools
+#### [Tools Introduction] What are the main tools in the Expensify App?
+The Expensify App is your window to the connected world of Expensify:
 * **Inbox** - Highlights what you should do next, across all products.
 * **Search** - Lets you search everything across all products from one place.
 * **Settings** - Wraps up personal, workspace, and domain configuration options.
 * **Create** - The big green plus button to create anything across all products.
 
-It's a simple app with screens unlocking sophisticated multi-product power.
-
-### Platforms
-The Expensify app is available in three forms:
-* **Expensify web app** - Accessed at new.expensify.com via mobile or desktop web browser.
-* **Expensify mobile app** - Works like the web app but is more reliable and supports notifications.
-* **Expensify desktop app** - Similar to the web app but optimized for desktops and supports notifications.
-
-Expensify works on any computer or phone.
-
-### Workspace
+#### [Workspace Introduction] What is a workspace?
 A workspace groups members for secure sharing and collaboration. Features include:
 * **Name** - Name your workspace anything, it's not globally unique.
 * **Profile photo** - Use a headshot or logo, or the assigned one.
@@ -82,17 +75,26 @@ A workspace groups members for secure sharing and collaboration. Features includ
     * **Collect** - Optimized for businesses with simpler requirements.
     * **Control** - Built for companies with more powerful needs.
 
-Workspaces are the backbone of collaboration features.
+### App Platforms and Search
+#### [Platforms Introduction] Where can I use the Expensify App?
+The Expensify app is available in three forms:
+* **Expensify web app** - Accessed at new.expensify.com via mobile or desktop web browser.
+* **Expensify mobile app** - Works like the web app but is more reliable and supports notifications.
+* **Expensify desktop app** - Similar to the web app but optimized for desktops and supports notifications.
 
-### Domain
-A domain groups users for advanced security. Join by validating your email:
-* **Name** - Corresponds to the "domain name" of your email address.
-* **Members** - Represents users with validated email contact methods.
-* **Group** - Each member belongs to one group, setting security rules.
+Expensify works on any computer or phone.
 
-Domains allow for top-down control of Expensify members.
+#### [Search Introduction] What does Expensify's "universal search" do?
+Expensify's "universal search" brings all data into one place. Search components include:
+* **Query** - Describes what you are searching for.
+* **Datatype selector** - Narrow results to a single type.
+* **Filters** - Filter by datatype properties.
+* **Saved searches** - Save searches for future use.
 
-### Inbox
+The Search page helps you find anything you're looking for.
+
+### Inbox and Communication
+#### [Inbox Introduction] What makes Expensify's Inbox powerful?
 Expensify's chat-centric design makes it a superpowered chat app. The Inbox highlights what you should do now:
 * **Green dot** - Indicates someone is waiting on you.
 * **Red dot** - Shows what you need to finish.
@@ -103,454 +105,229 @@ Expensify's chat-centric design makes it a superpowered chat app. The Inbox high
 
 The Inbox is the most powerful page, where you'll spend most of your time.
 
-### Search
-Expensify's "universal search" brings all data into one place. Search components include:
-* **Query** - Describes what you are searching for.
-* **Datatype selector** - Narrow results to a single type.
-* **Filters** - Filter by datatype properties.
-* **Saved searches** - Save searches for future use.
-
-The Search page helps you find anything you're looking for.
-
-### Settings
-Settings are grouped into three main categories:
-* **Account** - Stores all data owned by a user.
-* **Workspace** - Organizes group functionality for sharing data and settings.
-* **Domain** - Groups accounts for secure data sharing.
-
-Every product adds its layers of power to this shared core.
-
-#### Account
-Your account contains all your data. Common properties:
-* **Profile** - Introduces and identifies you.
-* **Wallet** - Organizes financial tools and bank accounts.
-* **Preferences** - Configures notifications and data presentation.
-
-Your account contains all the details that make you, you.
-
-#### Profile
-Your profile identifies you publicly and privately:
-* **Your public details** - Seen by other users:
-    * **Profile photo** - Customize or use a random "avatar."
-    * **Display name** - Shown next to your photo.
-    * **Contact methods** - Email addresses and SMS numbers linked to your account.
-    * **Status** - Optional icon and message next to your name.
-    * **Pronouns** - Indicate how you'd like to be addressed.
-    * **Timezone** - Set automatically or manually.
-* **Your private details** - Not shown to others:
-    * **Legal name** - Appears on government ID.
-    * **Date of birth** - Listed on government ID.
-    * **Address** - Where to contact you via mail.
-
-Your profile introduces you to the world and to us.
-
-#### Wallet
-Your wallet is for all things banking and payment card-related:
-* **Cash** - Holds electronic cash received from others.
-* **Cards** - Central list of cards linked to your account.
-* **Bank accounts** - Links bank accounts associated with your account.
-
-Your Expensify wallet is priceless, like a normal wallet.
-
-#### Preferences
-Your preferences affect how information is displayed:
-* **Training and marketing** - Opt in or out of communications.
-* **App sounds** - Optional audio cues for app actions.
-* **Priority mode** - Specify Inbox priority mode.
-* **Language** - Supports increasing number of languages.
-* **Theme** - Choose dark or light mode.
-* **Two-factor authentication** - Secure account access.
-
-Preferences help make the Expensify app your own.
-
-#### Subscription
-Expensify is mostly free, with powerful features unlocked by creating a workspace. Subscription consists of:
-* **Billing card** - Choose a card to pay your subscription.
-* **Subscription length** - Options to balance cost and commitment:
-    * **Pay-per-use** - Zero-commitment, billed for usage.
-    * **Annual plan** - 50% discount for 12-month commitment.
-
-Pick the plan that works for you, and change as needed.
-
-#### Price
-Expensify is free for most users. Business users pay based on features enabled, with potential cashback:
-* **Personal use** - Many free features for individuals and friends.
-* **Active seats** - Paid functionality billed on an "active seat" basis.
-* **Paid seat price** - Base seat price with discounts and cashback.
-
-Depending on features used, you might pay, it might be free, or we might pay you.
-
-#### Save the world
-Expensify.org empowers individuals to eliminate injustice, making giving and volunteering more convenient. We increase transparency, convenience, and human connection.
-
-Expensify.org amplifies the work of individuals directly absorbing costs.
-
-### Global create
-The big green "global create" button lets you create anything your account allows. Options depend on configured products:
-* **Start chat** - Begins a new chat.
-* **Track expense** - Tracks a personal expense.
-* **Submit expense** - Submits an expense for payment.
-* **Split expense** - Splits an expense with others.
-* **Pay someone** - Sends money from your wallet balance.
-* **Send invoice** - Sends an invoice for online payment.
-* **Assign task** - Creates a task for completion.
-* **Book travel** - Books travel arrangements.
-* **Quick action** - Repeats last action.
-
-There's a lot packed into that big button – press it and see!
-
 ## Tutorials
-The Expensify superapp has many parts. Let's guide you with step-by-step instructions.
 
-### Role
-
-#### Individual
-Expensify is flexible for individual use. You can:
-1. Track personal expenses
-2. Split bills with friends
-3. Collect receipts and categorize them
-4. Use Expensify Card for cashback
-
-Log in, navigate to expenses, and use the Create button.
-
-#### Friends
-Settle shared expenses with friends:
-1. Create an expense and enter the total.
-2. Choose **Split Expense** and add friends' emails.
-3. Expensify calculates each share and sends requests.
-
-#### Employee
-As an employee, you can:
-1. Submit expense reports for approval.
-2. Use the Expensify Card for company expenses.
-3. Book travel and manage expenses.
-4. Communicate through chat features.
-
-Log in, create an expense report, attach receipts, and submit.
-
-#### Manager
-Managers can:
-1. Approve or reject expense reports.
-2. Monitor corporate spending.
-3. Issue Expensify Cards.
-4. Set up approval workflows.
-
-Use Inbox and Workspace features to manage expenses.
-
-#### Accountant
-Accountants can:
-1. Manage client workflows.
-2. Create invoices and collect payments.
-3. Export data for tax purposes.
-4. Benefit from revenue-sharing programs.
-
-Use Invoice and Bill Pay tools for client billing.
-
-#### Travel manager
-Travel managers can:
-1. Book and manage employee travel.
-2. Track travel expenses.
-3. Issue Expensify Cards.
-4. Approve travel expenses.
-
-Manage travel bookings and expense submissions in one place.
-
-### Platforms
-
-#### Web
+### Getting Started
+#### [Web Access Guide] How do you access Expensify on the web?
 Visit the Expensify website:
 1. Go to www.expensify.com on a browser.
 
-#### Mobile
+#### [Mobile App Installation] How do you install the Expensify mobile app?
 Install the Expensify mobile app:
 1. Visit iOS or Android app stores.
 2. Press **Install**.
 3. Follow prompts to install.
 4. Press the Expensify icon to start.
 
-#### Desktop
+#### [Desktop App Installation] How do you install the Expensify desktop app?
 Install the Expensify desktop app:
 1. Download the MacOS or Windows installer.
 2. Double-click the installer.
 3. Click the Expensify icon to start.
 
-#### Sign in
+### Account Management
+#### [Sign In Process] How do you sign up or sign in?
 Sign up or sign in:
 1. Install or access Expensify on any platform.
 2. Choose connection method and press Next.
 3. Validate your email address and press **Join** if first time signing in.
 
-#### Magic link
+#### [Magic Link Login] How do you use a magic link for secure login?
 Use a magic link for secure login:
 1. Check email for Expensify Magic Link.
 2. Click link to log in without a password.
 
-#### Sign out
+#### [Sign Out Process] How do you sign out of Expensify?
 Sign out of Expensify:
 1. Press **Settings**.
 2. Scroll and press **Sign Out**.
 
-#### Two factor
+### Security and Customization
+#### [Enable 2FA Security] How do you secure your account with two-factor authentication?
 Secure your account with two-factor authentication:
 1. Press **Settings**.
 2. Press **Security**.
 3. Press **Two-factor authentication**.
 4. Follow steps to link your phone.
 
-#### Close account
+#### [Additional Security with 2FA] How do you add an extra layer of security with 2FA?
+Adding an extra layer of security can help protect your financial data. To enable two-factor authentication (2FA):
+
+1. Press your profile image or icon in the bottom menu.
+2. Press **Security**.
+3. Under Security Options, press **Two Factor Authentication**.
+4. Save a copy of your backup codes. This is critical to avoid losing access if you cannot use your authenticator app.
+   - Press **Download** to save the backup codes to your device.
+   - Press **Copy** to paste the codes into a secure location.
+5. Press **Next**.
+6. Download or open your preferred authenticator app and connect it to Expensify by scanning the QR code or entering the code manually.
+7. Enter the 6-digit code from your authenticator app into Expensify and press **Verify**.
+
+When you log in to Expensify in the future, you'll need to use a magic code from your email and a 6-digit code from your authenticator app. If you lose access to your authenticator app, use your recovery codes as you would the authenticator code.
+
+#### [Close Account Process] How do you close your account?
 Close your account:
 1. Press **Settings**.
 2. Press **Security**.
 3. Press **Close account**.
-4. Confirm and follow prompts.
+4. Provide answers to the questions and confirm closure by pressing **Close Account**.
 
-### Profile
-
-#### Photo
+### Profile and Contact Methods
+#### [Profile Photo Setup] How do you set your profile photo?
 Set your profile photo:
-1. Press **Settings**.
+1. Press your profile image or icon in the bottom menu.
 2. Press the **pencil icon** next to your photo.
-3. Press **Upload** photo.
-4. Follow prompts to select a photo.
+3. Press **Upload Image** to select a photo from your saved files.
 
-#### Display name
+#### [Display Name Modification] How do you change your display name?
 Change your display name:
 1. Press **Settings**.
 2. Press **Profile**.
 3. Press **Display name**.
 4. Enter your name and press **Save**.
 
-#### Secondary contact
+#### [Status Update] How do you set your status?
+Set your status:
+1. Press **Settings**.
+2. Press **Profile**.
+3. Press **Status**.
+4. (Optional) Press the **emoji icon** to add an emoji.
+5. Enter a status message, such as "out of office" or "in a meeting."
+6. Press **Clear After** to select when the status should expire.
+7. Press **Save**.
+
+#### [Add Secondary Contact] How do you add a secondary contact method?
 Add a secondary contact method:
 1. Press **Settings**.
 2. Press **Profile**.
 3. Scroll to **Contact Methods**.
 4. Press **Add Secondary Contact** and enter details.
 
-#### Primary contact
+#### [Change Primary Contact] How do you change your primary contact method?
 Change your primary contact method:
 1. Add a new secondary contact method.
 2. Press **Make primary** to set it as primary.
 
-#### Remove contact
+### Private Details and Regional Settings
+#### [Remove Contact Method] How do you remove a contact method?
 Remove a contact method:
 1. Press **Settings**.
 2. Go to **Profile** and **Contact Methods**.
 3. Select and press **Remove**.
 
-#### Pronouns
+#### [Set Pronouns] How do you set your pronouns?
 Set your pronouns:
-1. Press **Settings**.
+1. Press your profile image or icon in the bottom menu.
 2. Press **Profile**.
 3. Press **Pronouns**.
-4. Type and choose preferred set.
+4. Type any letter to see a list of available pronouns and select your preferred set.
 
-#### Timezone
+#### [Timezone Adjustment] How do you change your timezone?
 Change your timezone:
-1. Press **Settings**.
+1. Press your profile image or icon in the bottom menu.
 2. Press **Profile**.
-3. Press **Timezone**.
-4. Disable **Automatically determine your location**.
-5. Press **Timezone** and choose preferred timezone.
+3. Press **Timezone** to select your timezone.
 
-#### Status
-Set your status:
-1. Press **Settings**.
-2. Press **Profile**.
-3. Press **Status**.
-4. Enter message and emoji (optional).
-5. Press **Save**.
-
-#### Legal name
+#### [Legal Name Update] How do you change your legal name?
 Change your legal name:
 1. Press **Settings**.
 2. Press **Profile**.
-3. Press **Legal Name**.
+3. Scroll to the Private Details section and press **Legal Name**.
 4. Enter updated name and press **Save**.
 
-#### Date of birth
+#### [Date of Birth Adjustment] How do you change your date of birth?
 Change your date of birth:
 1. Press **Settings**.
 2. Press **Profile**.
-3. Press **Date of Birth**.
+3. Scroll to the Private Details section and press **Date of Birth**.
 4. Update birth date and press **Save**.
 
-#### Address
+### Address and Workspace Management
+#### [Address Update] How do you change your address?
 Change your address:
 1. Press **Settings**.
 2. Press **Profile**.
-3. Press **Address**.
+3. Scroll to the Private Details section and press **Address**.
 4. Enter new address and press **Save**.
 
-### Workspace
+#### [Name Update Process] How do you update your display or legal name?
+Update your display or legal name:
+1. Press your **profile icon** to open **Settings**.
+2. Press **Profile**.
+3. Edit your name:
+   - **Display name**: Press **Display Name**, enter your first name (or nickname) and last name, then press **Save**.
+   - **Legal name**: Scroll to the Private Details section, press **Legal Name**, enter your legal first and last name, and press **Save**.
 
-#### Create
-Create a workspace:
-1. Press **Settings**.
-2. Press **Workspaces**.
-3. Press **Create Workspace**.
-4. Follow steps to name and configure.
+#### [Email Address Management] How do you change or add an email address on your Expensify account?
+To change or add an email address on your Expensify account:
 
-#### Rename
-Rename your workspace:
-1. Press **Settings**.
-2. Press **Workspaces**.
-3. Select and press **Edit**.
-4. Change name and press **Save**.
+1. Press your profile image or icon.
+2. Press **Profile**.
+3. Press **Contact Method**.
+4. Press **New Contact Method**.
+5. Enter the email address or phone number you want to use.
+6. Press **Add**.
+7. A verification code will be sent to your email. Enter it in Expensify and press **Verify**.
 
-#### Photo
-Change workspace photo:
-1. Press **Settings**.
-2. Press **Workspaces**.
-3. Select and press **Profile Photo**.
-4. Upload photo and press **Save**.
-
-#### Description
-Change workspace description:
-1. Press **Settings**.
-2. Press **Workspaces**.
-3. Select and press **Description**.
-4. Update text and press **Save**.
-
-#### Currency
-Change workspace currency:
-1. Press **Settings**.
-2. Press **Workspaces**.
-3. Select and press **Currency**.
-4. Choose currency and press **Save**.
-
-#### Headquarters
-Change headquarters location:
-1. Press **Settings**.
-2. Press **Workspaces**.
-3. Select and press **Headquarters**.
-4. Update address and press **Save**.
-
-#### Invite member
-Add or invite someone to workspace:
-1. Press **Settings**.
-2. Press **Workspaces**.
-3. Select and press **Members**.
-4. Press **Add Member** and enter emails.
-5. Press **Invite**.
-
-#### Remove member
-Remove a member:
-1. Press **Settings**.
-2. Press **Workspaces**.
-3. Select and press **Members**.
-4. Choose member and press **Remove Member**.
-
-#### Add admin
-Make someone an admin:
-1. Press **Settings**.
-2. Press **Workspaces**.
-3. Select and press **Members**.
-4. Select member and press **Make Admin**.
-
-#### Remove admin
-Remove admin privileges:
-1. Press **Settings**.
-2. Press **Workspaces**.
-3. Select and press **Members**.
-4. Choose admin and press **Remove Admin**.
-
-#### More features
-Enable features:
-1. Press **Settings**.
-2. Press **Workspaces**.
-3. Select and press **Features**.
-4. Toggle features and press **Save**.
-
-#### Upgrade plan
-Upgrade workspace plan:
-1. Press **Settings**.
-2. Press **Workspaces**.
-3. Select workspace and press **Upgrade to Control**.
-4. Follow steps to upgrade.
-
-#### Delete
-Delete a workspace:
-1. Press **Settings**.
-2. Press **Workspaces**.
-3. Select and press **Delete Workspace**.
-4. Confirm deletion.
-
-### Subscription Management
-
-#### Manage subscription
-Manage your subscription:
-1. Open New Expensify app.
-2. Press profile icon for Account Settings.
-3. Navigate to Workspaces.
-4. Press **Subscription** to manage.
-
-#### Add payment card
-Add a payment card:
-1. In Subscriptions, press **Add Payment Card**.
-2. Enter card details securely.
-
-#### View subscription details
-View subscription details:
-1. Go to Subscription section for seats, billing, and renewal date.
-
-#### Auto-renew
-Manage auto-renew settings:
-1. In Subscription Settings, check auto-renew.
-2. Adjust settings for auto-renew and seat increase.
-
-#### Early cancellation
-Request early cancellation:
-1. Find **Request Early Cancellation** in Subscriptions.
-2. Eligibility may vary.
-
-#### Pricing information
-Visit the Billing Page for pricing details [coming soon!]
-
-### Billing and Subscriptions
-#### Billing page
-A new billing page is coming soon for streamlined billing information and subscription management.
+You can press any email address in your list to set it as the default, remove it, or verify it.
 
 ## FAQ
 You've got questions? We've got answers!
 
-### App
-
-#### Why don't I set a password?
+### App and Messaging
+#### [Passwordless Authentication] Why don't I set a password?
 Expensify uses a "passwordless" design, sending a "magic link" to your contact method for secure authentication. Once signed in, you remain signed in until you sign out.
 
-#### Why am I never asked to sign in?
+#### [Infinite Sessions] Why am I never asked to sign in?
 Expensify uses "infinite sessions," keeping you signed in indefinitely until you sign out.
 
-#### Why can others message me even if my account is closed?
+#### [Messaging Closed Accounts] Why can others message me even if my account is closed?
 Expensify is a communications platform allowing messaging with valid email or SMS numbers, even if you don't use Expensify.
 
-#### Why can't I block users from messaging me using Expensify?
+#### [Messaging User Blocking] Why can't I block users from messaging me using Expensify?
 Like Gmail or iMessage, Expensify allows messaging with valid emails or SMS numbers, without blocking all users.
 
-### Profile
-
-#### Why do I have both a display name and legal name?
+### Profile and Legal Information
+#### [Display and Legal Names] Why do I have both a display name and legal name?
 Your display name shows how you'd like to be identified. Your legal name is used for documentation like billing or tax-related matters.
 
-#### Why do you need my legal name?
+#### [Need for Legal Name] Why do you need my legal name?
 Your legal name is for identity verification when issuing payment cards and processing reimbursements.
 
-#### Why do you need my date of birth?
+#### [Birth Date Requirement] Why do you need my date of birth?
 Your birth date verifies identity for financial products, ensuring compliance with regulations.
 
-#### Why do you need my home address?
+#### [Home Address Requirement] Why do you need my home address?
 We need your address for shipping items and identity verification when processing payments.
 
-### Workspace
-
-#### Why do you need the address of my workspace's headquarters?
+### Workspace and Copilot
+#### [Workspace Address Requirement] Why do you need the address of my workspace's headquarters?
 We need the address to process transactions, apply local taxes, and comply with regional laws.
 
-### Pricing
+#### [Copilot Permissions] As a Copilot, can I add or remove other Copilots?
+No. Copilots are restricted from adding or removing Copilots from other accounts. Only the account owner can add or remove Copilots from their own account. The only exception is that Copilots can remove themselves from another user's account.
 
-#### Which active workspace members require paid seats?
+#### [Copilot Action Identification] How can I tell which actions were taken by a Copilot?
+Any action taken by a Copilot will be displayed as being taken by the Copilot on behalf of the account owner.
+
+#### [Multiple Copilots] Can I have more than one Copilot?
+You can assign as many Copilots as you need—there is no limit. However, you can only add one Copilot per minute.
+
+### Account Closure and Pricing
+#### [Account Closure Issues] Why can't I close my account?
+There are several reasons you might be unable to close your account. If your account has an outstanding balance or if you have been assigned a role under a company’s Expensify workspace, you may encounter an error message during the account closure process, or the Close Account button may not be available. Here are the steps to follow for each scenario:
+- **Account Under a Validated Domain**: A Domain Admin must remove your account from the domain. Then you will be able to successfully close your account.
+- **Sole Domain Admin**: If you are the only Domain Admin for a company’s domain, you must assign a new Domain Admin before you can close your account.
+- **Workspace Billing Owner with an annual subscription**: You must downgrade from the annual subscription before closing the account. Alternatively, you can have another user take over billing for your workspaces.
+- **Company Workspace Owner**: You must assign a new workspace owner before you can close your account.
+- **Account has an outstanding balance**: You must make a payment to resolve the outstanding balance before you can close your account.
+- **Preferred Exporter for a workspace integration**: You must assign a new Preferred Exporter before closing your account.
+- **Verified Business Account that is locked**: You must unlock the account.
+- **Verified Business Account that has an outstanding balance**: You must make a payment to settle any outstanding balances before the account can be closed.
+- **Unverified account**: You must first verify your account before it can be closed.
+
+#### [Workspace Member Pricing] Which active workspace members require paid seats?
 Workspace members billed for a paid seat if they submit, approve, pay, export, or chat on expenses.
 
-#### Why do some workspace members using paid features not require paid seats?
+#### [Member Double Billing] Why do some workspace members using paid features not require paid seats?
 Members using paid functionality on multiple workspaces in a month aren't billed twice – no "double dipping."
