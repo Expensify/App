@@ -8,6 +8,7 @@ import * as QueuedOnyxUpdates from '@userActions/QueuedOnyxUpdates';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
+import type {ConflictData} from '@src/types/onyx/Request';
 import * as NetworkStore from './NetworkStore';
 
 type RequestError = Error & {
@@ -97,7 +98,7 @@ function process(): Promise<void> {
             }
 
             Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
-            PersistedRequests.remove(requestToProcess);
+            PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
             RequestThrottle.clear();
             return process();
         })
@@ -106,7 +107,7 @@ function process(): Promise<void> {
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
                 Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
-                PersistedRequests.remove(requestToProcess);
+                PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
                 RequestThrottle.clear();
                 return process();
             }
@@ -116,7 +117,7 @@ function process(): Promise<void> {
                 .catch(() => {
                     Onyx.update(requestToProcess.failureData ?? []);
                     Log.info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error, request: requestToProcess});
-                    PersistedRequests.remove(requestToProcess);
+                    PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
                     RequestThrottle.clear();
                     return process();
                 });
@@ -207,6 +208,24 @@ function isPaused(): boolean {
 // Flush the queue when the connection resumes
 NetworkStore.onReconnection(flush);
 
+function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxRequest) {
+    if (conflictAction.type === 'push') {
+        PersistedRequests.save(newRequest);
+    } else if (conflictAction.type === 'replace') {
+        PersistedRequests.update(conflictAction.index, conflictAction.request ?? newRequest);
+    } else if (conflictAction.type === 'delete') {
+        PersistedRequests.deleteRequestsByIndices(conflictAction.indices);
+        if (conflictAction.pushNewRequest) {
+            PersistedRequests.save(newRequest);
+        }
+        if (conflictAction.nextAction) {
+            handleConflictActions(conflictAction.nextAction, newRequest);
+        }
+    } else {
+        Log.info(`[SequentialQueue] No action performed to command ${newRequest.command} and it will be ignored.`);
+    }
+}
+
 function push(newRequest: OnyxRequest) {
     const {checkAndFixConflictingRequest} = newRequest;
 
@@ -218,14 +237,7 @@ function push(newRequest: OnyxRequest) {
         // don't try to serialize a function.
         // eslint-disable-next-line no-param-reassign
         delete newRequest.checkAndFixConflictingRequest;
-
-        if (conflictAction.type === 'push') {
-            PersistedRequests.save(newRequest);
-        } else if (conflictAction.type === 'replace') {
-            PersistedRequests.update(conflictAction.index, newRequest);
-        } else {
-            Log.info(`[SequentialQueue] No action performed to command ${newRequest.command} and it will be ignored.`);
-        }
+        handleConflictActions(conflictAction, newRequest);
     } else {
         // Add request to Persisted Requests so that it can be retried if it fails
         PersistedRequests.save(newRequest);

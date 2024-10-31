@@ -106,7 +106,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                     />
                 </View>
             </OfflineWithFeedback>
-            {canUseWorkspaceRules && policy?.areRulesEnabled && (
+            {!!canUseWorkspaceRules && !!policy?.areRulesEnabled && (
                 <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Text style={[styles.textNormal]}>{translate('workspace.tags.trackBillable')}</Text>
