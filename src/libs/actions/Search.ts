@@ -33,7 +33,7 @@ Onyx.connect({
 });
 
 function handleActionButtonPress(hash: number, item: SearchTransaction | SearchReport, goToItem: () => void) {
-    const lastPolicyPaymentMethod = item.policyID ? lastPaymentMethod?.policyID : null;
+    const lastPolicyPaymentMethod = item.policyID ? lastPaymentMethod?.[item.policyID] : null;
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
             return lastPolicyPaymentMethod ? payMoneyRequestOnSearch(hash, lastPolicyPaymentMethod, {[item.reportID]: 0}) : goToItem();
