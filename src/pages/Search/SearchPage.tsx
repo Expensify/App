@@ -64,7 +64,7 @@ function SearchPage({route}: SearchPageProps) {
             onBackButtonPress={handleOnBackButtonPress}
             shouldShowLink={false}
         >
-            {queryJSON && (
+            {!!queryJSON && (
                 <View style={styles.searchSplitContainer}>
                     <View style={styles.searchSidebar}>
                         {/* {!selectionMode?.isEnabled && queryJSON ? ( */}

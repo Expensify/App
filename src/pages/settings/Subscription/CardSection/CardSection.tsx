@@ -198,7 +198,7 @@ function CardSection() {
                 {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && <RequestEarlyCancellationMenuItem />}
             </Section>
 
-            {account?.isEligibleForRefund && (
+            {!!account?.isEligibleForRefund && (
                 <ConfirmModal
                     title={translate('subscription.cardSection.requestRefund')}
                     isVisible={isRequestRefundModalVisible}

@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ReportActionPushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import Visibility from '@libs/Visibility';
+import {updateLastVisitedPath} from '@userActions/App';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -90,6 +91,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
 
                     Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
                     Navigation.navigateToReportWithPolicyCheck({reportID: String(reportID), policyIDToCheck: policyID});
+                    updateLastVisitedPath(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
                 } catch (error) {
                     let errorMessage = String(error);
                     if (error instanceof Error) {

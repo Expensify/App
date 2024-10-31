@@ -87,7 +87,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const isOwner = PolicyUtils.isPolicyOwner(policy, currentUserAccountID);
     const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
-    const shouldShowAddress = !readOnly || formattedAddress;
+    const shouldShowAddress = !readOnly || !!formattedAddress;
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -246,7 +246,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 />
                             </View>
                         </OfflineWithFeedback>
-                        {canUseSpotnanaTravel && shouldShowAddress && (
+                        {!!canUseSpotnanaTravel && shouldShowAddress && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
                                 <View>
                                     <MenuItemWithTopDescription

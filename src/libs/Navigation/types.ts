@@ -258,6 +258,9 @@ type SettingsNavigatorParamList = {
         featureName: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.DOWNGRADE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
         backTo?: Routes;

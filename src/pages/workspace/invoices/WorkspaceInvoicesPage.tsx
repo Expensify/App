@@ -38,9 +38,9 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
             >
                 {(_hasVBA?: boolean, policyID?: string) => (
                     <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        {policyID && <WorkspaceInvoiceBalanceSection policyID={policyID} />}
-                        {policyID && <WorkspaceInvoiceVBASection policyID={policyID} />}
-                        {policyID && <WorkspaceInvoicingDetailsSection policyID={policyID} />}
+                        {!!policyID && <WorkspaceInvoiceBalanceSection policyID={policyID} />}
+                        {!!policyID && <WorkspaceInvoiceVBASection policyID={policyID} />}
+                        {!!policyID && <WorkspaceInvoicingDetailsSection policyID={policyID} />}
                     </View>
                 )}
             </WorkspacePageWithSections>

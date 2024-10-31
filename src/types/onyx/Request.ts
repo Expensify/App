@@ -56,6 +56,11 @@ type RequestData = {
 };
 
 /**
+ * Represents the possible actions to take in case of a conflict in the request queue.
+ */
+type ConflictData = ConflictRequestReplace | ConflictRequestDelete | ConflictRequestPush | ConflictRequestNoAction;
+
+/**
  * Model of a conflict request that has to be replaced in the request queue.
  */
 type ConflictRequestReplace = {
@@ -68,6 +73,36 @@ type ConflictRequestReplace = {
      * The index of the request in the queue to update.
      */
     index: number;
+
+    /**
+     * The new request to replace the existing request in the queue.
+     */
+    request?: Request;
+};
+
+/**
+ * Model of a conflict request that needs to be deleted from the request queue.
+ */
+type ConflictRequestDelete = {
+    /**
+     * The action to take in case of a conflict.
+     */
+    type: 'delete';
+
+    /**
+     * The indices of the requests in the queue that are to be deleted.
+     */
+    indices: number[];
+
+    /**
+     * A flag to mark if the new request should be pushed into the queue after deleting the conflicting requests.
+     */
+    pushNewRequest: boolean;
+
+    /**
+     * The next action to execute after the current conflict is resolved.
+     */
+    nextAction?: ConflictData;
 };
 
 /**
@@ -97,7 +132,7 @@ type ConflictActionData = {
     /**
      * The action to take in case of a conflict.
      */
-    conflictAction: ConflictRequestReplace | ConflictRequestPush | ConflictRequestNoAction;
+    conflictAction: ConflictData;
 };
 
 /**
@@ -115,6 +150,11 @@ type RequestConflictResolver = {
      * the ongoing request, it will be removed from the persisted request queue.
      */
     persistWhenOngoing?: boolean;
+
+    /**
+     * A boolean flag to mark a request as rollbacked, if set to true it means the request failed and was added back into the queue.
+     */
+    isRollbacked?: boolean;
 };
 
 /** Model of requests sent to the API */
@@ -147,4 +187,4 @@ type PaginatedRequest = Request &
     };
 
 export default Request;
-export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, ConflictActionData};
+export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, ConflictActionData, ConflictData};
