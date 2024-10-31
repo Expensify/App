@@ -78,6 +78,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 <View style={[styles.flexRow, styles.gap2]}>
                     <Button
                         success
+                        isDisabled={!!cardFeeds?.settings?.companyCards?.[selectedFeed].pending || !!cardFeeds?.settings?.companyCards?.[selectedFeed].errors}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed))}
                         icon={Expensicons.Plus}
                         text={translate('workspace.companyCards.assignCard')}
