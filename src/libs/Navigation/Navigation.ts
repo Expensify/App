@@ -202,6 +202,10 @@ const defaultGoUpOptions: Required<GoUpOptions> = {
     compareParams: true,
 };
 
+function isRootNavigatorState(state: State): state is State<RootStackParamList> {
+    return state.key === navigationRef.current?.getRootState().key;
+}
+
 function goUp(fallbackRoute: Route, options?: GoUpOptions) {
     const compareParams = options?.compareParams ?? defaultGoUpOptions.compareParams;
 
@@ -230,7 +234,10 @@ function goUp(fallbackRoute: Route, options?: GoUpOptions) {
 
     const indexOfFallbackRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
 
-    if (indexOfFallbackRoute === -1) {
+    const distanceToPop = targetState.routes.length - indexOfFallbackRoute - 1;
+
+    // If we need to pop more than one route from rootState, we replace the current route to not lose visited routes from the navigation state
+    if (indexOfFallbackRoute === -1 || (isRootNavigatorState(targetState) && distanceToPop > 1)) {
         const replaceAction = {...minimalAction, type: 'REPLACE'} as NavigationAction;
         navigationRef.current.dispatch(replaceAction);
         return;
@@ -243,7 +250,6 @@ function goUp(fallbackRoute: Route, options?: GoUpOptions) {
         return;
     }
 
-    const distanceToPop = targetState.routes.length - indexOfFallbackRoute - 1;
     navigationRef.current.dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
 }
 
