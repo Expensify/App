@@ -182,10 +182,14 @@ jobs:
           submodules: true
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          fetch-depth: 0
 
       - name: Update submodule
         run: |
           git submodule update --init
+          # Update submodule to latest on staging
+          git fetch
+          git checkout staging
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -200,6 +204,9 @@ jobs:
         run: |
           npm install
           cd .. && npm install
+          
+          # Fixes https://github.com/Expensify/App/issues/51682
+          npm run grunt:build:shared
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -475,10 +482,14 @@ jobs:
           submodules: true
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          fetch-depth: 0
 
       - name: Update submodule
         run: |
           git submodule update --init
+          # Update submodule to latest on staging
+          git fetch
+          git checkout staging
 
       - name: Configure MapBox SDK
         run: |
@@ -786,18 +797,25 @@ jobs:
       - name: Upload artifacts to GitHub Release
         continue-on-error: true
         run: |
-          gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
-            ./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./android-aab-artifact/app-production-release.aab \
-            ./android-hybrid-build-artifact/Expensify-release.aab#Android-HybridApp.aab \
-            ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./desktop-staging-build-artifact/NewExpensify.dmg#NewExpensifyStaging.dmg \
-            ./ios-sourcemaps-artifact/main.jsbundle.map#ios-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./ios-build-artifact/New\ Expensify.ipa \
-            ./ios-hybrid-build-artifact/Expensify.ipa#iOS-HybridApp.ipa \
-            ./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./web-staging-build-tar-gz-artifact/webBuild.tar.gz#stagingWebBuild.tar.gz \
-            ./web-staging-build-zip-artifact/webBuild.zip#stagingWebBuild.zip
+          # Release asset name should follow the template: [platform]-[hybrid, staging, production or blank]-[sourcemap or blank].[file extension]
+          files=(
+            "./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap.js.map"
+            "./android-aab-artifact/app-production-release.aab#android.aab"
+            "./android-hybrid-build-artifact/Expensify-release.aab#android-hybrid.aab"
+            "./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap.js.map"
+            "./desktop-staging-build-artifact/NewExpensify.dmg#desktop-staging.dmg"
+            "./ios-sourcemaps-artifact/main.jsbundle.map#ios-sourcemap.js.map"
+            "./ios-build-artifact/New Expensify.ipa#ios.ipa"
+            "./ios-hybrid-build-artifact/Expensify.ipa#ios-hybrid.ipa"
+            "./web-staging-sourcemaps-artifact/web-staging-sourcemap.js.map#web-staging-sourcemap.js.map"
+            "./web-staging-build-tar-gz-artifact/webBuild.tar.gz#web-staging.tar.gz"
+            "./web-staging-build-zip-artifact/webBuild.zip#web-staging.zip"
+          )
+          
+          # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
+          for file_entry in "${files[@]}"; do
+            gh release upload "$APP_VERSION" --repo "$GITHUB_REPOSITORY" --clobber "$file_entry"
+          done
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -844,12 +862,19 @@ jobs:
       - name: Upload artifacts to GitHub Release
         continue-on-error: true
         run: |
-          gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
-            ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./desktop-build-artifact/NewExpensify.dmg \
-            ./web-sourcemaps-artifact/web-merged-source-map.js.map#web-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./web-build-tar-gz-artifact/webBuild.tar.gz \
-            ./web-build-zip-artifact/webBuild.zip
+          # Release asset name should follow the template: [platform]-[hybrid, staging, production or blank]-[sourcemap or blank].[file extension]
+          files=(
+            "./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-production-sourcemap.js.map"
+            "./desktop-build-artifact/NewExpensify.dmg#desktop-production.dmg"
+            "./web-sourcemaps-artifact/web-merged-source-map.js.map#web-production-sourcemap.js.map"
+            "./web-build-tar-gz-artifact/webBuild.tar.gz#web-production.tar.gz"
+            "./web-build-zip-artifact/webBuild.zip#web-production.zip"
+          )
+          
+          # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
+          for file_entry in "${files[@]}"; do
+            gh release upload "$APP_VERSION" --repo "$GITHUB_REPOSITORY" --clobber "$file_entry"
+          done
         env:
           GITHUB_TOKEN: ${{ github.token }}
 

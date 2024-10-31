@@ -157,7 +157,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
                     src={Expensicons.DotIndicator}
                     fill={indicator}
                 />
-                {message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
+                {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
             </View>
             <Button
                 text="View"

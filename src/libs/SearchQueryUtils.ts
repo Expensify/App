@@ -642,4 +642,5 @@ export {
     buildCannedSearchQuery,
     isCannedSearchQuery,
     standardizeQueryJSON,
+    sanitizeSearchValue,
 };
