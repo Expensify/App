@@ -1,14 +1,10 @@
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
-import TextInput from '@components/TextInput';
+import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,11 +14,10 @@ type JobTitleProps = SubStepProps & {isSecondSigner: boolean};
 
 const {SIGNER_JOB_TITLE, SECOND_SIGNER_JOB_TITLE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-function JobTitle({onNext, isEditing, isSecondSigner}: JobTitleProps) {
-    const inputID = isSecondSigner ? SECOND_SIGNER_JOB_TITLE : SIGNER_JOB_TITLE;
+function JobTitle({onNext, onMove, isEditing, isSecondSigner}: JobTitleProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
+    const inputID = isSecondSigner ? SECOND_SIGNER_JOB_TITLE : SIGNER_JOB_TITLE;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const defaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[inputID] ?? reimbursementAccountDraft?.[inputID] ?? '';
@@ -41,25 +36,20 @@ function JobTitle({onNext, isEditing, isSecondSigner}: JobTitleProps) {
     });
 
     return (
-        <FormProvider
+        <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-            onSubmit={handleSubmit}
+            formTitle={translate('signerInfoStep.whatsYourJobTitle')}
             validate={validate}
-            style={[styles.mh5, styles.flexGrow1]}
-        >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('signerInfoStep.whatsYourJobTitle')}</Text>
-            <InputWrapper
-                InputComponent={TextInput}
-                label={translate('signerInfoStep.jobTitle')}
-                aria-label={translate('signerInfoStep.jobTitle')}
-                role={CONST.ROLE.PRESENTATION}
-                inputID={inputID}
-                containerStyles={[styles.mt6]}
-                defaultValue={defaultValue}
-                shouldSaveDraft={!isEditing}
-            />
-        </FormProvider>
+            onSubmit={handleSubmit}
+            inputId={inputID}
+            inputLabel={translate('signerInfoStep.jobTitle')}
+            inputMode={CONST.INPUT_MODE.TEXT}
+            defaultValue={defaultValue}
+            shouldShowHelpLinks={false}
+        />
     );
 }
 
