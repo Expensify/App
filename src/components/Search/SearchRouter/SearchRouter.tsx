@@ -356,8 +356,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         [autocompleteSubstitutions, onRouterClose, setTextInputValue],
     );
 
-    const updateSubstitutionsMap = (key: string, value: string) => {
-        const substitutions = {...autocompleteSubstitutions, [key]: {value}};
+    const onAutocompleteSuggestionClick = (autocompleteKey: string, autocompleteId: string) => {
+        const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: {value: autocompleteId}};
 
         setAutocompleteSubstitutions(substitutions);
     };
@@ -400,10 +400,10 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 reportForContextualSearch={contextualReportData}
                 recentSearches={sortedRecentSearches?.slice(0, 5)}
                 recentReports={recentReports}
-                autocompleteItems={autocompleteSuggestions}
+                autocompleteSuggestions={autocompleteSuggestions}
                 onSearchSubmit={onSearchSubmit}
                 closeRouter={onRouterClose}
-                onAutocompleteSuggestionClick={updateSubstitutionsMap}
+                onAutocompleteSuggestionClick={onAutocompleteSuggestionClick}
                 ref={listRef}
             />
         </View>

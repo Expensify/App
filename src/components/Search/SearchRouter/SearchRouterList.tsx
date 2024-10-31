@@ -53,7 +53,7 @@ type SearchRouterListProps = {
     recentReports: OptionData[];
 
     /** Autocomplete items */
-    autocompleteItems: AutocompleteItemData[] | undefined;
+    autocompleteSuggestions: AutocompleteItemData[] | undefined;
 
     /** Callback to submit query when selecting a list item */
     onSearchSubmit: (query: SearchQueryString) => void;
@@ -61,11 +61,11 @@ type SearchRouterListProps = {
     /** Context present when opening SearchRouter from a report, invoice or workspace page */
     reportForContextualSearch?: OptionData;
 
+    /** Callback to run when user clicks a suggestion item that contains autocomplete data */
+    onAutocompleteSuggestionClick: (autocompleteKey: string, autocompleteId: string) => void;
+
     /** Callback to close and clear SearchRouter */
     closeRouter: () => void;
-
-    /** Callback WIP */
-    onAutocompleteSuggestionClick: (id: string, value: string) => void;
 };
 
 const setPerformanceTimersEnd = () => {
@@ -73,8 +73,8 @@ const setPerformanceTimersEnd = () => {
     Performance.markEnd(CONST.TIMING.SEARCH_ROUTER_RENDER);
 };
 
-function getContextualSearchQuery(reportID: string) {
-    return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${CONST.SEARCH.DATA_TYPES.CHAT} in:${reportID}`;
+function getContextualSearchQuery(reportName: string) {
+    return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${CONST.SEARCH.DATA_TYPES.CHAT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(reportName)}`;
 }
 
 function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
@@ -83,6 +83,13 @@ function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQu
 
 function isSearchQueryListItem(listItem: UserListItemProps<OptionData> | SearchQueryListItemProps): listItem is SearchQueryListItemProps {
     return isSearchQueryItem(listItem.item);
+}
+
+function getItemHeight(item: OptionData | SearchQueryItem) {
+    if (isSearchQueryItem(item)) {
+        return 44;
+    }
+    return 64;
 }
 
 function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryListItemProps) {
@@ -112,7 +119,7 @@ function SearchRouterList(
         setTextInputValue,
         reportForContextualSearch,
         recentSearches,
-        autocompleteItems,
+        autocompleteSuggestions,
         recentReports,
         onSearchSubmit,
         onAutocompleteSuggestionClick,
@@ -146,12 +153,14 @@ function SearchRouterList(
     }
 
     if (reportForContextualSearch && !textInputValue) {
+        const reportQueryValue = reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? reportForContextualSearch.reportID;
         sections.push({
             data: [
                 {
                     text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
                     singleIcon: Expensicons.MagnifyingGlass,
-                    searchQuery: getContextualSearchQuery(reportForContextualSearch.reportID),
+                    searchQuery: reportQueryValue,
+                    autocompleteID: reportForContextualSearch.reportID,
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
                     searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
@@ -160,7 +169,7 @@ function SearchRouterList(
         });
     }
 
-    const autocompleteData = autocompleteItems?.map(({filterKey, text, autocompleteID}) => {
+    const autocompleteData = autocompleteSuggestions?.map(({filterKey, text, autocompleteID}) => {
         return {
             text: getSubstitutionMapKey(filterKey, text),
             singleIcon: Expensicons.MagnifyingGlass,
@@ -200,7 +209,13 @@ function SearchRouterList(
                     return;
                 }
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
-                    updateSearchValue(`${item.searchQuery} `);
+                    const searchQuery = getContextualSearchQuery(item.searchQuery);
+                    updateSearchValue(`${searchQuery} `);
+
+                    if (item.autocompleteID) {
+                        const autocompleteKey = `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery}`;
+                        onAutocompleteSuggestionClick(autocompleteKey, item.autocompleteID);
+                    }
                     return;
                 }
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
@@ -242,13 +257,6 @@ function SearchRouterList(
         },
         [setTextInputValue, textInputValue, onAutocompleteSuggestionClick],
     );
-
-    const getItemHeight = useCallback((item: OptionData | SearchQueryItem) => {
-        if (isSearchQueryItem(item)) {
-            return 44;
-        }
-        return 64;
-    }, []);
 
     return (
         <SelectionList<OptionData | SearchQueryItem>

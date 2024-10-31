@@ -4,6 +4,17 @@ import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
 const getSubstitutionsKey = (filterName: string, value: string) => `${filterName}:${value}`;
 
+/**
+ * Given a plaintext query and a SubstitutionMap object,
+ * this function will remove any substitution keys that do not appear in the query and return an updated object
+ *
+ * Ex:
+ * query: `Test from:John1`
+ * substitutions: {
+ *     from:SomeOtherJohn: 12345
+ * }
+ * return: {}
+ */
 function getUpdatedSubstitutionsMap(query: string, substitutions: SubstitutionMap): SubstitutionMap {
     const parsedQuery = parser.parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 

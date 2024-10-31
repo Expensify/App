@@ -6,6 +6,18 @@ type SubstitutionMap = Record<string, SubstitutionEntry>;
 
 const getSubstitutionMapKey = (filterName: string, value: string) => `${filterName}:${value}`;
 
+/**
+ * Given a plaintext query and a SubstitutionMap object, this function will return a transformed query where:
+ * - any autocomplete mention in the original query will be substituted with an id taken from `substitutions` object
+ * - anything that does not match will stay as is
+ *
+ * Ex:
+ * query: `A from:@johndoe A`
+ * substitutions: {
+ *     from:@johndoe: 9876
+ * }
+ * return: `A from:9876 A`
+ */
 function getQueryWithSubstitutions(changedQuery: string, substitutions: SubstitutionMap) {
     const parsed = parser.parse(changedQuery) as {ranges: SearchAutocompleteQueryRange[]};
 
