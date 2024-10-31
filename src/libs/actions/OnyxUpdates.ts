@@ -4,12 +4,12 @@ import type {Merge} from 'type-fest';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import PusherUtils from '@libs/PusherUtils';
-import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as PersistedRequests from './PersistedRequests';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
