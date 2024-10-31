@@ -179,6 +179,8 @@ function FloatingActionButtonAndPopover(
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${quickActionReport?.reportID ?? -1}`);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const policyChatForActivePolicyID = ReportUtils.getWorkspaceChats(activePolicyID ?? '-1', [session?.accountID ?? -1]);
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
@@ -195,10 +197,14 @@ function FloatingActionButtonAndPopover(
             const avatars = ReportUtils.getIcons(quickActionReport, personalDetails);
             return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== session?.accountID);
         }
+        if (policyChatForActivePolicyID.length > 0 && !isEmptyObject(policyChatForActivePolicyID.at(0))) {
+            const avatars = ReportUtils.getIcons(policyChatForActivePolicyID.at(0), personalDetails);
+            return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(policyChatForActivePolicyID.at(0)) ? avatars : avatars.filter((avatar) => avatar.id !== session?.accountID);
+        }
         return [];
         // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy]);
+    }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy, policyChatForActivePolicyID]);
 
     const renderQuickActionTooltip = useCallback(
         () => (
@@ -233,16 +239,18 @@ function FloatingActionButtonAndPopover(
         return quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && displayName.length === 0;
     }, [personalDetails, quickActionReport, quickAction?.action, quickActionAvatars]);
 
-    const navigateToQuickAction = () => {
-        const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
+    const selectOption = useCallback(
+        (onSelected: () => void, shouldRestrictAction: boolean) => {
             if (shouldRestrictAction && quickActionReport?.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(quickActionReport.policyID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReport.policyID));
                 return;
             }
-
             onSelected();
-        };
+        },
+        [quickActionReport?.policyID],
+    );
 
+    const navigateToQuickAction = useCallback(() => {
         const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport, reportNameValuePairs));
         const quickActionReportID = isValidReport ? quickActionReport?.reportID ?? '-1' : ReportUtils.generateReportID();
 
@@ -282,7 +290,7 @@ function FloatingActionButtonAndPopover(
                 break;
             default:
         }
-    };
+    }, [quickAction, quickActionReport, reportNameValuePairs, selectOption]);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -413,6 +421,73 @@ function FloatingActionButtonAndPopover(
         ];
     }, [canUseCombinedTrackSubmit, translate, selfDMReportID, hasSeenTrackTraining, isOffline]);
 
+    const quickActionMenuItems = useMemo(() => {
+        // Define common properties in baseQuickAction
+        const baseQuickAction = {
+            label: translate('quickAction.header'),
+            isLabelHoverable: false,
+            floatRightAvatars: quickActionAvatars,
+            floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
+            numberOfLinesDescription: 1,
+            tooltipAnchorAlignment: {
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+            },
+            tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
+            tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
+            renderTooltipContent: renderQuickActionTooltip,
+            tooltipWrapperStyle: styles.quickActionTooltipWrapper,
+        };
+
+        const quickActionItems = [];
+        if (quickAction?.action) {
+            quickActionItems.push({
+                ...baseQuickAction,
+                icon: getQuickActionIcon(quickAction?.action),
+                text: quickActionTitle,
+                description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
+                onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
+                shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
+                shouldRenderTooltip: quickAction.isFirstQuickAction,
+            });
+        } else if (policyChatForActivePolicyID.length > 0 && !isEmptyObject(policyChatForActivePolicyID.at(0))) {
+            quickActionItems.push({
+                ...baseQuickAction,
+                icon: Expensicons.ReceiptScan,
+                text: translate('quickAction.scanReceipt'),
+                description: ReportUtils.getReportName(policyChatForActivePolicyID.at(0)),
+                onSelected: () =>
+                    interceptAnonymousUser(() => {
+                        selectOption(() => {
+                            const isValidReport = !(isEmptyObject(policyChatForActivePolicyID.at(0)) || ReportUtils.isArchivedRoom(policyChatForActivePolicyID.at(0), reportNameValuePairs));
+                            const quickActionReportID = isValidReport ? policyChatForActivePolicyID.at(0)?.reportID ?? '-1' : ReportUtils.generateReportID();
+                            IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID ?? '-1', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                        }, true);
+                    }),
+                shouldShowSubscriptRightAvatar: true,
+                shouldRenderTooltip: false,
+            });
+        }
+
+        return quickActionItems;
+    }, [
+        translate,
+        quickActionAvatars,
+        styles.popoverMenuItem.paddingHorizontal,
+        styles.popoverMenuItem.paddingVertical,
+        styles.quickActionTooltipWrapper,
+        renderQuickActionTooltip,
+        quickAction?.action,
+        quickAction?.isFirstQuickAction,
+        policyChatForActivePolicyID,
+        quickActionTitle,
+        hideQABSubtitle,
+        quickActionReport,
+        navigateToQuickAction,
+        selectOption,
+        reportNameValuePairs,
+    ]);
+
     return (
         <View style={styles.flexGrow1}>
             <PopoverMenu
@@ -468,31 +543,7 @@ function FloatingActionButtonAndPopover(
                               },
                           ]
                         : []),
-                    ...(quickAction?.action
-                        ? [
-                              {
-                                  icon: getQuickActionIcon(quickAction?.action),
-                                  text: quickActionTitle,
-                                  label: translate('quickAction.header'),
-                                  isLabelHoverable: false,
-                                  floatRightAvatars: quickActionAvatars,
-                                  floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
-                                  description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
-                                  numberOfLinesDescription: 1,
-                                  onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
-                                  shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
-                                  shouldRenderTooltip: quickAction.isFirstQuickAction,
-                                  tooltipAnchorAlignment: {
-                                      vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                      horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                  },
-                                  tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
-                                  tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
-                                  renderTooltipContent: renderQuickActionTooltip,
-                                  tooltipWrapperStyle: styles.quickActionTooltipWrapper,
-                              },
-                          ]
-                        : []),
+                    ...(quickActionMenuItems.length > 0 ? quickActionMenuItems : []),
                 ]}
                 withoutOverlay
                 anchorRef={fabRef}
