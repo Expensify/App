@@ -152,8 +152,25 @@ type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
 type OnboardingTaskType = {
     type: string;
     autoCompleted: boolean;
-    title: string;
-    description: string | ((params: Partial<{adminsRoomLink: string; workspaceCategoriesLink: string; workspaceMoreFeaturesLink: string; workspaceMembersLink: string}>) => string);
+    title:
+        | string
+        | ((
+              params: Partial<{
+                  integrationName: string;
+              }>,
+          ) => string);
+    description:
+        | string
+        | ((
+              params: Partial<{
+                  adminsRoomLink: string;
+                  workspaceCategoriesLink: string;
+                  workspaceMoreFeaturesLink: string;
+                  workspaceMembersLink: string;
+                  integrationName: string;
+                  workspaceAccountingLink: string;
+              }>,
+          ) => string);
 };
 
 type OnboardingMessageType = {
@@ -4736,7 +4753,13 @@ const CONST = {
             '\n' +
             "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
     },
-
+    ONBOARDING_ACCOUNTING_MAPPING: {
+        quickbooksOnline: 'QuickBooks Online',
+        xero: 'Xero',
+        netsuite: 'NetSuite',
+        intacct: 'Sage Intacct',
+        quickbooksDesktop: 'QuickBooks Desktop',
+    },
     ONBOARDING_MESSAGES: {
         [onboardingChoices.EMPLOYER]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.SUBMIT]: onboardingEmployerOrSubmitMessage,
@@ -4847,6 +4870,24 @@ const CONST = {
                         '6. Add an invite message if you want.\n' +
                         '\n' +
                         `[Take me to workspace members](${workspaceMembersLink}). That’s it, happy expensing! :)`,
+                },
+                {
+                    type: 'addAccountingIntegration',
+                    autoCompleted: false,
+                    title: ({integrationName}) => `Connect to ${integrationName}`,
+                    description: ({integrationName, workspaceAccountingLink}) =>
+                        `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
+                        '\n' +
+                        `Here’s how to connect to ${integrationName}:\n` +
+                        '\n' +
+                        '1. Click your profile photo.\n' +
+                        '2. Go to Workspaces.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click Accounting.\n' +
+                        `5. Find ${integrationName}.\n` +
+                        '6. Click Connect.\n' +
+                        '\n' +
+                        `[Take me to Accounting!](${workspaceAccountingLink})`,
                 },
             ],
         },
