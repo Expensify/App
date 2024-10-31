@@ -37,7 +37,7 @@ function DebugTransactionViolationPage({
         (data: Record<string, unknown>) => {
             const updatedTransactionViolations = [...(transactionViolations ?? [])];
             updatedTransactionViolations.splice(Number(index), 1, data as TransactionViolation);
-            Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+            Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
         },
         [index, transactionID, transactionViolations],
     );
@@ -45,7 +45,7 @@ function DebugTransactionViolationPage({
     const deleteTransactionViolation = useCallback(() => {
         const updatedTransactionViolations = [...(transactionViolations ?? [])];
         updatedTransactionViolations.splice(Number(index), 1);
-        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
     }, [index, transactionID, transactionViolations]);
 
     if (!transactionViolation) {
