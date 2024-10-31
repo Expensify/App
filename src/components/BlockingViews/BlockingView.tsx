@@ -102,7 +102,7 @@ function BlockingView({
     const subtitleText = useMemo(
         () => (
             <>
-                {subtitle && (
+                {!!subtitle && (
                     <AutoEmailLink
                         style={[styles.textAlignCenter, subtitleStyle]}
                         text={subtitle}
@@ -134,7 +134,7 @@ function BlockingView({
 
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}>
-            {animation && (
+            {!!animation && (
                 <Lottie
                     source={animation}
                     loop
@@ -143,7 +143,7 @@ function BlockingView({
                     webStyle={animationWebStyle}
                 />
             )}
-            {icon && (
+            {!!icon && (
                 <Icon
                     src={icon}
                     fill={iconColor}
