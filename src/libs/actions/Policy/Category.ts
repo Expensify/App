@@ -643,7 +643,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                     rules: {
                         approvalRules,
                     },
-                    mccGroup: updatedMccGroup,
+                    mccGroup,
                 },
             },
         ],
