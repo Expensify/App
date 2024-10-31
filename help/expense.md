@@ -121,12 +121,6 @@ To configure NetSuite settings within Expensify, follow these steps:
 2. Enable features such as Auto-sync, Sync reimbursed reports, Invite employees, and Auto-create employees/vendors.
 3. Set approval levels and enable or disable newly imported categories.
 
-## Platforms
-Expensify Expense is available on all platforms, ensuring you can track expenses wherever you are:
-* **Web app** - Access Expensify Expense from your browser at any time.
-* **Mobile app** - Track expenses on the go using the Expensify mobile app for iOS and Android.
-* **Desktop app** - Use the Expensify desktop app for Windows or Mac to manage expenses and reports.
-
 ## Tutorials
 
 ### [Create report] How do I create an expense report?
