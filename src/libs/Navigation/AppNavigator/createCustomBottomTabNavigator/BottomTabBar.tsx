@@ -80,6 +80,8 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
 
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations));
+        // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
+        // That's why reportActions is added as a dependency here
     }, [activeWorkspaceID, transactionViolations, reports, reportActions, betas, policies, priorityMode, currentReportID]);
 
     const navigateToChats = useCallback(() => {
