@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
@@ -8,18 +8,13 @@ import PushRowWithModal from '@components/PushRowWithModal';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 type AddressErrors = Record<keyof Address, boolean>;
 
 type AddressFormProps = {
-    /** The form ID */
-    formID: keyof OnyxFormValuesMapping;
-
     /** Translate key for Street name */
     streetTranslationKey: TranslationPaths;
 
@@ -68,7 +63,6 @@ const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typ
 }, {} as Record<string, string>);
 
 function AddressFormFields({
-    formID,
     shouldSaveDraft = false,
     defaultValues,
     values,
@@ -84,12 +78,6 @@ function AddressFormFields({
 }: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    const [stateValue, setStateValue] = useState<string>(defaultValues?.state ?? '');
-    const resetStateValue = () => {
-        setStateValue('');
-        FormActions.setDraftValues(formID, {[inputKeys.state ?? 'stateInput']: ''});
-    };
 
     return (
         <View style={containerStyles}>
@@ -130,10 +118,8 @@ function AddressFormFields({
                         description={stateSelectorLabel ?? translate('common.state')}
                         modalHeaderTitle={stateSelectorModalHeaderTitle ?? translate('common.state')}
                         searchInputTitle={stateSelectorSearchInputTitle ?? translate('common.state')}
-                        onValueChange={(value) => {
-                            setStateValue(value as string);
-                        }}
-                        value={stateValue}
+                        value={values?.state}
+                        defaultValue={defaultValues?.state}
                         inputID={inputKeys.state ?? 'stateInput'}
                         errorText={errors?.state ? translate('bankAccount.error.addressState') : ''}
                     />
@@ -160,12 +146,12 @@ function AddressFormFields({
                         InputComponent={PushRowWithModal}
                         inputID={inputKeys?.country ?? 'country'}
                         shouldSaveDraft={shouldSaveDraft}
-                        onValueChange={resetStateValue}
                         optionsList={CONST.ALL_COUNTRIES}
                         description={translate('common.country')}
                         modalHeaderTitle={translate('countryStep.selectCountry')}
                         searchInputTitle={translate('countryStep.findCountry')}
                         value={values?.country}
+                        stateInputIDToReset={inputKeys.state ?? 'stateInput'}
                     />
                 </View>
             )}

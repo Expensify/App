@@ -12,7 +12,7 @@ type PushRowWithModalProps = {
     value?: string;
 
     /** Function called whenever list item is selected */
-    onInputChange?: (value: string) => void;
+    onInputChange?: (value: string, key?: string) => void;
 
     /** Additional styles to apply to container */
     wrapperStyles?: StyleProp<ViewStyle>;
@@ -31,6 +31,9 @@ type PushRowWithModalProps = {
 
     /** Text to display on error message */
     errorText?: string;
+
+    /** The ID of the input that should be reset when the value changes */
+    stateInputIDToReset?: string;
 };
 
 function PushRowWithModal({
@@ -43,6 +46,7 @@ function PushRowWithModal({
     shouldAllowChange = true,
     errorText,
     onInputChange = () => {},
+    stateInputIDToReset,
 }: PushRowWithModalProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -56,6 +60,10 @@ function PushRowWithModal({
 
     const handleOptionChange = (optionValue: string) => {
         onInputChange(optionValue);
+
+        if (stateInputIDToReset) {
+            onInputChange('', stateInputIDToReset);
+        }
     };
 
     return (

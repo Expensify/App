@@ -115,7 +115,6 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{formTitle}</Text>
                 {!!formPOBoxDisclaimer && <Text style={[styles.textSupporting]}>{formPOBoxDisclaimer}</Text>}
                 <AddressFormFields
-                    formID={formID}
                     inputKeys={inputFieldsIDs}
                     streetTranslationKey="common.streetAddress"
                     defaultValues={defaultValues}
