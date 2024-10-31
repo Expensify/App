@@ -115,11 +115,19 @@ To flag a message:
 ### [Create Room] How do I create a chat room?
 To create a chat room:
 
-1. Go to the **Chat** section.
-2. Press **Create Room**.
-3. Enter a name and set it as public or private.
-4. Invite members by email or phone.
-5. Press **Create** to finish.
+1. Press the **+** button and select **Start Chat**.
+2. Choose the **#Room** tab.
+3. Enter a name for the room (ensure it's unique within the workspace).
+4. Optionally, add a description.
+5. Select **Workspace** to assign the room to a workspace.
+6. Choose **Who can post** to set posting permissions (all members or only admins).
+7. Set **Visibility** to determine room accessibility:
+   - **Public**: Viewable by anyone (ideal for conferences).
+   - **Private**: Only invited individuals can find it.
+   - **Workspace**: Accessible by all workspace members.
+8. Press **Create room** to finalize the setup.
+
+*Note: Anyone, including those outside the workspace, can be invited to private or restricted rooms.*
 
 ### [Invite Members] How do I invite members to a chat group or room?
 Invite members using one of the following methods:
@@ -159,23 +167,6 @@ To start a group chat:
    - **Name**: Select **Group Name**, enter the new name, and save.
    - **Image**: Select the profile image, upload a new image, and adjust as needed.
 4. Press **Start group** to create the chat.
-
-### [Start a Chat Room] How do I start a chat room?
-To start a chat room:
-
-1. Press the **+** button and select **Start Chat**.
-2. Choose the **#Room** tab.
-3. Enter a name for the room (ensure it's unique within the workspace).
-4. Optionally, add a description.
-5. Select **Workspace** to assign the room to a workspace.
-6. Choose **Who can post** to set posting permissions (all members or only admins).
-7. Set **Visibility** to determine room accessibility:
-   - **Public**: Viewable by anyone (ideal for conferences).
-   - **Private**: Only invited individuals can find it.
-   - **Workspace**: Accessible by all workspace members.
-8. Press **Create room** to finalize the setup.
-
-*Note: Anyone, including those outside the workspace, can be invited to private or restricted rooms.*
 
 ### [Direct Message] How do I send a direct message?
 To send a direct message:
