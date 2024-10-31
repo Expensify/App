@@ -3467,7 +3467,7 @@ function completeOnboarding(
         parentReportActionID: taskReportAction.reportAction.reportActionID,
         assigneeChatReportID: '',
         createdTaskReportActionID: taskCreatedAction.reportActionID,
-        completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? undefined,
+        completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? '-1',
         title: currentTask.reportName ?? '',
         description: taskDescription ?? '',
     }));
