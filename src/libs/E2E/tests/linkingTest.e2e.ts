@@ -24,6 +24,7 @@ const test = (config: NativeConfig) => {
     const reportID = getConfigValueOrThrow('reportID', config);
     const linkedReportID = getConfigValueOrThrow('linkedReportID', config);
     const linkedReportActionID = getConfigValueOrThrow('linkedReportActionID', config);
+    const name = getConfigValueOrThrow('name', config);
 
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {
@@ -74,7 +75,7 @@ const test = (config: NativeConfig) => {
 
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
-                    name: 'Comment linking',
+                    name,
                     metric: entry.duration,
                     unit: 'ms',
                 });

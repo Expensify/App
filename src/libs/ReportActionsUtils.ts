@@ -384,15 +384,16 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
 
     const sortedActions = reportActions?.filter(Boolean).sort((first, second) => {
-        // First sort by timestamp
+        // First sort by action type, ensuring that `CREATED` actions always come first if they have the same or even a later timestamp as another action type
+        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
+            return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
+        }
+
+        // Then sort by timestamp
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
         }
 
-        // Then by action type, ensuring that `CREATED` actions always come first if they have the same timestamp as another action type
-        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
-            return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
-        }
         // Ensure that `REPORT_PREVIEW` actions always come after if they have the same timestamp as another action type
         if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) && first.actionName !== second.actionName) {
             return (first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? 1 : -1) * invertedMultiplier;
@@ -579,6 +580,22 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
     }
 
     return currentAction.actorAccountID === previousAction.actorAccountID;
+}
+
+function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportAction>, isChronosReport: boolean): boolean {
+    const isAutomaticStartTimerAction = () => /start(?:ed|ing)?(?:\snow)?/i.test(getReportActionText(reportAction));
+    const isAutomaticStopTimerAction = () => /stop(?:ped|ping)?(?:\snow)?/i.test(getReportActionText(reportAction));
+    return isChronosReport && (isAutomaticStartTimerAction() || isAutomaticStopTimerAction());
+}
+
+/**
+ * If the user sends consecutive actions to Chronos to automatically start/stop the timer,
+ * then detect that and show each individually so that the user can easily see when they were sent.
+ */
+function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[], actionIndex: number, isChronosReport: boolean): boolean {
+    const previousAction = findPreviousAction(reportActions, actionIndex);
+    const currentAction = reportActions?.at(actionIndex);
+    return isChronosAutomaticTimerAction(currentAction, isChronosReport) && isChronosAutomaticTimerAction(previousAction, isChronosReport);
 }
 
 /**
@@ -1061,7 +1078,7 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
 
     // If there's only one IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
     // and want to display it using the standard view
-    if ((originalMessage?.deleted ?? '') !== '' && isMoneyRequestAction(singleAction)) {
+    if (((originalMessage?.deleted ?? '') !== '' || isDeletedAction(singleAction)) && isMoneyRequestAction(singleAction)) {
         return;
     }
 
@@ -1210,6 +1227,9 @@ function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction):
 }
 
 function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
+    if (!action || !action.actionName) {
+        return false;
+    }
     return [
         CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
         CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
@@ -1723,14 +1743,21 @@ function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction
 }
 
 function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS);
+    return isActionOfType(
+        reportAction,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
+    );
 }
 
-function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1') {
+function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1', shouldDisplayLinkToCard = false) {
     const cardIssuedActionOriginalMessage = isActionOfType(
         reportAction,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
         CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
     )
         ? getOriginalMessage(reportAction)
@@ -1742,9 +1769,13 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID));
-    const link = shouldRenderHTML
-        ? `<a href='${environmentURL}/${navigateRoute}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
-        : Localize.translateLocal('cardPage.expensifyCard');
+    const expensifyCardLink =
+        shouldRenderHTML && shouldDisplayLinkToCard
+            ? `<a href='${environmentURL}/${navigateRoute}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
+            : Localize.translateLocal('cardPage.expensifyCard');
+    const companyCardLink = shouldRenderHTML
+        ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${Localize.translateLocal('workspace.companyCards.companyCard')}</a>`
+        : Localize.translateLocal('workspace.companyCards.companyCard');
 
     const missingDetails =
         !privatePersonalDetails?.legalFirstName ||
@@ -1756,17 +1787,23 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
 
     const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
 
-    const shouldShowAddMissingDetailsButton = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails && isAssigneeCurrentUser;
+    const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails);
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
             return Localize.translateLocal('workspace.expensifyCard.issuedCard', {assignee});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
-            return Localize.translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link});
+            return Localize.translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
+        case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
+            return Localize.translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-            return Localize.translateLocal(`workspace.expensifyCard.${shouldShowAddMissingDetailsButton ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, {assignee});
+            return Localize.translateLocal(`workspace.expensifyCard.${shouldShowAddMissingDetailsMessage ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, {assignee});
         default:
             return '';
     }
+}
+
+function getReportActionsLength() {
+    return Object.keys(allReportActions ?? {}).length;
 }
 
 export {
@@ -1819,6 +1856,7 @@ export {
     isChronosOOOListAction,
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
+    isConsecutiveChronosAutomaticTimerAction,
     isCreatedAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
@@ -1878,6 +1916,7 @@ export {
     getCardIssuedMessage,
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
+    getReportActionsLength,
 };
 
 export type {LastVisibleMessage};

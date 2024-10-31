@@ -41,7 +41,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
         () =>
             Object.values(CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS).map((option) => ({
                 value: option,
-                text: translate(`workspace.xero.trackingCategoriesOptions.${option.toLowerCase()}` as TranslationPaths),
+                text: translate(`workspace.xero.trackingCategoriesOptions.${option.toUpperCase()}` as TranslationPaths),
                 keyForList: option,
                 isSelected: option === currentTrackingCategoryValue,
             })),
