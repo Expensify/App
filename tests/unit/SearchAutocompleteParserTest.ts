@@ -10,6 +10,20 @@ const tests = [
         },
     },
     {
+        query: ',',
+        expected: {
+            autocomplete: null,
+            ranges: [],
+        },
+    },
+    {
+        query: 'tag:,,',
+        expected: {
+            autocomplete: null,
+            ranges: [],
+        },
+    },
+    {
         query: 'type:expense status:all',
         expected: {
             autocomplete: {
