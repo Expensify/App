@@ -89,7 +89,7 @@ function MoneyRequestAction({
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
             const reportActionID = action.reportActionID ?? '-1';
-            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, reportActionID));
+            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, reportActionID, Navigation.getReportRHPActiveRoute()));
             return;
         }
 

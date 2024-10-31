@@ -19,6 +19,7 @@ import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRight
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
+import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -32,6 +33,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isConnectionInProgress} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
@@ -57,6 +59,8 @@ type PolicyOption = ListItem & {
 type WorkspaceCategoriesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
@@ -73,8 +77,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const policy = usePolicy(policyId);
     const {selectionMode} = useMobileSelectionMode();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
+    const hasSyncError = PolicyUtils.hasSyncError(policy, isSyncInProgress);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
+    const isQuickSettingsFlow = !!backTo;
 
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
@@ -132,35 +140,30 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         setSelectedCategories(isAllSelected ? {} : Object.fromEntries(availableCategories.map((item) => [item.keyForList, true])));
     };
 
-    const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9, !canSelectMultiple && styles.m5]}>
-            <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
-            <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
-        </View>
-    );
+    const getCustomListHeader = () => {
+        return (
+            <CustomListHeader
+                canSelectMultiple={canSelectMultiple}
+                leftHeaderText={translate('common.name')}
+                rightHeaderText={translate('statusPage.status')}
+            />
+        );
+    };
 
     const navigateToCategorySettings = (category: PolicyOption) => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList));
+        Navigation.navigate(
+            isQuickSettingsFlow
+                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo)
+                : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList),
+        );
     };
 
     const navigateToCategoriesSettings = () => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyId));
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyId));
     };
 
     const navigateToCreateCategoryPage = () => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
     };
 
     const dismissError = (item: PolicyOption) => {
@@ -240,7 +243,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedCategoriesArray.length})}
+                    customText={translate('workspace.common.selected', {count: selectedCategoriesArray.length})}
                     options={options}
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
@@ -284,7 +287,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            {isConnectedToAccounting ? (
+            {!hasSyncError && isConnectedToAccounting ? (
                 <Text>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
                     <TextLink
@@ -302,8 +305,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     );
 
     const threeDotsMenuItems = useMemo(() => {
-        const menuItems = [
-            {
+        const menuItems = [];
+        if (!PolicyUtils.hasAccountingConnections(policy)) {
+            menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
@@ -311,10 +315,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId));
+                    Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId));
                 },
-            },
-        ];
+            });
+        }
         if (hasVisibleCategories) {
             menuItems.push({
                 icon: Expensicons.Download,
@@ -334,7 +338,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return menuItems;
-    }, [policyId, translate, isOffline, hasVisibleCategories]);
+    }, [policyId, translate, isOffline, hasVisibleCategories, policy, isQuickSettingsFlow, backTo]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 

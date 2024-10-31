@@ -92,6 +92,8 @@ function CreateReportFieldsPage({
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
 
+    const listValues = [...(formDraft?.[INPUT_IDS.LIST_VALUES] ?? [])].sort(localeCompare).join(', ');
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -148,7 +150,7 @@ function CreateReportFieldsPage({
                                     description={translate('workspace.reportFields.listValues')}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID))}
-                                    title={formDraft?.[INPUT_IDS.LIST_VALUES]?.sort(localeCompare)?.join(', ')}
+                                    title={listValues}
                                     numberOfLinesTitle={5}
                                 />
                             )}

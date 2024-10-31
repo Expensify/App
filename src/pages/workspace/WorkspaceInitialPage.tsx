@@ -21,11 +21,13 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isConnectionInProgress} from '@libs/actions/connections';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
+import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -62,6 +64,7 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.COMPANY_CARDS
         | typeof SCREENS.WORKSPACE.REPORT_FIELDS
         | typeof SCREENS.WORKSPACE.RULES;
+    badgeText?: string;
 };
 
 type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
@@ -80,8 +83,10 @@ function dismissError(policyID: string, pendingAction: PendingAction | undefined
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`);
     const hasSyncError = PolicyUtils.hasSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
@@ -106,6 +111,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
         }),
         [policy],
     ) as PolicyFeatureStates;
@@ -173,6 +179,25 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         });
     }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
 
+    useEffect(() => {
+        App.confirmReadyToOpenApp();
+    }, []);
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
+        const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.invoices',
+            icon: Expensicons.InvoiceGeneric,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.INVOICES,
+            badgeText: `${CurrencyUtils.getCurrencySymbol(currencyCode)}${CurrencyUtils.convertToFrontendAmountAsString(
+                policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0,
+                currencyCode,
+            )}`,
+        });
+    }
+
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.distanceRates',
@@ -197,6 +222,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             icon: Expensicons.CreditCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.COMPANY_CARDS,
+            brickRoadIndicator: PolicyUtils.hasPolicyFeedsError(cardFeeds?.settings?.companyCards ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 
@@ -392,7 +418,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     wrapperStyle={styles.sectionMenuItem}
                                     highlighted={enabledItem?.routeName === item.routeName}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
-                                    isPaneMenu
+                                    badgeText={item.badgeText}
+                                    shouldIconUseAutoWidthStyle
                                 />
                             ))}
                         </View>

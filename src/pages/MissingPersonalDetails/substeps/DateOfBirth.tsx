@@ -1,37 +1,38 @@
-import {subYears} from 'date-fns';
 import React from 'react';
-import DatePicker from '@components/DatePicker';
-import InputWrapper from '@components/Form/InputWrapper';
-import Text from '@components/Text';
+import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
+import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
-import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
-function DateOfBirthStep({privatePersonalDetails}: CustomSubStepProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
+const STEP_FIELDS = [INPUT_IDS.DATE_OF_BIRTH];
 
-    const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
-    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE);
+function DateOfBirth({isEditing, onNext, onMove, personalDetailsValues}: CustomSubStepProps) {
+    const {translate} = useLocalize();
+
+    const handleSubmit = usePersonalDetailsFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: true,
+    });
 
     return (
-        <>
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterDateOfBirth')}</Text>
-            <InputWrapper
-                InputComponent={DatePicker}
-                inputID={INPUT_IDS.DATE_OF_BIRTH}
-                label={translate('common.dob')}
-                placeholder={translate('common.dateFormat')}
-                defaultValue={privatePersonalDetails?.dob}
-                minDate={minDate}
-                maxDate={maxDate}
-            />
-        </>
+        <DateOfBirthStep<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
+            formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
+            formTitle={translate('privatePersonalDetails.enterDateOfBirth')}
+            onSubmit={handleSubmit}
+            stepFields={STEP_FIELDS}
+            dobInputID={INPUT_IDS.DATE_OF_BIRTH}
+            dobDefaultValue={personalDetailsValues[INPUT_IDS.DATE_OF_BIRTH]}
+            shouldShowHelpLinks={false}
+        />
     );
 }
 
-DateOfBirthStep.displayName = 'DateOfBirthStep';
+DateOfBirth.displayName = 'DateOfBirth';
 
-export default DateOfBirthStep;
+export default DateOfBirth;

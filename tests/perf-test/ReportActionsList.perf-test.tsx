@@ -1,7 +1,7 @@
 import {fireEvent, screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
 import ComposeProviders from '@src/components/ComposeProviders';
@@ -81,14 +81,6 @@ beforeEach(() => {
 });
 
 function ReportActionsListWrapper() {
-    const reportActions = ReportTestUtils.getMockedSortedReportActions(500);
-    const lastVisibleActionCreated = reportActions[0].created;
-    const report = {
-        ...LHNTestUtilsModule.getFakeReport(),
-        lastVisibleActionCreated,
-        lastReadTime: lastVisibleActionCreated,
-    };
-
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportAttachmentsProvider]}>
             <ReactionListContext.Provider value={mockRef}>
@@ -96,8 +88,8 @@ function ReportActionsListWrapper() {
                     <ReportActionsList
                         parentReportAction={createRandomReportAction(1)}
                         parentReportActionForTransactionThread={undefined}
-                        sortedReportActions={reportActions}
-                        report={report}
+                        sortedReportActions={ReportTestUtils.getMockedSortedReportActions(500)}
+                        report={LHNTestUtilsModule.getFakeReport()}
                         onLayout={mockOnLayout}
                         onScroll={mockOnScroll}
                         onContentSizeChange={() => {}}
@@ -105,7 +97,7 @@ function ReportActionsListWrapper() {
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}
                         transactionThreadReport={LHNTestUtilsModule.getFakeReport()}
-                        reportActions={reportActions}
+                        reportActions={ReportTestUtils.getMockedSortedReportActions(500)}
                     />
                 </ActionListContext.Provider>
             </ReactionListContext.Provider>
@@ -123,7 +115,7 @@ test('[ReportActionsList] should render ReportActionsList with 500 reportActions
         [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
     });
 
-    await measurePerformance(<ReportActionsListWrapper />, {scenario});
+    await measureRenders(<ReportActionsListWrapper />, {scenario});
 });
 
 test('[ReportActionsList] should render list items', async () => {
@@ -138,7 +130,7 @@ test('[ReportActionsList] should render list items', async () => {
         [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
     });
 
-    await measurePerformance(<ReportActionsListWrapper />, {scenario});
+    await measureRenders(<ReportActionsListWrapper />, {scenario});
 });
 
 test('[ReportActionsList] should scroll through list of items', async () => {
@@ -170,5 +162,5 @@ test('[ReportActionsList] should scroll through list of items', async () => {
         [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
     });
 
-    await measurePerformance(<ReportActionsListWrapper />, {scenario});
+    await measureRenders(<ReportActionsListWrapper />, {scenario});
 });

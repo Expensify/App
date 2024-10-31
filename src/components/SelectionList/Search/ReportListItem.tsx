@@ -5,11 +5,14 @@ import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ActionCell from './ActionCell';
@@ -62,9 +65,17 @@ function ReportListItem<TItem extends ListItem>({
 }: ReportListItemProps<TItem>) {
     const reportItem = item as unknown as ReportListItemType;
 
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
+
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: variables.componentBorderRadius,
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.highlightBG,
+    });
 
     if (reportItem.transactions.length === 0) {
         return;
@@ -75,8 +86,11 @@ function ReportListItem<TItem extends ListItem>({
         styles.pv1half,
         styles.ph0,
         styles.overflowHidden,
+        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+        styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
         isFocused && styles.sidebarLinkActive,
+        styles.mh0,
     ];
 
     const handleOnButtonPress = () => {
@@ -84,7 +98,9 @@ function ReportListItem<TItem extends ListItem>({
     };
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(transactionItem.transactionThreadReportID));
+        const backTo = Navigation.getActiveRoute();
+
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionItem.transactionThreadReportID, backTo}));
     };
 
     if (!reportItem?.reportName && reportItem.transactions.length > 1) {
@@ -94,13 +110,13 @@ function ReportListItem<TItem extends ListItem>({
     const participantFrom = reportItem.from;
     const participantTo = reportItem.to;
 
-    // These values should come as part of the item via SearchUtils.getSections() but ReportListItem is not yet 100% handled
+    // These values should come as part of the item via SearchUIUtils.getSections() but ReportListItem is not yet 100% handled
     // This will be simplified in future once sorting of ReportListItem is done
     const participantFromDisplayName = participantFrom?.displayName ?? participantFrom?.login ?? '';
     const participantToDisplayName = participantTo?.displayName ?? participantTo?.login ?? '';
 
     if (reportItem.transactions.length === 1) {
-        const transactionItem = reportItem.transactions[0];
+        const transactionItem = reportItem.transactions.at(0);
 
         return (
             <TransactionListItem
@@ -124,7 +140,7 @@ function ReportListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
-            containerStyle={[styles.mb3]}
+            containerStyle={[styles.mb2]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -138,6 +154,7 @@ function ReportListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
             <View style={styles.flex1}>
                 {!isLargeScreenWidth && (
@@ -154,7 +171,7 @@ function ReportListItem<TItem extends ListItem>({
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph3, styles.pv1half]}>
                     <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, styles.mnh40]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
-                            {canSelectMultiple && (
+                            {!!canSelectMultiple && (
                                 <Checkbox
                                     onPress={() => onCheckboxPress?.(item)}
                                     isChecked={item.isSelected}

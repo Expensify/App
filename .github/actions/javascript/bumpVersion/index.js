@@ -3536,7 +3536,7 @@ exports.updateAndroidVersion = updateAndroidVersion;
  * Updates the CFBundleShortVersionString and the CFBundleVersion.
  */
 function updateiOSVersion(version) {
-    const shortVersion = version.split('-')[0];
+    const shortVersion = version.split('-').at(0);
     const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
     console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);
     // Update Plists

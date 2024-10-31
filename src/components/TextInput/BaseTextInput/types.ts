@@ -122,6 +122,9 @@ type CustomBaseTextInputProps = {
     /** Whether the clear button should be displayed */
     shouldShowClearButton?: boolean;
 
+    /** Whether to apply styles when input is disabled */
+    shouldUseDisabledStyles?: boolean;
+
     /** Style for the prefix */
     prefixStyle?: StyleProp<TextStyle>;
 
@@ -133,6 +136,9 @@ type CustomBaseTextInputProps = {
 
     /** Style for the suffix container */
     suffixContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Style for the loading spinner */
+    loadingSpinnerStyle?: StyleProp<ViewStyle>;
 
     /** The width of inner content */
     contentWidth?: number;

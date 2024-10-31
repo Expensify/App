@@ -40,30 +40,19 @@ function useOptions() {
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
-            optionsList.reports,
-            optionsList.personalDetails,
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions({
+            reports: optionsList.reports,
+            personalDetails: optionsList.personalDetails,
             betas,
-            '',
-            [],
-            CONST.EXPENSIFY_EMAILS,
-            false,
-            true,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            true,
-            false,
-            false,
-            0,
-        );
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
+
+            maxRecentReportsToShow: 0,
+        });
 
         const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '');
 
         if (isLoading) {
+            // eslint-disable-next-line react-compiler/react-compiler
             setIsLoading(false);
         }
 
@@ -104,6 +93,7 @@ function TaskAssigneeSelectorModal() {
     const route = useRoute<RouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
     const session = useSession();
+    const backTo = route.params?.backTo;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [task] = useOnyx(ONYXKEYS.TASK);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
@@ -201,14 +191,14 @@ function TaskAssigneeSelectorModal() {
                     OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                 );
                 InteractionManager.runAfterInteractions(() => {
-                    Navigation.goBack(ROUTES.NEW_TASK);
+                    Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
                 });
             }
         },
-        [session?.accountID, task?.shareDestination, report],
+        [session?.accountID, task?.shareDestination, report, backTo],
     );
 
-    const handleBackButtonPress = useCallback(() => (route.params?.reportID ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK)), [route.params]);
+    const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);
 
     const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = TaskActions.canModifyTask(report, currentUserPersonalDetails.accountID);

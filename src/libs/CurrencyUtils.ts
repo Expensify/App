@@ -68,7 +68,7 @@ function isCurrencySymbolLTR(currencyCode: string): boolean {
     });
 
     // Currency is LTR when the first part is of currency type.
-    return parts[0].type === 'currency';
+    return parts.at(0)?.type === 'currency';
 }
 
 /**
@@ -164,7 +164,7 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
-        minimumFractionDigits: getCurrencyDecimals(currency) + 1,
+        minimumFractionDigits: CONST.MAX_TAX_RATE_DECIMAL_PLACES,
     });
 }
 

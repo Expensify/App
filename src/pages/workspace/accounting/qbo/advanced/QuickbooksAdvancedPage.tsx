@@ -44,6 +44,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         () => invoiceAccountCollectionOptions?.find(({id}) => id === collectionAccountID)?.name,
         [invoiceAccountCollectionOptions, collectionAccountID],
     );
+    const autoCreateVendorConst = CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR;
+    const defaultVendorConst = CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR;
 
     const sectionMenuItems = [
         {
@@ -116,12 +118,12 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 QuickbooksOnline.updateQuickbooksOnlineAutoCreateVendor(
                     policyID,
                     {
-                        [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]: isOn,
-                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableVendorUpdateValue,
+                        [autoCreateVendorConst]: isOn,
+                        [defaultVendorConst]: nonReimbursableVendorUpdateValue,
                     },
                     {
-                        [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]: !!qboConfig?.autoCreateVendor,
-                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableVendorCurrentValue,
+                        [autoCreateVendorConst]: !!qboConfig?.autoCreateVendor,
+                        [defaultVendorConst]: nonReimbursableVendorCurrentValue,
                     },
                 );
             },
@@ -137,7 +139,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             onToggle: () =>
                 QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(
                     policyID,
-                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions][0].id,
+                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions].at(0)?.id,
                     qboConfig?.collectionAccountID,
                 ),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,

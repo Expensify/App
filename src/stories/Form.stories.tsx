@@ -2,6 +2,7 @@ import type {Meta, StoryFn} from '@storybook/react';
 import React, {useState} from 'react';
 import type {ComponentType} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DatePicker from '@components/DatePicker';
@@ -18,8 +19,10 @@ import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import {defaultStyles} from '@src/styles';
+import type {Form} from '@src/types/form';
+import type {Network} from '@src/types/onyx';
 
-type FormStory = StoryFn<FormProviderProps>;
+type FormStory = StoryFn<FormProviderProps & FormProviderOnyxProps>;
 
 type StorybookFormValues = {
     routingNumber?: string;
@@ -30,6 +33,17 @@ type StorybookFormValues = {
     pickAnotherFruit?: string;
     state?: string;
     checkbox?: boolean;
+};
+
+type FormProviderOnyxProps = {
+    /** Contains the form state that must be accessed outside the component */
+    formState: OnyxEntry<Form>;
+
+    /** Contains draft values for each input in the form */
+    draftValues: OnyxEntry<Form>;
+
+    /** Information about the network */
+    network: OnyxEntry<Network>;
 };
 
 type StorybookFormErrors = Partial<Record<keyof StorybookFormValues, string>>;
@@ -50,7 +64,7 @@ const story: Meta<typeof FormProvider> = {
     },
 };
 
-function Template(props: FormProviderProps) {
+function Template(props: FormProviderProps & FormProviderOnyxProps) {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
     FormActions.setIsLoading(props.formID, !!props.formState?.isLoading);
@@ -162,7 +176,7 @@ function Template(props: FormProviderProps) {
 /**
  * Story to exhibit the native event handlers for TextInput in the Form Component
  */
-function WithNativeEventHandler(props: FormProviderProps) {
+function WithNativeEventHandler(props: FormProviderProps & FormProviderOnyxProps) {
     const [log, setLog] = useState('');
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
