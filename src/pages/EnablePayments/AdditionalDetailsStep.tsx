@@ -185,6 +185,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
                         shouldSaveDraft
                     />
                     <AddressFormFields
+                        formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS}
                         inputKeys={{
                             street: 'addressStreet',
                             city: 'addressCity',

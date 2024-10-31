@@ -74,8 +74,7 @@ function RegistrationNumber({onNext, isEditing}: RegistrationNumberProps) {
                 <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
                     <TextLink
                         style={[styles.textMicro]}
-                        // TODO Link and more logic will be added to this in https://github.com/Expensify/App/issues/50905
-                        href=""
+                        href={CONST.HELP_LINK_URL}
                     >
                         {translate('businessInfoStep.whatsThisNumber')}
                     </TextLink>

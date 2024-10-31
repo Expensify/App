@@ -23,6 +23,7 @@ const {
     COMPANY_STATE,
     COMPANY_ZIP_CODE,
     BUSINESS_CONTACT_NUMBER,
+    BUSINESS_CONFIRMATION_EMAIL,
     FORMATION_INCORPORATION_COUNTRY_CODE,
     ANNUAL_VOLUME,
     APPLICANT_TYPE_ID,
@@ -81,6 +82,14 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                     <MenuItemWithTopDescription
                         description={translate('common.phoneNumber')}
                         title={values[BUSINESS_CONTACT_NUMBER]}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            onMove(2);
+                        }}
+                    />
+                    <MenuItemWithTopDescription
+                        description={translate('common.email')}
+                        title={values[BUSINESS_CONFIRMATION_EMAIL]}
                         shouldShowRightIcon
                         onPress={() => {
                             onMove(2);
