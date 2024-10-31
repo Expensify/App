@@ -96,10 +96,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             return;
         }
 
-        setReadyToShowAuthScreens(false);
-        setReadyToSwitchToClassicExperience(false);
-        setIsSigningIn(false);
-        Onyx.merge(ONYXKEYS.USE_NEWDOT_SIGN_IN_PAGE, true);
         setOldDotSignInState(CONST.OLD_DOT_SIGN_IN_STATE.NOT_STARTED);
         setNewDotSignInState(CONST.NEW_DOT_SIGN_IN_STATE.NOT_STARTED);
         setShouldResetSigningInLogic(false);

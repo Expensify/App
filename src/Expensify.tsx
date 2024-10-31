@@ -118,11 +118,11 @@ function Expensify() {
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
-    const shouldHideSplash = true;
-    // shouldInit &&
-    // (NativeModules.HybridAppModule
-    //     ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && (isAuthenticated || useNewDotSignInPage)
-    //     : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
+    const shouldHideSplash =
+        shouldInit &&
+        (NativeModules.HybridAppModule
+            ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && (isAuthenticated || useNewDotSignInPage)
+            : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
