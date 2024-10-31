@@ -271,5 +271,5 @@ function waitForIdle(): Promise<unknown> {
     return isReadyPromise;
 }
 
-export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process};
+export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process, flushOnyxUpdatesQueue};
 export type {RequestError};

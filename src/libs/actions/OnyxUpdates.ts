@@ -4,6 +4,7 @@ import type {Merge} from 'type-fest';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import PusherUtils from '@libs/PusherUtils';
+import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
@@ -148,6 +149,10 @@ function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
     // If we got here, that means we are missing some updates on our local storage. To
     // guarantee that we're not fetching more updates before our local data is up to date,
     // let's stop the sequential queue from running until we're done catching up.
+    const numberOfPersistedRequests = PersistedRequests.getAll().length || 0;
+    if (numberOfPersistedRequests === 0) {
+        SequentialQueue.flushOnyxUpdatesQueue();
+    }
     SequentialQueue.pause();
 
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
