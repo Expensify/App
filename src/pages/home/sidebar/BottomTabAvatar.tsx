@@ -50,7 +50,10 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
         }
 
         if (route.name === SCREENS.WORKSPACE.INITIAL) {
-            Navigation.goUp(ROUTES.SETTINGS_WORKSPACES);
+            Navigation.goUp(ROUTES.SETTINGS);
+            if (shouldUseNarrowLayout) {
+                Navigation.navigate(ROUTES.SETTINGS, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
+            }
             return;
         }
 
