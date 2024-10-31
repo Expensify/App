@@ -7,5 +7,5 @@ for_lane :build_hybrid, :build_unsigned_hybrid, :upload_testflight_hybrid do
   # For HybridApp build tasks, use the OldApp bundle identifier
   app_identifier("com.expensify.expensifylite")
 else
-    app_identifier("com.expensify.expensify")
+  app_identifier("com.expensify.expensify")
 end
