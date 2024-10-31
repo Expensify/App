@@ -47,7 +47,7 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
     /** Custom label of the first input  */
     customFirstNameLabel?: string;
 
-    /** Custom label of the second input */
+    /** Custom label of the last name input */
     customLastNameLabel?: string;
 };
 
