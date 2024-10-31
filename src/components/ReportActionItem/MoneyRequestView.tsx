@@ -468,7 +468,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         />
                     </OfflineWithFeedback>
                 )}
-                {(hasReceipt || errors) && (
+                {(hasReceipt || !!errors) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={errors}
@@ -531,7 +531,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     </OfflineWithFeedback>
                 )}
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
-                {shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}
+                {!!shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
@@ -632,7 +632,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         errorText={getErrorForField('date')}
                     />
                 </OfflineWithFeedback>
-                {shouldShowCategory && (
+                {!!shouldShowCategory && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
@@ -657,7 +657,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag && tagList}
-                {shouldShowCard && (
+                {!!shouldShowCard && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
                         <MenuItemWithTopDescription
                             description={translate('iou.card')}
