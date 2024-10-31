@@ -141,6 +141,12 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
 
     /** policy ID of the report */
     policyID: string;
+
+    /** Whether the soft keyboard is open */
+    showSoftInputOnFocus: boolean;
+
+    /** A method to update showSoftInputOnFocus */
+    setShowSoftInputOnFocus: (value: boolean) => void;
 };
 
 type SwitchToCurrentReportProps = {
@@ -225,6 +231,8 @@ function ComposerWithSuggestions(
 
         // For testing
         children,
+        showSoftInputOnFocus,
+        setShowSoftInputOnFocus,
     }: ComposerWithSuggestionsProps,
     ref: ForwardedRef<ComposerRef>,
 ) {
@@ -273,8 +281,6 @@ function ComposerWithSuggestions(
     const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
-
-    const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
 
     const textInputRef = useRef<TextInput | null>(null);
 

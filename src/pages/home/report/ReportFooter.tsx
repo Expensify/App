@@ -62,6 +62,12 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur: () => void;
+
+    /** Whether the soft keyboard is open */
+    showSoftInputOnFocus: boolean;
+
+    /** A method to update showSoftInputOnFocus */
+    setShowSoftInputOnFocus: (value: boolean) => void;
 };
 
 function ReportFooter({
@@ -73,8 +79,10 @@ function ReportFooter({
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
     workspaceTooltip,
+    showSoftInputOnFocus,
     onComposerBlur,
     onComposerFocus,
+    setShowSoftInputOnFocus,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -179,6 +187,7 @@ function ReportFooter({
         [report.reportID, handleCreateTask],
     );
 
+    console.log('9999', showSoftInputOnFocus);
     return (
         <>
             {!!shouldHideComposer && (
@@ -225,6 +234,8 @@ function ReportFooter({
                             isComposerFullSize={isComposerFullSize}
                             isReportReadyForDisplay={isReportReadyForDisplay}
                             shouldShowEducationalTooltip={didScreenTransitionEnd && shouldShowEducationalTooltip}
+                            showSoftInputOnFocus={showSoftInputOnFocus}
+                            setShowSoftInputOnFocus={setShowSoftInputOnFocus}
                         />
                     </SwipeableView>
                 </View>
@@ -244,6 +255,7 @@ export default memo(
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
         prevProps.workspaceTooltip?.shouldShow === nextProps.workspaceTooltip?.shouldShow &&
+        prevProps.showSoftInputOnFocus === nextProps.showSoftInputOnFocus &&
         lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
         lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),

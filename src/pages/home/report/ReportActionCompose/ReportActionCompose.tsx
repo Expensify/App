@@ -87,6 +87,12 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** Should show educational tooltip */
     shouldShowEducationalTooltip?: boolean;
+
+    /** Whether the soft keyboard is open */
+    showSoftInputOnFocus: boolean;
+
+    /** A method to update showSoftInputOnFocus */
+    setShowSoftInputOnFocus: (value: boolean) => void;
 };
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
@@ -104,8 +110,10 @@ function ReportActionCompose({
     isReportReadyForDisplay = true,
     lastReportAction,
     shouldShowEducationalTooltip,
+    showSoftInputOnFocus,
     onComposerFocus,
     onComposerBlur,
+    setShowSoftInputOnFocus,
 }: ReportActionComposeProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -487,6 +495,8 @@ function ReportActionCompose({
                                                 }
                                                 validateCommentMaxLength(value, {reportID});
                                             }}
+                                            showSoftInputOnFocus={showSoftInputOnFocus}
+                                            setShowSoftInputOnFocus={setShowSoftInputOnFocus}
                                         />
                                         <ReportDropUI
                                             onDrop={(event: DragEvent) => {
