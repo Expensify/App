@@ -75,7 +75,7 @@ function InteractiveStepWrapper(
                 onBackButtonPress={handleBackButtonPress}
                 guidesCallTaskID={guidesCallTaskID}
             />
-            {stepNames && (
+            {!!stepNames && (
                 <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                     <InteractiveStepSubHeader
                         startStepIndex={startStepIndex}

@@ -512,6 +512,7 @@ const CONST = {
         WORKSPACE_RULES: 'workspaceRules',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
+        PER_DIEM: 'newDotPerDiem',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2581,6 +2582,11 @@ const CONST = {
             INDIVIDUAL: 'individual',
             NONE: 'none',
         },
+        VERIFICATION_STATE: {
+            LOADING: 'loading',
+            VERIFIED: 'verified',
+            ON_WAITLIST: 'onWaitlist',
+        },
         STATE: {
             STATE_NOT_ISSUED: 2,
             OPEN: 3,
@@ -2595,6 +2601,7 @@ const CONST = {
             MONTHLY: 'monthly',
             FIXED: 'fixed',
         },
+        LIMIT_VALUE: 21474836,
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEP: {
             ASSIGNEE: 'Assignee',
@@ -2930,6 +2937,7 @@ const CONST = {
 
     // Character Limits
     FORM_CHARACTER_LIMIT: 50,
+    STANDARD_LENGTH_LIMIT: 100,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,

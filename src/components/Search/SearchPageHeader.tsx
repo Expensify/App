@@ -58,7 +58,7 @@ function HeaderWrapper({icon, children, text, value, isCannedQuery, onSubmit, se
         >
             {isCannedQuery ? (
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
-                    {icon && (
+                    {!!icon && (
                         <Icon
                             src={icon}
                             width={variables.iconHeader}
