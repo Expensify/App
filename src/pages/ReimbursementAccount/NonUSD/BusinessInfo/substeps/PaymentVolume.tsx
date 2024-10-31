@@ -20,6 +20,11 @@ type PaymentVolumeProps = SubStepProps;
 const {ANNUAL_VOLUME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [ANNUAL_VOLUME];
 
+const ANNUAL_VOLUME_RANGE_LIST_OPTIONS = annualVolumeRange.reduce((accumulator, currentValue) => {
+    accumulator[currentValue.name] = currentValue.stringValue;
+    return accumulator;
+}, {} as Record<string, string>);
+
 function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -38,11 +43,6 @@ function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
         shouldSaveDraft: true,
     });
 
-    const annualVolumeRangeListOptions = annualVolumeRange.reduce((accumulator, currentValue) => {
-        accumulator[currentValue.name] = currentValue.stringValue;
-        return accumulator;
-    }, {} as Record<string, string>);
-
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -55,7 +55,7 @@ function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.whatsTheBusinessAnnualPayment')}</Text>
             <InputWrapper
                 InputComponent={PushRowWithModal}
-                optionsList={annualVolumeRangeListOptions}
+                optionsList={ANNUAL_VOLUME_RANGE_LIST_OPTIONS}
                 description={translate('businessInfoStep.annualPaymentVolumeInCurrency', {currencyCode: CONST.CURRENCY.USD})}
                 modalHeaderTitle={translate('businessInfoStep.selectAnnualPaymentVolume')}
                 searchInputTitle={translate('businessInfoStep.findAnnualPaymentVolume')}

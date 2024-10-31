@@ -19,11 +19,11 @@ type BusinessTypeProps = SubStepProps;
 const {BUSINESS_CATEGORY, APPLICANT_TYPE_ID} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [BUSINESS_CATEGORY, APPLICANT_TYPE_ID];
 
-const incorporationTypeListOptions = applicantType.reduce((accumulator, currentValue) => {
+const INCORPORATION_TYPE_LIST_OPTIONS = applicantType.reduce((accumulator, currentValue) => {
     accumulator[currentValue.name] = currentValue.stringValue;
     return accumulator;
 }, {} as Record<string, string>);
-const businessCategoryListOptions = natureOfBusiness.reduce((accumulator, currentValue) => {
+const BUSINESS_CATEGORY_LIST_OPTIONS = natureOfBusiness.reduce((accumulator, currentValue) => {
     accumulator[currentValue.name] = currentValue.stringValue;
     return accumulator;
 }, {} as Record<string, string>);
@@ -60,7 +60,7 @@ function BusinessType({onNext, isEditing}: BusinessTypeProps) {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.whatTypeOfBusinessIsIt')}</Text>
             <InputWrapper
                 InputComponent={PushRowWithModal}
-                optionsList={incorporationTypeListOptions}
+                optionsList={INCORPORATION_TYPE_LIST_OPTIONS}
                 description={translate('businessInfoStep.incorporationTypeName')}
                 modalHeaderTitle={translate('businessInfoStep.selectIncorporationType')}
                 searchInputTitle={translate('businessInfoStep.findIncorporationType')}
@@ -70,7 +70,7 @@ function BusinessType({onNext, isEditing}: BusinessTypeProps) {
             />
             <InputWrapper
                 InputComponent={PushRowWithModal}
-                optionsList={businessCategoryListOptions}
+                optionsList={BUSINESS_CATEGORY_LIST_OPTIONS}
                 description={translate('businessInfoStep.businessCategory')}
                 modalHeaderTitle={translate('businessInfoStep.selectBusinessCategory')}
                 searchInputTitle={translate('businessInfoStep.findBusinessCategory')}
