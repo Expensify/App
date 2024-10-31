@@ -188,7 +188,7 @@ jobs:
           git submodule update --init
           # Update submodule to latest on staging
           git fetch --depth=1 origin staging
-          git checkout -b staging origin/staging
+          git checkout staging
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -487,7 +487,7 @@ jobs:
           git submodule update --init
           # Update submodule to latest on staging
           git fetch --depth=1 origin staging
-          git checkout -b staging origin/staging
+          git checkout staging
 
       - name: Configure MapBox SDK
         run: |
