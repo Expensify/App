@@ -125,7 +125,7 @@ function AvatarWithDisplayName({
 
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
-            {report && !!title && (
+            {!!report && !!title && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <PressableWithoutFeedback
                         onPress={showActorDetails}
