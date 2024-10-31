@@ -1,15 +1,15 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {isConciergeChatReport, isExpensifyAndCustomerChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
-import type {UserMetadata, OnyxInputOrEntry, Report} from '@src/types/onyx';
-import {isConciergeChatReport, isExpensifyAndCustomerChat} from '@libs/ReportUtils';
+import type {OnyxInputOrEntry, Report, UserMetadata} from '@src/types/onyx';
 
 const MASK = 'fs-mask';
 const UNMASK = 'fs-unmask';
-const CUSTOMER = "customer";
-const CONCIERGE = "concierge";
-const OTHER = "other";
+const CUSTOMER = 'customer';
+const CONCIERGE = 'concierge';
+const OTHER = 'other';
 
 /**
  * Fullstory React-Native lib adapter
@@ -73,7 +73,7 @@ const FS = {
 /**
  * Placeholder function for Mobile-Web compatibility.
  */
-function parseFSAttributes (): void{
+function parseFSAttributes(): void {
     // pass
 }
 
@@ -82,14 +82,14 @@ function parseFSAttributes (): void{
     in case data-test-id attribute usage,
     clean component name should be preserved in data-test-id.
 */
-function getFSAttributes (name: string, mask: bool, prefix: bool): string {
+function getFSAttributes(name: string, mask: bool, prefix: bool): string {
     // prefixed for Native apps should contain only component name
-    if (prefix){
+    if (prefix) {
         return name;
     }
-    const componentPrefix = prefix ? `${name},`:"";
-    const componentSuffix = name ? `,fs-${name}`:"";
-    const fsAttrValue = `${componentPrefix}${mask?MASK:UNMASK}${componentSuffix}`;
+    const componentPrefix = prefix ? `${name},` : '';
+    const componentSuffix = name ? `,fs-${name}` : '';
+    const fsAttrValue = `${componentPrefix}${mask ? MASK : UNMASK}${componentSuffix}`;
     /*
     testID: componentName,fs-unmask,fs-componentName
     fsClass: fs-unmask,fs-componentName
@@ -97,29 +97,29 @@ function getFSAttributes (name: string, mask: bool, prefix: bool): string {
     return fsAttrValue;
 }
 
-function getChatFSAttributes (name: string, report: OnyxInputOrEntry<Report>, prefix: bool): string {
+function getChatFSAttributes(name: string, report: OnyxInputOrEntry<Report>, prefix: bool): string {
     // prefixed for Native apps should contain only component name
-    if (prefix){
+    if (prefix) {
         return name;
     }
     // default
-    let componentName = name ? `,fs-${name}`:"";
-    let fsAttrValue = "";
+    let componentName = name ? `,fs-${name}` : '';
+    let fsAttrValue = '';
 
-    if(!!isConciergeChatReport(report)){
-        componentName = name ? `,fs-${CONCIERGE}-${name}`:"";
+    if (!!isConciergeChatReport(report)) {
+        componentName = name ? `,fs-${CONCIERGE}-${name}` : '';
         /*
         fs-unmask,fs-concierge-chatMessage
         */
         fsAttrValue = `${UNMASK}${componentName}`;
-    }else if(!!isExpensifyAndCustomerChat(report)){
-        componentName = name ? `,fs-${CUSTOMER}-${name}`:"";
+    } else if (!!isExpensifyAndCustomerChat(report)) {
+        componentName = name ? `,fs-${CUSTOMER}-${name}` : '';
         /*
         fs-mask,fs-customer-chatMessage
         */
         fsAttrValue = `${MASK}${componentName}`;
     } else {
-        componentName = name ? `,fs-${OTHER}-${name}`:"";
+        componentName = name ? `,fs-${OTHER}-${name}` : '';
         /*
         fs-mask,fs-other-chatMessage
         */

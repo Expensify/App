@@ -7,6 +7,7 @@ import isEmpty from 'lodash/isEmpty';
 import lodashIsEqual from 'lodash/isEqual';
 import isNumber from 'lodash/isNumber';
 import lodashMaxBy from 'lodash/maxBy';
+import {useContext} from 'react';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -17,6 +18,7 @@ import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} fr
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
+import {PersonalDetailsContext, PersonalDetailsProvider} from '@src/components/OnyxProvider';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -88,8 +90,7 @@ import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import type {AvatarSource} from './UserUtils';
 import * as UserUtils from './UserUtils';
-import {PersonalDetailsContext, PersonalDetailsProvider} from '@src/components/OnyxProvider';
-import {useContext} from 'react';
+
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
 type SpendBreakdown = {
@@ -8409,42 +8410,42 @@ function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {
 }
 
 function isExpensifyAndCustomerChat(report: OnyxInputOrEntry<Report>): boolean {
-   if (!report?.participants || isThread(report)) {
-       return false;
-   }
-
-   const participantAccountIDs = new Set(Object.keys(report.participants));
-   if (participantAccountIDs.size !== 2) {
-       return false;
-   }
-
-  // by email participants
-  const baseRegexp = new RegExp(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN + "$");
-  const teamRegexp = new RegExp(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN + "$");
-  const participantsContext = useContext(PersonalDetailsContext);
-
-  for (const participantAccountID of participantAccountIDs){
-    let id = Number(participantAccountID);
-    let contextAccountData = participantsContext[id];
-    if(!contextAccountData){
-        continue
+    if (!report?.participants || isThread(report)) {
+        return false;
     }
-    if(baseRegexp.test(contextAccountData.login)){
-        return true
-    }
-    if(teamRegexp.test(contextAccountData.login)){
-       return true
-    }
-  }
 
-   // System users communication
-   const expensifyTeam = new Set(Object.values(CONST.ACCOUNT_ID));
-   const expensifyTeamParticipants = expensifyTeam.intersection(participantAccountIDs)
-   if (expensifyTeamParticipants.size > 0){
-      return true;
-   }
+    const participantAccountIDs = new Set(Object.keys(report.participants));
+    if (participantAccountIDs.size !== 2) {
+        return false;
+    }
 
-   return false
+    // by email participants
+    const baseRegexp = new RegExp(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN + '$');
+    const teamRegexp = new RegExp(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN + '$');
+    const participantsContext = useContext(PersonalDetailsContext);
+
+    for (const participantAccountID of participantAccountIDs) {
+        let id = Number(participantAccountID);
+        let contextAccountData = participantsContext[id];
+        if (!contextAccountData) {
+            continue;
+        }
+        if (baseRegexp.test(contextAccountData.login)) {
+            return true;
+        }
+        if (teamRegexp.test(contextAccountData.login)) {
+            return true;
+        }
+    }
+
+    // System users communication
+    const expensifyTeam = new Set(Object.values(CONST.ACCOUNT_ID));
+    const expensifyTeamParticipants = expensifyTeam.intersection(participantAccountIDs);
+    if (expensifyTeamParticipants.size > 0) {
+        return true;
+    }
+
+    return false;
 }
 
 export {
