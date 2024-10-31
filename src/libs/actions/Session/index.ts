@@ -513,12 +513,12 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
     return new Promise<Route>((resolve) => {
         clearOnyxBeforeSignIn()
             .then(() => {
-                const dismissed = useNewDotSignInPage === 'true' ? 'false' : 'false';
+                const dismissed = useNewDotSignInPage === 'true' ? 'true' : 'false';
                 Onyx.multiSet({
                     [ONYXKEYS.USE_NEWDOT_SIGN_IN_PAGE]: useNewDotSignInPage === 'true',
                     [ONYXKEYS.NVP_TRYNEWDOT]: {classicRedirect: {dismissed}}, // This data is mocked and should be returned by BeginSignUp/SignInUser API commands
                     [ONYXKEYS.HYBRID_APP]: {
-                        readyToSwitchToClassicExperience: false,
+                        readyToSwitchToClassicExperience: useNewDotSignInPage !== 'true',
                         readyToShowAuthScreens: useNewDotSignInPage !== 'true',
                         isSigningIn: false,
                     },
