@@ -37,12 +37,17 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const cardList = cardFeeds?.settings?.oAuthAccountDetails?.[feed]?.accountList ?? [];
+    const accountCardList = cardFeeds?.settings?.oAuthAccountDetails?.[feed]?.accountList ?? [];
 
     const isEditing = assignCard?.isEditing;
     const assignee = assignCard?.data?.email ?? '';
-
+    const {cardList, ...cards} = list ?? {};
+    // We need to filter out cards which already has been assigned
+    const filteredCardList = Object.fromEntries(
+        Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))),
+    );
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
@@ -62,20 +67,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         setShouldShowError(false);
     };
 
-    const submit = () => {
-        if (!cardSelected) {
-            setShouldShowError(true);
-            return;
-        }
-
-        CompanyCards.setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
-            data: {encryptedCardNumber: cardSelected, cardName: cardSelected},
-            isEditing: false,
-        });
-    };
-
-    const cardListOptions = cardList.map((encryptedCardNumber) => ({
+    const accountCardListOptions = accountCardList.map((encryptedCardNumber) => ({
         keyForList: encryptedCardNumber,
         value: encryptedCardNumber,
         text: encryptedCardNumber,
@@ -90,15 +82,50 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         ),
     }));
 
+    const submit = () => {
+        if (!cardSelected) {
+            setShouldShowError(true);
+            return;
+        }
+
+        const cardName =
+            Object.entries(filteredCardList)
+                .find(([, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
+                ?.at(0) ?? '';
+
+        CompanyCards.setAssignCardStepAndData({
+            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
+            data: {encryptedCardNumber: cardSelected, cardName: accountCardList?.length > 0 ? cardSelected : cardName},
+            isEditing: false,
+        });
+    };
+
+    const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
+        keyForList: encryptedCardNumber,
+        value: encryptedCardNumber,
+        text: cardNumber,
+        isSelected: cardSelected === encryptedCardNumber,
+        leftElement: (
+            <Icon
+                src={CardUtils.getCardFeedIcon(feed)}
+                height={variables.iconSizeExtraLarge}
+                width={variables.iconSizeExtraLarge}
+                additionalStyles={styles.mr3}
+            />
+        ),
+    }));
+
+    const listOptions = accountCardList?.length > 0 ? accountCardListOptions : cardListOptions;
+
     return (
         <InteractiveStepWrapper
             wrapperID={CardSelectionStep.displayName}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={cardListOptions.length ? 1 : undefined}
-            stepNames={cardListOptions.length ? CONST.COMPANY_CARD.STEP_NAMES : undefined}
+            startStepIndex={listOptions.length ? 1 : undefined}
+            stepNames={listOptions.length ? CONST.COMPANY_CARD.STEP_NAMES : undefined}
             headerTitle={translate('workspace.companyCards.assignCard')}
         >
-            {!cardListOptions.length ? (
+            {!listOptions.length ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
                     <Icon
                         src={Illustrations.BrokenMagnifyingGlass}
@@ -127,7 +154,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                         })}
                     </Text>
                     <SelectionList
-                        sections={[{data: cardListOptions}]}
+                        sections={[{data: listOptions}]}
                         ListItem={RadioListItem}
                         onSelectRow={({value}) => handleSelectCard(value)}
                         initiallyFocusedOptionKey={cardSelected}
