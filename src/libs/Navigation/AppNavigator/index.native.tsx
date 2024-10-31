@@ -39,11 +39,8 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
             return false;
         }
 
-        console.log('dupa dupa dupa', authenticated, hybridApp?.readyToShowAuthScreens);
         return authenticated && (!useNewDotSignInPage || hybridApp?.readyToShowAuthScreens);
     }, [authenticated, hybridApp?.readyToShowAuthScreens, tryNewDot, useNewDotSignInPage]);
-
-    console.log('dupa should show auth screens', shouldShowAuthScreens);
 
     useEffect(() => {
         if (!NativeModules.HybridAppModule || !initialURL || !shouldShowAuthScreens) {

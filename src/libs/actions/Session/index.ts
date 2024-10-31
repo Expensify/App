@@ -512,12 +512,13 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
 
     return new Promise<Route>((resolve) => {
         clearOnyxBeforeSignIn()
-            .then(() =>
+            .then(() => {
+                const dismissed = useNewDotSignInPage === 'true' ? 'false' : 'false';
                 Onyx.multiSet({
                     [ONYXKEYS.USE_NEWDOT_SIGN_IN_PAGE]: useNewDotSignInPage === 'true',
-                    [ONYXKEYS.NVP_TRYNEWDOT]: {classicRedirect: {dismissed: 'true'}}, // This data is mocked and should be returned by BeginSignUp/SignInUser API commands
-                }),
-            )
+                    [ONYXKEYS.NVP_TRYNEWDOT]: {classicRedirect: {dismissed}}, // This data is mocked and should be returned by BeginSignUp/SignInUser API commands
+                });
+            })
             .then(initAppAfterTransition)
             .catch((error) => {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
