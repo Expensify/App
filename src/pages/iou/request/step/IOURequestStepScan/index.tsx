@@ -668,7 +668,7 @@ function IOURequestStepScan({
                             role={CONST.ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: setReceiptAndNavigate,
+                                    onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
                                 });
                             }}
                         >
@@ -745,7 +745,7 @@ function IOURequestStepScan({
                         style={[styles.p9]}
                         onPress={() => {
                             openPicker({
-                                onPicked: setReceiptAndNavigate,
+                                onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
                             });
                         }}
                     />
@@ -785,7 +785,7 @@ function IOURequestStepScan({
                             confirmText={translate('common.close')}
                             shouldShowCancelButton={false}
                         />
-                        {startLocationPermissionFlow && fileResize && (
+                        {startLocationPermissionFlow && !!fileResize && (
                             <LocationPermissionModal
                                 startPermissionFlow={startLocationPermissionFlow}
                                 resetPermissionFlow={() => setStartLocationPermissionFlow(false)}

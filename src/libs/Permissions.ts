@@ -53,8 +53,8 @@ function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.COMBINED_TRACK_SUBMIT);
 }
 
-function canUseNewDotQBD(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEW_DOT_QBD) || canUseAllBetas(betas);
+function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.PER_DIEM) || canUseAllBetas(betas);
 }
 
 /**
@@ -77,5 +77,5 @@ export default {
     canUseWorkspaceRules,
     canUseCombinedTrackSubmit,
     canUseCategoryAndTagApprovers,
-    canUseNewDotQBD,
+    canUsePerDiem,
 };

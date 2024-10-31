@@ -19,7 +19,7 @@ function TabIcon({icon, activeOpacity = 0, inactiveOpacity = 1}: TabIconProps) {
     const theme = useTheme();
     return (
         <View>
-            {icon && (
+            {!!icon && (
                 <>
                     <Animated.View style={{opacity: inactiveOpacity}}>
                         <Icon
