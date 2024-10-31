@@ -1444,6 +1444,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 displayPercentVariance: 'number',
                 duplicates: 'array',
                 rterType: CONST.RTER_VIOLATION_TYPES,
+                tooltip: 'string',
             });
         }
     }
