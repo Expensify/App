@@ -726,7 +726,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         />
     );
 
-    const nameSectionTitleField = titleField && (
+    const nameSectionTitleField = !!titleField && (
         <OfflineWithFeedback
             pendingAction={report.pendingFields?.[fieldKey] ?? report.pendingFields?.reportName}
             errors={report.errorFields?.[fieldKey] ?? report.errorFields?.reportName}

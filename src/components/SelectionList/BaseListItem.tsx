@@ -6,6 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
 import {useMouseContext} from '@hooks/useMouseContext';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +39,7 @@ function BaseListItem<TItem extends ListItem>({
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
@@ -102,10 +104,10 @@ function BaseListItem<TItem extends ListItem>({
                 tabIndex={item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
             >
-                <View style={wrapperStyle}>
+                <View style={[wrapperStyle, StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, theme.activeComponentBG, theme.hoverComponentBG)]}>
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
+                    {!canSelectMultiple && !!item.isSelected && !rightHandSideComponent && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
@@ -118,7 +120,7 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {(!item.isSelected || item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
+                    {(!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
                                 src={Expensicons.DotIndicator}

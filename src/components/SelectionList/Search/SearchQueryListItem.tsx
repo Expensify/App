@@ -43,7 +43,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             showTooltip={showTooltip}
         >
             <>
-                {item.singleIcon && (
+                {!!item.singleIcon && (
                     <Icon
                         src={item.singleIcon}
                         fill={theme.icon}
@@ -64,7 +64,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                             styles.justifyContentCenter,
                         ]}
                     />
-                    {item.alternateText && (
+                    {!!item.alternateText && (
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip ?? false}
                             text={item.alternateText}

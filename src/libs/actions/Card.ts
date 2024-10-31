@@ -300,6 +300,7 @@ function updateSettlementAccount(workspaceAccountID: number, policyID: string, s
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 paymentBankAccountID: settlementBankAccountID,
+                isLoading: true,
             },
         },
     ];
@@ -310,6 +311,7 @@ function updateSettlementAccount(workspaceAccountID: number, policyID: string, s
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 paymentBankAccountID: settlementBankAccountID,
+                isLoading: false,
             },
         },
     ];
@@ -320,6 +322,8 @@ function updateSettlementAccount(workspaceAccountID: number, policyID: string, s
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 paymentBankAccountID: currentSettlementBankAccountID,
+                isLoading: false,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
@@ -614,12 +618,52 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
         return;
     }
 
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: true,
+                isSuccess: false,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+                isSuccess: true,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                isSuccess: false,
+            },
+        },
+    ];
+
     const parameters = {
         policyID,
         bankAccountID,
     };
 
-    API.write(WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY, parameters);
+    API.write(WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueNewCardData) {
