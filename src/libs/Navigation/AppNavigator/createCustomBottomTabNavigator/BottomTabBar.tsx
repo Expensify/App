@@ -113,7 +113,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
 
     return (
         <>
-            {user?.isDebugModeEnabled && (
+            {!!user?.isDebugModeEnabled && (
                 <DebugTabView
                     selectedTab={selectedTab}
                     chatTabBrickRoad={chatTabBrickRoad}
@@ -135,7 +135,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
-                        {chatTabBrickRoad && (
+                        {!!chatTabBrickRoad && (
                             <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
                         )}
                     </View>
