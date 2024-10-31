@@ -230,11 +230,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
     const wasReportAccessibleRef = useRef(false);
-    // eslint-disable-next-line react-compiler/react-compiler
-    if (firstRenderRef.current) {
-        Timing.start(CONST.TIMING.CHAT_RENDER);
-        Performance.markStart(CONST.TIMING.CHAT_RENDER);
-    }
+
     const [isComposerFocus, setIsComposerFocus] = useState(false);
     const shouldAdjustScrollView = useMemo(() => isComposerFocus && !modal?.willAlertModalBecomeVisible, [isComposerFocus, modal]);
     const viewportOffsetTop = useViewportOffsetTop(shouldAdjustScrollView);
@@ -487,9 +483,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     useAppFocusEvent(clearNotifications);
 
     useEffect(() => {
-        Timing.end(CONST.TIMING.CHAT_RENDER);
-        Performance.markEnd(CONST.TIMING.CHAT_RENDER);
-
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             ComposerActions.setShouldShowComposeInput(true);
         });
