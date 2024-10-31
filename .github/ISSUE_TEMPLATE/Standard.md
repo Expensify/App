@@ -16,7 +16,7 @@ ___
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
 **Expensify/Expensify Issue URL:**
 **Issue reported by:**
-**Slack conversation:**
+**Slack conversation** (hyperlinked to channel name):
 
 ## Action Performed:
 Break down in numbered steps
