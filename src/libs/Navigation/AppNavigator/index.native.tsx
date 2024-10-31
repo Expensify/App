@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {TryNewDot} from '@src/types/onyx';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 type AppNavigatorProps = {
@@ -11,17 +12,38 @@ type AppNavigatorProps = {
     authenticated: boolean;
 };
 
+function shouldUseOldApp(tryNewDot?: TryNewDot) {
+    return tryNewDot?.classicRedirect.dismissed === true || tryNewDot?.classicRedirect.dismissed === 'true';
+}
+
 function AppNavigator({authenticated}: AppNavigatorProps) {
     const {initialURL, setInitialURL} = useContext(InitialURLContext);
-    const [useNewDotLoginPage] = useOnyx(ONYXKEYS.USE_NEWDOT_SIGN_IN_PAGE);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
+    const [useNewDotSignInPage] = useOnyx(ONYXKEYS.USE_NEWDOT_SIGN_IN_PAGE);
 
+    /**
+     * kiedy chcemy pokazać auth screens:
+     * - logujemy do OD
+     *      - nie chcemy wcale
+     * - logujemy do ND
+     *      - gdy jesteśmy authenticated (po odpaleniu signInToOldDot)
+     * - przechodzimy z OD do ND
+     *      - od razu o ile jesteśmy zalogowani, ale powinniśmy być zawsze
+     */
     const shouldShowAuthScreens = useMemo(() => {
         if (!NativeModules.HybridAppModule) {
             return authenticated;
         }
+        if (shouldUseOldApp(tryNewDot)) {
+            return false;
+        }
 
-        return useNewDotLoginPage === false && authenticated;
-    }, [authenticated, useNewDotLoginPage]);
+        console.log('dupa dupa dupa', authenticated, hybridApp?.readyToShowAuthScreens);
+        return authenticated && (!useNewDotSignInPage || hybridApp?.readyToShowAuthScreens);
+    }, [authenticated, hybridApp?.readyToShowAuthScreens, tryNewDot, useNewDotSignInPage]);
+
+    console.log('dupa should show auth screens', shouldShowAuthScreens);
 
     useEffect(() => {
         if (!NativeModules.HybridAppModule || !initialURL || !shouldShowAuthScreens) {

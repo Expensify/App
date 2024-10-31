@@ -39,9 +39,10 @@ import * as SessionUtils from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import * as App from '@userActions/App';
+import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import * as Device from '@userActions/Device';
+import {setReadyToShowAuthScreens} from '@userActions/HybridApp';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
@@ -494,6 +495,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
 
     const clearOnyxBeforeSignIn = () => {
         if (useNewDotSignInPage !== 'true') {
+            setReadyToShowAuthScreens(true);
             return Promise.resolve();
         }
 
@@ -508,7 +510,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
         return App.openApp();
     };
 
-    const setSessionDataAndOpenApp = new Promise<Route>((resolve) => {
+    return new Promise<Route>((resolve) => {
         clearOnyxBeforeSignIn()
             .then(() =>
                 Onyx.multiSet({
@@ -524,8 +526,6 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
                 resolve(`${route}?singleNewDotEntry=${isSingleNewDotEntry}` as Route);
             });
     });
-
-    return setSessionDataAndOpenApp;
 }
 
 /**
