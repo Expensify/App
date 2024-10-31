@@ -168,7 +168,7 @@ jobs:
     needs: prep
     runs-on: ubuntu-latest-xl
     # Only deploy HybridApp to staging
-    if: ${{ github.ref == 'refs/heads/staging' }}
+#    if: ${{ github.ref == 'refs/heads/staging' }}
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
@@ -469,7 +469,7 @@ jobs:
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
     # Only deploy HybridApp to staging
-    if: ${{ github.ref == 'refs/heads/staging' }}
+#    if: ${{ github.ref == 'refs/heads/staging' }}
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
