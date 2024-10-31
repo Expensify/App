@@ -6958,7 +6958,6 @@ function getPayMoneyRequestParams(
         }
 
         const optimisticTransactionViolations: OnyxUpdate[] = reportTransactions.map(({transactionID}) => {
-            const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
             return {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
