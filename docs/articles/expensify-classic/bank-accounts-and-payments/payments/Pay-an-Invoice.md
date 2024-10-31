@@ -10,9 +10,15 @@ There are multiple ways to pay Invoices in Expensify. Let’s go over each metho
 # How to Pay Invoices 
 
 1. Sign in to your [Expensify web account](www.expensify.com).
-2. Click on the Invoice you’d like to pay to see the details.
-3. Click on the **Pay** button.
-4. Follow the prompts to pay through one of the following methods.
+2. Click on **Home** and find the pending Invoice payment
+3. Click **Pay** to be redirected to the Invoice
+4. Review the Invoice
+5. When you are ready to pay, click the **Pay** button at the top of the Invoice
+6. Follow the prompts to pay through one of the following methods.
+
+![Click Home and Pay on the invoice](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_PayInvoice_1.png){:width="100%"}
+
+![Click Pay on Invoice and choose a method of payment](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_PayInvoice_2.png){:width="100%"}
 
 ### ACH bank-to-bank transfer
 

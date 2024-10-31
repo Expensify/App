@@ -1,7 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
-import type {ApprovalRule, ExpenseRule} from '@src/types/onyx/Policy';
+import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 
 function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
@@ -68,4 +68,18 @@ function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: st
     return categoryDefaultTaxRate;
 }
 
-export {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryExpenseRule, getCategoryDefaultTaxRate};
+function updateCategoryInMccGroup(mccGroups: Record<string, MccGroup>, oldCategoryName: string, newCategoryName: string) {
+    if (oldCategoryName === newCategoryName) {
+        return mccGroups;
+    }
+
+    const updatedGroups: Record<string, MccGroup> = {};
+
+    for (const [key, group] of Object.entries(mccGroups || {})) {
+        updatedGroups[key] = group.category === oldCategoryName ? {...group, category: newCategoryName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : group;
+    }
+
+    return updatedGroups;
+}
+
+export {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryExpenseRule, getCategoryDefaultTaxRate, updateCategoryInMccGroup};

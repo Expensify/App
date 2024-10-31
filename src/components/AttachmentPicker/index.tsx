@@ -1,5 +1,6 @@
 import React, {useRef} from 'react';
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import * as Browser from '@libs/Browser';
 import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
@@ -42,9 +43,9 @@ function getAcceptableFileTypesFromAList(fileTypes: Array<ValueOf<typeof CONST.A
  * on a Browser we must append a hidden input to the DOM
  * and listen to onChange event.
  */
-function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, acceptedFileTypes}: AttachmentPickerProps): React.JSX.Element {
+function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, acceptedFileTypes, allowMultiple = false}: AttachmentPickerProps): React.JSX.Element {
     const fileInput = useRef<HTMLInputElement>(null);
-    const onPicked = useRef<(file: File) => void>(() => {});
+    const onPicked = useRef<(files: FileObject[]) => void>(() => {});
     const onCanceled = useRef<() => void>(() => {});
 
     return (
@@ -62,7 +63,7 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
 
                     if (file) {
                         file.uri = URL.createObjectURL(file);
-                        onPicked.current(file);
+                        onPicked.current([file]);
                     }
 
                     // Cleanup after selecting a file to start from a fresh state
@@ -97,6 +98,7 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
                     );
                 }}
                 accept={acceptedFileTypes ? getAcceptableFileTypesFromAList(acceptedFileTypes) : getAcceptableFileTypes(type)}
+                multiple={allowMultiple}
             />
             {/* eslint-disable-next-line react-compiler/react-compiler */}
             {children({
