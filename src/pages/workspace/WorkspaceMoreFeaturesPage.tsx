@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
@@ -126,7 +127,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
             isActive: policy?.areCompanyCardsEnabled ?? false,
             pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
-            disabled: !isEmptyObject(cardFeeds?.settings?.companyCards),
+            disabled: !isEmptyObject(CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards ?? {})),
             action: (isEnabled: boolean) => {
                 if (!policyID) {
                     return;

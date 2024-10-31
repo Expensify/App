@@ -9,6 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
@@ -226,6 +227,10 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
     return Illustrations.AmexCompanyCards;
 }
 
+function removeExpensifyCardFromCompanyCards(companyCards: Record<string, CardFeedData>) {
+    return Object.fromEntries(Object.entries(companyCards).filter(([key]) => key !== CONST.EXPENSIFY_CARD.BANK));
+}
+
 function getCardFeedName(feedType: CompanyCardFeed): string {
     const feedNamesMapping = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
@@ -293,7 +298,7 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
 };
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed {
-    const defaultFeed = Object.keys(cardFeeds?.settings?.companyCards ?? {}).at(0) as CompanyCardFeed;
+    const defaultFeed = Object.keys(removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards ?? {})).at(0) as CompanyCardFeed;
     return lastSelectedFeed ?? defaultFeed;
 }
 
@@ -318,4 +323,5 @@ export {
     getBankCardDetailsImage,
     getSelectedFeed,
     getCorrectStepForSelectedBank,
+    removeExpensifyCardFromCompanyCards,
 };

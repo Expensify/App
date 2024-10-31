@@ -37,15 +37,11 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const cardList = cardFeeds?.settings?.oAuthAccountDetails?.[feed]?.accountList ?? [];
 
     const isEditing = assignCard?.isEditing;
     const assignee = assignCard?.data?.email ?? '';
-    const {cardList, ...cards} = list ?? {};
-    // We need to filter out cards which already has been assigned
-    const filteredCardList = Object.fromEntries(
-        Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))),
-    );
 
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -72,10 +68,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             return;
         }
 
-        const cardName =
-            Object.entries(filteredCardList)
-                .find(([, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
-                ?.at(0) ?? '';
+        const cardName = cardList.find((encryptedCardNumber) => encryptedCardNumber === cardSelected)?.at(0) ?? '';
 
         CompanyCards.setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
@@ -84,10 +77,10 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         });
     };
 
-    const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
+    const cardListOptions = cardList.map((encryptedCardNumber) => ({
         keyForList: encryptedCardNumber,
         value: encryptedCardNumber,
-        text: cardNumber,
+        text: encryptedCardNumber,
         isSelected: cardSelected === encryptedCardNumber,
         leftElement: (
             <Icon
