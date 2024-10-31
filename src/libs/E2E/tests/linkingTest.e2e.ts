@@ -1,13 +1,10 @@
 import {DeviceEventEmitter} from 'react-native';
 import type {NativeConfig} from 'react-native-config';
-import Config from 'react-native-config';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
 import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import getPromiseWithResolve from '@libs/E2E/utils/getPromiseWithResolve';
-import Performance from '@libs/Performance';
-import CONST from '@src/CONST';
 
 type ViewableItem = {
     reportActionID?: string;
@@ -19,7 +16,6 @@ const test = (config: NativeConfig) => {
     console.debug('[E2E] Logging in for comment linking');
 
     const linkedReportActionID = getConfigValueOrThrow('linkedReportActionID', config);
-    const name = getConfigValueOrThrow('name', config);
 
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {
@@ -27,7 +23,7 @@ const test = (config: NativeConfig) => {
         }
 
         const [appearMessagePromise, appearMessageResolve] = getPromiseWithResolve();
-        const [switchReportPromise, switchReportResolve] = getPromiseWithResolve();
+        const [switchReportPromise] = getPromiseWithResolve();
 
         Promise.all([appearMessagePromise, switchReportPromise])
             .then(() => {
@@ -46,21 +42,6 @@ const test = (config: NativeConfig) => {
                 subscription.remove();
             } else {
                 console.debug(`[E2E] Provided message id '${res?.at(0)?.item?.reportActionID}' doesn't match to an expected '${linkedReportActionID}'. Waiting for a next one…`);
-            }
-        });
-
-        Performance.subscribeToMeasurements((entry) => {
-            if (entry.name === CONST.TIMING.SWITCH_REPORT) {
-                console.debug('[E2E] Linking: 1');
-
-                E2EClient.submitTestResults({
-                    branch: Config.E2E_BRANCH,
-                    name,
-                    metric: entry.duration,
-                    unit: 'ms',
-                });
-
-                switchReportResolve();
             }
         });
     });
