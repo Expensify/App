@@ -191,6 +191,25 @@ platform :android do
         track: 'alpha',
         rollout: '1.0'
       )
+
+      # Update the internal testing group "beta" with the latest version
+      upload_to_play_store(
+        package_name: "org.me.mobiexpensifyg",
+        json_key: './android-fastlane-json-key.json',
+        track: 'alpha',
+        track_promote_to: 'beta',
+        skip_upload_aab: true
+      )
+
+      # Update the internal testing group "Internal Testers" with the latest version
+      upload_to_play_store(
+          package_name: "org.me.mobiexpensifyg",
+          json_key: './android-fastlane-json-key.json',
+          track: 'alpha',
+          track_promote_to: 'Internal Testers',
+          skip_upload_aab: true
+        )
+
     end
 
   desc "Deploy app to Google Play production"
