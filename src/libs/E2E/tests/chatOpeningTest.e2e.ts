@@ -5,16 +5,13 @@ import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
 import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import getPromiseWithResolve from '@libs/E2E/utils/getPromiseWithResolve';
-import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 const test = (config: NativeConfig) => {
     // check for login (if already logged in the action will simply resolve)
     console.debug('[E2E] Logging in for chat opening');
 
-    const reportID = getConfigValueOrThrow('reportID', config);
     const name = getConfigValueOrThrow('name', config);
 
     E2ELogin().then((neededLogin) => {
@@ -37,13 +34,6 @@ const test = (config: NativeConfig) => {
         });
 
         Performance.subscribeToMeasurements((entry) => {
-            if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
-                console.debug(`[E2E] Sidebar loaded, navigating to report…`);
-                Performance.markStart(CONST.TIMING.OPEN_REPORT);
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-                return;
-            }
-
             console.debug(`[E2E] Entry: ${JSON.stringify(entry)}`);
 
             if (entry.name === CONST.TIMING.OPEN_REPORT) {

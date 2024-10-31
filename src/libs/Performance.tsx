@@ -160,10 +160,6 @@ if (Metrics.canCapturePerformanceMetrics()) {
                 }
 
                 // Capture any custom measures or metrics below
-                if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
-                    Performance.measureFailSafe('contentAppeared_To_screenTTI', 'contentAppeared', mark.name);
-                    Performance.measureTTI(mark.name);
-                }
             });
         }).observe({type: 'mark', buffered: true});
     };

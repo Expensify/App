@@ -53,10 +53,6 @@ const test = (config: NativeConfig) => {
                 return;
             }
 
-            if (entry.name !== CONST.TIMING.SIDEBAR_LOADED) {
-                return;
-            }
-
             console.debug(`[E2E] Sidebar loaded, navigating to a report…`);
             // Crowded Policy (Do Not Delete) Report, has a input bar available:
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));

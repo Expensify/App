@@ -32,11 +32,6 @@ function BaseSidebarScreen() {
     const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
 
     useEffect(() => {
-        Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
-        Timing.start(CONST.TIMING.SIDEBAR_LOADED);
-    }, []);
-
-    useEffect(() => {
         if (!!activeWorkspace || activeWorkspaceID === undefined) {
             return;
         }

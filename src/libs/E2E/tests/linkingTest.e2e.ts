@@ -6,10 +6,8 @@ import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
 import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import getPromiseWithResolve from '@libs/E2E/utils/getPromiseWithResolve';
-import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 type ViewableItem = {
     reportActionID?: string;
@@ -20,7 +18,6 @@ type ViewableItemResponse = Array<{item?: ViewableItem}>;
 const test = (config: NativeConfig) => {
     console.debug('[E2E] Logging in for comment linking');
 
-    const reportID = getConfigValueOrThrow('reportID', config);
     const linkedReportActionID = getConfigValueOrThrow('linkedReportActionID', config);
     const name = getConfigValueOrThrow('name', config);
 
@@ -53,12 +50,6 @@ const test = (config: NativeConfig) => {
         });
 
         Performance.subscribeToMeasurements((entry) => {
-            if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
-                console.debug('[E2E] Sidebar loaded, navigating to a report…');
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-                return;
-            }
-
             if (entry.name === CONST.TIMING.SWITCH_REPORT) {
                 console.debug('[E2E] Linking: 1');
 
