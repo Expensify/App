@@ -183,11 +183,11 @@ jobs:
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Update submodule
+      - name: Update submodule to staging
         run: |
-          cd ..
-          git submodule update --init
-          cd react-native
+          # Adjust fetch configuration to ensure all branches are fetched
+          git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+          
           # Update submodule to latest on staging
           git fetch --depth=1 origin staging
           git checkout staging
@@ -484,11 +484,11 @@ jobs:
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Update submodule
+      - name: Update submodule to staging
         run: |
-          cd ..
-          git submodule update --init
-          cd react-native
+          # Adjust fetch configuration to ensure all branches are fetched
+          git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+          
           # Update submodule to latest on staging
           git fetch --depth=1 origin staging
           git checkout staging
