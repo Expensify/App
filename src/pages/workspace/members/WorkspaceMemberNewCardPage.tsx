@@ -46,7 +46,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
-    const availableCompanyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards ?? {});
+    const availableCompanyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards);
 
     const handleSubmit = () => {
         if (!selectedFeed) {

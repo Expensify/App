@@ -227,7 +227,10 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
     return Illustrations.AmexCompanyCards;
 }
 
-function removeExpensifyCardFromCompanyCards(companyCards: Record<string, CardFeedData>) {
+function removeExpensifyCardFromCompanyCards(companyCards?: Record<string, CardFeedData>) {
+    if (!companyCards) {
+        return {};
+    }
     return Object.fromEntries(Object.entries(companyCards).filter(([key]) => key !== CONST.EXPENSIFY_CARD.BANK));
 }
 
@@ -298,7 +301,7 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
 };
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed {
-    const defaultFeed = Object.keys(removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards ?? {})).at(0) as CompanyCardFeed;
+    const defaultFeed = Object.keys(removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards)).at(0) as CompanyCardFeed;
     return lastSelectedFeed ?? defaultFeed;
 }
 
