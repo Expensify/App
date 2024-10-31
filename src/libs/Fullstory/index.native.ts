@@ -2,7 +2,14 @@ import FullStory, {FSPage} from '@fullstory/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
-import type {UserMetadata} from '@src/types/onyx';
+import type {UserMetadata, OnyxInputOrEntry, Report} from '@src/types/onyx';
+import {isConciergeChatReport, isExpensifyAndCustomerChat} from '@libs/ReportUtils';
+
+const MASK = 'fs-mask';
+const UNMASK = 'fs-unmask';
+const CUSTOMER = "customer";
+const CONCIERGE = "concierge";
+const OTHER = "other";
 
 /**
  * Fullstory React-Native lib adapter
@@ -63,5 +70,63 @@ const FS = {
     },
 };
 
+/**
+ * Placeholder function for Mobile-Web compatibility.
+ */
+function parseFSAttributes (): void{
+    // pass
+}
+
+/*
+    prefix? if component name should be used as a prefix,
+    in case data-test-id attribute usage,
+    clean component name should be preserved in data-test-id.
+*/
+function getFSAttributes (name: string, mask: bool, prefix: bool): string {
+    // prefixed for Native apps should contain only component name
+    if (prefix){
+        return name;
+    }
+    const componentPrefix = prefix ? `${name},`:"";
+    const componentSuffix = name ? `,fs-${name}`:"";
+    const fsAttrValue = `${componentPrefix}${mask?MASK:UNMASK}${componentSuffix}`;
+    /*
+    testID: componentName,fs-unmask,fs-componentName
+    fsClass: fs-unmask,fs-componentName
+    */
+    return fsAttrValue;
+}
+
+function getChatFSAttributes (name: string, report: OnyxInputOrEntry<Report>, prefix: bool): string {
+    // prefixed for Native apps should contain only component name
+    if (prefix){
+        return name;
+    }
+    // default
+    let componentName = name ? `,fs-${name}`:"";
+    let fsAttrValue = "";
+
+    if(!!isConciergeChatReport(report)){
+        componentName = name ? `,fs-${CONCIERGE}-${name}`:"";
+        /*
+        fs-unmask,fs-concierge-chatMessage
+        */
+        fsAttrValue = `${UNMASK}${componentName}`;
+    }else if(!!isExpensifyAndCustomerChat(report)){
+        componentName = name ? `,fs-${CUSTOMER}-${name}`:"";
+        /*
+        fs-mask,fs-customer-chatMessage
+        */
+        fsAttrValue = `${MASK}${componentName}`;
+    } else {
+        componentName = name ? `,fs-${OTHER}-${name}`:"";
+        /*
+        fs-mask,fs-other-chatMessage
+        */
+        fsAttrValue = `${MASK}${componentName}`;
+    }
+    return fsAttrValue;
+}
+
 export default FS;
-export {FSPage};
+export {FSPage, parseFSAttributes, getFSAttributes, getChatFSAttributes};

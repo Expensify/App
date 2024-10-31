@@ -1623,6 +1623,7 @@ const CONST = {
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
+        EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',

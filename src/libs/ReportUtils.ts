@@ -88,7 +88,8 @@ import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import type {AvatarSource} from './UserUtils';
 import * as UserUtils from './UserUtils';
-
+import {PersonalDetailsContext, PersonalDetailsProvider} from '@src/components/OnyxProvider';
+import {useContext} from 'react';
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
 type SpendBreakdown = {
@@ -8407,6 +8408,45 @@ function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && report?.hasParentAccess === false;
 }
 
+function isExpensifyAndCustomerChat(report: OnyxInputOrEntry<Report>): boolean {
+   if (!report?.participants || isThread(report)) {
+       return false;
+   }
+
+   const participantAccountIDs = new Set(Object.keys(report.participants));
+   if (participantAccountIDs.size !== 2) {
+       return false;
+   }
+
+  // by email participants
+  const baseRegexp = new RegExp(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN + "$");
+  const teamRegexp = new RegExp(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN + "$");
+  const participantsContext = useContext(PersonalDetailsContext);
+
+  for (const participantAccountID of participantAccountIDs){
+    let id = Number(participantAccountID);
+    let contextAccountData = participantsContext[id];
+    if(!contextAccountData){
+        continue
+    }
+    if(baseRegexp.test(contextAccountData.login)){
+        return true
+    }
+    if(teamRegexp.test(contextAccountData.login)){
+       return true
+    }
+  }
+
+   // System users communication
+   const expensifyTeam = new Set(Object.values(CONST.ACCOUNT_ID));
+   const expensifyTeamParticipants = expensifyTeam.intersection(participantAccountIDs)
+   if (expensifyTeamParticipants.size > 0){
+      return true;
+   }
+
+   return false
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -8599,6 +8639,7 @@ export {
     isClosedExpenseReportWithNoExpenses,
     isCompletedTaskReport,
     isConciergeChatReport,
+    isExpensifyAndCustomerChat,
     isControlPolicyExpenseChat,
     isControlPolicyExpenseReport,
     isCurrentUserSubmitter,

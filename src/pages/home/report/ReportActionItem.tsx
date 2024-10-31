@@ -83,6 +83,7 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import {parseFSAttributes} from '@libs/Fullstory';
 
 type ReportActionItemProps = {
     /** Report for this action */
@@ -318,6 +319,12 @@ function ReportActionItem({
         }
         setIsHidden(false);
     }, [latestDecision, action]);
+
+    useEffect(() => {
+        if (action && popoverAnchorRef.current) {
+            parseFSAttributes(popoverAnchorRef.current);
+        }
+    }, [action]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(action.reportActionID));
