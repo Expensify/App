@@ -16,7 +16,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import {trimSearchQueryForAutocomplete} from '@libs/SearchAutocompleteUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -25,11 +26,19 @@ import ROUTES from '@src/ROUTES';
 
 type ItemWithQuery = {
     query: string;
+    id?: string;
+    text?: string;
 };
 
 type SearchRouterListProps = {
-    /** currentQuery value computed coming from parsed TextInput value */
-    currentQuery: SearchQueryJSON | undefined;
+    /** value of TextInput */
+    textInputValue: string;
+
+    /** Callback to update text input value along with autocomplete suggestions */
+    updateSearchValue: (newValue: string) => void;
+
+    /** Callback to update text input value */
+    setTextInputValue: (text: string) => void;
 
     /** Recent searches */
     recentSearches: Array<ItemWithQuery & {timestamp: string}> | undefined;
@@ -37,23 +46,27 @@ type SearchRouterListProps = {
     /** Recent reports */
     recentReports: OptionData[];
 
+    /** Autocomplete items */
+    autocompleteItems: ItemWithQuery[] | undefined;
+
     /** Callback to submit query when selecting a list item */
     onSearchSubmit: (query: SearchQueryJSON | undefined) => void;
 
     /** Context present when opening SearchRouter from a report, invoice or workspace page */
     reportForContextualSearch?: OptionData;
 
-    /** Callback to update search query when selecting contextual suggestion */
-    updateUserSearchQuery: (newSearchQuery: string) => void;
-
     /** Callback to close and clear SearchRouter */
-    closeAndClearRouter: () => void;
+    closeRouter: () => void;
 };
 
 const setPerformanceTimersEnd = () => {
     Timing.end(CONST.TIMING.SEARCH_ROUTER_RENDER);
     Performance.markEnd(CONST.TIMING.SEARCH_ROUTER_RENDER);
 };
+
+function getContextualSearchQuery(reportID: string) {
+    return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${CONST.SEARCH.DATA_TYPES.CHAT} in:${reportID}`;
+}
 
 function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
     if ('singleIcon' in item && item.singleIcon && 'query' in item && item.query) {
@@ -87,12 +100,12 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 }
 
 function SearchRouterList(
-    {currentQuery, reportForContextualSearch, recentSearches, recentReports, onSearchSubmit, updateUserSearchQuery, closeAndClearRouter}: SearchRouterListProps,
+    {textInputValue, updateSearchValue, setTextInputValue, reportForContextualSearch, recentSearches, autocompleteItems, recentReports, onSearchSubmit, closeRouter}: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -100,46 +113,62 @@ function SearchRouterList(
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
 
-    if (currentQuery?.inputQuery) {
+    if (textInputValue) {
         sections.push({
             data: [
                 {
-                    text: currentQuery?.inputQuery,
+                    text: textInputValue,
                     singleIcon: Expensicons.MagnifyingGlass,
-                    query: currentQuery?.inputQuery,
+                    query: textInputValue,
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'findItem',
+                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
                 },
             ],
         });
     }
 
-    if (reportForContextualSearch && !currentQuery?.inputQuery) {
+    if (reportForContextualSearch && !textInputValue) {
         sections.push({
             data: [
                 {
                     text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
                     singleIcon: Expensicons.MagnifyingGlass,
-                    query: SearchUtils.getContextualSuggestionQuery(reportForContextualSearch.reportID),
+                    query: getContextualSearchQuery(reportForContextualSearch.reportID),
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
-                    isContextualSearchItem: true,
+                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
                 },
             ],
         });
     }
 
-    const recentSearchesData = recentSearches?.map(({query, timestamp}) => {
-        const searchQueryJSON = SearchUtils.buildSearchQueryJSON(query);
+    const autocompleteData = autocompleteItems?.map(({text, query}) => {
         return {
-            text: searchQueryJSON ? SearchUtils.getSearchHeaderTitle(searchQueryJSON, personalDetails, cardList, reports, taxRates) : query,
-            singleIcon: Expensicons.History,
+            text,
+            singleIcon: Expensicons.MagnifyingGlass,
             query,
-            keyForList: timestamp,
+            keyForList: query,
+            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
         };
     });
 
-    if (!currentQuery?.inputQuery && recentSearchesData && recentSearchesData.length > 0) {
+    if (autocompleteData && autocompleteData.length > 0) {
+        sections.push({title: translate('search.suggestions'), data: autocompleteData});
+    }
+
+    const recentSearchesData = recentSearches?.map(({query, timestamp}) => {
+        const searchQueryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
+        return {
+            text: searchQueryJSON ? SearchQueryUtils.buildUserReadableQueryString(searchQueryJSON, personalDetails, cardList, reports, taxRates) : query,
+            singleIcon: Expensicons.History,
+            query,
+            keyForList: timestamp,
+            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+        };
+    });
+
+    if (!textInputValue && recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
@@ -149,29 +178,50 @@ function SearchRouterList(
     const onSelectRow = useCallback(
         (item: OptionData | SearchQueryItem) => {
             if (isSearchQueryItem(item)) {
-                if (item.isContextualSearchItem) {
-                    // Handle selection of "Contextual search suggestion"
-                    updateUserSearchQuery(`${item?.query} ${currentQuery?.inputQuery ?? ''}`);
-                    return;
-                }
-
-                // Handle selection of "Recent search"
                 if (!item?.query) {
                     return;
                 }
-                onSearchSubmit(SearchUtils.buildSearchQueryJSON(item?.query));
+                if (item?.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
+                    updateSearchValue(`${item?.query} `);
+                    return;
+                }
+                if (item?.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
+                    const trimmedUserSearchQuery = trimSearchQueryForAutocomplete(textInputValue);
+                    updateSearchValue(`${trimmedUserSearchQuery}${item?.query} `);
+                    return;
+                }
+
+                onSearchSubmit(SearchQueryUtils.buildSearchQueryJSON(item?.query));
             }
 
             // Handle selection of "Recent chat"
-            closeAndClearRouter();
+            closeRouter();
             if ('reportID' in item && item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
                 Report.navigateToAndOpenReport(item.login ? [item.login] : [], false);
             }
         },
-        [closeAndClearRouter, onSearchSubmit, currentQuery, updateUserSearchQuery],
+        [closeRouter, textInputValue, onSearchSubmit, updateSearchValue],
     );
+
+    const onArrowFocus = useCallback(
+        (focusedItem: OptionData | SearchQueryItem) => {
+            if (!isSearchQueryItem(focusedItem) || focusedItem?.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION || !textInputValue) {
+                return;
+            }
+            const trimmedUserSearchQuery = trimSearchQueryForAutocomplete(textInputValue);
+            setTextInputValue(`${trimmedUserSearchQuery}${focusedItem?.query} `);
+        },
+        [setTextInputValue, textInputValue],
+    );
+
+    const getItemHeight = useCallback((item: OptionData | SearchQueryItem) => {
+        if (isSearchQueryItem(item)) {
+            return 44;
+        }
+        return 64;
+    }, []);
 
     return (
         <SelectionList<OptionData | SearchQueryItem>
@@ -179,13 +229,15 @@ function SearchRouterList(
             onSelectRow={onSelectRow}
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
-            sectionListStyle={[isSmallScreenWidth ? styles.ph5 : styles.ph2, styles.pb2]}
+            sectionListStyle={[shouldUseNarrowLayout ? styles.ph5 : styles.ph2, styles.pb2]}
             listItemWrapperStyle={[styles.pr3, styles.pl3]}
+            getItemHeight={getItemHeight}
             onLayout={setPerformanceTimersEnd}
             ref={ref}
-            showScrollIndicator={!isSmallScreenWidth}
+            showScrollIndicator={!shouldUseNarrowLayout}
             sectionTitleStyles={styles.mhn2}
             shouldSingleExecuteRowSelect
+            onArrowFocus={onArrowFocus}
         />
     );
 }

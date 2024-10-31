@@ -181,7 +181,7 @@ function ReportFooter({
 
     return (
         <>
-            {shouldHideComposer && (
+            {!!shouldHideComposer && (
                 <View
                     style={[
                         styles.chatFooter,
@@ -196,7 +196,7 @@ function ReportFooter({
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
-                    {!isArchivedRoom && isBlockedFromChat && <BlockedReportFooter />}
+                    {!isArchivedRoom && !!isBlockedFromChat && <BlockedReportFooter />}
                     {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
                     {isAdminsOnlyPostingRoom && !isUserPolicyAdmin && !isArchivedRoom && !isAnonymousUser && !isBlockedFromChat && (
                         <Banner

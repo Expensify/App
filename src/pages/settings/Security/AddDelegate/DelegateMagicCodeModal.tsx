@@ -14,9 +14,10 @@ import ROUTES from '@src/ROUTES';
 type DelegateMagicCodeModalProps = {
     login: string;
     role: ValueOf<typeof CONST.DELEGATE_ROLE>;
+    onClose?: () => void;
 };
 
-function DelegateMagicCodeModal({login, role}: DelegateMagicCodeModalProps) {
+function DelegateMagicCodeModal({login, role, onClose}: DelegateMagicCodeModalProps) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
@@ -34,6 +35,7 @@ function DelegateMagicCodeModal({login, role}: DelegateMagicCodeModalProps) {
     }, [login, currentDelegate, role]);
 
     const onBackButtonPress = () => {
+        onClose?.();
         setIsValidateCodeActionModalVisible(false);
     };
 
@@ -44,14 +46,6 @@ function DelegateMagicCodeModal({login, role}: DelegateMagicCodeModalProps) {
         Delegate.clearAddDelegateErrors(currentDelegate?.email ?? '', 'addDelegate');
     };
 
-    const sendValidateCode = () => {
-        if (currentDelegate?.validateCodeSent) {
-            return;
-        }
-
-        User.requestValidateCodeAction();
-    };
-
     return (
         <ValidateCodeActionModal
             clearError={clearError}
@@ -59,7 +53,8 @@ function DelegateMagicCodeModal({login, role}: DelegateMagicCodeModalProps) {
             validateError={validateLoginError}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('delegate.makeSureItIsYou')}
-            sendValidateCode={sendValidateCode}
+            sendValidateCode={() => User.requestValidateCodeAction()}
+            hasMagicCodeBeenSent={!!currentDelegate?.validateCodeSent}
             handleSubmitForm={(validateCode) => Delegate.addDelegate(login, role, validateCode)}
             description={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
         />

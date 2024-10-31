@@ -173,7 +173,7 @@ function HeaderWithBackButton({
                         </PressableWithoutFeedback>
                     </Tooltip>
                 )}
-                {icon && (
+                {!!icon && (
                     <Icon
                         src={icon}
                         width={variables.iconHeader}
@@ -181,7 +181,7 @@ function HeaderWithBackButton({
                         additionalStyles={[styles.mr2]}
                     />
                 )}
-                {policyAvatar && (
+                {!!policyAvatar && (
                     <Avatar
                         containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
                         source={policyAvatar?.source}
@@ -263,8 +263,8 @@ function HeaderWithBackButton({
                             </PressableWithoutFeedback>
                         </Tooltip>
                     )}
-                    {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
                 </View>
+                {shouldDisplaySearchRouter && <SearchButton style={styles.mr5} />}
             </View>
         </View>
     );
