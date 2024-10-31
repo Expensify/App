@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {READ_COMMANDS} from '@libs/API/types';
 import Clipboard from '@libs/Clipboard';
 import localFileDownload from '@libs/localFileDownload';
 import type {BackToParams, SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -66,7 +67,11 @@ function CodesStep({backTo}: CodesStepProps) {
                 text: translate('twoFactorAuth.stepCodes'),
                 total: 3,
             }}
-            onBackButtonPress={() => TwoFactorAuthActions.quitAndNavigateBack(backTo)}
+            // When the 2FA code step is open from Xero flow, we don't need to pass backTo because we build the necessary root route
+            // from the backTo param in the route (in getMatchingRootRouteForRHPRoute) and goBack will not need a fallbackRoute.
+            onBackButtonPress={() =>
+                TwoFactorAuthActions.quitAndNavigateBack(route?.params?.forwardTo && !route.params.forwardTo?.includes(READ_COMMANDS.CONNECT_POLICY_TO_XERO) ? backTo : '')
+            }
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUserValidated && (
