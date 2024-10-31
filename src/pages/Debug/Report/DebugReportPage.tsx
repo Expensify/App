@@ -159,7 +159,7 @@ function DebugReportPage({
                                                 )}
                                             </View>
                                         ))}
-                                        {transactionID && (
+                                        {!!transactionID && (
                                             <Button
                                                 text={translate('debug.viewTransaction')}
                                                 onPress={() => {

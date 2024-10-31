@@ -68,7 +68,7 @@ function DebugReportActionPage({
                                     }}
                                     validate={DebugUtils.validateReportActionDraftProperty}
                                 >
-                                    {transactionID && (
+                                    {!!transactionID && (
                                         <View style={[styles.mh5, styles.mb5]}>
                                             <Button
                                                 text={translate('debug.viewTransaction')}
