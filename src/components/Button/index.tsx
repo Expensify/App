@@ -293,7 +293,6 @@ function Button(
                             <View style={[large ? styles.mr2 : styles.mr1, !text && styles.mr0, iconStyles]}>
                                 <Icon
                                     src={icon}
-                                    hasText={!!text}
                                     fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
                                     small={small}
                                     medium={medium}

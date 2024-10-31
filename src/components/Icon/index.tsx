@@ -40,9 +40,6 @@ type IconProps = {
     /** Is icon pressed */
     pressed?: boolean;
 
-    /** Is icon will be used with text */
-    hasText?: boolean;
-
     /** Additional styles to add to the Icon */
     additionalStyles?: StyleProp<ViewStyle>;
 
@@ -59,7 +56,6 @@ function Icon({
     height = variables.iconSizeNormal,
     fill = undefined,
     small = false,
-    hasText = false,
     large = false,
     medium = false,
     inline = false,
@@ -71,7 +67,7 @@ function Icon({
 }: IconProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height, hasText);
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height);
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
 
     if (inline) {
