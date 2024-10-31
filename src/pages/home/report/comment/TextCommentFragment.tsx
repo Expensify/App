@@ -14,6 +14,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
+import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
@@ -53,6 +54,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
 
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.MESSAGE_SENT, {message: text});
+        Timing.end(CONST.TIMING.MESSAGE_SENT);
     }, [text]);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
