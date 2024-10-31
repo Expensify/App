@@ -427,6 +427,7 @@ function ReportActionsView({
         didLayout.current = true;
 
         Performance.markEnd(CONST.TIMING.OPEN_REPORT);
+        Timing.end(CONST.TIMING.OPEN_REPORT);
         Timing.end(CONST.TIMING.OPEN_REPORT_THREAD);
         Timing.end(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
     }, []);
