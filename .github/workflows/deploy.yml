@@ -185,7 +185,9 @@ jobs:
 
       - name: Update submodule
         run: |
+          cd ..
           git submodule update --init
+          cd react-native
           # Update submodule to latest on staging
           git fetch --depth=1 origin staging
           git checkout staging
@@ -484,7 +486,9 @@ jobs:
 
       - name: Update submodule
         run: |
+          cd ..
           git submodule update --init
+          cd react-native
           # Update submodule to latest on staging
           git fetch --depth=1 origin staging
           git checkout staging
