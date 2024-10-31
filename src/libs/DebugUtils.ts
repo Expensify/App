@@ -1401,7 +1401,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateString(value);
         }
         case 'cardNumber': {
-            return validateNumber(value);
+            return validateString(value);
         }
         case 'managedCard': {
             return validateBoolean(value);

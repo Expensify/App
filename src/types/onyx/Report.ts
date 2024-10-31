@@ -39,7 +39,7 @@ type PendingChatMember = {
 /** Report participant properties */
 type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the participant is hidden */
-    hidden: boolean;
+    hidden?: boolean;
 
     /** Whether the participant is visible in the report */
     notificationPreference: NotificationPreference;
