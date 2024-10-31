@@ -142,6 +142,33 @@ Sign out of Expensify:
 1. Press **Settings**.
 2. Scroll and press **Sign Out**.
 
+### Subscription Management
+#### [Manage Subscription] How do you manage your subscription?
+To manage your subscription in New Expensify:
+1. Open the app on your device.
+2. Press your profile icon in the bottom-left corner.
+3. Navigate to the **Workspaces** section.
+4. Press **Subscription** under Workspaces to view your subscription details.
+
+#### [Add Payment Card] How do you add a payment card for billing?
+To add a payment card for billing:
+1. Locate the **Add Payment Card** option within your subscription settings.
+2. Enter your payment card details securely to maintain uninterrupted service.
+
+#### [Understand Subscription Details] What subscription details can you view?
+Within your subscription overview, you can view:
+- **Plan details**: See the number of seats, billing information, and renewal date.
+- **Auto-renew settings**: Check when your subscription will renew automatically.
+- **Auto-increase seats**: Discover potential savings by automatically increasing seats for team members exceeding the subscription size.
+
+#### [Request Early Cancellation] How can you request an early cancellation of your subscription?
+To request an early cancellation:
+1. Access the **Request Early Cancellation** option in the Subscriptions section.
+Note: Early cancellation might not be available for all customers.
+
+#### [Pricing Information] Where can you find more details on pricing plans?
+For detailed pricing plans, visit the billing page [coming soon]. 
+
 ### Security and Customization
 #### [Enable 2FA Security] How do you secure your account with two-factor authentication?
 Secure your account with two-factor authentication:
@@ -331,3 +358,7 @@ Workspace members billed for a paid seat if they submit, approve, pay, export, o
 
 #### [Member Double Billing] Why do some workspace members using paid features not require paid seats?
 Members using paid functionality on multiple workspaces in a month aren't billed twice – no "double dipping."
+
+### Billing and Subscriptions
+#### [Billing Page] What is the status of the billing page?
+The billing page is currently under development and will be available soon. Stay tuned for updates on how to access and use the new billing features.
