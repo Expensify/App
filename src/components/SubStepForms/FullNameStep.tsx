@@ -44,7 +44,7 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
     /** Should show the help link or not */
     shouldShowHelpLinks?: boolean;
 
-    /** Custom label of the first input  */
+    /** Custom label of the first name input  */
     customFirstNameLabel?: string;
 
     /** Custom label of the last name input */
