@@ -113,7 +113,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{formTitle}</Text>
-                {formPOBoxDisclaimer && <Text style={[styles.textSupporting]}>{formPOBoxDisclaimer}</Text>}
+                {!!formPOBoxDisclaimer && <Text style={[styles.textSupporting]}>{formPOBoxDisclaimer}</Text>}
                 <AddressFormFields
                     formID={formID}
                     inputKeys={inputFieldsIDs}
@@ -126,7 +126,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     stateSelectorModalHeaderTitle={stateSelectorModalHeaderTitle}
                     stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
                 />
-                {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
+                {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
             </View>
         </FormProvider>
     );
