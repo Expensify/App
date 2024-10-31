@@ -243,7 +243,7 @@ function goUp(fallbackRoute: Route, options?: GoUpOptions) {
         return;
     }
 
-    const distanceToPop = targetState.routes.length - indexOfFallbackRoute;
+    const distanceToPop = targetState.routes.length - indexOfFallbackRoute - 1;
     navigationRef.current.dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
 }
 
