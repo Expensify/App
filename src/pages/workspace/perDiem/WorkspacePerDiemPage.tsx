@@ -36,7 +36,6 @@ import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Modal from '@userActions/Modal';
-// import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
 import * as PerDiem from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 // import ROUTES from '@src/ROUTES';
@@ -164,7 +163,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     isSelected: selectedPerDiem.find((rate) => rate.subRateID === value.subRateID) !== undefined && canSelectMultiple,
                     isDisabled,
                     pendingAction: value.pendingAction,
-                    // errors: value.errors ?? undefined,
                     rightElement: (
                         <>
                             <View style={styles.flex1}>
@@ -235,7 +233,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const handleDeletePerDiemRates = () => {
         setSelectedPerDiem([]);
-        // deleteWorkspaceCategories(policyID, selectedPerDiem);
         setDeletePerDiemConfirmModalVisible(false);
     };
 
