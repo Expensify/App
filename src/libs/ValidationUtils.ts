@@ -495,6 +495,14 @@ function isValidSubscriptionSize(subscriptionSize: string): boolean {
     return !Number.isNaN(parsedSubscriptionSize) && parsedSubscriptionSize > 0 && parsedSubscriptionSize <= CONST.SUBSCRIPTION_SIZE_LIMIT && Number.isInteger(parsedSubscriptionSize);
 }
 
+/**
+ * Validates the given value if it is correct email address.
+ * @param email
+ */
+function isValidEmail(email: string): boolean {
+    return Str.isValidEmail(email);
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -539,4 +547,5 @@ export {
     isValidSubscriptionSize,
     isExistingTaxCode,
     isPublicDomain,
+    isValidEmail,
 };

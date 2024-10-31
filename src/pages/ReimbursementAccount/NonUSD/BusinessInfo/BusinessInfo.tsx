@@ -8,10 +8,10 @@ import CONST from '@src/CONST';
 import Address from './substeps/Address';
 import BusinessType from './substeps/BusinessType';
 import Confirmation from './substeps/Confirmation';
+import ContactInformation from './substeps/ContactInformation';
 import IncorporationLocation from './substeps/IncorporationLocation';
 import Name from './substeps/Name';
 import PaymentVolume from './substeps/PaymentVolume';
-import PhoneNumber from './substeps/PhoneNumber';
 import RegistrationNumber from './substeps/RegistrationNumber';
 
 type BusinessInfoProps = {
@@ -22,7 +22,7 @@ type BusinessInfoProps = {
     onSubmit: () => void;
 };
 
-const bodyContent: Array<ComponentType<SubStepProps>> = [Name, Address, PhoneNumber, RegistrationNumber, IncorporationLocation, BusinessType, PaymentVolume, Confirmation];
+const bodyContent: Array<ComponentType<SubStepProps>> = [Name, Address, ContactInformation, RegistrationNumber, IncorporationLocation, BusinessType, PaymentVolume, Confirmation];
 
 function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const {translate} = useLocalize();

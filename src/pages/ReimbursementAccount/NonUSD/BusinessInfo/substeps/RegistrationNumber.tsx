@@ -1,13 +1,18 @@
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -22,12 +27,14 @@ const STEP_FIELDS = [BUSINESS_REGISTRATION_INCORPORATION_NUMBER];
 function RegistrationNumber({onNext, isEditing}: RegistrationNumberProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const defaultValue =
         reimbursementAccount?.achData?.additionalData?.corpay?.[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] ?? reimbursementAccountDraft?.[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] ?? '';
 
+    // TODO Validation for registration number depending on the country will be added in https://github.com/Expensify/App/issues/50905
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         return ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
     }, []);
@@ -57,6 +64,23 @@ function RegistrationNumber({onNext, isEditing}: RegistrationNumberProps) {
                 defaultValue={defaultValue}
                 shouldSaveDraft={!isEditing}
             />
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
+                <Icon
+                    src={Expensicons.QuestionMark}
+                    width={12}
+                    height={12}
+                    fill={theme.icon}
+                />
+                <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
+                    <TextLink
+                        style={[styles.textMicro]}
+                        // TODO Link and more logic will be added to this in https://github.com/Expensify/App/issues/50905
+                        href=""
+                    >
+                        {translate('businessInfoStep.whatsThisNumber')}
+                    </TextLink>
+                </View>
+            </View>
         </FormProvider>
     );
 }

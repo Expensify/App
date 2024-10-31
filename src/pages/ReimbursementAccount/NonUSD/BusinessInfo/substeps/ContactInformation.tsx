@@ -14,23 +14,34 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type PhoneNumberProps = SubStepProps;
+type ContactInformationProps = SubStepProps;
 
-const {BUSINESS_CONTACT_NUMBER} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {BUSINESS_CONTACT_NUMBER, BUSINESS_CONFIRMATION_EMAIL} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-const STEP_FIELDS = [BUSINESS_CONTACT_NUMBER];
+const STEP_FIELDS = [BUSINESS_CONTACT_NUMBER, BUSINESS_CONFIRMATION_EMAIL];
 
-function PhoneNumber({onNext, isEditing}: PhoneNumberProps) {
+function ContactInformation({onNext, isEditing}: ContactInformationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const phoneNumberDefaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[BUSINESS_CONTACT_NUMBER] ?? reimbursementAccountDraft?.[BUSINESS_CONTACT_NUMBER] ?? '';
+    const confirmationEmailDefaultValue =
+        reimbursementAccount?.achData?.additionalData?.corpay?.[BUSINESS_CONFIRMATION_EMAIL] ?? reimbursementAccountDraft?.[BUSINESS_CONFIRMATION_EMAIL] ?? '';
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        return ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-    }, []);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+            if (values[BUSINESS_CONFIRMATION_EMAIL] && !ValidationUtils.isValidEmail(values[BUSINESS_CONFIRMATION_EMAIL])) {
+                errors[BUSINESS_CONFIRMATION_EMAIL] = translate('common.error.email');
+            }
+
+            return errors;
+        },
+        [translate],
+    );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -47,7 +58,7 @@ function PhoneNumber({onNext, isEditing}: PhoneNumberProps) {
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.mh5]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.whatsTheBusinessPhone')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.whatsTheBusinessContactInformation')}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 label={translate('common.phoneNumber')}
@@ -59,10 +70,21 @@ function PhoneNumber({onNext, isEditing}: PhoneNumberProps) {
                 defaultValue={phoneNumberDefaultValue}
                 shouldSaveDraft={!isEditing}
             />
+            <InputWrapper
+                InputComponent={TextInput}
+                label={translate('common.email')}
+                aria-label={translate('common.email')}
+                role={CONST.ROLE.PRESENTATION}
+                inputMode={CONST.INPUT_MODE.EMAIL}
+                inputID={BUSINESS_CONFIRMATION_EMAIL}
+                containerStyles={[styles.mt5, styles.mh5]}
+                defaultValue={confirmationEmailDefaultValue}
+                shouldSaveDraft={!isEditing}
+            />
         </FormProvider>
     );
 }
 
-PhoneNumber.displayName = 'PhoneNumber';
+ContactInformation.displayName = 'ContactInformation';
 
-export default PhoneNumber;
+export default ContactInformation;

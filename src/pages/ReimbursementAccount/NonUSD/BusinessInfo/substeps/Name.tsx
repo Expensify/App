@@ -57,8 +57,8 @@ function Name({onNext, isEditing}: NameProps) {
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.whatsTheBusinessName')}</Text>
             <InputWrapper
                 InputComponent={TextInput}
-                label={translate('businessInfoStep.businessName')}
-                aria-label={translate('businessInfoStep.businessName')}
+                label={translate('businessInfoStep.legalBusinessName')}
+                aria-label={translate('businessInfoStep.legalBusinessName')}
                 role={CONST.ROLE.PRESENTATION}
                 inputID={COMPANY_NAME}
                 containerStyles={[styles.mt6]}

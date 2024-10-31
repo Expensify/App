@@ -61,7 +61,7 @@ function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
                 searchInputTitle={translate('businessInfoStep.findAnnualPaymentVolume')}
                 inputID={ANNUAL_VOLUME}
                 shouldSaveDraft={!isEditing}
-                defaultValue={annualVolumeDefaultValue}
+                value={annualVolumeDefaultValue}
             />
         </FormProvider>
     );

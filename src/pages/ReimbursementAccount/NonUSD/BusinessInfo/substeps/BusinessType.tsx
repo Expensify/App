@@ -19,6 +19,15 @@ type BusinessTypeProps = SubStepProps;
 const {BUSINESS_CATEGORY, APPLICANT_TYPE_ID} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [BUSINESS_CATEGORY, APPLICANT_TYPE_ID];
 
+const incorporationTypeListOptions = applicantType.reduce((accumulator, currentValue) => {
+    accumulator[currentValue.name] = currentValue.stringValue;
+    return accumulator;
+}, {} as Record<string, string>);
+const businessCategoryListOptions = natureOfBusiness.reduce((accumulator, currentValue) => {
+    accumulator[currentValue.name] = currentValue.stringValue;
+    return accumulator;
+}, {} as Record<string, string>);
+
 function BusinessType({onNext, isEditing}: BusinessTypeProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -39,15 +48,6 @@ function BusinessType({onNext, isEditing}: BusinessTypeProps) {
         shouldSaveDraft: true,
     });
 
-    const incorporationTypeListOptions = applicantType.reduce((accumulator, currentValue) => {
-        accumulator[currentValue.name] = currentValue.stringValue;
-        return accumulator;
-    }, {} as Record<string, string>);
-    const businessCategoryListOptions = natureOfBusiness.reduce((accumulator, currentValue) => {
-        accumulator[currentValue.name] = currentValue.stringValue;
-        return accumulator;
-    }, {} as Record<string, string>);
-
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -66,7 +66,7 @@ function BusinessType({onNext, isEditing}: BusinessTypeProps) {
                 searchInputTitle={translate('businessInfoStep.findIncorporationType')}
                 inputID={APPLICANT_TYPE_ID}
                 shouldSaveDraft={!isEditing}
-                defaultValue={incorporationTypeDefaultValue}
+                value={incorporationTypeDefaultValue}
             />
             <InputWrapper
                 InputComponent={PushRowWithModal}
@@ -76,7 +76,7 @@ function BusinessType({onNext, isEditing}: BusinessTypeProps) {
                 searchInputTitle={translate('businessInfoStep.findBusinessCategory')}
                 inputID={BUSINESS_CATEGORY}
                 shouldSaveDraft={!isEditing}
-                defaultValue={businessCategoryDefaultValue}
+                value={businessCategoryDefaultValue}
             />
         </FormProvider>
     );
