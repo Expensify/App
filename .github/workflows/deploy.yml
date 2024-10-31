@@ -182,15 +182,15 @@ jobs:
           submodules: true
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          # fetch-depth: 0 is required in order to fetch the correct submodule branch
+          fetch-depth: 0
 
-      - name: Update submodule to staging
+      - name: Update submodule
         run: |
-          # Adjust fetch configuration to ensure all branches are fetched
-          git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-          
+          git submodule update --init
           # Update submodule to latest on staging
           git fetch
-          git checkout -b staging origin/staging
+          git checkout staging
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -259,44 +259,47 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
 
-      - name: Upload Android app to Google Play
-        run: bundle exec fastlane android upload_google_play_internal_hybrid
-        env:
-          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+      - name: Debug paths
+        run: ls -laR .
 
-      - name: Upload Android build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.aabPath }}"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-      - name: Upload Android build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-hybrid-build-artifact
-          path: ${{ env.aabPath }}
-
-      - name: Set current App version in Env
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
-
-      - name: Warn deployers if Android production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Android HybridApp production deploy failed. Please manually submit ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store>. 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+#      - name: Upload Android app to Google Play
+#        run: bundle exec fastlane android upload_google_play_internal_hybrid
+#        env:
+#          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+#
+#      - name: Upload Android build to Browser Stack
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.aabPath }}"
+#        env:
+#          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+#
+#      - name: Upload Android build artifact
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: android-hybrid-build-artifact
+#          path: ${{ env.aabPath }}
+#
+#      - name: Set current App version in Env
+#        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+#
+#      - name: Warn deployers if Android production deploy failed
+#        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        uses: 8398a7/action-slack@v3
+#        with:
+#          status: custom
+#          custom_payload: |
+#            {
+#              channel: '#deployer',
+#              attachments: [{
+#                color: "#DB4545",
+#                pretext: `<!subteam^S4TJJ3PSL>`,
+#                text: `💥 Android HybridApp production deploy failed. Please manually submit ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store>. 💥`,
+#              }]
+#            }
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
 #  desktop:
 #    name: Build and deploy Desktop
@@ -483,15 +486,15 @@ jobs:
           submodules: true
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          # fetch-depth: 0 is required in order to fetch the correct submodule branch
+          fetch-depth: 0
 
-      - name: Update submodule to staging
+      - name: Update submodule
         run: |
-          # Adjust fetch configuration to ensure all branches are fetched
-          git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-          
+          git submodule update --init
           # Update submodule to latest on staging
           git fetch
-          git checkout -b staging origin/staging
+          git checkout staging
 
       - name: Configure MapBox SDK
         run: |
@@ -577,45 +580,48 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane ios build_hybrid
 
-      - name: Upload release build to TestFlight
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios upload_testflight_hybrid
-        env:
-          APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
-          APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
-          APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
-          APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+      - name: Debug paths
+        run: ls -laR .
 
-      - name: Upload iOS build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.ipaPath }}"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+#      - name: Upload release build to TestFlight
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        run: bundle exec fastlane ios upload_testflight_hybrid
+#        env:
+#          APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
+#          APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
+#          APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
+#          APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+#
+#      - name: Upload iOS build to Browser Stack
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.ipaPath }}"
+#        env:
+#          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+#
+#      - name: Upload iOS build artifact
+#        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ios-hybrid-build-artifact
+#          path: ${{ env.ipaPath }}
 
-      - name: Upload iOS build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-hybrid-build-artifact
-          path: ${{ env.ipaPath }}
-
-      - name: Warn deployers if iOS production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 iOS HybridApp production deploy failed. Please manually submit ${{ steps.getIOSVersion.outputs.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/471713959/appstore|App Store>. 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+#      - name: Warn deployers if iOS production deploy failed
+#        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+#        uses: 8398a7/action-slack@v3
+#        with:
+#          status: custom
+#          custom_payload: |
+#            {
+#              channel: '#deployer',
+#              attachments: [{
+#                color: "#DB4545",
+#                pretext: `<!subteam^S4TJJ3PSL>`,
+#                text: `💥 iOS HybridApp production deploy failed. Please manually submit ${{ steps.getIOSVersion.outputs.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/471713959/appstore|App Store>. 💥`,
+#              }]
+#            }
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
 #  web:
 #    name: Build and deploy Web
