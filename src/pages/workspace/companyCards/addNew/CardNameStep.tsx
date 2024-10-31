@@ -67,6 +67,7 @@ function CardNameStep() {
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={addNewCard?.data?.bankName}
                     containerStyles={[styles.mb6]}
+                    maxLength={CONST.STANDARD_LENGTH_LIMIT}
                     ref={inputCallbackRef}
                 />
             </FormProvider>

@@ -125,7 +125,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                         Navigation.goBack(ROUTES.NEW_TASK_DETAILS.getRoute(backTo));
                     }}
                 />
-                {hasDestinationError && (
+                {!!hasDestinationError && (
                     <FormHelpMessage
                         style={[styles.ph4, styles.mb4]}
                         isError={false}
