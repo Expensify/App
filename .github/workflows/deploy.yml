@@ -2,7 +2,7 @@ name: Deploy code to staging or production
 
 on:
   push:
-    branches: [staging, production]
+    branches: [staging, production, andrew-fetch-depth2]
 
 env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/production' }}
@@ -182,14 +182,13 @@ jobs:
           submodules: true
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          fetch-depth: 0
 
       - name: Update submodule
         run: |
           git submodule update --init
           # Update submodule to latest on staging
-          git fetch
-          git checkout staging
+          git fetch --depth=1 origin staging
+          git checkout -b staging origin/staging
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -482,14 +481,13 @@ jobs:
           submodules: true
           path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          fetch-depth: 0
 
       - name: Update submodule
         run: |
           git submodule update --init
           # Update submodule to latest on staging
-          git fetch
-          git checkout staging
+          git fetch --depth=1 origin staging
+          git checkout -b staging origin/staging
 
       - name: Configure MapBox SDK
         run: |
