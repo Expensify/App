@@ -263,7 +263,6 @@ function PopoverMenu({
                         setFocusedIndex(menuIndex);
                     }}
                     style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
-                    shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     // Spread other props dynamically
                     {...menuItemProps}
