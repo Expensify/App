@@ -3,17 +3,19 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {SearchQueryJSON} from '@components/Search/types';
+import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {isReportListItemType} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod} from '@src/types/onyx';
-import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
 
 let currentUserEmail: string;
@@ -32,11 +34,12 @@ Onyx.connect({
     },
 });
 
-function handleActionButtonPress(hash: number, item: SearchTransaction | SearchReport, goToItem: () => void) {
+function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
     const lastPolicyPaymentMethod = item.policyID ? lastPaymentMethod?.[item.policyID] : null;
+    const amount = isReportListItemType(item) ? item.total ?? 0 : item.formattedTotal;
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
-            return lastPolicyPaymentMethod ? payMoneyRequestOnSearch(hash, lastPolicyPaymentMethod, {[item.reportID]: 0}) : goToItem();
+            return lastPolicyPaymentMethod ? payMoneyRequestOnSearch(hash, lastPolicyPaymentMethod, {[item.reportID]: amount}) : goToItem();
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             return approveMoneyRequestOnSearch(hash, [item.reportID]);
         default:

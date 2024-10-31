@@ -249,7 +249,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                 });
             });
         }
-        // setSelectedTransactions(newTransactionList, data);
+        setSelectedTransactions(newTransactionList, data);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [data, setSelectedTransactions]);
 
