@@ -187,7 +187,6 @@ function ReportFooter({
         [report.reportID, handleCreateTask],
     );
 
-    console.log('9999', showSoftInputOnFocus);
     return (
         <>
             {!!shouldHideComposer && (
