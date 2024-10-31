@@ -138,7 +138,7 @@ function getChatTabBrickRoadReport(
     const allReports = reportIDs.map((reportID) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
 
     // If policyID is undefined, then all reports are checked whether they contain any brick road
-    const policyReports = Object.values(allReports).filter((report) => !policyID || report?.policyID === policyID);
+    const policyReports = policyID ? Object.values(allReports).filter((report) => report?.policyID === policyID) : Object.values(allReports);
 
     let reportWithGBR: OnyxEntry<Report>;
 
