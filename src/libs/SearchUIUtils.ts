@@ -13,7 +13,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import * as IOU from './actions/IOU';
-import * as Report from './actions/Report';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
@@ -212,9 +211,7 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
  */
 function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
-    const currentUserAccountID = Report.getCurrentUserAccountID();
 
     return Object.keys(data)
         .filter(isTransactionEntry)
@@ -227,7 +224,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
             return {
                 ...transactionItem,
-                action: getAction(data, key, currentUserAccountID),
+                action: getAction(data, key),
                 from,
                 to,
                 formattedFrom,
@@ -251,7 +248,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getAction(data: OnyxTypes.SearchResults['data'], key: string, currentUserAccountID: number): SearchTransactionAction {
+function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTransactionAction {
     const isTransaction = isTransactionEntry(key);
     if ((!isTransaction && !isReportEntry(key)) || (isTransaction && !data[key].isFromOneTransactionReport)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
@@ -339,7 +336,6 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
  * Do not use directly, use only via `getSections()` facade.
  */
 function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): ReportListItemType[] {
-    const currentUserAccountID = Report.getCurrentUserAccountID();
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -354,7 +350,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
-                action: getAction(data, key, currentUserAccountID),
+                action: getAction(data, key),
                 keyForList: reportItem.reportID,
                 from: data.personalDetailsList?.[reportItem.accountID ?? -1],
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
@@ -372,7 +368,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             const transaction = {
                 ...transactionItem,
-                action: getAction(data, key, currentUserAccountID),
+                action: getAction(data, key),
                 from,
                 to,
                 formattedFrom,
