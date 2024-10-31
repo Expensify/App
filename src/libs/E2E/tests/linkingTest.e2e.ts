@@ -1,7 +1,6 @@
 import {DeviceEventEmitter} from 'react-native';
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
-import Timing from '@libs/actions/Timing';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
@@ -22,7 +21,6 @@ const test = (config: NativeConfig) => {
     console.debug('[E2E] Logging in for comment linking');
 
     const reportID = getConfigValueOrThrow('reportID', config);
-    const linkedReportID = getConfigValueOrThrow('linkedReportID', config);
     const linkedReportActionID = getConfigValueOrThrow('linkedReportActionID', config);
     const name = getConfigValueOrThrow('name', config);
 
@@ -58,15 +56,6 @@ const test = (config: NativeConfig) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
                 console.debug('[E2E] Sidebar loaded, navigating to a report…');
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-                return;
-            }
-
-            if (entry.name === CONST.TIMING.REPORT_INITIAL_RENDER) {
-                console.debug('[E2E] Navigating to linked report action…');
-                Timing.start(CONST.TIMING.SWITCH_REPORT);
-                Performance.markStart(CONST.TIMING.SWITCH_REPORT);
-
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(linkedReportID, linkedReportActionID));
                 return;
             }
 

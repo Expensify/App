@@ -27,7 +27,7 @@ const test = (config: NativeConfig) => {
 
         console.debug('[E2E] Logged in, getting chat opening metrics and submitting them…');
 
-        const [renderChatPromise, renderChatResolve] = getPromiseWithResolve();
+        const [renderChatPromise] = getPromiseWithResolve();
         const [chatTTIPromise, chatTTIResolve] = getPromiseWithResolve();
 
         Promise.all([renderChatPromise, chatTTIPromise]).then(() => {
