@@ -8,6 +8,9 @@ type HybridApp = {
 
     /**  */
     readyToSwitchToClassicExperience?: boolean;
+
+    /** */
+    shouldResetSigningInLogic?: boolean;
 };
 
 export default HybridApp;

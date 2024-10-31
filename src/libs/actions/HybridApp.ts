@@ -13,4 +13,8 @@ function setReadyToSwitchToClassicExperience(readyToSwitchToClassicExperience: b
     Onyx.merge(ONYXKEYS.HYBRID_APP, {readyToSwitchToClassicExperience});
 }
 
-export {setIsSigningIn, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience};
+function setShouldResetSigningInLogic(shouldResetSigningInLogic: boolean) {
+    Onyx.merge(ONYXKEYS.HYBRID_APP, {shouldResetSigningInLogic});
+}
+
+export {setIsSigningIn, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setShouldResetSigningInLogic};

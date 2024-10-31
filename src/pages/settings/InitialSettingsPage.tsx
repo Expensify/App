@@ -37,6 +37,7 @@ import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import * as App from '@userActions/App';
+import {setShouldResetSigningInLogic} from '@userActions/HybridApp';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Session from '@userActions/Session';
@@ -269,12 +270,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     translationKey: signOutTranslationKey,
                     icon: Expensicons.Exit,
                     action: () => {
+                        setShouldResetSigningInLogic(true);
                         signOut(false);
                     },
                 },
             ],
         };
-    }, [styles.pt4, signOut, setInitialURL]);
+    }, [styles.pt4, hybridApp?.readyToSwitchToClassicExperience, setInitialURL, signOut]);
 
     /**
      * Retuns JSX.Element with menu items
