@@ -70,7 +70,8 @@ Virtual cards are digital cards designed for online transactions with several be
 
 ## Tutorials
 
-### [Enable Expensify Card] How do I enable the Expensify Card for my workspace?
+### Getting Started
+#### [Enable Expensify Card] How do I enable the Expensify Card for my workspace?
 To enable the Expensify Card for your workspace, you must be a Workspace Admin. Follow these steps:
 
 1. Press your profile image or icon in the menu.
@@ -79,14 +80,15 @@ To enable the Expensify Card for your workspace, you must be a Workspace Admin. 
 4. Press **More features** in the menu.
 5. Under the **Spend** section, enable the Expensify Card toggle.
 
-### [Select a bank account] How do I select a bank account for the Expensify Card?
+#### [Select a bank account] How do I select a bank account for the Expensify Card?
 Before issuing Expensify Cards, connect them with a bank account. Here's how:
 
 1. Press **Expensify Card** in the menu.
 2. Press **Issue new card**.
 3. Select an existing bank account or follow the steps to add a new one.
 
-### [Issue a card] How do I issue an Expensify Card to an employee?
+### Card Management
+#### [Issue a card] How do I issue an Expensify Card to an employee?
 To issue an Expensify Card to an employee, follow these steps:
 
 1. Press **Issue card**.
@@ -96,7 +98,7 @@ To issue an Expensify Card to an employee, follow these steps:
 5. Enter the limit amount and add a card name.
 6. Press **Issue card** to confirm and issue the card.
 
-### [Adjust limits] How do I adjust spending limits on an Expensify Card?
+#### [Adjust limits] How do I adjust spending limits on an Expensify Card?
 To adjust spending limits on an Expensify Card, follow these steps:
 
 1. Go to **Settings** > **Cards**.
@@ -104,14 +106,25 @@ To adjust spending limits on an Expensify Card, follow these steps:
 3. Press **Edit Limits** and adjust the spending limit for the card.
 4. Press **Save** to apply the new limit.
 
-### [View transactions] How do I track Expensify Card transactions?
+#### [Manage Expensify Cards] How do I manage my issued Expensify Cards?
+To manage your issued Expensify Cards, you must be a Workspace Admin. Follow these steps:
+
+1. Press your profile image or icon in the bottom left menu.
+2. Scroll down and press **Workspaces** in the left menu.
+3. Select the workspace containing the desired Expensify Cards.
+4. Press **Expensify Card** in the left menu to see a list of all issued cards.
+5. Press a card row to view details or adjust the card limit, limit type, name, or deactivate it.
+6. Press **Settings** in the top right to adjust the settlement account or change the settlement frequency.
+
+### Transactions and Tracking
+#### [View transactions] How do I track Expensify Card transactions?
 To track Expensify Card transactions, follow these steps:
 
 1. Navigate to the **Expenses** section in the Expensify app.
 2. Filter by **Expensify Card** to view all transactions made using the card.
 3. Select any transaction to view the details, including receipts and categorization.
 
-### [Dispute a transaction] How do I dispute an Expensify Card transaction?
+#### [Dispute a transaction] How do I dispute an Expensify Card transaction?
 If you encounter a transaction error, you can dispute it by following these steps:
 
 1. Contact the merchant to try and resolve the issue directly.
@@ -119,7 +132,8 @@ If you encounter a transaction error, you can dispute it by following these step
 3. If you suspect fraud, immediately deactivate your card by pressing your profile image, selecting **Wallet**, pressing your Expensify Card, and then **Report card fraud**. Follow the prompts to deactivate and request a new card.
 4. Enable [Two-Factor Authentication (2FA)](https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication) for added security.
 
-### [Add to Wallet] How do I add the Expensify Card to my digital wallet?
+### Digital Wallet and Notifications
+#### [Add to Wallet] How do I add the Expensify Card to my digital wallet?
 To use your Expensify Card for contactless payments, add it to your Apple or Google Pay digital wallet:
 
 **Apple Pay**
@@ -136,7 +150,7 @@ To use your Expensify Card for contactless payments, add it to your Apple or Goo
 3. Select **Payment Card** and then **Add new debit or credit card**.
 4. Enter your virtual Expensify Card details to complete the process.
 
-### [Enable Notifications] How do I enable notifications for my Expensify Card?
+#### [Enable Notifications] How do I enable notifications for my Expensify Card?
 To receive real-time notifications for spending activity on your Expensify Card, follow these steps:
 
 1. From your Expensify Chat inbox, press the dropdown on the logo or avatar in the top left corner.
@@ -165,7 +179,8 @@ Then, enable notifications on your device:
 
 You will now receive real-time spend notifications to your mobile device.
 
-### [Update Mailing Address] How do I update my Expensify Card mailing address?
+### Card Details and Limits
+#### [Update Mailing Address] How do I update my Expensify Card mailing address?
 To update your mailing address for your Expensify Card, follow these steps:
 
 1. Hover over **Settings** and press **Account**.
@@ -176,24 +191,15 @@ To update your mailing address for your Expensify Card, follow these steps:
 6. Update your address and press **Continue**. If the new card has already been shipped to an incorrect address, proceed to the next step to resend the card to the newly updated address.
 7. Proceed with the card replacement. Your new card will arrive in 2-3 business days.
 
-### [Check Card Limit] How do I check my Expensify Card limit?
+#### [Check Card Limit] How do I check my Expensify Card limit?
 The Smart Limit of your Expensify Card updates automatically after each purchase. To check your available Smart Limit, follow these steps:
 
 1. Press your profile image or icon in the menu.
 2. Press **Wallet**.
 3. Press your Expensify Card to see the available Smart Limit.
 
-### [Manage Expensify Cards] How do I manage my issued Expensify Cards?
-To manage your issued Expensify Cards, you must be a Workspace Admin. Follow these steps:
-
-1. Press your profile image or icon in the bottom left menu.
-2. Scroll down and press **Workspaces** in the left menu.
-3. Select the workspace containing the desired Expensify Cards.
-4. Press **Expensify Card** in the left menu to see a list of all issued cards.
-5. Press a card row to view details or adjust the card limit, limit type, name, or deactivate it.
-6. Press **Settings** in the top right to adjust the settlement account or change the settlement frequency.
-
-### [Upgrade Cards] How do I upgrade to the new Expensify Visa® Commercial Card?
+### Upgrading and Virtual Card Details
+#### [Upgrade Cards] How do I upgrade to the new Expensify Visa® Commercial Card?
 To upgrade your company’s Expensify Cards to the new Expensify Visa® Commercial Card, follow these steps:
 
 1. On the **Home** page, press the task titled "Upgrade to the new and improved Expensify Card."
@@ -204,7 +210,7 @@ To upgrade your company’s Expensify Cards to the new Expensify Visa® Commerci
 
 Existing cards remain active until deactivated by a Domain Admin or the cardholder. Cards won't be issued to employees who don't currently have them; you'll need to [issue a new card](https://help.expensify.com/articles/expensify-classic/expensify-card/Set-Up-the-Expensify-Visa%C2%AE-Commercial-Card-for-your-Company) for them.
 
-### [View Virtual Card Details] How do I view my virtual Expensify Card details?
+#### [View Virtual Card Details] How do I view my virtual Expensify Card details?
 To view your virtual card details in Expensify, follow these steps:
 
 1. Press your profile image or icon in the menu.
