@@ -16,8 +16,6 @@ Describe what you think the backend _SHOULD_ have done
 ## Actual Result:
 Describe what the backend _ACTUALLY_ did
 
-## Platforms:
-
 ## Screenshots/Videos
 
 <details>
