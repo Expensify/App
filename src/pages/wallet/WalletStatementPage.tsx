@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format, getMonth, getYear} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -29,6 +29,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     const yearMonth = route.params.yearMonth ?? null;
     const isWalletStatementGenerating = walletStatement?.isGenerating ?? false;
     const prevIsWalletStatementGenerating = usePrevious(isWalletStatementGenerating);
+    const [isDownloading, setIsDownloading] = useState(false);
     const {translate, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -50,11 +51,12 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         }
 
         if (walletStatement?.[yearMonth]) {
+            setIsDownloading(true);
             // We already have a file URL for this statement, so we can download it immediately
             const downloadFileName = `Expensify_Statement_${yearMonth}.pdf`;
             const fileName = walletStatement[yearMonth];
             const pdfURL = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
-            fileDownload(pdfURL, downloadFileName);
+            fileDownload(pdfURL, downloadFileName).finally(() => setIsDownloading(false));
             return;
         }
 
@@ -83,8 +85,8 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         >
             <HeaderWithBackButton
                 title={Str.recapitalize(title)}
-                shouldShowDownloadButton={!isOffline || isWalletStatementGenerating}
-                isDownloading={isWalletStatementGenerating}
+                shouldShowDownloadButton={!isOffline || isWalletStatementGenerating || isDownloading}
+                isDownloading={isWalletStatementGenerating || isDownloading}
                 onDownloadButtonPress={processDownload}
             />
             <FullPageOfflineBlockingView>
