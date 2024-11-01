@@ -48,6 +48,21 @@ type CardFeeds = {
 
         /** Company cards feeds */
         companyCards: Record<string, CardFeedData>;
+
+        /** Account details */
+        oAuthAccountDetails: Record<
+            ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>,
+            {
+                /** List of accounts */
+                accountList: string[];
+
+                /** Credentials info */
+                credentials: string;
+
+                /** Expiration number */
+                expiration: number;
+            }
+        >;
     };
 
     /** Whether we are loading the data via the API */
