@@ -120,6 +120,7 @@ function ReportPreview({
     );
 
     const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
+    const [isApprovedAnimationRunning, setIsApprovedAnimationRunning] = useState(false);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
@@ -200,9 +201,16 @@ function ReportPreview({
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
-    const stopAnimation = useCallback(() => setIsPaidAnimationRunning(false), []);
+    const stopAnimation = useCallback(() => {
+        setIsPaidAnimationRunning(false);
+        setIsApprovedAnimationRunning(false);
+    }, []);
     const startAnimation = useCallback(() => {
         setIsPaidAnimationRunning(true);
+        HapticFeedback.longPress();
+    }, []);
+    const startApprovedAnimation = useCallback(() => {
+        setIsApprovedAnimationRunning(true);
         HapticFeedback.longPress();
     }, []);
     const confirmPayment = useCallback(
@@ -236,6 +244,8 @@ function ReportPreview({
         } else if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
+            setIsApprovedAnimationRunning(true);
+            HapticFeedback.longPress();
             IOU.approveMoneyRequest(iouReport, true);
         }
     };
@@ -427,7 +437,7 @@ function ReportPreview({
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(iouReport);
 
     useEffect(() => {
-        if (!isPaidAnimationRunning) {
+        if (!isPaidAnimationRunning || isApprovedAnimationRunning) {
             return;
         }
 
@@ -556,6 +566,7 @@ function ReportPreview({
                                     <AnimatedSettlementButton
                                         onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
+                                        isApprovedAnimationRunning={isApprovedAnimationRunning}
                                         onAnimationFinish={stopAnimation}
                                         formattedAmount={getSettlementAmount() ?? ''}
                                         currency={iouReport?.currency}
@@ -624,7 +635,13 @@ function ReportPreview({
                     chatReport={chatReport}
                     moneyRequestReport={iouReport}
                     transactionCount={numberOfRequests}
-                    startAnimation={startAnimation}
+                    startAnimation={() => {
+                        if (requestType === 'approve') {
+                            startApprovedAnimation();
+                        } else {
+                            startAnimation();
+                        }
+                    }}
                 />
             )}
         </OfflineWithFeedback>
