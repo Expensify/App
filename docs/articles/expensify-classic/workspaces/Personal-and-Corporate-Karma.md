@@ -23,7 +23,7 @@ For every $500 of expenses added, you’ll donate $1 to a related Expensify.org 
 
 The fund from your Personal Karma is determined by the expense's MCC (Merchant Category Code). Each MCC supports one of Expensify.org's funds: Climate Justice, Food Security, Housing Equity, Reentry Services, and Youth Advocacy.
 
-**How do I opt-in to Personal Karma donations?**
+## How do I opt-in to Personal Karma donations?
 
 You can donate Personal Karma to Expensify.org on your personal workspace settings. 
 
@@ -41,9 +41,9 @@ For every $500 your team spends monthly, your company will donate $1 to a relate
 
 The fund to which your Corporate Karma goes is determined by the expense's MCC (Merchant Category Code). Each MCC supports one of Expensify.org's funds: Climate Justice, Food Security, Housing Equity, Reentry Services, and Youth Advocacy.
 
-**How do I opt-in to Corporate Karma donations?**
+## How do I opt-in to Corporate Karma donations?
 
-You can donate Corporate Karma to Expensify.org on your group workspace settings. 
+As a [workspace billing owner](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account), you can donate Corporate Karma to Expensify.org on your group workspace settings. 
 
 - Sign in to your account at www.expensify.com.
 - Go to **Settings** > **Workspaces** > click on your Group subscription settings.
