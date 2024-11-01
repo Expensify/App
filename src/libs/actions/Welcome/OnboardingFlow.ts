@@ -5,7 +5,6 @@ import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,17 +34,6 @@ Onyx.connect({
     },
 });
 
-let onboardingPolicyID: string;
-Onyx.connect({
-    key: ONYXKEYS.ONBOARDING_POLICY_ID,
-    callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-        onboardingPolicyID = value;
-    },
-});
-
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
@@ -70,11 +58,6 @@ function getOnboardingInitialPath(): string {
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, CONST.ONBOARDING_COMPANY_SIZE.MICRO);
-        if (!onboardingPolicyID) {
-            const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-            Onyx.set(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, adminsChatReportID ?? null);
-            Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
-        }
         return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
     }
     const isIndividual = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
