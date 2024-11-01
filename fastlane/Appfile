@@ -1,16 +1,4 @@
-<<<<<<< HEAD
-app_identifier("com.chat.expensify.chat") # The bundle identifier of your app
-apple_id("ios@expensify.com") # Your Apple email address
-
-itc_team_id("152696") # App Store Connect Team ID
-team_id("368M544MTT") # Developer Portal Team ID
-
-for_lane :build_hybrid, :build_unsigned_hybrid, :upload_testflight_hybrid do
-  app_identifier("com.expensify.expensifylite")
-end
-=======
 # See https://docs.fastlane.tools/advanced/Appfile/
 apple_id("ios@expensify.com")
 itc_team_id("152696")
 team_id("368M544MTT")
->>>>>>> 2bde8f2 (Merge pull request #51873 from Expensify/andrew-app-file)
