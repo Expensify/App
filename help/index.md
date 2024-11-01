@@ -108,24 +108,24 @@ The Inbox is the most powerful page, where you'll spend most of your time.
 ## Tutorials
 
 ### Getting Started
-#### [Web Access Guide] How do you access Expensify on the web?
+#### [Web Access Guide] How do I access Expensify on the web?
 Visit the Expensify website:
 1. Go to www.expensify.com on a browser.
 
-#### [Mobile App Installation] How do you install the Expensify mobile app?
+#### [Mobile App Installation] How do I install the Expensify mobile app?
 Install the Expensify mobile app:
 1. Visit iOS or Android app stores.
 2. Press **Install**.
 3. Follow prompts to install.
 4. Press the Expensify icon to start.
 
-#### [Desktop App Installation] How do you install the Expensify desktop app?
+#### [Desktop App Installation] How do I install the Expensify desktop app?
 Install the Expensify desktop app:
 1. Download the MacOS or Windows installer.
 2. Double-click the installer.
 3. Click the Expensify icon to start.
 
-#### [Join a Workspace] How do you join your company's workspace?
+#### [Join a Workspace] How do I join my company's workspace?
 Welcome to Expensify! If you received an invitation to join your company's Expensify workspace, follow these steps:
 
 1. Download the Expensify mobile app to upload expenses and check reports from your phone.
@@ -135,7 +135,7 @@ Welcome to Expensify! If you received an invitation to join your company's Expen
 5. Learn to add an expense by SmartScanning a receipt or entering it manually.
 6. Secure your account by enabling two-factor authentication through the **Security** settings.
 
-#### [Create a Company Workspace] How do you create a workspace for your company?
+#### [Create a Company Workspace] How do I create a workspace for my company?
 Creating a workspace in Expensify is your first step to organizing your company's expenses. Here's how to do it:
 
 1. Press your **profile photo** or icon in the bottom menu to open the settings.
@@ -148,58 +148,58 @@ Creating a workspace in Expensify is your first step to organizing your company'
 Invite team members to collaborate efficiently.
 
 ### Account Management
-#### [Sign In Process] How do you sign up or sign in?
+#### [Sign In Process] How do I sign up or sign in?
 Sign up or sign in:
 1. Install or access Expensify on any platform.
 2. Choose connection method and press Next.
 3. Validate your email address and press **Join** if first time signing in.
 
-#### [Magic Link Login] How do you use a magic link for secure login?
+#### [Magic Link Login] How do I use a magic link for secure login?
 Use a magic link for secure login:
 1. Check email for Expensify Magic Link.
 2. Click link to log in without a password.
 
-#### [Sign Out Process] How do you sign out of Expensify?
+#### [Sign Out Process] How do I sign out of Expensify?
 Sign out of Expensify:
 1. Press **Settings**.
 2. Scroll and press **Sign Out**.
 
 ### Subscription Management
-#### [Manage Subscription] How do you manage your subscription?
+#### [Manage Subscription] How do I manage my subscription?
 To manage your subscription in New Expensify:
 1. Open the app on your device.
 2. Press your profile icon in the bottom-left corner.
 3. Navigate to the **Workspaces** section.
 4. Press **Subscription** under Workspaces to view your subscription details.
 
-#### [Add Payment Card] How do you add a payment card for billing?
+#### [Add Payment Card] How do I add a payment card for billing?
 To add a payment card for billing:
 1. Locate the **Add Payment Card** option within your subscription settings.
 2. Enter your payment card details securely to maintain uninterrupted service.
 
-#### [Understand Subscription Details] What subscription details can you view?
+#### [Understand Subscription Details] What subscription details can I view?
 Within your subscription overview, you can view:
 - **Plan details**: See the number of seats, billing information, and renewal date.
 - **Auto-renew settings**: Check when your subscription will renew automatically.
 - **Auto-increase seats**: Discover potential savings by automatically increasing seats for team members exceeding the subscription size.
 
-#### [Request Early Cancellation] How can you request an early cancellation of your subscription?
+#### [Request Early Cancellation] How can I request an early cancellation of my subscription?
 To request an early cancellation:
 1. Access the **Request Early Cancellation** option in the Subscriptions section.
 Note: Early cancellation might not be available for all customers.
 
-#### [Pricing Information] Where can you find more details on pricing plans?
+#### [Pricing Information] Where can I find more details on pricing plans?
 For detailed pricing plans, visit the billing page [coming soon]. 
 
 ### Security and Customization
-#### [Enable 2FA Security] How do you secure your account with two-factor authentication?
+#### [Enable 2FA Security] How do I secure my account with two-factor authentication?
 Secure your account with two-factor authentication:
 1. Press **Settings**.
 2. Press **Security**.
 3. Press **Two-factor authentication**.
 4. Follow steps to link your phone.
 
-#### [Additional Security with 2FA] How do you add an extra layer of security with 2FA?
+#### [Additional Security with 2FA] How do I add an extra layer of security with 2FA?
 Adding an extra layer of security can help protect your financial data. To enable two-factor authentication (2FA):
 
 1. Press your profile image or icon in the bottom menu.
@@ -214,7 +214,7 @@ Adding an extra layer of security can help protect your financial data. To enabl
 
 When you log in to Expensify in the future, you'll need to use a magic code from your email and a 6-digit code from your authenticator app. If you lose access to your authenticator app, use your recovery codes as you would the authenticator code.
 
-#### [Close Account Process] How do you close your account?
+#### [Close Account Process] How do I close my account?
 Close your account:
 1. Press **Settings**.
 2. Press **Security**.
@@ -222,20 +222,20 @@ Close your account:
 4. Provide answers to the questions and confirm closure by pressing **Close Account**.
 
 ### Profile and Contact Methods
-#### [Profile Photo Setup] How do you set your profile photo?
+#### [Profile Photo Setup] How do I set my profile photo?
 Set your profile photo:
 1. Press your profile image or icon in the bottom menu.
 2. Press the **pencil icon** next to your photo.
 3. Press **Upload Image** to select a photo from your saved files.
 
-#### [Display Name Modification] How do you change your display name?
+#### [Display Name Modification] How do I change my display name?
 Change your display name:
 1. Press **Settings**.
 2. Press **Profile**.
 3. Press **Display name**.
 4. Enter your name and press **Save**.
 
-#### [Status Update] How do you set your status?
+#### [Status Update] How do I set my status?
 Set your status:
 1. Press **Settings**.
 2. Press **Profile**.
@@ -245,46 +245,46 @@ Set your status:
 6. Press **Clear After** to select when the status should expire.
 7. Press **Save**.
 
-#### [Add Secondary Contact] How do you add a secondary contact method?
+#### [Add Secondary Contact] How do I add a secondary contact method?
 Add a secondary contact method:
 1. Press **Settings**.
 2. Press **Profile**.
 3. Scroll to **Contact Methods**.
 4. Press **Add Secondary Contact** and enter details.
 
-#### [Change Primary Contact] How do you change your primary contact method?
+#### [Change Primary Contact] How do I change my primary contact method?
 Change your primary contact method:
 1. Add a new secondary contact method.
 2. Press **Make primary** to set it as primary.
 
 ### Private Details and Regional Settings
-#### [Remove Contact Method] How do you remove a contact method?
+#### [Remove Contact Method] How do I remove a contact method?
 Remove a contact method:
 1. Press **Settings**.
 2. Go to **Profile** and **Contact Methods**.
 3. Select and press **Remove**.
 
-#### [Set Pronouns] How do you set your pronouns?
+#### [Set Pronouns] How do I set my pronouns?
 Set your pronouns:
 1. Press your profile image or icon in the bottom menu.
 2. Press **Profile**.
 3. Press **Pronouns**.
 4. Type any letter to see a list of available pronouns and select your preferred set.
 
-#### [Timezone Adjustment] How do you change your timezone?
+#### [Timezone Adjustment] How do I change my timezone?
 Change your timezone:
 1. Press your profile image or icon in the bottom menu.
 2. Press **Profile**.
 3. Press **Timezone** to select your timezone.
 
-#### [Legal Name Update] How do you change your legal name?
+#### [Legal Name Update] How do I change my legal name?
 Change your legal name:
 1. Press **Settings**.
 2. Press **Profile**.
 3. Scroll to the Private Details section and press **Legal Name**.
 4. Enter updated name and press **Save**.
 
-#### [Date of Birth Adjustment] How do you change your date of birth?
+#### [Date of Birth Adjustment] How do I change my date of birth?
 Change your date of birth:
 1. Press **Settings**.
 2. Press **Profile**.
@@ -292,14 +292,14 @@ Change your date of birth:
 4. Update birth date and press **Save**.
 
 ### Address and Workspace Management
-#### [Address Update] How do you change your address?
+#### [Address Update] How do I change my address?
 Change your address:
 1. Press **Settings**.
 2. Press **Profile**.
 3. Scroll to the Private Details section and press **Address**.
 4. Enter new address and press **Save**.
 
-#### [Name Update Process] How do you update your display or legal name?
+#### [Name Update Process] How do I update my display or legal name?
 Update your display or legal name:
 1. Press your **profile icon** to open **Settings**.
 2. Press **Profile**.
@@ -307,7 +307,7 @@ Update your display or legal name:
    - **Display name**: Press **Display Name**, enter your first name (or nickname) and last name, then press **Save**.
    - **Legal name**: Scroll to the Private Details section, press **Legal Name**, enter your legal first and last name, and press **Save**.
 
-#### [Email Address Management] How do you change or add an email address on your Expensify account?
+#### [Email Address Management] How do I change or add an email address on my Expensify account?
 To change or add an email address on your Expensify account:
 
 1. Press your profile image or icon.

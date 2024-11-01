@@ -98,7 +98,7 @@ To create an expense report:
 3. Categorize your expenses for organization.
 4. Submit the report for approval to the relevant supervisor.
 
-#### [Submit Expenses] What happens after submitting an expense?
+#### [Submit Expenses] What happens after I submit an expense?
 After submitting an expense, the next steps depend on whether it was sent to a workspace or an individual:
 - **Workspace submissions**: Automatically added to a report, checked for violations, and a chat is created. Reports are submitted for approval every Sunday, but can be manually submitted if ready.
 - **Individual submissions**: Sent via email or text, with chat option in Expensify Chat for discussions.

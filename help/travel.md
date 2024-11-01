@@ -122,7 +122,7 @@ It is recommended to have multiple approvers set up for travel, as there is no d
 ### Can travelers upload a document when submitting a trip for approval?
 Travelers cannot upload a document at the time of trip submission, but companies can use a 'reason code' in the Out of Policy rules, which travelers complete at checkout. Documents can then be added to the expense report during submission in Expensify.
 
-### [Expense Integration] How does Expensify Travel integrate with Expensify Expense?
+### [Expense Integration] How do I use Expensify Travel with Expensify Expense?
 Expensify Travel works seamlessly with Expensify Expense to automate the handling of travel expenses:
 * **Automatic expense capture** - Travel-related expenses (flights, hotels, meals) are automatically imported into Expensify Expense for easy tracking and reimbursement.
 * **Real-time tracking** - Travel expenses appear in your expense report as soon as they are incurred, providing real-time visibility into costs.
