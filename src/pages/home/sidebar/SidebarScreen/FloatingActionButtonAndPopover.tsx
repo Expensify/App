@@ -500,7 +500,6 @@ function FloatingActionButtonAndPopover(
         reportNameValuePairs,
     ]);
 
-    console.log('quickActionMenuItems', quickActionMenuItems);
     return (
         <View style={styles.flexGrow1}>
             <PopoverMenu
