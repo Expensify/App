@@ -6242,17 +6242,12 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
         return false;
     }
 
-    // We need to get all reports to check the ones inside this workspace chat, if we have no reports, then there's no RBR
-    const allReports = Object.values(ReportConnection.getAllReports());
-    if (!allReports) {
-        return false;
-    }
-
-    // Now get all potential reports, which are the ones that are:
+    // Get all potential reports, which are the ones that are:
     // - Owned by the same user
     // - Are either open or submitted
     // - Belong to the same workspace
     // And if any have a violation, then it should have a RBR
+    const allReports = Object.values(ReportConnection.getAllReports() ?? {});
     const potentialReports = allReports.filter((r: Report) => r?.ownerAccountID === currentUserAccountID && r?.stateNum <= 1 && r?.policyID === report.policyID);
     return potentialReports.some(
         (potentialReport) => hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
