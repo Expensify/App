@@ -3,6 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
+import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -33,6 +34,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const {translate} = useLocalize();
 
     const htmlAttribs = tnode.attributes;
+    const isDeleted = isDeletedNode(tnode);
 
     // There are two kinds of images that need to be displayed:
     //
@@ -76,6 +78,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
             fallbackIcon={fallbackIcon}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
+            isDeleted={isDeleted}
             altText={alt}
             onLoadFailure={() => setHasLoadFailed(true)}
             onMeasure={() => setHasLoadFailed(false)}

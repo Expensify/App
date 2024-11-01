@@ -12,7 +12,7 @@ import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import * as Policy from '@userActions/Policy/Policy';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -35,14 +35,14 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
 
     const isLoading = !cardFeeds || !!(cardFeeds.isLoading && !cardFeeds.settings);
-    const companyCards = cardFeeds?.settings?.companyCards ?? {};
+    const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards);
     const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? null;
     const isNoFeed = !selectedCompanyCard;
     const isPending = !!selectedCompanyCard?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
 
     const fetchCompanyCards = useCallback(() => {
-        Policy.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
+        CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
 
     useFocusEffect(fetchCompanyCards);
@@ -52,7 +52,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             return;
         }
 
-        Policy.openPolicyCompanyCardsFeed(policyID, selectedFeed);
+        CompanyCards.openPolicyCompanyCardsFeed(policyID, selectedFeed);
     }, [selectedFeed, isLoading, policyID, isPending]);
 
     return (
@@ -69,7 +69,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             )}
             {!isLoading && (
                 <WorkspacePageWithSections
-                    shouldUseScrollView={!isFeedAdded}
+                    shouldUseScrollView={isNoFeed}
                     icon={Illustrations.CompanyCard}
                     headerText={translate('workspace.common.companyCards')}
                     route={route}

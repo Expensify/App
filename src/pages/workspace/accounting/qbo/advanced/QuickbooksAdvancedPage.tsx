@@ -44,6 +44,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         () => invoiceAccountCollectionOptions?.find(({id}) => id === collectionAccountID)?.name,
         [invoiceAccountCollectionOptions, collectionAccountID],
     );
+    const autoCreateVendorConst = CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR;
+    const defaultVendorConst = CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR;
 
     const sectionMenuItems = [
         {
@@ -116,12 +118,12 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 QuickbooksOnline.updateQuickbooksOnlineAutoCreateVendor(
                     policyID,
                     {
-                        [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]: isOn,
-                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableVendorUpdateValue,
+                        [autoCreateVendorConst]: isOn,
+                        [defaultVendorConst]: nonReimbursableVendorUpdateValue,
                     },
                     {
-                        [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]: !!qboConfig?.autoCreateVendor,
-                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableVendorCurrentValue,
+                        [autoCreateVendorConst]: !!qboConfig?.autoCreateVendor,
+                        [defaultVendorConst]: nonReimbursableVendorCurrentValue,
                     },
                 );
             },
