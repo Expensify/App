@@ -2298,7 +2298,7 @@ function getIcons(
     if (isChatThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 
-        const actorAccountID = getReportActionActorAccountID(parentReportAction, report);
+        const actorAccountID = getReportActionActorAccountID(parentReportAction, report, report);
         const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1], '', false);
         const actorIcon = {
             id: actorAccountID,
@@ -4258,12 +4258,17 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
     return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
 }
 
-function getReportDescriptionText(report: OnyxEntry<Report>): string {
+function getReportDescription(report: OnyxEntry<Report>): string {
     if (!report?.description) {
         return '';
     }
-
-    return Parser.htmlToText(report?.description);
+    try {
+        const reportDescription = report?.description;
+        const objectDescription = JSON.parse(reportDescription) as {html: string};
+        return objectDescription.html ?? '';
+    } catch (error) {
+        return report?.description ?? '';
+    }
 }
 
 function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
@@ -5046,6 +5051,7 @@ function buildOptimisticReportPreview(
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const message = getReportPreviewMessage(iouReport);
     const created = DateUtils.getDBTime();
+    const reportActorAccountID = (isInvoiceReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     return {
         reportActionID: reportActionID ?? NumberUtils.rand64(),
         reportID: chatReport?.reportID,
@@ -5065,7 +5071,7 @@ function buildOptimisticReportPreview(
         created,
         accountID: iouReport?.managerID ?? -1,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
-        actorAccountID: hasReceipt ? currentUserAccountID : iouReport?.managerID ?? -1,
+        actorAccountID: hasReceipt ? currentUserAccountID : reportActorAccountID,
         childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
@@ -8034,10 +8040,17 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
     return (isChatThread(report) && !!getReportNotificationPreference(report)) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
-function getReportActionActorAccountID(reportAction: OnyxInputOrEntry<ReportAction>, iouReport: OnyxInputOrEntry<Report> | undefined): number | undefined {
+function getReportActionActorAccountID(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    iouReport: OnyxInputOrEntry<Report> | undefined,
+    report: OnyxInputOrEntry<Report> | undefined,
+): number | undefined {
     switch (reportAction?.actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW:
-            return !isEmptyObject(iouReport) ? iouReport.managerID : reportAction?.childManagerAccountID;
+        case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW: {
+            const ownerAccountID = iouReport?.ownerAccountID ?? reportAction?.childOwnerAccountID;
+            const actorAccountID = iouReport?.managerID ?? reportAction?.childManagerAccountID;
+            return isPolicyExpenseChat(report) ? ownerAccountID : actorAccountID;
+        }
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
             return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
@@ -8046,7 +8059,6 @@ function getReportActionActorAccountID(reportAction: OnyxInputOrEntry<ReportActi
             return reportAction?.actorAccountID;
     }
 }
-
 function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: string, actionName: IOUAction): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
     const {expenseChatReportID, policyID, policyName} = PolicyActions.createDraftWorkspace();
@@ -8089,6 +8101,8 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         linkedTrackedExpenseReportID: reportID,
         created,
         modifiedCreated: undefined,
+        modifiedAmount: undefined,
+        modifiedCurrency: undefined,
         amount,
         currency,
         comment,
@@ -8447,7 +8461,7 @@ export {
     getReimbursementDeQueuedActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,
-    getReportDescriptionText,
+    getReportDescription,
     getReportFieldKey,
     getReportIDFromLink,
     getReportName,

@@ -86,7 +86,7 @@ function UserListItem<TItem extends ListItem>({
         >
             {(hovered?: boolean) => (
                 <>
-                    {canSelectMultiple && (
+                    {!!canSelectMultiple && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
@@ -96,7 +96,7 @@ function UserListItem<TItem extends ListItem>({
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
                         >
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                {item.isSelected && (
+                                {!!item.isSelected && (
                                     <Icon
                                         src={Expensicons.Checkmark}
                                         fill={theme.textLight}

@@ -236,7 +236,7 @@ function SecuritySettingsPage() {
                                     shouldUseSingleExecution
                                 />
                             </Section>
-                            {canUseNewDotCopilot && (
+                            {!!canUseNewDotCopilot && (
                                 <View style={safeAreaPaddingBottomStyle}>
                                     <Section
                                         title={translate('delegate.copilotDelegatedAccess')}

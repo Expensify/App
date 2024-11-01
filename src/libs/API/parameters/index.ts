@@ -255,6 +255,8 @@ export type {default as MarkAsExportedParams} from './MarkAsExportedParams';
 export type {default as UpgradeToCorporateParams} from './UpgradeToCorporateParams';
 export type {default as DeleteMoneyRequestOnSearchParams} from './DeleteMoneyRequestOnSearchParams';
 export type {default as HoldMoneyRequestOnSearchParams} from './HoldMoneyRequestOnSearchParams';
+export type {default as ApproveMoneyRequestOnSearchParams} from './ApproveMoneyRequestOnSearchParams';
+export type {default as PayMoneyRequestOnSearchParams} from './PayMoneyRequestOnSearchParams';
 export type {default as UnholdMoneyRequestOnSearchParams} from './UnholdMoneyRequestOnSearchParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
 export type {default as DeletePolicyReportField} from './DeletePolicyReportField';
@@ -344,3 +346,4 @@ export type {default as UpdateInvoiceCompanyNameParams} from './UpdateInvoiceCom
 export type {default as UpdateInvoiceCompanyWebsiteParams} from './UpdateInvoiceCompanyWebsiteParams';
 export type {default as UpdateQuickbooksDesktopExpensesExportDestinationTypeParams} from './UpdateQuickbooksDesktopExpensesExportDestinationTypeParams';
 export type {default as UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams} from './UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams';
+export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
