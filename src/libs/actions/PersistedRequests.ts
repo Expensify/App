@@ -10,6 +10,7 @@ let ongoingRequest: Request | null = null;
 Onyx.connect({
     key: ONYXKEYS.PERSISTED_REQUESTS,
     callback: (val) => {
+        Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null});
         persistedRequests = val ?? [];
 
         if (ongoingRequest && persistedRequests.length > 0) {
@@ -91,12 +92,15 @@ function deleteRequestsByIndices(indices: number[]) {
 
 function update(oldRequestIndex: number, newRequest: Request) {
     const requests = [...persistedRequests];
+    const oldRequest = requests.at(oldRequestIndex);
+    Log.info('[PersistedRequests] Updating a request', false, {oldRequest, newRequest, oldRequestIndex});
     requests.splice(oldRequestIndex, 1, newRequest);
     persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function updateOngoingRequest(newRequest: Request) {
+    Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
     ongoingRequest = newRequest;
 
     if (newRequest.persistWhenOngoing) {
