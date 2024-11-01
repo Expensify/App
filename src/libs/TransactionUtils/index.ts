@@ -648,8 +648,8 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 /**
  * Check if there is broken connection violation.
  */
-function hasBrokenConnectionViolation(transactionID: string, allViolations?: OnyxCollection<TransactionViolations>): boolean {
-    const violations = getTransactionViolations(transactionID, allViolations ?? allTransactionViolations);
+function hasBrokenConnectionViolation(transactionID: string): boolean {
+    const violations = getTransactionViolations(transactionID, allTransactionViolations);
     return !!violations?.find(
         (violation) =>
             violation.name === CONST.VIOLATIONS.RTER &&
@@ -660,14 +660,9 @@ function hasBrokenConnectionViolation(transactionID: string, allViolations?: Ony
 /**
  * Check if user should see broken connection violation warning.
  */
-function shouldShowBrokenConnectionViolation(
-    transactionID: string,
-    report: OnyxEntry<Report> | SearchReport,
-    policy: OnyxEntry<Policy> | SearchPolicy,
-    allViolations?: OnyxCollection<TransactionViolations>,
-): boolean {
+function shouldShowBrokenConnectionViolation(transactionID: string, report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy): boolean {
     return (
-        hasBrokenConnectionViolation(transactionID, allViolations) &&
+        hasBrokenConnectionViolation(transactionID) &&
         (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isOpenExpenseReport(report) || (ReportUtils.isProcessingReport(report) && PolicyUtils.isInstantSubmitEnabled(policy)))
     );
 }
@@ -675,9 +670,9 @@ function shouldShowBrokenConnectionViolation(
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
-function allHavePendingRTERViolation(transactionIds: string[], searchTransactionViolations?: OnyxCollection<TransactionViolations>): boolean {
+function allHavePendingRTERViolation(transactionIds: string[]): boolean {
     const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
-        const transactionViolations = getTransactionViolations(transactionId, searchTransactionViolations ?? allTransactionViolations);
+        const transactionViolations = getTransactionViolations(transactionId, allTransactionViolations);
         return hasPendingRTERViolation(transactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
