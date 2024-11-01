@@ -20,6 +20,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     const isAuthTokenRequired = route.params.isAuthTokenRequired;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const fileName = route.params.fileName;
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
     const source = Number(route.params.source) || route.params.source;
@@ -48,6 +49,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
             onCarouselAttachmentChange={onCarouselAttachmentChange}
             shouldShowNotFoundPage={!isLoadingApp && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID}
             isAuthTokenRequired={!!isAuthTokenRequired}
+            originalFileName={fileName ?? ''}
         />
     );
 }
