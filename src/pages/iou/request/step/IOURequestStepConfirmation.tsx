@@ -145,7 +145,7 @@ function IOURequestStepConfirmation({
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
 
-    useFetchRoute(transaction, transaction?.comment?.waypoints, action);
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
@@ -624,7 +624,7 @@ function IOURequestStepConfirmation({
                         ]}
                     />
                     {isLoading && <FullScreenLoadingIndicator />}
-                    {gpsRequired && (
+                    {!!gpsRequired && (
                         <LocationPermissionModal
                             startPermissionFlow={startLocationPermissionFlow}
                             resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
