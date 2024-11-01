@@ -282,7 +282,6 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
-                    state: 4, // NOT_ACTIVATED
                     isLoading: true,
                     errors: null,
                     isSuccessful: null,
