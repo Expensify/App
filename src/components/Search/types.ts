@@ -19,6 +19,12 @@ type SelectedTransactionInfo = {
 
     /** The action that can be performed for the transaction */
     action: string;
+
+    /** The reportID of the transaction */
+    reportID: string;
+
+    /** The policyID tied to the report the transaction is reported on */
+    policyID: string;
 };
 
 /** Model of selected results */

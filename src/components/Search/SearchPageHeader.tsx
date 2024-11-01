@@ -184,7 +184,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-
+                    console.log('over here', {selectedTransactions, selectedReports})
                     const reportIDList = selectedReports?.filter((report) => !!report) ?? [];
                     SearchActions.approveMoneyRequestOnSearch(hash, reportIDList);
                 },

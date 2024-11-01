@@ -83,7 +83,18 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
         return transactions;
     }
 
-    return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
+    return {
+        ...selectedTransactions,
+        [item.keyForList]: {
+            isSelected: true,
+            canDelete: item.canDelete,
+            canHold: item.canHold,
+            canUnhold: item.canUnhold,
+            action: item.action,
+            reportID: item.reportID,
+            policyID: item.policyID,
+        },
+    };
 }
 
 function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchProps) {
@@ -228,6 +239,8 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                     canUnhold: transaction.canUnhold,
                     isSelected: selectedTransactions[transaction.transactionID].isSelected,
                     canDelete: transaction.canDelete,
+                    reportID: transaction.reportID,
+                    policyID: transaction.policyID,
                 };
             });
         } else {
@@ -245,6 +258,8 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                         canUnhold: transaction.canUnhold,
                         isSelected: selectedTransactions[transaction.transactionID].isSelected,
                         canDelete: transaction.canDelete,
+                        reportID: transaction.reportID,
+                        policyID: transaction.policyID,
                     };
                 });
             });
