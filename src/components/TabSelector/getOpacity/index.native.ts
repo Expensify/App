@@ -1,6 +1,6 @@
 import type GetOpacity from './types';
 
-const getOpacity: GetOpacity = ({routesLength, tabIndex, active, affectedTabs, position, isActive}) => {
+const getOpacity: GetOpacity = ({routesLength, tabIndex, active, affectedTabs, position}) => {
     const activeValue = active ? 1 : 0;
     const inactiveValue = active ? 0 : 1;
 
