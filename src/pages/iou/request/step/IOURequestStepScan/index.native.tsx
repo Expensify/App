@@ -560,7 +560,7 @@ function IOURequestStepScan({
             testID={IOURequestStepScan.displayName}
         >
             {isLoadingReceipt && <FullScreenLoadingIndicator />}
-            {pdfFile && (
+            {!!pdfFile && (
                 <PDFThumbnail
                     style={styles.invisiblePDF}
                     previewSourceURL={pdfFile?.uri ?? ''}
@@ -680,7 +680,7 @@ function IOURequestStepScan({
                     </PressableWithFeedback>
                 )}
             </View>
-            {startLocationPermissionFlow && fileResize && (
+            {startLocationPermissionFlow && !!fileResize && (
                 <LocationPermissionModal
                     startPermissionFlow={startLocationPermissionFlow}
                     resetPermissionFlow={() => setStartLocationPermissionFlow(false)}

@@ -204,7 +204,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         />
                     </View>
                 )}
-                {statusBarProps && (
+                {!!statusBarProps && (
                     <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}

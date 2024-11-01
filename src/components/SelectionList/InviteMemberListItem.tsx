@@ -127,7 +127,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                         )}
                     </View>
                     {!!item.rightElement && item.rightElement}
-                    {shouldShowCheckBox && (
+                    {!!shouldShowCheckBox && (
                         <PressableWithFeedback
                             onPress={handleCheckboxPress}
                             disabled={isDisabled}
