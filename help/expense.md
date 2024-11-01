@@ -42,10 +42,17 @@ Receipt capture simplifies receipt management with SmartScan:
 * **Manual Upload** - Take a photo or upload your receipt manually from your device.
 
 ### [Expense categories] What are expense categories?
-Expense categories help code expenses for accounting and financial reporting. Categories can be manually created or imported from connected platforms like QuickBooks, Xero, and NetSuite.
+Expense categories help code expenses for accounting and financial reporting. Categories can be manually created or imported from connected platforms like QuickBooks, Xero, and NetSuite. Over time, Expensify learns how you categorize specific merchants and applies them automatically.
 
 ### [Track taxes] What is tax management in Expensify?
 Expensify allows you to configure and manage tax rates within your workspace, applicable on Collect and Control plans. This applies the correct tax rates to expenses based on currency and workspace settings.
+
+#### Enabling and Managing Taxes
+Expensify allows you to enable and manage tax rates in your workspace:
+
+* **Enable Taxes** - Taxes can be enabled on any workspace where the default currency is not USD. If there's a direct accounting integration, tax rates will be managed through the integration.
+
+* **Managing Tax Rates** - You can manually add, edit, or delete tax rates. Additionally, you can set default tax rates for both workspace currency and foreign currencies.
 
 ### [Corporate cards] What is the role of corporate cards in Expensify Expense?
 Corporate cards integrate with Expensify Expense for automated expense tracking:
@@ -88,6 +95,20 @@ Validating a business bank account is essential to ensure that your account is r
 * **Verification Status** - Check your bank account status in the **Bank accounts** section under workspace settings. The status will either be **Verifying** or **Pending**.
 * **Input Transaction Amounts** - Once you receive the test deposits, input the transaction amounts as prompted in Expensify to complete the validation process.
 
+### [Expense Tags] What are tags in Expensify Expense?
+Tags in Expensify refer to line-item details like classes, projects, locations, and customers that help code expenses for accounting and reporting. Tags can be manually created or imported from a connected accounting system. Expensify learns and applies tags automatically over time.
+
+### [Workflows] What are workflows in Expensify Expense?
+Workflows in Expensify Expense allow you to manage expense approvals and submissions:
+* **Add Approvals** - Requires additional approval for an expense before payment can be authorized. The default approver is the workspace owner, but it can be changed to another workspace admin.
+* **Delay Submissions** - Determines when expenses without issues are automatically submitted. You can set a delay frequency for automatic submissions.
+
+### [Report Fields] What are report fields in Expensify Expense?
+Report fields allow you to add additional details to your reports:
+* **Enable Report Fields** - Report fields can be enabled in Workspaces on the Control plan. They provide a way to specify header-level details like project names or locations.
+* **Create Report Fields** - Once enabled, report fields can be created for free-text input, date selection, or a list of options.
+* **Edit/Delete Report Fields** - Existing report fields can be modified or removed as needed to keep your workspace organized.
+
 ## Tutorials
 
 ### Expense Reports
@@ -108,6 +129,76 @@ To approve expense reports:
 1. Go to your Inbox and select the report needing approval.
 2. Review the receipts and expense details for accuracy.
 3. Press **Approve** or **Reject** based on your assessment.
+
+### Manage Workflows
+#### [Enable workflows] How do I enable workflows in Expensify?
+To enable workflows:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the desired workspace.
+4. Press **More features** in the left menu.
+5. Under the Spend section, toggle **Workflows** to enable approval settings.
+
+#### [Select workflows] How do I select workflow settings?
+To select workflow settings:
+1. Press **Workflows** in the left menu.
+2. Toggle the desired settings:
+   - **Add Approvals**: Select an approver for expenses requiring additional approval.
+   - **Delay Submissions**: Choose a frequency for automatic submission of expenses.
+
+#### [Add approvals] How do I add approvals to a workspace?
+To enable Add approvals on a workspace:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the workspace where you want to add approvals.
+4. Press **Workflows** in the left menu.
+5. Toggle **Add approvals**.
+
+Enabling **Add approvals** reveals the option to set a default approval workflow.
+
+#### [Configure approval workflows] How do I configure approval workflows in a workspace?
+To configure the default approval workflow:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the workspace where you want to set the approval workflow.
+4. Press **Workflows** in the left menu.
+5. Under **Expenses from Everyone**, press **First approver**.
+6. Select the workspace member as the first approver.
+7. Under **Additional approver**, continue selecting members.
+8. Press **Save**.
+
+To set a custom approval workflow for specific members:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the workspace where you want to add approvals.
+4. Press **Workflows** in the left menu.
+5. Under **Add approvals**, press **Add approval workflow**.
+6. Choose the specific member for the custom workflow.
+7. Press **Next**.
+8. Select the first approver.
+9. Press **Next**.
+10. Press **Additional approver** to select more members.
+11. Press **Add workflow** to save.
+
+#### [Edit or delete approval workflows] How do I manage approval workflows in Expensify?
+To edit an approval workflow:
+1. On the **Workflows** page, press the workflow to edit.
+2. Press the Approver field for the desired level.
+3. Select or deselect members as approvers.
+4. Press **Save**.
+
+To delete an approval workflow:
+1. On the **Workflows** page, press the workflow to delete.
+2. Press **Delete**.
+3. In the confirmation window, press **Delete** again.
+
+### Set Up Payment Account
+#### [Set up payment account] How do I set up a business bank account for workspace payments?
+To set up a business bank account for payments:
+1. Press **Workflows**.
+2. Enable the **Payments** toggle.
+3. Press **Connect Bank Account** and follow the prompts to connect your company bank account.
+4. Select an authorized expense payer, who is a workspace admin with access to the business bank account.
 
 ### Expense Capture
 #### [SmartScan] How do I use SmartScan to capture receipts?
@@ -131,6 +222,71 @@ To add an expense manually, follow these steps:
 7. Press **Show more** to add additional fields like category if needed.
 8. Press **Submit**.
 
+### Manage Expense Tags
+#### [Create and manage tags] How do I create and manage expense tags?
+To create and manage expense tags in your workspace:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the desired workspace.
+4. Press **More features** and enable the **Tags** toggle in the Organize section.
+5. Press **Tags**.
+6. To add a tag, press **Add Tag**, enter a name, and press **Save**.
+7. To delete a tag, press the tag, press the three-dot menu, and select **Delete tag**.
+
+#### [Enable or disable tags] How do I enable or disable tags for expenses?
+To enable or disable tags:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the desired workspace.
+4. Press **Tags**.
+5. Press the tag and use the toggle to enable or disable it.
+
+#### [Add or edit a GL code] How do I add or edit a GL code for a tag?
+If your workspace is on the Control plan, you can add or edit a GL code for a tag:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the workspace.
+4. Press **Tags**.
+5. Press the tag to open tag-settings.
+6. Click the GL code field, make changes, and press **Save**.
+
+### Manage Expense Categories
+#### [Create categories] How do I create expense categories?
+To create expense categories:
+1. Press your profile image or icon in the bottom menu.
+2. Press **Workspaces**.
+3. Select the workspace you want to add categories to.
+4. Press **Categories**.
+5. Press **Add Category** and enter a name.
+6. Press **Save**.
+
+#### [Delete categories] How do I delete expense categories?
+To delete an expense category:
+1. Press the category in the **Categories** page.
+2. Press the three-dot menu in the top right.
+3. Press **Delete category** to permanently delete it.
+
+#### [Enable or disable categories] How do I enable or disable expense categories?
+To enable or disable categories:
+1. Press your profile image or icon in the bottom menu.
+2. Press **Workspaces**.
+3. Select a workspace.
+4. Press **Categories**.
+5. Press a category and use the toggle to enable or disable it.
+
+### Require Tags and Categories
+#### [Require tags and categories] How do I require tags and categories for expenses?
+To require workspace members to add tags and/or categories to their expenses:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select a workspace.
+4. Press **Tags** or **Categories** in the left menu.
+5. Press **Settings** at the top right of the page.
+6. Enable the “Members must tag/categorize all expenses" toggle.
+7. If desired, repeat steps 4-6 for tags or categories (whichever you haven’t done yet).
+
+This will highlight the tag and/or category field as required on all expenses. Note that expenses can still be submitted without a tag and/or category, but the submitter and approver will see an orange dot on the expense details to alert them that the tag/category is missing.
+
 ### Distance Expenses
 #### [Create distance expense] How do I create a distance expense?
 To create a distance expense:
@@ -151,6 +307,77 @@ To create and send a distance request for mileage reimbursement:
 4. Choose the recipient by selecting your organization's workspace from the recent workspaces list.
 5. On the confirmation page, review the amount, date, and distance. Optionally, add a description or category. Press **Request**.
 6. Your request will be sent to a workspace admin for approval and reimbursement through Expensify or other means.
+
+### Manage Distance Rates
+#### [Enable distance rates] How do I enable distance rates in a workspace?
+To enable distance rates in a workspace you manage:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the workspace where you want to enable distance rates.
+4. Press **More features** in the left menu.
+5. Toggle **Distance rates** to enable the feature.
+
+Once enabled, a new **Distance rates** option will appear in the left menu.
+
+#### [Add or manage distance rates] How do I add, edit, or delete distance rates?
+To manage distance rates:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the workspace where you want to manage distance rates.
+4. Press **Distance rates** in the left menu.
+
+To add a rate:
+1. Press **Add rate** in the top right.
+2. Enter a value and press **Save**.
+
+To edit or delete a rate:
+1. Press the desired distance rate.
+2. To enable or disable, use the toggle next to **Enable rate** and press **Save**.
+3. To edit, enter the new value and press **Save**.
+4. To delete, press **Delete**.
+
+For bulk actions:
+1. Use the checkboxes next to distance rates.
+2. Press "x selected" at the top right.
+3. Choose **Enable rates**, **Disable rates**, or **Delete rates** as needed.
+
+### Manage Tax Rates
+#### [Enable Taxes] How do I enable taxes on a workspace?
+To enable taxes on your workspace:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the workspace where you want to enable tax codes.
+4. Press **More features** in the left menu.
+5. Toggle **Taxes** to enable the feature.
+
+After enabling taxes, a new **Taxes** option will appear in the left menu.
+
+#### [Add or manage tax rates] How do I add, edit, or delete tax rates?
+To manage tax rates:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the workspace where you want to manage tax rates.
+4. Press **Taxes** in the left menu.
+
+To add a rate:
+1. Press **Add rate** in the top right.
+2. Enter a name, value, and tax code, then press **Save**.
+
+To edit or delete a rate:
+1. Press the desired tax rate.
+2. To enable or disable, use the toggle next to **Enable rate** and press **Save**.
+3. To edit, enter the new value and press **Save**.
+4. To delete, press **Delete**.
+
+For bulk actions:
+1. Use the checkboxes next to tax rates.
+2. Press "x selected" at the top right.
+3. Choose **Enable rates**, **Disable rates**, or **Delete rates** as needed.
+
+#### [Change Default Tax Rates] How do I change the default tax rates in a workspace?
+To change the default tax rates:
+1. On the **Taxes** settings page, press **Settings** in the top right.
+2. Press **Workspace currency default** or **Foreign currency default** and select the desired tax rate.
 
 ### Bank Account Management
 #### [Connect Business Bank Account] How do I connect a business bank account in Expensify?
@@ -306,6 +533,33 @@ Splitting an expense allows the person who paid the bill to request money from m
 
 Each person will receive an email or text with the details of the request. You can also chat with them about the expense in Expensify Chat, and you can receive payments through your Expensify Wallet or outside of Expensify.
 
+### Manage Report Fields
+#### [Enable Report Fields] How do I enable report fields on a workspace?
+To enable report fields on a workspace:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the workspace you want to enable report fields for.
+4. Press **More features** and toggle **Report Fields** to enable them.
+
+#### [Create Report Fields] How do I create new report fields?
+To create new report fields:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the workspace you want to create report fields on.
+4. Press **Report Fields** in the left menu.
+5. Press **Add Field** in the top right corner to create a new field.
+6. Enter a name for your report field and select the field type (Text, Date, or List).
+7. Press **Save** to finalize the new field.
+
+#### [Edit or Delete Report Fields] How do I edit or delete existing report fields?
+To edit or delete existing report fields:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** in the left menu.
+3. Select the workspace with the report fields you want to edit or delete.
+4. Press **Report Fields** in the left menu.
+5. Select the report field you wish to edit or delete.
+6. Make the required edits in the right-hand panel, or press **Delete**.
+
 ### Accounting Integrations
 #### [Connect to QuickBooks Online] How do I connect Expensify to QuickBooks Online?
 To integrate with QuickBooks Online:
@@ -415,15 +669,19 @@ Yes, Expensify Expense offers a free plan with basic features, with advanced pla
 #### How does Expensify support multi-currency expenses?
 Expensify converts expenses to your preferred currency and supports global reimbursement.
 
+### Workflow Management
+#### [Delayed Submission and Approvals] If I have delayed submission and an approver, what should I expect with a report?
+When Add Approver is enabled with Delay Submission, expense reports go from Open > Processing > Approved. If delayed submission is disabled, expense reports go from Processing > Approved.
+
+#### Can an employee have more than one approval workflow?
+No, each employee can have only one approval workflow.
+
 ### Integration and Export
 #### How do I disconnect Xero from Expensify?
 To disconnect Xero:
 1. Press your profile image or icon in the bottom left menu.
 2. Press **Workspaces** and select your workspace.
 3. Press **Accounting** and select **Disconnect** next to Xero.
-
-#### Can an employee have more than one approval workflow?
-No, each employee can have only one approval workflow.
 
 #### [Xero Export Confirmation] How do I know if a report successfully exported to Xero?
 When a report exports successfully, a message is posted in the related Expensify Chat room.
