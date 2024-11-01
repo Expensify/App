@@ -76,7 +76,7 @@ function IOURequestStepParticipants({
     }, [iouType, translate, isSplitRequest, action]);
 
     const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), []);
-    const shouldDisplayTrackExpenseButton = !!selfDMReportID && action === CONST.IOU.ACTION.CREATE;
+    const shouldDisplayTrackExpenseButton = !!selfDMReportID && iouType === CONST.IOU.TYPE.CREATE;
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
@@ -183,7 +183,7 @@ function IOURequestStepParticipants({
             testID={IOURequestStepParticipants.displayName}
             includeSafeAreaPaddingBottom={false}
         >
-            {skipConfirmation && (
+            {!!skipConfirmation && (
                 <FormHelpMessage
                     style={[styles.ph4, styles.mb4]}
                     isError={false}

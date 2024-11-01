@@ -33,13 +33,13 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
+import * as CompanyCards from '@userActions/CompanyCards';
 import * as Member from '@userActions/Policy/Member';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {CompanyCardFeed, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {ListItemType} from './WorkspaceMemberDetailsRoleSelectionModal';
 import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberDetailsRoleSelectionModal';
 
@@ -61,8 +61,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [allCardsList] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [cards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [expensifyCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
 
@@ -80,17 +83,29 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
     const hasMultipleFeeds = Object.values(cardFeeds?.settings?.companyCards ?? {}).filter((feed) => !feed.pending).length > 0;
+    const paymentAccountID = cardSettings?.paymentBankAccountID ?? 0;
 
     useEffect(() => {
-        Policy.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
+        CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
 
     const memberCards = useMemo(() => {
-        if (!allCardsList) {
+        if (!cards && !expensifyCards) {
             return [];
         }
-        return Object.values(allCardsList ?? {}).filter((card) => card.accountID === accountID && workspaceAccountID.toString() === card.fundID);
-    }, [allCardsList, accountID, workspaceAccountID]);
+        // For admin Expensify Cards can also appear in the cards list, so we need to remove duplicates
+        const allCards = [...Object.values(cards ?? {}), ...Object.values(expensifyCards ?? {})];
+        const cardIDs = new Set();
+        const uniqueObjects = allCards.filter((obj) => {
+            if (cardIDs.has(obj.cardID)) {
+                return false;
+            }
+            cardIDs.add(obj.cardID);
+            return true;
+        });
+
+        return Object.values(uniqueObjects ?? {}).filter((card) => card.accountID === accountID && workspaceAccountID.toString() === card.fundID);
+    }, [accountID, workspaceAccountID, cards, expensifyCards]);
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
@@ -204,6 +219,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         return <NotFoundPage />;
     }
 
+    const shouldShowCardsSection = (!!policy?.areExpensifyCardsEnabled && !!paymentAccountID) ?? (!!policy?.areCompanyCardsEnabled && hasMultipleFeeds);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -291,14 +308,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         onRoleChange={changeRole}
                                         onClose={() => setIsRoleSelectionModalVisible(false)}
                                     />
-                                    {(!!policy?.areExpensifyCardsEnabled || (!!policy?.areCompanyCardsEnabled && hasMultipleFeeds)) && (
+                                    {shouldShowCardsSection && (
                                         <>
                                             <View style={[styles.ph5, styles.pv3]}>
                                                 <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
                                                     {translate('walletPage.assignedCards')}
                                                 </Text>
                                             </View>
-                                            {memberCards.map((memberCard) => (
+                                            {(memberCards as MemberCard[]).map((memberCard) => (
                                                 <MenuItem
                                                     key={memberCard.cardID}
                                                     title={memberCard.nameValuePairs?.cardTitle ?? memberCard?.cardName}
@@ -307,7 +324,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                             ? CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)
                                                             : ''
                                                     }
-                                                    icon={CardUtils.getCardDetailsImage(memberCard?.bank ?? '')}
+                                                    icon={CardUtils.getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
                                                     displayInDefaultIconColor
                                                     iconStyles={styles.cardIcon}
                                                     contentFit="contain"

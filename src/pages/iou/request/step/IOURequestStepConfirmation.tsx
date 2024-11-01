@@ -89,11 +89,11 @@ function IOURequestStepConfirmation({
     const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
     const payeePersonalDetails = useMemo(() => {
-        if (personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1]) {
-            return personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1];
+        if (personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1]) {
+            return personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1];
         }
 
-        const participant = transaction?.participants?.find((val) => val.accountID === (transaction?.splitPayerAccountIDs?.[0] ?? -1));
+        const participant = transaction?.participants?.find((val) => val.accountID === (transaction?.splitPayerAccountIDs?.at(0) ?? -1));
 
         return {
             login: participant?.login ?? '',
@@ -145,7 +145,7 @@ function IOURequestStepConfirmation({
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
 
-    useFetchRoute(transaction, transaction?.comment?.waypoints, action);
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
@@ -241,6 +241,7 @@ function IOURequestStepConfirmation({
             IOU.requestMoney(
                 report,
                 transaction.amount,
+                transaction.attendees,
                 transaction.currency,
                 transaction.created,
                 transaction.merchant,
@@ -623,7 +624,7 @@ function IOURequestStepConfirmation({
                         ]}
                     />
                     {isLoading && <FullScreenLoadingIndicator />}
-                    {gpsRequired && (
+                    {!!gpsRequired && (
                         <LocationPermissionModal
                             startPermissionFlow={startLocationPermissionFlow}
                             resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
@@ -638,6 +639,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
+                        iouAttendees={transaction?.attendees ?? []}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}

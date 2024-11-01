@@ -476,7 +476,8 @@ type SpreadCategoriesParams = {
     categories: number;
 };
 
-type AssignedYouCardParams = {
+type AssignedCardParams = {
+    assignee: string;
     link: string;
 };
 
@@ -538,6 +539,14 @@ type ImportedTypesParams = {
     importedTypes: string[];
 };
 
+type FileLimitParams = {
+    fileLimit: number;
+};
+
+type CompanyCardBankName = {
+    bankName: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -552,9 +561,10 @@ export type {
     DefaultAmountParams,
     AutoPayApprovedReportsLimitErrorParams,
     FeatureNameParams,
+    FileLimitParams,
     SpreadSheetColumnParams,
     SpreadFieldNameParams,
-    AssignedYouCardParams,
+    AssignedCardParams,
     SpreadCategoriesParams,
     DelegateRoleParams,
     DelegatorParams,
@@ -729,6 +739,7 @@ export type {
     DateParams,
     FiltersAmountBetweenParams,
     StatementPageTitleParams,
+    CompanyCardBankName,
     DisconnectPromptParams,
     DisconnectTitleParams,
     CharacterLengthLimitParams,

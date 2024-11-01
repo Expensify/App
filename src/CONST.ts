@@ -152,8 +152,25 @@ type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
 type OnboardingTaskType = {
     type: string;
     autoCompleted: boolean;
-    title: string;
-    description: string | ((params: Partial<{adminsRoomLink: string; workspaceCategoriesLink: string; workspaceMoreFeaturesLink: string; workspaceMembersLink: string}>) => string);
+    title:
+        | string
+        | ((
+              params: Partial<{
+                  integrationName: string;
+              }>,
+          ) => string);
+    description:
+        | string
+        | ((
+              params: Partial<{
+                  adminsRoomLink: string;
+                  workspaceCategoriesLink: string;
+                  workspaceMoreFeaturesLink: string;
+                  workspaceMembersLink: string;
+                  integrationName: string;
+                  workspaceAccountingLink: string;
+              }>,
+          ) => string);
 };
 
 type OnboardingMessageType = {
@@ -296,6 +313,9 @@ const CONST = {
 
     // Regex to get link in href prop inside of <a/> component
     REGEX_LINK_IN_ANCHOR: /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi,
+
+    // Regex to read violation value from string given by backend
+    VIOLATION_LIMIT_REGEX: /[^0-9]+/g,
 
     MERCHANT_NAME_MAX_LENGTH: 255,
 
@@ -471,6 +491,22 @@ const CONST = {
             PERSONAL: 'PERSONAL',
         },
     },
+    NON_USD_BANK_ACCOUNT: {
+        ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
+        FILE_LIMIT: 10,
+        TOTAL_FILES_SIZE_LIMIT: 5242880,
+        STEP: {
+            COUNTRY: 'CountryStep',
+            BANK_INFO: 'BankInfoStep',
+            BUSINESS_INFO: 'BusinessInfoStep',
+            BENEFICIAL_OWNER_INFO: 'BeneficialOwnerInfoStep',
+            SIGNER_INFO: 'SignerInfoStep',
+            AGREEMENTS: 'AgreementsStep',
+            FINISH: 'FinishStep',
+        },
+        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        STEP_HEADER_HEIGHT: 40,
+    },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
         CORPORATION: 'Corp',
@@ -493,7 +529,7 @@ const CONST = {
         WORKSPACE_RULES: 'workspaceRules',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
-        NEW_DOT_QBD: 'quickbooksDesktopOnNewDot',
+        PER_DIEM: 'newDotPerDiem',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -526,6 +562,7 @@ const CONST = {
         ANDROID: 'android',
         WEB: 'web',
         DESKTOP: 'desktop',
+        MOBILEWEB: 'mobileweb',
     },
     PLATFORM_SPECIFIC_KEYS: {
         CTRL: {
@@ -1083,6 +1120,7 @@ const CONST = {
         MODAL_TYPE: {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
+            CENTERED_SWIPABLE_TO_RIGHT: 'centered_swipable_to_right',
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
             CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
@@ -1130,9 +1168,6 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
-        SEARCH_CONVERT_SEARCH_VALUES: 'search_convert_search_values',
-        SEARCH_MAKE_TREE: 'search_make_tree',
-        SEARCH_BUILD_TREE: 'search_build_tree',
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
     },
@@ -1166,7 +1201,13 @@ const CONST = {
             PENDING: 'Pending',
             POSTED: 'Posted',
         },
+        STATE: {
+            CURRENT: 'current',
+            DRAFT: 'draft',
+            BACKUP: 'backup',
+        },
     },
+
     MCC_GROUPS: {
         AIRLINES: 'Airlines',
         COMMUTER: 'Commuter',
@@ -1564,6 +1605,7 @@ const CONST = {
         TRACKING_CATEGORY_OPTIONS: {
             DEFAULT: 'DEFAULT',
             TAG: 'TAG',
+            REPORT_FIELD: 'REPORT_FIELD',
         },
     },
 
@@ -1614,6 +1656,12 @@ const CONST = {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'journal_entry',
+    },
+
+    QUICKBOOKS_NON_REIMBURSABLE_ACCOUNT_TYPE: {
+        CREDIT_CARD: 'credit_card',
+        DEBIT_CARD: 'debit_card',
+        VENDOR_BILL: 'bill',
     },
 
     QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE: {
@@ -2529,6 +2577,13 @@ const CONST = {
             VISA: 'vcf',
             AMEX: 'gl1025',
             STRIPE: 'stripe',
+            CITIBANK: 'oauth.citibank.com',
+            CAPITAL_ONE: 'oauth.capitalone.com',
+            BANK_OF_AMERICA: 'oauth.bankofamerica.com',
+            CHASE: 'oauth.chase.com',
+            BREX: 'oauth.brex.com',
+            WELLS_FARGO: 'oauth.wellsfargo.com',
+            AMEX_DIRECT: 'oauth.americanexpressfdx.com',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
@@ -2550,6 +2605,11 @@ const CONST = {
             INDIVIDUAL: 'individual',
             NONE: 'none',
         },
+        VERIFICATION_STATE: {
+            LOADING: 'loading',
+            VERIFIED: 'verified',
+            ON_WAITLIST: 'onWaitlist',
+        },
         STATE: {
             STATE_NOT_ISSUED: 2,
             OPEN: 3,
@@ -2564,6 +2624,7 @@ const CONST = {
             MONTHLY: 'monthly',
             FIXED: 'fixed',
         },
+        LIMIT_VALUE: 21474836,
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEP: {
             ASSIGNEE: 'Assignee',
@@ -2582,6 +2643,7 @@ const CONST = {
             MONTHLY: 'monthly',
         },
         CARD_TITLE_INPUT_LIMIT: 255,
+        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
     },
     COMPANY_CARDS: {
         CONNECTION_ERROR: 'connectionError',
@@ -2615,6 +2677,15 @@ const CONST = {
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
             OTHER: 'Other',
+        },
+        BANK_CONNECTIONS: {
+            WELLS_FARGO: 'wellsfargo',
+            BANK_OF_AMERICA: 'bankofamerica',
+            CHASE: 'chase',
+            BREX: 'brex',
+            CAPITAL_ONE: 'capitalone',
+            CITI_BANK: 'citibank',
+            AMEX: 'americanexpressfdx',
         },
         AMEX_CUSTOM_FEED: {
             CORPORATE: 'American Express Corporate Cards',
@@ -2801,6 +2872,7 @@ const CONST = {
         SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
         REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
         DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
+        WHITESPACE: /\s+/g,
 
         get EXPENSIFY_POLICY_DOMAIN_NAME() {
             return new RegExp(`${EXPENSIFY_POLICY_DOMAIN}([a-zA-Z0-9]+)\\${EXPENSIFY_POLICY_DOMAIN_EXTENSION}`);
@@ -2889,6 +2961,7 @@ const CONST = {
 
     // Character Limits
     FORM_CHARACTER_LIMIT: 50,
+    STANDARD_LENGTH_LIMIT: 100,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
@@ -3283,6 +3356,63 @@ const CONST = {
         YE: 'Yemen',
         ZM: 'Zambia',
         ZW: 'Zimbabwe',
+    },
+
+    ALL_EUROPEAN_COUNTRIES: {
+        AL: 'Albania',
+        AD: 'Andorra',
+        AT: 'Austria',
+        BY: 'Belarus',
+        BE: 'Belgium',
+        BA: 'Bosnia & Herzegovina',
+        BG: 'Bulgaria',
+        HR: 'Croatia',
+        CY: 'Cyprus',
+        CZ: 'Czech Republic',
+        DK: 'Denmark',
+        EE: 'Estonia',
+        FO: 'Faroe Islands',
+        FI: 'Finland',
+        FR: 'France',
+        GE: 'Georgia',
+        DE: 'Germany',
+        GI: 'Gibraltar',
+        GR: 'Greece',
+        GL: 'Greenland',
+        HU: 'Hungary',
+        IS: 'Iceland',
+        IE: 'Ireland',
+        IM: 'Isle of Man',
+        IT: 'Italy',
+        JE: 'Jersey',
+        XK: 'Kosovo',
+        LV: 'Latvia',
+        LI: 'Liechtenstein',
+        LT: 'Lithuania',
+        LU: 'Luxembourg',
+        MT: 'Malta',
+        MD: 'Moldova',
+        MC: 'Monaco',
+        ME: 'Montenegro',
+        NL: 'Netherlands',
+        MK: 'North Macedonia',
+        NO: 'Norway',
+        PL: 'Poland',
+        PT: 'Portugal',
+        RO: 'Romania',
+        RU: 'Russia',
+        SM: 'San Marino',
+        RS: 'Serbia',
+        SK: 'Slovakia',
+        SI: 'Slovenia',
+        ES: 'Spain',
+        SJ: 'Svalbard & Jan Mayen',
+        SE: 'Sweden',
+        CH: 'Switzerland',
+        TR: 'Turkey',
+        UA: 'Ukraine',
+        GB: 'United Kingdom',
+        VA: 'Vatican City',
     },
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
@@ -4146,6 +4276,7 @@ const CONST = {
     // The attribute used in the SelectionScraper.js helper to query all the DOM elements
     // that should be removed from the copied contents in the getHTMLOfSelection() method
     SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
+    INNER_BOX_SHADOW_ELEMENT: 'inner-box-shadow-element',
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
@@ -4622,7 +4753,13 @@ const CONST = {
             '\n' +
             "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
     },
-
+    ONBOARDING_ACCOUNTING_MAPPING: {
+        quickbooksOnline: 'QuickBooks Online',
+        xero: 'Xero',
+        netsuite: 'NetSuite',
+        intacct: 'Sage Intacct',
+        quickbooksDesktop: 'QuickBooks Desktop',
+    },
     ONBOARDING_MESSAGES: {
         [onboardingChoices.EMPLOYER]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.SUBMIT]: onboardingEmployerOrSubmitMessage,
@@ -4734,6 +4871,24 @@ const CONST = {
                         '\n' +
                         `[Take me to workspace members](${workspaceMembersLink}). That’s it, happy expensing! :)`,
                 },
+                {
+                    type: 'addAccountingIntegration',
+                    autoCompleted: false,
+                    title: ({integrationName}) => `Connect to ${integrationName}`,
+                    description: ({integrationName, workspaceAccountingLink}) =>
+                        `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
+                        '\n' +
+                        `Here’s how to connect to ${integrationName}:\n` +
+                        '\n' +
+                        '1. Click your profile photo.\n' +
+                        '2. Go to Workspaces.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click Accounting.\n' +
+                        `5. Find ${integrationName}.\n` +
+                        '6. Click Connect.\n' +
+                        '\n' +
+                        `[Take me to Accounting!](${workspaceAccountingLink})`,
+                },
             ],
         },
         [onboardingChoices.PERSONAL_SPEND]: {
@@ -4800,10 +4955,11 @@ const CONST = {
                         '\n' +
                         'Here’s how to request money:\n' +
                         '\n' +
-                        '1. Click the green *+* button.\n' +
-                        '2. Choose *Split expense*.\n' +
-                        '3. Scan a receipt or enter an amount.\n' +
-                        '4. Add your friend(s) to the request.\n' +
+                        '1. Hit the green *+* button.\n' +
+                        '2. Choose *Start chat*.\n' +
+                        '3. Enter any email, SMS, or name of who you want to split with.\n' +
+                        '4. From within the chat, hit the *+* button on the message bar, and hit *Split expense*.\n' +
+                        '5. Create the expense by selecting Manual, Scan or Distance.\n' +
                         '\n' +
                         'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
                 },
@@ -5704,6 +5860,12 @@ const CONST = {
             KEYWORD: 'keyword',
             IN: 'in',
         },
+        EMPTY_VALUE: 'none',
+        SEARCH_ROUTER_ITEM_TYPE: {
+            CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
+            AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
+            SEARCH: 'searchItem',
+        },
     },
 
     REFERRER: {
@@ -5905,6 +6067,22 @@ const CONST = {
     // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.
     ERROR_WINDOW_RELOAD_TIMEOUT: 60000,
 
+    INDICATOR_STATUS: {
+        HAS_USER_WALLET_ERRORS: 'hasUserWalletErrors',
+        HAS_PAYMENT_METHOD_ERROR: 'hasPaymentMethodError',
+        HAS_POLICY_ERRORS: 'hasPolicyError',
+        HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
+        HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
+        HAS_SYNC_ERRORS: 'hasSyncError',
+        HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
+        HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
+        HAS_LOGIN_LIST_ERROR: 'hasLoginListError',
+        HAS_WALLET_TERMS_ERRORS: 'hasWalletTermsErrors',
+        HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
+        HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
+        HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
+    },
+
     DEBUG: {
         DETAILS: 'details',
         JSON: 'json',
@@ -5931,6 +6109,12 @@ const CONST = {
         IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION: 'isWaitingForAssigneeToCompleteAction',
         HAS_CHILD_REPORT_AWAITING_ACTION: 'hasChildReportAwaitingAction',
         HAS_MISSING_INVOICE_BANK_ACCOUNT: 'hasMissingInvoiceBankAccount',
+    },
+
+    RBR_REASONS: {
+        HAS_ERRORS: 'hasErrors',
+        HAS_VIOLATIONS: 'hasViolations',
+        HAS_TRANSACTION_THREAD_VIOLATIONS: 'hasTransactionThreadViolations',
     },
 } as const;
 
