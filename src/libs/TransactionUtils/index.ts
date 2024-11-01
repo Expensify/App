@@ -1,7 +1,7 @@
+import lodashDeepClone from 'lodash/cloneDeep';
 import lodashHas from 'lodash/has';
 import lodashIsEqual from 'lodash/isEqual';
 import lodashSet from 'lodash/set';
-import lodashDeepClone from 'lodash/cloneDeep';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
