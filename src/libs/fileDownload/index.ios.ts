@@ -2,6 +2,7 @@ import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import type {PhotoIdentifier} from '@react-native-camera-roll/camera-roll';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
+import Share from 'react-native-share';
 import CONST from '@src/CONST';
 import * as FileUtils from './FileUtils';
 import type {FileDownload} from './types';
@@ -38,19 +39,21 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
             if (!response.ok) {
                 throw new Error('Failed to download file');
             }
+            const contentType = response.headers.get('content-type');
+            if (contentType === 'application/json' && fileName?.includes('.csv')) {
+                throw new Error();
+            }
             return response.text();
         })
         .then((fileData) => {
             const finalFileName = FileUtils.appendTimeToFileName(fileName ?? 'Expensify');
             const expensifyDir = `${RNFS.DocumentDirectoryPath}/Expensify`;
-
+            const localPath = `${expensifyDir}/${finalFileName}`;
             return RNFS.mkdir(expensifyDir).then(() => {
-                const localPath = `${expensifyDir}/${finalFileName}`;
-                return RNFS.writeFile(localPath, fileData, 'utf8').then(() => localPath);
+                return RNFS.writeFile(localPath, fileData, 'utf8')
+                    .then(() => Share.open({url: localPath, failOnCancel: false, saveToFiles: true}))
+                    .then(() => RNFS.unlink(localPath));
             });
-        })
-        .then(() => {
-            FileUtils.showSuccessAlert();
         })
         .catch(() => {
             if (!onDownloadFailed) {

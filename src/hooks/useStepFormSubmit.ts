@@ -30,6 +30,8 @@ export default function useStepFormSubmit<T extends keyof OnyxFormValuesMapping>
                 }, {} as Record<TupleToUnion<typeof fieldIds>, OnyxValues[T][Exclude<keyof OnyxValues[T], keyof BaseForm>]>);
 
                 FormActions.setDraftValues(formId, stepValues);
+                onNext(stepValues);
+                return;
             }
 
             onNext();

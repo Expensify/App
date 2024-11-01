@@ -1,4 +1,6 @@
 import CONST from '@src/CONST';
+import Log from './Log';
+import type {RequestError} from './Network/SequentialQueue';
 import {generateRandomInt} from './NumberUtils';
 
 let requestWaitTime = 0;
@@ -7,6 +9,7 @@ let requestRetryCount = 0;
 function clear() {
     requestWaitTime = 0;
     requestRetryCount = 0;
+    Log.info(`[RequestThrottle] in clear()`);
 }
 
 function getRequestWaitTime() {
@@ -22,11 +25,15 @@ function getLastRequestWaitTime() {
     return requestWaitTime;
 }
 
-function sleep(): Promise<void> {
+function sleep(error: RequestError, command: string): Promise<void> {
     requestRetryCount++;
     return new Promise((resolve, reject) => {
         if (requestRetryCount <= CONST.NETWORK.MAX_REQUEST_RETRIES) {
-            setTimeout(resolve, getRequestWaitTime());
+            const currentRequestWaitTime = getRequestWaitTime();
+            Log.info(
+                `[RequestThrottle] Retrying request after error: '${error.name}', '${error.message}', '${error.status}'. Command: ${command}. Retry count:  ${requestRetryCount}. Wait time: ${currentRequestWaitTime}`,
+            );
+            setTimeout(resolve, currentRequestWaitTime);
             return;
         }
         reject();

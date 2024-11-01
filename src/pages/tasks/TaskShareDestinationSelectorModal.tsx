@@ -31,7 +31,7 @@ const selectReportHandler = (option: unknown) => {
     }
 
     Task.setShareDestinationValue(optionItem?.reportID);
-    Navigation.goBack(ROUTES.NEW_TASK);
+    Navigation.goBack(ROUTES.NEW_TASK.getRoute());
 };
 
 const reportFilter = (reportOptions: Array<OptionsListUtils.SearchOption<Report>>) =>
@@ -91,7 +91,6 @@ function TaskShareDestinationSelectorModal() {
         const filteredReports = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             canInviteUser: false,
-            includeChatRoomsByParticipants: true,
         });
         const header = OptionsListUtils.getHeaderMessage(filteredReports.recentReports && filteredReports.recentReports.length !== 0, false, debouncedSearchValue);
         return {...filteredReports, header};
@@ -131,7 +130,7 @@ function TaskShareDestinationSelectorModal() {
             <>
                 <HeaderWithBackButton
                     title={translate('common.share')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK.getRoute())}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                     <SelectionList

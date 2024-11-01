@@ -1,7 +1,7 @@
 import React from 'react';
 import Modal from '@components/Modal';
 import CONST from '@src/CONST';
-import type {PopoverProps} from './types';
+import type PopoverProps from './types';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.

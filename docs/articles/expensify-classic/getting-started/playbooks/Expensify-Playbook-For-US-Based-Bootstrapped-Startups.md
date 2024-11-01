@@ -59,7 +59,7 @@ Here’s how to set it up:
 Once this is done, you are all set to begin the process of enabling the Expensify Card. Not just for you, but if you have a co-founder, you can also issue them a card.
 
 ## Step 5: Get the Expensify Card
-If you linked your business bank account in the previous step, you are immediately eligible for the Expensify Card. The Expensify Card is included with your Free Plan workspace, it earns you up to 2% cash back, and they are all stored in your team’s workspace. It’s easy to apply, and it takes minutes!
+If you linked your business bank account in the previous step, you are immediately eligible for the Expensify Card. The Expensify Card is included with your Free Plan workspace, earns you 1% cash back on all US purchases (2% if you spend $250k+/mo across cards), and they are all stored in your team’s workspace. It’s easy to apply, and it takes minutes!
 
 Here’s how to enable the Expensify Card:
 

@@ -6,13 +6,13 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
+import {updateXeroEnableNewCategories} from '@userActions/connections/Xero';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 
@@ -59,15 +59,7 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('workspace.xero.accountsSwitchDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 isActive={!!xeroConfig?.enableNewCategories}
-                onToggle={() =>
-                    Connections.updatePolicyXeroConnectionConfig(
-                        policyID,
-                        CONST.POLICY.CONNECTIONS.NAME.XERO,
-                        CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES,
-                        !xeroConfig?.enableNewCategories,
-                        xeroConfig?.enableNewCategories,
-                    )
-                }
+                onToggle={() => updateXeroEnableNewCategories(policyID, !xeroConfig?.enableNewCategories, xeroConfig?.enableNewCategories)}
                 pendingAction={settingsPendingAction([CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES], xeroConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES)}

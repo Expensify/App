@@ -6,6 +6,45 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Two factor authentication steps */
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 
+/** The role of the delegate */
+type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
+
+/** Model of delegate */
+type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** The email of the delegate */
+    email: string;
+
+    /** The role of the delegate */
+    role?: DelegateRole;
+
+    /** Whether the user validation code was sent */
+    validateCodeSent?: boolean;
+
+    /** Field-specific server side errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields;
+
+    /** Whether the user is loading */
+    isLoading?: boolean;
+
+    /** The accountID of a delegate when they aren't in the personalDetails. */
+    optimisticAccountID?: number;
+}>;
+
+/** Model of delegated access data */
+type DelegatedAccess = {
+    /** The users that can access your account as a delegate */
+    delegates?: Delegate[];
+
+    /** The the users you can access as a delegate */
+    delegators?: Delegate[];
+
+    /** The email of original user when they are acting as a delegate for another account */
+    delegate?: string;
+
+    /** Authentication failure errors when disconnecting as a copilot */
+    errorFields?: OnyxCommon.ErrorFields;
+};
+
 /** Model of user account */
 type Account = {
     /** Whether SAML is enabled for the current account */
@@ -88,7 +127,10 @@ type Account = {
 
     /** Indicates whether the user has at least one previous purchase */
     hasPurchases?: boolean;
+
+    /** The users you can access as delegate and the users who can access your account as a delegate */
+    delegatedAccess?: DelegatedAccess;
 };
 
 export default Account;
-export type {TwoFactorAuthStep};
+export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess, Delegate};

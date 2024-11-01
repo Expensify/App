@@ -79,12 +79,12 @@ const isSafari: IsSafari = () => getBrowser() === 'safari' || isMobileSafari();
 /**
  * The session information needs to be passed to the Desktop app, and the only way to do that is by using query params. There is no other way to transfer the data.
  */
-const openRouteInDesktopApp: OpenRouteInDesktopApp = (shortLivedAuthToken = '', email = '') => {
+const openRouteInDesktopApp: OpenRouteInDesktopApp = (shortLivedAuthToken = '', email = '', initialRoute = '') => {
     const params = new URLSearchParams();
     // If the user is opening the desktop app through a third party signin flow, we need to manually add the exitTo param
     // so that the desktop app redirects to the correct home route after signin is complete.
     const openingFromDesktopRedirect = window.location.pathname === `/${ROUTES.DESKTOP_SIGN_IN_REDIRECT}`;
-    params.set('exitTo', `${openingFromDesktopRedirect ? '/r' : window.location.pathname}${window.location.search}${window.location.hash}`);
+    params.set('exitTo', `${openingFromDesktopRedirect ? '/r' : initialRoute || window.location.pathname}${window.location.search}${window.location.hash}`);
     if (email && shortLivedAuthToken) {
         params.set('email', email);
         params.set('shortLivedAuthToken', shortLivedAuthToken);

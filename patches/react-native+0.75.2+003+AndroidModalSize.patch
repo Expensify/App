@@ -1,0 +1,141 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ModalHostHelper.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ModalHostHelper.kt
+deleted file mode 100644
+index f1698ae..0000000
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ModalHostHelper.kt
++++ /dev/null
+@@ -1,62 +0,0 @@
+-/*
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
+- *
+- * This source code is licensed under the MIT license found in the
+- * LICENSE file in the root directory of this source tree.
+- */
+-
+-package com.facebook.react.views.modal
+-
+-import android.annotation.SuppressLint
+-import android.content.Context
+-import android.graphics.Point
+-import android.view.WindowManager
+-
+-/** Helper class for Modals. */
+-internal object ModalHostHelper {
+-  private val MIN_POINT = Point()
+-  private val MAX_POINT = Point()
+-  private val SIZE_POINT = Point()
+-
+-  /**
+-   * To get the size of the screen, we use information from the WindowManager and default Display.
+-   * We don't use DisplayMetricsHolder, or Display#getSize() because they return values that include
+-   * the status bar. We only want the values of what will actually be shown on screen. We use
+-   * Display#getSize() to determine if the screen is in portrait or landscape. We don't use
+-   * getRotation because the 'natural' rotation will be portrait on phones and landscape on tablets.
+-   * This should only be called on the native modules/shadow nodes thread.
+-   */
+-  @Suppress("DEPRECATION")
+-  @JvmStatic
+-  fun getModalHostSize(context: Context): Point {
+-    val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+-    val display = wm.defaultDisplay
+-    // getCurrentSizeRange will return the min and max width and height that the window can be
+-    display.getCurrentSizeRange(MIN_POINT, MAX_POINT)
+-    // getSize will return the dimensions of the screen in its current orientation
+-    display.getSize(SIZE_POINT)
+-
+-    val attrs = intArrayOf(android.R.attr.windowFullscreen)
+-    val theme = context.theme
+-    val ta = theme.obtainStyledAttributes(attrs)
+-    val windowFullscreen = ta.getBoolean(0, false)
+-
+-    // We need to add the status bar height to the height if we have a fullscreen window,
+-    // because Display.getCurrentSizeRange doesn't include it.
+-    val resources = context.resources
+-    @SuppressLint("DiscouragedApi", "InternalInsetResource")
+-    val statusBarId = resources.getIdentifier("status_bar_height", "dimen", "android")
+-    var statusBarHeight = 0
+-    if (windowFullscreen && statusBarId > 0) {
+-      statusBarHeight = resources.getDimension(statusBarId).toInt()
+-    }
+-
+-    return if (SIZE_POINT.x < SIZE_POINT.y) {
+-      // If we are vertical the width value comes from min width and height comes from max height
+-      Point(MIN_POINT.x, MAX_POINT.y + statusBarHeight)
+-    } else {
+-      // If we are horizontal the width value comes from max width and height comes from min height
+-      Point(MAX_POINT.x, MIN_POINT.y + statusBarHeight)
+-    }
+-  }
+-}
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ModalHostShadowNode.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ModalHostShadowNode.kt
+deleted file mode 100644
+index 4c52f3a..0000000
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ModalHostShadowNode.kt
++++ /dev/null
+@@ -1,34 +0,0 @@
+-/*
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
+- *
+- * This source code is licensed under the MIT license found in the
+- * LICENSE file in the root directory of this source tree.
+- */
+-
+-package com.facebook.react.views.modal
+-
+-import com.facebook.react.uimanager.LayoutShadowNode
+-import com.facebook.react.uimanager.ReactShadowNodeImpl
+-import com.facebook.react.views.modal.ModalHostHelper.getModalHostSize
+-
+-/**
+- * We implement the Modal by using an Android Dialog. That will fill the entire window of the
+- * application. To get layout to work properly, we need to layout all the elements within the
+- * Modal's inner content view as if they can fill the entire window. To do that, we need to
+- * explicitly set the styleWidth and styleHeight on the LayoutShadowNode of the child of this node
+- * to be the window size. This will then cause the children of the Modal to layout as if they can
+- * fill the window.
+- */
+-internal class ModalHostShadowNode : LayoutShadowNode() {
+-  /**
+-   * We need to set the styleWidth and styleHeight of the one child (represented by the
+-   * <View></View> within the <RCTModalHostView></RCTModalHostView> in Modal.js. This needs to fill
+-   * the entire window.
+-   */
+-  override fun addChildAt(child: ReactShadowNodeImpl, i: Int) {
+-    super.addChildAt(child, i)
+-    val modalSize = getModalHostSize(themedContext)
+-    child.setStyleWidth(modalSize.x.toFloat())
+-    child.setStyleHeight(modalSize.y.toFloat())
+-  }
+-}
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostManager.kt
+index 7bb4bc2..d5e053c 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostManager.kt
+@@ -21,7 +21,6 @@ import com.facebook.react.uimanager.ViewManagerDelegate
+ import com.facebook.react.uimanager.annotations.ReactProp
+ import com.facebook.react.viewmanagers.ModalHostViewManagerDelegate
+ import com.facebook.react.viewmanagers.ModalHostViewManagerInterface
+-import com.facebook.react.views.modal.ModalHostHelper.getModalHostSize
+ import com.facebook.react.views.modal.ReactModalHostView.OnRequestCloseListener
+ 
+ /** View manager for [ReactModalHostView] components. */
+@@ -35,11 +34,6 @@ public class ReactModalHostManager :
+   protected override fun createViewInstance(reactContext: ThemedReactContext): ReactModalHostView =
+       ReactModalHostView(reactContext)
+ 
+-  public override fun createShadowNodeInstance(): LayoutShadowNode = ModalHostShadowNode()
+-
+-  public override fun getShadowNodeClass(): Class<out LayoutShadowNode> =
+-      ModalHostShadowNode::class.java
+-
+   public override fun onDropViewInstance(view: ReactModalHostView) {
+     super.onDropViewInstance(view)
+     view.onDropInstance()
+@@ -136,8 +130,6 @@ public class ReactModalHostManager :
+       stateWrapper: StateWrapper
+   ): Any? {
+     view.stateWrapper = stateWrapper
+-    val modalSize = getModalHostSize(view.context)
+-    view.updateState(modalSize.x, modalSize.y)
+     return null
+   }
+ 

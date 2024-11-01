@@ -16,6 +16,7 @@ function BaseListItem<TItem extends ListItem>({
     item,
     pressableStyle,
     wrapperStyle,
+    pressableWrapperStyle,
     containerStyle,
     isDisabled = false,
     shouldPreventEnterKeySubmit = false,
@@ -30,6 +31,7 @@ function BaseListItem<TItem extends ListItem>({
     children,
     isFocused,
     shouldSyncFocus = true,
+    shouldDisplayRBR = true,
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
@@ -54,7 +56,7 @@ function BaseListItem<TItem extends ListItem>({
         }
 
         if (typeof rightHandSideComponent === 'function') {
-            return rightHandSideComponent(item);
+            return rightHandSideComponent(item, isFocused);
         }
 
         return rightHandSideComponent;
@@ -91,18 +93,19 @@ function BaseListItem<TItem extends ListItem>({
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}
                 style={pressableStyle}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
+                wrapperStyle={pressableWrapperStyle}
             >
                 <View style={wrapperStyle}>
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
+                    {!canSelectMultiple && !!item.isSelected && !rightHandSideComponent && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
@@ -115,7 +118,7 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {!item.isSelected && !!item.brickRoadIndicator && (
+                    {(!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
                                 src={Expensicons.DotIndicator}

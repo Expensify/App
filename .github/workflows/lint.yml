@@ -1,4 +1,4 @@
-name: Lint code
+name: ESLint check
 
 on:
   workflow_call:
@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   lint:
-    name: Run ESLint
+    name: ESLint check
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     steps:
@@ -27,16 +27,3 @@ jobs:
         run: npm run lint
         env:
           CI: true
-
-      - name: Verify there's no Prettier diff
-        run: |
-          npm run prettier -- --loglevel silent
-          if ! git diff --name-only --exit-code; then
-            # shellcheck disable=SC2016
-            echo 'Error: Prettier diff detected! Please run `npm run prettier` and commit the changes.'
-            exit 1
-          fi
-
-      - name: Run unused style searcher
-        shell: bash
-        run: ./.github/scripts/findUnusedKeys.sh

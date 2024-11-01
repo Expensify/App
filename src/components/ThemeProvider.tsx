@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo} from 'react';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useThemePreferenceWithStaticOverride from '@hooks/useThemePreferenceWithStaticOverride';
 import DomUtils from '@libs/DomUtils';
 // eslint-disable-next-line no-restricted-imports
@@ -12,8 +13,13 @@ type ThemeProviderProps = React.PropsWithChildren & {
 
 function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderProps) {
     const themePreference = useThemePreferenceWithStaticOverride(staticThemePreference);
+    const [, debouncedTheme, setDebouncedTheme] = useDebouncedState(themePreference);
 
-    const theme = useMemo(() => themes[themePreference], [themePreference]);
+    useEffect(() => {
+        setDebouncedTheme(themePreference);
+    }, [setDebouncedTheme, themePreference]);
+
+    const theme = useMemo(() => themes[debouncedTheme], [debouncedTheme]);
 
     useEffect(() => {
         DomUtils.addCSS(DomUtils.getAutofilledInputStyle(theme.text), 'autofill-input');

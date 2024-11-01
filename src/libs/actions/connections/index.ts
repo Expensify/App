@@ -1,16 +1,22 @@
+import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import isObject from 'lodash/isObject';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {RemovePolicyConnectionParams, UpdateManyPolicyConnectionConfigurationsParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
+import type {
+    RemovePolicyConnectionParams,
+    SyncPolicyToQuickbooksDesktopParams,
+    UpdateManyPolicyConnectionConfigurationsParams,
+    UpdatePolicyConnectionConfigParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {ConnectionName, Connections, PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
@@ -73,7 +79,7 @@ function createErrorFields<TConnectionName extends ConnectionNameExceptNetSuite,
     }, {});
 }
 
-function updatePolicyXeroConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
+function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
     policyID: string,
     connectionName: TConnectionName,
     settingName: TSettingName,
@@ -142,89 +148,6 @@ function updatePolicyXeroConnectionConfig<TConnectionName extends ConnectionName
     };
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
 }
-
-function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
-    policyID: string,
-    connectionName: TConnectionName,
-    settingName: TSettingName,
-    settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
-) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [connectionName]: {
-                        config: {
-                            [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                            errorFields: {
-                                [settingName]: null,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [connectionName]: {
-                        config: {
-                            [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [connectionName]: {
-                        config: {
-                            [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: null,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const parameters: UpdatePolicyConnectionConfigParams = {
-        policyID,
-        connectionName,
-        settingName: String(settingName),
-        settingValue: JSON.stringify(settingValue),
-        idempotencyKey: String(settingName),
-    };
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
-}
-
 /**
  * This method returns read command and stage in progres for a given accounting integration.
  *
@@ -245,6 +168,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.SAGE_INTACCT_SYNC_CHECK_CONNECTION};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.QBD: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD};
+        }
         default:
             return undefined;
     }
@@ -255,8 +181,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
  *
  * @param policyID - ID of the policy for which the sync is needed
  * @param connectionName - Name of the connection, QBO/Xero
+ * @param forceDataRefresh - If true, it will trigger a full data refresh
  */
-function syncConnection(policyID: string, connectionName: PolicyConnectionName | undefined) {
+function syncConnection(policyID: string, connectionName: PolicyConnectionName | undefined, forceDataRefresh = false) {
     if (!connectionName) {
         return;
     }
@@ -285,17 +212,19 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
         },
     ];
 
-    API.read(
-        syncConnectionData.readCommand,
-        {
-            policyID,
-            idempotencyKey: policyID,
-        },
-        {
-            optimisticData,
-            failureData,
-        },
-    );
+    const parameters: SyncPolicyToQuickbooksDesktopParams = {
+        policyID,
+        idempotencyKey: policyID,
+    };
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
+        parameters.forceDataRefresh = forceDataRefresh;
+    }
+
+    API.read(syncConnectionData.readCommand, parameters, {
+        optimisticData,
+        failureData,
+    });
 }
 
 function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
@@ -368,21 +297,18 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
     API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, {optimisticData, failureData, successData});
 }
 
-function getSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): string | undefined {
-    const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
-    // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        if (!isSyncInProgress && !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate) {
-            return syncError;
-        }
-        return;
-    }
-
+function hasSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): boolean {
     const connection = policy?.connections?.[connectionName];
-    if (isSyncInProgress || connection?.lastSync?.isSuccessful) {
-        return;
+
+    if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
+        return false;
     }
-    return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
+    return true;
+}
+
+function isAuthenticationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName) {
+    const connection = policy?.connections?.[connectionName];
+    return connection?.lastSync?.isAuthenticationError === true;
 }
 
 function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName): boolean {
@@ -392,6 +318,12 @@ function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: Polic
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
         return !(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified ?? true);
     }
+
+    // If the connection has no lastSync property, we'll consider it unverified
+    if (isEmptyObject(policy?.connections?.[connectionName]?.lastSync)) {
+        return true;
+    }
+
     return !(policy?.connections?.[connectionName]?.lastSync?.isConnected ?? true);
 }
 
@@ -430,13 +362,31 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
     );
 }
 
+function isConnectionInProgress(connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, policy?: OnyxEntry<Policy>): boolean {
+    if (!policy || !connectionSyncProgress) {
+        return false;
+    }
+
+    const qboConnection = policy?.connections?.quickbooksOnline;
+
+    const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
+    return (
+        (!!connectionSyncProgress?.stageInProgress &&
+            (connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE || !policy?.connections?.[connectionSyncProgress.connectionName]) &&
+            isValid(lastSyncProgressDate) &&
+            differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES) ||
+        (!!qboConnection && !qboConnection?.data && !!qboConnection?.config?.credentials)
+    );
+}
+
 export {
     removePolicyConnection,
     updatePolicyConnectionConfig,
-    updatePolicyXeroConnectionConfig,
     updateManyPolicyConnectionConfigs,
-    getSynchronizationErrorMessage,
+    isAuthenticationError,
     syncConnection,
     copyExistingPolicyConnection,
     isConnectionUnverified,
+    isConnectionInProgress,
+    hasSynchronizationErrorMessage,
 };

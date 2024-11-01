@@ -1,13 +1,16 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
 import type {
     OpenPublicProfilePageParams,
+    SetPersonalDetailsAndShipExpensifyCardsParams,
     UpdateAutomaticTimezoneParams,
     UpdateDateOfBirthParams,
     UpdateDisplayNameParams,
     UpdateHomeAddressParams,
     UpdateLegalNameParams,
+    UpdatePhoneNumberParams,
     UpdatePronounsParams,
     UpdateSelectedTimezoneParams,
     UpdateUserAvatarParams,
@@ -15,6 +18,8 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -152,6 +157,41 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
     });
 
     Navigation.goBack();
+}
+
+function updatePhoneNumber(phoneNumber: string, currenPhoneNumber: string) {
+    const parameters: UpdatePhoneNumberParams = {phoneNumber};
+    API.write(WRITE_COMMANDS.UPDATE_PHONE_NUMBER, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    phoneNumber,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    phoneNumber: currenPhoneNumber,
+                    errorFields: {
+                        phoneNumber: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('privatePersonalDetails.error.invalidPhoneNumber'),
+                    },
+                },
+            },
+        ],
+    });
+}
+
+function clearPhoneNumberError() {
+    Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+        errorFields: {
+            phoneNumber: null,
+        },
+    });
 }
 
 function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
@@ -425,6 +465,47 @@ function clearAvatarErrors() {
     });
 }
 
+function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) {
+    const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
+        legalFirstName: values.legalFirstName?.trim() ?? '',
+        legalLastName: values.legalLastName?.trim() ?? '',
+        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? ''),
+        addressCity: values.city.trim(),
+        addressStreet: values.addressLine1?.trim() ?? '',
+        addressStreet2: values.addressLine2?.trim() ?? '',
+        addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
+        addressCountry: values.country,
+        addressState: values.state.trim(),
+        dob: values.dob,
+    };
+
+    API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    addresses: [
+                        ...(privatePersonalDetails?.addresses ?? []),
+                        {
+                            street: PersonalDetailsUtils.getFormattedStreet(parameters.addressStreet, parameters.addressStreet2),
+                            city: parameters.addressCity,
+                            state: parameters.addressState,
+                            zip: parameters.addressZip,
+                            country: parameters.addressCountry as Country | '',
+                            current: true,
+                        },
+                    ],
+                    legalFirstName: parameters.legalFirstName,
+                    legalLastName: parameters.legalLastName,
+                    dob: parameters.dob,
+                    phoneNumber: parameters.phoneNumber,
+                },
+            },
+        ],
+    });
+}
+
 export {
     clearAvatarErrors,
     deleteAvatar,
@@ -436,6 +517,9 @@ export {
     setDisplayName,
     updateDisplayName,
     updateLegalName,
+    updatePhoneNumber,
+    clearPhoneNumberError,
     updatePronouns,
     updateSelectedTimezone,
+    updatePersonalDetailsAndShipExpensifyCards,
 };

@@ -25,15 +25,17 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import ConfirmedRoute from './ConfirmedRoute';
+import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
+import {ShowContextMenuContext} from './ShowContextMenuContext';
 import ShowMoreButton from './ShowMoreButton';
 
 type MoneyRequestConfirmationListFooterProps = {
@@ -55,6 +57,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The formatted amount of the transaction */
     formattedAmount: string;
 
+    /** The formatted amount of the transaction per 1 attendee */
+    formattedAmountPerAttendee: string;
+
     /** The error message for the form */
     formError: string;
 
@@ -63,6 +68,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The category of the IOU */
     iouCategory: string;
+
+    /** The list of attendees */
+    iouAttendees: Attendee[] | undefined;
 
     /** The comment of the IOU */
     iouComment: string | undefined;
@@ -174,8 +182,10 @@ function MoneyRequestConfirmationListFooter({
     didConfirm,
     distance,
     formattedAmount,
+    formattedAmountPerAttendee,
     formError,
     hasRoute,
+    iouAttendees,
     iouCategory,
     iouComment,
     iouCreated,
@@ -217,14 +227,14 @@ function MoneyRequestConfirmationListFooter({
     const {translate, toLocaleDigit} = useLocalize();
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
-    // A flag for showing the tags field
-    // TODO: remove the !isTypeInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
-    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists) && !isTypeInvoice, [isPolicyExpenseChat, isTypeInvoice, policyTagLists]);
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
     const isMultilevelTags = useMemo(() => PolicyUtils.isMultiLevelTags(policyTags), [policyTags]);
+    const shouldShowAttendees = useMemo(() => TransactionUtils.shouldShowAttendees(iouType, policy), [iouType, policy]);
 
     const senderWorkspace = useMemo(() => {
         const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
@@ -234,8 +244,8 @@ function MoneyRequestConfirmationListFooter({
     const canUpdateSenderWorkspace = useMemo(() => {
         const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
 
-        return PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
-    }, [allPolicies, selectedParticipants, transaction?.isFromGlobalCreate]);
+        return PolicyUtils.canSendInvoice(allPolicies, currentUserLogin) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
+    }, [allPolicies, currentUserLogin, selectedParticipants, transaction?.isFromGlobalCreate]);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
@@ -268,6 +278,20 @@ function MoneyRequestConfirmationListFooter({
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
+    const contextMenuContextValue = useMemo(
+        () => ({
+            anchor: null,
+            report: undefined,
+            reportNameValuePairs: undefined,
+            action: undefined,
+            checkIfContextMenuActive: () => {},
+            isDisabled: true,
+        }),
+        [],
+    );
+
+    const mentionReportContextValue = useMemo(() => ({currentReportID: reportID}), [reportID]);
+
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
     const classifiedFields = [
@@ -284,7 +308,7 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, CONST.IOU.PAGE_INDEX.CONFIRM, Navigation.getActiveRoute()));
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -298,23 +322,29 @@ function MoneyRequestConfirmationListFooter({
         },
         {
             item: (
-                <MenuItemWithTopDescription
-                    key={translate('common.description')}
-                    shouldShowRightIcon={!isReadOnly}
-                    shouldParseTitle
-                    title={iouComment}
-                    description={translate('common.description')}
-                    onPress={() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID),
-                        );
-                    }}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    disabled={didConfirm}
-                    interactive={!isReadOnly}
-                    numberOfLinesTitle={2}
-                />
+                <ShowContextMenuContext.Provider value={contextMenuContextValue}>
+                    <MentionReportContext.Provider
+                        key={translate('common.description')}
+                        value={mentionReportContextValue}
+                    >
+                        <MenuItemWithTopDescription
+                            key={translate('common.description')}
+                            shouldShowRightIcon={!isReadOnly}
+                            shouldParseTitle
+                            excludedMarkdownRules={!policy ? ['reportMentions'] : []}
+                            title={iouComment}
+                            description={translate('common.description')}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                            }}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            disabled={didConfirm}
+                            interactive={!isReadOnly}
+                            numberOfLinesTitle={2}
+                        />
+                    </MentionReportContext.Provider>
+                </ShowContextMenuContext.Provider>
             ),
             shouldShow: true,
             isSupplementary: false,
@@ -381,7 +411,7 @@ function MoneyRequestConfirmationListFooter({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -405,7 +435,7 @@ function MoneyRequestConfirmationListFooter({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -424,9 +454,7 @@ function MoneyRequestConfirmationListFooter({
                     title={iouCategory}
                     description={translate('common.category')}
                     numberOfLinesTitle={2}
-                    onPress={() =>
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID))
-                    }
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID))}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
@@ -449,9 +477,7 @@ function MoneyRequestConfirmationListFooter({
                         description={name}
                         numberOfLinesTitle={2}
                         onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID),
-                            )
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transactionID, reportID, Navigation.getActiveRoute(), reportActionID))
                         }
                         style={[styles.moneyRequestMenuItem]}
                         disabled={didConfirm}
@@ -472,7 +498,7 @@ function MoneyRequestConfirmationListFooter({
                     description={taxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()))}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}
                 />
@@ -489,7 +515,7 @@ function MoneyRequestConfirmationListFooter({
                     description={translate('iou.taxAmount')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()))}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}
                 />
@@ -499,7 +525,29 @@ function MoneyRequestConfirmationListFooter({
         },
         {
             item: (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
+                <MenuItemWithTopDescription
+                    key="attendees"
+                    shouldShowRightIcon
+                    title={iouAttendees?.map((item) => item?.displayName ?? item?.login).join(', ')}
+                    description={`${translate('iou.attendees')} ${
+                        iouAttendees?.length && iouAttendees.length > 1 ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
+                    }`}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    interactive
+                    shouldRenderAsHTML
+                />
+            ),
+            shouldShow: shouldShowAttendees,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <View
+                    key={translate('common.billable')}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}
+                >
                     <ToggleSettingOptionRow
                         switchAccessibilityLabel={translate('common.billable')}
                         title={translate('common.billable')}
@@ -516,8 +564,8 @@ function MoneyRequestConfirmationListFooter({
         },
     ];
 
-    const primaryFields: JSX.Element[] = [];
-    const supplementaryFields: JSX.Element[] = [];
+    const primaryFields: React.JSX.Element[] = [];
+    const supplementaryFields: React.JSX.Element[] = [];
 
     classifiedFields.forEach((field) => {
         if (field.shouldShow && !field.isSupplementary) {

@@ -302,8 +302,12 @@ describe('ReportActionsUtils', () => {
                 },
             ];
 
+            // Expected output should have the `CREATED` action at last
+            // eslint-disable-next-line rulesdir/prefer-at
+            const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2), input[1]];
+
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
-            expect(result).toStrictEqual(input);
+            expect(result).toStrictEqual(expectedOutput);
         });
 
         it('should filter out closed actions', () => {
@@ -392,9 +396,13 @@ describe('ReportActionsUtils', () => {
                     ],
                 },
             ];
+
+            // Expected output should have the `CREATED` action at last and `CLOSED` action removed
+            // eslint-disable-next-line rulesdir/prefer-at
+            const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2, -1), input[1]];
+
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
-            input.pop();
-            expect(result).toStrictEqual(input);
+            expect(result).toStrictEqual(expectedOutput);
         });
 
         it('should filter out deleted, non-pending comments', () => {
@@ -481,10 +489,10 @@ describe('ReportActionsUtils', () => {
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
+                                const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
                                     callback: () => {
-                                        Onyx.disconnect(connectionID);
+                                        Onyx.disconnect(connection);
                                         const res = ReportActionsUtils.getLastVisibleAction(report.reportID);
                                         expect(res).toEqual(action2);
                                         resolve();

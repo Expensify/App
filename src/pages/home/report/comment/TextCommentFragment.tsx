@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
-import {isEmpty} from 'lodash';
-import React, {memo} from 'react';
+import isEmpty from 'lodash/isEmpty';
+import React, {memo, useEffect} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
@@ -11,6 +11,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
+import Performance from '@libs/Performance';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -44,9 +46,14 @@ type TextCommentFragmentProps = {
 function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {html = '', text} = fragment ?? {};
+    const {html = ''} = fragment ?? {};
+    const text = ReportActionsUtils.getTextFromHtml(html);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    useEffect(() => {
+        Performance.markEnd(CONST.TIMING.MESSAGE_SENT, {message: text});
+    }, [text]);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
@@ -56,7 +63,11 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''} ${containsOnlyEmojis ? 'islarge' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
-        const htmlContent = containsOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
+        let htmlContent = htmlWithDeletedTag;
+        if (containsOnlyEmojis) {
+            htmlContent = Str.replaceAll(htmlContent, '<emoji>', '<emoji islarge>');
+            htmlContent = Str.replaceAll(htmlContent, '<blockquote>', '<blockquote isemojisonly>');
+        }
         let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
 
         if (styleAsMuted) {
@@ -91,7 +102,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
             >
                 {convertToLTR(message ?? '')}
             </Text>
-            {fragment?.isEdited && (
+            {!!fragment?.isEdited && (
                 <>
                     <Text
                         style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}

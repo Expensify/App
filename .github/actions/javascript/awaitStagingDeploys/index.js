@@ -12138,7 +12138,7 @@ function run() {
         GithubUtils_1.default.octokit.actions.listWorkflowRuns({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
-            workflow_id: 'platformDeploy.yml',
+            workflow_id: 'deploy.yml',
             event: 'push',
             branch: tag,
         }),
@@ -12421,7 +12421,11 @@ class GithubUtils {
             if (data.length > 1) {
                 throw new Error(`Found more than one ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
             }
-            return this.getStagingDeployCashData(data[0]);
+            const issue = data.at(0);
+            if (!issue) {
+                throw new Error(`Found an undefined ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
+            }
+            return this.getStagingDeployCashData(issue);
         });
     }
     /**
@@ -12499,7 +12503,7 @@ class GithubUtils {
         }
         internalQASection = internalQASection[1];
         const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2].split('-')[0].trim(),
+            url: match[2].split('-').at(0)?.trim() ?? '',
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
@@ -12583,7 +12587,7 @@ class GithubUtils {
      * Fetch all pull requests given a list of PR numbers.
      */
     static fetchAllPullRequests(pullRequestNumbers) {
-        const oldestPR = pullRequestNumbers.sort((a, b) => a - b)[0];
+        const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(this.octokit.pulls.list, {
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
@@ -12657,7 +12661,7 @@ class GithubUtils {
             repo: CONST_1.default.APP_REPO,
             workflow_id: workflow,
         })
-            .then((response) => response.data.workflow_runs[0]?.id);
+            .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.
@@ -12725,7 +12729,7 @@ class GithubUtils {
             per_page: 1,
             name: artifactName,
         })
-            .then((response) => response.data.artifacts[0]);
+            .then((response) => response.data.artifacts.at(0));
     }
     /**
      * Given an artifact ID, returns the download URL to a zip file containing the artifact.

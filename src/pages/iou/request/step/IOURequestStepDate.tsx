@@ -99,7 +99,7 @@ function IOURequestStepDate({
             return;
         }
 
-        const isTransactionDraft = action === CONST.IOU.ACTION.CREATE || IOUUtils.isMovingTransactionFromTrackExpense(action);
+        const isTransactionDraft = IOUUtils.shouldUseTransactionDraft(action);
 
         IOU.setMoneyRequestCreated(transaction?.transactionID ?? '-1', newCreated, isTransactionDraft);
 
