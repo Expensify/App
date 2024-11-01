@@ -62,6 +62,8 @@ There are two kinds of headers:
 
 * To avoid confusion, no two sections in the same chapter or section group should have the same short or long title.
 
+* Headers that contain questions should be asked from the customer's perspective (ie, "How do I X?" not "How do you do X?")
+
 
 ## Section Rules
 There are three kinds of sections:

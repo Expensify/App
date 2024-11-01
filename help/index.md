@@ -105,6 +105,30 @@ Expensify's chat-centric design makes it a superpowered chat app. The Inbox high
 
 The Inbox is the most powerful page, where you'll spend most of your time.
 
+### Security and Data Protection
+#### [Security Overview] What security measures does Expensify implement?
+Expensify takes security seriously, aligning its measures with those used by banks to protect sensitive financial data. Regular testing and updates ensure security stays ahead of potential threats. Expensify also undergoes daily checks by McAfee for added protection against hackers. Users can verify Expensify's security at the McAfee SECURE site.
+
+#### [Security Standards] What are Expensify's security standards?
+Expensify adheres to the Payment Card Industry Data Security Standard (PCI-DSS), a high security standard used by major companies like PayPal and Visa to protect online credit card information. Additionally, Expensify is compliant with SSAE 16 and undergoes an annual SSAE-18 SOC 1 Type 2 audit by independent third-party auditors.
+
+#### [Data Encryption] How does Expensify encrypt data and passwords?
+Expensify employs data encryption to protect information. Upon submission, data is transformed into a secret code to ensure security during transit between your device and Expensify's servers, as well as within the server network. Expensify uses HTTPS+TLS for all web connections, ensuring data is encrypted at every stage.
+
+#### [GDPR Compliance] How does Expensify comply with GDPR?
+Expensify is committed to the General Data Protection Regulation (GDPR), which strengthens data protection for EU individuals. Key compliance measures include:
+- Participation in the EU-US and Swiss-US Privacy Shield Frameworks.
+- Annual SSAE-18 SOC 1 Type 2 audits.
+- Maintaining PCI-DSS compliance.
+- Annual penetration tests by third-party experts.
+- Background checks and security training for employees and contractors.
+- Appointing a dedicated Data Protection Officer reachable at [privacy@expensify.com](mailto:privacy@expensify.com).
+- Signing Data Processing Addendums with vendors.
+- Transparency about sub-processors on the website.
+- User tools for data export, preference management, and account closure.
+
+**Disclaimer**: This information is not legal advice. Consult legal counsel for specific GDPR applicability.
+
 ## Tutorials
 
 ### Getting Started
@@ -147,6 +171,105 @@ Creating a workspace in Expensify is your first step to organizing your company'
 
 Invite team members to collaborate efficiently.
 
+#### [Manage a Copilot] How do I add, remove, or act as a Copilot?
+Manage your Copilot settings:
+
+1. To add a Copilot:
+   1. Press your **profile icon** in the bottom left corner to open **Settings**.
+   2. Press **Security**.
+   3. Under Copilot: Delegated Access, press **Add Copilot**.
+   4. Search for the user you'd like to add using their name or email address.
+   5. Select **Full** or **Limited** access and press **Add Copilot**.
+   
+2. To remove a Copilot:
+   1. Press your **profile icon** in the bottom left corner to open **Settings**.
+   2. Press **Security**.
+   3. Under Copilot: Delegated Access, press the three vertical dots next to the Copilot and press **Remove Copilot**.
+   
+3. To act as a Copilot:
+   1. Press your **profile icon** in the bottom left corner to open **Settings**.
+   2. Press the up-down arrow next to your profile name in the top left corner to access the account switcher.
+   3. Select the account and level of access.
+
+#### [Name Update Process] How do I update my display or legal name?
+Update your display or legal name:
+1. Press your **profile icon** to open **Settings**.
+2. Press **Profile**.
+3. Edit your name:
+   - **Display name**: Press **Display Name**, enter your first name (or nickname) and last name, then press **Save**.
+   - **Legal name**: Scroll to the Private Details section, press **Legal Name**, enter your legal first and last name, and press **Save**.
+
+#### [Update Notification Preferences] How do I update my notification preferences?
+Customize how you receive email and in-app notifications from Expensify:
+
+1. Press your profile image or icon in the bottom menu.
+2. Press **Preferences**.
+3. Enable or disable the toggles under Notifications:
+   - **Receive relevant feature updates and Expensify news**: If enabled, you will receive emails and in-app notifications from Expensify about new product and company updates.
+   - **Mute all sounds from Expensify**: If enabled, all in-app notification sounds will be silenced.
+
+#### [Email Address Management] How do I change or add an email address on my Expensify account?
+To change or add an email address on your Expensify account:
+
+1. Press your profile image or icon.
+2. Press **Profile**.
+3. Press **Contact Method**.
+4. Press **New Contact Method**.
+5. Enter the email address or phone number you want to use.
+6. Press **Add**.
+7. A verification code will be sent to your email. Enter it in Expensify and press **Verify**.
+
+You can press any email address in your list to set it as the default, remove it, or verify it.
+
+#### [Switch Theme] How do I switch between light and dark mode in Expensify?
+Change the appearance of Expensify by selecting a theme:
+
+1. Press your **profile image or icon** in the bottom menu.
+2. Press **Preferences**.
+3. Press the **Theme** option and select the desired theme:
+   - **Dark mode**: The app will appear with a dark background.
+   - **Light mode**: The app will appear with a light background.
+   - **Use Device settings**: Expensify will automatically use your device’s default theme.
+
+#### [Switch Language to Spanish] How do I switch my account language to Spanish?
+Change your account language to Spanish:
+
+1. Press your **profile image or icon** in the bottom menu.
+2. Press **Preferences**.
+3. Press the **Language** option and select **Spanish**.
+
+#### [Timezone Adjustment] How do I change my timezone?
+Change your timezone:
+1. Press your profile image or icon in the bottom menu.
+2. Press **Profile**.
+3. Press **Timezone** to select your timezone.
+
+#### [Pronouns Update] How do I update my pronouns?
+Update your pronouns to display them on your account:
+
+1. Press your profile image or icon.
+2. Press **Profile**.
+3. Press **Pronouns** to select your pronouns. Type any letter into the field to see a list of available options.
+
+### Troubleshooting
+#### [Feature Issues] What should I do if I'm facing issues with a specific feature?
+If you're experiencing problems with a specific feature, refer to the respective section of the help docs for common errors and troubleshooting steps. If the issue persists, reach out to Concierge via in-product chat or by emailing concierge@expensify.com.
+
+#### [Local Issues] How do I troubleshoot local issues with my webpage?
+If your webpage isn't loading properly, try these steps:
+1. Press [here](https://www.expensify.com/signout.php?clean=true) to force a clean sign-out from the site, which can help remove stale data causing issues.
+2. Clear cookies and cache on your browser.
+3. Use an Incognito or Private browsing window.
+4. Try accessing the site on a different browser.
+
+#### [JavaScript Console Access] How do I access the JavaScript console on my browser or application?
+A developer console logs backend operations of sites and applications, providing information that can help developers solve your issues. To provide a screenshot of your developer console, follow the instructions for your browser or application:
+
+- **Chrome**: Press Cmd + Option + J on Mac, or Ctrl + Shift + J on Windows; or navigate through View > Developer > JavaScript Console.
+- **Firefox**: Press Cmd + Option + K on Mac, or Ctrl + Shift + J on Windows; or go through Menu Bar > More Tools > Web Developer Tools > Console tab.
+- **Safari**: Enable the console in Safari by selecting "Show features for web developers" in Safari Menu > Settings > Advanced. Then, press Cmd + Option + C or use the Develop Menu > Show JavaScript Console.
+- **Microsoft Edge**: Press Cmd + Option + J on Mac, or Ctrl + Shift + J on Windows; or right-click a webpage and select Inspect > Console.
+
 ### Account Management
 #### [Sign In Process] How do I sign up or sign in?
 Sign up or sign in:
@@ -163,6 +286,13 @@ Use a magic link for secure login:
 Sign out of Expensify:
 1. Press **Settings**.
 2. Scroll and press **Sign Out**.
+
+#### [Close Account Process] How do I close my account?
+Close your account:
+1. Press your profile image or icon in the bottom menu.
+2. Press **Security**.
+3. Press **Close account**.
+4. Provide answers to the questions and confirm closure by pressing **Close Account**.
 
 ### Subscription Management
 #### [Manage Subscription] How do I manage my subscription?
@@ -214,13 +344,6 @@ Adding an extra layer of security can help protect your financial data. To enabl
 
 When you log in to Expensify in the future, you'll need to use a magic code from your email and a 6-digit code from your authenticator app. If you lose access to your authenticator app, use your recovery codes as you would the authenticator code.
 
-#### [Close Account Process] How do I close my account?
-Close your account:
-1. Press **Settings**.
-2. Press **Security**.
-3. Press **Close account**.
-4. Provide answers to the questions and confirm closure by pressing **Close Account**.
-
 ### Profile and Contact Methods
 #### [Profile Photo Setup] How do I set my profile photo?
 Set your profile photo:
@@ -237,7 +360,7 @@ Change your display name:
 
 #### [Status Update] How do I set my status?
 Set your status:
-1. Press **Settings**.
+1. Press your profile image or icon in the bottom menu.
 2. Press **Profile**.
 3. Press **Status**.
 4. (Optional) Press the **emoji icon** to add an emoji.
@@ -299,26 +422,19 @@ Change your address:
 3. Scroll to the Private Details section and press **Address**.
 4. Enter new address and press **Save**.
 
-#### [Name Update Process] How do I update my display or legal name?
-Update your display or legal name:
-1. Press your **profile icon** to open **Settings**.
-2. Press **Profile**.
-3. Edit your name:
-   - **Display name**: Press **Display Name**, enter your first name (or nickname) and last name, then press **Save**.
-   - **Legal name**: Scroll to the Private Details section, press **Legal Name**, enter your legal first and last name, and press **Save**.
+### Theme Preferences
+#### [Theme Preference Setup] How do I set my theme preference in New Expensify?
+Customize your theme preference in New Expensify to enhance your experience:
 
-#### [Email Address Management] How do I change or add an email address on my Expensify account?
-To change or add an email address on your Expensify account:
+1. Press your **profile image or icon** in the bottom menu.
+2. Press **Preferences**.
+3. Tap on **Theme**.
+4. Choose your preferred theme:
+   - **Dark mode**: Provides a dark background for a sleek look.
+   - **Light mode**: Offers a bright background for a classic appearance.
+   - **Use Device settings**: Aligns with your device's theme settings, adjusting automatically as your device changes.
 
-1. Press your profile image or icon.
-2. Press **Profile**.
-3. Press **Contact Method**.
-4. Press **New Contact Method**.
-5. Enter the email address or phone number you want to use.
-6. Press **Add**.
-7. A verification code will be sent to your email. Enter it in Expensify and press **Verify**.
-
-You can press any email address in your list to set it as the default, remove it, or verify it.
+The default setting is **Use Device Settings**, which matches your device's theme transitions. Your selected theme will sync across all Expensify platforms you use.
 
 ## FAQ
 You've got questions? We've got answers!
@@ -384,3 +500,6 @@ Members using paid functionality on multiple workspaces in a month aren't billed
 ### Billing and Subscriptions
 #### [Billing Page] What is the status of the billing page?
 The billing page is currently under development and will be available soon. Stay tuned for updates on how to access and use the new billing features.
+
+#### [Recovery Codes Usage] How do I use my recovery codes if I lose access to my authenticator app?
+Your recovery codes work the same way as your authenticator codes. Just enter a recovery code as you would the authenticator code.
