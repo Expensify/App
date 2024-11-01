@@ -58,6 +58,20 @@
             outline: 0;
             box-shadow: inset 0px 0px 0px 1px #5AB0FF;
         }
+        :focus-visible[data-inner-box-shadow-element]{
+            overflow: hidden;
+        }
+        :focus-visible[data-inner-box-shadow-element]::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            box-shadow: inset 0px 0px 0px 1px #5AB0FF;
+            pointer-events: none;
+            z-index: 1000;
+        }
         :focus[data-focusvisible-polyfill] {
             outline: 0;
             box-shadow: inset 0px 0px 0px 1px #5AB0FF;
@@ -123,7 +137,7 @@
         <!-- End Google Tag Manager (noscript) -->
     <% } %>
     <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" data-drag-area="true"></div>
-    <div id="root"></div>
+    <div id="root" class="fs-unmask"></div>
     <div id="splash">
         <div class="splash-logo">
             <%= htmlWebpackPlugin.options.splashLogo %>

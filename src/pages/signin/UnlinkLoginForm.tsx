@@ -32,6 +32,7 @@ function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const unlinkMessage = account?.message === 'unlinkLoginForm.linkSent' || account?.message === 'unlinkLoginForm.succesfullyUnlinkedLogin' ? translate(account?.message) : account?.message;
     const primaryLogin = useMemo(() => {
         if (!account?.primaryLogin) {
             return '';
@@ -53,13 +54,13 @@ function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
             <View style={[styles.mv5]}>
                 <Text>{translate('unlinkLoginForm.noLongerHaveAccess', {primaryLogin})}</Text>
             </View>
-            {!!account?.message && (
+            {!!unlinkMessage && (
                 // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
                 <DotIndicatorMessage
                     style={[styles.mb5, styles.flex0]}
                     type="success"
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: account.message}}
+                    messages={{0: unlinkMessage}}
                 />
             )}
             {!!account?.errors && !isEmptyObject(account.errors) && (
@@ -77,7 +78,6 @@ function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>
                 <Button
-                    medium
                     success
                     text={translate('unlinkLoginForm.unlink')}
                     isLoading={account?.isLoading && account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}

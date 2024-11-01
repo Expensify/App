@@ -1,4 +1,7 @@
 import React, {useRef} from 'react';
+import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
+import * as Browser from '@libs/Browser';
 import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
 import type AttachmentPickerProps from './types';
@@ -7,11 +10,30 @@ import type AttachmentPickerProps from './types';
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE
  */
 function getAcceptableFileTypes(type: string): string | undefined {
-    if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
+    if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE || Browser.isMobileChrome()) {
         return;
     }
 
     return 'image/*';
+}
+
+function getAcceptableFileTypesFromAList(fileTypes: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>): string {
+    const acceptValue = fileTypes
+        .map((type) => {
+            switch (type) {
+                case 'msword':
+                    return 'application/msword';
+                case 'text':
+                    return 'text/plain';
+                case 'message':
+                    return 'message/rfc822';
+                default:
+                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                    return `.${type}`;
+            }
+        })
+        .join(',');
+    return acceptValue;
 }
 
 /**
@@ -21,9 +43,9 @@ function getAcceptableFileTypes(type: string): string | undefined {
  * on a Browser we must append a hidden input to the DOM
  * and listen to onChange event.
  */
-function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE}: AttachmentPickerProps): React.JSX.Element {
+function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, acceptedFileTypes, allowMultiple = false}: AttachmentPickerProps): React.JSX.Element {
     const fileInput = useRef<HTMLInputElement>(null);
-    const onPicked = useRef<(file: File) => void>(() => {});
+    const onPicked = useRef<(files: FileObject[]) => void>(() => {});
     const onCanceled = useRef<() => void>(() => {});
 
     return (
@@ -41,7 +63,7 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE}: 
 
                     if (file) {
                         file.uri = URL.createObjectURL(file);
-                        onPicked.current(file);
+                        onPicked.current([file]);
                     }
 
                     // Cleanup after selecting a file to start from a fresh state
@@ -75,8 +97,10 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE}: 
                         {once: true},
                     );
                 }}
-                accept={getAcceptableFileTypes(type)}
+                accept={acceptedFileTypes ? getAcceptableFileTypesFromAList(acceptedFileTypes) : getAcceptableFileTypes(type)}
+                multiple={allowMultiple}
             />
+            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {children({
                 openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {
                     onPicked.current = newOnPicked;

@@ -54,13 +54,13 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
                 key={url}
             >
                 <View style={styles.flexRow}>
-                    {logo && (
+                    {!!logo && (
                         <Image
                             style={styles.linkPreviewLogoImage}
                             source={{uri: logo.url}}
                         />
                     )}
-                    {publisher && (
+                    {!!publisher && (
                         <Text
                             fontSize={variables.fontSizeLabel}
                             style={styles.pl2}
@@ -69,7 +69,7 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
                         </Text>
                     )}
                 </View>
-                {title && url && (
+                {!!title && !!url && (
                     <TextLink
                         fontSize={variables.fontSizeNormal}
                         style={[styles.mv2, StyleUtils.getTextColorStyle(theme.link), styles.alignSelfStart]}
@@ -78,8 +78,8 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
                         {title}
                     </TextLink>
                 )}
-                {description && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
-                {image?.type && IMAGE_TYPES.includes(image.type) && image.width && image.height && (
+                {!!description && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
+                {!!image?.type && IMAGE_TYPES.includes(image.type) && !!image.width && !!image.height && (
                     <Image
                         style={[
                             styles.linkPreviewImage,

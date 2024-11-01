@@ -135,6 +135,7 @@ function AboutPage() {
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.about')}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 icon={Illustrations.PalmTree}
             />

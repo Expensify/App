@@ -21,7 +21,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -34,7 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -57,16 +57,13 @@ type MoneyRequestConfirmationListOnyxProps = {
     policyCategoriesDraft: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** The draft policy of the report */
     policyDraft: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Unit and rate used for if the expense is a distance expense */
-    mileageRates: OnyxEntry<Record<string, MileageRate>>;
 
     /** Mileage rate default for the policy */
     defaultMileageRate: OnyxEntry<MileageRate>;
@@ -87,6 +84,9 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** IOU amount */
     iouAmount: number;
+
+    /** IOU attendees list */
+    iouAttendees?: Attendee[];
 
     /** IOU comment */
     iouComment?: string;
@@ -165,6 +165,9 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** Should play sound on confirmation */
     shouldPlaySound?: boolean;
+
+    /** Whether the expense is confirmed or not */
+    isConfirmed?: boolean;
 };
 
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
@@ -177,7 +180,6 @@ function MoneyRequestConfirmationList({
     iouAmount,
     policyCategories: policyCategoriesReal,
     policyCategoriesDraft,
-    mileageRates,
     isDistanceRequest = false,
     policy: policyReal,
     policyDraft,
@@ -195,6 +197,7 @@ function MoneyRequestConfirmationList({
     policyID = '',
     reportID = '',
     receiptPath = '',
+    iouAttendees,
     iouComment,
     receiptFilename = '',
     iouCreated,
@@ -208,6 +211,7 @@ function MoneyRequestConfirmationList({
     currencyList,
     shouldDisplayReceipt = false,
     shouldPlaySound = true,
+    isConfirmed,
 }: MoneyRequestConfirmationListProps) {
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -228,40 +232,59 @@ function MoneyRequestConfirmationList({
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
     useEffect(() => {
-        if (customUnitRateID || !canUseP2PDistanceRequests) {
+        if ((customUnitRateID && customUnitRateID !== '-1') || !isDistanceRequest) {
             return;
         }
-        if (!customUnitRateID) {
-            const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
-            IOU.setCustomUnitRateID(transactionID, rateID);
-        }
-    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
 
-    const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+        const defaultRate = defaultMileageRate?.customUnitRateID ?? '';
+        const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
+        const rateID = canUseP2PDistanceRequests ? lastSelectedRate : defaultRate;
+        IOU.setCustomUnitRateID(transactionID, rateID);
+    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID, isDistanceRequest]);
 
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency) : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
-
-    const {unit, rate} = mileageRate ?? {};
-
+    const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
+    const rate = mileageRate.rate;
     const prevRate = usePrevious(rate);
-
-    const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
+    const unit = mileageRate.unit;
+    const currency = mileageRate.currency ?? CONST.CURRENCY.USD;
+    const prevCurrency = usePrevious(currency);
 
     // A flag for showing the categories field
-    const shouldShowCategories = isPolicyExpenseChat && (!!iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
+    const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest && !isTypeSend;
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest) && !isTypeInvoice;
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
+
+    const previousTransactionAmount = usePrevious(transaction?.amount);
+    const previousTransactionCurrency = usePrevious(transaction?.currency);
+    const previousTransactionModifiedCurrency = usePrevious(transaction?.modifiedCurrency);
+    const previousCustomUnitRateID = usePrevious(customUnitRateID);
+    useEffect(() => {
+        // previousTransaction is in the condition because if it is falsey, it means this is the first time the useEffect is triggered after we load it, so we should calculate the default
+        // tax even if the other parameters are the same against their previous values.
+        if (
+            !shouldShowTax ||
+            !transaction ||
+            (transaction.taxCode &&
+                previousTransactionModifiedCurrency === transaction.modifiedCurrency &&
+                previousTransactionCurrency === transaction.currency &&
+                previousCustomUnitRateID === customUnitRateID)
+        ) {
+            return;
+        }
+        const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+        IOU.setMoneyRequestTaxRate(transactionID, defaultTaxCode ?? '');
+    }, [customUnitRateID, policy, previousCustomUnitRateID, previousTransactionCurrency, previousTransactionModifiedCurrency, shouldShowTax, transaction, transactionID]);
 
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
 
     const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
 
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
+    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency);
 
     const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
@@ -269,14 +292,16 @@ function MoneyRequestConfirmationList({
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
         : CurrencyUtils.convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
-
-    const previousTransactionAmount = usePrevious(transaction?.amount);
-    const previousTransactionCurrency = usePrevious(transaction?.currency);
-
+    const formattedAmountPerAttendee = isDistanceRequestWithPendingRoute
+        ? ''
+        : CurrencyUtils.convertToDisplayString(
+              (shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount) / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1),
+              isDistanceRequest ? currency : iouCurrencyCode,
+          );
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
-    const [didConfirm, setDidConfirm] = useState(false);
+    const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     const shouldDisplayFieldError: boolean = useMemo(() => {
@@ -348,32 +373,57 @@ function MoneyRequestConfirmationList({
         }
     }, [shouldCalculateDistanceAmount, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
 
+    const previousTaxCode = usePrevious(transaction?.taxCode);
+
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
-        if (!shouldShowTax || (transaction?.taxAmount !== undefined && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency)) {
+        if (
+            !shouldShowTax ||
+            !transaction ||
+            (transaction.taxAmount !== undefined &&
+                previousTransactionAmount === transaction.amount &&
+                previousTransactionCurrency === transaction.currency &&
+                previousCustomUnitRateID === customUnitRateID &&
+                previousTaxCode === transaction.taxCode)
+        ) {
             return;
         }
 
         let taxableAmount: number;
         let taxCode: string;
         if (isDistanceRequest) {
-            const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
+            const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
             taxCode = customUnitRate?.attributes?.taxRateExternalID ?? '';
             taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance);
         } else {
-            taxableAmount = transaction?.amount ?? 0;
-            taxCode = transaction?.taxCode ?? TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+            taxableAmount = transaction.amount ?? 0;
+            taxCode = transaction.taxCode ?? TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
         }
         const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
-        const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, currency);
+        const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, transaction.currency);
         const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
-        IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
-    }, [policy, shouldShowTax, previousTransactionAmount, previousTransactionCurrency, transaction, isDistanceRequest, customUnitRateID, currency, distance]);
+        IOU.setMoneyRequestTaxAmount(transaction.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
+    }, [
+        policy,
+        shouldShowTax,
+        previousTransactionAmount,
+        previousTransactionCurrency,
+        transaction,
+        isDistanceRequest,
+        customUnitRateID,
+        previousCustomUnitRateID,
+        previousTaxCode,
+        distance,
+    ]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
         setDidConfirm(false);
     }
+
+    useEffect(() => {
+        setDidConfirm(isConfirmed);
+    }, [isConfirmed]);
 
     const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
         let text;
@@ -438,8 +488,14 @@ function MoneyRequestConfirmationList({
             return;
         }
 
+        // Amounts should be bigger than 0 for the split bill creator (yourself)
+        if (transaction?.splitShares[currentUserPersonalDetails.accountID] && (transaction.splitShares[currentUserPersonalDetails.accountID]?.amount ?? 0) === 0) {
+            setFormError('iou.error.invalidSplitYourself');
+            return;
+        }
+
         setFormError('');
-    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode, setFormError, translate]);
+    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, currentUserPersonalDetails.accountID, iouAmount, iouCurrencyCode, setFormError, translate]);
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares) {
@@ -541,7 +597,7 @@ function MoneyRequestConfirmationList({
         () => (
             <View style={[styles.mt2, styles.mb1, styles.flexRow, styles.justifyContentBetween]}>
                 <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('iou.participants')}</Text>
-                {!shouldShowReadOnlySplits && isSplitModified && (
+                {!shouldShowReadOnlySplits && !!isSplitModified && (
                     <PressableWithFeedback
                         onPress={() => {
                             IOU.resetSplitShares(transaction);
@@ -641,7 +697,7 @@ function MoneyRequestConfirmationList({
         if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        IOU.setMoneyRequestCategory(transactionID, enabledCategories[0].name);
+        IOU.setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '');
         // Keep 'transaction' out to ensure that we autoselect the option only once
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired]);
@@ -671,7 +727,7 @@ function MoneyRequestConfirmationList({
      * Navigate to report details or profile of selected user
      */
     const navigateToReportOrUserDetail = (option: MoneyRequestConfirmationListItem) => {
-        const activeRoute = Navigation.getActiveRouteWithoutParams();
+        const activeRoute = Navigation.getActiveRoute();
 
         if (option.isSelfDM) {
             Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute));
@@ -696,6 +752,7 @@ function MoneyRequestConfirmationList({
             }
 
             if (selectedParticipants.length === 0) {
+                setFormError('iou.error.noParticipantSelected');
                 return;
             }
             if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)))) {
@@ -728,7 +785,6 @@ function MoneyRequestConfirmationList({
                 if (shouldPlaySound) {
                     playSound(SOUNDS.DONE);
                 }
-                setDidConfirm(true);
                 onConfirm?.(selectedParticipants);
             } else {
                 if (!paymentMethod) {
@@ -737,9 +793,6 @@ function MoneyRequestConfirmationList({
                 if (formError) {
                     return;
                 }
-
-                setDidConfirm(true);
-
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
                 onSendMoney?.(paymentMethod);
             }
@@ -786,12 +839,10 @@ function MoneyRequestConfirmationList({
         }
 
         const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.PAY;
-        const shouldDisableButton = selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
                 pressOnEnter
-                isDisabled={shouldDisableButton}
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
@@ -814,7 +865,6 @@ function MoneyRequestConfirmationList({
             <ButtonWithDropdownMenu
                 success
                 pressOnEnter
-                isDisabled={shouldDisableButton}
                 onPress={(event, value) => confirm(value as PaymentMethodType)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
@@ -840,7 +890,6 @@ function MoneyRequestConfirmationList({
         isReadOnly,
         isTypeSplit,
         iouType,
-        selectedParticipants.length,
         confirm,
         bankAccountRoute,
         iouCurrencyCode,
@@ -859,11 +908,13 @@ function MoneyRequestConfirmationList({
             action={action}
             canUseP2PDistanceRequests={canUseP2PDistanceRequests}
             currency={currency}
-            didConfirm={didConfirm}
+            didConfirm={!!didConfirm}
             distance={distance}
             formattedAmount={formattedAmount}
+            formattedAmountPerAttendee={formattedAmountPerAttendee}
             formError={formError}
             hasRoute={hasRoute}
+            iouAttendees={iouAttendees}
             iouCategory={iouCategory}
             iouComment={iouComment}
             iouCreated={iouCreated}
@@ -911,6 +962,7 @@ function MoneyRequestConfirmationList({
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={false}
                 shouldPreventDefaultFocusOnSelectRow
+                shouldShowListEmptyContent={false}
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
                 containerStyle={[styles.flexBasisAuto]}
@@ -936,10 +988,6 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     defaultMileageRate: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         selector: DistanceRequestUtils.getDefaultMileageRate,
-    },
-    mileageRates: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        selector: (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(policy),
     },
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -976,6 +1024,7 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
             prevProps.policyID === nextProps.policyID &&
             prevProps.reportID === nextProps.reportID &&
             prevProps.receiptPath === nextProps.receiptPath &&
+            prevProps.iouAttendees === nextProps.iouAttendees &&
             prevProps.iouComment === nextProps.iouComment &&
             prevProps.receiptFilename === nextProps.receiptFilename &&
             prevProps.iouCreated === nextProps.iouCreated &&

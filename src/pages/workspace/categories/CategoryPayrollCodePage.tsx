@@ -26,11 +26,13 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyId = route.params.policyID ?? '-1';
+    const backTo = route.params.backTo;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
 
     const categoryName = route.params.categoryName;
     const payrollCode = policyCategories?.[categoryName]?.['Payroll Code'];
     const {inputCallbackRef} = useAutoFocusInput();
+    const isQuickSettingsFlow = !!backTo;
 
     const editPayrollCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -38,9 +40,13 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
             if (newPayrollCode !== payrollCode) {
                 Category.setPolicyCategoryPayrollCode(route.params.policyID, categoryName, newPayrollCode);
             }
-            Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName));
+            Navigation.goBack(
+                isQuickSettingsFlow
+                    ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName, backTo)
+                    : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName),
+            );
         },
-        [categoryName, payrollCode, route.params.categoryName, route.params.policyID],
+        [categoryName, payrollCode, route.params.policyID, isQuickSettingsFlow, backTo],
     );
 
     return (
@@ -57,7 +63,13 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.categories.payrollCode')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))}
+                    onBackButtonPress={() =>
+                        Navigation.goBack(
+                            isQuickSettingsFlow
+                                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName, backTo)
+                                : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName),
+                        )
+                    }
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}

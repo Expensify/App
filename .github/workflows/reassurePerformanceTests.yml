@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths-ignore: [docs/**, .github/**, contributingGuides/**, tests/**, '**.md', '**.sh']
+    paths-ignore: [docs/**, help/**, .github/**, contributingGuides/**, tests/**, '**.md', '**.sh']
 
 jobs:
   perf-tests:

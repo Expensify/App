@@ -2,8 +2,8 @@
 import crashlytics from '@react-native-firebase/crashlytics';
 import perf from '@react-native-firebase/perf';
 import * as Environment from '@libs/Environment/Environment';
-import * as SessionUtils from '@libs/SessionUtils';
 import type {Log, StartTrace, StopTrace, TraceMap} from './types';
+import utils from './utils';
 
 const traceMap: TraceMap = {};
 
@@ -17,12 +17,14 @@ const startTrace: StartTrace = (customEventName) => {
         return;
     }
 
-    const session = SessionUtils.getSession();
+    const attributes = utils.getAttributes();
 
     perf()
         .startTrace(customEventName)
         .then((trace) => {
-            trace.putAttribute('accountID', session?.accountID?.toString() ?? 'N/A');
+            Object.entries(attributes).forEach(([name, value]) => {
+                trace.putAttribute(name, value);
+            });
             traceMap[customEventName] = {
                 trace,
                 start,
@@ -37,7 +39,7 @@ const stopTrace: StopTrace = (customEventName) => {
         return;
     }
 
-    const trace = traceMap[customEventName].trace;
+    const trace = traceMap[customEventName]?.trace;
     if (!trace) {
         return;
     }

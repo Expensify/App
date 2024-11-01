@@ -22,9 +22,9 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '1',
             participants: {
-                2: {},
-                1: {},
-                5: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                5: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Iron Man, Mister Fantastic, Invisible Woman',
             type: CONST.REPORT.TYPE.CHAT,
@@ -35,8 +35,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '2',
             participants: {
-                2: {},
-                3: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Spider-Man',
             type: CONST.REPORT.TYPE.CHAT,
@@ -49,8 +49,8 @@ describe('OptionsListUtils', () => {
             isPinned: true,
             reportID: '3',
             participants: {
-                2: {},
-                1: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Mister Fantastic',
             type: CONST.REPORT.TYPE.CHAT,
@@ -61,8 +61,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '4',
             participants: {
-                2: {},
-                4: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Black Panther',
             type: CONST.REPORT.TYPE.CHAT,
@@ -73,8 +73,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '5',
             participants: {
-                2: {},
-                5: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                5: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Invisible Woman',
             type: CONST.REPORT.TYPE.CHAT,
@@ -85,8 +85,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '6',
             participants: {
-                2: {},
-                6: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                6: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Thor',
             type: CONST.REPORT.TYPE.CHAT,
@@ -99,8 +99,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '7',
             participants: {
-                2: {},
-                7: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                7: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Captain America',
             type: CONST.REPORT.TYPE.CHAT,
@@ -113,8 +113,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '8',
             participants: {
-                2: {},
-                12: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                12: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Silver Surfer',
             type: CONST.REPORT.TYPE.CHAT,
@@ -127,8 +127,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '9',
             participants: {
-                2: {},
-                8: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                8: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Mister Sinister',
             iouReportID: '100',
@@ -142,8 +142,8 @@ describe('OptionsListUtils', () => {
             reportID: '10',
             isPinned: false,
             participants: {
-                2: {},
-                7: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                7: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: '',
             oldPolicyName: "SHIELD's workspace",
@@ -236,8 +236,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '11',
             participants: {
-                2: {},
-                999: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                999: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Concierge',
             type: CONST.REPORT.TYPE.CHAT,
@@ -252,8 +252,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '12',
             participants: {
-                2: {},
-                1000: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1000: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Chronos',
             type: CONST.REPORT.TYPE.CHAT,
@@ -268,8 +268,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '13',
             participants: {
-                2: {},
-                1001: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1001: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Receipts',
             type: CONST.REPORT.TYPE.CHAT,
@@ -284,34 +284,16 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '14',
             participants: {
-                2: {},
-                1: {},
-                10: {},
-                3: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: '',
             oldPolicyName: 'Avengers Room',
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
-        },
-    };
-
-    const REPORTS_WITH_WORKSPACE: OnyxCollection<Report> = {
-        ...REPORTS,
-        '15': {
-            lastReadTime: '2021-01-14 11:25:39.295',
-            lastVisibleActionCreated: '2022-11-22 03:26:02.015',
-            isPinned: false,
-            isChatRoom: false,
-            reportID: '15',
-            participants: {
-                1: {},
-                2: {},
-            },
-            reportName: 'Test Workspace',
-            type: CONST.REPORT.TYPE.CHAT,
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         },
     };
 
@@ -323,9 +305,9 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '15',
             participants: {
-                2: {},
-                3: {},
-                4: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Spider-Man, Black Panther',
             type: CONST.REPORT.TYPE.CHAT,
@@ -382,7 +364,7 @@ describe('OptionsListUtils', () => {
         id: policyID,
         name: 'Hero Policy',
         role: 'user',
-        type: 'free',
+        type: CONST.POLICY.TYPE.TEAM,
         owner: '',
         outputCurrency: '',
         isPolicyExpenseChatEnabled: false,
@@ -411,7 +393,6 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_CHRONOS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_RECEIPTS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
-    let OPTIONS_WITH_WORKSPACE: OptionsListUtils.OptionList;
 
     beforeEach(() => {
         OPTIONS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS);
@@ -419,14 +400,15 @@ describe('OptionsListUtils', () => {
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
         OPTIONS_WITH_RECEIPTS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, REPORTS_WITH_RECEIPTS);
         OPTIONS_WITH_WORKSPACE_ROOM = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE_ROOMS);
-        OPTIONS_WITH_WORKSPACE = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE);
     });
 
     it('getSearchOptions()', () => {
         // When we filter in the Search view without providing a searchValue
         const results = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
-        // Then the 2 personalDetails that don't have reports should be returned
-        expect(results.personalDetails.length).toBe(2);
+
+        // All 2 personalDetails (including those that have reports) should be returned
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(9);
 
         // Then all of the reports should be shown including the archived rooms.
         expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length);
@@ -437,112 +419,113 @@ describe('OptionsListUtils', () => {
         const MAX_RECENT_REPORTS = 5;
 
         // When we call getFilteredOptions() with no search value
-        let results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+        let results = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
 
         // We should expect maximimum of 5 recent reports to be returned
         expect(results.recentReports.length).toBe(MAX_RECENT_REPORTS);
 
-        // We should expect all personalDetails to be returned,
-        // minus the currently logged in user and recent reports count
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1 - MAX_RECENT_REPORTS);
+        // We should expect all personalDetails except the currently logged in user to be returned
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1);
 
+        // All personal details including those that have reports should be returned
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Widow');
-        expect(results.personalDetails[1].text).toBe('Invisible Woman');
-        expect(results.personalDetails[2].text).toBe('Spider-Man');
-        expect(results.personalDetails[3].text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(4)?.text).toBe('Mister Fantastic');
+        expect(results.personalDetails.at(5)?.text).toBe('Mr Sinister');
+        expect(results.personalDetails.at(6)?.text).toBe('Spider-Man');
+        expect(results.personalDetails.at(7)?.text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(8)?.text).toBe('Thor');
 
         // Then the result which has an existing report should also have the reportID attached
         const personalDetailWithExistingReport = results.personalDetails.find((personalDetail) => personalDetail.login === 'peterparker@expensify.com');
         expect(personalDetailWithExistingReport?.reportID).toBe('2');
 
         // When we only pass personal details
-        results = OptionsListUtils.getFilteredOptions([], OPTIONS.personalDetails, [], '');
+        results = OptionsListUtils.getFilteredOptions({personalDetails: OPTIONS.personalDetails});
 
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Panther');
-        expect(results.personalDetails[1].text).toBe('Black Widow');
-        expect(results.personalDetails[2].text).toBe('Captain America');
-        expect(results.personalDetails[3].text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
 
         // When we don't include personal detail to the result
-        results = OptionsListUtils.getFilteredOptions(
-            [],
-            [],
-            [],
-            '',
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            0,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            false,
-        );
+        results = OptionsListUtils.getFilteredOptions({
+            maxRecentReportsToShow: 0,
+        });
 
         // Then no personal detail options will be returned
         expect(results.personalDetails.length).toBe(0);
 
         // Test for Concierge's existence in chat options
 
-        results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CONCIERGE.reports, OPTIONS_WITH_CONCIERGE.personalDetails);
+        results = OptionsListUtils.getFilteredOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails});
 
         // Concierge is included in the results by default. We should expect all the personalDetails to show
-        // (minus the 5 that are already showing and the currently logged in user)
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1 - MAX_RECENT_REPORTS);
+        // (minus the currently logged in user)
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
         expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Concierge from the results
-        results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CONCIERGE.reports, OPTIONS_WITH_CONCIERGE.personalDetails, [], '', [], [CONST.EMAIL.CONCIERGE]);
+        results = OptionsListUtils.getFilteredOptions({
+            reports: OPTIONS_WITH_CONCIERGE.reports,
+            personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
+            excludeLogins: [CONST.EMAIL.CONCIERGE],
+        });
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2 - MAX_RECENT_REPORTS);
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
-        results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CHRONOS.reports, OPTIONS_WITH_CHRONOS.personalDetails, [], '', [], [CONST.EMAIL.CHRONOS]);
+        results = OptionsListUtils.getFilteredOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails, excludeLogins: [CONST.EMAIL.CHRONOS]});
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2 - MAX_RECENT_REPORTS);
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
 
         // Test by excluding Receipts from the results
-        results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_RECEIPTS.reports, OPTIONS_WITH_RECEIPTS.personalDetails, [], '', [], [CONST.EMAIL.RECEIPTS]);
+        results = OptionsListUtils.getFilteredOptions({
+            reports: OPTIONS_WITH_RECEIPTS.reports,
+            personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
+            excludeLogins: [CONST.EMAIL.RECEIPTS],
+        });
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2 - MAX_RECENT_REPORTS);
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
     });
 
     it('getFilteredOptions() for group Chat', () => {
         // When we call getFilteredOptions() with no search value
-        let results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+        let results = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
 
         // Then we should expect only a maxmimum of 5 recent reports to be returned
         expect(results.recentReports.length).toBe(5);
 
-        // And we should expect all the personalDetails to show (minus the 5 that are already
-        // showing and the currently logged in user)
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 6);
+        // And we should expect all the personalDetails to show except the currently logged in user
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1);
 
+        // All personal details including those that have reports should be returned
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Widow');
-        expect(results.personalDetails[1].text).toBe('Invisible Woman');
-        expect(results.personalDetails[2].text).toBe('Spider-Man');
-        expect(results.personalDetails[3].text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(4)?.text).toBe('Mister Fantastic');
+        expect(results.personalDetails.at(5)?.text).toBe('Mr Sinister');
+        expect(results.personalDetails.at(6)?.text).toBe('Spider-Man');
+        expect(results.personalDetails.at(7)?.text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(8)?.text).toBe('Thor');
 
         // And none of our personalDetails should include any of the users with recent reports
         const reportLogins = results.recentReports.map((reportOption) => reportOption.login);
@@ -550,7 +533,7 @@ describe('OptionsListUtils', () => {
         expect(personalDetailsOverlapWithReports).toBe(false);
 
         // When we provide no selected options to getFilteredOptions()
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '', []);
+        results = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
 
         // Then one of our older report options (not in our five most recent) should appear in the personalDetails
         // but not in recentReports
@@ -558,44 +541,56 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.every((option) => option.login !== 'peterparker@expensify.com')).toBe(false);
 
         // When we provide a "selected" option to getFilteredOptions()
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '', [{login: 'peterparker@expensify.com'}]);
+        results = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails, excludeLogins: ['peterparker@expensify.com']});
 
         // Then the option should not appear anywhere in either list
         expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
         expect(results.personalDetails.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
 
         // Test Concierge's existence in new group options
-        results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CONCIERGE.reports, OPTIONS_WITH_CONCIERGE.personalDetails);
+        results = OptionsListUtils.getFilteredOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails});
 
         // Concierge is included in the results by default. We should expect all the personalDetails to show
-        // (minus the 5 that are already showing and the currently logged in user)
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 6);
+        // (minus the currently logged in user)
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
         expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Concierge from the results
-        results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CONCIERGE.reports, OPTIONS_WITH_CONCIERGE.personalDetails, [], '', [], [CONST.EMAIL.CONCIERGE]);
+        results = OptionsListUtils.getFilteredOptions({
+            reports: OPTIONS_WITH_CONCIERGE.reports,
+            personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
+            excludeLogins: [CONST.EMAIL.CONCIERGE],
+        });
 
-        // We should expect all the personalDetails to show (minus the 5 that are already showing,
+        // We should expect all the personalDetails to show (minus
         // the currently logged in user and Concierge)
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 7);
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
-        results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CHRONOS.reports, OPTIONS_WITH_CHRONOS.personalDetails, [], '', [], [CONST.EMAIL.CHRONOS]);
+        results = OptionsListUtils.getFilteredOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails, excludeLogins: [CONST.EMAIL.CHRONOS]});
 
-        // We should expect all the personalDetails to show (minus the 5 that are already showing,
+        // We should expect all the personalDetails to show (minus
         // the currently logged in user and Concierge)
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 7);
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
 
         // Test by excluding Receipts from the results
-        results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_RECEIPTS.reports, OPTIONS_WITH_RECEIPTS.personalDetails, [], '', [], [CONST.EMAIL.RECEIPTS]);
+        results = OptionsListUtils.getFilteredOptions({
+            reports: OPTIONS_WITH_RECEIPTS.reports,
+            personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
+            excludeLogins: [CONST.EMAIL.RECEIPTS],
+        });
 
-        // We should expect all the personalDetails to show (minus the 5 that are already showing,
+        // We should expect all the personalDetails to show (minus
         // the currently logged in user and Concierge)
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 7);
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
     });
@@ -638,10 +633,10 @@ describe('OptionsListUtils', () => {
         const results = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], '');
 
         // We should expect personal details to be sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Panther');
-        expect(results.personalDetails[1].text).toBe('Black Widow');
-        expect(results.personalDetails[2].text).toBe('Captain America');
-        expect(results.personalDetails[3].text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
     });
 
     it('getFilteredOptions() for categories', () => {
@@ -1100,61 +1095,54 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        const smallResult = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], emptySearch, [], [], false, false, true, smallCategoriesList);
+        const smallResult = OptionsListUtils.getFilteredOptions({
+            reports: OPTIONS.reports,
+            personalDetails: OPTIONS.personalDetails,
+            searchValue: emptySearch,
+            includeP2P: false,
+            includeCategories: true,
+            categories: smallCategoriesList,
+        });
         expect(smallResult.categoryOptions).toStrictEqual(smallResultList);
 
-        const smallSearchResult = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], search, [], [], false, false, true, smallCategoriesList);
+        const smallSearchResult = OptionsListUtils.getFilteredOptions({searchValue: search, includeP2P: false, includeCategories: true, categories: smallCategoriesList});
         expect(smallSearchResult.categoryOptions).toStrictEqual(smallSearchResultList);
 
-        const smallWrongSearchResult = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], wrongSearch, [], [], false, false, true, smallCategoriesList);
+        const smallWrongSearchResult = OptionsListUtils.getFilteredOptions({searchValue: wrongSearch, includeP2P: false, includeCategories: true, categories: smallCategoriesList});
         expect(smallWrongSearchResult.categoryOptions).toStrictEqual(smallWrongSearchResultList);
 
-        const largeResult = OptionsListUtils.getFilteredOptions(
-            OPTIONS.reports,
-            OPTIONS.personalDetails,
-            [],
-            emptySearch,
+        const largeResult = OptionsListUtils.getFilteredOptions({
+            searchValue: emptySearch,
             selectedOptions,
-            [],
-            false,
-            false,
-            true,
-            largeCategoriesList,
+            includeP2P: false,
+            includeCategories: true,
+            categories: largeCategoriesList,
             recentlyUsedCategories,
-        );
+        });
         expect(largeResult.categoryOptions).toStrictEqual(largeResultList);
 
-        const largeSearchResult = OptionsListUtils.getFilteredOptions(
-            OPTIONS.reports,
-            OPTIONS.personalDetails,
-            [],
-            search,
+        const largeSearchResult = OptionsListUtils.getFilteredOptions({
+            searchValue: search,
             selectedOptions,
-            [],
-            false,
-            false,
-            true,
-            largeCategoriesList,
+
+            includeP2P: false,
+            includeCategories: true,
+            categories: largeCategoriesList,
             recentlyUsedCategories,
-        );
+        });
         expect(largeSearchResult.categoryOptions).toStrictEqual(largeSearchResultList);
 
-        const largeWrongSearchResult = OptionsListUtils.getFilteredOptions(
-            OPTIONS.reports,
-            OPTIONS.personalDetails,
-            [],
-            wrongSearch,
+        const largeWrongSearchResult = OptionsListUtils.getFilteredOptions({
+            searchValue: wrongSearch,
             selectedOptions,
-            [],
-            false,
-            false,
-            true,
-            largeCategoriesList,
+            includeP2P: false,
+            includeCategories: true,
+            categories: largeCategoriesList,
             recentlyUsedCategories,
-        );
+        });
         expect(largeWrongSearchResult.categoryOptions).toStrictEqual(largeWrongSearchResultList);
 
-        const emptyResult = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], search, selectedOptions, [], false, false, true, emptyCategoriesList);
+        const emptyResult = OptionsListUtils.getFilteredOptions({searchValue: search, selectedOptions, includeP2P: false, includeCategories: true, categories: emptyCategoriesList});
         expect(emptyResult.categoryOptions).toStrictEqual(emptySelectedResultList);
     });
 
@@ -1446,81 +1434,29 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        const smallResult = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], emptySearch, [], [], false, false, false, {}, [], true, smallTagsList);
+        const smallResult = OptionsListUtils.getFilteredOptions({searchValue: emptySearch, includeP2P: false, includeTags: true, tags: smallTagsList});
         expect(smallResult.tagOptions).toStrictEqual(smallResultList);
 
-        const smallSearchResult = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], search, [], [], false, false, false, {}, [], true, smallTagsList);
+        const smallSearchResult = OptionsListUtils.getFilteredOptions({searchValue: search, includeP2P: false, includeTags: true, tags: smallTagsList});
         expect(smallSearchResult.tagOptions).toStrictEqual(smallSearchResultList);
 
-        const smallWrongSearchResult = OptionsListUtils.getFilteredOptions(
-            OPTIONS.reports,
-            OPTIONS.personalDetails,
-            [],
-            wrongSearch,
-            [],
-            [],
-            false,
-            false,
-            false,
-            {},
-            [],
-            true,
-            smallTagsList,
-        );
+        const smallWrongSearchResult = OptionsListUtils.getFilteredOptions({searchValue: wrongSearch, includeP2P: false, includeTags: true, tags: smallTagsList});
         expect(smallWrongSearchResult.tagOptions).toStrictEqual(smallWrongSearchResultList);
 
-        const largeResult = OptionsListUtils.getFilteredOptions(
-            OPTIONS.reports,
-            OPTIONS.personalDetails,
-            [],
-            emptySearch,
-            selectedOptions,
-            [],
-            false,
-            false,
-            false,
-            {},
-            [],
-            true,
-            largeTagsList,
-            recentlyUsedTags,
-        );
+        const largeResult = OptionsListUtils.getFilteredOptions({searchValue: emptySearch, selectedOptions, includeP2P: false, includeTags: true, tags: largeTagsList, recentlyUsedTags});
         expect(largeResult.tagOptions).toStrictEqual(largeResultList);
 
-        const largeSearchResult = OptionsListUtils.getFilteredOptions(
-            OPTIONS.reports,
-            OPTIONS.personalDetails,
-            [],
-            search,
-            selectedOptions,
-            [],
-            false,
-            false,
-            false,
-            {},
-            [],
-            true,
-            largeTagsList,
-            recentlyUsedTags,
-        );
+        const largeSearchResult = OptionsListUtils.getFilteredOptions({searchValue: search, selectedOptions, includeP2P: false, includeTags: true, tags: largeTagsList, recentlyUsedTags});
         expect(largeSearchResult.tagOptions).toStrictEqual(largeSearchResultList);
 
-        const largeWrongSearchResult = OptionsListUtils.getFilteredOptions(
-            OPTIONS.reports,
-            OPTIONS.personalDetails,
-            [],
-            wrongSearch,
+        const largeWrongSearchResult = OptionsListUtils.getFilteredOptions({
+            searchValue: wrongSearch,
             selectedOptions,
-            [],
-            false,
-            false,
-            false,
-            {},
-            [],
-            true,
-            largeTagsList,
+            includeP2P: false,
+            includeTags: true,
+            tags: largeTagsList,
             recentlyUsedTags,
-        );
+        });
         expect(largeWrongSearchResult.tagOptions).toStrictEqual(largeWrongSearchResultList);
     });
 
@@ -2611,12 +2547,12 @@ describe('OptionsListUtils', () => {
         const formattedMembers = Object.values(PERSONAL_DETAILS).map((personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
 
         // We're only formatting items inside the array, so the order should be the same as the original PERSONAL_DETAILS array
-        expect(formattedMembers[0].text).toBe('Mister Fantastic');
-        expect(formattedMembers[1].text).toBe('Iron Man');
-        expect(formattedMembers[2].text).toBe('Spider-Man');
+        expect(formattedMembers.at(0)?.text).toBe('Mister Fantastic');
+        expect(formattedMembers.at(1)?.text).toBe('Iron Man');
+        expect(formattedMembers.at(2)?.text).toBe('Spider-Man');
 
         // We should expect only the first item to be selected
-        expect(formattedMembers[0].isSelected).toBe(true);
+        expect(formattedMembers.at(0)?.isSelected).toBe(true);
 
         // And all the others to be unselected
         expect(formattedMembers.slice(1).every((personalDetail) => !personalDetail.isSelected)).toBe(true);
@@ -2630,7 +2566,7 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
             const filteredOptions = OptionsListUtils.filterOptions(options, '');
 
-            expect(options.recentReports.length + options.personalDetails.length).toBe(filteredOptions.recentReports.length + filteredOptions.personalDetails.length);
+            expect(filteredOptions.recentReports.length + filteredOptions.personalDetails.length).toBe(12);
         });
 
         it('should return filtered options in correct order', () => {
@@ -2638,12 +2574,11 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
-            expect(filteredOptions.recentReports.length).toBe(5);
-            expect(filteredOptions.recentReports[0].text).toBe('Invisible Woman');
-            expect(filteredOptions.recentReports[1].text).toBe('Spider-Man');
-            expect(filteredOptions.recentReports[2].text).toBe('Black Widow');
-            expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic, Invisible Woman');
-            expect(filteredOptions.recentReports[4].text).toBe("SHIELD's workspace (archived)");
+            expect(filteredOptions.recentReports.length).toBe(4);
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Invisible Woman');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Spider-Man');
+            expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Widow');
+            expect(filteredOptions.recentReports.at(3)?.text).toBe('Mister Fantastic, Invisible Woman');
         });
 
         it('should filter users by email', () => {
@@ -2653,7 +2588,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].text).toBe('Mr Sinister');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mr Sinister');
         });
 
         it('should find archived chats', () => {
@@ -2662,7 +2597,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].isArchivedRoom).toBe(true);
+            expect(!!filteredOptions.recentReports.at(0)?.private_isArchived).toBe(true);
         });
 
         it('should filter options by email if dot is skipped in the email', () => {
@@ -2673,7 +2608,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].login).toBe('barry.allen@expensify.com');
+            expect(filteredOptions.recentReports.at(0)?.login).toBe('barry.allen@expensify.com');
         });
 
         it('should include workspace rooms in the search results', () => {
@@ -2683,7 +2618,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].subtitle).toBe('Avengers Room');
+            expect(filteredOptions.recentReports.at(0)?.subtitle).toBe('Avengers Room');
         });
 
         it('should put exact match by login on the top of the list', () => {
@@ -2692,8 +2627,8 @@ describe('OptionsListUtils', () => {
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
-            expect(filteredOptions.recentReports.length).toBe(2);
-            expect(filteredOptions.recentReports[0].login).toBe(searchText);
+            expect(filteredOptions.recentReports.length).toBe(1);
+            expect(filteredOptions.recentReports.at(0)?.login).toBe(searchText);
         });
 
         it('should prioritize options with matching display name over chatrooms', () => {
@@ -2704,7 +2639,7 @@ describe('OptionsListUtils', () => {
             const filterOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filterOptions.recentReports.length).toBe(2);
-            expect(filterOptions.recentReports[1].isChatRoom).toBe(true);
+            expect(filterOptions.recentReports.at(1)?.isChatRoom).toBe(true);
         });
 
         it('should put the item with latest lastVisibleActionCreated on top when search value match multiple items', () => {
@@ -2714,8 +2649,8 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(2);
-            expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
         });
 
         it('should return the user to invite when the search value is a valid, non-existent email', () => {
@@ -2730,7 +2665,7 @@ describe('OptionsListUtils', () => {
         it('should not return any results if the search value is on an exluded logins list', () => {
             const searchText = 'admin@expensify.com';
 
-            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], searchText, [], CONST.EXPENSIFY_EMAILS);
+            const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails, excludeLogins: CONST.EXPENSIFY_EMAILS});
             const filterOptions = OptionsListUtils.filterOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
             expect(filterOptions.recentReports.length).toBe(0);
         });
@@ -2742,17 +2677,6 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
 
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
-        });
-
-        it('should return the workspaces that match the participant login', () => {
-            const searchText = 'reedrichards@expensify.com';
-
-            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_WORKSPACE, '');
-            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
-
-            const recentReportsNames = filteredOptions.recentReports.map((option) => option.text);
-
-            expect(recentReportsNames).toContain('Test Workspace');
         });
 
         it('should return limited amount of recent reports if the limit is set', () => {
@@ -2784,7 +2708,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, 'peterparker@expensify.com');
 
             expect(filteredOptions.personalDetails.length).toBe(1);
-            expect(filteredOptions.personalDetails[0].text).toBe('Spider-Man');
+            expect(filteredOptions.personalDetails.at(0)?.text).toBe('Spider-Man');
         });
 
         it('should not show any recent reports if a search value does not match the group chat name (getShareDestinationsOptions)', () => {
@@ -2835,28 +2759,28 @@ describe('OptionsListUtils', () => {
         });
 
         it('should show the option from personal details when searching for personal detail with no existing report (getFilteredOptions)', () => {
-            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, 'hulk');
 
             expect(filteredOptions.recentReports.length).toBe(0);
 
             expect(filteredOptions.personalDetails.length).toBe(1);
-            expect(filteredOptions.personalDetails[0].login).toBe('brucebanner@expensify.com');
+            expect(filteredOptions.personalDetails.at(0)?.login).toBe('brucebanner@expensify.com');
         });
 
         it('should return all matching reports and personal details (getFilteredOptions)', () => {
-            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, '.com');
 
             expect(filteredOptions.recentReports.length).toBe(5);
-            expect(filteredOptions.recentReports[0].text).toBe('Captain America');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America');
 
             expect(filteredOptions.personalDetails.length).toBe(4);
-            expect(filteredOptions.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
+            expect(filteredOptions.personalDetails.at(0)?.login).toBe('natasharomanoff@expensify.com');
         });
 
         it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone (getFilteredOptions)', () => {
-            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, 'marc@expensify');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -2865,7 +2789,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return any options but should return an user to invite if no matching options exist and the search value is a potential email (getFilteredOptions)', () => {
-            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, 'marc@expensify.com');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -2874,7 +2798,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return user to invite when search term has a period with options for it that do not contain the period (getFilteredOptions)', () => {
-            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, 'peter.parker@expensify.com');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -2882,7 +2806,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number (getFilteredOptions)', () => {
-            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, '5005550006');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -2892,7 +2816,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with country code added (getFilteredOptions)', () => {
-            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, '+15005550006');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -2902,7 +2826,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with special characters added (getFilteredOptions)', () => {
-            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, '+1 (800)324-3233');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -2912,7 +2836,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return any options or user to invite if contact number contains alphabet characters (getFilteredOptions)', () => {
-            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, '998243aaaa');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -2921,30 +2845,30 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return any options if search value does not match any personal details (getFilteredOptions)', () => {
-            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, 'magneto');
 
             expect(filteredOptions.personalDetails.length).toBe(0);
         });
 
         it('should return one recent report and no personal details if a search value provides an email (getFilteredOptions)', () => {
-            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, 'peterparker@expensify.com', {sortByReportTypeInSearch: true});
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].text).toBe('Spider-Man');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Spider-Man');
             expect(filteredOptions.personalDetails.length).toBe(0);
         });
 
         it('should return all matching reports and personal details (getFilteredOptions)', () => {
-            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const options = OptionsListUtils.getFilteredOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterOptions(options, '.com');
 
             expect(filteredOptions.personalDetails.length).toBe(4);
             expect(filteredOptions.recentReports.length).toBe(5);
-            expect(filteredOptions.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
-            expect(filteredOptions.recentReports[0].text).toBe('Captain America');
-            expect(filteredOptions.recentReports[1].text).toBe('Mr Sinister');
-            expect(filteredOptions.recentReports[2].text).toBe('Black Panther');
+            expect(filteredOptions.personalDetails.at(0)?.login).toBe('natasharomanoff@expensify.com');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mr Sinister');
+            expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Panther');
         });
 
         it('should return matching option when searching (getSearchOptions)', () => {
@@ -2952,7 +2876,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, 'spider');
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].text).toBe('Spider-Man');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Spider-Man');
         });
 
         it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
@@ -2960,8 +2884,8 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, 'fantastic');
 
             expect(filteredOptions.recentReports.length).toBe(2);
-            expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
 
             return waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
@@ -2971,7 +2895,7 @@ describe('OptionsListUtils', () => {
                     const filteredResults = OptionsListUtils.filterOptions(results, 'barry.allen@expensify.com', {sortByReportTypeInSearch: true});
 
                     expect(filteredResults.recentReports.length).toBe(1);
-                    expect(filteredResults.recentReports[0].text).toBe('The Flash');
+                    expect(filteredResults.recentReports.at(0)?.text).toBe('The Flash');
                 });
         });
     });

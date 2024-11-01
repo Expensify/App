@@ -1,19 +1,18 @@
 import React from 'react';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import * as ConnectionUtils from '@libs/ConnectionUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -21,90 +20,97 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const {nonReimbursableBillDefaultVendor, autoCreateVendor, errorFields, pendingFields, nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount} =
-        policy?.connections?.quickbooksOnline?.config ?? {};
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === nonReimbursableBillDefaultVendor);
+    const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === qboConfig?.nonReimbursableBillDefaultVendor);
+
+    const sections = [
+        {
+            title: qboConfig?.nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.nonReimbursableExpensesExportDestination}`) : undefined,
+            description: translate('workspace.accounting.exportAs'),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT.getRoute(policyID)),
+            hintText: qboConfig?.nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.nonReimbursableExpensesExportDestination}Description`) : undefined,
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_EXPORT_DESTINATION],
+        },
+        {
+            title: qboConfig?.nonReimbursableExpensesAccount?.name ?? translate('workspace.qbo.notConfigured'),
+            description: ConnectionUtils.getQBONonReimbursableExportAccountType(qboConfig?.nonReimbursableExpensesExportDestination),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT],
+        },
+    ];
+
     return (
-        <AccessOrNotFoundWrapper
+        <ConnectionLayout
             policyID={policyID}
+            displayName={QuickbooksCompanyCardExpenseAccountPage.displayName}
+            headerTitle="workspace.accounting.exportCompanyCard"
+            title="workspace.qbo.exportCompanyCardsDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={styles.pb2}
+            titleStyle={styles.ph5}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={QuickbooksCompanyCardExpenseAccountPage.displayName}
-            >
-                <HeaderWithBackButton title={translate('workspace.accounting.exportCompanyCard')} />
-                <ScrollView contentContainerStyle={styles.pb2}>
-                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>
-                    <OfflineWithFeedback pendingAction={pendingFields?.nonReimbursableExpensesExportDestination}>
-                        <MenuItemWithTopDescription
-                            title={nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}`) : undefined}
-                            description={translate('workspace.accounting.exportAs')}
-                            errorText={errorFields?.nonReimbursableExpensesExportDestination ? translate('common.genericErrorMessage') : undefined}
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT.getRoute(policyID))}
-                            brickRoadIndicator={errorFields?.nonReimbursableExpensesExportDestination ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            shouldShowRightIcon
-                            hintText={nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}Description`) : undefined}
-                        />
-                    </OfflineWithFeedback>
-                    <OfflineWithFeedback pendingAction={pendingFields?.nonReimbursableExpensesAccount}>
-                        <MenuItemWithTopDescription
-                            title={nonReimbursableExpensesAccount?.name}
-                            description={ConnectionUtils.getQBONonReimbursableExportAccountType(nonReimbursableExpensesExportDestination)}
-                            errorText={errorFields?.nonReimbursableExpensesAccount ? translate('common.genericErrorMessage') : undefined}
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID))}
-                            brickRoadIndicator={errorFields?.nonReimbursableExpensesAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            shouldShowRightIcon
-                        />
-                    </OfflineWithFeedback>
-                    {nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL && (
-                        <>
-                            <ToggleSettingOptionRow
-                                shouldPlaceSubtitleBelowSwitch
-                                subtitle={translate('workspace.qbo.defaultVendorDescription')}
-                                switchAccessibilityLabel={translate('workspace.qbo.defaultVendorDescription')}
-                                errors={errorFields?.autoCreateVendor ?? undefined}
-                                title={translate('workspace.accounting.defaultVendor')}
-                                wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
-                                isActive={!!autoCreateVendor}
-                                onToggle={(isOn) =>
-                                    Connections.updateManyPolicyConnectionConfigs(
-                                        policyID,
-                                        CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                        {
-                                            [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: isOn,
-                                            [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: isOn
-                                                ? policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
-                                                : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
-                                        },
-                                        {
-                                            [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: autoCreateVendor,
-                                            [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]:
-                                                nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
-                                        },
-                                    )
+            {sections.map((section) => (
+                <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction(section.subscribedSettings, qboConfig?.pendingFields)}>
+                    <MenuItemWithTopDescription
+                        title={section.title}
+                        description={section.description}
+                        onPress={section.onPress}
+                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(section.subscribedSettings, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        shouldShowRightIcon
+                        hintText={section.hintText}
+                    />
+                </OfflineWithFeedback>
+            ))}
+            {qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL && (
+                <>
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.accounting.defaultVendor')}
+                        subtitle={translate('workspace.qbo.defaultVendorDescription')}
+                        switchAccessibilityLabel={translate('workspace.qbo.defaultVendorDescription')}
+                        wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
+                        isActive={!!qboConfig?.autoCreateVendor}
+                        pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR], qboConfig?.pendingFields)}
+                        errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR)}
+                        onToggle={(isOn) =>
+                            Connections.updateManyPolicyConnectionConfigs(
+                                policyID,
+                                CONST.POLICY.CONNECTIONS.NAME.QBO,
+                                {
+                                    [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]: isOn,
+                                    [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: isOn
+                                        ? policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
+                                        : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+                                },
+                                {
+                                    [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]: qboConfig?.autoCreateVendor,
+                                    [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+                                },
+                            )
+                        }
+                        onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR)}
+                    />
+                    {qboConfig?.autoCreateVendor && (
+                        <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qboConfig?.pendingFields)}>
+                            <MenuItemWithTopDescription
+                                title={nonReimbursableBillDefaultVendorObject?.name}
+                                description={translate('workspace.accounting.defaultVendor')}
+                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
+                                brickRoadIndicator={
+                                    PolicyUtils.areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qboConfig?.errorFields)
+                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                        : undefined
                                 }
-                                pendingAction={pendingFields?.autoCreateVendor}
+                                shouldShowRightIcon
                             />
-                            {autoCreateVendor && (
-                                <OfflineWithFeedback pendingAction={pendingFields?.nonReimbursableBillDefaultVendor}>
-                                    <MenuItemWithTopDescription
-                                        title={nonReimbursableBillDefaultVendorObject?.name}
-                                        description={translate('workspace.accounting.defaultVendor')}
-                                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
-                                        brickRoadIndicator={errorFields?.nonReimbursableBillDefaultVendor ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                        shouldShowRightIcon
-                                        errorText={errorFields?.nonReimbursableBillDefaultVendor ? translate('common.genericErrorMessage') : undefined}
-                                    />
-                                </OfflineWithFeedback>
-                            )}
-                        </>
+                        </OfflineWithFeedback>
                     )}
-                </ScrollView>
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+                </>
+            )}
+        </ConnectionLayout>
     );
 }
 

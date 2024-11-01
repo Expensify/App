@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 
@@ -29,10 +30,11 @@ function WorkspacesSectionHeader() {
             </View>
             <Tooltip text={translate('workspace.new.newWorkspace')}>
                 <PressableWithFeedback
-                    accessible={false}
+                    accessibilityLabel={translate('workspace.new.newWorkspace')}
                     role={CONST.ROLE.BUTTON}
                     onPress={() => {
-                        interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt());
+                        const activeRoute = Navigation.getActiveRouteWithoutParams();
+                        interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt('', '', false, false, activeRoute));
                     }}
                 >
                     {({hovered}) => (

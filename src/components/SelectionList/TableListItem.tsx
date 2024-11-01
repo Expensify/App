@@ -46,7 +46,7 @@ function TableListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={[[styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive, item.cursorStyle]]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
-            containerStyle={styles.mb3}
+            containerStyle={styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -64,7 +64,7 @@ function TableListItem<TItem extends ListItem>({
         >
             {(hovered) => (
                 <>
-                    {canSelectMultiple && (
+                    {!!canSelectMultiple && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
@@ -74,7 +74,7 @@ function TableListItem<TItem extends ListItem>({
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3, item.cursorStyle]}
                         >
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), item.cursorStyle]}>
-                                {item.isSelected && (
+                                {!!item.isSelected && (
                                     <Icon
                                         src={Expensicons.Checkmark}
                                         fill={theme.textLight}

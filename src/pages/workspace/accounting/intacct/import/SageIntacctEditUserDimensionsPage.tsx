@@ -13,7 +13,13 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearSageIntacctErrorField, editSageIntacctUserDimensions, removeSageIntacctUserDimensions} from '@libs/actions/connections/SageIntacct';
+import {
+    clearSageIntacctErrorField,
+    clearSageIntacctPendingField,
+    editSageIntacctUserDimensions,
+    removeSageIntacctUserDimensions,
+    removeSageIntacctUserDimensionsByName,
+} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -89,7 +95,15 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                     pendingAction={settingsPendingAction([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`], config?.pendingFields)}
                     errors={ErrorUtils.getLatestErrorField(config ?? {}, `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`)}
                     errorRowStyles={[styles.pb3]}
-                    onClose={() => clearSageIntacctErrorField(policyID, `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`)}
+                    onClose={() => {
+                        clearSageIntacctErrorField(policyID, `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`);
+                        const pendingAction = settingsPendingAction([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`], config?.pendingFields);
+                        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                            removeSageIntacctUserDimensionsByName(userDimensions ?? [], policyID, editedUserDimensionName);
+                            Navigation.goBack();
+                        }
+                        clearSageIntacctPendingField(policyID, `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`);
+                    }}
                 >
                     <View style={[styles.mb4]}>
                         <InputWrapper

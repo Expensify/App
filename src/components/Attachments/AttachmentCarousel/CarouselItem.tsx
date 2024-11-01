@@ -58,7 +58,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
             <PressableWithoutFeedback
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityRole={CONST.ROLE.BUTTON}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 accessibilityLabel={item.file?.name || translate('attachmentView.unknownFilename')}
             >
@@ -83,11 +83,10 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
                     isHovered={isModalHovered}
                     isFocused={isFocused}
                     duration={item.duration}
-                    isUsedInCarousel
                 />
             </View>
 
-            {item.hasBeenFlagged && (
+            {!!item.hasBeenFlagged && (
                 <SafeAreaConsumer>
                     {({safeAreaPaddingBottomStyle}) => <View style={[styles.appBG, safeAreaPaddingBottomStyle]}>{renderButton([styles.m4, styles.alignSelfCenter])}</View>}
                 </SafeAreaConsumer>

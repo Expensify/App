@@ -13,6 +13,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
 import LocaleUtils from '@libs/LocaleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
@@ -22,6 +24,10 @@ import ROUTES from '@src/ROUTES';
 
 function PreferencesPage() {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+
+    const platform = Browser.isMobile() ? CONST.PLATFORM.MOBILEWEB : getPlatform();
+    const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
+    const isPlatformMuted = mutedPlatforms[platform];
     const [user] = useOnyx(ONYXKEYS.USER);
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
 
@@ -40,6 +46,7 @@ function PreferencesPage() {
                 title={translate('common.preferences')}
                 icon={Illustrations.Gears}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
@@ -78,8 +85,8 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.muteAllSounds')}
-                                        isOn={user?.isMutedAllSounds ?? false}
-                                        onToggle={User.setMuteAllSounds}
+                                        isOn={isPlatformMuted ?? false}
+                                        onToggle={() => User.togglePlatformMute(platform, mutedPlatforms)}
                                     />
                                 </View>
                             </View>

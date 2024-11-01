@@ -3,13 +3,13 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Model of Expensify card settings for a workspace */
 type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Sum of all posted Expensify Card transactions */
-    currentBalance: number;
+    currentBalance?: number;
 
     /** Remaining limit for Expensify Cards on the workspace */
-    remainingLimit: number;
+    remainingLimit?: number;
 
     /** The total amount of cash back earned thus far */
-    cashBack: number;
+    earnedCashback?: number;
 
     /** The date of the last settlement */
     monthlySettlementDate: Date;
@@ -19,6 +19,15 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** The bank account chosen for the card settlement */
     paymentBankAccountID: number;
+
+    /** Whether we are loading the data via the API */
+    isLoading?: boolean;
+
+    /** Error message */
+    errors?: OnyxCommon.Errors;
+
+    /** Whether the request was successful */
+    isSuccess?: boolean;
 }>;
 
 export default ExpensifyCardSettings;

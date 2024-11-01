@@ -1,4 +1,4 @@
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, KeyboardEvent} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -212,6 +212,7 @@ function MagicCodeInput(
      */
     const tapGesture = Gesture.Tap()
         .runOnJS(true)
+        // eslint-disable-next-line react-compiler/react-compiler
         .onBegin((event) => {
             const index = Math.floor(event.x / (inputWidth.current / maxLength));
             shouldFocusLast.current = false;
@@ -276,9 +277,11 @@ function MagicCodeInput(
             if (isDisableKeyboard && focusedIndex === undefined) {
                 const indexBeforeLastEditIndex = editIndex === 0 ? editIndex : editIndex - 1;
 
-                const indexToFocus = numbers[editIndex] === CONST.MAGIC_CODE_EMPTY_CHAR ? indexBeforeLastEditIndex : editIndex;
-                const formElement = inputRefs.current as HTMLFormElement | null;
-                (formElement?.[indexToFocus] as HTMLInputElement)?.focus();
+                const indexToFocus = numbers.at(editIndex) === CONST.MAGIC_CODE_EMPTY_CHAR ? indexBeforeLastEditIndex : editIndex;
+                if (indexToFocus !== undefined) {
+                    lastFocusedIndex.current = indexToFocus;
+                    inputRefs.current?.focus();
+                }
                 onChangeTextProp(value.substring(0, indexToFocus));
 
                 return;
@@ -286,7 +289,7 @@ function MagicCodeInput(
 
             // If the currently focused index already has a value, it will delete
             // that value but maintain the focus on the same input.
-            if (focusedIndex !== undefined && numbers?.[focusedIndex] !== CONST.MAGIC_CODE_EMPTY_CHAR) {
+            if (focusedIndex !== undefined && numbers?.at(focusedIndex) !== CONST.MAGIC_CODE_EMPTY_CHAR) {
                 setInput(TEXT_INPUT_EMPTY_STATE);
                 numbers = [...numbers.slice(0, focusedIndex), CONST.MAGIC_CODE_EMPTY_CHAR, ...numbers.slice(focusedIndex + 1, maxLength)];
                 setEditIndex(focusedIndex);
@@ -314,6 +317,7 @@ function MagicCodeInput(
             onChangeTextProp(composeToString(numbers));
 
             if (newFocusedIndex !== undefined) {
+                lastFocusedIndex.current = newFocusedIndex;
                 inputRefs.current?.focus();
             }
         }
@@ -332,6 +336,15 @@ function MagicCodeInput(
             }
             setInput(TEXT_INPUT_EMPTY_STATE);
             onFulfill(value);
+        } else if (keyValue === 'Tab' && focusedIndex !== undefined) {
+            const newFocusedIndex = (event as unknown as KeyboardEvent).shiftKey ? focusedIndex - 1 : focusedIndex + 1;
+            if (newFocusedIndex >= 0 && newFocusedIndex < maxLength) {
+                setInputAndIndex(newFocusedIndex);
+                inputRefs.current?.focus();
+                if (event?.preventDefault) {
+                    event.preventDefault();
+                }
+            }
         }
     };
 
@@ -411,12 +424,12 @@ function MagicCodeInput(
                                 focusedIndex === index ? styles.borderColorFocus : {},
                             ]}
                         >
-                            <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(value, maxLength)[index] || ''}</Text>
+                            <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(value, maxLength).at(index) ?? ''}</Text>
                         </View>
                     </View>
                 ))}
             </View>
-            {errorText && (
+            {!!errorText && (
                 <FormHelpMessage
                     isError
                     message={errorText}

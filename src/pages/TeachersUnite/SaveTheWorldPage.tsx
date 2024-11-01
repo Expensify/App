@@ -56,6 +56,7 @@ function SaveTheWorldPage() {
             <HeaderWithBackButton
                 title={translate('sidebarScreen.saveTheWorld')}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack()}
                 icon={Illustrations.TeachersUnite}
             />

@@ -16,10 +16,10 @@ function getDeviceID(): Promise<string | null> {
             return;
         }
 
-        const connectionID = Onyx.connect({
+        const connection = Onyx.connect({
             key: ONYXKEYS.DEVICE_ID,
             callback: (id) => {
-                Onyx.disconnect(connectionID);
+                Onyx.disconnect(connection);
                 deviceID = id ?? null;
                 return resolve(id ?? null);
             },

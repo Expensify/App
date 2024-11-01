@@ -50,7 +50,6 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const participantAccountIDs = (newGroupDraft?.participants ?? []).map((participant) => participant.accountID);
     const selectedOptions = useMemo((): Participant[] => {
         if (!newGroupDraft?.participants) {
             return [];
@@ -61,7 +60,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         return options;
     }, [allPersonalDetails, newGroupDraft?.participants]);
 
-    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : ReportUtils.getGroupChatName(participantAccountIDs ?? []);
+    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : ReportUtils.getGroupChatName(newGroupDraft?.participants);
     const sections: ListItem[] = useMemo(
         () =>
             selectedOptions
@@ -141,6 +140,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
             <View style={styles.avatarSectionWrapper}>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
+                    // eslint-disable-next-line react-compiler/react-compiler
                     source={stashedLocalAvatarImage ?? ReportUtils.getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
                         setAvatarFile(image);

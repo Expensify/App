@@ -1,19 +1,16 @@
-import {fireEvent, screen} from '@testing-library/react-native';
+import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import OnyxProvider from '@src/components/OnyxProvider';
-import {WindowDimensionsProvider} from '@src/components/withWindowDimensions';
-import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionsList from '@src/pages/home/report/ReportActionsList';
 import {ReportAttachmentsProvider} from '@src/pages/home/report/ReportAttachmentsContext';
 import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
-import variables from '@src/styles/variables';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import * as LHNTestUtilsModule from '../utils/LHNTestUtils';
@@ -83,7 +80,7 @@ beforeEach(() => {
 
 function ReportActionsListWrapper() {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, WindowDimensionsProvider, ReportAttachmentsProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportAttachmentsProvider]}>
             <ReactionListContext.Provider value={mockRef}>
                 <ActionListContext.Provider value={mockRef}>
                     <ReportActionsList
@@ -116,52 +113,5 @@ test('[ReportActionsList] should render ReportActionsList with 500 reportActions
         [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
     });
 
-    await measurePerformance(<ReportActionsListWrapper />, {scenario});
-});
-
-test('[ReportActionsList] should render list items', async () => {
-    const scenario = async () => {
-        const hintText = Localize.translateLocal('accessibilityHints.chatMessage');
-        await screen.findAllByLabelText(hintText);
-    };
-
-    await waitForBatchedUpdates();
-
-    Onyx.multiSet({
-        [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
-    });
-
-    await measurePerformance(<ReportActionsListWrapper />, {scenario});
-});
-
-test('[ReportActionsList] should scroll through list of items', async () => {
-    const eventData = {
-        nativeEvent: {
-            contentOffset: {
-                y: variables.optionRowHeight * 5,
-            },
-            contentSize: {
-                // Dimensions of the scrollable content
-                height: variables.optionRowHeight * 10,
-                width: 100,
-            },
-            layoutMeasurement: {
-                // Dimensions of the device
-                height: variables.optionRowHeight * 5,
-                width: 100,
-            },
-        },
-    };
-
-    const scenario = async () => {
-        const reportActionsList = await screen.findByTestId('report-actions-list');
-        fireEvent.scroll(reportActionsList, eventData);
-    };
-    await waitForBatchedUpdates();
-
-    Onyx.multiSet({
-        [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
-    });
-
-    await measurePerformance(<ReportActionsListWrapper />, {scenario});
+    await measureRenders(<ReportActionsListWrapper />, {scenario});
 });

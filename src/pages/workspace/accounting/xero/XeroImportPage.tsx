@@ -10,7 +10,7 @@ import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
-import {getTrackingCategories} from '@userActions/connections/ConnectToXero';
+import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 

@@ -4,8 +4,8 @@ import type {FileObject} from '@components/AttachmentModal';
 import type CONST from '@src/CONST';
 
 type PickerOptions = {
-    /** A callback that will be called with the selected attachment. */
-    onPicked: (file: FileObject) => void;
+    /** A callback that will be called with the selected attachments. */
+    onPicked: (files: FileObject[]) => void;
     /** A callback that will be called without a selected attachment. */
     onCanceled?: () => void;
 };
@@ -40,6 +40,21 @@ type AttachmentPickerProps = {
 
     /** The types of files that can be selected with this picker. */
     type?: ValueOf<typeof CONST.ATTACHMENT_PICKER_TYPE>;
+
+    acceptedFileTypes?: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>;
+
+    shouldHideCameraOption?: boolean;
+
+    shouldHideGalleryOption?: boolean;
+
+    /** Whether to validate the image and show the alert or not. */
+    shouldValidateImage?: boolean;
+
+    /** Allow multiple file selection */
+    allowMultiple?: boolean;
+
+    /** Whether to allow multiple files to be selected. */
+    fileLimit?: number;
 };
 
 export default AttachmentPickerProps;

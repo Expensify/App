@@ -22,7 +22,7 @@ const mapChildrenFlat = <T, C>(element: C, fn: (child: C, index: number) => T) =
     const mappedChildren = React.Children.map(element, fn);
 
     if (Array.isArray(mappedChildren) && mappedChildren.length === 1) {
-        return mappedChildren[0];
+        return mappedChildren.at(0);
     }
 
     return mappedChildren;

@@ -16,7 +16,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntactCredentialsForm';
 
@@ -58,7 +57,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
         >
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID))}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}

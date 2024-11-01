@@ -2,10 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchUIUtils from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -18,7 +18,7 @@ type SearchColumnConfig = {
     shouldShow: (data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) => boolean;
 };
 
-const SearchColumns: SearchColumnConfig[] = [
+const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
         translationKey: 'common.receipt',
@@ -39,12 +39,12 @@ const SearchColumns: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
-        shouldShow: (data: OnyxTypes.SearchResults['data']) => SearchUtils.getShouldShowMerchant(data),
+        shouldShow: (data: OnyxTypes.SearchResults['data']) => SearchUIUtils.getShouldShowMerchant(data),
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
-        shouldShow: (data: OnyxTypes.SearchResults['data']) => !SearchUtils.getShouldShowMerchant(data),
+        shouldShow: (data: OnyxTypes.SearchResults['data']) => !SearchUIUtils.getShouldShowMerchant(data),
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
@@ -85,6 +85,13 @@ const SearchColumns: SearchColumnConfig[] = [
     },
 ];
 
+const SearchColumns = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: expenseHeaders,
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: expenseHeaders,
+    [CONST.SEARCH.DATA_TYPES.TRIP]: expenseHeaders,
+    [CONST.SEARCH.DATA_TYPES.CHAT]: null,
+};
+
 type SearchTableHeaderProps = {
     data: OnyxTypes.SearchResults['data'];
     metadata: OnyxTypes.SearchResults['search'];
@@ -98,9 +105,14 @@ type SearchTableHeaderProps = {
 function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear, shouldShowSorting}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
+
+    if (SearchColumns[metadata.type] === null) {
+        return;
+    }
 
     if (displayNarrowVersion) {
         return;
@@ -109,7 +121,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.pl4]}>
-                {SearchColumns.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
+                {SearchColumns[metadata.type]?.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
                     if (!shouldShow(data, metadata)) {
                         return null;
                     }

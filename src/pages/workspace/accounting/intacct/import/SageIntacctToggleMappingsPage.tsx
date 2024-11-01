@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -54,12 +54,11 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
 
     const config = policy?.connections?.intacct?.config;
     const translationKeys = getDisplayTypeTranslationKeys(config?.mappings?.[mappingName]);
-    const [importMapping, setImportMapping] = useState(config?.mappings?.[mappingName] && config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE);
-
+    const isImportMappingEnable = config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
     return (
         <ConnectionLayout
             displayName={SageIntacctToggleMappingsPage.displayName}
-            headerTitleAlreadyTranslated={Str.recapitalize(translate('workspace.intacct.mappingTitle', mappingName))}
+            headerTitleAlreadyTranslated={Str.recapitalize(translate('workspace.intacct.mappingTitle', {mappingName}))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -70,29 +69,24 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
         >
             <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mb5, styles.ph5]}>
                 <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleFirstPart')}</Text>
-                <Text style={[styles.textStrong]}>{translate('workspace.intacct.mappingTitle', mappingName)}</Text>
+                <Text style={[styles.textStrong]}>{translate('workspace.intacct.mappingTitle', {mappingName})}</Text>
                 <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleSecondPart')}</Text>
             </Text>
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
-                switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.intacct.mappingTitle', mappingName)}`}
+                switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.intacct.mappingTitle', {mappingName})}`}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={importMapping ?? false}
-                onToggle={() => {
-                    if (importMapping) {
-                        setImportMapping(false);
-                        updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.NONE);
-                    } else {
-                        setImportMapping(true);
-                        updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG);
-                    }
+                isActive={isImportMappingEnable}
+                onToggle={(enabled) => {
+                    const mappingValue = enabled ? CONST.SAGE_INTACCT_MAPPING_VALUE.TAG : CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
+                    updateSageIntacctMappingValue(policyID, mappingName, mappingValue, config?.mappings?.[mappingName]);
                 }}
                 pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
                 onCloseError={() => clearSageIntacctErrorField(policyID, mappingName)}
             />
-            {importMapping && (
+            {isImportMappingEnable && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
                     <MenuItemWithTopDescription
                         title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}

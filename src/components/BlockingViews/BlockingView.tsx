@@ -1,8 +1,9 @@
 import type {ImageContentFit} from 'expo-image';
 import React, {useMemo} from 'react';
-import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle, WebStyle} from 'react-native';
+import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
+import type {WebStyle} from 'react-native-web';
 import type {MergeExclusive} from 'type-fest';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
@@ -101,7 +102,7 @@ function BlockingView({
     const subtitleText = useMemo(
         () => (
             <>
-                {subtitle && (
+                {!!subtitle && (
                     <AutoEmailLink
                         style={[styles.textAlignCenter, subtitleStyle]}
                         text={subtitle}
@@ -133,7 +134,7 @@ function BlockingView({
 
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}>
-            {animation && (
+            {!!animation && (
                 <Lottie
                     source={animation}
                     loop
@@ -142,7 +143,7 @@ function BlockingView({
                     webStyle={animationWebStyle}
                 />
             )}
-            {icon && (
+            {!!icon && (
                 <Icon
                     src={icon}
                     fill={iconColor}

@@ -98,6 +98,7 @@ To create or update a travel policy,
     2. **To add a new policy:** Click **Add new** under Employee or Non-employee in the left menu. Then under the Edit members section, select the group of employees that belong to this policy.
 
 {% include info.html %}
+The Company name in Expensify Travel is the domain of the Expensify workspace billing owner
 A Legal Entity in Expensify Travel is the equivalent of an Expensify Workspace.
 {% include end-info.html %}
 

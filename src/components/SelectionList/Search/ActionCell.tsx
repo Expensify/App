@@ -69,7 +69,6 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth
                 text={translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW])}
                 onPress={goToItem}
                 small
-                pressOnEnter
                 style={[styles.w100]}
                 innerStyles={buttonInnerStyles}
                 link={isChildListItem}
@@ -84,7 +83,6 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth
                 text={text}
                 onPress={goToItem}
                 small
-                pressOnEnter
                 style={[styles.w100]}
                 innerStyles={buttonInnerStyles}
             />

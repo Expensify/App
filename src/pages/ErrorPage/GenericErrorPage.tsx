@@ -1,5 +1,4 @@
 import React from 'react';
-import {useErrorBoundary} from 'react-error-boundary';
 import {View} from 'react-native';
 import LogoWordmark from '@assets/images/expensify-wordmark.svg';
 import Button from '@components/Button';
@@ -10,6 +9,7 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePageRefresh from '@hooks/usePageRefresh';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,8 +23,7 @@ function GenericErrorPage() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-
-    const {resetBoundary} = useErrorBoundary();
+    const refreshPage = usePageRefresh();
 
     return (
         <SafeAreaConsumer>
@@ -59,18 +58,16 @@ function GenericErrorPage() {
                                 <View style={[styles.flex1, styles.flexRow]}>
                                     <Button
                                         success
-                                        medium
-                                        onPress={resetBoundary}
                                         text={translate('genericErrorPage.refresh')}
                                         style={styles.mr3}
+                                        onPress={refreshPage}
                                     />
                                     <Button
-                                        medium
+                                        text={translate('initialSettingsPage.signOut')}
                                         onPress={() => {
                                             Session.signOutAndRedirectToSignIn();
-                                            resetBoundary();
+                                            refreshPage();
                                         }}
-                                        text={translate('initialSettingsPage.signOut')}
                                     />
                                 </View>
                             </View>
