@@ -3102,6 +3102,9 @@ const CONST = {
         CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
+        SUBMIT_TO_SOMEONE: 'submitToSomeone',
+        CATEGORIZE_IT: 'categorizeIt',
+        SHARE_WITH_ACCOUNTANT: 'shareWithAccountant',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
