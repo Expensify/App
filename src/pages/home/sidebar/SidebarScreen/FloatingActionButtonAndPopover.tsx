@@ -181,9 +181,14 @@ function FloatingActionButtonAndPopover(
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${quickActionReport?.reportID ?? -1}`);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
-    const policyChatForActivePolicyID = useMemo(() => {
+    const policyChatsForActivePolicyID = useMemo(() => {
         return activePolicy?.isPolicyExpenseChatEnabled ? ReportUtils.getWorkspaceChats(activePolicyID ?? '-1', [session?.accountID ?? -1]) : [];
     }, [activePolicy, activePolicyID, session?.accountID]);
+
+    const policyChatForActivePolicy = useMemo(() => {
+        return policyChatsForActivePolicyID.length > 0 ? policyChatsForActivePolicyID.at(0) : ({} as OnyxTypes.Report);
+    }, [policyChatsForActivePolicyID]);
+
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
@@ -200,14 +205,14 @@ function FloatingActionButtonAndPopover(
             const avatars = ReportUtils.getIcons(quickActionReport, personalDetails);
             return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== session?.accountID);
         }
-        if (policyChatForActivePolicyID.length > 0 && !isEmptyObject(policyChatForActivePolicyID.at(0))) {
-            const avatars = ReportUtils.getIcons(policyChatForActivePolicyID.at(0), personalDetails);
+        if (!isEmptyObject(policyChatForActivePolicy)) {
+            const avatars = ReportUtils.getIcons(policyChatForActivePolicy, personalDetails);
             return avatars;
         }
         return [];
         // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy, policyChatForActivePolicyID]);
+    }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy, policyChatForActivePolicy]);
 
     const renderQuickActionTooltip = useCallback(
         () => (
@@ -442,37 +447,41 @@ function FloatingActionButtonAndPopover(
             tooltipWrapperStyle: styles.quickActionTooltipWrapper,
         };
 
-        const quickActionItems = [];
         if (quickAction?.action) {
-            quickActionItems.push({
-                ...baseQuickAction,
-                icon: getQuickActionIcon(quickAction?.action),
-                text: quickActionTitle,
-                description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
-                onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
-                shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
-                shouldRenderTooltip: quickAction.isFirstQuickAction,
-            });
-        } else if (policyChatForActivePolicyID.length > 0 && !isEmptyObject(policyChatForActivePolicyID.at(0))) {
-            quickActionItems.push({
-                ...baseQuickAction,
-                icon: Expensicons.ReceiptScan,
-                text: translate('quickAction.scanReceipt'),
-                description: ReportUtils.getReportName(policyChatForActivePolicyID.at(0)),
-                onSelected: () =>
-                    interceptAnonymousUser(() => {
-                        selectOption(() => {
-                            const isValidReport = !(isEmptyObject(policyChatForActivePolicyID.at(0)) || ReportUtils.isArchivedRoom(policyChatForActivePolicyID.at(0), reportNameValuePairs));
-                            const quickActionReportID = isValidReport ? policyChatForActivePolicyID.at(0)?.reportID ?? '-1' : ReportUtils.generateReportID();
-                            IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID ?? '-1', CONST.IOU.REQUEST_TYPE.SCAN, true);
-                        }, true);
-                    }),
-                shouldShowSubscriptRightAvatar: true,
-                shouldRenderTooltip: false,
-            });
+            return [
+                {
+                    ...baseQuickAction,
+                    icon: getQuickActionIcon(quickAction?.action),
+                    text: quickActionTitle,
+                    description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
+                    onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
+                    shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
+                    shouldRenderTooltip: quickAction.isFirstQuickAction,
+                },
+            ];
+        }
+        if (!isEmptyObject(policyChatForActivePolicy)) {
+            return [
+                {
+                    ...baseQuickAction,
+                    icon: Expensicons.ReceiptScan,
+                    text: translate('quickAction.scanReceipt'),
+                    description: ReportUtils.getReportName(policyChatForActivePolicy),
+                    onSelected: () =>
+                        interceptAnonymousUser(() => {
+                            selectOption(() => {
+                                const isValidReport = !(isEmptyObject(policyChatForActivePolicy) || ReportUtils.isArchivedRoom(policyChatForActivePolicy, reportNameValuePairs));
+                                const quickActionReportID = isValidReport ? policyChatForActivePolicy?.reportID ?? '-1' : ReportUtils.generateReportID();
+                                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID ?? '-1', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                            }, true);
+                        }),
+                    shouldShowSubscriptRightAvatar: true,
+                    shouldRenderTooltip: false,
+                },
+            ];
         }
 
-        return quickActionItems;
+        return [];
     }, [
         translate,
         quickActionAvatars,
@@ -482,7 +491,7 @@ function FloatingActionButtonAndPopover(
         renderQuickActionTooltip,
         quickAction?.action,
         quickAction?.isFirstQuickAction,
-        policyChatForActivePolicyID,
+        policyChatForActivePolicy,
         quickActionTitle,
         hideQABSubtitle,
         quickActionReport,
@@ -546,7 +555,7 @@ function FloatingActionButtonAndPopover(
                               },
                           ]
                         : []),
-                    ...(quickActionMenuItems.length > 0 ? quickActionMenuItems : []),
+                    ...quickActionMenuItems,
                 ]}
                 withoutOverlay
                 anchorRef={fabRef}
