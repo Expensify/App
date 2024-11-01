@@ -151,7 +151,10 @@ function SecuritySettingsPage() {
                         }
                         if (pendingFields?.role && !pendingFields?.email) {
                             Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(email, role));
+                            return;
                         }
+
+                        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role, true));
                     };
 
                     const formattedEmail = formatPhoneNumber(email);
@@ -233,7 +236,7 @@ function SecuritySettingsPage() {
                                     shouldUseSingleExecution
                                 />
                             </Section>
-                            {canUseNewDotCopilot && (
+                            {!!canUseNewDotCopilot && (
                                 <View style={safeAreaPaddingBottomStyle}>
                                     <Section
                                         title={translate('delegate.copilotDelegatedAccess')}

@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
+import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,15 +11,15 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceInvoiceBalanceSection from './WorkspaceInvoiceBalanceSection';
-import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
-import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
 import WorkspaceInvoiceVBASection from './WorkspaceInvoiceVBASection';
+import WorkspaceInvoicingDetailsSection from './WorkspaceInvoicingDetailsSection';
 
 type WorkspaceInvoicesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES>;
 function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -32,13 +33,13 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 shouldSkipVBBACall={false}
                 route={route}
+                icon={Illustrations.InvoiceBlue}
             >
-                {(hasVBA?: boolean, policyID?: string) => (
+                {(_hasVBA?: boolean, policyID?: string) => (
                     <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        {policyID && <WorkspaceInvoiceBalanceSection policyID={policyID} />}
-                        {policyID && <WorkspaceInvoiceVBASection policyID={policyID} />}
-                        {!hasVBA && policyID && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
-                        {hasVBA && policyID && <WorkspaceInvoicesVBAView policyID={policyID} />}
+                        {!!policyID && <WorkspaceInvoiceBalanceSection policyID={policyID} />}
+                        {!!policyID && <WorkspaceInvoiceVBASection policyID={policyID} />}
+                        {!!policyID && <WorkspaceInvoicingDetailsSection policyID={policyID} />}
                     </View>
                 )}
             </WorkspacePageWithSections>

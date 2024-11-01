@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Locale, OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -126,7 +126,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     const message = reportAction?.message ?? [];
 
     if (!Array.isArray(message)) {
-        return message?.html === '' ?? message?.deleted;
+        return message?.html === '' || !!message?.deleted;
     }
 
     // A legacy deleted comment has either an empty array or an object with html field with empty string as value
@@ -1227,6 +1227,9 @@ function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction):
 }
 
 function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
+    if (!action || !action.actionName) {
+        return false;
+    }
     return [
         CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
         CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
@@ -1448,9 +1451,10 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
 }
 
 /**
- * @private
+ * Note: Prefer `ReportActionsUtils.isCurrentActionUnread` over this method, if applicable.
+ * Check whether a specific report action is unread.
  */
-function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime: string) {
+function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime?: string) {
     if (!lastReadTime) {
         return !isCreatedAction(reportAction);
     }
@@ -1749,11 +1753,12 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
     );
 }
 
-function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1') {
+function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1', shouldDisplayLinkToCard = false) {
     const cardIssuedActionOriginalMessage = isActionOfType(
         reportAction,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
         CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
     )
         ? getOriginalMessage(reportAction)
@@ -1765,9 +1770,10 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID));
-    const expensifyCardLink = shouldRenderHTML
-        ? `<a href='${environmentURL}/${navigateRoute}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
-        : Localize.translateLocal('cardPage.expensifyCard');
+    const expensifyCardLink =
+        shouldRenderHTML && shouldDisplayLinkToCard
+            ? `<a href='${environmentURL}/${navigateRoute}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
+            : Localize.translateLocal('cardPage.expensifyCard');
     const companyCardLink = shouldRenderHTML
         ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${Localize.translateLocal('workspace.companyCards.companyCard')}</a>`
         : Localize.translateLocal('workspace.companyCards.companyCard');
@@ -1789,7 +1795,7 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
             return Localize.translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
-            return Localize.translateLocal('workspace.companyCards.assignedYouCard', {link: companyCardLink});
+            return Localize.translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
             return Localize.translateLocal(`workspace.expensifyCard.${shouldShowAddMissingDetailsMessage ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, {assignee});
         default:
@@ -1801,10 +1807,38 @@ function getReportActionsLength() {
     return Object.keys(allReportActions ?? {}).length;
 }
 
+function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale): boolean {
+    // The user was never online.
+    if (!lastOnlineAt) {
+        return true;
+    }
+
+    // The user never was never offline.
+    if (!lastOfflineAt) {
+        return false;
+    }
+
+    const actionCreatedAt = DateUtils.getLocalDateFromDatetime(locale, action.created);
+
+    // The action was created before the user went offline.
+    if (actionCreatedAt <= lastOfflineAt) {
+        return false;
+    }
+
+    // The action was created while the user was offline.
+    if (isOffline || actionCreatedAt < lastOnlineAt) {
+        return true;
+    }
+
+    // The action was created after the user went back online.
+    return false;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
     formatLastMessageText,
+    isReportActionUnread,
     getActionableMentionWhisperMessage,
     getAllReportActions,
     getCombinedReportActions,
@@ -1912,6 +1946,7 @@ export {
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
     getReportActionsLength,
+    wasActionCreatedWhileOffline,
 };
 
 export type {LastVisibleMessage};
