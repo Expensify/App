@@ -1117,7 +1117,10 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
                 }
             } else if (fieldName === 'taxCode') {
                 const differentValues = getDifferentValues(transactions, keys);
-                const validTaxes = differentValues?.filter((taxID) => PolicyUtils.getTaxByID(policy, (taxID as string) ?? '')?.name);
+                const validTaxes = differentValues?.filter((taxID) => {
+                    const tax = PolicyUtils.getTaxByID(policy, (taxID as string) ?? '');
+                    return tax?.name && !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                });
 
                 if (!areAllFieldsEqualForKey && validTaxes.length > 1) {
                     change[fieldName] = validTaxes;
@@ -1128,7 +1131,7 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
                 const differentValues = getDifferentValues(transactions, keys);
                 const policyCategories = getPolicyCategoriesData(report?.policyID ?? '-1');
                 const availableCategories = Object.values(policyCategories)
-                    .filter((category) => differentValues.includes(category.name) && firstTransaction?.category !== category.name)
+                    .filter((category) => differentValues.includes(category.name) && category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
                     .map((e) => e.name);
 
                 if (!areAllFieldsEqualForKey && policy?.areCategoriesEnabled && (availableCategories.length > 1 || (availableCategories.length === 1 && differentValues.includes('')))) {
@@ -1148,7 +1151,9 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
                 } else {
                     const differentValues = getDifferentValues(transactions, keys);
                     const policyTagsObj = Object.values(Object.values(policyTags).at(0)?.tags ?? {});
-                    const availableTags = policyTagsObj.filter((tag) => differentValues.includes(tag.name) && firstTransaction?.tag !== tag.name).map((e) => e.name);
+                    const availableTags = policyTagsObj
+                        .filter((tag) => differentValues.includes(tag.name) && tag.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                        .map((e) => e.name);
                     if (!areAllFieldsEqualForKey && policy?.areTagsEnabled && (availableTags.length > 1 || (availableTags.length === 1 && differentValues.includes('')))) {
                         change[fieldName] = [...availableTags, ...(differentValues.includes('') ? [''] : [])];
                     } else if (areAllFieldsEqualForKey) {
