@@ -14,13 +14,15 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import * as SearchUIUtils from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -66,6 +68,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const {isOffline} = useNetwork();
 
     const typeMenuItems: SearchTypeMenuItem[] = [
         {
@@ -73,7 +76,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Receipt,
             getRoute: (policyID?: string) => {
-                const query = SearchUtils.buildCannedSearchQuery({policyID});
+                const query = SearchQueryUtils.buildCannedSearchQuery({policyID});
                 return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
             },
         },
@@ -82,7 +85,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             type: CONST.SEARCH.DATA_TYPES.CHAT,
             icon: Expensicons.ChatBubbles,
             getRoute: (policyID?: string) => {
-                const query = SearchUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
                 return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
             },
         },
@@ -91,7 +94,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             type: CONST.SEARCH.DATA_TYPES.INVOICE,
             icon: Expensicons.InvoiceGeneric,
             getRoute: (policyID?: string) => {
-                const query = SearchUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
+                const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
                 return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
             },
         },
@@ -100,22 +103,22 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             type: CONST.SEARCH.DATA_TYPES.TRIP,
             icon: Expensicons.Suitcase,
             getRoute: (policyID?: string) => {
-                const query = SearchUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
+                const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
                 return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
             },
         },
     ];
 
     const getOverflowMenu = useCallback(
-        (itemName: string, itemHash: number, itemQuery: string) => SearchUtils.getOverflowMenu(itemName, itemHash, itemQuery, showDeleteModal),
+        (itemName: string, itemHash: number, itemQuery: string) => SearchUIUtils.getOverflowMenu(itemName, itemHash, itemQuery, showDeleteModal),
         [showDeleteModal],
     );
 
     const createSavedSearchMenuItem = (item: SaveSearchItem, key: string, isNarrow: boolean, index: number) => {
         let title = item.name;
         if (title === item.query) {
-            const jsonQuery = SearchUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-            title = SearchUtils.getSearchHeaderTitle(jsonQuery, personalDetails, cardList, reports, taxRates);
+            const jsonQuery = SearchQueryUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
+            title = SearchQueryUtils.buildUserReadableQueryString(jsonQuery, personalDetails, cardList, reports, taxRates);
         }
 
         const baseMenuItem: SavedSearchMenuItem = {
@@ -138,6 +141,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             styles: [styles.alignItemsCenter],
             pendingAction: item.pendingAction,
             disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            shouldIconUseAutoWidthStyle: true,
         };
 
         if (!isNarrow) {
@@ -216,11 +220,11 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         [styles],
     );
 
-    const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
+    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
 
     if (shouldUseNarrowLayout) {
-        const title = searchName ?? (isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates));
+        const title = searchName ?? (isCannedQuery ? undefined : SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, cardList, reports, taxRates));
 
         return (
             <SearchTypeMenuNarrow
@@ -232,6 +236,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             />
         );
     }
+    const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
 
     return (
         <>
@@ -254,11 +259,12 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                             wrapperStyle={styles.sectionMenuItem}
                             focused={index === activeItemIndex}
                             onPress={onPress}
+                            shouldIconUseAutoWidthStyle
                         />
                     );
                 })}
             </View>
-            {savedSearches && Object.keys(savedSearches).length > 0 && (
+            {shouldShowSavedSearchesMenuItemTitle && (
                 <>
                     <Text style={[styles.sectionTitle, styles.pb1, styles.mh3, styles.mt3]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
                     <ScrollView

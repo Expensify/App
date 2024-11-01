@@ -24,7 +24,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchUIUtils from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -97,6 +97,7 @@ function BaseSelectionList<TItem extends ListItem>(
         updateCellsBatchingPeriod = 50,
         removeClippedSubviews = true,
         shouldDelayFocus = true,
+        onArrowFocus = () => {},
         shouldUpdateFocusedIndex = false,
         onLongPressRow,
         shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
@@ -281,6 +282,10 @@ function BaseSelectionList<TItem extends ListItem>(
         disabledIndexes: disabledArrowKeyIndexes,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
+            const focusedItem = flattenedSections.allOptions.at(index);
+            if (focusedItem) {
+                onArrowFocus(focusedItem);
+            }
             scrollToIndex(index, true);
         },
         isFocused,
@@ -438,7 +443,7 @@ function BaseSelectionList<TItem extends ListItem>(
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
         const handleOnCheckboxPress = () => {
-            if (SearchUtils.isReportListItemType(item)) {
+            if (SearchUIUtils.isReportListItemType(item)) {
                 return onCheckboxPress;
             }
             return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
