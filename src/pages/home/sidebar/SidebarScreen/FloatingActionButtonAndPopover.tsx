@@ -180,7 +180,10 @@ function FloatingActionButtonAndPopover(
     const {translate} = useLocalize();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${quickActionReport?.reportID ?? -1}`);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const policyChatForActivePolicyID = ReportUtils.getWorkspaceChats(activePolicyID ?? '-1', [session?.accountID ?? -1]);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const policyChatForActivePolicyID = useMemo(() => {
+        return activePolicy?.isPolicyExpenseChatEnabled ? ReportUtils.getWorkspaceChats(activePolicyID ?? '-1', [session?.accountID ?? -1]) : [];
+    }, [activePolicy, activePolicyID, session?.accountID]);
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
