@@ -119,8 +119,9 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', 'requiresCategory')}
                     shouldPlaceSubtitleBelowSwitch
                 />
+                <View style={[styles.sectionDividerLine]} />
                 <View style={[styles.containerWithSpaceBetween]}>
-                    {canUseWorkspaceRules && !!currentPolicy && (sections.at(0)?.data?.length ?? 0) > 0 && (
+                    {!!canUseWorkspaceRules && !!currentPolicy && (sections.at(0)?.data?.length ?? 0) > 0 && (
                         <SelectionList
                             headerContent={
                                 <View style={[styles.mh5, styles.mt2, styles.mb1]}>
@@ -140,7 +141,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                             }}
                         />
                     )}
-                    {canUseWorkspaceRules && categoryID && groupID && (
+                    {!!canUseWorkspaceRules && !!categoryID && !!groupID && (
                         <CategorySelectorModal
                             policyID={policyID}
                             isVisible={isSelectorModalVisible}

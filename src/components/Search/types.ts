@@ -80,6 +80,18 @@ type SearchQueryJSON = {
     flatFilters: QueryFilters;
 } & SearchQueryAST;
 
+type AutocompleteRange = {
+    key: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS & typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+    length: number;
+    start: number;
+    value: string;
+};
+
+type SearchAutocompleteResult = {
+    autocomplete: AutocompleteRange | null;
+    ranges: AutocompleteRange[];
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -98,4 +110,6 @@ export type {
     InvoiceSearchStatus,
     TripSearchStatus,
     ChatSearchStatus,
+    SearchAutocompleteResult,
+    AutocompleteRange,
 };

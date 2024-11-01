@@ -78,7 +78,7 @@ function ConnectionLayoutContent({title, titleStyle, children, titleAlreadyTrans
     const styles = useThemeStyles();
     return (
         <>
-            {title && <Text style={[styles.pb5, titleStyle]}>{titleAlreadyTranslated ?? translate(title)}</Text>}
+            {!!title && <Text style={[styles.pb5, titleStyle]}>{titleAlreadyTranslated ?? translate(title)}</Text>}
             {children}
         </>
     );

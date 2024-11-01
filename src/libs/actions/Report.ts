@@ -113,7 +113,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import navigateFromNotification from './navigateFromNotification';
-import {createUpdateCommentMatcher, resolveDuplicationConflictAction} from './RequestConflictUtils';
+import {createUpdateCommentMatcher, resolveCommentDeletionConflicts, resolveDuplicationConflictAction, resolveEditCommentWithNewAddCommentRequest} from './RequestConflictUtils';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 import * as OnboardingFlow from './Welcome/OnboardingFlow';
@@ -164,7 +164,7 @@ type GuidedSetupData = Array<
 type ReportError = {
     type?: string;
 };
-
+const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
 let currentUserEmail: string | undefined;
@@ -1543,7 +1543,14 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
 
     CachedPDFPaths.clearByKey(reportActionID);
 
-    API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
+    API.write(
+        WRITE_COMMANDS.DELETE_COMMENT,
+        parameters,
+        {optimisticData, successData, failureData},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) => resolveCommentDeletionConflicts(persistedRequests, reportActionID, originalReportID),
+        },
+    );
 
     // if we are linking to the report action, and we are deleting it, and it's not a deleted parent action,
     // we should navigate to its report in order to not show not found page
@@ -1708,7 +1715,13 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
         parameters,
         {optimisticData, successData, failureData},
         {
-            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, createUpdateCommentMatcher(reportActionID)),
+            checkAndFixConflictingRequest: (persistedRequests) => {
+                const addCommentIndex = persistedRequests.findIndex((request) => addNewMessageWithText.has(request.command) && request.data?.reportActionID === reportActionID);
+                if (addCommentIndex > -1) {
+                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
+                }
+                return resolveDuplicationConflictAction(persistedRequests, createUpdateCommentMatcher(reportActionID));
+            },
         },
     );
 }
@@ -3388,6 +3401,7 @@ function completeOnboarding(
         }
     }
 
+    const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
     const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
@@ -3422,50 +3436,65 @@ function completeOnboarding(
         };
     }
 
-    const tasksData = data.tasks.map((task, index) => {
-        const taskDescription =
-            typeof task.description === 'function'
-                ? task.description({
-                      adminsRoomLink: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '-1')}`,
-                      workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID ?? '-1')}`,
-                      workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID ?? '-1')}`,
-                      workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID ?? '-1')}`,
-                  })
-                : task.description;
-        const currentTask = ReportUtils.buildOptimisticTaskReport(
-            actorAccountID,
-            currentUserAccountID,
-            targetChatReportID,
-            task.title,
-            taskDescription,
-            targetChatPolicyID,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-        );
-        const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.EMAIL.CONCIERGE);
-        const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
-            currentTask.reportID,
-            task.title,
-            0,
-            `task for ${task.title}`,
-            targetChatReportID,
-            actorAccountID,
-            index + 3,
-        );
-        currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
+    const tasksData = data.tasks
+        .filter((task) => {
+            if (task.type === 'addAccountingIntegration' && !userReportedIntegration) {
+                return false;
+            }
+            return true;
+        })
+        .map((task, index) => {
+            const taskDescription =
+                typeof task.description === 'function'
+                    ? task.description({
+                          adminsRoomLink: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '-1')}`,
+                          workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID ?? '-1')}`,
+                          workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID ?? '-1')}`,
+                          workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID ?? '-1')}`,
+                          integrationName,
+                          workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID ?? '-1')}`,
+                      })
+                    : task.description;
+            const taskTitle =
+                typeof task.title === 'function'
+                    ? task.title({
+                          integrationName,
+                      })
+                    : task.title;
+            const currentTask = ReportUtils.buildOptimisticTaskReport(
+                actorAccountID,
+                currentUserAccountID,
+                targetChatReportID,
+                taskTitle,
+                taskDescription,
+                targetChatPolicyID,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            );
+            const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.EMAIL.CONCIERGE);
+            const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
+                currentTask.reportID,
+                taskTitle,
+                0,
+                `task for ${taskTitle}`,
+                targetChatReportID,
+                actorAccountID,
+                index + 3,
+            );
+            currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
 
-        const completedTaskReportAction = task.autoCompleted
-            ? ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
-            : null;
+            const completedTaskReportAction = task.autoCompleted
+                ? ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
+                : null;
 
-        return {
-            task,
-            currentTask,
-            taskCreatedAction,
-            taskReportAction,
-            taskDescription: currentTask.description,
-            completedTaskReportAction,
-        };
-    });
+            return {
+                task,
+                currentTask,
+                taskCreatedAction,
+                taskReportAction,
+                taskDescription: currentTask.description,
+                completedTaskReportAction,
+            };
+        });
 
     const tasksForParameters = tasksData.map<TaskForParameters>(({task, currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => ({
         type: 'task',
@@ -3475,7 +3504,7 @@ function completeOnboarding(
         parentReportActionID: taskReportAction.reportAction.reportActionID,
         assigneeChatReportID: '',
         createdTaskReportActionID: taskCreatedAction.reportActionID,
-        completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? undefined,
+        completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? '-1',
         title: currentTask.reportName ?? '',
         description: taskDescription ?? '',
     }));
@@ -3777,6 +3806,7 @@ function completeOnboarding(
         paymentSelected,
         companySize,
         userReportedIntegration,
+        policyID: onboardingPolicyID,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
