@@ -1353,10 +1353,6 @@ function getTagListSections(
  * Verifies that there is at least one enabled tag
  */
 function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>) {
-    if (!policyTagList) {
-        return false;
-    }
-
     const policyTagValueList = policyTagList
         .filter(tag => tag && tag.tags)
         .map(({tags}) => Object.values(tags))
