@@ -756,7 +756,7 @@ function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
  * Returns the root parentReport if the given report is nested.
  * Uses recursion to iterate any depth of nested reports.
  */
-function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
+function getRootParentReport(report: OnyxEntry<Report>, visitedReportIDs: Set<string> = new Set<string>()): OnyxEntry<Report> {
     if (!report) {
         return undefined;
     }
@@ -766,10 +766,18 @@ function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
         return report;
     }
 
+    // Detect and prevent an infinite loop caused by a cycle in the ancestry. This should normally
+    // never happen
+    if (visitedReportIDs.has(report.reportID)) {
+        Log.alert('Report ancestry cycle detected.', {reportID: report.reportID, ancestry: Array.from(visitedReportIDs)});
+        return undefined;
+    }
+    visitedReportIDs.add(report.reportID);
+
     const parentReport = getReportOrDraftReport(report?.parentReportID);
 
     // Runs recursion to iterate a parent report
-    return getRootParentReport(!isEmptyObject(parentReport) ? parentReport : undefined);
+    return getRootParentReport(!isEmptyObject(parentReport) ? parentReport : undefined, visitedReportIDs);
 }
 
 /**
