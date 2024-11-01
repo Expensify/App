@@ -194,7 +194,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     }, [quickAction, translate, quickActionAvatars, quickActionReport]);
 
     const hideQABSubtitle = useMemo(() => {
-        if (isValidReport) {
+        if (!isValidReport) {
             return true;
         }
         if (quickActionAvatars.length === 0) {
