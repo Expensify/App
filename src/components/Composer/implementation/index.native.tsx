@@ -68,7 +68,7 @@ function Composer(
         const timeoutID = setTimeout(() => {
             textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
             textInput.current?.setSelection(selection.start, selection.start);
-        }, 100);
+        }, 0);
 
         return () => clearTimeout(timeoutID);
 
