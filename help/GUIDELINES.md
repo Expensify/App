@@ -125,7 +125,7 @@ A "FAQ" type section gives a detailed answer to a single question, often to expl
 
 
 ## Section Group Rules
-When the Concepts, Tutorials, or FAQ chapters have 6 or more sections, those sections can optionally be split into two or more "section groups".  Each section group consists of:
+When the Concepts, Tutorials, or FAQ chapters have 6 or more sections, those sections can optionally be split into two or more "section groups".  Each section group is given a "H3" header (`###`), and consists of:
 
 * A short header, named after the common theme of the sections of the section group
 * 3-6 sections, of any type
