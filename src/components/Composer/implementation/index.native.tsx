@@ -65,8 +65,13 @@ function Composer(
         }
 
         // We are setting selection twice to trigger a scroll to the cursor on toggling to smaller composer size.
-        textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
-        textInput.current?.setSelection(selection.start, selection.start);
+        const timeoutID = setTimeout(() => {
+            textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
+            textInput.current?.setSelection(selection.start, selection.start);
+        }, 100);
+
+        return () => clearTimeout(timeoutID);
+
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
