@@ -6229,49 +6229,37 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 }
 
 /**
- * Checks to see if a report's parentAction is an expense that contains a violation type of either violation or warning
+ * Should we display a RBR on this report due to violations?
  */
-function doesTransactionThreadHaveViolations(
-    report: OnyxInputOrEntry<Report>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    parentReportAction: OnyxInputOrEntry<ReportAction>,
-): boolean {
-    if (!ReportActionsUtils.isMoneyRequestAction(parentReportAction)) {
+function shouldDisplayViolationsRBR(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    // We only show the RBR in the highest level, which is the workspace chat
+    if (!isPolicyExpenseChat(report)) {
         return false;
     }
-    const {IOUTransactionID, IOUReportID} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
-    if (!IOUTransactionID || !IOUReportID) {
-        return false;
-    }
-    if (!isCurrentUserSubmitter(IOUReportID)) {
-        return false;
-    }
-    if (report?.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report?.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED) {
-        return false;
-    }
-    return (
-        TransactionUtils.hasViolation(IOUTransactionID, transactionViolations) ||
-        TransactionUtils.hasWarningTypeViolation(IOUTransactionID, transactionViolations) ||
-        (isPaidGroupPolicy(report) && TransactionUtils.hasModifiedAmountOrDateViolation(IOUTransactionID, transactionViolations))
-    );
-}
 
-/**
- * Checks if we should display violation - we display violations when the expense has violation and it is not settled
- */
-function shouldDisplayTransactionThreadViolations(
-    report: OnyxEntry<Report>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    parentReportAction: OnyxEntry<ReportAction>,
-): boolean {
-    if (!ReportActionsUtils.isMoneyRequestAction(parentReportAction)) {
+    // We only show the RBR to the submitter
+    if (!isCurrentUserSubmitter(report?.reportID ?? '')) {
         return false;
     }
-    const {IOUReportID} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
-    if (isSettled(IOUReportID) || isReportApproved(IOUReportID?.toString())) {
+
+    // We need to get all reports to check the ones inside this workspace chat, if we have no reports, then there's no RBR
+    const allReports = Object.values(ReportConnection.getAllReports());
+    if (!allReports) {
         return false;
     }
-    return doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+
+    // Now get all potential reports, which are the ones that are:
+    // - Owned by the same user
+    // - Are either open or submitted
+    // - Belong to the same workspace
+    // And if any have a violation, then it should have a RBR
+    const potentialReports = allReports.filter((r: Report) => r?.ownerAccountID === currentUserAccountID && r?.stateNum <= 1 && r?.policyID === report.policyID);
+    for (const potentialReport of potentialReports) {
+        if (hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -6307,23 +6295,6 @@ function shouldAdminsRoomBeVisible(report: OnyxEntry<Report>): boolean {
         return false;
     }
     return true;
-}
-
-/**
- * Check whether report has violations
- */
-function shouldShowViolations(report: Report, transactionViolations: OnyxCollection<TransactionViolation[]>) {
-    const {parentReportID, parentReportActionID} = report ?? {};
-    const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
-    if (!canGetParentReport) {
-        return false;
-    }
-    const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
-    const parentReportAction = parentReportActions[parentReportActionID] ?? null;
-    if (!parentReportAction) {
-        return false;
-    }
-    return shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
 }
 
 type ReportErrorsAndReportActionThatRequiresAttention = {
@@ -6406,7 +6377,7 @@ function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveVio
     let doesTransactionThreadReportHasViolations = false;
     if (oneTransactionThreadReportID) {
         const transactionReport = getReport(oneTransactionThreadReportID);
-        doesTransactionThreadReportHasViolations = !!transactionReport && shouldShowViolations(transactionReport, transactionViolations);
+        doesTransactionThreadReportHasViolations = !!transactionReport && shouldDisplayViolationsRBR(transactionReport, transactionViolations);
     }
     return (
         doesTransactionThreadReportHasViolations ||
@@ -8387,7 +8358,6 @@ export {
     chatIncludesConcierge,
     createDraftTransactionAndNavigateToParticipantSelector,
     doesReportBelongToWorkspace,
-    doesTransactionThreadHaveViolations,
     findLastAccessedReport,
     findSelfDMReportID,
     formatReportLastMessageText,
@@ -8591,7 +8561,7 @@ export {
     shouldDisableRename,
     shouldDisableThread,
     shouldDisplayThreadReplies,
-    shouldDisplayTransactionThreadViolations,
+    shouldDisplayViolationsRBR,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
@@ -8638,7 +8608,6 @@ export {
     getReasonAndReportActionThatRequiresAttention,
     isPolicyRelatedReport,
     hasReportErrorsOtherThanFailedReceipt,
-    shouldShowViolations,
     getAllReportErrors,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
 };

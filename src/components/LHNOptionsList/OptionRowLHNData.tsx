@@ -37,7 +37,7 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef<OptionData>();
 
-    const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
+    const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBR(fullReport, transactionViolations);
     const shouldDisplayReportViolations = ReportUtils.isReportOwner(fullReport) && ReportUtils.hasReportViolations(reportID);
 
     const optionItem = useMemo(() => {

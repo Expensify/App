@@ -55,6 +55,7 @@ import * as PhoneNumber from './PhoneNumber';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
+import {shouldDisplayViolationsRBR} from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
@@ -1797,7 +1798,7 @@ function getOptions(
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
         const report = option.item;
-        const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
+        const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBR(report, transactionViolations);
 
         return ReportUtils.shouldReportBeInOptionList({
             report,

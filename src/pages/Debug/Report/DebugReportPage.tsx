@@ -58,7 +58,7 @@ function DebugReportPage({
             return [];
         }
 
-        const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
+        const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBR(report, transactionViolations);
         const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
         const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
