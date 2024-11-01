@@ -6233,12 +6233,12 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
  */
 function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
     // We only show the RBR in the highest level, which is the workspace chat
-    if (!isPolicyExpenseChat(report)) {
+    if (!report || !isPolicyExpenseChat(report)) {
         return false;
     }
 
     // We only show the RBR to the submitter
-    if (!isCurrentUserSubmitter(report?.reportID ?? '')) {
+    if (!isCurrentUserSubmitter(report.reportID ?? '')) {
         return false;
     }
 
@@ -6247,8 +6247,8 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     // - Are either open or submitted
     // - Belong to the same workspace
     // And if any have a violation, then it should have a RBR
-    const allReports = Object.values(ReportConnection.getAllReports() ?? {});
-    const potentialReports = allReports.filter((r: Report) => r?.ownerAccountID === currentUserAccountID && r?.stateNum <= 1 && r?.policyID === report.policyID);
+    const allReports = Object.values(ReportConnection.getAllReports() ?? {}) as Report[];
+    const potentialReports = allReports.filter((r) => r.ownerAccountID === currentUserAccountID && r.stateNum && r.stateNum <= 1 && r.policyID === report.policyID);
     return potentialReports.some(
         (potentialReport) => hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
     );
