@@ -355,8 +355,6 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         ...(Object.hasOwn(transactionChanges, 'attendees') && {attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
-    console.log(updatedTransaction.pendingFields);
-
     return updatedTransaction;
 }
 
