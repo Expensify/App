@@ -3880,6 +3880,10 @@ function getReportName(
         return getIOUUnapprovedMessage(parentReportAction);
     }
 
+    if (ReportActionsUtils.isActionableJoinRequest(parentReportAction)) {
+        return getJoinRequestMessage(parentReportAction);
+    }
+
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName(parentReportAction);
@@ -4667,6 +4671,10 @@ function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.
 
 function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
     return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
+}
+
+function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
+    return Localize.translateLocal('workspace.inviteMessage.joinRequest', {user: ReportActionsUtils.getOriginalMessage(reportAction)?.email ?? ''});
 }
 
 /**
@@ -8435,6 +8443,7 @@ export {
     getRejectedReportMessage,
     getWorkspaceNameUpdatedMessage,
     getReportAutomaticallySubmittedMessage,
+    getJoinRequestMessage,
     getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,

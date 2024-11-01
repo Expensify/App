@@ -287,6 +287,9 @@ type OriginalMessageJoinPolicyChangeLog = {
 
     /** ID of the affected policy */
     policyID: string;
+
+    /** Email of the requested user */
+    email?: string;
 };
 
 /** Model of `modified expense` report action */
