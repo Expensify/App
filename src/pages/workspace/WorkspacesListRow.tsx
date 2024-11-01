@@ -139,7 +139,7 @@ function WorkspacesListRow({
 
     const ThreeDotMenuOrPendingIcon = (
         <View style={[styles.flexRow, !shouldUseNarrowLayout && styles.workspaceThreeDotMenu]}>
-            {isJoinRequestPending && (
+            {!!isJoinRequestPending && (
                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                     <Badge
                         text={translate('workspace.common.requested')}

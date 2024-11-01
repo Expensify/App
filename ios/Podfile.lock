@@ -2329,10 +2329,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNDevMenu (4.1.1):
-    - React-Core
-    - React-Core/DevSupport
-    - React-RCTNetwork
   - RNFBAnalytics (12.9.3):
     - Firebase/Analytics (= 8.8.0)
     - React-Core
@@ -2824,7 +2820,6 @@ DEPENDENCIES:
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
-  - RNDevMenu (from `../node_modules/react-native-dev-menu`)
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
@@ -3085,8 +3080,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-picker/picker"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
-  RNDevMenu:
-    :path: "../node_modules/react-native-dev-menu"
   RNFBAnalytics:
     :path: "../node_modules/@react-native-firebase/analytics"
   RNFBApp:
@@ -3263,7 +3256,6 @@ SPEC CHECKSUMS:
   RNCClipboard: c84275d07e3f73ff296b17e6c27e9ccdc194a0bb
   RNCPicker: 21ae0659666767a5c1253aef985ee5b7c527e345
   RNDeviceInfo: 130237d8e97a89b68f2202d5dd18ac6bb68e7648
-  RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
   RNFBCrashlytics: 2061ca863e8e2fa1aae9b12477d7dfa8e88ca0f9

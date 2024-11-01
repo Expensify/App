@@ -284,7 +284,7 @@ function TransactionListItemRow({
                 )}
 
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
-                    {canSelectMultiple && shouldShowTransactionCheckbox && (
+                    {canSelectMultiple && !!shouldShowTransactionCheckbox && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
@@ -293,7 +293,7 @@ function TransactionListItemRow({
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
                         >
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!isDisabled)]}>
-                                {item.isSelected && (
+                                {!!item.isSelected && (
                                     <Icon
                                         src={Expensicons.Checkmark}
                                         fill={theme.textLight}
