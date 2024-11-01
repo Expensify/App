@@ -12,9 +12,17 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isPaidAnimationRunning: boolean;
     onAnimationFinish: () => void;
     isApprovedAnimationRunning: boolean;
+    onApprovedAnimationFinish: () => void;
 };
 
-function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, isApprovedAnimationRunning, isDisabled, ...settlementButtonProps}: AnimatedSettlementButtonProps) {
+function AnimatedSettlementButton({
+    isPaidAnimationRunning,
+    onAnimationFinish,
+    isApprovedAnimationRunning,
+    onApprovedAnimationFinish,
+    isDisabled,
+    ...settlementButtonProps
+}: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const buttonScale = useSharedValue(1);
@@ -39,12 +47,13 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
         overflow: 'hidden',
         marginTop: buttonMarginTop.value,
     }));
-    const buttonDisabledStyle = isApprovedAnimationRunning
-        ? {
-              opacity: 1,
-              ...styles.cursorDefault,
-          }
-        : undefined;
+    const buttonDisabledStyle =
+        isPaidAnimationRunning || isApprovedAnimationRunning
+            ? {
+                  opacity: 1,
+                  ...styles.cursorDefault,
+              }
+            : undefined;
 
     const resetAnimation = useCallback(() => {
         // eslint-disable-next-line react-compiler/react-compiler
@@ -70,7 +79,15 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
         const totalDelay = CONST.ANIMATION_PAID_DURATION + CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
         height.value = withDelay(
             totalDelay,
-            withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}, () => runOnJS(onAnimationFinish)()),
+            withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}, () =>
+                runOnJS(() => {
+                    if (isApprovedAnimationRunning) {
+                        onApprovedAnimationFinish();
+                    } else {
+                        onAnimationFinish();
+                    }
+                })(),
+            ),
         );
         buttonMarginTop.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
         paymentCompleteTextOpacity.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
@@ -85,6 +102,7 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
         paymentCompleteTextScale,
         buttonMarginTop,
         resetAnimation,
+        onApprovedAnimationFinish,
     ]);
 
     return (

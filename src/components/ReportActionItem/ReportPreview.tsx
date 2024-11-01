@@ -203,6 +203,9 @@ function ReportPreview({
 
     const stopAnimation = useCallback(() => {
         setIsPaidAnimationRunning(false);
+    }, []);
+
+    const stopApprovedAnimation = useCallback(() => {
         setIsApprovedAnimationRunning(false);
     }, []);
     const startAnimation = useCallback(() => {
@@ -567,6 +570,7 @@ function ReportPreview({
                                         onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
                                         isApprovedAnimationRunning={isApprovedAnimationRunning}
+                                        onApprovedAnimationFinish={stopApprovedAnimation}
                                         onAnimationFinish={stopAnimation}
                                         formattedAmount={getSettlementAmount() ?? ''}
                                         currency={iouReport?.currency}
@@ -636,7 +640,7 @@ function ReportPreview({
                     moneyRequestReport={iouReport}
                     transactionCount={numberOfRequests}
                     startAnimation={() => {
-                        if (requestType === 'approve') {
+                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
                             startApprovedAnimation();
                         } else {
                             startAnimation();
