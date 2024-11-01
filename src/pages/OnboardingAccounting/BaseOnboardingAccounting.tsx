@@ -54,6 +54,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [error, setError] = useState('');
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
+    // If the signupQualifier is VSB, the company size step is skip.
+    // So we need to create the new workspace in the accounting step
     useEffect(() => {
         if (!isVsb || !!onboardingPolicyID) {
             return;
