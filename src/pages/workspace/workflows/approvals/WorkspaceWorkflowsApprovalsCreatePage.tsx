@@ -67,7 +67,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                         title={translate('workflowsCreateApprovalsPage.title')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0))}
                     />
-                    {approvalWorkflow && (
+                    {!!approvalWorkflow && (
                         <>
                             <ApprovalWorkflowEditor
                                 approvalWorkflow={approvalWorkflow}
@@ -81,7 +81,6 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                                 onFixTheErrorsLinkPressed={() => {
                                     formRef.current?.scrollTo({y: 0, animated: true});
                                 }}
-                                isLoading={approvalWorkflow?.isLoading}
                                 buttonText={translate('workflowsCreateApprovalsPage.submitButton')}
                                 containerStyles={[styles.mb5, styles.mh5]}
                                 enabledWhenOffline

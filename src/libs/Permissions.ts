@@ -40,10 +40,6 @@ function canUseNewDotCopilot(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEW_DOT_COPILOT) || canUseAllBetas(betas);
 }
 
-function canUseWorkspaceRules(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.WORKSPACE_RULES) || canUseAllBetas(betas);
-}
-
 function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
 }
@@ -53,8 +49,8 @@ function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.COMBINED_TRACK_SUBMIT);
 }
 
-function canUseNewDotQBD(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEW_DOT_QBD) || canUseAllBetas(betas);
+function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.PER_DIEM) || canUseAllBetas(betas);
 }
 
 /**
@@ -74,8 +70,7 @@ export default {
     canUseDirectFeeds,
     canUseNetSuiteUSATax,
     canUseNewDotCopilot,
-    canUseWorkspaceRules,
     canUseCombinedTrackSubmit,
     canUseCategoryAndTagApprovers,
-    canUseNewDotQBD,
+    canUsePerDiem,
 };

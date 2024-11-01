@@ -3008,6 +3008,13 @@ const styles = (theme: ThemeColors) =>
             ...spacing.mv3,
         },
 
+        sectionDividerLine: {
+            height: 1,
+            backgroundColor: theme.border,
+            ...spacing.mh5,
+            ...spacing.mv6,
+        },
+
         unreadIndicatorText: {
             color: theme.unreadIndicator,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -5262,6 +5269,11 @@ const styles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        integrationIcon: {
+            overflow: 'hidden',
+            borderRadius: variables.buttonBorderRadius,
         },
 
         colorGreenSuccess: {
