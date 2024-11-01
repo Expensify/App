@@ -6254,12 +6254,9 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     // - Belong to the same workspace
     // And if any have a violation, then it should have a RBR
     const potentialReports = allReports.filter((r: Report) => r?.ownerAccountID === currentUserAccountID && r?.stateNum <= 1 && r?.policyID === report.policyID);
-    for (const potentialReport of potentialReports) {
-        if (hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations)) {
-            return true;
-        }
-    }
-    return false;
+    return potentialReports.some(
+        (potentialReport) => hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
+    );
 }
 
 /**
