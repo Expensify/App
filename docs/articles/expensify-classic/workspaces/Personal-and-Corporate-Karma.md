@@ -28,7 +28,7 @@ The fund from your Personal Karma is determined by the expense's MCC (Merchant C
 You can enable Personal Karma donations from your personal workspace settings. 
 
 - Sign in to your account at www.expensify.com.
-- Go to **Settings** > **Workspaces** > click on your Individual workspace settings.
+- Go to **Settings** > **Workspaces** > click on your **Individual** workspace settings.
 - Click Opt-in to Karma donations. 
 
 ![Settings > Workspaces > Individual workspace > enable Personal Karma in settings](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_Karma_Individual.png){:width="100%"}
@@ -46,7 +46,7 @@ The fund to which your Corporate Karma goes is determined by the expense's MCC (
 As a [workspace billing owner](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account), you can enable Corporate Karma from the group workspace settings. 
 
 - Sign in to your account at www.expensify.com.
-- Go to **Settings** > **Workspaces** > click on your Group subscription settings.
+- Go to **Settings** > **Workspaces** > **Subscription**.
 - Toggle on Karma donations. 
 
 ![Settings > Workspaces > Group > enable Corporate Karma in subscription settings](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_Karma_Group.png){:width="100%"}
