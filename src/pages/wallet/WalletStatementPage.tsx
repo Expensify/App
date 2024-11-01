@@ -29,7 +29,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     const yearMonth = route.params.yearMonth ?? null;
     const isWalletStatementGenerating = walletStatement?.isGenerating ?? false;
     const prevIsWalletStatementGenerating = usePrevious(isWalletStatementGenerating);
-    const [isDownloading, setIsDownloading] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(isWalletStatementGenerating);
     const {translate, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -50,8 +50,8 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
             return;
         }
 
+        setIsDownloading(true);
         if (walletStatement?.[yearMonth]) {
-            setIsDownloading(true);
             // We already have a file URL for this statement, so we can download it immediately
             const downloadFileName = `Expensify_Statement_${yearMonth}.pdf`;
             const fileName = walletStatement[yearMonth];
@@ -66,8 +66,12 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         // If the statement generate is complete, download it automatically.
-        if (prevIsWalletStatementGenerating && !isWalletStatementGenerating && walletStatement?.[yearMonth]) {
-            processDownload();
+        if (prevIsWalletStatementGenerating && !isWalletStatementGenerating) {
+            if (walletStatement?.[yearMonth]) {
+                processDownload();
+            } else {
+                setIsDownloading(false);
+            }
         }
     }, [prevIsWalletStatementGenerating, isWalletStatementGenerating, processDownload, walletStatement, yearMonth]);
 
@@ -85,8 +89,8 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         >
             <HeaderWithBackButton
                 title={Str.recapitalize(title)}
-                shouldShowDownloadButton={!isOffline || isWalletStatementGenerating || isDownloading}
-                isDownloading={isWalletStatementGenerating || isDownloading}
+                shouldShowDownloadButton={!isOffline || isDownloading}
+                isDownloading={isDownloading}
                 onDownloadButtonPress={processDownload}
             />
             <FullPageOfflineBlockingView>
