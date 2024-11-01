@@ -45,7 +45,8 @@ function WebsiteBusiness({onNext, isEditing}: SubStepProps) {
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext: (values) => {
-            BankAccounts.addBusinessWebsiteForDraft((values as {website: string})?.website);
+            const website = Str.sanitizeURL((values as {website: string})?.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
+            BankAccounts.addBusinessWebsiteForDraft(website);
             onNext();
         },
         shouldSaveDraft: true,
