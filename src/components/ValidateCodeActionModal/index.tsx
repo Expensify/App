@@ -25,6 +25,7 @@ function ValidateCodeActionModal({
     footer,
     sendValidateCode,
     hasMagicCodeBeenSent,
+    isLoading,
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const firstRenderRef = useRef(true);
@@ -70,6 +71,7 @@ function ValidateCodeActionModal({
                 <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
                     <Text style={[themeStyles.mb3]}>{description}</Text>
                     <ValidateCodeForm
+                        isLoading={isLoading}
                         validateCodeAction={validateCodeAction}
                         validatePendingAction={validatePendingAction}
                         validateError={validateError}

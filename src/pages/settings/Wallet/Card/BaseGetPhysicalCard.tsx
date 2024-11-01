@@ -22,6 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type {GetPhysicalCardForm} from '@src/types/form';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type OnValidate = (values: OnyxEntry<GetPhysicalCardForm>) => Errors;
 
@@ -97,6 +98,7 @@ function BaseGetPhysicalCard({
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isActionCodeModalVisible, setActionCodeModalVisible] = useState(false);
+    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
     const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
     const cardToBeIssued = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
     const cardID = cardToBeIssued?.cardID.toString() ?? '-1';
@@ -176,10 +178,11 @@ function BaseGetPhysicalCard({
             <Text style={[styles.textHeadline, styles.mh5, styles.mb5]}>{headline}</Text>
             {renderContent({onSubmit, submitButtonText, children, onValidate})}
             <ValidateCodeActionModal
+                isLoading={formData?.isLoading}
                 isVisible={isActionCodeModalVisible}
                 sendValidateCode={() => User.requestValidateCodeAction()}
                 clearError={() => Wallet.clearPhysicalCardError(cardID)}
-                validateError={errorMessage}
+                validateError={!isEmptyObject(formData?.errors) ? formData?.errors : errorMessage}
                 handleSubmitForm={handleIssuePhysicalCard}
                 title={translate('cardPage.validateCardTitle')}
                 onClose={() => setActionCodeModalVisible(false)}

@@ -65,6 +65,9 @@ type ValidateCodeFormProps = {
 
     /** Function is called when validate code modal is mounted and on magic code resend */
     sendValidateCode: () => void;
+
+    /** Wheather the form is loading or not */
+    isLoading?: boolean;
 };
 
 function BaseValidateCodeForm({
@@ -78,6 +81,7 @@ function BaseValidateCodeForm({
     clearError,
     sendValidateCode,
     buttonStyles,
+    isLoading,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -266,7 +270,7 @@ function BaseValidateCodeForm({
                     style={[styles.mt4]}
                     success
                     large
-                    isLoading={account?.isLoading}
+                    isLoading={account?.isLoading || isLoading}
                 />
             </OfflineWithFeedback>
         </>

@@ -37,6 +37,9 @@ type ValidateCodeActionModalProps = {
 
     /** If the magic code has been resent previously */
     hasMagicCodeBeenSent?: boolean;
+
+    /** Wheather the form is loading or not */
+    isLoading?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export

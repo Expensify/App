@@ -14,6 +14,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type CONST from '@src/CONST';
+import * as FormActions from './FormActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -293,6 +294,14 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: privatePersonalDetails,
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        },
     ];
 
     const successData: OnyxUpdate[] = [
@@ -308,6 +317,14 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
+            value: {
+                isLoading: false,
+                errors: null,
+            },
+        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -316,10 +333,17 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
-                    state: 4, // NOT_ACTIVATED
+                    state: 2,
                     isLoading: false,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
+            value: {
+                isLoading: false,
             },
         },
     ];
@@ -336,6 +360,7 @@ function resetWalletAdditionalDetailsDraft() {
  * @param cardId The card id of the card that you want to clear the errors.
  */
 function clearPhysicalCardError(cardId: string) {
+    FormActions.clearErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
     Onyx.merge(ONYXKEYS.CARD_LIST, {
         [cardId]: {
             errors: null,
