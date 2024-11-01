@@ -48,8 +48,15 @@ function getAllReportsLength() {
     return Object.keys(allReports ?? {}).length;
 }
 
+function getReport(reportID: string) {
+    if (!reportID || !allReports) {
+        return;
+    }
+    return allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+}
+
 function updateReportData(reportID: string, reportData?: Partial<Report>) {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = getReport(reportID);
 
     if (!allReports || !report || !report.reportID) {
         return;
@@ -59,13 +66,6 @@ function updateReportData(reportID: string, reportData?: Partial<Report>) {
         ...report,
         ...reportData,
     };
-}
-
-function getReport(reportID: string) {
-    if (!reportID || !allReports) {
-        return;
-    }
-    return allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 }
 
 export {getAllReports, getAllReportsNameMap, getAllReportsLength, updateReportData, getReport};
