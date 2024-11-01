@@ -2,7 +2,7 @@ import type {RouteProp} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -177,6 +177,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
      which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
+    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue());
 
     function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
         return {
@@ -187,28 +188,21 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     /**
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      */
-    const hasInProgressVBBA = useCallback(() => {
+    function hasInProgressVBBA(): boolean {
         return !!achData?.bankAccountID && !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
-    }, [achData?.bankAccountID, achData?.state]);
+    }
 
     /*
      * Calculates the state used to show the "Continue with setup" view. If a bank account setup is already in progress and
      * no specific further step was passed in the url we'll show the workspace bank account reset modal if the user wishes to start over
      */
-    const getShouldShowContinueSetupButtonInitialValue = useCallback(() => {
+    function getShouldShowContinueSetupButtonInitialValue(): boolean {
         if (!hasInProgressVBBA()) {
             // Since there is no VBBA in progress, we won't need to show the component ContinueBankAccountSetup
             return false;
         }
         return achData?.state === BankAccount.STATE.PENDING || [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''].includes(getStepToOpenFromRouteParams(route));
-    }, [achData?.state, hasInProgressVBBA, route]);
-
-    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue());
-
-    useEffect(() => {
-        setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
-        setHasACHDataBeenLoaded(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
-    }, [achData, getShouldShowContinueSetupButtonInitialValue, isPreviousPolicy, reimbursementAccount]);
+    }
 
     const handleNextNonUSDBankAccountStep = () => {
         switch (nonUSDBankAccountStep) {
