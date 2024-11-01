@@ -10,23 +10,23 @@ import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayTo
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
 import type {BackToParams} from '@libs/Navigation/types';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ValidateCodeActionModal from "@components/ValidateCodeActionModal";
-import * as User from "@userActions/User";
-import {isEmptyObject} from "@src/types/utils/EmptyObject";
-import * as ErrorUtils from "@libs/ErrorUtils";
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type CodesStepProps = BackToParams;
 
@@ -172,7 +172,7 @@ function CodesStep({backTo}: CodesStepProps) {
                     validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
                     clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                     onModalHide={() => {}}
-                    onClose={()=> TwoFactorAuthActions.quitAndNavigateBack(backTo)}
+                    onClose={() => TwoFactorAuthActions.quitAndNavigateBack(backTo)}
                 />
             </ScrollView>
         </StepWrapper>
