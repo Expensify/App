@@ -13,6 +13,7 @@ import * as FormActions from '@libs/actions/FormActions';
 import * as User from '@libs/actions/User';
 import * as Wallet from '@libs/actions/Wallet';
 import * as CardUtils from '@libs/CardUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -99,7 +100,8 @@ function BaseGetPhysicalCard({
     const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
     const cardToBeIssued = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
     const cardID = cardToBeIssued?.cardID.toString() ?? '-1';
-    const isSuccessful = cardToBeIssued?.isSuccessfull;
+    const isSuccessful = cardToBeIssued?.isSuccessful;
+    const errorMessage = ErrorUtils.getLatestErrorMessageField(cardToBeIssued);
 
     useEffect(() => {
         if (isRouteSet.current || !privatePersonalDetails || !cardList) {
@@ -139,6 +141,7 @@ function BaseGetPhysicalCard({
         // Form draft data needs to be erased when the flow is complete,
         // so that no stale data is left on Onyx
         FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
+        Wallet.clearPhysicalCardError(cardID);
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID.toString()));
     }, [isSuccessful, cardID]);
 
@@ -160,17 +163,6 @@ function BaseGetPhysicalCard({
         [cardToBeIssued?.cardID, draftValues, session?.authToken, privatePersonalDetails],
     );
 
-    const sendValidateCode = useCallback(() => {
-        const primaryLogin = account?.primaryLogin ?? '';
-        const loginData = loginList?.[primaryLogin];
-
-        if (loginData?.validateCodeSent) {
-            return;
-        }
-
-        User.requestValidateCodeAction();
-    }, [account, loginList]);
-
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -185,8 +177,9 @@ function BaseGetPhysicalCard({
             {renderContent({onSubmit, submitButtonText, children, onValidate})}
             <ValidateCodeActionModal
                 isVisible={isActionCodeModalVisible}
-                sendValidateCode={sendValidateCode}
-                clearError={() => {}}
+                sendValidateCode={() => User.requestValidateCodeAction()}
+                clearError={() => Wallet.clearPhysicalCardError(cardID)}
+                validateError={errorMessage}
                 handleSubmitForm={handleIssuePhysicalCard}
                 title={translate('cardPage.validateCardTitle')}
                 onClose={() => setActionCodeModalVisible(false)}

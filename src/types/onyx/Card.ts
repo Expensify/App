@@ -117,7 +117,7 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     }>;
 
     /** Card status */
-    isSuccessfull?: boolean;
+    isSuccessful?: boolean;
 }>;
 
 /** Model of Expensify card details */

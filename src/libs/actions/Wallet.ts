@@ -284,7 +284,7 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
                     state: 4, // NOT_ACTIVATED
                     isLoading: true,
                     errors: null,
-                    isSuccessfull: null,
+                    isSuccessful: null,
                 },
             },
         },
@@ -304,7 +304,7 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
                     state: 4, // NOT_ACTIVATED
                     isLoading: false,
                     errors: null,
-                    isSuccessfull: true,
+                    isSuccessful: true,
                 },
             },
         },
@@ -331,6 +331,18 @@ function resetWalletAdditionalDetailsDraft() {
     Onyx.set(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, null);
 }
 
+/**
+ * Clear the error of specific card
+ * @param cardId The card id of the card that you want to clear the errors.
+ */
+function clearPhysicalCardError(cardId: string) {
+    Onyx.merge(ONYXKEYS.CARD_LIST, {
+        [cardId]: {
+            errors: null,
+        },
+    });
+}
+
 export {
     openOnfidoFlow,
     openInitialSettingsPage,
@@ -345,4 +357,5 @@ export {
     setKYCWallSource,
     requestPhysicalExpensifyCard,
     resetWalletAdditionalDetailsDraft,
+    clearPhysicalCardError,
 };
