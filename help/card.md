@@ -222,31 +222,31 @@ To view your virtual card details in Expensify, follow these steps:
 
 ### Usage and Setup
 #### Why should I use Expensify Expense for my business?
-- The Expensify Card is a corporate payment card that integrates seamlessly with Expensify Expense, providing simplified expense management, real-time control, and cashback rewards.
+The Expensify Card is a corporate payment card that integrates seamlessly with Expensify Expense, providing simplified expense management, real-time control, and cashback rewards.
 
 #### How do I set up the Expensify Card for my company?
-- To set up the Expensify Card, go to **Settings** > **Cards**, follow the prompts to enable the Expensify Card for your company, issue cards to employees, set spending limits, and define company policies for card usage.
+To set up the Expensify Card, go to **Settings** > **Cards**, follow the prompts to enable the Expensify Card for your company, issue cards to employees, set spending limits, and define company policies for card usage.
 
 #### How does the Expensify Card enforce my company’s expense policy?
-- The Expensify Card automatically enforces your company’s expense policy by blocking purchases outside of approved categories, enforcing spending limits in real-time, and providing real-time visibility into employee spending for managers.
+The Expensify Card automatically enforces your company’s expense policy by blocking purchases outside of approved categories, enforcing spending limits in real-time, and providing real-time visibility into employee spending for managers.
 
 ### Expense Submission and Tracking
 #### How do employees submit expenses with the Expensify Card?
-- Employees don’t need to manually submit expenses with the Expensify Card. Each transaction is automatically recorded, categorized, and attached to an expense report. Receipts are automatically captured and matched with transactions, eliminating the need for manual entry.
+Employees don’t need to manually submit expenses with the Expensify Card. Each transaction is automatically recorded, categorized, and attached to an expense report. Receipts are automatically captured and matched with transactions, eliminating the need for manual entry.
 
 #### Can I track transactions in real-time?
-- Yes, the Expensify Card provides real-time visibility into all transactions. Admins and managers can monitor employee spending as it happens, ensuring full control and oversight.
+Yes, the Expensify Card provides real-time visibility into all transactions. Admins and managers can monitor employee spending as it happens, ensuring full control and oversight.
 
 ### Rewards and Benefits
 #### What rewards do I earn with the Expensify Card?
-- The Expensify Card offers up to 2% cashback on all purchases. Cashback can be applied directly to reduce your monthly Expensify bill, or used to offset other company expenses.
+The Expensify Card offers up to 2% cashback on all purchases. Cashback can be applied directly to reduce your monthly Expensify bill, or used to offset other company expenses.
 
 #### How do I control where employees can use their Expensify Cards?
-- You can control employee card usage by setting vendor and category restrictions. For example, you can restrict cards to be used only for travel-related purchases, or limit spending to certain vendors. These restrictions are enforced at the point of sale.
+You can control employee card usage by setting vendor and category restrictions. For example, you can restrict cards to be used only for travel-related purchases, or limit spending to certain vendors. These restrictions are enforced at the point of sale.
 
 ### Transaction Issues
 #### Why did my transaction get declined?
-- Here are some reasons why an Expensify Card transaction might be declined:
+Here are some reasons why an Expensify Card transaction might be declined:
   - **Insufficient card limit**: If a transaction exceeds your Expensify Card’s available limit, the transaction will be declined. Submitting expenses and getting them approved will free up your limit for more spending.
   - **Inactive card**: Your card isn’t active yet or it was disabled by your Domain Admin.
   - **Incorrect card details**: Your card information was entered incorrectly with the merchant. Entering incorrect card information, such as the CVC, ZIP, or expiration date, will also lead to declines.
@@ -254,39 +254,39 @@ To view your virtual card details in Expensify, follow these steps:
 
 ### Expense Reporting
 #### How do I report my Expensify Card expenses?
-- You can report and submit Expensify Card expenses just like any other expenses, and you’ll want to submit them regularly to ensure you have a sufficient spending amount available on the card. As your expenses are approved, your Smart Limit updates accordingly.
+You can report and submit Expensify Card expenses just like any other expenses, and you’ll want to submit them regularly to ensure you have a sufficient spending amount available on the card. As your expenses are approved, your Smart Limit updates accordingly.
 
-- SmartScanned receipts should automatically attach to the related Expensify Card expense. Expensify also automatically generates an IRS-compliant eReceipt for every transaction as long as the expense isn’t lodging-related. If your organization doesn’t require itemized receipts, you can rely on eReceipts instead.
+SmartScanned receipts should automatically attach to the related Expensify Card expense. Expensify also automatically generates an IRS-compliant eReceipt for every transaction as long as the expense isn’t lodging-related. If your organization doesn’t require itemized receipts, you can rely on eReceipts instead.
 
 ### Fraud Protection
 #### How am I protected from fraud using the Expensify Card?
-- Expensify uses sophisticated algorithms to detect and block unusual card activity. You can also enable real-time notifications to receive alerts each time your card is charged.
+Expensify uses sophisticated algorithms to detect and block unusual card activity. You can also enable real-time notifications to receive alerts each time your card is charged.
 
 #### How long does the dispute process take?
-- The dispute process can take up to 90 days.
+The dispute process can take up to 90 days.
 
 #### Can I cancel a dispute?
-- You can cancel a filed dispute by using your Expensify Chat thread with Concierge or by emailing concierge@expensify.com.
+You can cancel a filed dispute by using your Expensify Chat thread with Concierge or by emailing concierge@expensify.com.
 
 ### Account and Usage Requirements
 #### Do I need a specific type of bank account to use the Expensify Card?
-- The Expensify Card requires a US business bank account opened in the name of a business incorporated in the US.
+The Expensify Card requires a US business bank account opened in the name of a business incorporated in the US.
 
 #### Can I use the Expensify Card across multiple workspaces?
-- You can use the Expensify Card on every workspace you create. However, a settlement account can only be used with the Expensify Card on one workspace.
+You can use the Expensify Card on every workspace you create. However, a settlement account can only be used with the Expensify Card on one workspace.
 
 #### Can I issue multiple cards to the same employee?
-- You can issue an unlimited number of both physical and virtual cards to employees, supporting a variety of use cases.
+You can issue an unlimited number of both physical and virtual cards to employees, supporting a variety of use cases.
 
 ### Upgrading and Reconciliation
 #### Why don’t I see the task to agree to new terms on my Home page?
-- There are several reasons why the task to accept new terms might not appear:
+There are several reasons why the task to accept new terms might not appear:
   - You may not be a Domain Admin.
   - Another domain admin has already accepted the terms.
   - The task might be hidden. Scroll to the bottom of the Home page and press **Show Hidden Tasks** to view all tasks.
 
 #### Will upgrading affect the continuous reconciliation process?
-- The upgrade process won't affect continuous reconciliation. During the transition, you may have employees with both old and new cards, resulting in two separate debits for your settlement account per period. Once all spending transitions to the new cards, you'll only see one settlement.
+The upgrade process won't affect continuous reconciliation. During the transition, you may have employees with both old and new cards, resulting in two separate debits for your settlement account per period. Once all spending transitions to the new cards, you'll only see one settlement.
 
 #### Do I have to upgrade to the new Expensify Visa® Commercial Card?
-- Yes, an upgrade to the new Expensify Visa® Commercial Card is necessary. A deadline will be provided soon, but you'll have ample time to complete the upgrade.
+Yes, an upgrade to the new Expensify Visa® Commercial Card is necessary. A deadline will be provided soon, but you'll have ample time to complete the upgrade.
