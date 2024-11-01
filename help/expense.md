@@ -90,14 +90,27 @@ Validating a business bank account is essential to ensure that your account is r
 
 ## Tutorials
 
-### [Create report] How do I create an expense report?
+### Expense Reports
+#### [Create report] How do I create an expense report?
 To create an expense report:
 1. Press **Create** > **Expense Report** to start a new report.
 2. Add your receipts and manually log expenses for tracking.
 3. Categorize your expenses for organization.
 4. Submit the report for approval to the relevant supervisor.
 
-### [SmartScan] How do I use SmartScan to capture receipts?
+#### [Submit Expenses] What happens after submitting an expense?
+After submitting an expense, the next steps depend on whether it was sent to a workspace or an individual:
+- **Workspace submissions**: Automatically added to a report, checked for violations, and a chat is created. Reports are submitted for approval every Sunday, but can be manually submitted if ready.
+- **Individual submissions**: Sent via email or text, with chat option in Expensify Chat for discussions.
+
+#### [Approve expenses] How do I approve expense reports?
+To approve expense reports:
+1. Go to your Inbox and select the report needing approval.
+2. Review the receipts and expense details for accuracy.
+3. Press **Approve** or **Reject** based on your assessment.
+
+### Expense Capture
+#### [SmartScan] How do I use SmartScan to capture receipts?
 To use SmartScan, follow these steps:
 1. Press the **+** icon and select **Submit Expense**.
 2. Press **Scan**.
@@ -107,7 +120,7 @@ To use SmartScan, follow these steps:
 6. (Optional) Enable the expense as billable if it should be billed to a client.
 7. Press **Submit**.
 
-### [Manually add expense] How do I manually add an expense?
+#### [Manually add expense] How do I manually add an expense?
 To add an expense manually, follow these steps:
 1. Press the **+** icon and select **Submit Expense**.
 2. Press **Manual**.
@@ -118,7 +131,8 @@ To add an expense manually, follow these steps:
 7. Press **Show more** to add additional fields like category if needed.
 8. Press **Submit**.
 
-### [Create distance expense] How do I create a distance expense?
+### Distance Expenses
+#### [Create distance expense] How do I create a distance expense?
 To create a distance expense:
 1. Press the **+** icon and select **Submit Expense**.
 2. Press **Distance**.
@@ -129,7 +143,7 @@ To create a distance expense:
 7. (Optional) Add a description.
 8. Press **Submit**.
 
-### [Create and send a distance request] How do I create and send a distance request for reimbursement?
+#### [Create and send a distance request] How do I create and send a distance request for reimbursement?
 To create and send a distance request for mileage reimbursement:
 1. Press the green **+** button and select **Request Money**.
 2. Press **Distance** on the Request Money screen.
@@ -138,7 +152,8 @@ To create and send a distance request for mileage reimbursement:
 5. On the confirmation page, review the amount, date, and distance. Optionally, add a description or category. Press **Request**.
 6. Your request will be sent to a workspace admin for approval and reimbursement through Expensify or other means.
 
-### [Connect Business Bank Account] How do I connect a business bank account in Expensify?
+### Bank Account Management
+#### [Connect Business Bank Account] How do I connect a business bank account in Expensify?
 To connect a business bank account:
 1. Enable the Make or Track Payments Workflow by navigating to **Workspaces** > **More Features** > **Enable Workflows**, then press **Workflows** and enable **Make or Track Payments**.
 2. Press **Connect Bank Account** and select either **Connect Online with Plaid** or **Connect Manually**.
@@ -148,7 +163,7 @@ To connect a business bank account:
 6. Provide additional information on beneficial owners if applicable.
 7. Verify all details are accurate and accept the agreement terms.
 
-### [Validate Business Bank Account] How do I validate a business bank account in Expensify?
+#### [Validate Business Bank Account] How do I validate a business bank account in Expensify?
 To validate your business bank account:
 1. Navigate to **Settings > Workspaces > _Workspace Name_ > Bank account** to check the status.
 2. If the status is **Verifying**, check your email for further instructions. If **Pending**, proceed to the next step.
@@ -157,7 +172,7 @@ To validate your business bank account:
 
 Once completed, your business bank account is validated and ready for use in Expensify.
 
-### [Unlock Business Bank Account] How do I unlock a business bank account?
+#### [Unlock Business Bank Account] How do I unlock a business bank account?
 If your business bank account is locked due to a rejected withdrawal request, follow these steps to unlock it:
 1. Go to **Settings > Workspaces > _Workspace Name_ > Bank account** and press **Fix**. This sends a request to our support team to review the reason for the lock. They will provide you with the necessary next steps.
 2. Be patient, as unlocking the account can take several business days due to ACH processing times and clawback periods.
@@ -173,18 +188,49 @@ If you need to enable direct debits from your verified bank account, provide you
   - ACH CompanyIDs: 1522304924, 2522304924
   - ACH Originator Name: Cambridge Global Payments
 
-### [Submit Expenses] What happens after submitting an expense?
-After submitting an expense, the next steps depend on whether it was sent to a workspace or an individual:
-- **Workspace submissions**: Automatically added to a report, checked for violations, and a chat is created. Reports are submitted for approval every Sunday, but can be manually submitted if ready.
-- **Individual submissions**: Sent via email or text, with chat option in Expensify Chat for discussions.
+#### [Connect Personal Bank Account] How do I connect a personal bank account to Expensify?
+To connect a personal bank account for receiving payments and reimbursements:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Wallet**.
+3. Press **Add Bank Account** to initiate the process.
+4. Press **Continue** to redirect to Plaid for secure bank account verification.
+5. Follow the prompts to enter your bank account details via Plaid.
+6. Once done, return to Expensify to complete the linking process.
+7. Choose the account you wish to connect and press **Save & continue**.
 
-### [Approve expenses] How do I approve expense reports?
-To approve expense reports:
-1. Go to your Inbox and select the report needing approval.
-2. Review the receipts and expense details for accuracy.
-3. Press **Approve** or **Reject** based on your assessment.
+Once connected, payments and reimbursements will be automatically deposited into the linked bank account.
 
-### [Approve and Pay Expenses] How do I approve and pay expenses in Expensify?
+### Invoice Management
+#### [Enable Invoicing] How do I enable invoicing on a workspace?
+To enable invoicing:
+1. Press your profile image or icon in the bottom left menu.
+2. Press **Workspaces** and select the workspace for which you want to enable invoicing.
+3. Press **More features** in the left menu.
+4. Under the Earn section, enable the **Invoice** toggle.
+
+#### [Send Invoice] How do I send an invoice using Expensify?
+To send an invoice:
+1. Press the **+** icon in the bottom left menu and select **Send Invoice**.
+2. Enter the amount due and press **Next**.
+3. Enter the email or phone number of the person who should receive the invoice.
+4. (Optional) Add additional invoice details, including description, date, category, tag, and/or tax.
+5. Press **Send**.
+
+#### [Receive Invoice Payment] How do I receive invoice payments?
+If you have not connected a business bank account to receive invoice payments, you will see an **Invoice balance** in your Wallet. Expensify will automatically transfer these invoice payments once a business bank account is connected.
+
+#### [Pay an Invoice] How do I pay an invoice in Expensify?
+To pay an invoice in Expensify, follow these steps:
+
+1. Press the link in the email or text notification you receive from Expensify.
+2. Press **Pay**.
+3. Choose to **Pay as an individual** or **Pay as a business**.
+4. Press **Add Bank Account** or **Add debit or credit card** to issue payment.
+
+You can also view all unpaid invoices by searching for the sender’s email or phone number on the left-hand side of the app. The invoices waiting for your payment will have a green dot.
+
+### Expense Management
+#### [Approve and Pay Expenses] How do I approve and pay expenses in Expensify?
 To manage expenses effectively, follow these steps:
 
 1. **Manually Approve an Expense**:
@@ -224,17 +270,44 @@ To manage expenses effectively, follow these steps:
      - Press **Pay** to pay the full amount within Expensify.
      - Press **Pay Elsewhere** if payment is made outside Expensify.
 
-### [Pay an Invoice] How do I pay an invoice in Expensify?
-To pay an invoice in Expensify, follow these steps:
+#### [Review & Resolve Duplicates] How do I handle duplicate expense requests?
+To review and resolve duplicate expenses:
+1. Press the red dot in the left menu or open the expense’s chat room to view the flagged request.
+2. Press the green **Review duplicates** button at the top of the request.
+3. Review the list of potential duplicates.
+4. To resolve a duplicate, press either **Keep all** or **Keep this one**.
+   - **Keep all**: Retains all expenses as separate charges and removes the hold.
+   - **Keep this one**: Retains this expense and discards its other related duplicates.
+5. If discrepancies exist between the duplicates (e.g., category, tags), choose which details to keep.
+6. Confirm your selection to merge the requests or keep all.
 
-1. Press the link in the email or text notification you receive from Expensify.
-2. Press **Pay**.
-3. Choose to **Pay as an individual** or **Pay as a business**.
-4. Press **Add Bank Account** or **Add debit or credit card** to issue payment.
+The expenses are removed from the duplicates list and the hold is removed.
 
-You can also view all unpaid invoices by searching for the sender’s email or phone number on the left-hand side of the app. The invoices waiting for your payment will have a green dot.
+#### [Track Expenses] How do I track expenses in Expensify?
+To create, store, or share non-reimbursable expenses using the Track Expenses feature:
+1. Press the **+** icon in the bottom menu and select **Track Expense**.
+2. Create the expense manually, scan the receipt, or add a distance expense.
+3. Choose the next steps for the expense:
+   - **Submit it to someone**: Select this option to request payment from a contact or other members of your Expensify workspace.
+   - **Categorize it**: Select this option to choose a category and additional details to code the expense for a specific workspace. The expense will then be placed on a report and can be submitted to the workspace for approval.
+   - **Share it with my accountant**: Select this option to share the expense with your accountant. The expense will then be placed on a report under the workspace for your accountant to review.
+   - **Nothing for now**: Select this option to store the expense. Expensify will keep the expense until you are ready to take action on it—it won’t expire. When you’re ready, you can then select one of the above options for the expense at a later time.
 
-### [Connect to QuickBooks Online] How do I connect Expensify to QuickBooks Online?
+#### [Split an Expense] How do I split an expense with others?
+Splitting an expense allows the person who paid the bill to request money from multiple people who will split the cost with them. To split an expense:
+1. Press the **+** icon and select **Split Expense**.
+2. Upload a photo of your receipt or manually enter the total bill amount.
+3. Press **Next**.
+4. Enter the names, email addresses, or phone numbers for the people you want to request money from. Note: You can select multiple people.
+5. Press **Next**.
+6. (Optional) Enter a reason for the request in the Description field.
+7. (Optional) If you manually entered the bill amount, add the merchant and date of purchase.
+8. Press **Split**.
+
+Each person will receive an email or text with the details of the request. You can also chat with them about the expense in Expensify Chat, and you can receive payments through your Expensify Wallet or outside of Expensify.
+
+### Accounting Integrations
+#### [Connect to QuickBooks Online] How do I connect Expensify to QuickBooks Online?
 To integrate with QuickBooks Online:
 1. Press your profile image or icon in the bottom left menu to access settings.
 2. Press **Workspaces** and select the workspace you want to connect to QuickBooks Online.
@@ -242,7 +315,7 @@ To integrate with QuickBooks Online:
 4. Press **Accounting** and then **Set up** next to QuickBooks Online.
 5. Enter your Intuit login details to import your settings.
 
-### [Configure QuickBooks Online] How do I configure QuickBooks Online settings in Expensify?
+#### [Configure QuickBooks Online] How do I configure QuickBooks Online settings in Expensify?
 Configuring QuickBooks Online involves setting import, export, and advanced settings for seamless integration with Expensify.
 
 1. **Import Settings**:
@@ -257,7 +330,7 @@ Configuring QuickBooks Online involves setting import, export, and advanced sett
    - Select **Advanced** under QuickBooks Online.
    - Set options for Auto-sync, Invite Employees, Automatically Create Entities, and Sync Reimbursed Reports.
 
-### [Connect to Xero] How do I connect Expensify to Xero?
+#### [Connect to Xero] How do I connect Expensify to Xero?
 To integrate with Xero:
 1. Press your profile image or icon in the bottom left menu to access settings.
 2. Press **Workspaces** and select your desired workspace.
@@ -265,7 +338,7 @@ To integrate with Xero:
 4. Press **Accounting** and then **Set up** next to Xero.
 5. Enter your Xero login details to import your settings.
 
-### [Configure Xero] How do I configure Xero settings in Expensify?
+#### [Configure Xero] How do I configure Xero settings in Expensify?
 To configure Xero settings:
 1. Under the Accounting settings for your workspace, press **Import** under the Xero connection.
 2. Select options for settings like Xero organization, Chart of Accounts, Tracking Categories, Re-bill Customers, and Taxes.
@@ -273,49 +346,20 @@ To configure Xero settings:
 4. Review export settings like Preferred Exporter, Export Out-of-Pocket Expenses, and Xero Bank Account.
 5. Press **Advanced** under Xero connection to set Auto-sync, Set Purchase Bill Status, Sync Reimbursed Reports, and other advanced settings.
 
-### [Connect to Sage Intacct] How do I connect Expensify to Sage Intacct?
+#### [Connect to Sage Intacct] How do I connect Expensify to Sage Intacct?
 To integrate with Sage Intacct:
 1. In Expensify, go to **Settings > Workspaces > [Workspace Name] > Accounting**.
 2. Press **Set up** next to Sage Intacct and enter your credentials.
 3. Press **Confirm** to finalize the setup.
 
-### [Configure Sage Intacct] How do I configure Sage Intacct settings in Expensify?
+#### [Configure Sage Intacct] How do I configure Sage Intacct settings in Expensify?
 To configure Sage Intacct:
 1. Navigate to **Accounting settings** and select **Entity** under Sage Intacct to choose the entity.
 2. Press **Import** to set preferences for categories, expenses, and dimensions.
 3. Press **Export** to choose exporter and methods for expenses.
 4. Press **Advanced** to enable features like auto-sync.
 
-### [Create expense tags] How do I create and manage expense tags in Expensify?
-To manage tags:
-1. Press your profile image or icon in the bottom menu and select **Workspaces**.
-2. Enable the Tags toggle in **More features**.
-3. Press **Tags** and manage your tags by adding, deleting, or editing them.
-
-### [Expense categories] How do I create and manage expense categories?
-To manage categories:
-1. Press your profile image or icon in the bottom menu and select **Workspaces**.
-2. Press **Categories** to add, delete, or edit categories.
-
-### [Require Tags and Categories] How do I require tags and categories for expenses?
-To mandate tags and categories:
-1. Press **Workspaces** and select a workspace.
-2. Press **Tags** or **Categories**.
-3. Enable the “Members must tag/categorize all expenses" toggle.
-
-### [Enable Report Fields] How do I enable report fields in Expensify?
-To enable report fields:
-1. Press **Settings** in the bottom menu and select **Workspaces**.
-2. Press **More features** and toggle on **Report Fields**.
-
-### [Exporting Reports to Xero] How do I export reports to Xero manually?
-If an error occurs during an automatic export to Xero:
-1. Check your email or the related Workspace Chat for error notifications.
-2. Resolve the issue by opening the expense and making necessary changes.
-3. Ensure the report is in the Approved, Closed, or Reimbursed state.
-4. An admin must press the heading at the top of the expense, select **Export**, and then choose **Xero**.
-
-### [Connect to NetSuite] How do I connect Expensify to NetSuite?
+#### [Connect to NetSuite] How do I connect Expensify to NetSuite?
 To integrate with NetSuite:
 1. Log into Expensify as a workspace admin and press your profile image or icon in the bottom left menu.
 2. Scroll down and press **Workspaces** and select the workspace you want to connect to NetSuite.
@@ -324,7 +368,7 @@ To integrate with NetSuite:
 5. Enter your NetSuite Account ID, Token ID, and Token Secret. These can be found in NetSuite under **Setup > Integration > Web Services Preferences**.
 6. Press **Confirm** to complete the setup.
 
-### [Configure NetSuite] How do I configure NetSuite settings in Expensify?
+#### [Configure NetSuite] How do I configure NetSuite settings in Expensify?
 To configure NetSuite settings:
 1. Ensure the Expensify Bundle is installed in NetSuite by going to **Customization > SuiteBundler > Search & Install Bundles**.
 2. Enable Token-Based Authentication in NetSuite under **Setup > Company > Enable Features > SuiteCloud > Manage Authentication**.
@@ -333,22 +377,8 @@ To configure NetSuite settings:
 5. Confirm Expense Categories and Reports are enabled in NetSuite under **Setup > Accounting** and **Employees**.
 6. Follow the detailed steps for ensuring transaction forms are properly configured in NetSuite for Expense Reports, Journal Entries, Vendor Bills, and Credits.
 
-### [Exporting Reports to QuickBooks Online] How do I manually export reports to QuickBooks Online?
-If an error occurs during an automatic export to QuickBooks Online:
-1. Check your email or the related Workspace Chat for error notifications.
-2. Open the expense and make necessary changes.
-3. Ensure the report is in the Approved, Closed, or Reimbursed state.
-4. An admin must press the heading at the top of the expense, select **Export**, and then choose **QuickBooks Online**.
-
-### [Disconnect from QuickBooks Online] How do I disconnect the QuickBooks Online connection?
-To disconnect QuickBooks Online:
-1. Press your profile image or icon in the bottom left menu.
-2. Press **Workspaces** and select the workspace you want to disconnect from QuickBooks Online.
-3. Press **Accounting** in the left menu.
-4. Press the three-dot menu icon to the right of QuickBooks Online and select **Disconnect**.
-5. Press **Disconnect** again to confirm.
-
-### [Export Expenses] How do I export expenses to a CSV file?
+### Exporting Data
+#### [Export Expenses] How do I export expenses to a CSV file?
 To export your expense data to a CSV file:
 1. Press the **Search** tab in the bottom left menu to view your expenses.
 2. Select the checkbox next to the expenses or reports you wish to export.
@@ -356,97 +386,19 @@ To export your expense data to a CSV file:
 
    The CSV download will save locally to your device with the file naming prefix "Expensify." This file includes data such as Date, Merchant, Description, From, To, Category, Tag, Tax, Amount, Currency, Type, and Receipt URL.
 
-### [Enable Invoicing] How do I enable invoicing on a workspace?
-To enable invoicing:
-1. Press your profile image or icon in the bottom left menu.
-2. Press **Workspaces** and select the workspace for which you want to enable invoicing.
-3. Press **More features** in the left menu.
-4. Under the Earn section, enable the **Invoice** toggle.
+#### [Exporting Reports to Xero] How do I export reports to Xero manually?
+If an error occurs during an automatic export to Xero:
+1. Check your email or the related Workspace Chat for error notifications.
+2. Resolve the issue by opening the expense and making necessary changes.
+3. Ensure the report is in the Approved, Closed, or Reimbursed state.
+4. An admin must press the heading at the top of the expense, select **Export**, and then choose **Xero**.
 
-### [Send Invoice] How do I send an invoice using Expensify?
-To send an invoice:
-1. Press the **+** icon in the bottom left menu and select **Send Invoice**.
-2. Enter the amount due and press **Next**.
-3. Enter the email or phone number of the person who should receive the invoice.
-4. (Optional) Add additional invoice details, including description, date, category, tag, and/or tax.
-5. Press **Send**.
-
-### [Receive Invoice Payment] How do I receive invoice payments?
-If you have not connected a business bank account to receive invoice payments, you will see an **Invoice balance** in your Wallet. Expensify will automatically transfer these invoice payments once a business bank account is connected.
-
-### [Review & Resolve Duplicates] How do I handle duplicate expense requests?
-To review and resolve duplicate expenses:
-1. Press the red dot in the left menu or open the expense’s chat room to view the flagged request.
-2. Press the green **Review duplicates** button at the top of the request.
-3. Review the list of potential duplicates.
-4. To resolve a duplicate, press either **Keep all** or **Keep this one**.
-   - **Keep all**: Retains all expenses as separate charges and removes the hold.
-   - **Keep this one**: Retains this expense and discards its other related duplicates.
-5. If discrepancies exist between the duplicates (e.g., category, tags), choose which details to keep.
-6. Confirm your selection to merge the requests or keep all.
-
-The expenses are removed from the duplicates list and the hold is removed.
-
-### [Track Expenses] How do I track expenses in Expensify?
-To create, store, or share non-reimbursable expenses using the Track Expenses feature:
-1. Press the **+** icon in the bottom menu and select **Track Expense**.
-2. Create the expense manually, scan the receipt, or add a distance expense.
-3. Choose the next steps for the expense:
-   - **Submit it to someone**: Select this option to request payment from a contact or other members of your Expensify workspace.
-   - **Categorize it**: Select this option to choose a category and additional details to code the expense for a specific workspace. The expense will then be placed on a report and can be submitted to the workspace for approval.
-   - **Share it with my accountant**: Select this option to share the expense with your accountant. The expense will then be placed on a report under the workspace for your accountant to review.
-   - **Nothing for now**: Select this option to store the expense. Expensify will keep the expense until you are ready to take action on it—it won’t expire. When you’re ready, you can then select one of the above options for the expense at a later time.
-
-### [Connect Personal Bank Account] How do I connect a personal bank account to Expensify?
-To connect a personal bank account for receiving payments and reimbursements:
-1. Press your profile image or icon in the bottom left menu.
-2. Press **Wallet**.
-3. Press **Add Bank Account** to initiate the process.
-4. Press **Continue** to redirect to Plaid for secure bank account verification.
-5. Follow the prompts to enter your bank account details via Plaid.
-6. Once done, return to Expensify to complete the linking process.
-7. Choose the account you wish to connect and press **Save & continue**.
-
-Once connected, payments and reimbursements will be automatically deposited into the linked bank account.
-
-### [Enable Expensify Wallet] How do I enable the Expensify Wallet?
-To set up your Expensify Wallet for sending and receiving payments:
-1. Press your profile image or icon in the bottom left menu.
-2. Press **Wallet**.
-3. Press **Enable Wallet** to start the setup process.
-4. If not already done, follow the prompts to connect your bank account via Plaid.
-5. Enter your personal details, including name, address, date of birth, phone number, and the last 4 digits of your social security number.
-6. Press **Save & continue** to proceed.
-7. Review the Onfido terms and press **Accept**.
-8. Choose a verification method for your mobile device: QR code, link, or text message.
-9. Follow the prompts on your mobile device to submit your ID with Onfido.
-
-Once your ID is successfully uploaded, Onfido will close automatically. You can then return to your Expensify Wallet to confirm that it is now enabled and ready for transactions.
-
-### [Split an Expense] How do I split an expense with others?
-Splitting an expense allows the person who paid the bill to request money from multiple people who will split the cost with them. To split an expense:
-
-1. Press the **+** icon and select **Split Expense**.
-2. Upload a photo of your receipt or manually enter the total bill amount.
-3. Press **Next**.
-4. Enter the names, email addresses, or phone numbers for the people you want to request money from. Note: You can select multiple people.
-5. Press **Next**.
-6. (Optional) Enter a reason for the request in the Description field.
-7. (Optional) If you manually entered the bill amount, add the merchant and date of purchase.
-8. Press **Split**.
-
-Each person will receive an email or text with the details of the request. You can also chat with them about the expense in Expensify Chat, and you can receive payments through your Expensify Wallet or outside of Expensify.
-
-### [Resolve Bank Account Errors] How do I resolve errors when adding a bank account?
-If you encounter a generic error message while uploading your ID for bank account verification, follow these steps:
-1. Ensure you are using Safari (on iPhone) or Chrome (on Android) as your web browser.
-2. Check your browser's permissions to ensure the camera and microphone settings are set to "Allow".
-3. Clear your web cache for Safari (on iPhone) or Chrome (on Android).
-4. If using a corporate Wi-Fi network, confirm your corporate firewall isn't blocking the website.
-5. Make sure no other apps are overlapping your screen, such as the Facebook Messenger bubble, during video recording.
-6. On iPhone with iOS version 15 or later, disable the Hide IP address feature in Safari.
-7. Try these steps on another device if possible.
-8. If the issue persists, contact your Account Manager or Concierge for further assistance.
+#### [Exporting Reports to QuickBooks Online] How do I manually export reports to QuickBooks Online?
+If an error occurs during an automatic export to QuickBooks Online:
+1. Check your email or the related Workspace Chat for error notifications.
+2. Open the expense and make necessary changes.
+3. Ensure the report is in the Approved, Closed, or Reimbursed state.
+4. An admin must press the heading at the top of the expense, select **Export**, and then choose **QuickBooks Online**.
 
 ## FAQ
 
