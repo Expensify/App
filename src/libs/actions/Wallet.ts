@@ -14,10 +14,10 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type CONST from '@src/CONST';
-import * as FormActions from './FormActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import * as FormActions from './FormActions';
 
 type WalletQuestionAnswer = {
     question: string;
