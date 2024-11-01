@@ -171,6 +171,46 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
 
+        const shouldShowApproveOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE);
+
+        if (shouldShowApproveOption) {
+            options.push({
+                icon: Expensicons.ThumbsUp,
+                text: translate('search.bulkActions.approve'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const reportIDList = selectedReports?.filter((report) => !!report) ?? [];
+                    SearchActions.approveMoneyRequestOnSearch(hash, reportIDList);
+                },
+            });
+        }
+
+        const shouldShowPayOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY);
+
+        if (shouldShowPayOption) {
+            options.push({
+                icon: Expensicons.MoneyBag,
+                text: translate('search.bulkActions.pay'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const reportIDList = selectedReports?.filter((report) => !!report) ?? [];
+                    // SearchActions.payMoneyRequestOnSearch(hash, reportIDList);
+                },
+            });
+        }
+
         options.push({
             icon: Expensicons.Download,
             text: translate('common.download'),
