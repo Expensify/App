@@ -22,7 +22,6 @@ import Parser from './Parser';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
-import {shouldDisplayViolationsRBR} from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; messageText?: string; messageHtml?: string};
@@ -108,7 +107,7 @@ function getOrderedReportIDs(
             return;
         }
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-        const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBR(report, transactionViolations);
+        const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
         const isHidden = ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const hasErrorsOtherThanFailedReceipt = ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations);
@@ -242,7 +241,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     if (oneTransactionThreadReportID) {
         const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
 
-        if (ReportUtils.shouldDisplayViolationsRBR(oneTransactionThreadReport, transactionViolations)) {
+        if (ReportUtils.shouldDisplayViolationsRBRInLHN(oneTransactionThreadReport, transactionViolations)) {
             return {
                 reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
             };

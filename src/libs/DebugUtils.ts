@@ -7,7 +7,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
 import * as ReportUtils from './ReportUtils';
-import {shouldDisplayViolationsRBR} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
 
 class NumberError extends SyntaxError {
@@ -598,7 +597,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false):
         return null;
     }
 
-    const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBR(report, transactionViolations);
+    const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
 
     const reason = ReportUtils.reasonForReportToBeInOptionList({
         report,
