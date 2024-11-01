@@ -99,17 +99,18 @@ function ShareDetailsPage({
                 )}
 
                 <View style={[styles.ph5, styles.flexGrow1, styles.flexColumn, {flexGrow: 25}]}>
-                    <View style={[styles.pv5, {flex: 2, backgroundColor: "green"}]}>
-                        <TextInput
-                            value={message}
-                            multiline
-                            onChangeText={(value) => {
-                                setMessage(value);
-                            }}
-                            accessibilityLabel={translate('share.messageInputLabel')}
-                            label={translate('share.messageInputLabel')}
-                            // style={{height: 100}}
-                        />
+                    <View style={[styles.pv5]}>
+                        <ScrollView>
+                            <TextInput
+                                value={message}
+                                multiline
+                                onChangeText={(value) => {
+                                    setMessage(value);
+                                }}
+                                accessibilityLabel={translate('share.messageInputLabel')}
+                                label={translate('share.messageInputLabel')}
+                            />
+                        </ScrollView>
                     </View>
                     {!isTextShared && (
                         <>
