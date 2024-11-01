@@ -145,6 +145,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID ?? '-1';
@@ -422,7 +423,12 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
     // eslint-disable-next-line react-compiler/react-compiler
-    if ((!hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef.current)) {
+    if (
+        (!hasACHDataBeenLoaded || isLoading) &&
+        shouldShowOfflineLoader &&
+        (shouldReopenOnfido || !requestorStepRef?.current) &&
+        !(currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && isValidateCodeActionModalVisible)
+    ) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
@@ -543,6 +549,8 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
                     plaidLinkOAuthToken={plaidLinkToken}
                     policyName={policyName}
                     policyID={policyIDParam}
+                    isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+                    toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
                 />
             );
         case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
