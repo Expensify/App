@@ -55,6 +55,12 @@ Expensify Travel offers three approval methods to accommodate different organiza
 - **Hard Approval**: Bookings are automatically canceled if not approved within 24 hours.
 - **Passive Approval**: Managers are notified of out-of-policy travel, but no action is required.
 
+### Travel Member Roles
+Assign roles to manage travel permissions within Expensify Travel:
+* **Traveler** - Can only book travel for themselves.
+* **Travel Arranger** - Can book travel for themselves and for other workspace members. Arrangers can be set to arrange travel for everyone in the workspace or for specific individuals only.
+* **Company Admin** - Can book travel for themselves as well as any other workspace members. They can also access administrative features to define travel policies, add or remove users, configure corporate cards as payment methods, view analytics and metrics, and use the Safety feature.
+
 ## Tutorials
 
 ### [Book Travel] How do I book a flight, hotel, or car rental?
@@ -95,6 +101,41 @@ If you need to edit or cancel your travel arrangements, you can do so through th
 6. Press **Trip Support** for assistance.
 
 If there are unexpected changes to your itinerary, such as a flight cancellation, Expensify’s travel partner **Spotnana** will reach out to provide updates. Note that any modifications, exchanges, or cancellations made through support will incur a $25 booking change fee.
+
+### [Configure Travel Policy] How do I set up a travel policy for my workspace?
+Workspace admins can create and update travel policies to establish travel rules for different groups of travelers. To configure a travel policy:
+
+1. Press the **Travel** tab and select **Book or manage travel**.
+2. Select the **Program** tab and choose **Policies**.
+3. Under Employee or Non-employee, press **Add new** to create a new policy.
+4. In the **Edit members** section, select the group of employees for the policy.
+5. Choose travel preferences to modify: General, flight, hotel, car, or rail.
+6. Press the paperclip icon next to each setting to de-couple it from the default policy.
+7. Update the desired settings and save changes.
+
+### [Demo Video] How can I watch a demo of Expensify Travel?
+To see how Expensify Travel works, watch the demo video:
+- The video provides a comprehensive overview of using Expensify Travel for booking and managing travel.
+
+### [Set Approval Method] How do I set the approval method for travel expenses?
+To configure the approval method for travel expenses in Expensify:
+1. Press the **Travel** tab and choose **Book or manage travel**.
+2. Navigate to the **Program** tab and select **Policies**.
+3. Under the General section, select the approval methods for Flights, Hotels, Cars, and Rail, choosing between Soft Approval, Hard Approval, or Passive Approval.
+
+### [Manage Travel Member Roles] How do I assign roles to travel members?
+To manage travel member roles within Expensify:
+1. Press the **Travel** tab and select **Book or manage travel**.
+2. Select the **Program** tab and choose **Users**.
+3. Press the name of the member whose role you wish to update.
+4. Press the **Roles** tab and select the desired role.
+5. Press **Save** to confirm the changes.
+
+### [Approve Travel Booking] How do I approve or decline a travel booking?
+To manage travel booking approvals effectively:
+1. Once an employee books a trip, you will receive an email notification with booking details.
+2. For **Soft Approval**, no action is required to approve, but to decline, follow the email prompt within 24 hours and press **Decline booking**, then **Deny Booking**.
+3. For **Hard Approval**, press **Approve booking** to confirm or **Decline booking** to reject, then follow the respective prompts.
 
 ## FAQ
 
