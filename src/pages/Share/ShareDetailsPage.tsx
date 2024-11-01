@@ -1,12 +1,12 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
+import React, {useEffect, useMemo, useState} from 'react';
+import {ScrollView, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import style from '@components/Icon/IconWrapperStyles';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -42,6 +42,11 @@ function ShareDetailsPage({
     }, [tempShareFiles]);
 
     const isTextShared = useMemo(() => currentAttachment?.mimeType === 'txt', [currentAttachment]);
+
+    useEffect(() => {
+        // alert(Object.values(tempShareFiles ?? {}) ? Object.values(tempShareFiles ?? {}).length : '');
+        alert(currentAttachment?.content);
+    }, [tempShareFiles, currentAttachment]);
 
     const [message, setMessage] = useState(isTextShared ? currentAttachment?.content : '');
 
@@ -93,42 +98,43 @@ function ShareDetailsPage({
                     </>
                 )}
 
-                <ScrollView style={[styles.ph5, styles.flexGrow1, styles.flexColumn]}>
-                    <View style={styles.justifyContentCenter}>
-                        <View style={[styles.pv5]}>
-                            <TextInput
-                                value={message}
-                                multiline
-                                onChangeText={(value) => {
-                                    setMessage(value);
-                                }}
-                                accessibilityLabel={translate('share.messageInputLabel')}
-                                label={translate('share.messageInputLabel')}
-                            />
-                        </View>
-                        {!isTextShared && (
-                            <>
-                                <View style={[styles.pt6, styles.pb2]}>
-                                    <Text style={[styles.textLabelSupporting]}>{translate('common.attachment')}</Text>
-                                </View>
-                                <AttachmentPreview
-                                    uri={currentAttachment?.content}
-                                    aspectRatio={currentAttachment?.aspectRatio}
-                                />
-                            </>
-                        )}
-                    </View>
-
-                    <View style={[styles.flexGrow1, styles.flexColumn, styles.justifyContentEnd]}>
-                        <Button
-                            success
-                            large
-                            text={translate('common.share')}
-                            style={[styles.w100]}
-                            onPress={handleShare}
+                <View style={[styles.ph5, styles.flexGrow1, styles.flexColumn, {flexGrow: 25}]}>
+                    <View style={[styles.pv5, {flex: 2, backgroundColor: "green"}]}>
+                        <TextInput
+                            value={message}
+                            multiline
+                            onChangeText={(value) => {
+                                setMessage(value);
+                            }}
+                            accessibilityLabel={translate('share.messageInputLabel')}
+                            label={translate('share.messageInputLabel')}
+                            // style={{height: 100}}
                         />
                     </View>
-                </ScrollView>
+                    {!isTextShared && (
+                        <>
+                            <View style={[styles.pt6, styles.pb2]}>
+                                <Text style={[styles.textLabelSupporting]}>{translate('common.attachment')}</Text>
+                            </View>
+                            <View style={{flex: 25, width: '100%', alignSelf: 'center', flexDirection: 'column', marginTop: 10, backgroundColor: 'yellow'}}>
+                                <AttachmentPreview
+                                    source={currentAttachment?.content}
+                                    // aspectRatio={currentAttachment?.aspectRatio}
+                                />
+                            </View>
+                        </>
+                    )}
+                </View>
+
+                <View style={[styles.flexGrow1, styles.flexColumn, styles.justifyContentEnd, styles.mb10]}>
+                    <Button
+                        success
+                        large
+                        text={translate('common.share')}
+                        style={[styles.w100]}
+                        onPress={handleShare}
+                    />
+                </View>
             </View>
         </ScreenWrapper>
     );
