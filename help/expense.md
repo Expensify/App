@@ -402,169 +402,177 @@ If an error occurs during an automatic export to QuickBooks Online:
 
 ## FAQ
 
-### Why should I use Expensify Expense for my business?
+### General Inquiries
+#### Why should I use Expensify Expense for my business?
 Expensify Expense automates processes like receipt capture, workflows, and reimbursement, saving time and improving accuracy.
 
-### How do SmartScan limits work?
+#### How do SmartScan limits work?
 SmartScan allows you to scan a set number of receipts each month for free, with more available under paid plans.
 
-### Can I use Expensify Expense for free?
+#### Can I use Expensify Expense for free?
 Yes, Expensify Expense offers a free plan with basic features, with advanced plans for larger business needs.
 
-### How does Expensify support multi-currency expenses?
+#### How does Expensify support multi-currency expenses?
 Expensify converts expenses to your preferred currency and supports global reimbursement.
 
-### How do I disconnect Xero from Expensify?
+### Integration and Export
+#### How do I disconnect Xero from Expensify?
 To disconnect Xero:
 1. Press your profile image or icon in the bottom left menu.
 2. Press **Workspaces** and select your workspace.
 3. Press **Accounting** and select **Disconnect** next to Xero.
 
-### Can an employee have more than one approval workflow?
+#### Can an employee have more than one approval workflow?
 No, each employee can have only one approval workflow.
 
-### [Xero Export Confirmation] How do I know if a report successfully exported to Xero?
+#### [Xero Export Confirmation] How do I know if a report successfully exported to Xero?
 When a report exports successfully, a message is posted in the related Expensify Chat room.
 
-### [Duplicate Report Handling] What happens if I manually export a report that has already been exported?
+#### [Duplicate Report Handling] What happens if I manually export a report that has already been exported?
 When an admin manually exports a report, Expensify will warn them if the report has already been exported. If the admin chooses to export it again, it will create a duplicate report in Xero. You will need to delete the duplicate entries from within Xero.
 
-### [Auto Sync Impact] What happens to existing reports that have already been approved and reimbursed if I enable Auto Sync?
+#### [Auto Sync Impact] What happens to existing reports that have already been approved and reimbursed if I enable Auto Sync?
 - If Auto Sync was disabled when your Workspace was linked to Xero, enabling it won’t impact existing reports that haven’t been exported.
 - If a report has been exported and reimbursed via ACH, it will be automatically marked as paid in Xero during the next sync.
 - If a report has been exported and marked as paid in Xero, it will be automatically marked as reimbursed in Expensify during the next sync.
 - If a report has not yet been exported to Xero, it won’t be automatically exported.
 
-### [Report Export to Sage Intacct] Why wasn't my report automatically exported to Sage Intacct?
+#### [Report Export to Sage Intacct] Why wasn't my report automatically exported to Sage Intacct?
 There are a number of factors that can cause auto-export to fail. If this happens, you will find the specific export error in the report comments for the report that failed to export. Once you’ve resolved any errors, you can manually export the report to Sage Intacct.
 
-### [Negative Expenses to Sage Intacct] Can I export negative expenses to Sage Intacct?
+#### [Negative Expenses to Sage Intacct] Can I export negative expenses to Sage Intacct?
 Yes, you can export negative expenses to Sage Intacct. If you are exporting out-of-pocket expenses as expense reports, then the total of each exported report cannot be negative.
 
-### [NetSuite Plan Requirement] What type of Expensify plan is required to connect to NetSuite?
+#### [NetSuite Plan Requirement] What type of Expensify plan is required to connect to NetSuite?
 You need a Control workspace to integrate with NetSuite. If you have a Collect workspace, you will need to upgrade to Control.
 
-### [NetSuite Page Size] What should I set my page size to in NetSuite for importing customers and vendors?
+#### [NetSuite Page Size] What should I set my page size to in NetSuite for importing customers and vendors?
 Make sure your page size is set to 1000 in NetSuite for importing your customers and vendors. Go to **Setup > Integration > Web Services Preferences** and search **Page Size** to determine your page size.
 
-### [NetSuite Export Options] What are the export options for NetSuite?
+#### [NetSuite Export Options] What are the export options for NetSuite?
 You can export out-of-pocket expenses and company card expenses as Expense Reports, Vendor Bills, or Journal Entries in NetSuite. For invoices, select an Accounts Receivable account. Export settings can be configured to choose the date for records, export foreign currency amounts, and export to the next open period if a period is closed.
 
-### [QuickBooks Online Error Resolution] Why do I see a red dot next to my QuickBooks Online connection?
+#### [QuickBooks Online Error Resolution] Why do I see a red dot next to my QuickBooks Online connection?
 If there is an error with your connection, you’ll see a red dot next to Accounting in the left menu. When you press Accounting, you’ll also see a red dot displayed next to the QuickBooks Online connection card. This may occur if you incorrectly enter your QuickBooks Online login information when trying to establish the connection. To resubmit your login details:
 1. Press the three-dot menu to the right of the QuickBooks Online connection.
 2. Press **Enter credentials**.
 3. Enter your Intuit login details to establish the connection.
 
-### [QuickBooks Online Export Troubleshooting] Why can't I manually export a report to QuickBooks Online?
+#### [QuickBooks Online Export Troubleshooting] Why can't I manually export a report to QuickBooks Online?
 To export a report to QuickBooks Online, the report must be in the Approved, Closed, or Reimbursed state. If the report is in the Open state, pressing **Export** will lead to an empty page. Ensure the report is submitted or approved if it's in the Processing state. Once these changes are made, an admin can manually export the report to QuickBooks Online.
 
-### [QuickBooks Online Export Confirmation] How do I know if a report is successfully exported to QuickBooks Online?
+#### [QuickBooks Online Export Confirmation] How do I know if a report is successfully exported to QuickBooks Online?
 When a report exports successfully, a message is posted in the expense’s related chat room.
 
-### [Duplicate Report Handling in QuickBooks Online] What happens if I manually export a report that has already been exported?
+#### [Duplicate Report Handling in QuickBooks Online] What happens if I manually export a report that has already been exported?
 When an admin manually exports a report, Expensify will notify them if the report has already been exported. Exporting the data again will create a duplicate report in QuickBooks Online.
 
-### [Auto Sync Impact for QuickBooks Online] What happens to existing approved and reimbursed reports if I enable Auto Sync?
+#### [Auto Sync Impact for QuickBooks Online] What happens to existing approved and reimbursed reports if I enable Auto Sync?
 - If Auto Sync was disabled when your Workspace was linked to QuickBooks Online, enabling it won’t impact existing reports that haven’t been exported.
 - If a report has been exported and reimbursed via ACH, it will be automatically marked as paid in QuickBooks Online during the next sync.
 - If a report has been exported and marked as paid in QuickBooks Online, it will be automatically marked as reimbursed in Expensify during the next sync.
 
 Reports that have yet to be exported to QuickBooks Online won’t be automatically exported.
 
-### [CSV Export Options] Can I export in a different format, like PDF or XLS?
+### Exporting and Downloading Options
+#### [CSV Export Options] Can I export in a different format, like PDF or XLS?
 No, currently Expensify supports CSV export only.
 
-### [CSV Customization] Can I add columns to the CSV download to capture additional data points?
+#### [CSV Customization] Can I add columns to the CSV download to capture additional data points?
 No, the CSV template cannot be customized.
 
-### [Bulk Selection] Can I select expenses or reports in bulk for exporting?
+#### [Bulk Selection] Can I select expenses or reports in bulk for exporting?
 Yes, you can select expenses or reports in bulk by using the **Select multiple** or **Select all** option. To display these options on the mobile app, simply long press an item.
 
-### [Workspace Requirement] Why do I need to create a workspace to send an invoice?
+### Invoicing and Payment
+#### [Workspace Requirement] Why do I need to create a workspace to send an invoice?
 A workspace is a configuration of settings related to your business. Since invoicing is considered a business feature, you must have a workspace to configure and use invoicing.
 
-### [Invoice Communication] How do I communicate with the sender/recipient about the invoice?
+#### [Invoice Communication] How do I communicate with the sender/recipient about the invoice?
 Expensify will automatically notify the invoice recipient about the new invoice via email, SMS, and a mobile app notification, along with instructions on how to pay it. Daily reminders will be sent until the invoice is paid. Additionally, an invoice chat room will be automatically created in Expensify between the invoice sender, their workspace admins, and the payer. You can use this chat to discuss anything related to the invoice.
 
-### [Invoice Export] Can you export invoices between an accounting integration?
+#### [Invoice Export] Can you export invoices between an accounting integration?
 Yes, you can export invoices between Expensify and your connected accounting integration.
 
-### [Invoice Permissions] Who can send and pay an invoice?
+#### [Invoice Permissions] Who can send and pay an invoice?
 All workspace admins will be able to send and pay invoices. Invoices can also be paid by anyone, including recipients without an Expensify account.
 
-### [Disable Invoicing] What happens if I disable invoicing in the future?
+#### [Disable Invoicing] What happens if I disable invoicing in the future?
 When invoicing is disabled, all previously created invoice rooms and historical invoices will remain unaffected and continue to exist. However, all workspace admins will no longer have the option to send an invoice.
 
-### [Business Bank Account Error] Why am I getting an error after I enter my website when connecting a business bank account?
+#### [Business Bank Account Error] Why am I getting an error after I enter my website when connecting a business bank account?
 We can only accept a private domain website to ensure the security of your business. If you receive an error when entering your website, it is likely because the domain is not recognized as private. Make sure you are using a business email with a private domain. If you continue to experience issues, contact our support team at concierge@expensify.com for further assistance.
 
-### [Duplicate Expense Handling] What should I do if an expense is flagged as a duplicate?
+### Duplicate Handling
+#### [Duplicate Expense Handling] What should I do if an expense is flagged as a duplicate?
 If an expense is flagged as a duplicate, you can review and resolve it by selecting to keep all duplicates or only one. Adjust and confirm any discrepancies before finalizing your choice.
 
-### [Duplicate Detection Criteria] When are expenses flagged as duplicates?
+#### [Duplicate Detection Criteria] When are expenses flagged as duplicates?
 Expenses are flagged as duplicates if they have the same date and amount unless:
 - They were split from a single expense.
 - They were imported from a credit card.
 - Matching email receipts were received with different timestamps.
 
-### [Concierge Duplicate Alert] What should I do if Concierge flags a receipt as a duplicate?
+#### [Concierge Duplicate Alert] What should I do if Concierge flags a receipt as a duplicate?
 If Concierge flags a receipt as a duplicate, scanning the receipt again will trigger the same alert. You can review these in the deleted filter on Expensify Classic.
 
-### [Edit Duplicate Requests] Can I edit a duplicate request once resolved?
+#### [Edit Duplicate Requests] Can I edit a duplicate request once resolved?
 Yes, you can edit a duplicate request after it has been resolved, but ensure the hold is first removed.
 
-### [Review Discarded Duplicates] Can I review a discarded duplicate later?
+#### [Review Discarded Duplicates] Can I review a discarded duplicate later?
 Yes, approvers can review discarded duplicates to ensure accuracy and prevent fraud.
 
-### [Invoice Payment Options] What are the payment options for invoices in Expensify?
+### Invoice Payment Options
+#### [Invoice Payment Options] What are the payment options for invoices in Expensify?
 When paying an invoice, you can choose to pay as an individual or as a business. You can add a bank account or use a debit or credit card to issue payment. Only the person who received the invoice will see the option to pay it. If you want to pay an invoice outside of Expensify, you will need to coordinate with the vendor to discuss alternative payment options.
 
-### [Adding Payment Methods] Can I add additional payment methods for paying invoices?
+#### [Adding Payment Methods] Can I add additional payment methods for paying invoices?
 Yes, you can add additional payment methods to your Expensify Wallet. To do this, go to Account Settings > Wallet, then press Add Bank Account. This allows you to choose a payment method when paying future invoices.
 
-### [Invoice Sending Limitations] Can anyone send an invoice through Expensify?
+#### [Invoice Sending Limitations] Can anyone send an invoice through Expensify?
 Only Expensify customers can send an invoice. This feature is designed to ensure that businesses using Expensify can manage their invoice billing processes efficiently while providing flexibility for their customers to make payments.
 
-### [Invoice Visibility] Can someone other than the recipient pay an invoice?
+#### [Invoice Visibility] Can someone other than the recipient pay an invoice?
 No, only the person who received the invoice will see the option to pay it. This ensures secure and accurate processing of invoice payments.
 
-### [Unpaid Invoices] How can I view unpaid invoices?
+#### [Unpaid Invoices] How can I view unpaid invoices?
 To view all unpaid invoices, search for the sender’s email or phone number on the left-hand side of the app. Invoices awaiting your payment will have a green dot.
 
-### [Invoice Chat Communication] How can I communicate about an invoice?
+#### [Invoice Chat Communication] How can I communicate about an invoice?
 You can chat directly with your vendor at expensify.com in the designated invoice room to discuss invoice-related matters.
 
-### [Business Bank Account Requirements] What are the general requirements for adding a business bank account?
+### Bank Account Requirements
+#### [Business Bank Account Requirements] What are the general requirements for adding a business bank account?
 To add a business bank account to issue reimbursements via ACH (US) or to issue Expensify Cards:
 - Enter a physical address for yourself, any Beneficial Owner (if one exists), and the business associated with the bank account. We cannot accept a PO Box or MailDrop location.
 - We are required by law to verify your identity. Part of this process requires you to verify a US-issued photo ID. Your ID must be issued by the United States to use features related to US ACH. You and any Beneficial Owner (if one exists) must also have a US address.
 
-### [Beneficial Owner Definition] What is a Beneficial Owner?
+#### [Beneficial Owner Definition] What is a Beneficial Owner?
 A Beneficial Owner refers to an **individual** who owns 25% or more of the business. If no individual owns 25% or more of the business, the company does not have a Beneficial Owner.
 
-### [Beneficial Owner Details] What do I do if the Beneficial Owner section only asks for personal details, but my organization is owned by another company?
+#### [Beneficial Owner Details] What do I do if the Beneficial Owner section only asks for personal details, but my organization is owned by another company?
 Please indicate you have a Beneficial Owner only if it is an individual who owns 25% or more of the business.
 
-### [Address and ID Verification] Why can’t I input my address or upload my ID?
+#### [Address and ID Verification] Why can’t I input my address or upload my ID?
 When adding a verified business bank account in Expensify, the individual adding the account and any beneficial owner (if one exists) are required to have a US address, US photo ID, and a US SSN. If you do not meet these requirements, you’ll need to have another admin add the bank account and then share access with you once it is verified.
 
-### [Document Requests] Why am I asked for documents when adding my bank account?
+#### [Document Requests] Why am I asked for documents when adding my bank account?
 When a bank account is added to Expensify, we complete a series of checks to verify the information provided to us. We conduct these checks to comply with both our sponsor bank's requirements and federal government regulations, specifically the Bank Secrecy Act / Anti-Money Laundering (BSA / AML) laws. Expensify also has anti-fraud measures in place.
 
 If automatic verification fails, we may request manual verification, which could involve documents such as address verification for your business, a letter from your bank confirming bank account ownership, etc.
 
 If you have any questions regarding the documentation request you received, please contact Concierge and they will be happy to assist.
 
-### [Microtransaction Validation] I don’t see all three microtransactions I need to validate my bank account. What should I do?
+### Bank Account Validation
+#### [Microtransaction Validation] I don’t see all three microtransactions I need to validate my bank account. What should I do?
 Wait until the end of the second business day. If you still don’t see them, please contact your bank and ask them to whitelist our ACH IDs **1270239450**, **4270239450**, and **2270239450**. Expensify’s ACH Originator Name is "Expensify."
 
 Once that's all set, make sure to contact your account manager or concierge, and our team will be able to re-trigger those three test transactions!
 
-### [Test Deposits for Validation] How many test deposits will I receive when validating my business bank account?
+#### [Test Deposits for Validation] How many test deposits will I receive when validating my business bank account?
 You will receive two withdrawals and one deposit in your business bank account to complete the validation process.
 
-### [Missing Test Deposits] What should I do if I don't see the test deposits in my business bank account after two business days?
+#### [Missing Test Deposits] What should I do if I don't see the test deposits in my business bank account after two business days?
 If the test deposits are not visible after two business days, it may be due to direct debits not being enabled on your bank account. In such cases, provide your bank with the following details:
 - ACH CompanyIDs: 1270239450, 4270239450, 2270239450
 - ACH Originator Name: Expensify
