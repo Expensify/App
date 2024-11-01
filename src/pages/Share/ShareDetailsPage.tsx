@@ -69,6 +69,11 @@ function ShareDetailsPage({
         );
     };
 
+    const handleChange = (value: string) => {
+        alert(value);
+        setMessage(value);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -104,9 +109,7 @@ function ShareDetailsPage({
                             <TextInput
                                 value={message}
                                 multiline
-                                onChangeText={(value) => {
-                                    setMessage(value);
-                                }}
+                                onChangeText={handleChange}
                                 accessibilityLabel={translate('share.messageInputLabel')}
                                 label={translate('share.messageInputLabel')}
                             />
