@@ -182,7 +182,7 @@ function FloatingActionButtonAndPopover(
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const policyChatForActivePolicy = useMemo(() => {
-        if (!activePolicy || !activePolicy?.isPolicyExpenseChatEnabled) {
+        if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
             return {} as OnyxTypes.Report;
         }
         const policyChatsForActivePolicy = ReportUtils.getWorkspaceChats(activePolicyID ?? '-1', [session?.accountID ?? -1]);
