@@ -1119,6 +1119,19 @@ function getAmountWidth(amount: string): number {
     return width;
 }
 
+function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, selectedBG: string, focusedBG: string): ViewStyle {
+    let backgroundColor;
+    if (isSelected) {
+        backgroundColor = selectedBG;
+    } else if (isFocused) {
+        backgroundColor = focusedBG;
+    }
+
+    return {
+        backgroundColor,
+    };
+}
+
 const staticStyleUtils = {
     positioning,
     combineStyles,
@@ -1193,6 +1206,7 @@ const staticStyleUtils = {
     getAmountWidth,
     getBorderRadiusStyle,
     getHighResolutionInfoWrapperStyle,
+    getItemBackgroundColorStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1211,9 +1225,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getAutoCompleteSuggestionItemStyle: (highlightedEmojiIndex: number, rowHeight: number, isHovered: boolean, currentEmojiIndex: number): ViewStyle[] => {
         let backgroundColor;
 
-        if (currentEmojiIndex === highlightedEmojiIndex) {
-            backgroundColor = theme.activeComponentBG;
-        } else if (isHovered) {
+        if (isHovered || currentEmojiIndex === highlightedEmojiIndex) {
             backgroundColor = theme.hoverComponentBG;
         }
 
@@ -1248,6 +1260,15 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             // which also includes the top padding and bottom border
             height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
         };
+    },
+
+    /*
+     * Returns the actual maxHeight of the auto-growing markdown text input.
+     */
+    getMarkdownMaxHeight: (maxAutoGrowHeight: number | undefined): TextStyle => {
+        // maxHeight is not of the input only but the of the whole input container
+        // which also includes the top padding and bottom border
+        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth} : {};
     },
 
     /**

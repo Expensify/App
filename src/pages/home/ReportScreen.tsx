@@ -219,15 +219,17 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
+    const lastReportIDFromRoute = usePrevious(reportIDFromRoute);
     const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID});
-    const {reportActions, linkedAction, sortedAllReportActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+    const {reportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
     const wasReportAccessibleRef = useRef(false);
+    // eslint-disable-next-line react-compiler/react-compiler
     if (firstRenderRef.current) {
         Timing.start(CONST.TIMING.CHAT_RENDER);
         Performance.markStart(CONST.TIMING.CHAT_RENDER);
@@ -343,14 +345,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         [currentUserAccountID, linkedAction],
     );
 
-    /**
-     * Using logical OR operator because with nullish coalescing operator, when `isLoadingApp` is false, the right hand side of the operator
-     * is not evaluated. This causes issues where we have `isLoading` set to false and later set to true and then set to false again.
-     * Ideally, `isLoading` should be set initially to true and then set to false. We can achieve this by using logical OR operator.
-     */
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const isLoading = isLoadingApp || !reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty();
-
+    const isLoading = isLoadingApp ?? (!reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty());
     const shouldShowSkeleton =
         (isLinkingToMessage && !isLinkedMessagePageReady) ||
         (!isLinkingToMessage && !isInitialPageReady) ||
@@ -359,9 +354,11 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         !isCurrentReportLoadedFromOnyx ||
         isLoading;
 
+    const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !!prevIsLinkedActionDeleted) ||
+        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !isLinkedActionBecomesDeleted) ||
         (shouldShowSkeleton &&
             !reportMetadata.isLoadingInitialReportActions &&
             !!reportActionIDFromRoute &&
@@ -389,7 +386,9 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return false;
         }
 
+        // eslint-disable-next-line react-compiler/react-compiler
         if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            // eslint-disable-next-line react-compiler/react-compiler
             return true;
         }
 
@@ -579,7 +578,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
         // Therefore, we need to compare if the existing reportID is the same as the one in the route
         // before deciding that we shouldn't call OpenReport.
-        if (onyxReportID === prevReport?.reportID && (!onyxReportID || onyxReportID === reportIDFromRoute)) {
+        if (reportIDFromRoute === lastReportIDFromRoute && (!onyxReportID || onyxReportID === reportIDFromRoute)) {
             return;
         }
 
@@ -599,6 +598,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         prevReport?.chatType,
         prevReport,
         reportIDFromRoute,
+        lastReportIDFromRoute,
         isFocused,
         isDeletedParentAction,
         prevIsDeletedParentAction,
@@ -661,12 +661,11 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     useEffect(() => {
         // If the linked action is previously available but now deleted,
         // remove the reportActionID from the params to not link to the deleted action.
-        const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
         if (!isLinkedActionBecomesDeleted) {
             return;
         }
         Navigation.setParams({reportActionID: ''});
-    }, [prevIsLinkedActionDeleted, isLinkedActionDeleted]);
+    }, [isLinkedActionBecomesDeleted]);
 
     // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
     // then we set reportActionID as empty string, so we display them the report and not the "Not found page".
@@ -687,8 +686,14 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Report.readNewestAction(report?.reportID ?? '');
     }, [report]);
     const mostRecentReportAction = reportActions.at(0);
+    const isMostRecentReportIOU = mostRecentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+    const isSingleIOUReportAction = reportActions.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU).length === 1;
+    const isSingleExpenseReport = ReportUtils.isExpenseReport(report) && isMostRecentReportIOU && isSingleIOUReportAction;
+    const isSingleInvoiceReport = ReportUtils.isInvoiceReport(report) && isMostRecentReportIOU && isSingleIOUReportAction;
     const shouldShowMostRecentReportAction =
         !!mostRecentReportAction &&
+        !isSingleExpenseReport &&
+        !isSingleInvoiceReport &&
         !ReportActionsUtils.isActionOfType(mostRecentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) &&
         !ReportActionsUtils.isDeletedAction(mostRecentReportAction);
 
@@ -728,7 +733,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                             needsOffscreenAlphaCompositing
                         >
                             {headerView}
-                            {report && ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                            {!!report && ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
                                         <View style={[styles.ph5, styles.pb3]}>
@@ -753,9 +758,11 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {!shouldShowSkeleton && report && (
+                                {!shouldShowSkeleton && !!report && (
                                     <ReportActionsView
                                         reportActions={reportActions}
+                                        hasNewerActions={hasNewerActions}
+                                        hasOlderActions={hasOlderActions}
                                         report={report}
                                         parentReportAction={parentReportAction}
                                         isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}

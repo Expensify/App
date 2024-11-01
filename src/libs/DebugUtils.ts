@@ -1,14 +1,13 @@
 /* eslint-disable max-classes-per-file */
-import {isMatch} from 'date-fns';
-import isValid from 'date-fns/isValid';
+import {isMatch, isValid} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
-import * as OptionsListUtils from './OptionsListUtils';
 import * as ReportUtils from './ReportUtils';
+import SidebarUtils from './SidebarUtils';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -593,12 +592,12 @@ function validateReportActionJSON(json: string) {
 /**
  * Gets the reason for showing LHN row
  */
-function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPaths | null {
+function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false): TranslationPaths | null {
     if (!report) {
         return null;
     }
 
-    const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, transactionViolations);
+    const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
 
     const reason = ReportUtils.reasonForReportToBeInOptionList({
         report,
@@ -612,7 +611,12 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPath
         includeSelfDM: true,
     });
 
-    // When there's no specific reason, we default to isFocused since the report is only showing because we're viewing it
+    if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
+        return `debug.reasonVisibleInLHN.hasRBR`;
+    }
+
+    // When there's no specific reason, we default to isFocused if the report is only showing because we're viewing it
+    // Otherwise we return hasRBR if the report has errors other that failed receipt
     if (reason === null || reason === CONST.REPORT_IN_LHN_REASONS.DEFAULT) {
         return 'debug.reasonVisibleInLHN.isFocused';
     }
@@ -642,13 +646,22 @@ function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>): GBRR
     return null;
 }
 
+type RBRReasonAndReportAction = {
+    reason: TranslationPaths;
+    reportAction: OnyxEntry<ReportAction>;
+};
+
 /**
  * Gets the report action that is causing the RBR to show up in LHN
  */
-function getRBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
-    const {reportAction} = OptionsListUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean): RBRReasonAndReportAction | null {
+    const {reason, reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations) ?? {};
 
-    return reportAction;
+    if (reason) {
+        return {reason: `debug.reasonRBR.${reason}`, reportAction};
+    }
+
+    return null;
 }
 
 const DebugUtils = {
@@ -670,7 +683,7 @@ const DebugUtils = {
     validateReportActionJSON,
     getReasonForShowingRowInLHN,
     getReasonAndReportActionForGBRInLHNRow,
-    getRBRReportAction,
+    getReasonAndReportActionForRBRInLHNRow,
     REPORT_ACTION_REQUIRED_PROPERTIES,
     REPORT_REQUIRED_PROPERTIES,
 };

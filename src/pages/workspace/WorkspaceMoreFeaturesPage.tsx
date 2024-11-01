@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
@@ -62,7 +63,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {canUseWorkspaceFeeds, canUseWorkspaceRules, canUseCompanyCardFeeds} = usePermissions();
+    const {canUseWorkspaceRules, canUseCompanyCardFeeds} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -100,11 +101,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 DistanceRate.enablePolicyDistanceRates(policyID, isEnabled);
             },
         },
-    ];
-
-    // TODO remove this when feature will be fully done, and move spend item inside spendItems array
-    if (canUseWorkspaceFeeds) {
-        spendItems.push({
+        {
             icon: Illustrations.HandCard,
             titleTranslationKey: 'workspace.moreFeatures.expensifyCard.title',
             subtitleTranslationKey: 'workspace.moreFeatures.expensifyCard.subtitle',
@@ -120,8 +117,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabledAction: () => {
                 setIsDisableExpensifyCardWarningModalOpen(true);
             },
-        });
-    }
+        },
+    ];
 
     if (canUseCompanyCardFeeds) {
         spendItems.push({
@@ -130,7 +127,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
             isActive: policy?.areCompanyCardsEnabled ?? false,
             pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
-            disabled: !isEmptyObject(cardFeeds?.companyCards),
+            disabled: !isEmptyObject(CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards)),
             action: (isEnabled: boolean) => {
                 if (!policyID) {
                     return;

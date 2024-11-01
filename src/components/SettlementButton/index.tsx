@@ -59,6 +59,7 @@ function SettlementButton({
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     onlyShowPayElsewhere,
+    wrapperStyle,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -69,7 +70,7 @@ function SettlementButton({
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
-    const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
@@ -190,7 +191,7 @@ function SettlementButton({
 
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             if (!isUserValidated) {
-                Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute());
+                Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.route);
                 return;
             }
             triggerKYCFlow(event, iouPaymentType);
@@ -250,6 +251,7 @@ function SettlementButton({
                         savePreferredPaymentMethod(policyID, option.value);
                     }}
                     style={style}
+                    wrapperStyle={wrapperStyle}
                     disabledStyle={disabledStyle}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}

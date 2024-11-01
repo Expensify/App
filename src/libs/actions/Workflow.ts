@@ -182,7 +182,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null}])),
+                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null, pendingFields: null}])),
             },
         },
     ];
@@ -334,7 +334,7 @@ function clearApprovalWorkflowApprovers() {
 }
 
 function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>) {
-    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+    Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 }
 
 function clearApprovalWorkflow() {

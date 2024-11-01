@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
+import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
@@ -48,8 +48,10 @@ import type {
     UpdateReportWriteCapabilityParams,
     UpdateRoomDescriptionParams,
 } from '@libs/API/parameters';
+import type ExportReportCSVParams from '@libs/API/parameters/ExportReportCSVParams';
 import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisibilityParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as ApiUtils from '@libs/ApiUtils';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
@@ -57,6 +59,7 @@ import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import fileDownload from '@libs/fileDownload';
 import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
@@ -64,13 +67,14 @@ import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
+import enhanceParameters from '@libs/Network/enhanceParameters';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
-import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
+import {extractPolicyIDFromPath, getPolicy} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -81,7 +85,7 @@ import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
-import type {OnboardingPurposeType} from '@src/CONST';
+import type {OnboardingAccountingType, OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -100,13 +104,14 @@ import type {
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
+import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import navigateFromNotification from './navigateFromNotification';
+import {createUpdateCommentMatcher, resolveCommentDeletionConflicts, resolveDuplicationConflictAction, resolveEditCommentWithNewAddCommentRequest} from './RequestConflictUtils';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 import * as OnboardingFlow from './Welcome/OnboardingFlow';
@@ -157,7 +162,7 @@ type GuidedSetupData = Array<
 type ReportError = {
     type?: string;
 };
-
+const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
 let currentUserEmail: string | undefined;
@@ -276,7 +281,6 @@ registerPaginationConfig({
     pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
     sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
     getItemID: (reportAction) => reportAction.reportActionID,
-    isLastItem: (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED,
 });
 
 function clearGroupChat() {
@@ -493,7 +497,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
 
     if (shouldUpdateNotificationPrefernece) {
         optimisticReport.participants = {
-            [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            [currentUserAccountID]: {notificationPreference: ReportUtils.getDefaultNotificationPreferenceForReport(report)},
         };
     }
 
@@ -548,19 +552,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
             value: successReportActions,
         },
     ];
-
-    if (shouldUpdateNotificationPrefernece) {
-        // optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants: {
-                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-            },
-        });
-    }
 
     let failureReport: Partial<Report> = {
         lastMessageTranslationKey: '',
@@ -838,8 +829,8 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
     };
-
-    if (ReportUtils.isGroupChat(newReportObject)) {
+    const isGroupChat = ReportUtils.isGroupChat(newReportObject);
+    if (isGroupChat) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
         parameters.groupChatAdminLogins = currentUserEmail;
         parameters.optimisticAccountIDList = Object.keys(newReportObject?.participants ?? {}).join(',');
@@ -871,6 +862,7 @@ function openReport(
                 ...newReportObject,
                 pendingFields: {
                     createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    ...(isGroupChat && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
                 },
                 isOptimisticReport: true,
             };
@@ -924,6 +916,7 @@ function openReport(
                 participants: redundantParticipants,
                 pendingFields: {
                     createChat: null,
+                    reportName: null,
                 },
                 errorFields: {
                     createChat: null,
@@ -985,7 +978,10 @@ function openReport(
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig);
+        API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig, {
+            checkAndFixConflictingRequest: (persistedRequests) =>
+                resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID),
+        });
     }
 }
 
@@ -1539,7 +1535,14 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
 
     CachedPDFPaths.clearByKey(reportActionID);
 
-    API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
+    API.write(
+        WRITE_COMMANDS.DELETE_COMMENT,
+        parameters,
+        {optimisticData, successData, failureData},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) => resolveCommentDeletionConflicts(persistedRequests, reportActionID, originalReportID),
+        },
+    );
 
     // if we are linking to the report action, and we are deleting it, and it's not a deleted parent action,
     // we should navigate to its report in order to not show not found page
@@ -1699,7 +1702,20 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
         reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_COMMENT, parameters, {optimisticData, successData, failureData});
+    API.write(
+        WRITE_COMMANDS.UPDATE_COMMENT,
+        parameters,
+        {optimisticData, successData, failureData},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) => {
+                const addCommentIndex = persistedRequests.findIndex((request) => addNewMessageWithText.has(request.command) && request.data?.reportActionID === reportActionID);
+                if (addCommentIndex > -1) {
+                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
+                }
+                return resolveDuplicationConflictAction(persistedRequests, createUpdateCommentMatcher(reportActionID));
+            },
+        },
+    );
 }
 
 /** Deletes the draft for a comment report action. */
@@ -2516,7 +2532,7 @@ function clearIOUError(reportID: string) {
  * Uses the NEW FORMAT for "emojiReactions"
  */
 function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: string | number = preferredSkinTone) {
-    const createdAt = timezoneFormat(utcToZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
+    const createdAt = timezoneFormat(toZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2758,7 +2774,7 @@ function joinRoom(report: OnyxEntry<Report>) {
     updateNotificationPreference(
         report.reportID,
         ReportUtils.getReportNotificationPreference(report),
-        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        ReportUtils.getDefaultNotificationPreferenceForReport(report),
         report.parentReportID,
         report.parentReportActionID,
     );
@@ -2771,11 +2787,22 @@ function leaveGroupChat(reportID: string) {
         return;
     }
 
+    // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
+    // The remaining parts of the report object will be removed after the API call is successful.
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: null,
+            value: {
+                reportID: null,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+            },
         },
     ];
     // Clean up any quick actions for the report we're leaving from
@@ -2787,8 +2814,27 @@ function leaveGroupChat(reportID: string) {
         });
     }
 
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: Object.keys(report).reduce<Record<string, null>>((acc, key) => {
+                acc[key] = null;
+                return acc;
+            }, {}),
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: report,
+        },
+    ];
+
     navigateToMostRecentReport(report);
-    API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData});
+    API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
 /** Leave a report by setting the state to submitted and closed */
@@ -3326,17 +3372,15 @@ function getReportPrivateNote(reportID: string | undefined) {
 function completeOnboarding(
     engagementChoice: OnboardingPurposeType,
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
-    {
-        firstName,
-        lastName,
-    }: {
-        firstName: string;
-        lastName: string;
-    },
+    firstName = '',
+    lastName = '',
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
     paymentSelected?: string,
+    companySize?: OnboardingCompanySizeType,
+    userReportedIntegration?: OnboardingAccountingType,
 ) {
+    const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
     const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
@@ -3371,50 +3415,65 @@ function completeOnboarding(
         };
     }
 
-    const tasksData = data.tasks.map((task, index) => {
-        const taskDescription =
-            typeof task.description === 'function'
-                ? task.description({
-                      adminsRoomLink: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '-1')}`,
-                      workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID ?? '-1')}`,
-                      workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID ?? '-1')}`,
-                      workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID ?? '-1')}`,
-                  })
-                : task.description;
-        const currentTask = ReportUtils.buildOptimisticTaskReport(
-            actorAccountID,
-            currentUserAccountID,
-            targetChatReportID,
-            task.title,
-            taskDescription,
-            targetChatPolicyID,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-        );
-        const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.EMAIL.CONCIERGE);
-        const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
-            currentTask.reportID,
-            task.title,
-            0,
-            `task for ${task.title}`,
-            targetChatReportID,
-            actorAccountID,
-            index + 3,
-        );
-        currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
+    const tasksData = data.tasks
+        .filter((task) => {
+            if (task.type === 'addAccountingIntegration' && !userReportedIntegration) {
+                return false;
+            }
+            return true;
+        })
+        .map((task, index) => {
+            const taskDescription =
+                typeof task.description === 'function'
+                    ? task.description({
+                          adminsRoomLink: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '-1')}`,
+                          workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID ?? '-1')}`,
+                          workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID ?? '-1')}`,
+                          workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID ?? '-1')}`,
+                          integrationName,
+                          workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID ?? '-1')}`,
+                      })
+                    : task.description;
+            const taskTitle =
+                typeof task.title === 'function'
+                    ? task.title({
+                          integrationName,
+                      })
+                    : task.title;
+            const currentTask = ReportUtils.buildOptimisticTaskReport(
+                actorAccountID,
+                currentUserAccountID,
+                targetChatReportID,
+                taskTitle,
+                taskDescription,
+                targetChatPolicyID,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            );
+            const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.EMAIL.CONCIERGE);
+            const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
+                currentTask.reportID,
+                taskTitle,
+                0,
+                `task for ${taskTitle}`,
+                targetChatReportID,
+                actorAccountID,
+                index + 3,
+            );
+            currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
 
-        const completedTaskReportAction = task.autoCompleted
-            ? ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
-            : null;
+            const completedTaskReportAction = task.autoCompleted
+                ? ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
+                : null;
 
-        return {
-            task,
-            currentTask,
-            taskCreatedAction,
-            taskReportAction,
-            taskDescription: currentTask.description,
-            completedTaskReportAction,
-        };
-    });
+            return {
+                task,
+                currentTask,
+                taskCreatedAction,
+                taskReportAction,
+                taskDescription: currentTask.description,
+                completedTaskReportAction,
+            };
+        });
 
     const tasksForParameters = tasksData.map<TaskForParameters>(({task, currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => ({
         type: 'task',
@@ -3424,7 +3483,7 @@ function completeOnboarding(
         parentReportActionID: taskReportAction.reportAction.reportActionID,
         assigneeChatReportID: '',
         createdTaskReportActionID: taskCreatedAction.reportActionID,
-        completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? undefined,
+        completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? '-1',
         title: currentTask.reportName ?? '',
         description: taskDescription ?? '',
     }));
@@ -3648,6 +3707,38 @@ function completeOnboarding(
         },
     );
 
+    if (userReportedIntegration) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
+            value: {
+                areConnectionsEnabled: true,
+                pendingFields: {
+                    areConnectionsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
+            value: {
+                pendingFields: {
+                    areConnectionsEnabled: null,
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
+            value: {
+                areConnectionsEnabled: getPolicy(onboardingPolicyID)?.areConnectionsEnabled,
+                pendingFields: {
+                    areConnectionsEnabled: null,
+                },
+            },
+        });
+    }
+
     const guidedSetupData: GuidedSetupData = [
         {type: 'message', ...introductionMessage},
         {type: 'message', ...textMessage},
@@ -3692,6 +3783,9 @@ function completeOnboarding(
         actorAccountID,
         guidedSetupData: JSON.stringify(guidedSetupData),
         paymentSelected,
+        companySize,
+        userReportedIntegration,
+        policyID: onboardingPolicyID,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
@@ -4102,92 +4196,111 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
 
+function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_REPORT_TO_CSV, {
+        reportID,
+        transactionIDList,
+    });
+
+    const formData = new FormData();
+    Object.entries(finalParameters).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+            formData.append(key, value.join(','));
+        } else {
+            formData.append(key, String(value));
+        }
+    });
+
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+}
+
 export type {Video};
 
 export {
-    searchInServer,
-    addComment,
     addAttachment,
-    updateDescription,
-    updateWriteCapability,
-    updateNotificationPreference,
-    subscribeToReportTypingEvents,
-    subscribeToReportLeavingEvents,
-    unsubscribeFromReportChannel,
-    unsubscribeFromLeavingRoomReportChannel,
-    saveReportDraftComment,
-    broadcastUserIsTyping,
-    broadcastUserIsLeavingRoom,
-    togglePinnedState,
-    editReportComment,
-    handleUserDeletedLinksInHtml,
-    deleteReportActionDraft,
-    saveReportActionDraft,
-    deleteReportComment,
-    navigateToConciergeChat,
+    addComment,
     addPolicyReport,
-    deleteReport,
-    navigateToConciergeChatAndDeleteReport,
-    setIsComposerFullSize,
-    expandURLPreview,
-    markCommentAsUnread,
-    readNewestAction,
-    openReport,
-    openReportFromDeepLink,
-    navigateToAndOpenReport,
-    navigateToAndOpenReportWithAccountIDs,
-    navigateToAndOpenChildReport,
-    toggleSubscribeToChildReport,
-    updatePolicyRoomName,
-    clearPolicyRoomNameErrors,
-    clearIOUError,
-    subscribeToNewActionEvent,
-    notifyNewAction,
-    showReportActionNotification,
-    toggleEmojiReaction,
-    shouldShowReportActionNotification,
-    getMostRecentReportID,
-    joinRoom,
-    leaveRoom,
-    inviteToRoom,
-    inviteToGroupChat,
-    removeFromRoom,
-    getCurrentUserAccountID,
-    setLastOpenedPublicRoom,
-    flagComment,
-    openLastOpenedPublicRoom,
-    updatePrivateNotes,
-    getReportPrivateNote,
-    clearPrivateNotesError,
-    hasErrorInPrivateNotes,
-    getOlderActions,
-    getNewerActions,
-    openRoomMembersPage,
-    savePrivateNotesDraft,
-    getDraftPrivateNote,
-    updateLastVisitTime,
-    clearNewRoomFormError,
-    updateReportField,
-    updateReportName,
-    deleteReportField,
-    clearReportFieldKeyErrors,
-    resolveActionableMentionWhisper,
-    resolveActionableReportMentionWhisper,
-    updateRoomVisibility,
-    dismissTrackExpenseActionableWhisper,
-    setGroupDraft,
-    clearGroupChat,
-    startNewChat,
-    completeOnboarding,
-    updateGroupChatName,
-    updateGroupChatAvatar,
-    leaveGroupChat,
-    removeFromGroupChat,
-    updateGroupChatMemberRoles,
-    updateLoadingInitialReportAction,
+    broadcastUserIsLeavingRoom,
+    broadcastUserIsTyping,
     clearAddRoomMemberError,
     clearAvatarErrors,
+    clearGroupChat,
+    clearIOUError,
+    clearNewRoomFormError,
+    clearPolicyRoomNameErrors,
+    clearPrivateNotesError,
+    clearReportFieldKeyErrors,
+    completeOnboarding,
+    deleteReport,
+    deleteReportActionDraft,
+    deleteReportComment,
+    deleteReportField,
+    dismissTrackExpenseActionableWhisper,
+    editReportComment,
+    expandURLPreview,
+    exportReportToCSV,
     exportToIntegration,
-    markAsManuallyExported,
+    flagComment,
+    getCurrentUserAccountID,
+    getDraftPrivateNote,
+    getMostRecentReportID,
+    getNewerActions,
+    getOlderActions,
+    getReportPrivateNote,
     handleReportChanged,
+    handleUserDeletedLinksInHtml,
+    hasErrorInPrivateNotes,
+    inviteToGroupChat,
+    inviteToRoom,
+    joinRoom,
+    leaveGroupChat,
+    leaveRoom,
+    markAsManuallyExported,
+    markCommentAsUnread,
+    navigateToAndOpenChildReport,
+    navigateToAndOpenReport,
+    navigateToAndOpenReportWithAccountIDs,
+    navigateToConciergeChat,
+    navigateToConciergeChatAndDeleteReport,
+    notifyNewAction,
+    openLastOpenedPublicRoom,
+    openReport,
+    openReportFromDeepLink,
+    openRoomMembersPage,
+    readNewestAction,
+    removeFromGroupChat,
+    removeFromRoom,
+    resolveActionableMentionWhisper,
+    resolveActionableReportMentionWhisper,
+    savePrivateNotesDraft,
+    saveReportActionDraft,
+    saveReportDraftComment,
+    searchInServer,
+    setGroupDraft,
+    setIsComposerFullSize,
+    setLastOpenedPublicRoom,
+    shouldShowReportActionNotification,
+    showReportActionNotification,
+    startNewChat,
+    subscribeToNewActionEvent,
+    subscribeToReportLeavingEvents,
+    subscribeToReportTypingEvents,
+    toggleEmojiReaction,
+    togglePinnedState,
+    toggleSubscribeToChildReport,
+    unsubscribeFromLeavingRoomReportChannel,
+    unsubscribeFromReportChannel,
+    updateDescription,
+    updateGroupChatAvatar,
+    updateGroupChatMemberRoles,
+    updateGroupChatName,
+    updateLastVisitTime,
+    updateLoadingInitialReportAction,
+    updateNotificationPreference,
+    updatePolicyRoomName,
+    updatePrivateNotes,
+    updateReportField,
+    updateReportName,
+    updateRoomVisibility,
+    updateWriteCapability,
 };

@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, RecentWaypoint, ReportAction, ReportActions, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type TransactionState from '@src/types/utils/TransactionStateType';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -126,7 +127,8 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
     if (!recentWaypointAlreadyExists && waypoint !== null) {
         const clonedWaypoints = lodashClone(recentWaypoints);
-        clonedWaypoints.unshift(waypoint);
+        const updatedWaypoint = {...waypoint, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        clonedWaypoints.unshift(updatedWaypoint);
         Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER));
     }
 }
@@ -202,13 +204,27 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, newTransaction);
 }
 
-function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): OnyxData {
+function getOnyxDataForRouteRequest(transactionID: string, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT): OnyxData {
+    let keyPrefix;
+    switch (transactionState) {
+        case CONST.TRANSACTION.STATE.DRAFT:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
+            break;
+        case CONST.TRANSACTION.STATE.BACKUP:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_BACKUP;
+            break;
+        case CONST.TRANSACTION.STATE.CURRENT:
+        default:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION;
+            break;
+    }
+
     return {
         optimisticData: [
             {
                 // Clears any potentially stale error messages from fetching the route
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                key: `${keyPrefix}${transactionID}`,
                 value: {
                     comment: {
                         isLoading: true,
@@ -223,18 +239,26 @@ function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): Ony
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                key: `${keyPrefix}${transactionID}`,
                 value: {
                     comment: {
                         isLoading: false,
                     },
+                    // When the user opens the distance request editor and changes the connection from offline to online,
+                    // the transaction's pendingFields and pendingAction will be removed, but not transactionBackup.
+                    // We clear the pendingFields and pendingAction for the backup here to ensure consistency with the transaction.
+                    // Without this, the map will not be clickable if the user dismisses the distance request editor without saving.
+                    ...(transactionState === CONST.TRANSACTION.STATE.BACKUP && {
+                        pendingFields: {waypoints: null},
+                        pendingAction: null,
+                    }),
                 },
             },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                key: `${keyPrefix}${transactionID}`,
                 value: {
                     comment: {
                         isLoading: false,
@@ -246,18 +270,47 @@ function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): Ony
 }
 
 /**
+ * Sanitizes the waypoints by removing the pendingAction property.
+ *
+ * @param waypoints - The collection of waypoints to sanitize.
+ * @returns The sanitized collection of waypoints.
+ */
+function sanitizeRecentWaypoints(waypoints: WaypointCollection): WaypointCollection {
+    return Object.entries(waypoints).reduce((acc, [key, waypoint]) => {
+        const {pendingAction, ...rest} = waypoint as RecentWaypoint;
+        acc[key] = rest;
+        return acc;
+    }, {} as WaypointCollection);
+}
+
+/**
  * Gets the route for a set of waypoints
  * Used so we can generate a map view of the provided waypoints
  */
-function getRoute(transactionID: string, waypoints: WaypointCollection, isDraft: boolean) {
+
+function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION.STATE.CURRENT) {
     const parameters: GetRouteParams = {
         transactionID,
-        waypoints: JSON.stringify(waypoints),
+        waypoints: JSON.stringify(sanitizeRecentWaypoints(waypoints)),
     };
 
-    API.read(isDraft ? READ_COMMANDS.GET_ROUTE_FOR_DRAFT : READ_COMMANDS.GET_ROUTE, parameters, getOnyxDataForRouteRequest(transactionID, isDraft));
-}
+    let command;
+    switch (routeType) {
+        case CONST.TRANSACTION.STATE.DRAFT:
+            command = READ_COMMANDS.GET_ROUTE_FOR_DRAFT;
+            break;
+        case CONST.TRANSACTION.STATE.CURRENT:
+            command = READ_COMMANDS.GET_ROUTE;
+            break;
+        case CONST.TRANSACTION.STATE.BACKUP:
+            command = READ_COMMANDS.GET_ROUTE_FOR_BACKUP;
+            break;
+        default:
+            throw new Error('Invalid route type');
+    }
 
+    API.read(command, parameters, getOnyxDataForRouteRequest(transactionID, routeType));
+}
 /**
  * Updates all waypoints stored in the transaction specified by the provided transactionID.
  *
@@ -470,6 +523,18 @@ function openDraftDistanceExpense() {
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
 
+function getRecentWaypoints() {
+    return recentWaypoints;
+}
+
+function getAllTransactionViolationsLength() {
+    return allTransactionViolations.length;
+}
+
+function getAllTransactions() {
+    return Object.keys(allTransactions ?? {}).length;
+}
+
 export {
     addStop,
     createInitialWaypoints,
@@ -483,4 +548,8 @@ export {
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
+    getRecentWaypoints,
+    sanitizeRecentWaypoints,
+    getAllTransactionViolationsLength,
+    getAllTransactions,
 };

@@ -34,20 +34,19 @@ function removeInvisibleCharacters(value: string): string {
 
     // Remove spaces:
     // - \u200B: zero-width space
-    // - \u00A0: non-breaking space
     // - \u2060: word joiner
-    result = result.replace(/[\u200B\u00A0\u2060]/g, '');
+    result = result.replace(/[\u200B\u2060]/g, '');
 
-    // Temporarily replace all newlines with non-breaking spaces
-    // It is necessary because the next step removes all newlines because they are in the (Cc) category
-    result = result.replace(/\n/g, '\u00A0');
-
-    // Remove all characters from the 'Other' (C) category except for format characters (Cf)
-    // because some of them are used for emojis
-    result = result.replace(/[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu, '');
-
-    // Replace all non-breaking spaces with newlines
-    result = result.replace(/\u00A0/g, '\n');
+    // The control unicode (Cc) regex removes all newlines,
+    // so we first split the string by newline and rejoin it afterward to retain the original line breaks.
+    result = result
+        .split('\n')
+        .map((part) =>
+            // Remove all characters from the 'Other' (C) category except for format characters (Cf)
+            // because some of them are used for emojis
+            part.replace(/[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu, ''),
+        )
+        .join('\n');
 
     // Remove characters from the (Cf) category that are not used for emojis
     result = result.replace(/[\u200E-\u200F]/g, '');

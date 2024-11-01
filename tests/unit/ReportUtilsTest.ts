@@ -270,6 +270,28 @@ describe('ReportUtils', () => {
                 });
             });
         });
+
+        describe('ParentReportAction is', () => {
+            test('Manually Submitted Report Action', () => {
+                const threadOfSubmittedReportAction = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    parentReportID: '101',
+                    policyID: policy.id,
+                };
+                const submittedParentReportAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    originalMessage: {
+                        amount: 169,
+                        currency: 'USD',
+                    },
+                } as ReportAction;
+
+                expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted $1.69');
+            });
+        });
     });
 
     describe('requiresAttentionFromCurrentUser', () => {
@@ -669,6 +691,12 @@ describe('ReportUtils', () => {
                     owner: '',
                     outputCurrency: '',
                     isPolicyExpenseChatEnabled: false,
+                    employeeList: {
+                        [currentUserEmail]: {
+                            email: currentUserEmail,
+                            submitsTo: currentUserEmail,
+                        },
+                    },
                 };
                 Promise.all([
                     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy),
@@ -676,6 +704,8 @@ describe('ReportUtils', () => {
                         reportID: '101',
                         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                         isOwnPolicyExpenseChat: true,
+                        policyID: paidPolicy.id,
+                        ownerAccountID: currentUserAccountID,
                     }),
                 ]).then(() => {
                     const report = {
@@ -686,6 +716,7 @@ describe('ReportUtils', () => {
                         parentReportID: '101',
                         policyID: paidPolicy.id,
                         managerID: currentUserAccountID,
+                        ownerAccountID: currentUserAccountID,
                     };
                     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
                     expect(moneyRequestOptions.length).toBe(2);
