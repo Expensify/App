@@ -270,6 +270,7 @@ function BaseValidateCodeForm({
                     style={[styles.mt4]}
                     success
                     large
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isLoading={account?.isLoading || isLoading}
                 />
             </OfflineWithFeedback>
