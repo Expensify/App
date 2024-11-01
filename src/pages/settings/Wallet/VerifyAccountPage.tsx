@@ -15,18 +15,13 @@ type VerifyAccountPageProps = StackScreenProps<SettingsNavigatorParamList, typeo
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [user] = useOnyx(ONYXKEYS.USER);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const contactMethod = account?.primaryLogin ?? '';
     const {translate} = useLocalize();
     const loginData = loginList?.[contactMethod];
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
-
-    // We store validated state in two places so this is a bit of a workaround to check both
-    const isUserValidated = user?.validated ?? false;
-    const isAccountValidated = account?.validated ?? false;
-    const isValidated = isUserValidated || isAccountValidated;
 
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
@@ -46,7 +41,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     }, [contactMethod]);
 
     useEffect(() => {
-        if (!isValidated) {
+        if (!isUserValidated) {
             return;
         }
 
@@ -57,19 +52,19 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         }
 
         Navigation.navigate(navigateBackTo);
-    }, [isValidated, navigateBackTo]);
+    }, [isUserValidated, navigateBackTo]);
 
     useEffect(() => {
         if (isValidateCodeActionModalVisible) {
             return;
         }
 
-        if (!isValidated && navigateBackTo) {
+        if (!isUserValidated && navigateBackTo) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET);
         } else if (!navigateBackTo) {
             Navigation.goBack();
         }
-    }, [isValidateCodeActionModalVisible, isValidated, navigateBackTo]);
+    }, [isValidateCodeActionModalVisible, isUserValidated, navigateBackTo]);
 
     return (
         <ValidateCodeActionModal
