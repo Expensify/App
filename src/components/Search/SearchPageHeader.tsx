@@ -170,7 +170,6 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
-
         const shouldShowApproveOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE);
 
         if (shouldShowApproveOption) {
@@ -184,8 +183,10 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    console.log('over here', {selectedTransactions, selectedReports})
-                    const reportIDList = selectedReports?.filter((report) => !!report) ?? [];
+
+                    const reportIDList = !selectedReports.length
+                        ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
+                        : selectedReports?.filter((report) => !!report) ?? [];
                     SearchActions.approveMoneyRequestOnSearch(hash, reportIDList);
                 },
             });
