@@ -125,6 +125,28 @@ Install the Expensify desktop app:
 2. Double-click the installer.
 3. Click the Expensify icon to start.
 
+#### [Join a Workspace] How do you join your company's workspace?
+Welcome to Expensify! If you received an invitation to join your company's Expensify workspace, follow these steps:
+
+1. Download the Expensify mobile app to upload expenses and check reports from your phone.
+2. Press your profile image or icon in the bottom menu, then press the **pencil icon** next to your photo to upload an image from your saved files.
+3. Press **Profile** to edit details like Display Name, Contact Method, Status, Pronouns, and Timezone.
+4. Meet **Concierge**, your personal assistant, to get reminders and alerts.
+5. Learn to add an expense by SmartScanning a receipt or entering it manually.
+6. Secure your account by enabling two-factor authentication through the **Security** settings.
+
+#### [Create a Company Workspace] How do you create a workspace for your company?
+Creating a workspace in Expensify is your first step to organizing your company's expenses. Here's how to do it:
+
+1. Press your **profile photo** or icon in the bottom menu to open the settings.
+2. Scroll and press **Workspaces**.
+3. Press **New workspace** to start creating your workspace.
+4. Press the **Edit pencil icon** next to your workspace image to upload a custom image.
+5. Press **Name** to set the workspace's name.
+6. Press **Default Currency** to choose the currency for all expenses.
+
+Invite team members to collaborate efficiently.
+
 ### Account Management
 #### [Sign In Process] How do you sign up or sign in?
 Sign up or sign in:
