@@ -37,7 +37,7 @@ type IssueNewCardFlowData = {
     data?: Partial<IssueNewCardData>;
 };
 
-function reportVirtualExpensifyCardFraud(card: Card) {
+function reportVirtualExpensifyCardFraud(card?: Card) {
     const cardID = card?.cardID ?? -1;
     const optimisticData: OnyxUpdate[] = [
         {

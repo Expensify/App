@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -36,6 +36,13 @@ function ReportVirtualCardFraudPage({
 
     const prevIsLoading = usePrevious(formData?.isLoading);
 
+    const submit = useCallback(() => {
+        Navigation.dismissModal();
+        InteractionManager.runAfterInteractions(() => {
+            Card.reportVirtualExpensifyCardFraud(virtualCard);
+        });
+    }, [virtualCard]);
+
     useEffect(() => {
         if (!prevIsLoading || formData?.isLoading) {
             return;
@@ -61,10 +68,7 @@ function ReportVirtualCardFraudPage({
                 <Text style={[styles.webViewStyles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
                 <FormAlertWithSubmitButton
                     isAlertVisible={!!virtualCardError}
-                    onSubmit={() => {
-                        Card.reportVirtualExpensifyCardFraud(virtualCard)
-                        Navigation.dismissModal();
-                    }}
+                    onSubmit={submit}
                     message={virtualCardError}
                     isLoading={formData?.isLoading}
                     buttonText={translate('reportFraudPage.deactivateCard')}
