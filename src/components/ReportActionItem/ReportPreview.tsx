@@ -561,7 +561,7 @@ function ReportPreview({
                                         isLoading={!isOffline && !canAllowSettlement}
                                     />
                                 )}
-                                {shouldShowExportIntegrationButton && !shouldShowSettlementButton && (
+                                {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && (
                                     <ExportWithDropdownMenu
                                         policy={policy}
                                         report={iouReport}
@@ -591,7 +591,7 @@ function ReportPreview({
                 delegatorEmail={delegatorEmail ?? ''}
             />
 
-            {isHoldMenuVisible && iouReport && requestType !== undefined && (
+            {isHoldMenuVisible && !!iouReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
                     requestType={requestType}
