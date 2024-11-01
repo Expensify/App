@@ -6,7 +6,6 @@ import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedSt
 import {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import * as Policy from '@userActions/Policy/Policy';
-import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,8 +72,8 @@ function getOnboardingInitialPath(): string {
         Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, CONST.ONBOARDING_COMPANY_SIZE.MICRO);
         if (!onboardingPolicyID) {
             const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-            Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
-            Welcome.setOnboardingPolicyID(policyID);
+            Onyx.set(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, adminsChatReportID ?? null);
+            Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
         }
         return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
     }
