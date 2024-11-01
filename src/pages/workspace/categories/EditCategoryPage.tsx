@@ -49,11 +49,14 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             if (currentCategoryName !== newCategoryName) {
                 Category.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
             }
-            Navigation.goBack(
-                isQuickSettingsFlow
-                    ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
-                    : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
-            );
+            
+            Navigation.setNavigationActionToMicrotaskQueue(()=>{
+                Navigation.goBack(
+                    isQuickSettingsFlow
+                        ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
+                        : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
+                );
+            });
         },
         [isQuickSettingsFlow, currentCategoryName, route.params.categoryName, route.params.policyID, backTo],
     );
