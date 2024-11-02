@@ -29,6 +29,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
@@ -302,6 +303,7 @@ function IOURequestStepDistance({
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
+                    playSound(SOUNDS.DONE);
                     IOU.splitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -323,6 +325,7 @@ function IOURequestStepDistance({
                 IOU.setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
                 const participant = participants.at(0);
                 if (iouType === CONST.IOU.TYPE.TRACK && participant) {
+                    playSound(SOUNDS.DONE);
                     IOU.trackExpense(
                         report,
                         0,
@@ -353,6 +356,7 @@ function IOURequestStepDistance({
                     return;
                 }
 
+                playSound(SOUNDS.DONE);
                 IOU.createDistanceRequest(
                     report,
                     participants,
