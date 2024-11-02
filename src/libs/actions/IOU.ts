@@ -7043,6 +7043,7 @@ function canIOUBePaid(
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : ReportUtils.canBeAutoReimbursed(iouReport, policy);
     const shouldBeApproved = canApproveIOU(iouReport, policy);
     const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allTransactionViolations);
+    const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allTransactionViolations);
     const isPayAtEndExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, transactions);
     
     return (
