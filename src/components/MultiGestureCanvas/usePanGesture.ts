@@ -87,14 +87,14 @@ const usePanGesture = ({
         };
 
         // If the horizontal/vertical offset is the same after clamping to the min/max boundaries, the content is within the boundaries
-        const isInHoriztontalBoundary = clampedOffset.x === offsetX.value;
+        const isInHorizontalBoundary = clampedOffset.x === offsetX.value;
         const isInVerticalBoundary = clampedOffset.y === offsetY.value;
 
         return {
             horizontalBoundaries,
             verticalBoundaries,
             clampedOffset,
-            isInHoriztontalBoundary,
+            isInHorizontalBoundary,
             isInVerticalBoundary,
         };
     }, [canvasSize.width, canvasSize.height]);
@@ -108,11 +108,11 @@ const usePanGesture = ({
             return;
         }
 
-        const {clampedOffset, isInHoriztontalBoundary, isInVerticalBoundary, horizontalBoundaries, verticalBoundaries} = getBounds();
+        const {clampedOffset, isInHorizontalBoundary, isInVerticalBoundary, horizontalBoundaries, verticalBoundaries} = getBounds();
 
         // If the content is within the horizontal/vertical boundaries of the canvas, we can smoothly phase out the animation
         // If not, we need to snap back to the boundaries
-        if (isInHoriztontalBoundary) {
+        if (isInHorizontalBoundary) {
             // If the (absolute) velocity is 0, we don't need to run an animation
             if (Math.abs(panVelocityX.value) !== 0) {
                 // Phase out the pan animation
