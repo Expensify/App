@@ -3439,7 +3439,11 @@ function completeOnboarding(
 
     const tasksData = data.tasks
         .filter((task) => {
-            if (task.type === 'addAccountingIntegration' && !userReportedIntegration) {
+            if (['setupCategories', 'setupTags'].includes(task.type) && userReportedIntegration) {
+                return false;
+            }
+
+            if (['addAccountingIntegration', 'setupCategoriesAndTags'].includes(task.type) && !userReportedIntegration) {
                 return false;
             }
             return true;

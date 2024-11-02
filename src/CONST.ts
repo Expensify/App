@@ -4892,6 +4892,15 @@ const CONST = {
                         `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
                 },
                 {
+                    type: 'addAccountingIntegration',
+                    autoCompleted: false,
+                    title: 'Set up categories and tags',
+                    description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
+                        '*Set up categories and tags* so your team can code expenses for easy reporting.\n' +
+                        '\n' +
+                        `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceCategoriesLink}).`,
+                },
+                {
                     type: 'setupCategories',
                     autoCompleted: false,
                     title: 'Set up categories',
