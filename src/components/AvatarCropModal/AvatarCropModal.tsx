@@ -180,9 +180,9 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             const {height, width} = getDisplayedImageSize();
             const maxOffsetX = (width - imageContainerSize) / 2;
             const maxOffsetY = (height - imageContainerSize) / 2;
-            // eslint-disable-next-line react-compiler/react-compiler
             translateX.value = clamp(offsetX, [maxOffsetX * -1, maxOffsetX]);
             translateY.value = clamp(offsetY, [maxOffsetY * -1, maxOffsetY]);
+            // eslint-disable-next-line react-compiler/react-compiler
             prevMaxOffsetX.value = maxOffsetX;
             prevMaxOffsetY.value = maxOffsetY;
         },
