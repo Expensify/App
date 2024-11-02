@@ -206,7 +206,7 @@ function FloatingActionButtonAndPopover(
             return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== session?.accountID);
         }
         if (!isEmptyObject(policyChatForActivePolicy)) {
-            const avatars = ReportUtils.getIcons(policyChatForActivePolicy, personalDetails);
+            return ReportUtils.getIcons(policyChatForActivePolicy, personalDetails);
             return avatars;
         }
         return [];
