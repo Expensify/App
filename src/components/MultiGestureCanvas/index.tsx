@@ -1,12 +1,12 @@
 import type {ForwardedRef} from 'react';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {GestureType} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {GestureRef} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
-import Animated, {cancelAnimation, runOnUI, useAnimatedStyle, useDerivedValue, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
+import Animated, {cancelAnimation, runOnUI, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -110,44 +110,49 @@ function MultiGestureCanvas({
     /**
      * Stops any currently running decay animation from panning
      */
-    const stopAnimation = useWorkletCallback(() => {
+    const stopAnimation = useCallback(() => {
+        'worklet';
         cancelAnimation(offsetX);
         cancelAnimation(offsetY);
-    });
+    }, [offsetX, offsetY]);
 
     /**
      * Resets the canvas to the initial state and animates back smoothly
      */
-    const reset = useWorkletCallback((animated: boolean, callback?: () => void) => {
-        stopAnimation();
+    const reset = useCallback(
+        (animated: boolean, callback?: () => void) => {
+            'worklet';
+            stopAnimation();
 
-        // eslint-disable-next-line react-compiler/react-compiler
-        offsetX.value = 0;
-        offsetY.value = 0;
-        pinchScale.value = 1;
+            // eslint-disable-next-line react-compiler/react-compiler
+            offsetX.value = 0;
+            offsetY.value = 0;
+            pinchScale.value = 1;
 
-        if (animated) {
-            panTranslateX.value = withSpring(0, SPRING_CONFIG);
-            panTranslateY.value = withSpring(0, SPRING_CONFIG);
-            pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
-            pinchTranslateY.value = withSpring(0, SPRING_CONFIG);
-            zoomScale.value = withSpring(1, SPRING_CONFIG, callback);
+            if (animated) {
+                panTranslateX.value = withSpring(0, SPRING_CONFIG);
+                panTranslateY.value = withSpring(0, SPRING_CONFIG);
+                pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
+                pinchTranslateY.value = withSpring(0, SPRING_CONFIG);
+                zoomScale.value = withSpring(1, SPRING_CONFIG, callback);
 
-            return;
-        }
+                return;
+            }
 
-        panTranslateX.value = 0;
-        panTranslateY.value = 0;
-        pinchTranslateX.value = 0;
-        pinchTranslateY.value = 0;
-        zoomScale.value = 1;
+            panTranslateX.value = 0;
+            panTranslateY.value = 0;
+            pinchTranslateX.value = 0;
+            pinchTranslateY.value = 0;
+            zoomScale.value = 1;
 
-        if (callback === undefined) {
-            return;
-        }
+            if (callback === undefined) {
+                return;
+            }
 
-        callback();
-    });
+            callback();
+        },
+        [stopAnimation, offsetX, offsetY, panTranslateX, panTranslateY, pinchTranslateX, pinchTranslateY, zoomScale],
+    );
 
     const {singleTapGesture: baseSingleTapGesture, doubleTapGesture} = useTapGestures({
         canvasSize,

@@ -1,8 +1,8 @@
 /* eslint-disable no-param-reassign */
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import type {PinchGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useAnimatedReaction, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
+import {runOnJS, useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
 import {SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
 
@@ -78,12 +78,15 @@ const usePinchGesture = ({
      * Calculates the adjusted focal point of the pinch gesture,
      * based on the canvas size and the current offset
      */
-    const getAdjustedFocal = useWorkletCallback(
-        (focalX: number, focalY: number) => ({
-            x: focalX - (canvasSize.width / 2 + offsetX.value),
-            y: focalY - (canvasSize.height / 2 + offsetY.value),
-        }),
-        [canvasSize.width, canvasSize.height],
+    const getAdjustedFocal = useCallback(
+        (focalX: number, focalY: number) => {
+            'worklet';
+            return {
+                x: focalX - (canvasSize.width / 2 + offsetX.value),
+                y: focalY - (canvasSize.height / 2 + offsetY.value),
+            };
+        },
+        [canvasSize.width, canvasSize.height, offsetX, offsetY],
     );
 
     // The pinch gesture is disabled when we release one of the fingers
