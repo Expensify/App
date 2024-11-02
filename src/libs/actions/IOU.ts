@@ -7044,7 +7044,7 @@ function canIOUBePaid(
     const shouldBeApproved = canApproveIOU(iouReport, policy);
     const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allTransactionViolations);
     const isPayAtEndExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, transactions);
-    
+
     return (
         isPayer &&
         !isOpenExpenseReport &&
