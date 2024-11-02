@@ -61,7 +61,7 @@ Corporate cards integrate with Expensify Expense for automated expense tracking:
 * **Rewards** - Earn cashback on Expensify Card purchases.
 
 ### [Integrations] What accounting systems does Expensify support?
-Expensify integrates with all major accounting systems, including QuickBooks Online, Xero, and NetSuite.
+Expensify integrates with all major accounting systems, including QuickBooks Online, Xero, NetSuite, and Sage Intacct.
 
 ### [Distance Rates] What are distance rates in Expensify?
 Distance rates are configured for mileage expenses, allowing employees to select predefined rates when logging distance-based expenses.
@@ -654,6 +654,9 @@ If an error occurs during an automatic export to QuickBooks Online:
 3. Ensure the report is in the Approved, Closed, or Reimbursed state.
 4. An admin must press the heading at the top of the expense, select **Export**, and then choose **QuickBooks Online**.
 
+#### [QuickBooks Online Manual Export Troubleshooting] Why can't I manually export a report to QuickBooks Online?
+To export a report to QuickBooks Online, the report must be in the Approved, Closed, or Reimbursed state. If the report is in the Open state, pressing **Export** will lead to an empty page. Ensure the report is submitted or approved if it's in the Processing state. Once these changes are made, an admin can manually export the report to QuickBooks Online.
+
 ## FAQ
 
 ### General Inquiries
@@ -677,11 +680,15 @@ When Add Approver is enabled with Delay Submission, expense reports go from Open
 No, each employee can have only one approval workflow.
 
 ### Integration and Export
-#### How do I disconnect Xero from Expensify?
+#### [Disconnect from Xero] How do I disconnect Xero from Expensify?
 To disconnect Xero:
 1. Press your profile image or icon in the bottom left menu.
 2. Press **Workspaces** and select your workspace.
-3. Press **Accounting** and select **Disconnect** next to Xero.
+3. Press **Accounting**.
+4. Press the three-dot menu next to Xero and select **Disconnect**.
+5. Press **Disconnect** again to confirm.
+
+You will no longer see the imported options from Xero.
 
 #### [Xero Export Confirmation] How do I know if a report successfully exported to Xero?
 When a report exports successfully, a message is posted in the related Expensify Chat room.
@@ -716,9 +723,6 @@ If there is an error with your connection, you’ll see a red dot next to Accoun
 2. Press **Enter credentials**.
 3. Enter your Intuit login details to establish the connection.
 
-#### [QuickBooks Online Export Troubleshooting] Why can't I manually export a report to QuickBooks Online?
-To export a report to QuickBooks Online, the report must be in the Approved, Closed, or Reimbursed state. If the report is in the Open state, pressing **Export** will lead to an empty page. Ensure the report is submitted or approved if it's in the Processing state. Once these changes are made, an admin can manually export the report to QuickBooks Online.
-
 #### [QuickBooks Online Export Confirmation] How do I know if a report is successfully exported to QuickBooks Online?
 When a report exports successfully, a message is posted in the expense’s related chat room.
 
@@ -731,6 +735,9 @@ When an admin manually exports a report, Expensify will notify them if the repor
 - If a report has been exported and marked as paid in QuickBooks Online, it will be automatically marked as reimbursed in Expensify during the next sync.
 
 Reports that have yet to be exported to QuickBooks Online won’t be automatically exported.
+
+#### [Report Exporting to Xero Troubleshooting] Why can't I manually export a report to Xero?
+To export a report to Xero, it must be in the Approved, Closed, or Reimbursed state. If it is in the Open state, pressing **Export** will lead to a notification that the data is not yet available for export. Make sure the report is submitted or approved if it's in the Processing state. Once these changes are made, an admin can manually export the report to Xero.
 
 ### Exporting and Downloading Options
 #### [CSV Export Options] Can I export in a different format, like PDF or XLS?
@@ -836,3 +843,40 @@ If the test deposits are not visible after two business days, it may be due to d
 - ACH Originator Name: Expensify
 
 If the issue persists, please contact Expensify Support for further assistance.
+
+### Sage Intacct Integration
+#### [Configure Sage Intacct] How do I set up and configure Sage Intacct in Expensify?
+To connect and configure Sage Intacct:
+1. **Connect to Sage Intacct**: Go to **Settings > Workspaces > [Workspace Name] > Accounting** and press **Set up** next to Sage Intacct, then enter your credentials to complete the setup.
+2. **Select Entity**: Choose the Sage Intacct entity to connect each Expensify workspace to, especially for multi-entity setups.
+3. **Import Settings**: Navigate to Accounting settings, press **Import** under Sage Intacct, and set preferences for expense types, categories, dimensions, customers/projects, and tax.
+4. **Export Settings**: Access export options under **Export**, choosing your preferred exporter and export methods for out-of-pocket and company card expenses.
+5. **Advanced Settings**: Enable auto-sync, invite employees, and configure reimbursement sync under **Advanced** settings to ensure seamless integration.
+
+#### [Frequently Asked Questions] What are common questions about using Sage Intacct with Expensify?
+Some common concerns include:
+- **Auto-sync**: Only newly approved reports will be auto-exported to Sage Intacct. Existing approved reports must be manually exported.
+- **Negative Expenses**: Negative expenses can be exported, but out-of-pocket expense reports cannot be entirely negative.
+- **Export Errors**: If auto-export fails, check report comments for specific errors and resolve them before attempting manual export.
+
+### Sage Intacct Tutorials
+#### [Configure Import Settings] How do I configure import settings for Sage Intacct?
+To configure import settings:
+1. Under Accounting settings, press **Import** for Sage Intacct.
+2. Choose how to import categories, dimensions, customers/projects, and tax.
+3. Configure expense types and chart of accounts based on how you plan to export expenses.
+4. Set up mapping for billable expenses by enabling necessary permissions in Sage Intacct.
+
+#### [Configure Export Settings] How do I configure export settings for Sage Intacct?
+To configure export settings:
+1. In Accounting settings, press **Export** under Sage Intacct.
+2. Choose the preferred exporter and export date options.
+3. Decide whether to export out-of-pocket expenses as expense reports or vendor bills.
+4. Set export preferences for company card expenses, selecting between credit card charges or vendor bills.
+
+#### [Manage Advanced Settings] How do I manage advanced settings for Sage Intacct?
+To manage advanced settings:
+1. Navigate to **Settings > Workspaces > [Workspace name] > Accounting** and press **Advanced** under Sage Intacct.
+2. Enable auto-sync for daily updates and automatic export of expenses.
+3. Use the invite employees feature to add Sage Intacct users to Expensify.
+4. Configure reimbursement sync to reflect accurate status between Expensify and Sage Intacct.
