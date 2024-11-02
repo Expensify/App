@@ -207,7 +207,6 @@ function FloatingActionButtonAndPopover(
         }
         if (!isEmptyObject(policyChatForActivePolicy)) {
             return ReportUtils.getIcons(policyChatForActivePolicy, personalDetails);
-            return avatars;
         }
         return [];
         // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
