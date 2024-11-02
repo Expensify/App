@@ -7,6 +7,7 @@ import * as Browser from '@libs/Browser';
 import {SPRING_CONFIG} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
+import { useCallback } from 'react';
 
 // This value determines how fast the pan animation should phase out
 // We're using a "withDecay" animation to smoothly phase out the pan animation
@@ -66,7 +67,8 @@ const usePanGesture = ({
     // Calculates bounds of the scaled content
     // Can we pan left/right/up/down
     // Can be used to limit gesture or implementing tension effect
-    const getBounds = useWorkletCallback(() => {
+    const getBounds = useCallback(() => {
+        'worklet';
         let horizontalBoundary = 0;
         let verticalBoundary = 0;
 
@@ -97,12 +99,13 @@ const usePanGesture = ({
             isInHorizontalBoundary,
             isInVerticalBoundary,
         };
-    }, [canvasSize.width, canvasSize.height]);
+    }, [canvasSize.width, canvasSize.height, zoomedContentWidth, zoomedContentHeight, offsetX, offsetY]);
 
     // We want to smoothly decay/end the gesture by phasing out the pan animation
     // In case the content is outside of the boundaries of the canvas,
     // we need to move the content back into the boundaries
-    const finishPanGesture = useWorkletCallback(() => {
+    const finishPanGesture = useCallback(() => {
+        'worklet';
         // If the content is centered within the canvas, we don't need to run any animations
         if (offsetX.value === 0 && offsetY.value === 0 && panTranslateX.value === 0 && panTranslateY.value === 0) {
             return;
@@ -161,7 +164,7 @@ const usePanGesture = ({
         // Reset velocity variables after we finished the pan gesture
         panVelocityX.value = 0;
         panVelocityY.value = 0;
-    });
+    }, [offsetX, offsetY, panTranslateX, panTranslateY, panVelocityX, panVelocityY, zoomScale, isSwipingDownToClose, getBounds, onSwipeDown]);
 
     const panGesture = Gesture.Pan()
         .manualActivation(true)
