@@ -7057,7 +7057,6 @@ function canIOUBePaid(
         !hasViolations &&
         !isPayAtEndExpenseReport
     );
-
 }
 
 function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string): OnyxEntry<ReportAction> {
