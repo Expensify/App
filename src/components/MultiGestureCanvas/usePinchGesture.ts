@@ -81,6 +81,7 @@ const usePinchGesture = ({
     const getAdjustedFocal = useCallback(
         (focalX: number, focalY: number) => {
             'worklet';
+
             return {
                 x: focalX - (canvasSize.width / 2 + offsetX.value),
                 y: focalY - (canvasSize.height / 2 + offsetY.value),

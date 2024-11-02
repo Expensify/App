@@ -146,6 +146,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
      */
     const clamp = useCallback((value: number, [min, max]: [number, number]) => {
         'worklet';
+
         return interpolate(value, [min, max], [min, max], 'clamp');
     }, []);
 
@@ -154,6 +155,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
      */
     const getDisplayedImageSize = useCallback(() => {
         'worklet';
+
         let height = imageContainerSize * scale.value;
         let width = imageContainerSize * scale.value;
 
@@ -174,19 +176,22 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     const updateImageOffset = useCallback(
         (offsetX: number, offsetY: number) => {
             'worklet';
+
             const {height, width} = getDisplayedImageSize();
             const maxOffsetX = (width - imageContainerSize) / 2;
             const maxOffsetY = (height - imageContainerSize) / 2;
+            // eslint-disable-next-line react-compiler/react-compiler
             translateX.value = clamp(offsetX, [maxOffsetX * -1, maxOffsetX]);
             translateY.value = clamp(offsetY, [maxOffsetY * -1, maxOffsetY]);
             prevMaxOffsetX.value = maxOffsetX;
             prevMaxOffsetY.value = maxOffsetY;
         },
-        [getDisplayedImageSize, imageContainerSize, scale, translateX, translateY, prevMaxOffsetX, prevMaxOffsetY, clamp],
+        [getDisplayedImageSize, imageContainerSize, translateX, translateY, prevMaxOffsetX, prevMaxOffsetY, clamp],
     );
 
     const newScaleValue = useCallback((newSliderValue: number, containerSize: number) => {
         'worklet';
+
         const {MAX_SCALE, MIN_SCALE} = CONST.AVATAR_CROP_MODAL;
         return (newSliderValue / containerSize) * (MAX_SCALE - MIN_SCALE) + MIN_SCALE;
     }, []);

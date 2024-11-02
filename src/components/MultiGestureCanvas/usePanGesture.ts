@@ -69,6 +69,7 @@ const usePanGesture = ({
     // Can be used to limit gesture or implementing tension effect
     const getBounds = useCallback(() => {
         'worklet';
+
         let horizontalBoundary = 0;
         let verticalBoundary = 0;
 
@@ -106,6 +107,7 @@ const usePanGesture = ({
     // we need to move the content back into the boundaries
     const finishPanGesture = useCallback(() => {
         'worklet';
+
         // If the content is centered within the canvas, we don't need to run any animations
         if (offsetX.value === 0 && offsetY.value === 0 && panTranslateX.value === 0 && panTranslateY.value === 0) {
             return;
@@ -186,6 +188,7 @@ const usePanGesture = ({
                 if (Math.abs(velocityY) > velocityX && velocityY > 20) {
                     state.activate();
 
+                    // eslint-disable-next-line react-compiler/react-compiler
                     isSwipingDownToClose.value = true;
                     previousTouch.value = null;
 

@@ -112,6 +112,7 @@ function MultiGestureCanvas({
      */
     const stopAnimation = useCallback(() => {
         'worklet';
+
         cancelAnimation(offsetX);
         cancelAnimation(offsetY);
     }, [offsetX, offsetY]);
@@ -122,6 +123,7 @@ function MultiGestureCanvas({
     const reset = useCallback(
         (animated: boolean, callback?: () => void) => {
             'worklet';
+
             stopAnimation();
 
             // eslint-disable-next-line react-compiler/react-compiler
@@ -151,7 +153,7 @@ function MultiGestureCanvas({
 
             callback();
         },
-        [stopAnimation, offsetX, offsetY, panTranslateX, panTranslateY, pinchTranslateX, pinchTranslateY, zoomScale],
+        [stopAnimation, offsetX, offsetY, pinchScale, panTranslateX, panTranslateY, pinchTranslateX, pinchTranslateY, zoomScale],
     );
 
     const {singleTapGesture: baseSingleTapGesture, doubleTapGesture} = useTapGestures({
@@ -169,6 +171,7 @@ function MultiGestureCanvas({
         onTap,
         shouldDisableTransformationGestures,
     });
+    // eslint-disable-next-line react-compiler/react-compiler
     const singleTapGesture = baseSingleTapGesture.requireExternalGestureToFail(doubleTapGesture, panGestureRef);
 
     const panGestureSimultaneousList = useMemo(
@@ -191,6 +194,7 @@ function MultiGestureCanvas({
         onSwipeDown,
     })
         .simultaneousWithExternalGesture(...panGestureSimultaneousList)
+        // eslint-disable-next-line react-compiler/react-compiler
         .withRef(panGestureRef);
 
     const pinchGesture = usePinchGesture({
