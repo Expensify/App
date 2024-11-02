@@ -7042,8 +7042,9 @@ function canIOUBePaid(
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : ReportUtils.canBeAutoReimbursed(iouReport, policy);
     const shouldBeApproved = canApproveIOU(iouReport, policy);
-
+    const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allTransactionViolations);
     const isPayAtEndExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, transactions);
+    
     return (
         isPayer &&
         !isOpenExpenseReport &&
@@ -7053,8 +7054,10 @@ function canIOUBePaid(
         !isChatReportArchived &&
         !isAutoReimbursable &&
         !shouldBeApproved &&
+        !hasViolations &&
         !isPayAtEndExpenseReport
     );
+
 }
 
 function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string): OnyxEntry<ReportAction> {
