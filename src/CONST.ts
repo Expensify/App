@@ -4892,7 +4892,7 @@ const CONST = {
                         `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
                 },
                 {
-                    type: 'addAccountingIntegration',
+                    type: 'setupCategoriesAndTags',
                     autoCompleted: false,
                     title: 'Set up categories and tags',
                     description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
