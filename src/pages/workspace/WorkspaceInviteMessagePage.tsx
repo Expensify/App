@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -20,6 +19,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
+import * as FormActions from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -48,6 +48,7 @@ type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
 function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [formData] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
 
     const viewportOffsetTop = useViewportOffsetTop();
     const [welcomeNote, setWelcomeNote] = useState<string>();
@@ -66,6 +67,8 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
 
     const getDefaultWelcomeNote = useCallback(() => {
         return (
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            formData?.[INPUT_IDS.WELCOME_MESSAGE] ||
             // workspaceInviteMessageDraft can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             workspaceInviteMessageDraft ||
@@ -76,7 +79,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                 workspaceName: policy?.name ?? '',
             })
         );
-    }, [workspaceInviteMessageDraft, policy, translate]);
+    }, [workspaceInviteMessageDraft, policy, translate, formData]);
 
     useEffect(() => {
         if (isOnyxLoading) {
@@ -93,16 +96,13 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOnyxLoading]);
 
-    const debouncedSaveDraft = lodashDebounce((newDraft: string | null) => {
-        Policy.setWorkspaceInviteMessageDraft(route.params.policyID, newDraft);
-    });
-
     const sendInvitation = () => {
         Keyboard.dismiss();
         const policyMemberAccountIDs = Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs);
-        debouncedSaveDraft(null);
+        Policy.setWorkspaceInviteMessageDraft(route.params.policyID, welcomeNote ?? null);
+        FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
         Navigation.dismissModal();
     };
 
@@ -194,7 +194,6 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             value={welcomeNote}
                             onChangeText={(text: string) => {
                                 setWelcomeNote(text);
-                                debouncedSaveDraft(text);
                             }}
                             ref={(element: AnimatedTextInputRef) => {
                                 if (!element) {
@@ -205,6 +204,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                                 }
                                 inputCallbackRef(element);
                             }}
+                            shouldSaveDraft
                         />
                     </View>
                 </FormProvider>

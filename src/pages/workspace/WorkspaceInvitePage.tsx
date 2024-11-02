@@ -16,6 +16,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as FormActions from '@libs/actions/FormActions';
 import * as ReportActions from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -78,6 +79,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
     useEffect(() => {
         return () => {
             Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
+            FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route.params.policyID]);
