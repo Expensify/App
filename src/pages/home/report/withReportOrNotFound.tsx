@@ -1,5 +1,6 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import {useIsFocused, type RouteProp} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
