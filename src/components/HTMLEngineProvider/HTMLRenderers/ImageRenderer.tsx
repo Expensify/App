@@ -73,7 +73,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     let fileName = htmlAttribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src}`);
     const fileInfo = FileUtils.splitExtensionFromFileName(fileName);
     if (!fileInfo.fileExtension) {
-        fileName = `${fileInfo.fileName || CONST.DEFAULT_IMAGE_FILE_NAME}.jpg`;
+        fileName = `${fileInfo?.fileName || CONST.DEFAULT_IMAGE_FILE_NAME}.jpg`;
     }
 
     const thumbnailImageComponent = (
