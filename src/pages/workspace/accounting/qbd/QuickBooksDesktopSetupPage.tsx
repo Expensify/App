@@ -2,16 +2,19 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
-import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +31,7 @@ type RequireQuickBooksDesktopModalProps = StackScreenProps<SettingsNavigatorPara
 function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {environmentURL} = useEnvironment();
     const policyID: string = route.params.policyID;
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
@@ -70,8 +74,8 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         },
     });
 
-    const shouldShowLoading = isLoading || !codatSetupLink;
-    const shouldShowError = shouldShowLoading && hasError;
+    const shouldShowLoading = isLoading || (!codatSetupLink && !hasError);
+    const shouldShowError = hasError;
 
     return (
         <ScreenWrapper
@@ -87,10 +91,23 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
             <ContentWrapper>
                 {shouldShowLoading && <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />}
                 {shouldShowError && (
-                    <View style={[styles.flex1, styles.justifyContentCenter, styles.ph5]}>
-                        <View style={[styles.alignSelfCenter, styles.pendingStateCardIllustration]}>
-                            <ImageSVG src={BrokenMagnifyingGlass} />
-                        </View>
+                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
+                        <Icon
+                            src={Illustrations.BrokenMagnifyingGlass}
+                            width={116}
+                            height={168}
+                        />
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.qbd.setupPage.setupErrorTitle')}</Text>
+                        <Text style={[styles.textSupporting, styles.ph5, styles.mv3, styles.textAlignCenter]}>
+                            {translate('workspace.qbd.setupPage.setupErrorBody1')}{' '}
+                            <TextLink
+                                href={`${environmentURL}/${ROUTES.CONCIERGE}`}
+                                style={styles.link}
+                            >
+                                {translate('workspace.qbd.setupPage.setupErrorBodyContactConcierge')}
+                            </TextLink>{' '}
+                            {translate('workspace.qbd.setupPage.setupErrorBody2')}
+                        </Text>
                     </View>
                 )}
                 {!shouldShowLoading && !shouldShowError && (
