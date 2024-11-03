@@ -345,5 +345,7 @@ export type {default as ConnectPolicyToQuickBooksDesktopParams} from './ConnectP
 export type {default as UpdateInvoiceCompanyNameParams} from './UpdateInvoiceCompanyNameParams';
 export type {default as UpdateInvoiceCompanyWebsiteParams} from './UpdateInvoiceCompanyWebsiteParams';
 export type {default as UpdateQuickbooksDesktopExpensesExportDestinationTypeParams} from './UpdateQuickbooksDesktopExpensesExportDestinationTypeParams';
+export type {default as ValidateUserAndGetAccessiblePoliciesParams} from './ValidateUserAndGetAccessiblePoliciesParams';
 export type {default as UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams} from './UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams';
 export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
+export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';

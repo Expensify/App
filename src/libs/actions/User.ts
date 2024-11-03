@@ -1361,6 +1361,37 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.merge(ONYXKEYS.USER, {isDebugModeEnabled});
 }
 
+/**
+ * Check which policies the user can join
+ */
+function validateUserAndGetAccessiblePolicies(validationCode: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.KEY_JOINABLE_POLICIES,
+            value: {isLoading: true, errors: null},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.KEY_JOINABLE_POLICIES,
+            value: {isLoading: false, errors: null},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.KEY_JOINABLE_POLICIES,
+            value: {isLoading: false},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validationCode}, {optimisticData, successData, failureData});
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
@@ -1402,4 +1433,5 @@ export {
     subscribeToActiveGuides,
     dismissGBRTooltip,
     setIsDebugModeEnabled,
+    validateUserAndGetAccessiblePolicies,
 };

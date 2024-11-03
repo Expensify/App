@@ -63,6 +63,9 @@ type ValidateCodeFormProps = {
     /** Function to clear error of the form */
     clearError: () => void;
 
+    /** Whether to show the verify button (hidden in private domain onboarding)  */
+    hideButton?: boolean;
+
     /** Function is called when validate code modal is mounted and on magic code resend */
     sendValidateCode: () => void;
 };
@@ -78,6 +81,7 @@ function BaseValidateCodeForm({
     clearError,
     sendValidateCode,
     buttonStyles,
+    hideButton,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -259,15 +263,17 @@ function BaseValidateCodeForm({
                 onClose={() => clearError()}
                 style={buttonStyles}
             >
-                <Button
-                    isDisabled={isOffline}
-                    text={translate('common.verify')}
-                    onPress={validateAndSubmitForm}
-                    style={[styles.mt4]}
-                    success
-                    large
-                    isLoading={account?.isLoading}
-                />
+                {!hideButton && (
+                    <Button
+                        isDisabled={isOffline}
+                        text={translate('common.verify')}
+                        onPress={validateAndSubmitForm}
+                        style={[styles.mt4]}
+                        success
+                        large
+                        isLoading={account?.isLoading}
+                    />
+                )}
             </OfflineWithFeedback>
         </>
     );
