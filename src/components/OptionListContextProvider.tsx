@@ -1,6 +1,5 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
@@ -21,12 +20,7 @@ type OptionsListContextProps = {
     resetOptions: () => void;
 };
 
-type OptionsListProviderOnyxProps = {
-    /** Collection of reports */
-    reports: OnyxCollection<Report>;
-};
-
-type OptionsListProviderProps = OptionsListProviderOnyxProps & {
+type OptionsListProviderProps = {
     /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
@@ -47,12 +41,13 @@ const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails | null, perso
     prevPersonalDetail?.login === personalDetail?.login &&
     prevPersonalDetail?.displayName === personalDetail?.displayName;
 
-function OptionsListContextProvider({reports, children}: OptionsListProviderProps) {
+function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const areOptionsInitialized = useRef(false);
     const [options, setOptions] = useState<OptionList>({
         reports: [],
         personalDetails: [],
     });
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const prevPersonalDetails = usePrevious(personalDetails);
@@ -191,10 +186,6 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     };
 };
 
-export default withOnyx<OptionsListProviderProps, OptionsListProviderOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(OptionsListContextProvider);
+export default OptionsListContextProvider;
 
 export {useOptionsListContext, useOptionsList, OptionsListContext};
