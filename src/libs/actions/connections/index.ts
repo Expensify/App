@@ -327,6 +327,20 @@ function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: Polic
     return !(policy?.connections?.[connectionName]?.lastSync?.isConnected ?? true);
 }
 
+function setConnectionError(policyID: string, connectionName: PolicyConnectionName, errorMessage?: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        connections: {
+            [connectionName]: {
+                lastSync: {
+                    isSuccessful: false,
+                    errorDate: new Date().toISOString(),
+                    errorMessage,
+                },
+            },
+        },
+    });
+}
+
 function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID: string, connectionName: ConnectionName) {
     let stageInProgress;
     switch (connectionName) {
@@ -389,4 +403,5 @@ export {
     isConnectionUnverified,
     isConnectionInProgress,
     hasSynchronizationErrorMessage,
+    setConnectionError,
 };

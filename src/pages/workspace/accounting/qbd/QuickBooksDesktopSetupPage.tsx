@@ -18,6 +18,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setConnectionError} from '@libs/actions/connections';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -48,13 +49,14 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
                     setCodatSetupLink(String(response?.setupUrl ?? ''));
                 } else {
+                    setConnectionError(policyID, CONST.POLICY.CONNECTIONS.NAME.QBD, translate('workspace.qbd.setupPage.setupErrorTitle'));
                     setHasError(true);
                 }
             }
 
             setIsLoading(false);
         });
-    }, [policyID]);
+    }, [policyID, translate]);
 
     useEffect(() => {
         // Since QBD doesn't support Taxes, we should disable them from the LHN when connecting to QBD
