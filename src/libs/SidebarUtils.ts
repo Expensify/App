@@ -79,6 +79,10 @@ type MiniReport = {
     lastVisibleActionCreated?: string;
 };
 
+function ensureSingleSpacing(text: string) {
+    return text.replace(CONST.REGEX.WHITESPACE, ' ').trim();
+}
+
 /**
  * @returns An array of reportIDs sorted in the proper order
  */
@@ -385,6 +389,7 @@ function getOptionData({
     result.hasOutstandingChildTask = report.hasOutstandingChildTask;
     result.hasParentAccess = report.hasParentAccess;
     result.isConciergeChat = ReportUtils.isConciergeChatReport(report);
+    result.participants = report.participants;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -548,9 +553,11 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
             welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne');
             welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo');
             welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree');
-            welcomeMessage.messageText = `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${ReportUtils.getPolicyName(
-                report,
-            )} ${welcomeMessage.phrase3}`;
+            welcomeMessage.messageText = ensureSingleSpacing(
+                `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${ReportUtils.getPolicyName(report)} ${
+                    welcomeMessage.phrase3
+                }`,
+            );
         }
         return welcomeMessage;
     }
@@ -592,7 +599,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
         })
         .join(' ');
 
-    welcomeMessage.messageText = displayNamesWithTooltips.length ? `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}` : '';
+    welcomeMessage.messageText = displayNamesWithTooltips.length ? ensureSingleSpacing(`${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`) : '';
     return welcomeMessage;
 }
 
@@ -604,7 +611,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
     const workspaceName = ReportUtils.getPolicyName(report);
 
     if (report?.description) {
-        welcomeMessage.messageHtml = report.description;
+        welcomeMessage.messageHtml = ReportUtils.getReportDescription(report);
         welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         return welcomeMessage;
     }
@@ -640,7 +647,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
     }
-    welcomeMessage.messageText = `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`;
+    welcomeMessage.messageText = ensureSingleSpacing(`${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`);
 
     return welcomeMessage;
 }

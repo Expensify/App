@@ -56,6 +56,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should show a download button */
     shouldShowDownloadButton?: boolean;
 
+    /** Whether we should show a loading indicator replacing the download button */
+    isDownloading?: boolean;
+
     /** Whether we should show a get assistance (question mark) button */
     shouldShowGetAssistanceButton?: boolean;
 

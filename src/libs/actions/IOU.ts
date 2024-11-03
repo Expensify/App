@@ -61,7 +61,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant, Split} from '@src/types/onyx/IOU';
+import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -359,6 +359,7 @@ function initMoneyRequest(
     // Use set() here so that there is no way that data will be leaked between objects when it gets reset
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
         amount: 0,
+        attendees: IOUUtils.formatCurrentUserToAttendee(currentUserPersonalDetails, reportID),
         comment,
         created,
         currency,
@@ -424,6 +425,10 @@ function setMoneyRequestDescription(transactionID: string, comment: string, isDr
 
 function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant});
+}
+
+function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {attendees});
 }
 
 function setMoneyRequestPendingFields(transactionID: string, pendingFields: OnyxTypes.Transaction['pendingFields']) {
@@ -1910,6 +1915,7 @@ function getSendInvoiceInformation(
         currency,
         optimisticInvoiceReport.reportID,
         trimmedComment,
+        [],
         created,
         '',
         '',
@@ -2031,6 +2037,7 @@ function getMoneyRequestInformation(
     payeeEmail = currentUserEmail,
     moneyRequestReportID = '',
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
+    attendees?: Attendee[],
     existingTransaction: OnyxEntry<OnyxTypes.Transaction> | undefined = undefined,
 ): MoneyRequestInformation {
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
@@ -2090,6 +2097,7 @@ function getMoneyRequestInformation(
         currency,
         iouReport.reportID,
         comment,
+        attendees,
         created,
         '',
         '',
@@ -2175,7 +2183,8 @@ function getMoneyRequestInformation(
           }
         : {};
 
-    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.OPEN);
+    const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, predictedNextStatus);
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
@@ -2330,6 +2339,7 @@ function getTrackExpenseInformation(
         currency,
         shouldUseMoneyReport && iouReport ? iouReport.reportID : '-1',
         comment,
+        [],
         created,
         '',
         '',
@@ -2489,6 +2499,7 @@ function getUpdateMoneyRequestParams(
     policyTagList: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyCategories>,
     onlyIncludeChangedFields: boolean,
+    violations?: OnyxEntry<OnyxTypes.TransactionViolations>,
 ): UpdateMoneyRequestData {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -2728,6 +2739,19 @@ function getUpdateMoneyRequestParams(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport?.policyID}`,
                 value: optimisticPolicyRecentlyUsedTags,
+            });
+        }
+    }
+
+    const overLimitViolation = violations?.find((violation) => violation.name === 'overLimit');
+    // Update violation limit, if we modify attendees. The given limit value is for a single attendee, if we have multiple attendees we should multpiply limit by attende count
+    if ('attendees' in transactionChanges && !!overLimitViolation) {
+        const limitForSingleAttendee = ViolationsUtils.getViolationAmountLimit(overLimitViolation);
+        if (limitForSingleAttendee * (transactionChanges?.attendees?.length ?? 1) > Math.abs(TransactionUtils.getAmount(transaction))) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: violations?.filter((violation) => violation.name !== 'overLimit') ?? [],
             });
         }
     }
@@ -3051,6 +3075,24 @@ function updateMoneyRequestMerchant(
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, params, onyxData);
 }
 
+/** Updates the attendees list of an expense */
+function updateMoneyRequestAttendees(
+    transactionID: string,
+    transactionThreadReportID: string,
+    attendees: Attendee[],
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    violations: OnyxEntry<OnyxTypes.TransactionViolations>,
+) {
+    const transactionChanges: TransactionChanges = {
+        attendees,
+    };
+    const data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true, violations);
+    const {params, onyxData} = data;
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
+}
+
 /** Updates the tag of an expense */
 function updateMoneyRequestTag(
     transactionID: string,
@@ -3308,6 +3350,7 @@ function convertTrackedExpenseToRequest(
     comment: string,
     merchant: string,
     created: string,
+    attendees?: Attendee[],
     receipt?: Receipt,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
@@ -3332,6 +3375,7 @@ function convertTrackedExpenseToRequest(
     failureData?.push(...moveTransactionFailureData);
 
     const parameters = {
+        attendees,
         amount,
         currency,
         comment,
@@ -3510,6 +3554,7 @@ function shareTrackedExpense(
 function requestMoney(
     report: OnyxEntry<OnyxTypes.Report>,
     amount: number,
+    attendees: Attendee[] | undefined,
     currency: string,
     created: string,
     merchant: string,
@@ -3576,6 +3621,7 @@ function requestMoney(
         payeeEmail,
         moneyRequestReportID,
         linkedTrackedExpenseReportAction,
+        attendees,
     );
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -3605,6 +3651,7 @@ function requestMoney(
                 comment,
                 merchant,
                 created,
+                attendees,
                 receipt,
             );
             break;
@@ -3990,6 +4037,7 @@ function createSplitsAndOnyxData(
         currency,
         CONST.REPORT.SPLIT_REPORTID,
         comment,
+        [],
         created,
         '',
         '',
@@ -4234,6 +4282,7 @@ function createSplitsAndOnyxData(
             currency,
             oneOnOneIOUReport.reportID,
             comment,
+            [],
             created,
             CONST.IOU.TYPE.SPLIT,
             splitTransaction.transactionID,
@@ -4581,6 +4630,7 @@ function startSplitBill({
         currency,
         CONST.REPORT.SPLIT_REPORTID,
         comment,
+        [],
         '',
         '',
         '',
@@ -4992,6 +5042,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             currency ?? '',
             oneOnOneIOUReport?.reportID ?? '-1',
             updatedTransaction?.comment?.comment,
+            [],
             updatedTransaction?.modifiedCreated,
             CONST.IOU.TYPE.SPLIT,
             transactionID,
@@ -5230,6 +5281,7 @@ function createDistanceRequest(
             userAccountID,
             currentUserEmail,
             moneyRequestReportID,
+            undefined,
             undefined,
             existingTransaction,
         );
@@ -6507,15 +6559,20 @@ function getReportFromHoldRequestsOnyxData(
     const firstHoldTransaction = holdTransactions.at(0);
     const newParentReportActionID = rand64();
 
-    const optimisticExpenseReport = ReportUtils.buildOptimisticExpenseReport(
-        chatReport.reportID,
-        chatReport.policyID ?? iouReport?.policyID ?? '',
-        recipient.accountID ?? 1,
-        holdTransactions.reduce((acc, transaction) => acc + TransactionUtils.getAmount(transaction), 0),
-        getCurrency(firstHoldTransaction),
-        false,
-        newParentReportActionID,
-    );
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+    const holdTransactionAmount = holdTransactions.reduce((acc, transaction) => acc + TransactionUtils.getAmount(transaction), 0);
+    const optimisticExpenseReport = isPolicyExpenseChat
+        ? ReportUtils.buildOptimisticExpenseReport(
+              chatReport.reportID,
+              chatReport.policyID ?? iouReport?.policyID ?? '',
+              recipient.accountID ?? 1,
+              holdTransactionAmount,
+              getCurrency(firstHoldTransaction),
+              false,
+              newParentReportActionID,
+          )
+        : ReportUtils.buildOptimisticIOUReport(recipient.accountID ?? 1, iouReport?.managerID ?? 1, holdTransactionAmount, chatReport.reportID, getCurrency(firstHoldTransaction), false);
+
     const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(
         chatReport,
         optimisticExpenseReport,
@@ -8523,6 +8580,7 @@ export {
     setDraftSplitTransaction,
     setIndividualShare,
     setMoneyRequestAmount,
+    setMoneyRequestAttendees,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestCreated,
@@ -8547,6 +8605,7 @@ export {
     trackExpense,
     unapproveExpenseReport,
     unholdRequest,
+    updateMoneyRequestAttendees,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestBillable,
     updateMoneyRequestCategory,
