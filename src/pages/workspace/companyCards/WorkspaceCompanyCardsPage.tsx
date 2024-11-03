@@ -69,7 +69,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             )}
             {!isLoading && (
                 <WorkspacePageWithSections
-                    shouldUseScrollView={!isFeedAdded}
+                    shouldUseScrollView={isNoFeed}
                     icon={Illustrations.CompanyCard}
                     headerText={translate('workspace.common.companyCards')}
                     route={route}
