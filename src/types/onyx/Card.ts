@@ -129,12 +129,6 @@ type ExpensifyCardDetails = {
     cvv: string;
 };
 
-/** Model of replacement card response */
-type ExpensifyCardID = {
-    /** The replacement cardID */
-    newCardID: number;
-};
-
 /** Record of Expensify cards, indexed by cardID */
 type CardList = Record<string, Card>;
 
@@ -190,4 +184,4 @@ type WorkspaceCardsList = Record<string, Card> & {
 };
 
 export default Card;
-export type {ExpensifyCardDetails, ExpensifyCardID, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};

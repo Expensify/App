@@ -107,7 +107,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             availableMembers: [...currentApprovalWorkflow.members, ...defaultWorkflowMembers],
             usedApproverEmails,
             action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
-            isLoading: false,
             errors: null,
         });
         setInitialApprovalWorkflow(currentApprovalWorkflow);
@@ -132,7 +131,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                         title={translate('workflowsEditApprovalsPage.title')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    {approvalWorkflow && (
+                    {!!approvalWorkflow && (
                         <>
                             <ApprovalWorkflowEditor
                                 approvalWorkflow={approvalWorkflow}
@@ -147,7 +146,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                 onFixTheErrorsLinkPressed={() => {
                                     formRef.current?.scrollTo({y: 0, animated: true});
                                 }}
-                                isLoading={approvalWorkflow?.isLoading}
                                 buttonText={translate('common.save')}
                                 containerStyles={[styles.mb5, styles.mh5]}
                                 enabledWhenOffline

@@ -1,18 +1,18 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {requestValidateCodeAction} from '@libs/actions/User';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Card from '@userActions/Card';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,43 +28,35 @@ function ReportVirtualCardFraudPage({
 }: ReportVirtualCardFraudPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD);
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const virtualCard = cardList?.[cardID];
     const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard);
-    const validateError = ErrorUtils.getLatestErrorMessageField(virtualCard);
 
-    if (isEmptyObject(virtualCard)) {
-        return;
-    }
+    const prevIsLoading = usePrevious(formData?.isLoading);
 
-    const openValidateCodeModal = () => {
-        setIsValidateCodeActionModalVisible(true);
-    };
-
-    const handleValidateCodeEntered = (validateCode: string) => {
-        Card.reportVirtualExpensifyCardFraud(virtualCard.cardID, validateCode).then((newCardID) => {
-            if (!newCardID) {
-                return;
-            }
-            setIsValidateCodeActionModalVisible(false);
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(newCardID));
+    const submit = useCallback(() => {
+        Navigation.dismissModal();
+        InteractionManager.runAfterInteractions(() => {
+            Card.reportVirtualExpensifyCardFraud(virtualCard);
         });
-    };
+    }, [virtualCard]);
 
-    const sendValidateCode = () => {
-        const primaryLogin = account?.primaryLogin ?? '';
-
-        if (loginList?.[primaryLogin]?.validateCodeSent) {
+    useEffect(() => {
+        if (!prevIsLoading || formData?.isLoading) {
+            return;
+        }
+        if (!isEmptyObject(virtualCard?.errors)) {
             return;
         }
 
-        requestValidateCodeAction();
-    };
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
+    }, [cardID, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
+
+    if (isEmptyObject(virtualCard)) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper testID={ReportVirtualCardFraudPage.displayName}>
@@ -76,25 +68,13 @@ function ReportVirtualCardFraudPage({
                 <Text style={[styles.webViewStyles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
                 <FormAlertWithSubmitButton
                     isAlertVisible={!!virtualCardError}
-                    onSubmit={openValidateCodeModal}
+                    onSubmit={submit}
                     message={virtualCardError}
                     isLoading={formData?.isLoading}
                     buttonText={translate('reportFraudPage.deactivateCard')}
                     containerStyles={[styles.m5]}
                 />
             </View>
-            <ValidateCodeActionModal
-                handleSubmitForm={handleValidateCodeEntered}
-                sendValidateCode={sendValidateCode}
-                validateError={validateError}
-                clearError={() => {
-                    Card.clearCardListErrors(virtualCard.cardID);
-                }}
-                onClose={() => setIsValidateCodeActionModalVisible(false)}
-                isVisible={isValidateCodeActionModalVisible}
-                title={translate('cardPage.validateCardTitle')}
-                description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
-            />
         </ScreenWrapper>
     );
 }
