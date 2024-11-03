@@ -68,7 +68,7 @@ function IOURequestStepAmount({
     const isEditingSplitBill = isEditing && isSplitBill;
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(currentTransaction) ?? {amount: 0};
-    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
+    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
