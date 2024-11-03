@@ -1,26 +1,22 @@
 import type {ReactNode} from 'react';
 import React, {createContext, useCallback, useMemo, useState} from 'react';
 
-// Define the context type
 type ReportActionHighlightContextType = {
     linkedReportActionID: string | null;
     setHighlight: (id: string) => void;
     removeHighlight: () => void;
 };
 
-// Create the context with a default value
 const ReportActionHighlightContext = createContext<ReportActionHighlightContextType>({
     linkedReportActionID: null,
     setHighlight: () => {},
     removeHighlight: () => {},
 });
 
-// Define props type for the provider
 type ReportActionHighlightProviderProps = {
     children: ReactNode;
 };
 
-// Context provider component
 function ReportActionHighlightProvider({children}: ReportActionHighlightProviderProps) {
     const [linkedReportActionID, setLinkedReportActionID] = useState<string | null>(null);
 
