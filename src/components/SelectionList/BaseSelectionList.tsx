@@ -107,7 +107,7 @@ function BaseSelectionList<TItem extends ListItem>(
         scrollEventThrottle,
         contentContainerStyle,
         shouldHighlightSelectedItem = false,
-        searchType = '',
+        shouldKeepFocusedItemAtTopOfViewableArea = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -277,7 +277,7 @@ function BaseSelectionList<TItem extends ListItem>(
             // Since there are always two items above the focused item in viewable area, and items can grow beyond the screen size
             // in searchType chat, the focused item may move out of view. To prevent this, we will ensure that the focused item remains at
             // the top of the viewable area at all times by adjusting the viewOffset.
-            if (searchType === 'chat') {
+            if (shouldKeepFocusedItemAtTopOfViewableArea) {
                 const firstPreviousItem = index > 0 ? flattenedSections.allOptions.at(index - 1) : undefined;
                 const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeights[firstPreviousItem.keyForList] : 0;
                 const secondPreviousItem = index > 1 ? flattenedSections.allOptions.at(index - 2) : undefined;
