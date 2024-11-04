@@ -85,11 +85,23 @@
 
         .toc-sidebar li {
             margin-left: 0;
-            padding-left: 10px;
+            padding-left: 0;
+        }
+
+        .js-toc > ul > li > a {
+            display: none;
         }
 
         .js-toc > ul > li > ul > li {
             margin-top: 25px;
+        }
+
+        .js-toc > ul > li > ul > li > a {
+            font-weight: bold;
+        }
+
+        .js-toc > ul > li > ul > li > ul > li > ul > li {
+            padding-left: 10px;
         }
 
         .toc-sidebar a {
@@ -110,18 +122,7 @@
         .toc-sidebar .is-active-link {
             background-color: #eaf5ff;
             color: #0366d6;
-            font-weight: bold;
             border-radius: 6px;
-        }
-
-        a:has(+ ul.is-collapsible)::after {
-            content: '∧'; /* Use the logical AND symbol */
-            display: inline; /* Ensure the caret appears directly after the content */
-            margin-left: 5px; /* Add some space between the text and the caret */
-            transform: rotate(180deg); /* Rotate the caret 180 degrees */
-            display: inline-block; /* Required to apply transform */
-            position: relative; /* Enables positioning adjustments */
-            top: 3px; /* Moves the caret down 3 pixels */
         }
 
         /* Main content area */
@@ -161,7 +162,7 @@
         }
 
         .is-active-link {
-            font-weight: bold;
+            font-weight: normal;
         }
 
         .scroll-spacer {
