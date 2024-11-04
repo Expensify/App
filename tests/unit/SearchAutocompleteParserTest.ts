@@ -1,5 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as autocompleteParser from '@libs/SearchParser/autocompleteParser';
+import CONST from '@src/CONST';
 
 const tests = [
     {
@@ -27,14 +28,14 @@ const tests = [
         query: 'type:expense status:all',
         expected: {
             autocomplete: {
-                key: 'status',
+                key: CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS,
                 value: 'all',
                 start: 20,
                 length: 3,
             },
             ranges: [
-                {key: 'type', value: 'expense', start: 5, length: 7},
-                {key: 'status', value: 'all', start: 20, length: 3},
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: 'expense', start: 5, length: 7},
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, value: 'all', start: 20, length: 3},
             ],
         },
     },
@@ -42,14 +43,14 @@ const tests = [
         query: 'in:123456 currency:USD      ',
         expected: {
             autocomplete: {
-                key: 'currency',
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
                 value: 'USD',
                 start: 19,
                 length: 3,
             },
             ranges: [
-                {key: 'in', value: '123456', start: 3, length: 6},
-                {key: 'currency', value: 'USD', start: 19, length: 3},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: '123456', start: 3, length: 6},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY, value: 'USD', start: 19, length: 3},
             ],
         },
     },
@@ -57,15 +58,15 @@ const tests = [
         query: 'tag:aa,bbb,cccc',
         expected: {
             autocomplete: {
-                key: 'tag',
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
                 value: 'cccc',
                 start: 11,
                 length: 4,
             },
             ranges: [
-                {key: 'tag', value: 'aa', start: 4, length: 2},
-                {key: 'tag', value: 'bbb', start: 7, length: 3},
-                {key: 'tag', value: 'cccc', start: 11, length: 4},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: 'aa', start: 4, length: 2},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: 'bbb', start: 7, length: 3},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: 'cccc', start: 11, length: 4},
             ],
         },
     },
@@ -73,7 +74,7 @@ const tests = [
         query: 'category:',
         expected: {
             autocomplete: {
-                key: 'category',
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
                 value: '',
                 start: 9,
                 length: 0,
@@ -85,26 +86,26 @@ const tests = [
         query: 'category:Advertising,',
         expected: {
             autocomplete: {
-                key: 'category',
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
                 value: '',
                 start: 21,
                 length: 0,
             },
-            ranges: [{key: 'category', value: 'Advertising', start: 9, length: 11}],
+            ranges: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'Advertising', start: 9, length: 11}],
         },
     },
     {
         query: 'in:"Big Room","small room"',
         expected: {
             autocomplete: {
-                key: 'in',
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
                 value: 'small room',
                 start: 14,
                 length: 12,
             },
             ranges: [
-                {key: 'in', value: 'Big Room', start: 3, length: 10},
-                {key: 'in', value: 'small room', start: 14, length: 12},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: 'Big Room', start: 3, length: 10},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: 'small room', start: 14, length: 12},
             ],
         },
     },
@@ -112,12 +113,12 @@ const tests = [
         query: 'category:   Car',
         expected: {
             autocomplete: {
-                key: 'category',
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
                 value: 'Car',
                 start: 12,
                 length: 3,
             },
-            ranges: [{key: 'category', value: 'Car', start: 12, length: 3}],
+            ranges: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'Car', start: 12, length: 3}],
         },
     },
     {
@@ -125,8 +126,8 @@ const tests = [
         expected: {
             autocomplete: null,
             ranges: [
-                {key: 'type', value: 'expense', start: 5, length: 7},
-                {key: 'status', value: 'all', start: 20, length: 3},
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: 'expense', start: 5, length: 7},
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, value: 'all', start: 20, length: 3},
             ],
         },
     },
@@ -134,19 +135,19 @@ const tests = [
         query: 'in:"Big Room" from:Friend category:Car,"Cell Phone" status:all expenseType:card,cash',
         expected: {
             autocomplete: {
-                key: 'expenseType',
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
                 value: 'cash',
                 start: 80,
                 length: 4,
             },
             ranges: [
-                {key: 'in', value: 'Big Room', start: 3, length: 10},
-                {key: 'from', value: 'Friend', start: 19, length: 6},
-                {key: 'category', value: 'Car', start: 35, length: 3},
-                {key: 'category', value: 'Cell Phone', start: 39, length: 12},
-                {key: 'status', value: 'all', start: 59, length: 3},
-                {key: 'expenseType', value: 'card', start: 75, length: 4},
-                {key: 'expenseType', value: 'cash', start: 80, length: 4},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: 'Big Room', start: 3, length: 10},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: 'Friend', start: 19, length: 6},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'Car', start: 35, length: 3},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'Cell Phone', start: 39, length: 12},
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, value: 'all', start: 59, length: 3},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE, value: 'card', start: 75, length: 4},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE, value: 'cash', start: 80, length: 4},
             ],
         },
     },
@@ -154,19 +155,19 @@ const tests = [
         query: 'currency:PLN,USD keyword taxRate:tax  merchant:"Expensify, Inc." tag:"General Overhead",IT expenseType:card,distance',
         expected: {
             autocomplete: {
-                key: 'expenseType',
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
                 value: 'distance',
                 start: 108,
                 length: 8,
             },
             ranges: [
-                {key: 'currency', value: 'PLN', start: 9, length: 3},
-                {key: 'currency', value: 'USD', start: 13, length: 3},
-                {key: 'taxRate', value: 'tax', start: 33, length: 3},
-                {key: 'tag', value: 'General Overhead', start: 69, length: 18},
-                {key: 'tag', value: 'IT', start: 88, length: 2},
-                {key: 'expenseType', value: 'card', start: 103, length: 4},
-                {key: 'expenseType', value: 'distance', start: 108, length: 8},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY, value: 'PLN', start: 9, length: 3},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY, value: 'USD', start: 13, length: 3},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE, value: 'tax', start: 33, length: 3},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: 'General Overhead', start: 69, length: 18},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: 'IT', start: 88, length: 2},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE, value: 'card', start: 103, length: 4},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE, value: 'distance', start: 108, length: 8},
             ],
         },
     },
