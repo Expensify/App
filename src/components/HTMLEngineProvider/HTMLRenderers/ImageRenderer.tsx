@@ -67,7 +67,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
     const fileType = FileUtils.getFileType(attachmentSourceAttribute);
     const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
-    const [hasLoadFailed, setHasLoadFailed] = useState(true);
+    const [, setHasLoadFailed] = useState(true);
     const theme = useTheme();
 
     const thumbnailImageComponent = (
