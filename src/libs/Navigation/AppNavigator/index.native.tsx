@@ -20,7 +20,6 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     const {initialURL, setInitialURL} = useContext(InitialURLContext);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
-    const [useNewDotSignInPage] = useOnyx(ONYXKEYS.USE_NEWDOT_SIGN_IN_PAGE);
 
     /**
      * kiedy chcemy pokazać auth screens:
@@ -39,8 +38,8 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
             return false;
         }
 
-        return authenticated && (!useNewDotSignInPage || hybridApp?.readyToShowAuthScreens);
-    }, [authenticated, hybridApp?.readyToShowAuthScreens, tryNewDot, useNewDotSignInPage]);
+        return authenticated && (!hybridApp?.useNewDotSignInPage || hybridApp?.readyToShowAuthScreens);
+    }, [authenticated, hybridApp?.readyToShowAuthScreens, tryNewDot, hybridApp?.useNewDotSignInPage]);
 
     useEffect(() => {
         if (!NativeModules.HybridAppModule || !initialURL || !shouldShowAuthScreens) {
