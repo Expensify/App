@@ -50,7 +50,7 @@ const baseFilterConfig = {
         description: 'common.description' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
     },
-    reportID: {
+    reportid: {
         getTitle: getFilterDisplayTitle,
         description: 'common.reportID' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
@@ -70,17 +70,17 @@ const baseFilterConfig = {
         description: 'search.filters.hasKeywords' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_KEYWORD,
     },
-    cardID: {
+    card: {
         getTitle: getFilterCardDisplayTitle,
         description: 'common.card' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
     },
-    taxRate: {
+    'tax-rate': {
         getTitle: getFilterTaxRateDisplayTitle,
         description: 'workspace.taxes.taxRate' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
     },
-    expenseType: {
+    'expense-type': {
         getTitle: getFilterExpenseDisplayTitle,
         description: 'search.expenseType' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
@@ -108,9 +108,9 @@ const baseFilterConfig = {
 };
 
 const typeFiltersKeys: Record<string, Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>> = {
-    [CONST.SEARCH.DATA_TYPES.EXPENSE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'expenseType', 'tag', 'from', 'to', 'cardID'],
-    [CONST.SEARCH.DATA_TYPES.INVOICE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
-    [CONST.SEARCH.DATA_TYPES.TRIP]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: ['date', 'currency', 'merchant', 'description', 'reportid', 'amount', 'category', 'keyword', 'tax-rate', 'expense-type', 'tag', 'from', 'to', 'card'],
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: ['date', 'currency', 'merchant', 'description', 'reportid', 'amount', 'category', 'keyword', 'tax-rate', 'tag', 'from', 'to', 'card'],
+    [CONST.SEARCH.DATA_TYPES.TRIP]: ['date', 'currency', 'merchant', 'description', 'reportid', 'amount', 'category', 'keyword', 'tax-rate', 'tag', 'from', 'to', 'card'],
     [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'in'],
 };
 
