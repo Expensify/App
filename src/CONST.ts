@@ -2873,6 +2873,7 @@ const CONST = {
              */
             NVP_FINANCIALFORCE_EXPORT_VENDOR_POLICY_ID: 'financialforce_export_vendor_policy_id',
         },
+        CARD_NAME_INPUT_LIMIT: 100,
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
