@@ -329,7 +329,7 @@ function MoneyRequestConfirmationList({
         return false;
     };
 
-    const routeError = Object.values(transaction?.errorFields?.route || {}).at(0);
+    const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
 
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
@@ -888,7 +888,7 @@ function MoneyRequestConfirmationList({
 
         return (
             <>
-                {errorMessage && (
+                {!!errorMessage && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
