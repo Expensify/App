@@ -199,7 +199,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     // isLocalToUserDeviceFile means the file is located on the user device,
     // not loaded on the server yet (the user is offline when loading this file in fact)
     let isLocalToUserDeviceFile = FileUtils.isLocalFile(url);
-    if (isLocalToUserDeviceFile && typeof url === 'string' && url.startsWith('/chat-attachments')){
+    if (isLocalToUserDeviceFile && typeof url === 'string' && url.startsWith('/chat-attachments')) {
         isLocalToUserDeviceFile = false;
     }
 
