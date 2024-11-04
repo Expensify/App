@@ -2,7 +2,7 @@ import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInput
 import type {TextSelection} from '@components/Composer/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
-type TextInputWithCurrencySymbolProps = {
+type BaseTextInputWithCurrencySymbolProps = {
     /** Formatted amount in local currency  */
     formattedAmount: string;
 
@@ -77,6 +77,12 @@ type TextInputWithCurrencySymbolProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'contentWidth' | 'regex'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'contentWidth' | 'regex' | 'onPress'>;
 
-export default TextInputWithCurrencySymbolProps;
+type TextInputWithCurrencySymbolProps = Omit<BaseTextInputWithCurrencySymbolProps, 'onSelectionChange'> & {
+    onSelectionChange?: (start: number, end: number) => void;
+};
+
+export type {TextInputWithCurrencySymbolProps};
+
+export default BaseTextInputWithCurrencySymbolProps;

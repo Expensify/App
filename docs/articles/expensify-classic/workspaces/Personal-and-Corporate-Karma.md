@@ -23,6 +23,16 @@ For every $500 of expenses added, you’ll donate $1 to a related Expensify.org 
 
 The fund from your Personal Karma is determined by the expense's MCC (Merchant Category Code). Each MCC supports one of Expensify.org's funds: Climate Justice, Food Security, Housing Equity, Reentry Services, and Youth Advocacy.
 
+## How do I opt-in to Personal Karma donations?
+
+You can enable Personal Karma donations from your personal workspace settings. 
+
+- Sign in to your account at www.expensify.com.
+- Go to **Settings** > **Workspaces** > click on your **Individual** workspace settings.
+- Click Opt-in to Karma donations. 
+
+![Settings > Workspaces > Individual workspace > enable Personal Karma in settings](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_Karma_Individual.png){:width="100%"}
+
 ##  What is Corporate Karma?
 
 Corporate Karma is for companies that want to engage in social responsibility. Each month, the donation is calculated based on the total amount of all approved expense reports, including invoices, across all Workspace. 
@@ -31,12 +41,12 @@ For every $500 your team spends monthly, your company will donate $1 to a relate
 
 The fund to which your Corporate Karma goes is determined by the expense's MCC (Merchant Category Code). Each MCC supports one of Expensify.org's funds: Climate Justice, Food Security, Housing Equity, Reentry Services, and Youth Advocacy.
 
-{% include faq-begin.md %}
+## How do I opt-in to Corporate Karma donations?
 
-**How do I opt-in to Personal or Corporate Karma donations?**
+As a [workspace billing owner](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account), you can enable Corporate Karma from the group workspace settings. 
 
-You can donate Personal and Corporate Karma to Expensify.org in your company or personal workspace settings. 
+- Sign in to your account at www.expensify.com.
+- Go to **Settings** > **Workspaces** > **Subscription**.
+- Toggle on Karma donations. 
 
-Go to **Settings** > **Workspaces** > click on your Individual or Group workspace settings and Opt-in to Karma donations. 
-
-{% include faq-end.md %}
+![Settings > Workspaces > Group > enable Corporate Karma in subscription settings](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_Karma_Group.png){:width="100%"}
