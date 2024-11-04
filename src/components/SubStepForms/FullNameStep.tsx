@@ -41,7 +41,14 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
         lastName: string;
     };
 
+    /** Should show the help link or not */
     shouldShowHelpLinks?: boolean;
+
+    /** Custom label of the first name input  */
+    customFirstNameLabel?: string;
+
+    /** Custom label of the last name input */
+    customLastNameLabel?: string;
 };
 
 function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -55,6 +62,8 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     defaultValues,
     isEditing,
     shouldShowHelpLinks = true,
+    customFirstNameLabel,
+    customLastNameLabel,
 }: FullNameStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -64,15 +73,33 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
             const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
 
             const firstName = values[firstNameInputID as keyof FormOnyxValues<TFormID>] as string;
-            if (firstName && !ValidationUtils.isValidLegalName(firstName)) {
+            if (!ValidationUtils.isRequiredFulfilled(firstName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[firstNameInputID] = translate('common.error.fieldRequired');
+            } else if (!ValidationUtils.isValidLegalName(firstName)) {
+                // @ts-expect-error type mismatch to be fixed
+                errors[firstNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
+            } else if (firstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+                // @ts-expect-error type mismatch to be fixed
+                errors[firstNameInputID] = translate('common.error.characterLimitExceedCounter', {
+                    length: firstName.length,
+                    limit: CONST.LEGAL_NAME.MAX_LENGTH,
+                });
             }
 
             const lastName = values[lastNameInputID as keyof FormOnyxValues<TFormID>] as string;
-            if (lastName && !ValidationUtils.isValidLegalName(lastName)) {
+            if (!ValidationUtils.isRequiredFulfilled(lastName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[lastNameInputID] = translate('common.error.fieldRequired');
+            } else if (!ValidationUtils.isValidLegalName(lastName)) {
+                // @ts-expect-error type mismatch to be fixed
+                errors[lastNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
+            } else if (lastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+                // @ts-expect-error type mismatch to be fixed
+                errors[lastNameInputID] = translate('common.error.characterLimitExceedCounter', {
+                    length: lastName.length,
+                    limit: CONST.LEGAL_NAME.MAX_LENGTH,
+                });
             }
             return errors;
         },
@@ -92,8 +119,8 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={firstNameInputID}
-                    label={translate('common.firstName')}
-                    aria-label={translate('common.firstName')}
+                    label={customFirstNameLabel ?? translate('personalInfoStep.legalFirstName')}
+                    aria-label={customFirstNameLabel ?? translate('personalInfoStep.legalFirstName')}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={defaultValues.firstName}
                     shouldSaveDraft={!isEditing}
@@ -102,8 +129,8 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={lastNameInputID}
-                    label={translate('common.lastName')}
-                    aria-label={translate('common.lastName')}
+                    label={customLastNameLabel ?? translate('personalInfoStep.legalLastName')}
+                    aria-label={customLastNameLabel ?? translate('personalInfoStep.legalLastName')}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={defaultValues.lastName}
                     shouldSaveDraft={!isEditing}
