@@ -77,6 +77,12 @@ const onboardingChoices = {
     ...backendOnboardingChoices,
 } as const;
 
+const combinedTrackSubmitOnboardingChoices = {
+    PERSONAL_SPEND: selectableOnboardingChoices.PERSONAL_SPEND,
+    EMPLOYER: selectableOnboardingChoices.EMPLOYER,
+    SUBMIT: backendOnboardingChoices.SUBMIT,
+} as const;
+
 const signupQualifiers = {
     INDIVIDUAL: 'individual',
     VSB: 'vsb',
@@ -123,6 +129,95 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
                 '3. Connect your bank account.\n' +
                 '\n' +
                 'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
+        },
+    ],
+};
+
+const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessageType = {
+    ...onboardingEmployerOrSubmitMessage,
+    tasks: [
+        {
+            type: 'submitExpense',
+            autoCompleted: false,
+            title: 'Submit an expense',
+            description:
+                '*Submit an expense* by entering an amount or scanning a receipt.\n' +
+                '\n' +
+                'Here’s how to submit an expense:\n' +
+                '\n' +
+                '1. Click the green *+* button.\n' +
+                '2. Choose *Create expense*.\n' +
+                '3. Enter an amount or scan a receipt.\n' +
+                '4. Add your reimburser to the request.\n' +
+                '5. Click *Submit*.\n' +
+                '\n' +
+                'And you’re done! Now wait for that sweet “Cha-ching!” when it’s complete.',
+        },
+        {
+            type: 'addBankAccount',
+            autoCompleted: false,
+            title: 'Add personal bank account',
+            description:
+                'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
+                '\n' +
+                'Here’s how to set up your bank account:\n' +
+                '\n' +
+                '1. Click your profile picture.\n' +
+                '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
+                '3. Connect your bank account.\n' +
+                '\n' +
+                'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
+        },
+    ],
+};
+
+const onboardingPersonalSpendMessage: OnboardingMessageType = {
+    message: 'Here’s how to track your spend in a few clicks.',
+    video: {
+        url: `${CLOUDFRONT_URL}/videos/guided-setup-track-personal-v2.mp4`,
+        thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-track-personal.jpg`,
+        duration: 55,
+        width: 1280,
+        height: 960,
+    },
+    tasks: [
+        {
+            type: 'trackExpense',
+            autoCompleted: false,
+            title: 'Track an expense',
+            description:
+                '*Track an expense* in any currency, whether you have a receipt or not.\n' +
+                '\n' +
+                'Here’s how to track an expense:\n' +
+                '\n' +
+                '1. Click the green *+* button.\n' +
+                '2. Choose *Track expense*.\n' +
+                '3. Enter an amount or scan a receipt.\n' +
+                '4. Click *Track*.\n' +
+                '\n' +
+                'And you’re done! Yep, it’s that easy.',
+        },
+    ],
+};
+const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessageType = {
+    ...onboardingPersonalSpendMessage,
+    tasks: [
+        {
+            type: 'trackExpense',
+            autoCompleted: false,
+            title: 'Track an expense',
+            description:
+                '*Track an expense* in any currency, whether you have a receipt or not.\n' +
+                '\n' +
+                'Here’s how to track an expense:\n' +
+                '\n' +
+                '1. Click the green *+* button.\n' +
+                '2. Choose *Create expense*.\n' +
+                '3. Enter an amount or scan a receipt.\n' +
+                '4. Click "Just track it (don\'t submit it)".\n' +
+                '5. Click *Track*.\n' +
+                '\n' +
+                'And you’re done! Yep, it’s that easy.',
         },
     ],
 };
@@ -526,7 +621,6 @@ const CONST = {
         DIRECT_FEEDS: 'directFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         NEW_DOT_COPILOT: 'newDotCopilot',
-        WORKSPACE_RULES: 'workspaceRules',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
@@ -4710,6 +4804,7 @@ const CONST = {
     ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
+    COMBINED_TRACK_SUBMIT_ONBOARDING_CHOICES: {...combinedTrackSubmitOnboardingChoices},
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
@@ -4891,34 +4986,7 @@ const CONST = {
                 },
             ],
         },
-        [onboardingChoices.PERSONAL_SPEND]: {
-            message: 'Here’s how to track your spend in a few clicks.',
-            video: {
-                url: `${CLOUDFRONT_URL}/videos/guided-setup-track-personal-v2.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-track-personal.jpg`,
-                duration: 55,
-                width: 1280,
-                height: 960,
-            },
-            tasks: [
-                {
-                    type: 'trackExpense',
-                    autoCompleted: false,
-                    title: 'Track an expense',
-                    description:
-                        '*Track an expense* in any currency, whether you have a receipt or not.\n' +
-                        '\n' +
-                        'Here’s how to track an expense:\n' +
-                        '\n' +
-                        '1. Click the green *+* button.\n' +
-                        '2. Choose *Track expense*.\n' +
-                        '3. Enter an amount or scan a receipt.\n' +
-                        '4. Click *Track*.\n' +
-                        '\n' +
-                        'And you’re done! Yep, it’s that easy.',
-                },
-            ],
-        },
+        [onboardingChoices.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             video: {
@@ -4986,6 +5054,12 @@ const CONST = {
             tasks: [],
         },
     } satisfies Record<OnboardingPurposeType, OnboardingMessageType>,
+
+    COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES: {
+        [combinedTrackSubmitOnboardingChoices.PERSONAL_SPEND]: combinedTrackSubmitOnboardingPersonalSpendMessage,
+        [combinedTrackSubmitOnboardingChoices.EMPLOYER]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
+        [combinedTrackSubmitOnboardingChoices.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
+    } satisfies Record<ValueOf<typeof combinedTrackSubmitOnboardingChoices>, OnboardingMessageType>,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 

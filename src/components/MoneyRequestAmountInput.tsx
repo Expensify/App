@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import * as Browser from '@libs/Browser';
@@ -307,7 +307,7 @@ function MoneyRequestAmountInput(
             }}
             selectedCurrencyCode={currency}
             selection={selection}
-            onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+            onSelectionChange={(selectionStart, selectionEnd) => {
                 if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
                     willSelectionBeUpdatedManually.current = false;
                     return;
@@ -319,8 +319,8 @@ function MoneyRequestAmountInput(
                 // When the amount is updated in setNewAmount on iOS, in onSelectionChange formattedAmount stores the value before the update. Using amountRef allows us to read the updated value
                 const maxSelection = amountRef.current?.length ?? formattedAmount.length;
                 amountRef.current = undefined;
-                const start = Math.min(e.nativeEvent.selection.start, maxSelection);
-                const end = Math.min(e.nativeEvent.selection.end, maxSelection);
+                const start = Math.min(selectionStart, maxSelection);
+                const end = Math.min(selectionEnd, maxSelection);
                 setSelection({start, end});
             }}
             onKeyPress={textInputKeyPress}
