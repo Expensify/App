@@ -370,6 +370,46 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 },
             });
         }
+        
+        const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
+            ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
+            : '';
+        const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID ?? '0');
+        const actionableWhisperReportActionID = whisperAction?.reportActionID ?? '0';
+
+        if (isTrackExpenseReport) {
+            const actionReportID = ReportUtils.getOriginalReportID(report.reportID, parentReportAction) ?? '0';
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
+                translationKey: 'actionableMentionTrackExpense.submit',
+                icon: Expensicons.Send,
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+                action: () => {
+                    ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SUBMIT, actionableWhisperReportActionID);
+                },
+            });
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
+                translationKey: 'actionableMentionTrackExpense.categorize',
+                icon: Expensicons.Folder,
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+                action: () => {
+                    ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.CATEGORIZE, actionableWhisperReportActionID);
+                },
+            });
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
+                translationKey: 'actionableMentionTrackExpense.share',
+                icon: Expensicons.UserPlus,
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+                action: () => {
+                    ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SHARE, actionableWhisperReportActionID);
+                },
+            });
+        }
 
         // Prevent displaying private notes option for threads and task reports
         if (!isChatThread && !isMoneyRequestReport && !isInvoiceReport && !isTaskReport) {
