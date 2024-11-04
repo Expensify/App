@@ -73,6 +73,7 @@ export default {
     iconSizeXXSmall: 8,
     iconSizeXSmall: 10,
     iconSizeExtraSmall: 12,
+    iconSizeSemiSmall: 14,
     iconSizeSmall: 16,
     iconSizeMedium: 18,
     iconSizeNormal: 20,
@@ -211,6 +212,7 @@ export default {
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
+    fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
 
     // Emoji related variables
     fontSizeOnlyEmojis: 30,

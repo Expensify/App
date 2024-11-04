@@ -208,6 +208,7 @@ const ROUTES = {
     },
     SETTINGS_LEGAL_NAME: 'settings/profile/legal-name',
     SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',
+    SETTINGS_PHONE_NUMBER: 'settings/profile/phone',
     SETTINGS_ADDRESS: 'settings/profile/address',
     SETTINGS_ADDRESS_COUNTRY: {
         route: 'settings/profile/address/country',
@@ -949,6 +950,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/upgrade/:featureName',
         getRoute: (policyID: string, featureName: string, backTo?: string) =>
             getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const, backTo),
+    },
+    WORKSPACE_DOWNGRADE: {
+        route: 'settings/workspaces/:policyID/downgrade/',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/downgrade/` as const,
     },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
