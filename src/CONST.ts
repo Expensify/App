@@ -620,7 +620,6 @@ const CONST = {
         COMPANY_CARD_FEEDS: 'companyCardFeeds',
         DIRECT_FEEDS: 'directFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
-        NEW_DOT_COPILOT: 'newDotCopilot',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
