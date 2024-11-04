@@ -16,6 +16,8 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
@@ -117,6 +119,8 @@ function AttachmentPicker({
 }: AttachmentPickerProps) {
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
 
     const completeAttachmentSelection = useRef<(data: FileObject[]) => void>(() => {});
     const onModalHide = useRef<() => void>();
@@ -444,6 +448,7 @@ function AttachmentPicker({
                             title={translate(item.textTranslationKey)}
                             onPress={() => selectItem(item)}
                             focused={focusedIndex === menuIndex}
+                            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === menuIndex, theme.activeComponentBG, theme.hoverComponentBG)}
                         />
                     ))}
                 </View>

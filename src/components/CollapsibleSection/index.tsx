@@ -63,7 +63,7 @@ function CollapsibleSection({title, children, titleStyle, textStyle, wrapperStyl
                     src={src}
                 />
             </PressableWithFeedback>
-            {shouldShowSectionBorder && <View style={styles.collapsibleSectionBorder} />}
+            {!!shouldShowSectionBorder && <View style={styles.collapsibleSectionBorder} />}
             <Collapsible isOpened={isExpanded}>
                 <View>{children}</View>
             </Collapsible>

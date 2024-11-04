@@ -361,7 +361,7 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
-            {displaySearchButton && (
+            {!!displaySearchButton && (
                 <Button
                     text={translate('search.saveSearch')}
                     onPress={onSaveSearch}
