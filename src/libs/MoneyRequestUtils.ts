@@ -38,21 +38,15 @@ function addLeadingZero(amount: string): string {
 }
 
 /**
- * Get amount regex string
- */
-function amountRegex(decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH): string {
-    return decimals === 0
-        ? `^\\d{0,${amountMaxLength}}$` // Don't allow decimal point if decimals === 0
-        : `^\\d{0,${amountMaxLength}}(?:(?:\\.|\\,)\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
-}
-
-/**
- * Check if string is a valid amount
+ * Check if amount is a decimal up to 3 digits
  */
 function validateAmount(amount: string, decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH): boolean {
-    const regexString = amountRegex(decimals, amountMaxLength);
-    const decimalNumberRegex = new RegExp(regexString);
-    return decimalNumberRegex.test(amount);
+    const regexString =
+        decimals === 0
+            ? `^\\d{1,${amountMaxLength}}$` // Don't allow decimal point if decimals === 0
+            : `^\\d{1,${amountMaxLength}}(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
+    const decimalNumberRegex = new RegExp(regexString, 'i');
+    return amount === '' || decimalNumberRegex.test(amount);
 }
 
 /**
@@ -104,7 +98,6 @@ export {
     stripDecimalsFromAmount,
     stripSpacesFromAmount,
     replaceCommasWithPeriod,
-    amountRegex,
     validateAmount,
     validatePercentage,
 };
