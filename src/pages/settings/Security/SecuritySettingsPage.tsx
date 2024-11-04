@@ -46,7 +46,6 @@ function SecuritySettingsPage() {
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {canUseNewDotCopilot} = usePermissions();
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
 
@@ -236,50 +235,48 @@ function SecuritySettingsPage() {
                                     shouldUseSingleExecution
                                 />
                             </Section>
-                            {!!canUseNewDotCopilot && (
-                                <View style={safeAreaPaddingBottomStyle}>
-                                    <Section
-                                        title={translate('delegate.copilotDelegatedAccess')}
-                                        renderSubtitle={() => (
-                                            <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
-                                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('delegate.copilotDelegatedAccessDescription')} </Text>
-                                                <TextLink
-                                                    style={[styles.link]}
-                                                    href={CONST.COPILOT_HELP_URL}
-                                                >
-                                                    {translate('common.learnMore')}
-                                                </TextLink>
-                                            </Text>
-                                        )}
-                                        isCentralPane
-                                        subtitleMuted
-                                        titleStyles={styles.accountSettingsSectionTitle}
-                                        childrenStyles={styles.pt5}
-                                    >
-                                        {hasDelegates && (
-                                            <>
-                                                <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.membersCanAccessYourAccount')}</Text>
-                                                <MenuItemList menuItems={delegateMenuItems} />
-                                            </>
-                                        )}
-                                        {!isActingAsDelegate && (
-                                            <MenuItem
-                                                title={translate('delegate.addCopilot')}
-                                                icon={Expensicons.UserPlus}
-                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
-                                                shouldShowRightIcon
-                                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
-                                            />
-                                        )}
-                                        {hasDelegators && (
-                                            <>
-                                                <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
-                                                <MenuItemList menuItems={delegatorMenuItems} />
-                                            </>
-                                        )}
-                                    </Section>
-                                </View>
-                            )}
+                            <View style={safeAreaPaddingBottomStyle}>
+                                <Section
+                                    title={translate('delegate.copilotDelegatedAccess')}
+                                    renderSubtitle={() => (
+                                        <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
+                                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('delegate.copilotDelegatedAccessDescription')} </Text>
+                                            <TextLink
+                                                style={[styles.link]}
+                                                href={CONST.COPILOT_HELP_URL}
+                                            >
+                                                {translate('common.learnMore')}
+                                            </TextLink>
+                                        </Text>
+                                    )}
+                                    isCentralPane
+                                    subtitleMuted
+                                    titleStyles={styles.accountSettingsSectionTitle}
+                                    childrenStyles={styles.pt5}
+                                >
+                                    {hasDelegates && (
+                                        <>
+                                            <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.membersCanAccessYourAccount')}</Text>
+                                            <MenuItemList menuItems={delegateMenuItems} />
+                                        </>
+                                    )}
+                                    {!isActingAsDelegate && (
+                                        <MenuItem
+                                            title={translate('delegate.addCopilot')}
+                                            icon={Expensicons.UserPlus}
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
+                                            shouldShowRightIcon
+                                            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
+                                        />
+                                    )}
+                                    {hasDelegators && (
+                                        <>
+                                            <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
+                                            <MenuItemList menuItems={delegatorMenuItems} />
+                                        </>
+                                    )}
+                                </Section>
+                            </View>
                             <Popover
                                 isVisible={shouldShowDelegatePopoverMenu}
                                 anchorRef={delegateButtonRef as RefObject<View>}
