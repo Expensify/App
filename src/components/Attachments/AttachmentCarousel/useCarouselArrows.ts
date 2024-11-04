@@ -1,5 +1,6 @@
 import type {SetStateAction} from 'react';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useRef, useState} from 'react';
+import useEffectOnce from '@hooks/useEffectOnce';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 
@@ -43,10 +44,9 @@ function useCarouselArrows() {
         [autoHideArrows],
     );
 
-    useEffect(() => {
+    useEffectOnce(() => {
         autoHideArrows();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     return {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows};
 }

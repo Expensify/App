@@ -1,8 +1,9 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {InteractionManager} from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
 import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnonymousUser} from '@libs/actions/Session';
 import type BackgroundImageProps from './types';
@@ -21,7 +22,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
     const isAnonymous = isAnonymousUser();
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (!isAnonymous) {
             return;
         }
@@ -33,8 +34,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
         return () => {
             interactionTask.cancel();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     if (!isInteractionComplete && isAnonymous) {
         return;

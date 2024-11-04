@@ -1,10 +1,11 @@
 import {Image} from 'expo-image';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
 import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
 import MobileBackgroundImage from '@assets/images/home-background--mobile-new.svg';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnonymousUser} from '@libs/actions/Session';
@@ -30,7 +31,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
         });
     }
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (!isAnonymous) {
             return;
         }
@@ -42,8 +43,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
         return () => {
             interactionTask.cancel();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     const {splashScreenState} = useSplashScreenStateContext();
     // Prevent rendering the background image until the splash screen is hidden.

@@ -1,5 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
-import {useCallback, useEffect} from 'react';
+import {useCallback} from 'react';
+import useEffectOnce from '@hooks/useEffectOnce';
 import Parser from '@libs/Parser';
 import type UseHtmlPaste from './types';
 
@@ -128,7 +129,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
         [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback],
     );
 
-    useEffect(() => {
+    useEffectOnce(() => {
         // we need to re-register listener on navigation focus/blur if the component (like Composer) is not unmounting
         // when navigating away to different screen (report) to avoid paste event on other screen being wrongly handled
         // by current screen paste listener
@@ -148,8 +149,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
             }
             document.removeEventListener('paste', handlePaste, true);
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 };
 
 export default useHtmlPaste;

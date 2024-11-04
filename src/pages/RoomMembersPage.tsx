@@ -19,6 +19,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -88,11 +89,10 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         setDidLoadRoomMembers(true);
     }, [report]);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         UserSearchPhraseActions.clearUserSearchPhrase();
         getRoomMembers();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     /**
      * Open the modal to invite a user

@@ -1,6 +1,7 @@
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {Freeze} from 'react-freeze';
+import useEffectOnce from '@hooks/useEffectOnce';
 import shouldSetScreenBlurred from '@libs/Navigation/shouldSetScreenBlurred';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -18,11 +19,10 @@ function FreezeWrapper({keepVisible = false, children}: FreezeWrapperProps) {
     const navigation = useNavigation();
     const currentRoute = useRoute();
 
-    useEffect(() => {
+    useEffectOnce(() => {
         const index = navigation.getState()?.routes.findIndex((route) => route.key === currentRoute.key) ?? 0;
         screenIndexRef.current = index;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('state', () => {

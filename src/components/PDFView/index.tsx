@@ -7,6 +7,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -65,11 +66,10 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
         }
     };
 
-    useEffect(() => {
+    useEffectOnce(() => {
         retrieveCanvasLimits();
         // This rule needs to be applied so that this effect is executed only when the component is mounted
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     useEffect(() => {
         // Use window height changes to toggle the keyboard. To maintain keyboard state

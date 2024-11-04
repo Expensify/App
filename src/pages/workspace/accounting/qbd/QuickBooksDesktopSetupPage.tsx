@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -11,6 +11,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,14 +42,13 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         });
     }, [policyID]);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         // Since QBD doesn't support Taxes, we should disable them from the LHN when connecting to QBD
         PolicyAction.enablePolicyTaxes(policyID, false);
 
         fetchSetupLink();
         // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     useNetwork({
         onReconnect: () => {

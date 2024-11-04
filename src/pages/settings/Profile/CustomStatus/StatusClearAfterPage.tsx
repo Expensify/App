@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as User from '@libs/actions/User';
@@ -144,13 +145,11 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
         [draftPeriod, statusType],
     );
 
-    useEffect(() => {
+    useEffectOnce(() => {
         User.updateDraftCustomStatus({
             clearAfter: draftClearAfter || clearAfter,
         });
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     const customStatusDate = DateUtils.extractDate(draftClearAfter);
     const customStatusTime = DateUtils.extractTime12Hour(draftClearAfter);

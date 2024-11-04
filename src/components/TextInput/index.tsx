@@ -1,6 +1,7 @@
 import type {ForwardedRef} from 'react';
-import React, {useEffect, useRef} from 'react';
+import React, {useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
@@ -16,7 +17,7 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
     const textInputRef = useRef<HTMLFormElement | null>(null);
     const removeVisibilityListenerRef = useRef<RemoveVisibilityListener>(null);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         let removeVisibilityListener = removeVisibilityListenerRef.current;
         if (props.disableKeyboard) {
             textInputRef.current?.setAttribute('inputmode', 'none');
@@ -40,8 +41,7 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
             }
             removeVisibilityListener();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     const isLabeledMultiline = !!props.label?.length && props.multiline;
     const labelAnimationStyle = {

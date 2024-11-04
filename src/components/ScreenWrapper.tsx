@@ -1,11 +1,12 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {createContext, forwardRef, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, forwardRef, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -183,7 +184,7 @@ function ScreenWrapper(
         }),
     ).current;
 
-    useEffect(() => {
+    useEffectOnce(() => {
         // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
         const timeout = setTimeout(() => {
             setDidScreenTransitionEnd(true);
@@ -221,8 +222,7 @@ function ScreenWrapper(
             }
         };
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
     const contextValue = useMemo(() => ({didScreenTransitionEnd}), [didScreenTransitionEnd]);

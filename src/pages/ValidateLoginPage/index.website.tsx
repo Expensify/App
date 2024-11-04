@@ -4,6 +4,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
 import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
 import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
+import useEffectOnce from '@hooks/useEffectOnce';
 import desktopLoginRedirect from '@libs/desktopLoginRedirect';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
@@ -31,7 +32,7 @@ function ValidateLoginPage({
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (isUserClickedSignIn) {
             // The user clicked the option to sign in the current tab
             Navigation.isNavigationReady().then(() => {
@@ -55,8 +56,7 @@ function ValidateLoginPage({
         // we need to `popToTop` the stack after `signInWithValidateCode` in order to
         // perform login for both 2FA and non-2FA accounts.
         desktopLoginRedirect(autoAuthStateWithDefault, isSignedIn);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     useEffect(() => {
         if (!!login || !cachedAccountID || !is2FARequired) {

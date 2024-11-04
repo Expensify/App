@@ -1,5 +1,5 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -10,6 +10,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -96,10 +97,9 @@ function IOURequestStepCategory({
     const shouldShowEmptyState = policyCategories !== undefined && !shouldShowCategory;
     const shouldShowOfflineView = policyCategories === undefined && isOffline;
 
-    useEffect(() => {
+    useEffectOnce(() => {
         fetchData();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

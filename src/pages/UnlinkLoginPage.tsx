@@ -3,6 +3,7 @@ import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useEffectOnce from '@hooks/useEffectOnce';
 import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PublicScreensParamList} from '@navigation/types';
@@ -23,11 +24,10 @@ function UnlinkLoginPage({route, account}: UnlinkLoginPageProps) {
     const validateCode = route.params.validateCode ?? '';
     const prevIsLoading = usePrevious(!!account?.isLoading);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         Session.unlinkLogin(Number(accountID), validateCode);
         // We only want this to run on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     useEffect(() => {
         // Only navigate when the unlink login request is completed

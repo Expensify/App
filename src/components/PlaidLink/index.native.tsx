@@ -1,6 +1,6 @@
-import {useEffect} from 'react';
 import type {LinkEvent} from 'react-native-plaid-link-sdk';
 import {dismissLink, openLink, usePlaidEmitter} from 'react-native-plaid-link-sdk';
+import useEffectOnce from '@hooks/useEffectOnce';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type PlaidLinkProps from './types';
@@ -10,7 +10,7 @@ function PlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: Pl
         Log.info('[PlaidLink] Handled Plaid Event: ', false, {...event});
         onEvent(event.eventName, event.metadata);
     });
-    useEffect(() => {
+    useEffectOnce(() => {
         onEvent(CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.OPEN);
         openLink({
             tokenConfig: {
@@ -31,8 +31,7 @@ function PlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: Pl
         };
 
         // We generally do not need to include the token as a dependency here as it is only provided once via props and should not change
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
     return null;
 }
 

@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -142,7 +143,7 @@ function AddPlaidBankAccount({
         subscribedKeyboardShortcuts.current = [];
     };
 
-    useEffect(() => {
+    useEffectOnce(() => {
         subscribeToNavigationShortcuts();
 
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
@@ -151,10 +152,7 @@ function AddPlaidBankAccount({
         }
         BankAccounts.openPlaidBankLogin(allowDebit, bankAccountID);
         return unsubscribeToNavigationShortcuts;
-
-        // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     useEffect(() => {
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid

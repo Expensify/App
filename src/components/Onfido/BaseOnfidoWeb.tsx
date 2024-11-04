@@ -1,7 +1,8 @@
 import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
-import React, {forwardRef, useEffect} from 'react';
+import React, {forwardRef} from 'react';
 import type {ForwardedRef} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import Log from '@libs/Log';
@@ -128,7 +129,7 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: Fo
     const {preferredLocale, translate} = useLocalize();
     const theme = useTheme();
 
-    useEffect(() => {
+    useEffectOnce(() => {
         initializeOnfido({
             sdkToken,
             onSuccess,
@@ -142,8 +143,7 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: Fo
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
         return () => window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
         // Onfido should be initialized only once on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     return (
         <div

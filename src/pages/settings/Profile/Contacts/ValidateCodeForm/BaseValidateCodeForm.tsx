@@ -11,6 +11,7 @@ import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicC
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -128,15 +129,14 @@ function BaseValidateCodeForm({
         }, []),
     );
 
-    useEffect(() => {
+    useEffectOnce(() => {
         Session.clearAccountMessages();
         if (!validateLoginError) {
             return;
         }
         User.clearContactMethodErrors(contactMethod, 'validateLogin');
         // contactMethod is not added as a dependency since it does not change between renders
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     useEffect(() => {
         if (!hasMagicCodeBeenSent) {

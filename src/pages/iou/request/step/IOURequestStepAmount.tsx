@@ -1,10 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import * as TransactionEdit from '@libs/actions/TransactionEdit';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -110,7 +111,7 @@ function IOURequestStepAmount({
         }, []),
     );
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (!isEditing) {
             return;
         }
@@ -125,8 +126,7 @@ function IOURequestStepAmount({
             }
             TransactionEdit.removeDraftTransaction(transaction?.transactionID ?? '-1');
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

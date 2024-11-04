@@ -1,7 +1,8 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text} from 'react-native';
 import {Animated} from 'react-native';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import textRef from '@src/types/utils/textRef';
@@ -11,13 +12,12 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale}:
     const styles = useThemeStyles();
     const labelRef = useRef<Text | HTMLFormElement>(null);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (!inputId || !labelRef.current || !('setAttribute' in labelRef.current)) {
             return;
         }
         labelRef.current.setAttribute('for', inputId);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     return (
         <Animated.Text

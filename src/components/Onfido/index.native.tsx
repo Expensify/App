@@ -1,8 +1,9 @@
 import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, Onfido as OnfidoSDK, OnfidoTheme} from '@onfido/react-native-sdk';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {Alert, Linking} from 'react-native';
 import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -13,7 +14,7 @@ import type {OnfidoError, OnfidoProps} from './types';
 function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
     const {translate} = useLocalize();
 
-    useEffect(() => {
+    useEffectOnce(() => {
         OnfidoSDK.start({
             sdkToken,
             theme: OnfidoTheme.AUTOMATIC,
@@ -89,8 +90,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                 }
             });
         // Onfido should be initialized only once on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     return <FullscreenLoadingIndicator />;
 }

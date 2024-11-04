@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React from 'react';
+import useEffectOnce from '@hooks/useEffectOnce';
 
 type ModalContentProps = {
     /** Modal contents */
@@ -17,11 +17,10 @@ type ModalContentProps = {
 };
 
 function ModalContent({children, onDismiss = () => {}, onModalWillShow = () => {}}: ModalContentProps) {
-    React.useEffect(() => {
+    useEffectOnce(() => {
         onModalWillShow();
         return onDismiss;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
     return children;
 }
 ModalContent.displayName = 'ModalContent';

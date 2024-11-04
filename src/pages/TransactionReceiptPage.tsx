@@ -1,7 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import useEffectOnce from '@hooks/useEffectOnce';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList, RootStackParamList, State} from '@libs/Navigation/types';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
@@ -35,14 +36,13 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const isEReceipt = transaction && !TransactionUtils.hasReceiptSource(transaction) && TransactionUtils.hasEReceipt(transaction);
     const isTrackExpenseAction = ReportActionUtils.isTrackExpenseAction(parentReportAction);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (report && transaction) {
             return;
         }
         ReportActions.openReport(route.params.reportID);
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     const onModalClose = () => {
         // Receipt Page can be opened either from Reports or from Search RHP view

@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -132,7 +133,7 @@ function StatusPage() {
 
     useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR), [isValidClearAfterDate]);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (!currentUserEmojiCode && !currentUserClearAfter && !draftClearAfter) {
             User.updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});
         } else {
@@ -140,8 +141,7 @@ function StatusPage() {
         }
 
         return () => User.clearDraftCustomStatus();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     const validateForm = useCallback((): FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> => {
         if (brickRoadIndicator) {

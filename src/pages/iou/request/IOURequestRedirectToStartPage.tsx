@@ -1,6 +1,7 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useEffectOnce from '@hooks/useEffectOnce';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -18,7 +19,7 @@ function IOURequestRedirectToStartPage({
     const isIouTypeValid = Object.values(CONST.IOU.TYPE).includes(iouType);
     const isIouRequestTypeValid = Object.values(CONST.IOU.REQUEST_TYPE).includes(iouRequestType);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (!isIouTypeValid || !isIouRequestTypeValid) {
             return;
         }
@@ -37,8 +38,7 @@ function IOURequestRedirectToStartPage({
         }
 
         // This useEffect should only run on mount which is why there are no dependencies being passed in the second parameter
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     if (!isIouTypeValid || !isIouRequestTypeValid) {
         return (

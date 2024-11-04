@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -100,7 +101,7 @@ function BaseTextInput(
     const isLabelActive = useRef(initialActiveLabel);
 
     // AutoFocus which only works on mount:
-    useEffect(() => {
+    useEffectOnce(() => {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
         if (!autoFocus || !input.current) {
             return;
@@ -112,8 +113,7 @@ function BaseTextInput(
         }
         input.current.focus();
         // We only want this to run on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {

@@ -1,8 +1,9 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -68,7 +69,7 @@ function ReportActionItemParentAction({
     const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
     const {isOffline} = useNetwork();
 
-    useEffect(() => {
+    useEffectOnce(() => {
         const unsubscribeReports: Array<() => void> = [];
         const unsubscribeReportActions: Array<() => void> = [];
         ancestorIDs.current.reportIDs.forEach((ancestorReportID) => {
@@ -99,8 +100,7 @@ function ReportActionItemParentAction({
             unsubscribeReports.forEach((unsubscribeReport) => unsubscribeReport());
             unsubscribeReportActions.forEach((unsubscribeReportAction) => unsubscribeReportAction());
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     return (
         <View style={[styles.pRelative]}>

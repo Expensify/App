@@ -6,6 +6,7 @@ import React, {forwardRef, useContext, useEffect, useRef, useState} from 'react'
 import {InteractionManager, View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
@@ -34,7 +35,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         setAnimationFile(source.file);
     }, [setAnimationFile, source.file]);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (!shouldLoadAfterInteractions) {
             return;
         }
@@ -46,8 +47,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         return () => {
             interactionTask.cancel();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
 

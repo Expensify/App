@@ -12,6 +12,7 @@ import {useSession} from '@components/OnyxProvider';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -267,7 +268,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
     }
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (isPreviousPolicy) {
             return;
         }
@@ -282,8 +283,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
             BankAccounts.setPlaidEvent(null);
         }
         fetchData();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []); // The empty dependency array ensures this runs only once after the component mounts.
+    }); // The empty dependency array ensures this runs only once after the component mounts.
 
     useEffect(
         () => {
