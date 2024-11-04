@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -484,8 +484,11 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     return;
                                 }
                                 if (parentReportAction) {
-                                    const urlToNavigateBack = IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
+                                    const {urlToNavigateBack} = IOU.prepareToCleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
                                     Navigation.goBack(urlToNavigateBack);
+                                    InteractionManager.runAfterInteractions(() => {
+                                        IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
+                                    });
                                     return;
                                 }
                             }
