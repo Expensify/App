@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -36,6 +36,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
@@ -117,6 +118,10 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
 
     const listOptions = accountCardList?.length > 0 ? accountCardListOptions : cardListOptions;
 
+    const searchedListOptions = useMemo(() => {
+        return listOptions.filter((option) => option.text.toLowerCase().includes(searchText));
+    }, [searchText, listOptions]);
+
     return (
         <InteractiveStepWrapper
             wrapperID={CardSelectionStep.displayName}
@@ -154,7 +159,11 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                         })}
                     </Text>
                     <SelectionList
-                        sections={[{data: listOptions}]}
+                        sections={[{data: searchedListOptions}]}
+                        shouldShowTextInput={listOptions.length > CONST.COMPANY_CARDS.BIG_CARD_LIST_ITEMS_AMOUNT}
+                        textInputLabel={translate('common.search')}
+                        textInputValue={searchText}
+                        onChangeText={setSearchText}
                         ListItem={RadioListItem}
                         onSelectRow={({value}) => handleSelectCard(value)}
                         initiallyFocusedOptionKey={cardSelected}
