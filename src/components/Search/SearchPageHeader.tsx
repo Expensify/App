@@ -222,7 +222,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                             : Object.values(selectedTransactions).map((transaction) => ({
                                   reportID: transaction.reportID,
                                   amount: transaction.amount,
-                                  paymentMethod: lastPaymentMethods[transaction.policyID]
+                                  paymentMethod: lastPaymentMethods[transaction.policyID],
                               }))
                     ) as PaymentData[];
 
