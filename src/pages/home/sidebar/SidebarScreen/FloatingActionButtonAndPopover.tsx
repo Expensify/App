@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
+import ConfirmModal from '@components/ConfirmModal';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -28,6 +29,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
+import * as Link from '@userActions/Link';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
@@ -180,6 +182,7 @@ function FloatingActionButtonAndPopover(
     const {translate} = useLocalize();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${quickActionReport?.reportID ?? -1}`);
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -189,6 +192,14 @@ function FloatingActionButtonAndPopover(
 
     const {canUseSpotnanaTravel, canUseCombinedTrackSubmit} = usePermissions();
     const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
+
+    const shouldRedirectToOD = useMemo(() => {
+        const groupPolicies = Object.values(allPolicies ?? {}).filter((policy) => ReportUtils.isGroupPolicy(policy?.type ?? ''));
+        if (groupPolicies.length === 0) {
+            return false;
+        }
+        return groupPolicies.every((policy) => !policy?.isPolicyExpenseChatEnabled);
+    }, [allPolicies]);
 
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
@@ -360,14 +371,18 @@ function FloatingActionButtonAndPopover(
                     icon: getIconForAction(CONST.IOU.TYPE.CREATE),
                     text: translate('iou.createExpense'),
                     onSelected: () =>
-                        interceptAnonymousUser(() =>
+                        interceptAnonymousUser(() => {
+                            if (shouldRedirectToOD) {
+                                setModalVisible(true);
+                                return;
+                            }
                             IOU.startMoneyRequest(
                                 CONST.IOU.TYPE.CREATE,
                                 // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                 // for all of the routes in the creation flow.
                                 ReportUtils.generateReportID(),
-                            ),
-                        ),
+                            );
+                        }),
                 },
             ];
         }
@@ -379,15 +394,19 @@ function FloatingActionButtonAndPopover(
                           icon: getIconForAction(CONST.IOU.TYPE.TRACK),
                           text: translate('iou.trackExpense'),
                           onSelected: () => {
-                              interceptAnonymousUser(() =>
+                              if (shouldRedirectToOD) {
+                                  setModalVisible(true);
+                                  return;
+                              }
+                              interceptAnonymousUser(() => {
                                   IOU.startMoneyRequest(
                                       CONST.IOU.TYPE.TRACK,
                                       // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
                                       // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
                                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                       ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
-                                  ),
-                              );
+                                  );
+                              });
                               if (!hasSeenTrackTraining && !isOffline) {
                                   setTimeout(() => {
                                       Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
@@ -401,17 +420,22 @@ function FloatingActionButtonAndPopover(
                 icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
                 text: translate('iou.submitExpense'),
                 onSelected: () =>
-                    interceptAnonymousUser(() =>
+                    interceptAnonymousUser(() => {
+                        if (shouldRedirectToOD) {
+                            setModalVisible(true);
+                            return;
+                        }
+
                         IOU.startMoneyRequest(
                             CONST.IOU.TYPE.SUBMIT,
                             // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                             // for all of the routes in the creation flow.
                             ReportUtils.generateReportID(),
-                        ),
-                    ),
+                        );
+                    }),
             },
         ];
-    }, [canUseCombinedTrackSubmit, translate, selfDMReportID, hasSeenTrackTraining, isOffline]);
+    }, [canUseCombinedTrackSubmit, translate, selfDMReportID, hasSeenTrackTraining, isOffline, shouldRedirectToOD]);
 
     return (
         <View style={styles.flexGrow1}>
@@ -434,14 +458,19 @@ function FloatingActionButtonAndPopover(
                                   icon: Expensicons.InvoiceGeneric,
                                   text: translate('workspace.invoices.sendInvoice'),
                                   onSelected: () =>
-                                      interceptAnonymousUser(() =>
+                                      interceptAnonymousUser(() => {
+                                          if (shouldRedirectToOD) {
+                                              setModalVisible(true);
+                                              return;
+                                          }
+
                                           IOU.startMoneyRequest(
                                               CONST.IOU.TYPE.INVOICE,
                                               // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                               // for all of the routes in the creation flow.
                                               ReportUtils.generateReportID(),
-                                          ),
-                                      ),
+                                          );
+                                      }),
                               },
                           ]
                         : []),
@@ -496,6 +525,18 @@ function FloatingActionButtonAndPopover(
                 ]}
                 withoutOverlay
                 anchorRef={fabRef}
+            />
+            <ConfirmModal
+                prompt="Due to how your workspace is set up, submitting and tracking expenses has been disabled for now. Please go to Expensify Classic to add an expense."
+                isVisible={modalVisible}
+                onConfirm={() => {
+                    setModalVisible(false);
+                    Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX)
+                }}
+                onCancel={() => setModalVisible(false)}
+                title="Your workspace is not ready for New Expensify"
+                confirmText={translate('exitSurvey.goToExpensifyClassic')}
+                cancelText={translate('common.cancel')}
             />
             <FloatingActionButton
                 accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
