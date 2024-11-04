@@ -25,9 +25,11 @@ type ConstantSelectorProps = {
 
     /** Type of debug form - required to access constant field options for a specific form */
     formType: ValueOf<typeof CONST.DEBUG.FORMS>;
+
+    policyID?: string;
 };
 
-function ConstantSelector({formType, errorText = '', name, value, onInputChange}: ConstantSelectorProps) {
+function ConstantSelector({formType, policyID, errorText = '', name, value, onInputChange}: ConstantSelectorProps) {
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {
@@ -53,7 +55,7 @@ function ConstantSelector({formType, errorText = '', name, value, onInputChange}
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}
             onPress={() => {
-                Navigation.navigate(ROUTES.DETAILS_CONSTANT_PICKER_PAGE.getRoute(formType, name, value, Navigation.getActiveRoute()));
+                Navigation.navigate(ROUTES.DETAILS_CONSTANT_PICKER_PAGE.getRoute(formType, name, value, policyID, Navigation.getActiveRoute()));
             }}
             shouldShowRightIcon
         />

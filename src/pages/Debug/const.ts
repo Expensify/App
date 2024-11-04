@@ -9,7 +9,7 @@ type DebugForms = ValueOf<typeof CONST.DEBUG.FORMS>;
 
 type ConstantField = {
     fieldName: string;
-    options: Record<string, string | number | Record<string, string>>;
+    options?: Record<string, string | number | Record<string, string>>;
 };
 
 type DetailsConstantFields = Record<DebugForms, ConstantField[]>;
@@ -99,6 +99,12 @@ const DETAILS_CONSTANT_FIELDS: DetailsConstantFields = {
         {
             fieldName: TRANSACTION_FORM_INPUT_IDS.MODIFIED_MCC_GROUP,
             options: CONST.MCC_GROUPS,
+        },
+        {
+            fieldName: TRANSACTION_FORM_INPUT_IDS.CATEGORY,
+        },
+        {
+            fieldName: TRANSACTION_FORM_INPUT_IDS.TAG,
         },
     ],
     [CONST.DEBUG.FORMS.TRANSACTION_VIOLATION]: [

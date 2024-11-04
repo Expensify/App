@@ -16,10 +16,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {ObjectType, OnyxDataType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Debug from '@userActions/Debug';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
 import type {Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import {DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS, DETAILS_DISABLED_KEYS} from './const';
 import ConstantSelector from './ConstantSelector';
@@ -49,6 +51,8 @@ function DebugDetails({formType, data, children, onSave, onDelete, validate}: De
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [formDraftData] = useOnyx(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${(data as OnyxEntry<Transaction>)?.reportID ?? ''}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const booleanFields = useMemo(
         () =>
             Object.entries(data ?? {})
@@ -59,9 +63,18 @@ function DebugDetails({formType, data, children, onSave, onDelete, validate}: De
     const constantFields = useMemo(
         () =>
             Object.entries(data ?? {})
-                .filter((entry): entry is [string, string] => DETAILS_CONSTANT_FIELDS[formType].some(({fieldName}) => fieldName === entry[0]))
+                .filter((entry): entry is [string, string] => {
+                    // Tag picker needs to be hidden when the policy has no tags available to pick
+                    if (
+                        entry[0] === TRANSACTION_FORM_INPUT_IDS.TAG &&
+                        !Object.values(policyTags ?? {}).some((policyTagList) => PolicyUtils.getCountOfEnabledTagsOfList(policyTagList.tags))
+                    ) {
+                        return false;
+                    }
+                    return DETAILS_CONSTANT_FIELDS[formType].some(({fieldName}) => fieldName === entry[0]);
+                })
                 .sort((a, b) => a[0].localeCompare(b[0])),
-        [data, formType],
+        [data, formType, policyTags],
     );
     const numberFields = useMemo(
         () =>
@@ -198,6 +211,7 @@ function DebugDetails({formType, data, children, onSave, onDelete, validate}: De
                             name={key}
                             shouldSaveDraft
                             defaultValue={String(value)}
+                            policyID={report?.policyID}
                         />
                     ))}
                     {constantFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('debug.none')}</Text>}

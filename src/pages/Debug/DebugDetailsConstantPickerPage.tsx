@@ -1,87 +1,85 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isObject from 'lodash/isObject';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import CategoryPicker from '@components/CategoryPicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import useLocalize from '@hooks/useLocalize';
+import TagPicker from '@components/TagPicker';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {appendParam} from '@libs/Url';
+import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import type {DebugForms} from './const';
-import {DETAILS_CONSTANT_FIELDS} from './const';
+import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
+import ConstantPicker from './ConstantPicker';
 
 type DebugDetailsConstantPickerPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
 
 function DebugDetailsConstantPickerPage({
     route: {
-        params: {formType, fieldName, fieldValue, backTo = ''},
+        params: {formType, fieldName, fieldValue, policyID = '', backTo = ''},
     },
     navigation,
 }: DebugDetailsConstantPickerPageProps) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [searchValue, setSearchValue] = useState('');
-    const sections: ListItem[] = useMemo(
-        () =>
-            Object.entries(DETAILS_CONSTANT_FIELDS[formType as DebugForms].find((field) => field.fieldName === fieldName)?.options ?? {})
-                .reduce((acc: Array<[string, string]>, [key, value]) => {
-                    // Option has multiple constants, so we need to flatten these into separate options
-                    if (isObject(value)) {
-                        acc.push(...Object.entries(value));
-                        return acc;
-                    }
-                    acc.push([key, String(value)]);
-                    return acc;
-                }, [])
-                .map(
-                    ([key, value]) =>
-                        ({
-                            text: value,
-                            keyForList: key,
-                            isSelected: value === fieldValue,
-                            searchText: value,
-                        } satisfies ListItem),
-                )
-                .filter(({searchText}) => searchText.toLowerCase().includes(searchValue.toLowerCase())),
-        [fieldName, fieldValue, formType, searchValue],
+    const onSubmit = useCallback(
+        (item: ListItem) => {
+            const value = item.text === fieldValue ? '' : item.text ?? '';
+            // Check the navigation state and "backTo" parameter to decide navigation behavior
+            if (navigation.getState().routes.length === 1 && !backTo) {
+                // If there is only one route and "backTo" is empty, go back in navigation
+                Navigation.goBack();
+            } else if (!!backTo && navigation.getState().routes.length === 1) {
+                // If "backTo" is not empty and there is only one route, go back to the specific route defined in "backTo" with a country parameter
+                Navigation.goBack(appendParam(backTo, fieldName, value));
+            } else {
+                // Otherwise, navigate to the specific route defined in "backTo" with a country parameter
+                Navigation.navigate(appendParam(backTo, fieldName, value));
+            }
+        },
+        [backTo, fieldName, fieldValue, navigation],
     );
-    const onSubmit = (item: ListItem) => {
-        const value = item.text === fieldValue ? '' : item.text ?? '';
-        // Check the navigation state and "backTo" parameter to decide navigation behavior
-        if (navigation.getState().routes.length === 1 && !backTo) {
-            // If there is only one route and "backTo" is empty, go back in navigation
-            Navigation.goBack();
-        } else if (!!backTo && navigation.getState().routes.length === 1) {
-            // If "backTo" is not empty and there is only one route, go back to the specific route defined in "backTo" with a country parameter
-            Navigation.goBack(appendParam(backTo, fieldName, value));
-        } else {
-            // Otherwise, navigate to the specific route defined in "backTo" with a country parameter
-            Navigation.navigate(appendParam(backTo, fieldName, value));
+
+    const renderPicker = useCallback(() => {
+        if (formType === CONST.DEBUG.FORMS.TRANSACTION) {
+            if (fieldName === TRANSACTION_FORM_INPUT_IDS.CATEGORY) {
+                return (
+                    <CategoryPicker
+                        policyID={policyID}
+                        selectedCategory={fieldValue}
+                        onSubmit={onSubmit}
+                    />
+                );
+            }
+            if (fieldName === TRANSACTION_FORM_INPUT_IDS.TAG) {
+                return (
+                    <TagPicker
+                        policyID={policyID}
+                        selectedTag={fieldValue ?? ''}
+                        tagListName=""
+                        onSubmit={onSubmit}
+                        tagListIndex={0}
+                    />
+                );
+            }
         }
-    };
-    const selectedOptionKey = useMemo(() => sections.filter((option) => option.searchText === fieldValue).at(0)?.keyForList, [sections, fieldValue]);
+
+        return (
+            <ConstantPicker
+                formType={formType}
+                fieldName={fieldName}
+                fieldValue={fieldValue}
+                onSubmit={onSubmit}
+            />
+        );
+    }, [fieldName, fieldValue, formType, onSubmit, policyID]);
 
     return (
         <ScreenWrapper testID={DebugDetailsConstantPickerPage.displayName}>
             <HeaderWithBackButton title={fieldName} />
-            <View style={styles.containerWithSpaceBetween}>
-                <SelectionList
-                    sections={[{data: sections}]}
-                    textInputValue={searchValue}
-                    textInputLabel={translate('common.search')}
-                    onChangeText={setSearchValue}
-                    onSelectRow={onSubmit}
-                    ListItem={RadioListItem}
-                    initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-                    isRowMultilineSupported
-                />
-            </View>
+            <View style={styles.containerWithSpaceBetween}>{renderPicker()}</View>
         </ScreenWrapper>
     );
 }
