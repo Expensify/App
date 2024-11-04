@@ -152,6 +152,7 @@ const darkTheme = {
     },
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+    navigationBarButtonsStyle: CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT,
     colorScheme: CONST.COLOR_SCHEME.DARK,
 } satisfies ThemeColors;
 

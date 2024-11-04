@@ -12,6 +12,7 @@
         <item name="popupTheme">@style/AppTheme.Popup</item>
         <item name="android:spinnerDropDownItemStyle">@style/TextViewSpinnerDropDownItem</item>
         <item name="android:alertDialogTheme">@style/AlertDialogTheme</item>
+        <item name="android:navigationBarColor">@color/black</item>
     </style>
 
     <!-- Themes used by the Picker -->
@@ -61,6 +62,7 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/bootsplash_logo</item>
         <item name="windowSplashScreenBackground">@color/bootsplash_background</item>
+        <item name="android:navigationBarColor">@color/bootsplash_background</item>
     </style>
 
 </resources>
