@@ -170,8 +170,11 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
-        const shouldShowApproveOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE);
-
+        const shouldShowApproveOption =
+            !isOffline &&
+            (selectedReports.length
+                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.APPROVE)
+                : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
         if (shouldShowApproveOption) {
             options.push({
                 icon: Expensicons.ThumbsUp,
@@ -186,7 +189,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
 
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
-                        : selectedReports?.filter((report) => !!report) ?? [];
+                        : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
                     SearchActions.approveMoneyRequestOnSearch(hash, reportIDList);
                 },
             });
@@ -206,7 +209,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                         return;
                     }
 
-                    const reportIDList = selectedReports?.filter((report) => !!report) ?? [];
+                    const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
                     // SearchActions.payMoneyRequestOnSearch(hash, reportIDList);
                 },
             });
@@ -223,7 +226,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                     return;
                 }
 
-                const reportIDList = selectedReports?.filter((report) => !!report) ?? [];
+                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
                 SearchActions.exportSearchItemsToCSV(
                     {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
                     () => {

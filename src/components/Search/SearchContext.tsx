@@ -1,5 +1,6 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import {isMoneyRequestReport} from '@libs/ReportUtils';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {SearchContext, SelectedTransactions} from './types';
@@ -22,13 +23,12 @@ const Context = React.createContext<SearchContext>(defaultSearchContext);
 function getReportsFromSelectedTransactions(data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[], selectedTransactions: SelectedTransactions) {
     return (data ?? [])
         .filter(
-            (item) =>
-                !SearchUIUtils.isTransactionListItemType(item) &&
-                !SearchUIUtils.isReportActionListItemType(item) &&
-                item.reportID &&
+            (item): item is ReportListItemType =>
+                SearchUIUtils.isReportListItemType(item) &&
+                isMoneyRequestReport(item) &&
                 item?.transactions?.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
         )
-        .map((item) => item.reportID);
+        .map((item) => ({reportID: item.reportID, action: item.action}));
 }
 
 function SearchContextProvider({children}: ChildrenProps) {
