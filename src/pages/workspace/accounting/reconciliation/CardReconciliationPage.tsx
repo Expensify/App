@@ -106,7 +106,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             {translate('common.conjunctionFor')} {CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}
                         </Text>
                     )}
-                    {!!paymentBankAccountID && isContinuousReconciliationOn && (
+                    {!!paymentBankAccountID && !!isContinuousReconciliationOn && (
                         <MenuItemWithTopDescription
                             style={styles.mt5}
                             title={bankAccountTitle}

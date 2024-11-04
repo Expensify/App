@@ -116,6 +116,7 @@ function ReportActionCompose({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
@@ -432,6 +433,7 @@ function ReportActionCompose({
                                 onConfirm={addAttachment}
                                 onModalShow={() => setIsAttachmentPreviewActive(true)}
                                 onModalHide={onAttachmentPreviewClose}
+                                shouldDisableSendButton={hasExceededMaxCommentLength}
                             >
                                 {({displayFileInModal}) => (
                                     <>
@@ -451,6 +453,7 @@ function ReportActionCompose({
                                             onAddActionPressed={onAddActionPressed}
                                             onItemSelected={onItemSelected}
                                             actionButtonRef={actionButtonRef}
+                                            shouldDisableAttachmentItem={hasExceededMaxCommentLength}
                                         />
                                         <ComposerWithSuggestions
                                             ref={(ref) => {

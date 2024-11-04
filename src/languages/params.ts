@@ -1,3 +1,5 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
@@ -257,6 +259,7 @@ type ViolationsRterParams = {
     email?: string;
     isTransactionOlderThan7Days: boolean;
     member?: string;
+    rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
 };
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
@@ -473,8 +476,9 @@ type SpreadCategoriesParams = {
     categories: number;
 };
 
-type AssignedYouCardParams = {
-    assigner: string;
+type AssignedCardParams = {
+    assignee: string;
+    link: string;
 };
 
 type FeatureNameParams = {
@@ -535,6 +539,14 @@ type ImportedTypesParams = {
     importedTypes: string[];
 };
 
+type FileLimitParams = {
+    fileLimit: number;
+};
+
+type CompanyCardBankName = {
+    bankName: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -549,9 +561,10 @@ export type {
     DefaultAmountParams,
     AutoPayApprovedReportsLimitErrorParams,
     FeatureNameParams,
+    FileLimitParams,
     SpreadSheetColumnParams,
     SpreadFieldNameParams,
-    AssignedYouCardParams,
+    AssignedCardParams,
     SpreadCategoriesParams,
     DelegateRoleParams,
     DelegatorParams,
@@ -726,6 +739,7 @@ export type {
     DateParams,
     FiltersAmountBetweenParams,
     StatementPageTitleParams,
+    CompanyCardBankName,
     DisconnectPromptParams,
     DisconnectTitleParams,
     CharacterLengthLimitParams,

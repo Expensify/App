@@ -1,22 +1,20 @@
-import React, {useState} from 'react';
 import type {ReactNode, RefObject} from 'react';
-import {View} from 'react-native';
+import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type SearchRouterInputProps = {
     /** Value of TextInput */
     value: string;
-
-    /** Setter to TextInput value */
-    setValue: (searchTerm: string) => void;
 
     /** Callback to update search in SearchRouter */
     updateSearch: (searchTerm: string) => void;
@@ -57,7 +55,6 @@ type SearchRouterInputProps = {
 
 function SearchRouterInput({
     value,
-    setValue,
     updateSearch,
     onSubmit = () => {},
     routerListRef,
@@ -77,11 +74,6 @@ function SearchRouterInput({
     const {isOffline} = useNetwork();
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const onChangeText = (text: string) => {
-        setValue(text);
-        updateSearch(text);
-    };
-
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
     return (
@@ -91,8 +83,9 @@ function SearchRouterInput({
                     <TextInput
                         testID="search-router-text-input"
                         value={value}
-                        onChangeText={onChangeText}
+                        onChangeText={updateSearch}
                         autoFocus={autoFocus}
+                        shouldDelayFocus={shouldDelayFocus}
                         loadingSpinnerStyle={[styles.mt0, styles.mr2]}
                         role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
@@ -105,7 +98,7 @@ function SearchRouterInput({
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
                         textInputContainerStyles={[styles.borderNone, styles.pb0]}
-                        inputStyle={[styles.searchInputStyle, inputWidth, styles.pl3, styles.pr3]}
+                        inputStyle={[inputWidth, styles.pl3, styles.pr3]}
                         onFocus={() => {
                             setIsFocused(true);
                             routerListRef?.current?.updateExternalTextInputFocus(true);
@@ -117,7 +110,7 @@ function SearchRouterInput({
                         isLoading={!!isSearchingForReports}
                     />
                 </View>
-                {rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
+                {!!rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
             </View>
             <FormHelpMessage
                 style={styles.ph3}

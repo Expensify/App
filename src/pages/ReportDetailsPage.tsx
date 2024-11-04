@@ -7,6 +7,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import DecisionModal from '@components/DecisionModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -29,7 +30,9 @@ import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ReportActions from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -37,6 +40,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {getAllReportTransactions} from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -91,6 +95,10 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     const {currentSearchHash} = useSearchContext();
 
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+
     const transactionThreadReportID = useMemo(
         () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
         [report.reportID, reportActions, isOffline],
@@ -100,11 +108,14 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '-1', policies), [report?.policyID, policies]);
@@ -142,6 +153,13 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         return ReportUtils.getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
     }, [report, personalDetails, shouldOpenRoomMembersPage]);
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
+
+    const transactionIDList = useMemo(() => {
+        if (!isMoneyRequestReport) {
+            return [];
+        }
+        return getAllReportTransactions(report.reportID, transactions).map((transaction) => transaction.transactionID);
+    }, [isMoneyRequestReport, report.reportID, transactions]);
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
@@ -409,6 +427,25 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             });
         }
 
+        if (isMoneyRequestReport) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD,
+                translationKey: 'common.download',
+                icon: Expensicons.Download,
+                isAnonymousAction: false,
+                action: () => {
+                    if (isOffline) {
+                        setOfflineModalVisible(true);
+                        return;
+                    }
+
+                    ReportActions.exportReportToCSV({reportID: report.reportID, transactionIDList}, () => {
+                        setDownloadErrorModalVisible(true);
+                    });
+                },
+            });
+        }
+
         if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView && isExpenseReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
@@ -471,6 +508,8 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         shouldOpenRoomMembersPage,
         shouldShowCancelPaymentButton,
         session,
+        isOffline,
+        transactionIDList,
         leaveChat,
         canUnapproveRequest,
         isDebugModeEnabled,
@@ -687,7 +726,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         />
     );
 
-    const nameSectionTitleField = titleField && (
+    const nameSectionTitleField = !!titleField && (
         <OfflineWithFeedback
             pendingAction={report.pendingFields?.[fieldKey] ?? report.pendingFields?.reportName}
             errors={report.errorFields?.[fieldKey] ?? report.errorFields?.reportName}
@@ -766,7 +805,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon
                                     interactive
-                                    title={report.description}
+                                    title={ReportUtils.getReportDescription(report)}
                                     shouldRenderAsHTML
                                     shouldTruncateTitle
                                     characterLimit={100}
@@ -877,6 +916,24 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                     cancelText={translate('common.cancel')}
                     onCancel={() => setIsUnapproveModalVisible(false)}
                     prompt={unapproveWarningText}
+                />
+                <DecisionModal
+                    title={translate('common.youAppearToBeOffline')}
+                    prompt={translate('common.offlinePrompt')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setOfflineModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={offlineModalVisible}
+                    onClose={() => setOfflineModalVisible(false)}
+                />
+                <DecisionModal
+                    title={translate('common.downloadFailedTitle')}
+                    prompt={translate('common.downloadFailedDescription')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={downloadErrorModalVisible}
+                    onClose={() => setDownloadErrorModalVisible(false)}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
