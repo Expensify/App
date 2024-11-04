@@ -36,7 +36,7 @@ const test = (config: NativeConfig) => {
         Performance.subscribeToMeasurements((entry) => {
             console.debug(`[E2E] Entry: ${JSON.stringify(entry)}`);
 
-            if (entry.name === CONST.TIMING.SEARCH_ROUTER_RENDER) {
+            if (entry.name === CONST.TIMING.OPEN_SEARCH) {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: `${name} Open Search Router TTI`,
