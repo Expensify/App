@@ -37,8 +37,9 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [codatSetupLink, setCodatSetupLink] = useState<string>('');
+    const hasResultOfFetchingSetupLink = !!codatSetupLink || hasError;
 
-    const ContentWrapper = codatSetupLink ? ({children}: React.PropsWithChildren) => children : FullPageOfflineBlockingView;
+    const ContentWrapper = hasResultOfFetchingSetupLink ? ({children}: React.PropsWithChildren) => children : FullPageOfflineBlockingView;
 
     const fetchSetupLink = useCallback(() => {
         setIsLoading(true);
@@ -69,15 +70,15 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
     useNetwork({
         onReconnect: () => {
-            if (codatSetupLink) {
+            if (hasResultOfFetchingSetupLink) {
                 return;
             }
             fetchSetupLink();
         },
     });
 
-    const shouldShowLoading = isLoading || (!codatSetupLink && !hasError);
-    const shouldShowError = hasError;
+    const shouldShowLoading = isLoading || !hasResultOfFetchingSetupLink;
+    const shouldShowError = !shouldShowLoading && hasError;
 
     return (
         <ScreenWrapper
