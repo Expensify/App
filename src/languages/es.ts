@@ -4367,7 +4367,6 @@ const translations = {
     },
     statementPage: {
         title: ({year, monthName}: StatementTitleParams) => `Estado de cuenta de ${monthName} ${year}`,
-        generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
     keyboardShortcutsPage: {
         title: 'Atajos de teclado',
