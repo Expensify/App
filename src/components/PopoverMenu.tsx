@@ -1,14 +1,13 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import lodashIsEqual from 'lodash/isEqual';
-import type {RefObject} from 'react';
-import React, {Fragment, useLayoutEffect, useState} from 'react';
+import type {ReactNode, RefObject} from 'react';
+import React, {useLayoutEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -129,6 +128,14 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     shouldUpdateFocusedIndex?: boolean;
 };
 
+const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
+    if (shouldUseScrollView) {
+        return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
+    }
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <>{children}</>;
+};
+
 function PopoverMenu({
     menuItems,
     onItemSelected,
@@ -160,7 +167,6 @@ function PopoverMenu({
     shouldUpdateFocusedIndex = true,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -171,7 +177,6 @@ function PopoverMenu({
     const {windowHeight} = useWindowDimensions();
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
-    const WrapComponent = shouldUseScrollView ? ScrollView : Fragment;
 
     const selectItem = (index: number) => {
         const selectedItem = currentMenuItems.at(index);
@@ -234,6 +239,37 @@ function PopoverMenu({
             />
         );
     };
+
+    const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
+        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
+        return (
+            <OfflineWithFeedback
+                // eslint-disable-next-line react/no-array-index-key
+                key={`${item.text}_${menuIndex}`}
+                pendingAction={item.pendingAction}
+            >
+                <FocusableMenuItem
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`${item.text}_${menuIndex}`}
+                    title={text}
+                    onPress={() => selectItem(menuIndex)}
+                    focused={focusedIndex === menuIndex}
+                    shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                    shouldCheckActionAllowedOnPress={false}
+                    onFocus={() => {
+                        if (!shouldUpdateFocusedIndex) {
+                            return;
+                        }
+                        setFocusedIndex(menuIndex);
+                    }}
+                    style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
+                    titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
+                    // Spread other props dynamically
+                    {...menuItemProps}
+                />
+            </OfflineWithFeedback>
+        );
+    });
 
     const renderHeaderText = () => {
         if (!headerText || enteredSubMenuIndexes.length !== 0) {
@@ -298,40 +334,7 @@ function PopoverMenu({
                 <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {/** eslint-disable-next-line react/jsx-props-no-spreading */}
-                    <WrapComponent {...(shouldUseScrollView && {contentContainerStyle: scrollContainerStyle})}>
-                        {currentMenuItems.map((item, menuIndex) => {
-                            const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
-                            return (
-                                <OfflineWithFeedback
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`${item.text}_${menuIndex}`}
-                                    pendingAction={item.pendingAction}
-                                >
-                                    <FocusableMenuItem
-                                        // eslint-disable-next-line react/no-array-index-key
-                                        key={`${item.text}_${menuIndex}`}
-                                        title={text}
-                                        onPress={() => selectItem(menuIndex)}
-                                        focused={focusedIndex === menuIndex}
-                                        shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
-                                        shouldCheckActionAllowedOnPress={false}
-                                        onFocus={() => {
-                                            if (!shouldUpdateFocusedIndex) {
-                                                return;
-                                            }
-                                            setFocusedIndex(menuIndex);
-                                        }}
-                                        wrapperStyle={StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, theme.activeComponentBG, theme.hoverComponentBG)}
-                                        shouldRemoveHoverBackground={item.isSelected}
-                                        titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
-                                        // eslint-disable-next-line react/jsx-props-no-spreading
-                                        {...menuItemProps}
-                                    />
-                                </OfflineWithFeedback>
-                            );
-                        })}
-                    </WrapComponent>
+                    {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>

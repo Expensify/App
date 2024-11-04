@@ -11,6 +11,8 @@ import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 import CustomVersionFilePlugin from './CustomVersionFilePlugin';
 import type Environment from './types';
 
+dotenv.config();
+
 type Options = {
     rel: string;
     as: string;
@@ -85,6 +87,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             isWeb: platform === 'web',
             isProduction: file === '.env.production',
             isStaging: file === '.env.staging',
+            useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || (platform === 'web' && file === '.env.production'),
         }),
         new PreloadWebpackPlugin({
             rel: 'preload',

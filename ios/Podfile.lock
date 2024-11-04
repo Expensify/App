@@ -2342,10 +2342,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNDevMenu (4.1.1):
-    - React-Core
-    - React-Core/DevSupport
-    - React-RCTNetwork
   - RNFBAnalytics (12.9.3):
     - Firebase/Analytics (= 8.8.0)
     - React-Core
@@ -2408,7 +2404,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.176):
+  - RNLiveMarkdown (0.1.179):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2428,9 +2424,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/newarch (= 0.1.176)
+    - RNLiveMarkdown/newarch (= 0.1.179)
     - Yoga
-  - RNLiveMarkdown/newarch (0.1.176):
+  - RNLiveMarkdown/newarch (0.1.179):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2861,7 +2857,6 @@ DEPENDENCIES:
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
-  - RNDevMenu (from `../node_modules/react-native-dev-menu`)
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
@@ -3126,8 +3121,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-picker/picker"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
-  RNDevMenu:
-    :path: "../node_modules/react-native-dev-menu"
   RNFBAnalytics:
     :path: "../node_modules/@react-native-firebase/analytics"
   RNFBApp:
@@ -3306,7 +3299,6 @@ SPEC CHECKSUMS:
   RNCClipboard: c84275d07e3f73ff296b17e6c27e9ccdc194a0bb
   RNCPicker: 21ae0659666767a5c1253aef985ee5b7c527e345
   RNDeviceInfo: 130237d8e97a89b68f2202d5dd18ac6bb68e7648
-  RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
   RNFBCrashlytics: 2061ca863e8e2fa1aae9b12477d7dfa8e88ca0f9
@@ -3315,7 +3307,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 364e6862a112045bb5c5d35601f0bdb0304af979
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 9d22024c70bcced5ef7bb8900f2c1a8b96f767e8
+  RNLiveMarkdown: 4b8c1db40a3a6b11990243aba22494f758ddf3f9
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28

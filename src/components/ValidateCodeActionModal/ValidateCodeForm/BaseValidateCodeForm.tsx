@@ -244,7 +244,7 @@ function BaseValidateCodeForm({
                     </View>
                 )}
             </OfflineWithFeedback>
-            {hasMagicCodeBeenSent && (
+            {!!hasMagicCodeBeenSent && (
                 <DotIndicatorMessage
                     type="success"
                     style={[styles.mt6, styles.flex0]}

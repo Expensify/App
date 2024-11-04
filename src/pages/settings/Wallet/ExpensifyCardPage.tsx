@@ -201,7 +201,7 @@ function ExpensifyCardPage({
                                     interactive={false}
                                     titleStyle={styles.newKansasLarge}
                                 />
-                                {limitNameKey && limitTitleKey && (
+                                {!!limitNameKey && !!limitTitleKey && (
                                     <MenuItemWithTopDescription
                                         description={translate(limitNameKey)}
                                         title={translate(limitTitleKey, {formattedLimit: formattedAvailableSpendAmount})}
