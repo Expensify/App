@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as Url from '@libs/Url';
@@ -37,6 +38,9 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [user] = useOnyx(ONYXKEYS.USER);
+    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session, user]);
 
     const policy = usePolicy(IOU.getIOURequestPolicyID(transaction, report));
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`);
@@ -108,6 +112,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
                     accessibilityLabel={translate('iou.yourCompanyWebsite')}
                     role={CONST.ROLE.PRESENTATION}
                     hint={translate('iou.yourCompanyWebsiteNote')}
+                    defaultValue={defaultWebsiteExample}
                 />
             </FormProvider>
         </StepScreenWrapper>

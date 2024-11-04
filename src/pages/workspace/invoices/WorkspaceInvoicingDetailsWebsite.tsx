@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -11,6 +11,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import * as Url from '@libs/Url';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
@@ -31,6 +32,9 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [user] = useOnyx(ONYXKEYS.USER);
+    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session, user]);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM>) => {
@@ -87,7 +91,7 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
                         label={translate('workspace.invoices.companyWebsite')}
                         accessibilityLabel={translate('workspace.invoices.companyWebsite')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={policy?.invoice?.companyWebsite}
+                        defaultValue={policy?.invoice?.companyWebsite ?? defaultWebsiteExample}
                         ref={inputCallbackRef}
                         inputMode={CONST.INPUT_MODE.URL}
                     />
