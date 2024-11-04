@@ -558,6 +558,9 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         backTo,
         canActionTask,
         isTrackExpenseReport,
+        actionableWhisperReportActionID,
+        iouTransactionID,
+        parentReportAction,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
