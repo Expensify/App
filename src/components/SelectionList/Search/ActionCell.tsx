@@ -64,9 +64,8 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth
         );
     }
 
-    const buttonInnerStyles = isSelected ? styles.buttonDefaultHovered : {};
-
     if (action === CONST.SEARCH.ACTION_TYPES.VIEW || shouldUseViewAction) {
+        const buttonInnerStyles = isSelected ? styles.buttonDefaultHovered : {};
         return isLargeScreenWidth ? (
             <Button
                 text={translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW])}
@@ -80,6 +79,7 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth
         ) : null;
     }
 
+    const buttonInnerStyles = isSelected ? styles.buttonSuccessHovered : {};
     return (
         <Button
             text={text}
