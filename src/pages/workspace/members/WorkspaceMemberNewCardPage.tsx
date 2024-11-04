@@ -46,6 +46,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const availableCompanyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards);
 
     const handleSubmit = () => {
         if (!selectedFeed) {
@@ -78,9 +79,9 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = Object.keys(cardFeeds?.settings?.companyCards ?? {}).map((key) => ({
+    const companyCardFeeds: CardFeedListItem[] = (Object.keys(availableCompanyCards) as CompanyCardFeed[]).map((key) => ({
         value: key,
-        text: cardFeeds?.settings?.companyCardNicknames?.[key] ?? translate(`workspace.companyCards.addNewCard.cardProviders.${key as CompanyCardFeed}`),
+        text: cardFeeds?.settings?.companyCardNicknames?.[key] ?? CardUtils.getCardFeedName(key),
         keyForList: key,
         isSelected: selectedFeed === key,
         leftElement: (

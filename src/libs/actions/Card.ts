@@ -37,13 +37,28 @@ type IssueNewCardFlowData = {
     data?: Partial<IssueNewCardData>;
 };
 
-function reportVirtualExpensifyCardFraud(cardID: number) {
+function reportVirtualExpensifyCardFraud(card?: Card) {
+    const cardID = card?.cardID ?? -1;
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
             value: {
                 isLoading: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${card?.fundID ?? '-1'}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: null,
             },
         },
     ];
@@ -64,6 +79,26 @@ function reportVirtualExpensifyCardFraud(cardID: number) {
             key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
             value: {
                 isLoading: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    ...card,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${card?.fundID ?? '-1'}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    ...card,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
             },
         },
     ];
@@ -223,7 +258,11 @@ function revealVirtualCardDetails(cardID: number, validateCode: string): Promise
         ];
 
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS, parameters, {optimisticData, successData, failureData})
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS, parameters, {
+            optimisticData,
+            successData,
+            failureData,
+        })
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
@@ -296,6 +335,7 @@ function updateSettlementAccount(workspaceAccountID: number, policyID: string, s
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 paymentBankAccountID: settlementBankAccountID,
+                isLoading: true,
             },
         },
     ];
@@ -306,6 +346,7 @@ function updateSettlementAccount(workspaceAccountID: number, policyID: string, s
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 paymentBankAccountID: settlementBankAccountID,
+                isLoading: false,
             },
         },
     ];
@@ -316,6 +357,8 @@ function updateSettlementAccount(workspaceAccountID: number, policyID: string, s
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 paymentBankAccountID: currentSettlementBankAccountID,
+                isLoading: false,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
@@ -336,7 +379,7 @@ function getCardDefaultName(userName?: string) {
 }
 
 function setIssueNewCardStepAndData({data, isEditing, step}: IssueNewCardFlowData) {
-    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, isEditing, currentStep: step});
+    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, isEditing, currentStep: step, errors: null});
 }
 
 function clearIssueNewCardFlow() {
@@ -574,12 +617,29 @@ function deactivateCard(workspaceAccountID: number, card?: Card) {
                 [cardID]: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: null,
+            },
+        },
     ];
 
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    ...card,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
                     ...card,
@@ -610,12 +670,52 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
         return;
     }
 
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: true,
+                isSuccess: false,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+                isSuccess: true,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                isSuccess: false,
+            },
+        },
+    ];
+
     const parameters = {
         policyID,
         bankAccountID,
     };
 
-    API.write(WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY, parameters);
+    API.write(WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueNewCardData) {
@@ -624,6 +724,40 @@ function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueN
     }
 
     const {assigneeEmail, limit, limitType, cardTitle, cardType} = data;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            value: {
+                isLoading: true,
+                errors: null,
+                isSuccessful: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            value: {
+                isLoading: false,
+                isSuccessful: true,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            value: {
+                isLoading: false,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
+    ];
 
     const parameters = {
         policyID,
@@ -634,14 +768,30 @@ function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueN
     };
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
-        API.write(WRITE_COMMANDS.CREATE_EXPENSIFY_CARD, {...parameters, feedCountry});
+        API.write(
+            WRITE_COMMANDS.CREATE_EXPENSIFY_CARD,
+            {...parameters, feedCountry},
+            {
+                optimisticData,
+                successData,
+                failureData,
+            },
+        );
         return;
     }
 
     const domainAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
-    API.write(WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD, {...parameters, domainAccountID});
+    API.write(
+        WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,
+        {...parameters, domainAccountID},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 function openCardDetailsPage(cardID: number) {

@@ -94,6 +94,9 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const {reportActions} = usePaginatedReportActions(report.reportID || '-1');
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     const {currentSearchHash} = useSearchContext();
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const transactionThreadReportID = useMemo(
@@ -723,7 +726,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         />
     );
 
-    const nameSectionTitleField = titleField && (
+    const nameSectionTitleField = !!titleField && (
         <OfflineWithFeedback
             pendingAction={report.pendingFields?.[fieldKey] ?? report.pendingFields?.reportName}
             errors={report.errorFields?.[fieldKey] ?? report.errorFields?.reportName}
@@ -802,7 +805,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon
                                     interactive
-                                    title={report.description}
+                                    title={ReportUtils.getReportDescription(report)}
                                     shouldRenderAsHTML
                                     shouldTruncateTitle
                                     characterLimit={100}

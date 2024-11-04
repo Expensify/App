@@ -21,6 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrentUserAccountID} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -173,7 +174,15 @@ function ReportPreview({
         formattedMerchant = null;
     }
 
-    const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0 && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation;
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const shouldShowSubmitButton =
+        isOpenExpenseReport &&
+        reimbursableSpend !== 0 &&
+        !showRTERViolationMessage &&
+        !shouldShowBrokenConnectionViolation &&
+        (iouReport?.ownerAccountID === currentUserAccountID || isAdmin || iouReport?.managerID === currentUserAccountID);
+
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
@@ -389,8 +398,11 @@ function ReportPreview({
         if (formattedDescription ?? moneyRequestComment) {
             return {supportText: truncate(StringUtils.lineBreaksToSpaces(formattedDescription ?? moneyRequestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH})};
         }
-        if (formattedMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT) {
-            return {supportText: formattedMerchant};
+
+        if (numberOfRequests === 1) {
+            return {
+                supportText: '',
+            };
         }
         return {
             supportText: translate('iou.expenseCount', {
@@ -406,7 +418,6 @@ function ReportPreview({
      */
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(iouReport);
 
     useEffect(() => {
@@ -499,7 +510,7 @@ function ReportPreview({
                                                 )}
                                             </View>
                                         </View>
-                                        {shouldShowSubtitle && supportText && (
+                                        {shouldShowSubtitle && !!supportText && (
                                             <View style={styles.flexRow}>
                                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                                     <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{supportText}</Text>
@@ -550,7 +561,7 @@ function ReportPreview({
                                         isLoading={!isOffline && !canAllowSettlement}
                                     />
                                 )}
-                                {shouldShowExportIntegrationButton && !shouldShowSettlementButton && (
+                                {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && (
                                     <ExportWithDropdownMenu
                                         policy={policy}
                                         report={iouReport}
@@ -580,7 +591,7 @@ function ReportPreview({
                 delegatorEmail={delegatorEmail ?? ''}
             />
 
-            {isHoldMenuVisible && iouReport && requestType !== undefined && (
+            {isHoldMenuVisible && !!iouReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && !isNonHeldAmountNegative ? nonHeldAmount : undefined}
                     requestType={requestType}
