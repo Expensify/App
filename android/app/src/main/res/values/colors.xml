@@ -4,7 +4,7 @@
     <color name="white">#FFFFFF</color>
     <color name="accent">#03D47C</color>
     <color name="dark">#0b1b34</color>
-    <color name="black">#000000</color>
+    <color name="product_dark_100">#061B09</color>
     <color name="gray4">#7D8B8F</color>
     <color name="card_highlight_bg">#07271F</color>
     <color name="card_alternate_bg">#1A3D32</color>

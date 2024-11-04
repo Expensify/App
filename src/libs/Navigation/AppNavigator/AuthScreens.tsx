@@ -37,6 +37,7 @@ import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
+import colors from '@styles/theme/colors';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
@@ -279,7 +280,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         return () => {
             // login screen is always dark mode
-            NavigationBar.setBackgroundColorAsync('#000000');
+            NavigationBar.setBackgroundColorAsync(colors.productDark100);
             NavigationBar.setButtonStyleAsync('light');
         };
     }, [theme]);
