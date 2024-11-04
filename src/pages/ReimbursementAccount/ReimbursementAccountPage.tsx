@@ -420,6 +420,8 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     if (
         (!hasACHDataBeenLoaded || isLoading) &&
         shouldShowOfflineLoader &&
+        // `!requestorStepRef?.current` causes the compiler generates invalid code https://github.com/Expensify/App/issues/51961#issuecomment-2455153368
+        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
         (shouldReopenOnfido || !requestorStepRef || !requestorStepRef.current) &&
         !(currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && isValidateCodeActionModalVisible)
     ) {
