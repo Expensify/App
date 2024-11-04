@@ -178,7 +178,7 @@ describe('DateUtils', () => {
             expect(DateUtils.isTomorrow(yesterdayInTimezone, timezone)).toBe(false);
         });
 
-        it('isYesterday should correctly identify yesterday', () => { 
+        it('isYesterday should correctly identify yesterday', () => {
             expect(DateUtils.isYesterday(yesterdayInTimezone, timezone)).toBe(true);
             expect(DateUtils.isYesterday(todayInTimezone, timezone)).toBe(false);
             expect(DateUtils.isYesterday(tomorrowInTimezone, timezone)).toBe(false);
