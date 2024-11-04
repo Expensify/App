@@ -172,6 +172,7 @@ function ReportActionCompose({
      * Shows red borders and prevents the comment from being sent
      */
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
+    const [hasExceededTaskTitleLength, setHasExceededTaskTitleLength] = useState(false);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerRef>();
@@ -332,7 +333,7 @@ function ReportActionCompose({
 
     const hasReportRecipient = !isEmptyObject(reportRecipient);
 
-    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!disabled || hasExceededMaxCommentLength;
+    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!disabled || hasExceededMaxCommentLength || hasExceededTaskTitleLength;
 
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
@@ -393,6 +394,18 @@ function ReportActionCompose({
         ],
     );
 
+    const debouncedValidate = useDebounce((value, reportID) => {
+        const match = value.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
+        if (!match) {
+            setHasExceededTaskTitleLength(false);
+            validateCommentMaxLength(value, { reportID });
+            return;
+        }
+    
+        let title = match[3] ? match[3].trim().replace(/\n/g, ' ') : undefined;
+        setHasExceededTaskTitleLength(title ? title.length > CONST.TITLE_CHARACTER_LIMIT : false);
+    }, 100);
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -425,7 +438,7 @@ function ReportActionCompose({
                                 styles.flexRow,
                                 styles.chatItemComposeBox,
                                 isComposerFullSize && styles.chatItemFullComposeBox,
-                                hasExceededMaxCommentLength && styles.borderColorDanger,
+                                (hasExceededMaxCommentLength || hasExceededTaskTitleLength) && styles.borderColorDanger,
                             ]}
                         >
                             <AttachmentModal
@@ -433,7 +446,7 @@ function ReportActionCompose({
                                 onConfirm={addAttachment}
                                 onModalShow={() => setIsAttachmentPreviewActive(true)}
                                 onModalHide={onAttachmentPreviewClose}
-                                shouldDisableSendButton={hasExceededMaxCommentLength}
+                                shouldDisableSendButton={hasExceededMaxCommentLength || hasExceededTaskTitleLength}
                             >
                                 {({displayFileInModal}) => (
                                     <>
@@ -453,7 +466,7 @@ function ReportActionCompose({
                                             onAddActionPressed={onAddActionPressed}
                                             onItemSelected={onItemSelected}
                                             actionButtonRef={actionButtonRef}
-                                            shouldDisableAttachmentItem={hasExceededMaxCommentLength}
+                                            shouldDisableAttachmentItem={hasExceededMaxCommentLength || hasExceededTaskTitleLength}
                                         />
                                         <ComposerWithSuggestions
                                             ref={(ref) => {
@@ -494,7 +507,16 @@ function ReportActionCompose({
                                                 if (value.length === 0 && isComposerFullSize) {
                                                     Report.setIsComposerFullSize(reportID, false);
                                                 }
-                                                validateCommentMaxLength(value, {reportID});
+
+                                                debouncedValidate(value, reportID);
+                                                // const match = value.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
+                                                // if (!match) {
+                                                //     validateCommentMaxLength(value, {reportID});
+                                                //     return;
+                                                // }
+
+                                                // let title = match[3] ? match[3].trim().replace(/\n/g, ' ') : undefined;
+                                                // setHasExceededTaskTitleLength(title ? title.length > CONST.TITLE_CHARACTER_LIMIT : false);
                                             }}
                                         />
                                         <ReportDropUI
@@ -546,7 +568,7 @@ function ReportActionCompose({
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={reportID} />
-                        {hasExceededMaxCommentLength && <ExceededCommentLength />}
+                        {(hasExceededMaxCommentLength || hasExceededTaskTitleLength) && <ExceededCommentLength shouldUseTitleLimit={hasExceededTaskTitleLength} />}
                     </View>
                 </OfflineWithFeedback>
                 {!isSmallScreenWidth && (
