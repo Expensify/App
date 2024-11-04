@@ -421,18 +421,14 @@ function ReportActionItem({
         if (ReportActionsUtils.isActionableTrackExpense(action)) {
             const transactionID = ReportActionsUtils.getOriginalMessage(action)?.transactionID;
             return [
-                ...(!TransactionUtils.isDistanceRequest(TransactionUtils.getTransaction(transactionID ?? '-1')) || canUseP2PDistanceRequests
-                    ? [
-                          {
-                              text: 'actionableMentionTrackExpense.submit',
-                              key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
-                              onPress: () => {
-                                  ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
-                              },
-                              isMediumSized: true,
-                          } as ActionableItem,
-                      ]
-                    : []),
+                {
+                    text: 'actionableMentionTrackExpense.submit',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
+                    onPress: () => {
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
+                    },
+                    isMediumSized: true,
+                } as ActionableItem,
                 {
                     text: 'actionableMentionTrackExpense.categorize',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
