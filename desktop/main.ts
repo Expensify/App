@@ -5,16 +5,16 @@ import log from 'electron-log';
 import type {ElectronLog} from 'electron-log';
 import {autoUpdater} from 'electron-updater';
 import {machineId} from 'node-machine-id';
-import checkForUpdates from '@libs/checkForUpdates';
-import * as Localize from '@libs/Localize';
-import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
-import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
-import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
+import CONFIG from './src/CONFIG';
+import CONST from './src/CONST';
+import type {TranslationPaths} from './src/languages/types';
+import checkForUpdates from './src/libs/checkForUpdates';
+import * as Localize from './src/libs/Localize';
+import type PlatformSpecificUpdater from './src/setup/platformSetup/types';
+import type {Locale} from './src/types/onyx';
 
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
@@ -25,6 +25,7 @@ const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
 // geolocation api (window.navigator.geolocation.getCurrentPosition) to work on desktop.
 // Source: https://github.com/electron/electron/blob/98cd16d336f512406eee3565be1cead86514db7b/docs/api/environment-variables.md#google_api_key
 process.env.GOOGLE_API_KEY = CONFIG.GCP_GEOLOCATION_API_KEY;
+process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = CONFIG.ELECTRON_DISABLE_SECURITY_WARNINGS;
 
 app.setName('New Expensify');
 

@@ -101,6 +101,7 @@ export default {
         appId: get(Config, 'FB_APP_ID', '1:921154746561:web:7b8213357d07d6e4027c40'),
         projectId: get(Config, 'FB_PROJECT_ID', 'expensify-chat'),
     },
+    ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
     // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
     USE_REACT_STRICT_MODE_IN_DEV: false,
 } as const;
