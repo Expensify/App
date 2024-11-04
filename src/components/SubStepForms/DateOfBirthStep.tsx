@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -35,8 +34,8 @@ type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
     /** The default value for the date of birth input */
     dobDefaultValue: string;
 
-    /** Whether the component should show help links */
-    shouldShowHelpLinks?: boolean;
+    /** Optional footer component */
+    footerComponent?: React.ReactNode;
 };
 
 function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -48,7 +47,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
     dobInputID,
     dobDefaultValue,
     isEditing,
-    shouldShowHelpLinks = true,
+    footerComponent
 }: DateOfBirthStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -96,7 +95,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 maxDate={maxDate}
                 shouldSaveDraft={!isEditing}
             />
-            {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}
+            {footerComponent}
         </FormProvider>
     );
 }
