@@ -252,10 +252,6 @@ const onboardingCompanySize = {
 
 type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
 
-type Description =
-    | string
-    | ((params: Partial<{adminsRoomLink: string; workspaceCategoriesLink: string; workspaceMoreFeaturesLink: string; workspaceMembersLink: string; navatticURL: string}>) => string);
-
 type OnboardingTaskType = {
     type: string;
     autoCompleted: boolean;
