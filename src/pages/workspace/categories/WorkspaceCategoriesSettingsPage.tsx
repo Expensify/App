@@ -7,7 +7,6 @@ import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -32,7 +31,6 @@ type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps & Platfor
 function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseWorkspaceRules} = usePermissions();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const policyID = route.params.policyID ?? '-1';
     const backTo = route.params.backTo;
@@ -114,8 +112,9 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', 'requiresCategory')}
                     shouldPlaceSubtitleBelowSwitch
                 />
+                <View style={[styles.sectionDividerLine]} />
                 <View style={[styles.containerWithSpaceBetween]}>
-                    {!!canUseWorkspaceRules && !!currentPolicy && (sections.at(0)?.data?.length ?? 0) > 0 && (
+                    {!!currentPolicy && (sections.at(0)?.data?.length ?? 0) > 0 && (
                         <SelectionList
                             headerContent={
                                 <View style={[styles.mh5, styles.mt2, styles.mb1]}>
@@ -135,7 +134,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                             }}
                         />
                     )}
-                    {!!canUseWorkspaceRules && !!categoryID && !!groupID && (
+                    {!!categoryID && !!groupID && (
                         <CategorySelectorModal
                             policyID={policyID}
                             isVisible={isSelectorModalVisible}
