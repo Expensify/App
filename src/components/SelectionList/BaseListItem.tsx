@@ -100,7 +100,7 @@ function BaseListItem<TItem extends ListItem>({
                 id={keyForList ?? ''}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
@@ -110,7 +110,7 @@ function BaseListItem<TItem extends ListItem>({
                 <View
                     style={[
                         wrapperStyle,
-                        isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                        isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     ]}
                 >
                     {typeof children === 'function' ? children(hovered) : children}
