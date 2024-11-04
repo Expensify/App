@@ -145,9 +145,26 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute, policyID?: st
     return fallbackRoute;
 }
 
+function getOnboardingAdaptedState(state: PartialState<NavigationState>): PartialState<NavigationState> {
+    const onboardingRoute = state.routes.at(0);
+    if (!onboardingRoute || onboardingRoute.name === SCREENS.ONBOARDING.PURPOSE) {
+        return state;
+    }
+
+    const routes = [];
+    routes.push({name: SCREENS.ONBOARDING.PURPOSE});
+    if (onboardingRoute.name === SCREENS.ONBOARDING.ACCOUNTING) {
+        routes.push({name: SCREENS.ONBOARDING.EMPLOYEES});
+    }
+    routes.push(onboardingRoute);
+
+    return getRoutesWithIndex(routes);
+}
+
 function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string): GetAdaptedStateReturnType {
     const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
     const reportsSplitNavigator = state.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+    const onboardingNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
 
     // If policyID is defined, it should be passed to the reportNavigator params.
     if (reportsSplitNavigator && policyID) {
@@ -176,6 +193,17 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         }
 
         const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute, policyID);
+
+        if (onboardingNavigator?.state) {
+            const adaptedOnboardingNavigator = {
+                ...onboardingNavigator,
+                state: getOnboardingAdaptedState(onboardingNavigator.state),
+            };
+
+            return {
+                adaptedState: getRoutesWithIndex([defaultFullScreenRoute, adaptedOnboardingNavigator]),
+            };
+        }
 
         // If not, add the default full screen route.
         return {
