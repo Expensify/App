@@ -260,7 +260,7 @@ jobs:
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
 
       - name: Debug paths
-        run: ls -laR .
+        run: ls -laR ../
 
 #      - name: Upload Android app to Google Play
 #        run: bundle exec fastlane android upload_google_play_internal_hybrid
@@ -581,7 +581,7 @@ jobs:
         run: bundle exec fastlane ios build_hybrid
 
       - name: Debug paths
-        run: ls -laR .
+        run: ls -laR ../
 
 #      - name: Upload release build to TestFlight
 #        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
