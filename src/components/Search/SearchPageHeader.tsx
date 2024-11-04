@@ -341,6 +341,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
+        lastPaymentMethods,
     ]);
 
     if (shouldUseNarrowLayout) {
