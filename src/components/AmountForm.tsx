@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +16,7 @@ import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
-import type TextInputWithCurrencySymbolProps from './TextInputWithCurrencySymbol/types';
+import type BaseTextInputWithCurrencySymbolProps from './TextInputWithCurrencySymbol/types';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -51,7 +51,7 @@ type AmountFormProps = {
 
     /** Number of decimals to display */
     fixedDecimals?: number;
-} & Pick<TextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
+} & Pick<BaseTextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
     Pick<BaseTextInputProps, 'autoFocus'>;
 
 /**
@@ -292,11 +292,11 @@ function AmountForm(
                     }}
                     selectedCurrencyCode={currency}
                     selection={selection}
-                    onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+                    onSelectionChange={(start, end) => {
                         if (!shouldUpdateSelection) {
                             return;
                         }
-                        setSelection(e.nativeEvent.selection);
+                        setSelection({start, end});
                     }}
                     onKeyPress={textInputKeyPress}
                     isCurrencyPressable={isCurrencyPressable}
