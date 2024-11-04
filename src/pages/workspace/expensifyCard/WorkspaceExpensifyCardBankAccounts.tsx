@@ -183,6 +183,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 testID={WorkspaceExpensifyCardBankAccounts.displayName}
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicator={false}
             >
                 <HeaderWithBackButton
                     shouldShowBackButton
