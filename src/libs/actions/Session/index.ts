@@ -42,7 +42,7 @@ import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContex
 import * as App from '@userActions/App';
 import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import * as Device from '@userActions/Device';
-import {setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience} from '@userActions/HybridApp';
+import {setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setUseNewDotSignInPage} from '@userActions/HybridApp';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
@@ -512,9 +512,9 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
     return new Promise<Route>((resolve) => {
         clearOnyxBeforeSignIn()
             .then(() => {
-                const dismissed = useNewDotSignInPage === 'true' ? 'false' : 'false';
+                setUseNewDotSignInPage(useNewDotSignInPage === 'true');
+                const dismissed = useNewDotSignInPage === 'true' ? 'true' : 'false';
                 Onyx.multiSet({
-                    [ONYXKEYS.HYBRID_APP]: {useNewDotSignInPage: useNewDotSignInPage === 'true'},
                     [ONYXKEYS.NVP_TRYNEWDOT]: {classicRedirect: {dismissed}}, // This data is mocked and should be returned by BeginSignUp/SignInUser API commands
                 });
             })
