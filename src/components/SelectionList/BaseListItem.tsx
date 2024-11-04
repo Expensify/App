@@ -105,7 +105,7 @@ function BaseListItem<TItem extends ListItem>({
                 <View style={wrapperStyle}>
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
+                    {!canSelectMultiple && !!item.isSelected && !rightHandSideComponent && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
@@ -118,7 +118,7 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {(!item.isSelected || item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
+                    {(!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
                                 src={Expensicons.DotIndicator}
