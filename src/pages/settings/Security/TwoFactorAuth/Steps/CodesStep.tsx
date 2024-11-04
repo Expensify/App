@@ -36,9 +36,12 @@ function CodesStep({backTo}: CodesStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
     const isUserValidated = account?.validated;
+
     const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
 
     const {setStep} = useTwoFactorAuthContext();
@@ -64,7 +67,7 @@ function CodesStep({backTo}: CodesStepProps) {
             onBackButtonPress={() => TwoFactorAuthActions.quitAndNavigateBack(backTo)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                {isUserValidated && (
+                {!!isUserValidated && (
                     <Section
                         title={translate('twoFactorAuth.keepCodesSafe')}
                         icon={Illustrations.ShieldYellow}

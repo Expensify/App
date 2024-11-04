@@ -15,7 +15,6 @@ import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,6 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
+import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -82,8 +82,10 @@ function dismissError(policyID: string, pendingAction: PendingAction | undefined
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`);
     const hasSyncError = PolicyUtils.hasSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
@@ -92,7 +94,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const activeRoute = useNavigationState(getTopmostRouteName);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseWorkspaceRules} = usePermissions();
     const wasRendered = useRef(false);
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
@@ -176,6 +177,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         });
     }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
 
+    useEffect(() => {
+        App.confirmReadyToOpenApp();
+    }, []);
+
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
         const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -215,6 +220,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             icon: Expensicons.CreditCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.COMPANY_CARDS,
+            brickRoadIndicator: PolicyUtils.hasPolicyFeedsError(cardFeeds?.settings?.companyCards ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 
@@ -228,7 +234,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canUseWorkspaceRules) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.rules',
             icon: Expensicons.Feed,
@@ -411,6 +417,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     highlighted={enabledItem?.routeName === item.routeName}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
                                     badgeText={item.badgeText}
+                                    shouldIconUseAutoWidthStyle
                                 />
                             ))}
                         </View>

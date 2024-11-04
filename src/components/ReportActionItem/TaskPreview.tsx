@@ -13,6 +13,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -73,7 +74,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const isTaskCompleted = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-    const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
+    const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitleFromReport(taskReport, action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? -1;
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
@@ -117,18 +118,22 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                         />
                     </View>
                     {hasAssignee && (
-                        <Avatar
-                            containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
-                            source={avatar}
-                            size={avatarSize}
-                            avatarID={taskAssigneeAccountID}
-                            type={CONST.ICON_TYPE_AVATAR}
-                        />
+                        <UserDetailsTooltip accountID={taskAssigneeAccountID}>
+                            <View>
+                                <Avatar
+                                    containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
+                                    source={avatar}
+                                    size={avatarSize}
+                                    avatarID={taskAssigneeAccountID}
+                                    type={CONST.ICON_TYPE_AVATAR}
+                                />
+                            </View>
+                        </UserDetailsTooltip>
                     )}
                     <Text style={titleStyle}>{taskTitle}</Text>
                 </View>
                 {shouldShowGreenDotIndicator && (
-                    <View style={styles.ml2}>
+                    <View style={iconWrapperStyle}>
                         <Icon
                             src={Expensicons.DotIndicator}
                             fill={theme.success}

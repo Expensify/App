@@ -97,7 +97,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                     optionMode={viewMode}
                     onFirstItemRendered={App.setSidebarLoaded}
                 />
-                {isLoading && optionListItems?.length === 0 && (
+                {!!isLoading && optionListItems?.length === 0 && (
                     <View style={[StyleSheet.absoluteFillObject, styles.appBG]}>
                         <OptionsListSkeletonView shouldAnimate />
                     </View>

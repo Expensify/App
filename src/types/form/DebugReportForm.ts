@@ -97,7 +97,6 @@ type DebugReportForm = Form<
         [INPUT_IDS.VISIBLE_CHAT_MEMBER_ACCOUNT_IDS]: string;
         [INPUT_IDS.WELCOME_MESSAGE]: string;
         [INPUT_IDS.WRITE_CAPABILITY]: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
-        [key: string]: unknown;
     }
 >;
 

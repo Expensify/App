@@ -212,6 +212,7 @@ function MagicCodeInput(
      */
     const tapGesture = Gesture.Tap()
         .runOnJS(true)
+        // eslint-disable-next-line react-compiler/react-compiler
         .onBegin((event) => {
             const index = Math.floor(event.x / (inputWidth.current / maxLength));
             shouldFocusLast.current = false;
@@ -277,8 +278,10 @@ function MagicCodeInput(
                 const indexBeforeLastEditIndex = editIndex === 0 ? editIndex : editIndex - 1;
 
                 const indexToFocus = numbers.at(editIndex) === CONST.MAGIC_CODE_EMPTY_CHAR ? indexBeforeLastEditIndex : editIndex;
-                const formElement = inputRefs.current as HTMLFormElement | null;
-                (formElement?.[indexToFocus] as HTMLInputElement)?.focus();
+                if (indexToFocus !== undefined) {
+                    lastFocusedIndex.current = indexToFocus;
+                    inputRefs.current?.focus();
+                }
                 onChangeTextProp(value.substring(0, indexToFocus));
 
                 return;
@@ -314,6 +317,7 @@ function MagicCodeInput(
             onChangeTextProp(composeToString(numbers));
 
             if (newFocusedIndex !== undefined) {
+                lastFocusedIndex.current = newFocusedIndex;
                 inputRefs.current?.focus();
             }
         }
@@ -425,7 +429,7 @@ function MagicCodeInput(
                     </View>
                 ))}
             </View>
-            {errorText && (
+            {!!errorText && (
                 <FormHelpMessage
                     isError
                     message={errorText}

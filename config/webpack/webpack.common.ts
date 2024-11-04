@@ -11,6 +11,8 @@ import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 import CustomVersionFilePlugin from './CustomVersionFilePlugin';
 import type Environment from './types';
 
+dotenv.config();
+
 type Options = {
     rel: string;
     as: string;
@@ -82,6 +84,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             isWeb: platform === 'web',
             isProduction: file === '.env.production',
             isStaging: file === '.env.staging',
+            useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || (platform === 'web' && file === '.env.production'),
         }),
         new PreloadWebpackPlugin({
             rel: 'preload',
@@ -227,8 +230,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             'react-native-config': 'react-web-config',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'react-native$': 'react-native-web',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'react-native-sound': 'react-native-web-sound',
             // Module alias for web & desktop
             // https://webpack.js.org/configuration/resolve/#resolvealias
             // eslint-disable-next-line @typescript-eslint/naming-convention
