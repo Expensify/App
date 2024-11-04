@@ -161,6 +161,8 @@ function IOURequestStepParticipants({
             return;
         }
 
+        const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID, !canUseP2PDistanceRequests);
+        IOU.setCustomUnitRateID(transactionID, rateID);
         IOU.setMoneyRequestParticipantsFromReport(transactionID, ReportUtils.getReport(selfDMReportID));
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
         Navigation.navigate(iouConfirmationPageRoute);
