@@ -277,6 +277,13 @@ jobs:
           name: android-hybrid-build-artifact
           path: ${{ env.aabPath }}
 
+      - name: Upload Android sourcemap artifact
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-hybrid-sourcemap-artifact
+          path: /Users/runner/work/App/App/Mobile-Expensify/Android/build/generated/sourcemaps/react/release/index.android.bundle.map
+
       - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
@@ -599,6 +606,13 @@ jobs:
           name: ios-hybrid-build-artifact
           path: ${{ env.ipaPath }}
 
+      - name: Upload iOS sourcemap artifact
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-hybrid-sourcemap-artifact
+          path: /Users/runner/work/App/App/Mobile-Expensify/main.jsbundle.map
+
       - name: Warn deployers if iOS production deploy failed
         if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: 8398a7/action-slack@v3
@@ -804,11 +818,13 @@ jobs:
             "./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap.js.map"
             "./android-aab-artifact/app-production-release.aab#android.aab"
             "./android-hybrid-build-artifact/Expensify-release.aab#android-hybrid.aab"
+            "./android-hybrid-sourcemap-artifact/index.android.bundle.map#android-hybrid-sourcemap.js.map"
             "./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap.js.map"
             "./desktop-staging-build-artifact/NewExpensify.dmg#desktop-staging.dmg"
             "./ios-sourcemaps-artifact/main.jsbundle.map#ios-sourcemap.js.map"
             "./ios-build-artifact/New Expensify.ipa#ios.ipa"
             "./ios-hybrid-build-artifact/Expensify.ipa#ios-hybrid.ipa"
+            "./ios-hybrid-sourcemap-artifact/main.jsbundle.map#ios-hybrid-sourcemap.js.map"
             "./web-staging-sourcemaps-artifact/web-staging-sourcemap.js.map#web-staging-sourcemap.js.map"
             "./web-staging-build-tar-gz-artifact/webBuild.tar.gz#web-staging.tar.gz"
             "./web-staging-build-zip-artifact/webBuild.zip#web-staging.zip"
