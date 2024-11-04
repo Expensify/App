@@ -49,7 +49,19 @@ const searchHeaderHeight = 54;
 const sortableSearchStatuses: SearchStatus[] = [CONST.SEARCH.STATUS.EXPENSE.ALL];
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
-    return [item.keyForList, {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}];
+    return [
+        item.keyForList,
+        {
+            isSelected: true,
+            canDelete: item.canDelete,
+            canHold: item.canHold,
+            canUnhold: item.canUnhold,
+            action: item.action,
+            reportID: item.reportID,
+            policyID: item.policyID,
+            amount: item.modifiedAmount ?? item.amount,
+        },
+    ];
 }
 
 function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
@@ -93,6 +105,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
+            amount: item.modifiedAmount ?? item.amount,
         },
     };
 }
@@ -241,6 +254,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                     canDelete: transaction.canDelete,
                     reportID: transaction.reportID,
                     policyID: transaction.policyID,
+                    amount: transaction.modifiedAmount ?? transaction.amount,
                 };
             });
         } else {
@@ -260,6 +274,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                         canDelete: transaction.canDelete,
                         reportID: transaction.reportID,
                         policyID: transaction.policyID,
+                        amount: transaction.modifiedAmount ?? transaction.amount,
                     };
                 });
             });
