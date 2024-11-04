@@ -87,7 +87,7 @@ function AccountSwitcher() {
             }
 
             const delegatePersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
-            const error = ErrorUtils.getLatestErrorField(account?.delegatedAccess, 'connect');
+            const error = ErrorUtils.getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
 
             return [
                 createBaseMenuItem(delegatePersonalDetails, error, {
@@ -105,8 +105,9 @@ function AccountSwitcher() {
 
         const delegatorMenuItems: PopoverMenuItem[] = delegators
             .filter(({email}) => email !== currentUserPersonalDetails.login)
-            .map(({email, role, errorFields}) => {
-                const error = ErrorUtils.getLatestErrorField({errorFields}, 'connect');
+            .map(({email, role}) => {
+                const errorFields = account?.delegatedAccess?.errorFields ?? {};
+                const error = ErrorUtils.getLatestError(errorFields?.connect?.[email]);
                 const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
                 return createBaseMenuItem(personalDetails, error, {
                     badgeText: translate('delegate.role', {role}),
@@ -152,7 +153,7 @@ function AccountSwitcher() {
                             >
                                 {currentUserPersonalDetails?.displayName}
                             </Text>
-                            {canSwitchAccounts && (
+                            {!!canSwitchAccounts && (
                                 <View style={styles.justifyContentCenter}>
                                     <Icon
                                         fill={theme.icon}
@@ -180,7 +181,7 @@ function AccountSwitcher() {
                     </View>
                 </View>
             </PressableWithFeedback>
-            {canSwitchAccounts && (
+            {!!canSwitchAccounts && (
                 <PopoverMenu
                     isVisible={shouldShowDelegatorMenu}
                     onClose={() => {

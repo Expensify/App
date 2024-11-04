@@ -264,7 +264,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID) : ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+                        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID) : undefined);
                     }}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}

@@ -83,7 +83,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                         </View>
                     ))}
                 </View>
-                {ctaErrorMessage && (
+                {!!ctaErrorMessage && (
                     <DotIndicatorMessage
                         style={styles.mt1}
                         messages={{error: ctaErrorMessage}}
