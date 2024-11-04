@@ -17,4 +17,4 @@ const init: Init = () => {
     });
 };
 
-export {init};
+export default {init};

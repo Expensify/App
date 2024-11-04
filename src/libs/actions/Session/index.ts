@@ -482,16 +482,12 @@ function signUpUser() {
 
 function signInAfterTransitionFromOldDot(transitionURL: string) {
     const [route, queryParams] = transitionURL.split('?');
-    const queryParamsObject = queryParams
-        ? Object.fromEntries(
-              queryParams.split('&').map((param) => {
-                  const [key, value] = param.split('=');
-                  return [key, value];
-              }),
-          )
-        : {};
-
-    const {useNewDotSignInPage, isSingleNewDotEntry} = queryParamsObject;
+    const {useNewDotSignInPage, isSingleNewDotEntry} = Object.fromEntries(
+        queryParams.split('&').map((param) => {
+            const [key, value] = param.split('=');
+            return [key, value];
+        }),
+    );
 
     const clearOnyxBeforeSignIn = () => {
         if (useNewDotSignInPage !== 'true') {

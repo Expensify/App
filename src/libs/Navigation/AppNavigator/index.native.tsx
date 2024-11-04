@@ -4,7 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {TryNewDot} from '@src/types/onyx';
+import type {TryNewDot} from '@src/types/onyx';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 type AppNavigatorProps = {

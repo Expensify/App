@@ -3,7 +3,7 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {NativeModules, View} from 'react-native';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
@@ -37,7 +37,7 @@ import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import * as App from '@userActions/App';
-import {setIsSigningIn, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setShouldResetSigningInLogic} from '@userActions/HybridApp';
+import {setIsSigningIn, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setShouldResetSigningInLogic, setUseNewDotSignInPage} from '@userActions/HybridApp';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Session from '@userActions/Session';
@@ -274,7 +274,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                         setReadyToShowAuthScreens(false);
                         setReadyToSwitchToClassicExperience(false);
                         setIsSigningIn(false);
-                        Onyx.merge(ONYXKEYS.USE_NEWDOT_SIGN_IN_PAGE, true);
+                        setUseNewDotSignInPage(true);
+
                         signOut(false);
                     },
                 },

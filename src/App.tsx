@@ -36,7 +36,7 @@ import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import {ReportIDsContextProvider} from './hooks/useReportIDs';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
-import {init} from './libs/HybridApp';
+import HybridApp from './libs/HybridApp';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
@@ -60,7 +60,7 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode
 function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
-    init();
+    HybridApp.init();
 
     return (
         <StrictModeWrapper>

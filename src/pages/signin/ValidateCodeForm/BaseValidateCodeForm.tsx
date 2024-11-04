@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {NativeModules, View} from 'react-native';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
@@ -25,7 +25,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
-import {setIsSigningIn, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setShouldResetSigningInLogic} from '@userActions/HybridApp';
+import {setIsSigningIn, setReadyToShowAuthScreens, setShouldResetSigningInLogic} from '@userActions/HybridApp';
 import * as SessionActions from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -33,7 +33,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TryNewDot} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type ValidateCodeFormProps from './types';
 
 type BaseValidateCodeFormProps = WithToggleVisibilityViewProps &
@@ -57,7 +56,9 @@ function shouldUseOldApp(tryNewDot?: TryNewDot) {
 function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps, forwardedRef: ForwardedRef<BaseValidateCodeFormRef>) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -71,9 +72,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
     const [oldDotSignInState, setOldDotSignInState] = useState<ValueOf<typeof CONST.OLD_DOT_SIGN_IN_STATE>>(CONST.OLD_DOT_SIGN_IN_STATE.NOT_STARTED);
     const [newDotSignInState, setNewDotSignInState] = useState<ValueOf<typeof CONST.NEW_DOT_SIGN_IN_STATE>>(CONST.NEW_DOT_SIGN_IN_STATE.NOT_STARTED);
-
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
     const prevRequiresTwoFactorAuth = usePrevious(account?.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(credentials?.validateCode);
@@ -108,14 +106,10 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             return;
         }
 
-        if (isLoadingOnyxValue(sessionMetadata)) {
-            return;
-        }
-
         if (newDotSignInState === CONST.NEW_DOT_SIGN_IN_STATE.STARTED && !isValidateCodeFormSubmitting && !!session?.authToken) {
             setNewDotSignInState(CONST.NEW_DOT_SIGN_IN_STATE.FINISHED);
         }
-    }, [newDotSignInState, isValidateCodeFormSubmitting, session?.authToken, sessionMetadata, hybridApp?.useNewDotSignInPage]);
+    }, [newDotSignInState, isValidateCodeFormSubmitting, session?.authToken, hybridApp?.useNewDotSignInPage]);
 
     /**
      * ustawianie stanu logowania OD na finished, jak używamy strony logowania

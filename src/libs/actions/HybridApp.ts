@@ -17,4 +17,8 @@ function setShouldResetSigningInLogic(shouldResetSigningInLogic: boolean) {
     Onyx.merge(ONYXKEYS.HYBRID_APP, {shouldResetSigningInLogic});
 }
 
-export {setIsSigningIn, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setShouldResetSigningInLogic};
+function setUseNewDotSignInPage(useNewDotSignInPage: boolean) {
+    Onyx.merge(ONYXKEYS.HYBRID_APP, {useNewDotSignInPage});
+}
+
+export {setIsSigningIn, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setShouldResetSigningInLogic, setUseNewDotSignInPage};
