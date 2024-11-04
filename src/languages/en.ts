@@ -3320,7 +3320,7 @@ const translations = {
                 cardNumber: 'Card number',
                 cardholder: 'Cardholder',
                 cardName: 'Card name',
-                integrationExport: ({integration, type}: IntegrationExportParams) => `${integration} ${type} export`,
+                integrationExport: ({integration, type}: IntegrationExportParams) => `${integration} ${type?.toLowerCase()} export`,
                 integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choose the ${integration} account where transactions should be exported. Select a different`,
                 integrationExportTitleLinkPart: 'export option',
                 integrationExportTitleSecondPart: 'to change the available accounts.',
@@ -5187,6 +5187,10 @@ const translations = {
     },
     emptySearchView: {
         takeATour: 'Take a tour',
+    },
+    tour: {
+        takeATwoMinuteTour: 'Take a 2-minute tour',
+        exploreExpensify: 'Explore everything Expensify has to offer',
     },
 };
 
