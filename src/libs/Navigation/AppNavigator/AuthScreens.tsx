@@ -285,6 +285,17 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }, [theme]);
 
     useEffect(() => {
+        NavigationBar.setBackgroundColorAsync(theme.appBG);
+        NavigationBar.setButtonStyleAsync(theme.navigationBarButtonsStyle);
+
+        return () => {
+            // login screen is always dark mode
+            NavigationBar.setBackgroundColorAsync('#000000');
+            NavigationBar.setButtonStyleAsync('light');
+        };
+    }, [theme]);
+
+    useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
