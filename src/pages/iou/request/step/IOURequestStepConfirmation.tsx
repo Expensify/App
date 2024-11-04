@@ -195,7 +195,7 @@ function IOURequestStepConfirmation({
         // back to the participants step
         if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action));
+            Navigation.goUp(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action), {compareParams: false});
             return;
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
