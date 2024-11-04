@@ -34,6 +34,10 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
+            if (values[BUSINESS_CONTACT_NUMBER] && !ValidationUtils.isValidE164Phone(values[BUSINESS_CONTACT_NUMBER])) {
+                errors[BUSINESS_CONTACT_NUMBER] = translate('common.error.phoneNumber');
+            }
+
             if (values[BUSINESS_CONFIRMATION_EMAIL] && !ValidationUtils.isValidEmail(values[BUSINESS_CONFIRMATION_EMAIL])) {
                 errors[BUSINESS_CONFIRMATION_EMAIL] = translate('common.error.email');
             }

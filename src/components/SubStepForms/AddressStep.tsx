@@ -1,7 +1,7 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef, FormValue} from '@components/Form/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -82,6 +82,13 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const formRef = useRef<FormRef | null>(null);
+
+    const resetStateErrorFields = useCallback(() => {
+        // When country changes and state is no longer gathered we need to reset corresponding form errors
+        formRef.current?.resetFormFieldError(inputFieldsIDs.state);
+    }, [inputFieldsIDs.state]);
+
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
@@ -93,7 +100,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             }
 
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
-            if (zipCode && !shouldDisplayCountrySelector && !ValidationUtils.isValidZipCode(zipCode as string)) {
+            if (zipCode && (shouldDisplayCountrySelector ? !ValidationUtils.isValidZipCodeInternational(zipCode as string) : !ValidationUtils.isValidZipCode(zipCode as string))) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
             }
@@ -110,6 +117,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             validate={customValidate ?? validate}
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
+            ref={formRef}
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{formTitle}</Text>
@@ -124,6 +132,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     stateSelectorLabel={stateSelectorLabel}
                     stateSelectorModalHeaderTitle={stateSelectorModalHeaderTitle}
                     stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
+                    onCountryChange={resetStateErrorFields}
                 />
                 {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
             </View>

@@ -44,9 +44,10 @@ function Address({onNext, onMove, isEditing}: AddressProps) {
     };
 
     const shouldDisplayStateSelector = defaultValues.country === CONST.COUNTRY.US || defaultValues.country === CONST.COUNTRY.CA || defaultValues.country === '';
+    const stepFields = shouldDisplayStateSelector ? STEP_FIELDS : STEP_FIELDS_WITHOUT_STATE;
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: shouldDisplayStateSelector ? STEP_FIELDS : STEP_FIELDS_WITHOUT_STATE,
+        fieldIds: stepFields,
         onNext,
         shouldSaveDraft: isEditing,
     });
@@ -60,7 +61,7 @@ function Address({onNext, onMove, isEditing}: AddressProps) {
             formTitle={translate('businessInfoStep.whatsTheBusinessAddress')}
             formPOBoxDisclaimer={translate('common.noPO')}
             onSubmit={handleSubmit}
-            stepFields={STEP_FIELDS}
+            stepFields={stepFields}
             inputFieldsIDs={INPUT_KEYS}
             defaultValues={defaultValues}
             shouldDisplayStateSelector={shouldDisplayStateSelector}

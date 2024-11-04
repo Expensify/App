@@ -50,6 +50,9 @@ type AddressFormProps = {
 
     /** The title of the state selector search input */
     stateSelectorSearchInputTitle?: string;
+
+    /** Callback to be called when the country is changed */
+    onCountryChange?: () => void;
 };
 
 const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce((acc, key) => {
@@ -75,6 +78,7 @@ function AddressFormFields({
     stateSelectorLabel,
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
+    onCountryChange,
 }: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -151,6 +155,7 @@ function AddressFormFields({
                         modalHeaderTitle={translate('countryStep.selectCountry')}
                         searchInputTitle={translate('countryStep.findCountry')}
                         value={values?.country}
+                        onValueChange={onCountryChange}
                         stateInputIDToReset={inputKeys.state ?? 'stateInput'}
                     />
                 </View>

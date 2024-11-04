@@ -503,6 +503,22 @@ function isValidEmail(email: string): boolean {
     return Str.isValidEmail(email);
 }
 
+/**
+ * Validates the given value if it is correct phone number in E164 format (international standard).
+ * @param phoneNumber
+ */
+function isValidE164Phone(phoneNumber: string): boolean {
+    return Str.isValidE164Phone(phoneNumber);
+}
+
+/**
+ * Validates the given value if it is correct zip code for international addresses.
+ * @param zipCode
+ */
+function isValidZipCodeInternational(zipCode: string): boolean {
+    return /^[a-z0-9][a-z0-9\- ]{0,10}[a-z0-9]$/.test(zipCode);
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -548,4 +564,6 @@ export {
     isExistingTaxCode,
     isPublicDomain,
     isValidEmail,
+    isValidE164Phone,
+    isValidZipCodeInternational,
 };
