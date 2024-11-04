@@ -390,8 +390,8 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED, parameters, onyxData);
 }
 
-function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: string, maxExpenseAmountNoReceipt: number) {
-    const originalMaxExpenseAmountNoReceipt = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName]?.maxExpenseAmountNoReceipt;
+function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: string, maxAmountNoReceipt: number) {
+    const originalMaxAmountNoReceipt = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName]?.maxAmountNoReceipt;
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -402,9 +402,9 @@ function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: strin
                     [categoryName]: {
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
-                            maxExpenseAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            maxAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
-                        maxExpenseAmountNoReceipt,
+                        maxAmountNoReceipt,
                     },
                 },
             },
@@ -417,9 +417,9 @@ function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: strin
                     [categoryName]: {
                         pendingAction: null,
                         pendingFields: {
-                            maxExpenseAmountNoReceipt: null,
+                            maxAmountNoReceipt: null,
                         },
-                        maxExpenseAmountNoReceipt,
+                        maxAmountNoReceipt,
                     },
                 },
             },
@@ -433,9 +433,9 @@ function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: strin
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                         pendingAction: null,
                         pendingFields: {
-                            maxExpenseAmountNoReceipt: null,
+                            maxAmountNoReceipt: null,
                         },
-                        maxExpenseAmountNoReceipt: originalMaxExpenseAmountNoReceipt,
+                        maxAmountNoReceipt: originalMaxAmountNoReceipt,
                     },
                 },
             },
@@ -445,14 +445,14 @@ function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: strin
     const parameters: SetPolicyCategoryReceiptsRequiredParams = {
         policyID,
         categoryName,
-        maxExpenseAmountNoReceipt,
+        maxExpenseAmountNoReceipt: maxAmountNoReceipt,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
 }
 
 function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: string) {
-    const originalMaxExpenseAmountNoReceipt = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName]?.maxExpenseAmountNoReceipt;
+    const originalMaxAmountNoReceipt = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName]?.maxAmountNoReceipt;
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -463,9 +463,9 @@ function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: st
                     [categoryName]: {
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
-                            maxExpenseAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            maxAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
-                        maxExpenseAmountNoReceipt: null,
+                        maxAmountNoReceipt: null,
                     },
                 },
             },
@@ -478,9 +478,9 @@ function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: st
                     [categoryName]: {
                         pendingAction: null,
                         pendingFields: {
-                            maxExpenseAmountNoReceipt: null,
+                            maxAmountNoReceipt: null,
                         },
-                        maxExpenseAmountNoReceipt: null,
+                        maxAmountNoReceipt: null,
                     },
                 },
             },
@@ -494,9 +494,9 @@ function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: st
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                         pendingAction: null,
                         pendingFields: {
-                            maxExpenseAmountNoReceipt: null,
+                            maxAmountNoReceipt: null,
                         },
-                        maxExpenseAmountNoReceipt: originalMaxExpenseAmountNoReceipt,
+                        maxAmountNoReceipt: originalMaxAmountNoReceipt,
                     },
                 },
             },
