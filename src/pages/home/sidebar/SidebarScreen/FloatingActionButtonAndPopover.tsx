@@ -531,7 +531,7 @@ function FloatingActionButtonAndPopover(
                 isVisible={modalVisible}
                 onConfirm={() => {
                     setModalVisible(false);
-                    Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX)
+                    Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                 }}
                 onCancel={() => setModalVisible(false)}
                 title="Your workspace is not ready for New Expensify"
