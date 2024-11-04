@@ -509,14 +509,6 @@ function ReportActionCompose({
                                                 }
 
                                                 debouncedValidate(value, reportID);
-                                                // const match = value.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
-                                                // if (!match) {
-                                                //     validateCommentMaxLength(value, {reportID});
-                                                //     return;
-                                                // }
-
-                                                // let title = match[3] ? match[3].trim().replace(/\n/g, ' ') : undefined;
-                                                // setHasExceededTaskTitleLength(title ? title.length > CONST.TITLE_CHARACTER_LIMIT : false);
                                             }}
                                         />
                                         <ReportDropUI
