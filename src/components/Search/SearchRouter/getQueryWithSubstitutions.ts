@@ -1,10 +1,9 @@
-import type {SearchAutocompleteQueryRange} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 import * as parser from '@libs/SearchParser/autocompleteParser';
 
-type SubstitutionEntry = {value: string};
-type SubstitutionMap = Record<string, SubstitutionEntry>;
+type SubstitutionMap = Record<string, string>;
 
-const getSubstitutionMapKey = (filterName: string, value: string) => `${filterName}:${value}`;
+const getSubstitutionMapKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
 
 /**
  * Given a plaintext query and a SubstitutionMap object, this function will return a transformed query where:
@@ -39,8 +38,8 @@ function getQueryWithSubstitutions(changedQuery: string, substitutions: Substitu
             const substitutionEnd = range.start + range.length;
 
             // generate new query but substituting "user-typed" value with the entity id/email from substitutions
-            resultQuery = resultQuery.slice(0, substitutionStart) + substitutionEntry.value + changedQuery.slice(substitutionEnd);
-            lengthDiff = lengthDiff + substitutionEntry.value.length - range.length;
+            resultQuery = resultQuery.slice(0, substitutionStart) + substitutionEntry + changedQuery.slice(substitutionEnd);
+            lengthDiff = lengthDiff + substitutionEntry.length - range.length;
         }
     }
 

@@ -1,4 +1,4 @@
-import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import type {ValueOf} from 'type-fest';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
@@ -56,10 +56,14 @@ type QueryFilter = {
     value: string | number;
 };
 
-type AdvancedFiltersKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
+type SearchFilterKey =
+    | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID;
 
 type QueryFilters = Array<{
-    key: AdvancedFiltersKeys;
+    key: SearchFilterKey;
     filters: QueryFilter[];
 }>;
 
@@ -86,7 +90,7 @@ type SearchAutocompleteResult = {
 };
 
 type SearchAutocompleteQueryRange = {
-    key: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS & typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+    key: SearchFilterKey;
     length: number;
     start: number;
     value: string;
@@ -105,7 +109,7 @@ export type {
     ASTNode,
     QueryFilter,
     QueryFilters,
-    AdvancedFiltersKeys,
+    SearchFilterKey,
     ExpenseSearchStatus,
     InvoiceSearchStatus,
     TripSearchStatus,

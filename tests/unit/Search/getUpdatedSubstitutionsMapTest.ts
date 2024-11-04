@@ -15,26 +15,20 @@ describe('getUpdatedSubstitutionsMap should return updated and cleaned substitut
     test('when query has a substitution and it did not change', () => {
         const userTypedQuery = 'foo from:Mat';
         const substitutionsMock = {
-            'from:Mat': {
-                value: '@mateusz',
-            },
+            'from:Mat': '@mateusz',
         };
 
         const result = getUpdatedSubstitutionsMap(userTypedQuery, substitutionsMock);
 
         expect(result).toStrictEqual({
-            'from:Mat': {
-                value: '@mateusz',
-            },
+            'from:Mat': '@mateusz',
         });
     });
 
     test('when query has a substitution and it changed', () => {
         const userTypedQuery = 'foo from:Johnny';
         const substitutionsMock = {
-            'from:Steven': {
-                value: '@steven',
-            },
+            'from:Steven': '@steven',
         };
 
         const result = getUpdatedSubstitutionsMap(userTypedQuery, substitutionsMock);
@@ -45,29 +39,17 @@ describe('getUpdatedSubstitutionsMap should return updated and cleaned substitut
     test('when query has multiple substitutions and some changed but some stayed', () => {
         const userTypedQuery = 'from:Johnny to:Steven category:Fruitzzzz';
         const substitutionsMock = {
-            'from:Johnny': {
-                value: '@johnny',
-            },
-            'to:Steven': {
-                value: '@steven',
-            },
-            'from:OldName': {
-                value: '@oldName',
-            },
-            'category:Fruit': {
-                value: '123456',
-            },
+            'from:Johnny': '@johnny',
+            'to:Steven': '@steven',
+            'from:OldName': '@oldName',
+            'category:Fruit': '123456',
         };
 
         const result = getUpdatedSubstitutionsMap(userTypedQuery, substitutionsMock);
 
         expect(result).toStrictEqual({
-            'from:Johnny': {
-                value: '@johnny',
-            },
-            'to:Steven': {
-                value: '@steven',
-            },
+            'from:Johnny': '@johnny',
+            'to:Steven': '@steven',
         });
     });
 });

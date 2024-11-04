@@ -1,8 +1,8 @@
-import type {SearchAutocompleteQueryRange} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 import * as parser from '@libs/SearchParser/autocompleteParser';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
-const getSubstitutionsKey = (filterName: string, value: string) => `${filterName}:${value}`;
+const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
 
 /**
  * Given a plaintext query and a SubstitutionMap object,

@@ -1,4 +1,5 @@
 import {useNavigationState} from '@react-navigation/native';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -15,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -75,7 +77,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const participantsAutocompleteList = Object.values(personalDetailsForParticipants)
         .filter((details): details is NonNullable<PersonalDetails> => !!(details && details?.login))
         .map((details) => ({
-            name: details.login ?? '',
+            name: details.displayName ?? Str.removeSMSDomain(details.login ?? ''),
             accountID: details?.accountID.toString(),
         }));
     const allTaxRates = getAllTaxRates();
@@ -286,7 +288,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
 
                     filteredAutocompleteSuggestions = filteredCards.map((card) => ({
                         filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-                        text: card.bank,
+                        text: CardUtils.getCardDescription(card.cardID),
                         autocompleteID: card.cardID.toString(),
                     }));
                     break;
@@ -346,8 +348,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
 
             onRouterClose();
 
-            const computeNodeValueFn = SearchQueryUtils.getUpdatedAmountValue;
-            const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(queryJSON, computeNodeValueFn);
+            const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(queryJSON, SearchQueryUtils.getUpdatedAmountValue);
             const query = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
 
@@ -356,8 +357,8 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         [autocompleteSubstitutions, onRouterClose, setTextInputValue],
     );
 
-    const onAutocompleteSuggestionClick = (autocompleteKey: string, autocompleteId: string) => {
-        const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: {value: autocompleteId}};
+    const onAutocompleteSuggestionClick = (autocompleteKey: string, autocompleteID: string) => {
+        const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: autocompleteID};
 
         setAutocompleteSubstitutions(substitutions);
     };

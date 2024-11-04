@@ -3,7 +3,7 @@ import type {ForwardedRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import type {SearchQueryString} from '@components/Search/types';
+import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SearchQueryListItem from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -31,7 +31,7 @@ type SearchQueryItemData = {
 };
 
 type AutocompleteItemData = {
-    filterKey: string;
+    filterKey: SearchFilterKey;
     text: string;
     autocompleteID?: string;
 };
@@ -62,7 +62,7 @@ type SearchRouterListProps = {
     reportForContextualSearch?: OptionData;
 
     /** Callback to run when user clicks a suggestion item that contains autocomplete data */
-    onAutocompleteSuggestionClick: (autocompleteKey: string, autocompleteId: string) => void;
+    onAutocompleteSuggestionClick: (autocompleteKey: string, autocompleteID: string) => void;
 
     /** Callback to close and clear SearchRouter */
     closeRouter: () => void;

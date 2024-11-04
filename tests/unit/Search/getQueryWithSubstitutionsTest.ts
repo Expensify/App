@@ -17,9 +17,7 @@ describe('getQueryWithSubstitutions should compute and return correct new query'
         // given this previous query: "foo from:@mateusz"
         const userTypedQuery = 'foo from:Mat test';
         const substitutionsMock = {
-            'from:Mat': {
-                value: '@mateusz',
-            },
+            'from:Mat': '@mateusz',
         };
 
         const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock);
@@ -31,9 +29,7 @@ describe('getQueryWithSubstitutions should compute and return correct new query'
         // given this previous query: "foo from:@mateusz1"
         const userTypedQuery = 'foo bar from:Mat1';
         const substitutionsMock = {
-            'from:Mat1': {
-                value: '@mateusz1',
-            },
+            'from:Mat1': '@mateusz1',
         };
 
         const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock);
@@ -45,9 +41,7 @@ describe('getQueryWithSubstitutions should compute and return correct new query'
         // given this previous query: "foo from:@mateusz"
         const userTypedQuery = 'foo from:Ma';
         const substitutionsMock = {
-            'from:Mat': {
-                value: '@mateusz',
-            },
+            'from:Mat': '@mateusz',
         };
 
         const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock);
@@ -59,9 +53,7 @@ describe('getQueryWithSubstitutions should compute and return correct new query'
         // given this previous query: "foo from:@mateusz1"
         const userTypedQuery = 'foo from:Maat1';
         const substitutionsMock = {
-            'from:Mat1': {
-                value: '@mateusz1',
-            },
+            'from:Mat1': '@mateusz1',
         };
 
         const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock);
@@ -74,15 +66,9 @@ describe('getQueryWithSubstitutions should compute and return correct new query'
         // oldHumanReadableQ = 'foo in:admin,admins from:Jakub'
         const userTypedQuery = 'foo in:admin,admins from:Jakub2';
         const substitutionsMock = {
-            'in:admin': {
-                value: '123',
-            },
-            'in:admins': {
-                value: '456',
-            },
-            'from:Jakub': {
-                value: '@jakub',
-            },
+            'in:admin': '123',
+            'in:admins': '456',
+            'from:Jakub': '@jakub',
         };
 
         const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock);
@@ -95,12 +81,8 @@ describe('getQueryWithSubstitutions should compute and return correct new query'
         const userTypedQuery = 'foo in:wave2,waveControl from:zzzz';
 
         const substM = {
-            'in:wave': {
-                value: 'aabbccdd123',
-            },
-            'in:waveControl': {
-                value: 'zxcv123',
-            },
+            'in:wave': 'aabbccdd123',
+            'in:waveControl': 'zxcv123',
         };
 
         const result = getQueryWithSubstitutions(userTypedQuery, substM);
