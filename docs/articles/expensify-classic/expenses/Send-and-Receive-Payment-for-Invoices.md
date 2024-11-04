@@ -11,9 +11,18 @@ Invoices can be sent to anyone with or without an Expensify account and paid dir
 1. Sign in to your [Expensify web account](www.expensify.com)
 2. Customize your company invoices following the steps in this [help article](https://help.expensify.com/articles/expensify-classic/workspaces/Set-Up-Invoicing). (Optional)
 3. From the **Reports** page, click the drop-down and select **Invoice**.
-4. Upload a PDF/image of the invoice.
-5. Add applicable tags and categories based on your workspace settings.
-6. Click **Send**.
+4. Click **Add Expense** to upload an invoice or drag and drop the invoice as a pdf into the report to start the SmartScan process.
+5. Once the SmartScan process is complete, the invoice PDF will be added as a receipt to the expense
+6. Add applicable tags and categories based on your workspace settings.
+7. Click **Send**
+8. Enter the recipient's email address
+9. Add a memo, due date, attach a PDF of the invoice (Optional)
+10. Click **Send**
+11. The recipient will receive an email about the invoice and can pay through Expensify following these [steps](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Pay-an-Invoice).
+
+![From the Reports page, click New Report and select Invoice](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_SendInvoice.png){:width="100%"}
+
+![Click Send and enter the recipients email address](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_SendInvoice_02.png){:width="100%"}
 
 ## How to Receive an Invoice Payment in Expensify 
 
