@@ -388,6 +388,7 @@ platform :ios do
   desc "Upload app to TestFlight"
   lane :upload_testflight do
     upload_to_testflight(
+      app_identifier: "com.chat.expensify.chat",
       api_key_path: "./ios/ios-fastlane-json-key.json",
       distribute_external: true,
       notify_external_testers: true,
@@ -421,6 +422,7 @@ platform :ios do
   desc "Upload HybridApp to TestFlight"
     lane :upload_testflight_hybrid do
       upload_to_testflight(
+        app_identifier: "com.expensify.expensifylite",
         api_key_path: "./ios/ios-fastlane-json-key.json",
         distribute_external: true,
         notify_external_testers: true,
@@ -452,9 +454,10 @@ platform :ios do
     )
     end
 
-  desc "Submit app to App Store Review"
+  desc "Submit app for production App Store Review"
   lane :submit_for_review do
     deliver(
+      app_identifier: "com.chat.expensify.chat",
       api_key_path: "./ios/ios-fastlane-json-key.json",
 
       # Skip HTMl report verification

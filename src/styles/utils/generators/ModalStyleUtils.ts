@@ -116,6 +116,36 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 shouldAddTopSafeAreaPadding = isSmallScreenWidth;
                 shouldAddBottomSafeAreaPadding = false;
                 break;
+            case CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT:
+                // A centered modal is one that has a visible backdrop
+                // and can be dismissed by clicking outside of the modal.
+                // This modal should take up the entire visible area when
+                // viewed on a smaller device (e.g. mobile or mobile web).
+                modalStyle = {
+                    ...modalStyle,
+                    ...{
+                        alignItems: 'center',
+                    },
+                };
+                modalContainerStyle = {
+                    boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                    flex: 1,
+                    marginTop: isSmallScreenWidth ? 0 : 20,
+                    marginBottom: isSmallScreenWidth ? 0 : 20,
+                    borderRadius: isSmallScreenWidth ? 0 : variables.componentBorderRadiusLarge,
+                    overflow: 'hidden',
+                    ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth),
+                };
+
+                // Allow this modal to be dismissed with a swipe to the right, required when we want to have a list in centered modal
+                swipeDirection = ['right'];
+                animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
+                animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
+                shouldAddTopSafeAreaMargin = !isSmallScreenWidth;
+                shouldAddBottomSafeAreaMargin = !isSmallScreenWidth;
+                shouldAddTopSafeAreaPadding = isSmallScreenWidth;
+                shouldAddBottomSafeAreaPadding = false;
+                break;
             case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
                 // A centered modal that cannot be dismissed with a swipe.
                 modalStyle = {
