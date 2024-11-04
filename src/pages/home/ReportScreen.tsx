@@ -755,7 +755,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                             needsOffscreenAlphaCompositing
                         >
                             {headerView}
-                            {shouldUseNarrowLayout && <ProgressBar shouldShow={isLoadingReportData ?? false} />}
+                            {shouldUseNarrowLayout && isLoadingReportData && <ProgressBar shouldShow={isLoadingReportData ?? false} />}
                             {!!report && ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
