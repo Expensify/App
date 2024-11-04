@@ -814,7 +814,7 @@ jobs:
           
           # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
           for file_entry in "${files[@]}"; do
-            gh release upload "$APP_VERSION" --repo "$GITHUB_REPOSITORY" --clobber "$file_entry"
+            gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber "$file_entry"
           done
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -873,7 +873,7 @@ jobs:
           
           # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
           for file_entry in "${files[@]}"; do
-            gh release upload "$APP_VERSION" --repo "$GITHUB_REPOSITORY" --clobber "$file_entry"
+            gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber "$file_entry"
           done
         env:
           GITHUB_TOKEN: ${{ github.token }}
