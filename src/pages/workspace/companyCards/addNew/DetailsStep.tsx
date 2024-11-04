@@ -178,7 +178,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                 contentContainerStyle={styles.flexGrow1}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
-                    {feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
+                    {!!feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
                 </Text>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
@@ -189,7 +189,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                     enabledWhenOffline
                 >
                     {renderInputs()}
-                    {feedProvider && !isStripeFeedProvider && (
+                    {!!feedProvider && !isStripeFeedProvider && (
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <Icon
                                 src={Expensicons.QuestionMark}
