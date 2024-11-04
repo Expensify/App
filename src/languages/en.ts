@@ -5188,6 +5188,10 @@ const translations = {
     emptySearchView: {
         takeATour: 'Take a tour',
     },
+    tour: {
+        takeATwoMinuteTour: 'Take a 2-minute tour',
+        exploreExpensify: 'Explore everything Expensify has to offer',
+    },
 };
 
 export default translations satisfies TranslationDeepObject<typeof translations>;
