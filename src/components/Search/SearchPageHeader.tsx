@@ -58,7 +58,7 @@ function HeaderWrapper({icon, children, text, value, isCannedQuery, onSubmit, se
         >
             {isCannedQuery ? (
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
-                    {icon && (
+                    {!!icon && (
                         <Icon
                             src={icon}
                             width={variables.iconHeader}
@@ -73,9 +73,8 @@ function HeaderWrapper({icon, children, text, value, isCannedQuery, onSubmit, se
                 <View style={styles.pr5}>
                     <SearchRouterInput
                         value={value}
-                        setValue={setValue}
                         onSubmit={onSubmit}
-                        updateSearch={() => {}}
+                        updateSearch={setValue}
                         autoFocus={false}
                         isFullWidth
                         wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
