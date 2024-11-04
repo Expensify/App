@@ -298,6 +298,12 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? '-1'}`);
 
+    const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
+        ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
+        : '';
+    const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID ?? '0');
+    const actionableWhisperReportActionID = whisperAction?.reportActionID ?? '0';
+
     const cancelPayment = useCallback(() => {
         if (!chatReport) {
             return;
@@ -370,12 +376,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 },
             });
         }
-        
-        const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
-            ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
-            : '';
-        const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID ?? '0');
-        const actionableWhisperReportActionID = whisperAction?.reportActionID ?? '0';
 
         if (isTrackExpenseReport) {
             const actionReportID = ReportUtils.getOriginalReportID(report.reportID, parentReportAction) ?? '0';
@@ -557,6 +557,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         isExpenseReport,
         backTo,
         canActionTask,
+        isTrackExpenseReport,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -629,10 +630,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             </View>
         );
     }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
-
-    const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
-        ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
-        : '';
 
     const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(moneyRequestAction);
     const shouldShowHoldAction =
