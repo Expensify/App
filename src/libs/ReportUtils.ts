@@ -4449,6 +4449,7 @@ function buildOptimisticTaskCommentReportAction(
  * @param chatReportID - Report ID of the chat where the IOU is.
  * @param currency - IOU currency.
  * @param isSendingMoney - If we pay someone the IOU should be created as settled
+ * @param parentReportActionID - The parent report action ID of the IOU report
  */
 
 function buildOptimisticIOUReport(
