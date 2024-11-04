@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
@@ -35,11 +35,11 @@ Onyx.connect({
 });
 
 function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
-    const lastPolicyPaymentMethod = item.policyID ? lastPaymentMethod?.[item.policyID] : null;
+    const lastPolicyPaymentMethod = item.policyID ? (lastPaymentMethod?.[item.policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) : null;
     const amount = isReportListItemType(item) ? item.total ?? 0 : item.formattedTotal;
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
-            return lastPolicyPaymentMethod ? payMoneyRequestOnSearch(hash, lastPolicyPaymentMethod, {[item.reportID]: amount}) : goToItem();
+            return lastPolicyPaymentMethod ? payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentMethod: lastPolicyPaymentMethod}]) : goToItem();
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             return approveMoneyRequestOnSearch(hash, [item.reportID]);
         default:
@@ -194,10 +194,10 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
 }
 
-function payMoneyRequestOnSearch(hash: number, paymentType: string, reportsAndAmounts: Record<string, number>) {
+function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
-    API.write(WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, paymentType, reportsAndAmounts: JSON.stringify(reportsAndAmounts)}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, paymentData: JSON.stringify(paymentData)}, {optimisticData, finallyData});
 }
 
 function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {

@@ -36,7 +36,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
 import SearchButton from './SearchRouter/SearchButton';
 import SearchRouterInput from './SearchRouter/SearchRouterInput';
-import type {SearchQueryJSON} from './types';
+import type {PaymentData, SearchQueryJSON} from './types';
 
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> & {
     text: string;
@@ -132,6 +132,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -175,6 +176,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
             (selectedReports.length
                 ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.APPROVE)
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
+
         if (shouldShowApproveOption) {
             options.push({
                 icon: Expensicons.ThumbsUp,
@@ -195,7 +197,13 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
             });
         }
 
-        const shouldShowPayOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY);
+        const shouldShowPayOption =
+            !isOffline &&
+            (selectedReports.length
+                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && lastPaymentMethods[report.policyID])
+                : selectedTransactionsKeys.every(
+                      (id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY && selectedTransactions[id].policyID && lastPaymentMethods[selectedTransactions[id].policyID],
+                  ));
 
         if (shouldShowPayOption) {
             options.push({
@@ -208,9 +216,17 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
+                    const paymentData = (
+                        selectedReports.length
+                            ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentMethod: lastPaymentMethods[report.policyID]}))
+                            : Object.values(selectedTransactions).map((transaction) => ({
+                                  reportID: transaction.reportID,
+                                  amount: transaction.amount,
+                                  paymentMethod: lastPaymentMethods[transaction.policyID]
+                              }))
+                    ) as PaymentData[];
 
-                    const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                    // SearchActions.payMoneyRequestOnSearch(hash, reportIDList);
+                    SearchActions.payMoneyRequestOnSearch(hash, paymentData);
                 },
             });
         }

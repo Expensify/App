@@ -2,6 +2,7 @@ import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {SearchContext, SelectedTransactions} from './types';
 
@@ -28,7 +29,7 @@ function getReportsFromSelectedTransactions(data: TransactionListItemType[] | Re
                 isMoneyRequestReport(item) &&
                 item?.transactions?.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
         )
-        .map((item) => ({reportID: item.reportID, action: item.action}));
+        .map((item) => ({reportID: item.reportID, action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW, total: item.total ?? 0, policyID: item.policyID ?? ''}));
 }
 
 function SearchContextProvider({children}: ChildrenProps) {
