@@ -453,6 +453,7 @@ type OptimisticIOUReport = Pick<
     | 'parentReportID'
     | 'lastVisibleActionCreated'
     | 'fieldList'
+    | 'parentReportActionID'
 >;
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
@@ -4277,7 +4278,7 @@ function getReportDescription(report: OnyxEntry<Report>): string {
     try {
         const reportDescription = report?.description;
         const objectDescription = JSON.parse(reportDescription) as {html: string};
-        return objectDescription.html ?? '';
+        return objectDescription.html ?? reportDescription ?? '';
     } catch (error) {
         return report?.description ?? '';
     }
@@ -4452,9 +4453,18 @@ function buildOptimisticTaskCommentReportAction(
  * @param chatReportID - Report ID of the chat where the IOU is.
  * @param currency - IOU currency.
  * @param isSendingMoney - If we pay someone the IOU should be created as settled
+ * @param parentReportActionID - The parent report action ID of the IOU report
  */
 
-function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number, total: number, chatReportID: string, currency: string, isSendingMoney = false): OptimisticIOUReport {
+function buildOptimisticIOUReport(
+    payeeAccountID: number,
+    payerAccountID: number,
+    total: number,
+    chatReportID: string,
+    currency: string,
+    isSendingMoney = false,
+    parentReportActionID?: string,
+): OptimisticIOUReport {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
@@ -4484,6 +4494,7 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
         fieldList: policy?.fieldList,
+        parentReportActionID,
     };
 }
 

@@ -37,7 +37,6 @@ function TransactionListItem<TItem extends ListItem>({
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
-        isFocused && styles.sidebarLinkActive,
         styles.mh0,
     ];
 
