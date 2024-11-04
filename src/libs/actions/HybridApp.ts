@@ -5,6 +5,10 @@ function setIsSigningIn(isSigningIn: boolean) {
     Onyx.merge(ONYXKEYS.HYBRID_APP, {isSigningIn});
 }
 
+function setOldDotSignInError(oldDotSignInError: string) {
+    Onyx.merge(ONYXKEYS.HYBRID_APP, {oldDotSignInError});
+}
+
 function setReadyToShowAuthScreens(readyToShowAuthScreens: boolean) {
     Onyx.merge(ONYXKEYS.HYBRID_APP, {readyToShowAuthScreens});
 }
@@ -21,4 +25,4 @@ function setUseNewDotSignInPage(useNewDotSignInPage: boolean) {
     Onyx.merge(ONYXKEYS.HYBRID_APP, {useNewDotSignInPage});
 }
 
-export {setIsSigningIn, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setShouldResetSigningInLogic, setUseNewDotSignInPage};
+export {setOldDotSignInError, setIsSigningIn, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setShouldResetSigningInLogic, setUseNewDotSignInPage};

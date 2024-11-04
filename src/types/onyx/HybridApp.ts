@@ -6,6 +6,9 @@ type HybridApp = {
     /**  */
     isSigningIn?: boolean;
 
+    /** */
+    oldDotSignInError?: string | null;
+
     /**  */
     readyToShowAuthScreens?: boolean;
 
