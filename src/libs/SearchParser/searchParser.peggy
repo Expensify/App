@@ -102,21 +102,21 @@ key "key"
       / "amount"
       / "merchant"
       / "description"
-      / "reportID"
+      / "reportid"
       / "keyword"
       / "in"
       / "currency"
       / "tag"
       / "category"
       / "to"
-      / "taxRate"
-      / "cardID"
+      / "tax-rate"
+      / "dard"
       / "from"
-      / "expenseType"
+      / "expense-type"
     )
 
 defaultKey "default key"
-  = @("type" / "status" / "sortBy" / "sortOrder" / "policyID")
+  = @("type" / "status" / "sort-by" / "sort-order" / "workspacec")
 
 identifier
   = (","+)? parts:(quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

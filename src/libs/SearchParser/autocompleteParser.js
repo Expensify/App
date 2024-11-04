@@ -181,9 +181,9 @@ function peg$parse(input, options) {
   var peg$c3 = "tag";
   var peg$c4 = "category";
   var peg$c5 = "to";
-  var peg$c6 = "taxRate";
+  var peg$c6 = "tax-rate";
   var peg$c7 = "from";
-  var peg$c8 = "expenseType";
+  var peg$c8 = "expense-type";
   var peg$c9 = "type";
   var peg$c10 = "status";
   var peg$c11 = "!=";
@@ -206,9 +206,9 @@ function peg$parse(input, options) {
   var peg$e4 = peg$literalExpectation("tag", false);
   var peg$e5 = peg$literalExpectation("category", false);
   var peg$e6 = peg$literalExpectation("to", false);
-  var peg$e7 = peg$literalExpectation("taxRate", false);
+  var peg$e7 = peg$literalExpectation("tax-rate", false);
   var peg$e8 = peg$literalExpectation("from", false);
-  var peg$e9 = peg$literalExpectation("expenseType", false);
+  var peg$e9 = peg$literalExpectation("expense-type", false);
   var peg$e10 = peg$literalExpectation("type", false);
   var peg$e11 = peg$literalExpectation("status", false);
   var peg$e12 = peg$otherExpectation("operator");
@@ -605,9 +605,9 @@ function peg$parse(input, options) {
               if (peg$silentFails === 0) { peg$fail(peg$e6); }
             }
             if (s1 === peg$FAILED) {
-              if (input.substr(peg$currPos, 7) === peg$c6) {
+              if (input.substr(peg$currPos, 8) === peg$c6) {
                 s1 = peg$c6;
-                peg$currPos += 7;
+                peg$currPos += 8;
               } else {
                 s1 = peg$FAILED;
                 if (peg$silentFails === 0) { peg$fail(peg$e7); }
@@ -621,9 +621,9 @@ function peg$parse(input, options) {
                   if (peg$silentFails === 0) { peg$fail(peg$e8); }
                 }
                 if (s1 === peg$FAILED) {
-                  if (input.substr(peg$currPos, 11) === peg$c8) {
+                  if (input.substr(peg$currPos, 12) === peg$c8) {
                     s1 = peg$c8;
-                    peg$currPos += 11;
+                    peg$currPos += 12;
                   } else {
                     s1 = peg$FAILED;
                     if (peg$silentFails === 0) { peg$fail(peg$e9); }
