@@ -862,6 +862,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY]: Parameters.UpdateCardSettlementFrequencyParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT]: Parameters.UpdateCardSettlementAccountParams;
     [WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS]: Parameters.SetPersonalDetailsAndShipExpensifyCardsParams;
+    [WRITE_COMMANDS.SELF_TOUR_VIEWED]: null;
 
     // Xero API
     [WRITE_COMMANDS.UPDATE_XERO_TENANT_ID]: Parameters.UpdateXeroGenericTypeParams;
@@ -882,7 +883,6 @@ type WriteCommandParameters = {
 
     // Invoice API
     [WRITE_COMMANDS.SET_INVOICING_TRANSFER_BANK_ACCOUNT]: Parameters.SetInvoicingTransferBankAccountParams;
-    [WRITE_COMMANDS.SELF_TOUR_VIEWED]: null;
     [WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_NAME]: Parameters.UpdateInvoiceCompanyNameParams;
     [WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_WEBSITE]: Parameters.UpdateInvoiceCompanyWebsiteParams;
 };
