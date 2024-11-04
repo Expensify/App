@@ -165,7 +165,7 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;
     resetErrors: () => void;
-    resetFormFieldError: (inputID: keyof Form) => void;
+    resetFormFieldError: (fieldID: keyof Form) => void;
 };
 
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
