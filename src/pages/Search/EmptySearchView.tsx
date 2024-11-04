@@ -10,12 +10,14 @@ import MenuItem from '@components/MenuItem';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import * as ReportUtils from '@libs/ReportUtils';
+import {getNavatticURL} from '@libs/TourUtils';
 import * as TripsResevationUtils from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
@@ -81,7 +83,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                         </View>
                     ))}
                 </View>
-                {ctaErrorMessage && (
+                {!!ctaErrorMessage && (
                     <DotIndicatorMessage
                         style={styles.mt1}
                         messages={{error: ctaErrorMessage}}
@@ -93,7 +95,8 @@ function EmptySearchView({type}: EmptySearchViewProps) {
     }, [styles, translate, ctaErrorMessage]);
 
     const [onboardingPurpose] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: (introSelected) => introSelected?.choice});
-    const navatticLink = onboardingPurpose === CONST.SELECTABLE_ONBOARDING_CHOICES.MANAGE_TEAM ? CONST.NAVATTIC.ADMIN_TOUR : CONST.NAVATTIC.EMPLOYEE_TOUR;
+    const {environment} = useEnvironment();
+    const navatticURL = getNavatticURL(environment, onboardingPurpose);
 
     const content = useMemo(() => {
         switch (type) {
@@ -120,7 +123,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     title: translate('search.searchResults.emptyExpenseResults.title'),
                     subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
                     buttons: [
-                        {buttonText: translate('emptySearchView.takeATour'), buttonAction: () => Link.openExternalLink(navatticLink)},
+                        {buttonText: translate('emptySearchView.takeATour'), buttonAction: () => Link.openExternalLink(navatticURL)},
                         {
                             buttonText: translate('iou.createExpense'),
                             buttonAction: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID())),
@@ -140,7 +143,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
         }
-    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, ctaErrorMessage, navatticLink]);
+    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, ctaErrorMessage, navatticURL]);
 
     return (
         <EmptyStateComponent

@@ -55,7 +55,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
                     </View>
                     <Text>{prompt}</Text>
                 </View>
-                {firstOptionText && (
+                {!!firstOptionText && (
                     <Button
                         success
                         style={[styles.mt4]}

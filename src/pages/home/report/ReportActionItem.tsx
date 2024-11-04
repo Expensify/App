@@ -962,6 +962,7 @@ function ReportActionItem({
             <Hoverable
                 shouldHandleScroll
                 isDisabled={draftMessage !== undefined}
+                shouldFreezeCapture={isPaymentMethodPopoverActive}
             >
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>

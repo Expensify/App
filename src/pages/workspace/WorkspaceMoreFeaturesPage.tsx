@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
@@ -62,7 +63,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {canUseWorkspaceRules, canUseCompanyCardFeeds} = usePermissions();
+    const {canUseCompanyCardFeeds} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -126,7 +127,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
             isActive: policy?.areCompanyCardsEnabled ?? false,
             pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
-            disabled: !isEmptyObject(cardFeeds?.settings?.companyCards),
+            disabled: !isEmptyObject(CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards)),
             action: (isEnabled: boolean) => {
                 if (!policyID) {
                     return;
@@ -159,11 +160,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 Policy.enablePolicyWorkflows(policyID, isEnabled);
             },
         },
-    ];
-
-    // TODO remove this when feature will be fully done, and move manage item inside manageItems array
-    if (canUseWorkspaceRules) {
-        manageItems.splice(1, 0, {
+        {
             icon: Illustrations.Rules,
             titleTranslationKey: 'workspace.moreFeatures.rules.title',
             subtitleTranslationKey: 'workspace.moreFeatures.rules.subtitle',
@@ -180,8 +177,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 Policy.enablePolicyRules(policyID, isEnabled);
             },
-        });
-    }
+        },
+    ];
 
     const earnItems: Item[] = [
         {
