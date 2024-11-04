@@ -4292,7 +4292,6 @@ const translations = {
     },
     statementPage: {
         title: ({year, monthName}: StatementTitleParams) => `${monthName} ${year} statement`,
-        generatingPDF: "We're generating your PDF right now. Please check back soon!",
     },
     keyboardShortcutsPage: {
         title: 'Keyboard shortcuts',
