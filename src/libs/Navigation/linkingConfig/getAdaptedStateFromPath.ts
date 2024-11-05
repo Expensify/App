@@ -194,6 +194,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 
         const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute, policyID);
 
+        // The onboarding flow consists of several screens. If we open any of the screens, the previous screens from that flow should be in the state.
         if (onboardingNavigator?.state) {
             const adaptedOnboardingNavigator = {
                 ...onboardingNavigator,

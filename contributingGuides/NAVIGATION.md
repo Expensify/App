@@ -460,3 +460,22 @@ Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-243332160
 5. Enter anything and click Save.
 6. Click on the RHP back button.
 7. Verify if the Profile RHP Page is opened (URL in the format /a/:accountID).  
+
+#### Opening particular onboarding pages from a link and going back
+
+Linked issue: https://github.com/Expensify/App/issues/50177
+
+1. Sign in as a new user.
+2. Select Something else from the onboarding flow.
+3. Reopen/refresh the app.
+4. Verify the Personal detail step is shown.
+5. Go back.
+6. Verify you are navigated back to the Purpose step.
+7. Select Manage my team.
+8. Choose the employee size.
+9. Reopen/refresh the app.
+10. Verify the connection integration step is shown.
+11. Go back.
+12. Verify you are navigated back to the employee size step.
+13. Go back.
+14. Verify you are navigated back to the Purpose step.
