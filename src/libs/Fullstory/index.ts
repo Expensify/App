@@ -109,9 +109,9 @@ const FS = {
  */
 function parseFSAttributes(): void {
     window?.document?.querySelectorAll(`[${WEB_PROP_ATTR}]`).forEach((o) => {
-        let attr = o.getAttribute(WEB_PROP_ATTR) || '';
-        if (/fs\-/gim.test(attr)) {
-            let fsAttrs = attr.match(/fs-[a-zA-Z0-9_-]+/g) || [];
+        const attr = o.getAttribute(WEB_PROP_ATTR) ?? '';
+        if (/fs-/gim.test(attr)) {
+            let fsAttrs = attr.match(/fs-[a-zA-Z0-9_-]+/g) ?? [];
             o.setAttribute('fs-class', fsAttrs.join(','));
 
             let cleanedAttrs = attr;

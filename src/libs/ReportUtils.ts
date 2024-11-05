@@ -7,7 +7,6 @@ import isEmpty from 'lodash/isEmpty';
 import lodashIsEqual from 'lodash/isEqual';
 import isNumber from 'lodash/isNumber';
 import lodashMaxBy from 'lodash/maxBy';
-import {useContext} from 'react';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -8423,12 +8422,12 @@ function isExpensifyAndCustomerChat(participantsContext: OnyxEntry<PersonalDetai
         const teamRegexp = new RegExp(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN + '$');
 
         for (const participantAccountID of participantAccountIDs) {
-            let id = Number(participantAccountID);
-            let contextAccountData = participantsContext[id];
+            const id = Number(participantAccountID);
+            const contextAccountData = participantsContext[id];
             if (!contextAccountData) {
                 continue;
             }
-            let login = contextAccountData.login || '';
+            const login = contextAccountData.login ?? '';
             if (baseRegexp.test(login)) {
                 return true;
             }

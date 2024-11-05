@@ -1,5 +1,4 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
-import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isConciergeChatReport, isExpensifyAndCustomerChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
