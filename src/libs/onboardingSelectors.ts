@@ -44,7 +44,7 @@ function hasCompletedHybridAppOnboardingFlowSelector(tryNewDotData: OnyxValue<ty
  */
 function hasSeenTourSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
     if (Array.isArray(onboarding)) {
-        return true;
+        return false;
     }
 
     return onboarding?.selfTourViewed;

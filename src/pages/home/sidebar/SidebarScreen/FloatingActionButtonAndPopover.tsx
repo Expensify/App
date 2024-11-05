@@ -30,6 +30,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {getNavatticURL} from '@libs/TourUtils';
+import variables from '@styles/variables';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
@@ -146,7 +147,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [isLoading] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -458,8 +459,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                                   displayInDefaultIconColor: true,
                                   contentFit: 'contain' as ImageContentFit,
                                   icon: Expensicons.NewWorkspace,
-                                  iconWidth: 46,
-                                  iconHeight: 40,
+                                  iconWidth: variables.w46,
+                                  iconHeight: variables.h40,
                                   text: translate('workspace.new.newWorkspace'),
                                   description: translate('workspace.new.getTheExpensifyCardAndMore'),
                                   onSelected: () => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()),

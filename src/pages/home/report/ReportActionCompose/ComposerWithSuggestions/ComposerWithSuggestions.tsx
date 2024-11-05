@@ -271,7 +271,8 @@ function ComposerWithSuggestions(
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {canEvict: false, initWithStoredValues: false});
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID || '-1'}`, {canEvict: false, initWithStoredValues: false});
 
     const lastTextRef = useRef(value);
     useEffect(() => {
