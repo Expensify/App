@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useEnvironment from '@hooks/useEnvironment';
 import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/QuickbooksOnline';
 import * as Link from '@userActions/Link';
@@ -8,13 +8,11 @@ import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlowProps) {
     const {environmentURL} = useEnvironment();
 
-    useEffect(() => {
+    useEffectOnce(() => {
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
         PolicyAction.enablePolicyTaxes(policyID, false);
         Link.openLink(getQuickbooksOnlineSetupLink(policyID), environmentURL);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    });
 
     return null;
 }

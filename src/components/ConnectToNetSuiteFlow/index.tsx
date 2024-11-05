@@ -1,7 +1,8 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {isAuthenticationError} from '@libs/actions/connections';
@@ -47,15 +48,13 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
         },
     ];
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (shouldGoToCredentialsPage || !hasPoliciesConnectedToNetSuite) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID));
             return;
         }
         setIsReuseConnectionsPopoverOpen(true);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    });
 
     if (threeDotsMenuContainerRef) {
         if (!shouldUseNarrowLayout) {

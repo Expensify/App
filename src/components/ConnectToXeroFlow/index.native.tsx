@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -6,6 +6,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import getUAForWebView from '@libs/getUAForWebView';
@@ -28,15 +29,13 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     const renderLoading = () => <FullScreenLoadingIndicator />;
     const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (!is2FAEnabled) {
             setIsRequire2FAModalOpen(true);
             return;
         }
         setWebViewOpen(true);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    });
 
     return (
         <>

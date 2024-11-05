@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
@@ -6,6 +6,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/QuickbooksOnline';
 import * as PolicyAction from '@userActions/Policy/Policy';
@@ -28,13 +29,11 @@ function ConnectToQuickbooksOnlineFlow({policyID, session}: ConnectToQuickbooksO
 
     const authToken = session?.authToken ?? null;
 
-    useEffect(() => {
+    useEffectOnce(() => {
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
         PolicyAction.enablePolicyTaxes(policyID, false);
         setWebViewOpen(true);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    });
 
     if (isWebViewOpen) {
         return (

@@ -1,6 +1,7 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
@@ -19,15 +20,13 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
 
     const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (!is2FAEnabled) {
             setIsRequire2FAModalOpen(true);
             return;
         }
         Link.openLink(getXeroSetupLink(policyID), environmentURL);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    });
 
     if (!is2FAEnabled) {
         return (

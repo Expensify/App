@@ -1,7 +1,8 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {isAuthenticationError} from '@libs/actions/connections';
@@ -48,7 +49,7 @@ function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
         },
     ];
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (shouldGoToEnterCredentials) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
             return;
@@ -58,9 +59,7 @@ function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
             return;
         }
         setIsReuseConnectionsPopoverOpen(true);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    });
 
     if (threeDotsMenuContainerRef) {
         if (!shouldUseNarrowLayout) {
