@@ -148,8 +148,8 @@ function DebugReportPage({
                                                     <Text style={styles.h4}>{title}</Text>
                                                     <Text>{subtitle}</Text>
                                                 </View>
-                                                {message && <Text style={styles.textSupporting}>{message}</Text>}
-                                                {action && (
+                                                {!!message && <Text style={styles.textSupporting}>{message}</Text>}
+                                                {!!action && (
                                                     <Button
                                                         text={action.name}
                                                         onPress={action.callback}

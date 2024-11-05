@@ -1,14 +1,10 @@
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import ScreenWrapper from '@components/ScreenWrapper';
+import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import getInitialSubstepForBusinessInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForBusinessInfo';
@@ -48,7 +44,6 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [
 
 function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
@@ -107,29 +102,22 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
     };
 
     return (
-        <ScreenWrapper
-            testID={BusinessInfo.displayName}
-            includeSafeAreaPaddingBottom={false}
+        <InteractiveStepWrapper
+            wrapperID={BusinessInfo.displayName}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            headerTitle={translate('businessInfoStep.businessInfo')}
+            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+            handleBackButtonPress={handleBackButtonPress}
+            startStepIndex={3}
+            stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
-            <HeaderWithBackButton
-                title={translate('businessInfoStep.businessInfo')}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    startStepIndex={3}
-                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-                />
-            </View>
             <SubStep
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
             />
-        </ScreenWrapper>
+        </InteractiveStepWrapper>
     );
 }
 
