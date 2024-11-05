@@ -21,7 +21,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const autoSyncConfig = policy?.connections?.netsuite?.config;
     const policyID = route.params.policyID ?? '-1';
-    const accountingMethod = policy?.connections?.netsuite?.options.config.accountingMehtod;
+    const accountingMethod = policy?.connections?.netsuite?.options.config.accountingMethod;
 
     return (
         <AccessOrNotFoundWrapper

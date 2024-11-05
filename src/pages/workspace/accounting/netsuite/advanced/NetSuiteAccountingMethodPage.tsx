@@ -8,6 +8,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -23,7 +24,7 @@ function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const config = policy?.connections?.netsuite.options.config;
-    const accountingMehtod = config?.accountingMehtod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH;
+    const accountingMehtod = config?.accountingMethod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH;
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_ACCOUNTING_METHODS).map((accountingMehtodType) => ({
         value: accountingMehtodType,
         text: translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${accountingMehtodType}`),
@@ -43,12 +44,12 @@ function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
 
     const selectExpenseReportApprovalLevel = useCallback(
         (row: MenuListItem) => {
-            // if (row.value !== config?.syncOptions.exportReportsTo) {
-            //     Connections.updateNetSuiteExportReportsTo(policyID, row.value, config?.syncOptions.exportReportsTo ?? CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_NONE);
-            // }
+            if (row.value != config?.accountingMethod) {
+                Connections.updateNetSuiteAccountingMethod(policyID, row.value, config?.accountingMethod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH);
+            }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID));
         },
-        [config?.syncOptions.exportReportsTo, policyID],
+        [config?.accountingMethod, policyID],
     );
 
     return (

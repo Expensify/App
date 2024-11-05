@@ -935,6 +935,21 @@ function updateNetSuiteExportReportsTo(
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_REPORTS_TO, parameters, onyxData);
 }
 
+function updateNetSuiteAccountingMethod(
+    policyID: string,
+    accountingMethod: ValueOf<typeof CONST.NETSUITE_ACCOUNTING_METHODS>,
+    oldAccountingMethod: ValueOf<typeof CONST.NETSUITE_ACCOUNTING_METHODS>,
+) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod);
+
+    const parameters = {
+        policyID,
+        accountingMethod,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_ACCOUNTING_METHOD, parameters, onyxData);
+}
+
 function updateNetSuiteExportVendorBillsTo(
     policyID: string,
     approvalLevel: ValueOf<typeof CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL>,
@@ -1037,4 +1052,5 @@ export {
     updateNetSuiteApprovalAccount,
     updateNetSuiteCustomFormIDOptions,
     updateNetSuiteCustomersJobsMapping,
+    updateNetSuiteAccountingMethod,
 };
