@@ -301,8 +301,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
         ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
         : '';
-    const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID ?? '0');
-    const actionableWhisperReportActionID = whisperAction?.reportActionID ?? '0';
 
     const cancelPayment = useCallback(() => {
         if (!chatReport) {
@@ -379,6 +377,8 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
         if (isTrackExpenseReport) {
             const actionReportID = ReportUtils.getOriginalReportID(report.reportID, parentReportAction) ?? '0';
+            const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID ?? '0');
+            const actionableWhisperReportActionID = whisperAction?.reportActionID ?? '0';
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'actionableMentionTrackExpense.submit',
