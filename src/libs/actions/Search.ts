@@ -39,7 +39,7 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
     const amount = isReportListItemType(item) ? item.total ?? 0 : item.formattedTotal;
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
-            return lastPolicyPaymentMethod ? payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentMethod: lastPolicyPaymentMethod}]) : goToItem();
+            return lastPolicyPaymentMethod ? payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}]) : goToItem();
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             return approveMoneyRequestOnSearch(hash, [item.reportID]);
         default:
