@@ -188,6 +188,8 @@ function BaseVideoPlayer({
         [playVideo, videoResumeTryNumberRef],
     );
 
+    console.log(isEnded);
+
     const prevIsMutedRef = useRef(false);
     const prevVolumeRef = useRef(0);
 
@@ -207,6 +209,8 @@ function BaseVideoPlayer({
                 setIsEnded(status.didJustFinish && !status.isLooping);
                 setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
                 controlsOpacity.value = 1;
+            } else if (status.isPlaying && isEnded) {
+                setIsEnded(false);
             }
 
             if (prevIsMutedRef.current && prevVolumeRef.current === 0 && !status.isMuted) {
