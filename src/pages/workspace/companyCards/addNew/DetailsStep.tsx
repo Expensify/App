@@ -1,19 +1,25 @@
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,10 +33,12 @@ type DetailsStepProps = {
 
 function DetailsStep({policyID}: DetailsStepProps) {
     const {translate} = useLocalize();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const {canUseDirectFeeds} = usePermissions();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const feedProvider = addNewCard?.data?.feedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const bank = addNewCard?.data?.selectedBank;
@@ -48,7 +56,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
             .map(([key, value]) => `${key}: ${value}`)
             .join(', ');
 
-        CompanyCards.addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails);
+        CompanyCards.addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, lastSelectedFeed);
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
     };
 
@@ -104,6 +112,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             inputID={INPUT_IDS.PROCESSOR_ID}
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.processorLabel')}
                             role={CONST.ROLE.PRESENTATION}
+                            maxLength={CONST.STANDARD_LENGTH_LIMIT}
                             containerStyles={[styles.mb6]}
                             ref={inputCallbackRef}
                         />
@@ -112,6 +121,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             inputID={INPUT_IDS.BANK_ID}
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.bankLabel')}
                             role={CONST.ROLE.PRESENTATION}
+                            maxLength={CONST.STANDARD_LENGTH_LIMIT}
                             containerStyles={[styles.mb6]}
                         />
                         <InputWrapper
@@ -119,6 +129,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             inputID={INPUT_IDS.COMPANY_ID}
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.companyLabel')}
                             role={CONST.ROLE.PRESENTATION}
+                            maxLength={CONST.STANDARD_LENGTH_LIMIT}
                             containerStyles={[styles.mb6]}
                         />
                     </>
@@ -130,6 +141,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         inputID={INPUT_IDS.DISTRIBUTION_ID}
                         label={translate('workspace.companyCards.addNewCard.feedDetails.cdf.distributionLabel')}
                         role={CONST.ROLE.PRESENTATION}
+                        maxLength={CONST.STANDARD_LENGTH_LIMIT}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
                     />
@@ -141,6 +153,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         inputID={INPUT_IDS.DELIVERY_FILE_NAME}
                         label={translate('workspace.companyCards.addNewCard.feedDetails.gl1025.fileNameLabel')}
                         role={CONST.ROLE.PRESENTATION}
+                        maxLength={CONST.STANDARD_LENGTH_LIMIT}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
                     />
@@ -166,7 +179,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                 contentContainerStyle={styles.flexGrow1}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
-                    {feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
+                    {!!feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
                 </Text>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
@@ -177,6 +190,22 @@ function DetailsStep({policyID}: DetailsStepProps) {
                     enabledWhenOffline
                 >
                     {renderInputs()}
+                    {!!feedProvider && !isStripeFeedProvider && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <Icon
+                                src={Expensicons.QuestionMark}
+                                width={variables.iconSizeExtraSmall}
+                                height={variables.iconSizeExtraSmall}
+                                fill={theme.icon}
+                            />
+                            <TextLink
+                                style={[styles.label, styles.textLineHeightNormal, styles.ml2]}
+                                href={CONST.COMPANY_CARDS_HELP}
+                            >
+                                {translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.helpLabel`)}
+                            </TextLink>
+                        </View>
+                    )}
                 </FormProvider>
             </ScrollView>
         </ScreenWrapper>
