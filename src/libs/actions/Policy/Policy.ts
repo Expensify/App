@@ -2630,7 +2630,7 @@ function enableExpensifyCard(policyID: string, enabled: boolean) {
     }
 }
 
-function enableCompanyCards(policyID: string, enabled: boolean) {
+function enableCompanyCards(policyID: string, enabled: boolean, disableRedirect = false) {
     const authToken = NetworkStore.getAuthToken();
 
     const onyxData: OnyxData = {
@@ -2675,7 +2675,7 @@ function enableCompanyCards(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
+    if (enabled && getIsNarrowLayout() && !disableRedirect) {
         navigateWhenEnableFeature(policyID);
     }
 }
