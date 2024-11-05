@@ -154,14 +154,15 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${quickActionReport?.reportID ?? -1}`);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const policyChatForActivePolicy = useMemo(() => {
         if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
             return {} as OnyxTypes.Report;
         }
-        const policyChatsForActivePolicy = ReportUtils.getWorkspaceChats(activePolicyID ?? '-1', [session?.accountID ?? -1]);
+        const policyChatsForActivePolicy = ReportUtils.getWorkspaceChats(activePolicyID ?? '-1', [session?.accountID ?? -1], allReports);
         return policyChatsForActivePolicy.length > 0 ? policyChatsForActivePolicy.at(0) : ({} as OnyxTypes.Report);
-    }, [activePolicy, activePolicyID, session?.accountID]);
+    }, [activePolicy, activePolicyID, session?.accountID, allReports]);
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
     const [hasSeenTrackTraining] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
