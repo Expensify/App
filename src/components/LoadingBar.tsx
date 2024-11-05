@@ -4,7 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type LoadingBarProps = {
-    // Should show loading bar
+    /** Whether to show the loading bar with fade out animation */
     shouldShow: boolean;
 };
 
