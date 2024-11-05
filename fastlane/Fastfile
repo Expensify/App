@@ -274,7 +274,6 @@ platform :ios do
     )
 
     build_app(
-      app_identifier: "com.chat.expensify.chat",
       workspace: "./ios/NewExpensify.xcworkspace",
       scheme: "New Expensify",
       output_name: "New Expensify.ipa",
@@ -305,7 +304,6 @@ platform :ios do
       )
 
       build_app(
-        app_identifier: "com.expensify.expensifylite",
         workspace: "../iOS/Expensify.xcworkspace",
         scheme: "Expensify",
         output_name: "Expensify.ipa",
@@ -326,7 +324,6 @@ platform :ios do
   lane :build_unsigned do
     ENV["ENVFILE"]=".env.production"
     build_app(
-        app_identifier: "com.chat.expensify.chat",
         workspace: "./ios/NewExpensify.xcworkspace",
         scheme: "New Expensify"
     )
@@ -337,7 +334,6 @@ platform :ios do
     lane :build_unsigned_hybrid do
       ENV["ENVFILE"]="../Mobile-Expensify/.env.production.hybridapp"
       build_app(
-          app_identifier: "com.expensify.expensifylite",
           workspace: "../Mobile-Expensify/iOS/Expensify.xcworkspace",
           scheme: "Expensify"
       )
@@ -359,7 +355,6 @@ platform :ios do
     )
 
     build_app(
-      app_identifier: "com.chat.expensify.chat",
       workspace: "./ios/NewExpensify.xcworkspace",
       skip_profile_detection: true,
       scheme: "New Expensify AdHoc",
@@ -431,6 +426,7 @@ platform :ios do
         api_key_path: "./ios/ios-fastlane-json-key.json",
         distribute_external: true,
         notify_external_testers: true,
+        reject_build_waiting_for_review: true,
         changelog: "Thank you for beta testing New Expensify, this version includes bug fixes and improvements.",
         groups: ["Applause", "Beta Testers", "Expensify Employees"],
         demo_account_required: true,
