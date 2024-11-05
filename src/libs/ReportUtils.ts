@@ -8416,23 +8416,22 @@ function isExpensifyAndCustomerChat(participantsContext: OnyxEntry<PersonalDetai
     if (participantAccountIDs.size !== 2) {
         return false;
     }
-    if (!!participantsContext) {
+    if (participantsContext) {
         // by email participants
-        const baseRegexp = new RegExp(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN + '$');
-        const teamRegexp = new RegExp(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN + '$');
+        const baseRegexp = new RegExp(`${CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN}$`);
+        const teamRegexp = new RegExp(`${CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN}$`);
 
         for (const participantAccountID of participantAccountIDs) {
             const id = Number(participantAccountID);
             const contextAccountData = participantsContext[id];
-            if (!contextAccountData) {
-                continue;
-            }
-            const login = contextAccountData.login ?? '';
-            if (baseRegexp.test(login)) {
-                return true;
-            }
-            if (teamRegexp.test(login)) {
-                return true;
+            if (contextAccountData) {
+                const login = contextAccountData.login ?? '';
+                if (baseRegexp.test(login)) {
+                    return true;
+                }
+                if (teamRegexp.test(login)) {
+                    return true;
+                }
             }
         }
     }

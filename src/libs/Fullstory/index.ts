@@ -1,5 +1,4 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
-import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isConciergeChatReport, isExpensifyAndCustomerChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -110,24 +109,30 @@ const FS = {
 function parseFSAttributes(): void {
     window?.document?.querySelectorAll(`[${WEB_PROP_ATTR}]`).forEach((o) => {
         const attr = o.getAttribute(WEB_PROP_ATTR) ?? '';
-        if (/fs-/gim.test(attr)) {
-            let fsAttrs = attr.match(/fs-[a-zA-Z0-9_-]+/g) ?? [];
-            o.setAttribute('fs-class', fsAttrs.join(','));
-
-            let cleanedAttrs = attr;
-            fsAttrs.forEach((fsAttr) => {
-                cleanedAttrs = cleanedAttrs.replace(fsAttr, '');
-            });
-
-            cleanedAttrs = cleanedAttrs
-                .replace(/,+/g, ',')
-                .replace(/\s*,\s*/g, ',')
-                .replace(/^,+|,+$/g, '')
-                .replace(/\s+/g, ' ')
-                .trim();
-
-            cleanedAttrs ? o.setAttribute(WEB_PROP_ATTR, cleanedAttrs) : o.removeAttribute(WEB_PROP_ATTR);
+        if (!/fs-/gim.test(attr)) {
+            return
         }
+
+        const fsAttrs = attr.match(/fs-[a-zA-Z0-9_-]+/g) ?? [];
+        o.setAttribute('fs-class', fsAttrs.join(','));
+
+        let cleanedAttrs = attr;
+        fsAttrs.forEach((fsAttr) => {
+            cleanedAttrs = cleanedAttrs.replace(fsAttr, '');
+        });
+
+        cleanedAttrs = cleanedAttrs
+            .replace(/,+/g, ',')
+            .replace(/\s*,\s*/g, ',')
+            .replace(/^,+|,+$/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        if(cleanedAttrs){
+            o.setAttribute(WEB_PROP_ATTR, cleanedAttrs)
+        } else {
+            o.removeAttribute(WEB_PROP_ATTR)
+        };
     });
 }
 
