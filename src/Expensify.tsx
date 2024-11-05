@@ -138,6 +138,7 @@ function Expensify() {
 
     const onSplashHide = useCallback(() => {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
+        Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {
