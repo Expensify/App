@@ -30,12 +30,12 @@ function validateCardNumber(value: string): boolean {
         if (shouldDouble) {
             intVal *= 2;
             if (intVal > 9) {
-                intVal -= 9; // Same as intVal = 1 + (intVal % 10)
+                intVal -= 9;
             }
         }
 
         sum += intVal;
-        shouldDouble = !shouldDouble; // Toggle doubling for the next position
+        shouldDouble = !shouldDouble;
     }
 
     return sum % 10 === 0;
