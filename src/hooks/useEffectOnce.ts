@@ -10,7 +10,7 @@ function useEffectOnce(callback: EffectCallback, condition = true) {
         }
 
         hasRunCallbackBefore.current = true;
-        callback();
+        return callback();
     }, [condition, callback]);
 }
 
