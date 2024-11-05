@@ -44,7 +44,7 @@ function TableListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            pressableStyle={[[styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive, item.cursorStyle]]}
+            pressableStyle={[[styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, item.cursorStyle]]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
             containerStyle={styles.mb2}
             isFocused={isFocused}
