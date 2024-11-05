@@ -18,7 +18,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +29,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
-import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -52,9 +51,6 @@ type MoneyRequestParticipantsSelectorProps = {
     /** The type of IOU report, i.e. split, request, send, track */
     iouType: IOUType;
 
-    /** The expense type, ie. manual, scan, distance */
-    iouRequestType: IOURequestType;
-
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
 
@@ -68,7 +64,6 @@ function MoneyRequestParticipantsSelector({
     onFinish,
     onParticipantsAdded,
     iouType,
-    iouRequestType,
     action,
     shouldDisplayTrackExpenseButton,
 }: MoneyRequestParticipantsSelectorProps) {
@@ -134,19 +129,7 @@ function MoneyRequestParticipantsSelector({
         });
 
         return optionList;
-    }, [
-        action,
-        areOptionsInitialized,
-        betas,
-        didScreenTransitionEnd,
-        iouRequestType,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
-        options.reports,
-        participants,
-        isPaidGroupPolicy,
-    ]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants, isPaidGroupPolicy]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -172,7 +155,7 @@ function MoneyRequestParticipantsSelector({
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, iouRequestType, isCategorizeOrShareAction, action]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -476,8 +459,4 @@ function MoneyRequestParticipantsSelector({
 
 MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-export default memo(
-    MoneyRequestParticipantsSelector,
-    (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.participants, nextProps.participants) && prevProps.iouRequestType === nextProps.iouRequestType && prevProps.iouType === nextProps.iouType,
-);
+export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => lodashIsEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);

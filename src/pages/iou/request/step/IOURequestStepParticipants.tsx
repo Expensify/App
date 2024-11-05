@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';

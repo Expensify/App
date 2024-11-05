@@ -102,9 +102,6 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Flag indicating if the merchant is required */
     isMerchantRequired: boolean | undefined;
 
-    /** Flag indicating if the transaction is moved from track expense */
-    isMovingTransactionFromTrackExpense: boolean;
-
     /** Flag indicating if it is a policy expense chat */
     isPolicyExpenseChat: boolean;
 
@@ -194,7 +191,6 @@ function MoneyRequestConfirmationListFooter({
     isEditingSplitBill,
     isMerchantEmpty,
     isMerchantRequired,
-    isMovingTransactionFromTrackExpense,
     isPolicyExpenseChat,
     isReadOnly,
     isTypeInvoice,
@@ -688,7 +684,6 @@ export default memo(
         prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
         prevProps.isMerchantEmpty === nextProps.isMerchantEmpty &&
         prevProps.isMerchantRequired === nextProps.isMerchantRequired &&
-        prevProps.isMovingTransactionFromTrackExpense === nextProps.isMovingTransactionFromTrackExpense &&
         prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
         prevProps.isReadOnly === nextProps.isReadOnly &&
         prevProps.isTypeInvoice === nextProps.isTypeInvoice &&
