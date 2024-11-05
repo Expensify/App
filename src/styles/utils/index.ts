@@ -1119,6 +1119,19 @@ function getAmountWidth(amount: string): number {
     return width;
 }
 
+function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, selectedBG: string, focusedBG: string): ViewStyle {
+    let backgroundColor;
+    if (isSelected) {
+        backgroundColor = selectedBG;
+    } else if (isFocused) {
+        backgroundColor = focusedBG;
+    }
+
+    return {
+        backgroundColor,
+    };
+}
+
 const staticStyleUtils = {
     positioning,
     combineStyles,
@@ -1193,6 +1206,7 @@ const staticStyleUtils = {
     getAmountWidth,
     getBorderRadiusStyle,
     getHighResolutionInfoWrapperStyle,
+    getItemBackgroundColorStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
