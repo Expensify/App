@@ -38,13 +38,13 @@ function ValidateCodeActionModal({
     }, [onClose, clearError]);
 
     useEffect(() => {
-        if (!firstRenderRef.current || !isVisible) {
+        if (!firstRenderRef.current || !isVisible || hasMagicCodeBeenSent) {
             return;
         }
         firstRenderRef.current = false;
 
         sendValidateCode();
-    }, [isVisible, sendValidateCode]);
+    }, [isVisible, sendValidateCode, hasMagicCodeBeenSent]);
 
     return (
         <Modal
