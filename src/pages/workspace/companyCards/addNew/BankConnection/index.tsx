@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import getCurrentUrl from '@navigation/currentUrl';
 import * as CompanyCards from '@userActions/CompanyCards';
 import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
@@ -16,7 +17,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import openBankConnection from './openBankConnection';
-import Navigation from '@libs/Navigation/Navigation';
 
 let customWindow: Window | null = null;
 
