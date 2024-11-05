@@ -343,6 +343,11 @@ const ViolationsUtils = {
                 return violation.name as never;
         }
     },
+
+    // We have to use regex, because Violation limit is given in a inconvenient form: "$2,000.00"
+    getViolationAmountLimit(violation: TransactionViolation): number {
+        return Number(violation.data?.formattedLimit?.replace(CONST.VIOLATION_LIMIT_REGEX, ''));
+    },
 };
 
 export default ViolationsUtils;

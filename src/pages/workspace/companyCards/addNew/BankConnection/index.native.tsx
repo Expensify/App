@@ -13,7 +13,11 @@ import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnect
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function BankConnection() {
+type BankConnectionStepProps = {
+    policyID?: string;
+};
+
+function BankConnection({policyID}: BankConnectionStepProps) {
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setWebViewOpen] = useState(false);
@@ -21,7 +25,7 @@ function BankConnection() {
     const authToken = session?.authToken ?? null;
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = addNewCard?.data?.selectedBank;
-    const url = getCompanyCardBankConnection(bankName);
+    const url = getCompanyCardBankConnection(policyID, bankName);
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
@@ -54,7 +58,7 @@ function BankConnection() {
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView>
-                {url && (
+                {!!url && (
                     <WebView
                         ref={webViewRef}
                         source={{
