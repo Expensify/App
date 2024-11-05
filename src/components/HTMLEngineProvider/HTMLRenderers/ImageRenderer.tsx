@@ -101,7 +101,8 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     return;
                                 }
 
-                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, source, accountID, isAttachmentOrReceipt);
+                                const imageHrefLink = tnode.parent?.attributes?.href;
+                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, source, accountID, isAttachmentOrReceipt, imageHrefLink);
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {

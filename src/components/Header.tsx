@@ -1,10 +1,11 @@
 import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {Linking, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
+import TextLink from './TextLink';
 
 type HeaderProps = {
     /** Title of the Header */
@@ -21,9 +22,11 @@ type HeaderProps = {
 
     /** Additional header container styles */
     containerStyles?: StyleProp<ViewStyle>;
+
+    imageHrefLink?: string;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false}: HeaderProps) {
+function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false, imageHrefLink = ''}: HeaderProps) {
     const styles = useThemeStyles();
     const renderedSubtitle = useMemo(
         () => (
@@ -43,6 +46,21 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
         ),
         [subtitle, styles],
     );
+
+    const renderedImageHrefLink = () => {
+        return (
+            <Text numberOfLines={1}>
+                <TextLink
+                    onPress={() => {
+                        Linking.openURL(imageHrefLink);
+                    }}
+                >
+                    {imageHrefLink}
+                </TextLink>
+            </Text>
+        );
+    };
+
     return (
         <View style={[styles.flex1, styles.flexRow, containerStyles]}>
             <View style={styles.mw100}>
@@ -57,6 +75,7 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
                       )
                     : title}
                 {renderedSubtitle}
+                {imageHrefLink && renderedImageHrefLink()}
             </View>
             {shouldShowEnvironmentBadge && <EnvironmentBadge />}
         </View>

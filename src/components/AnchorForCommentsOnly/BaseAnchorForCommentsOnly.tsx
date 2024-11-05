@@ -17,7 +17,7 @@ import type {BaseAnchorForCommentsOnlyProps, LinkProps} from './types';
 /*
  * This is a default anchor component for regular links.
  */
-function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', target = '', children = null, style, onPress, ...rest}: BaseAnchorForCommentsOnlyProps) {
+function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', target = '', children = null, style, onPress, containsImageLink, ...rest}: BaseAnchorForCommentsOnlyProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const linkRef = useRef<RNText>(null);
@@ -62,7 +62,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
             role={CONST.ROLE.LINK}
             accessibilityLabel={href}
         >
-            <Tooltip text={href}>
+            <Tooltip text={!containsImageLink ? href : undefined}>
                 <Text
                     ref={linkRef}
                     style={StyleSheet.flatten([style, defaultTextStyle])}
@@ -71,7 +71,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
                         rel,
                         target: isEmail || !linkProps.href ? '_self' : target,
                     }}
-                    href={href}
+                    href={!containsImageLink ? href : undefined}
                     suppressHighlighting
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
                     testID="a"

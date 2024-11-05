@@ -142,6 +142,8 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
+
+    imageHrefLink?: string;
 };
 
 export type {ThreeDotsMenuItem};

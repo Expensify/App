@@ -28,6 +28,8 @@ type Attachment = {
     isReceipt?: boolean;
 
     duration?: number;
+
+    imageHrefLink?: string;
 };
 
 export type {AttachmentSource, Attachment};

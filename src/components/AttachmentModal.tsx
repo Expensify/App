@@ -134,6 +134,8 @@ type AttachmentModalProps = {
     canEditReceipt?: boolean;
 
     shouldDisableSendButton?: boolean;
+
+    imageHrefLink?: string;
 };
 
 function AttachmentModal({
@@ -161,6 +163,7 @@ function AttachmentModal({
     type = undefined,
     accountID = undefined,
     shouldDisableSendButton = false,
+    imageHrefLink = '',
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -185,6 +188,7 @@ function AttachmentModal({
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
     const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [attachmentCarouselImageHref, setAttachmentCarouselImageHref] = useState('');
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -211,6 +215,7 @@ function AttachmentModal({
             setFile(attachment.file);
             setIsAuthTokenRequiredState(attachment.isAuthTokenRequired ?? false);
             onCarouselAttachmentChange(attachment);
+            setAttachmentCarouselImageHref(attachment?.imageHrefLink ?? '');
         },
         [onCarouselAttachmentChange],
     );
@@ -482,6 +487,22 @@ function AttachmentModal({
 
     const submitRef = useRef<View | HTMLElement>(null);
 
+    const getImageHrefLink = () => {
+        if (shouldShowNotFoundPage) {
+            return '';
+        }
+
+        if (!isEmptyObject(report) && !isReceiptAttachment) {
+            return attachmentCarouselImageHref;
+        }
+
+        if (!isAuthTokenRequired && imageHrefLink) {
+            return imageHrefLink;
+        }
+
+        return '';
+    };
+
     return (
         <>
             <Modal
@@ -527,6 +548,7 @@ function AttachmentModal({
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                         threeDotsMenuItems={threeDotsMenuItems}
                         shouldOverlayDots
+                        imageHrefLink={getImageHrefLink()}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
                         {isLoading && <FullScreenLoadingIndicator />}

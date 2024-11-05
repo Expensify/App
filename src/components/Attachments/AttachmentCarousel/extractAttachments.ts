@@ -28,8 +28,13 @@ function extractAttachments(
     // and navigating back (<) shows the image preceding the first instance, not the selected duplicate's position.
     const uniqueSources = new Set();
 
+    let currentLinkHref = '';
+
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
+            if (name === 'a' && attribs.href) {
+                currentLinkHref = attribs.href;
+            }
             if (name === 'video') {
                 const source = tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
                 if (uniqueSources.has(source)) {
@@ -81,8 +86,16 @@ function extractAttachments(
                     file: {name: fileName, width, height},
                     isReceipt: false,
                     hasBeenFlagged: attribs['data-flagged'] === 'true',
+                    imageHrefLink: currentLinkHref,
                 });
             }
+        },
+        onclosetag: (name) => {
+            if (!(name === 'a') || !currentLinkHref) {
+                return;
+            }
+
+            currentLinkHref = '';
         },
     });
 
