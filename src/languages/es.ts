@@ -2505,7 +2505,7 @@ const translations = {
                 setupErrorTitle: '¡Ups! Ha ocurrido un error',
                 setupErrorBody1: 'La conexión con QuickBooks Desktop no está funcionando en este momento. Por favor, inténtalo de nuevo más tarde o',
                 setupErrorBody2: 'si el problema persiste.',
-                setupErrorBodyContactConcierge: 'contacta a Concierge',
+                setupErrorBodyContactConcierge: 'contacta con Concierge',
             },
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Desktop a Expensify.',
             classes: 'Clases',
