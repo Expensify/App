@@ -93,14 +93,14 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{formTitle}</Text>
-                {formPOBoxDisclaimer && <Text style={[styles.textSupporting]}>{formPOBoxDisclaimer}</Text>}
+                {!!formPOBoxDisclaimer && <Text style={[styles.textSupporting]}>{formPOBoxDisclaimer}</Text>}
                 <AddressFormFields
                     inputKeys={inputFieldsIDs}
                     streetTranslationKey="common.streetAddress"
                     defaultValues={defaultValues}
                     shouldSaveDraft={!isEditing}
                 />
-                {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
+                {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
             </View>
         </FormProvider>
     );
