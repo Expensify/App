@@ -1,9 +1,11 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
+import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -27,6 +29,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {singleExecution} = useSingleExecution();
+    const [isLoading, setIsLoading] = useState(false);
     const {
         allEmojis,
         headerEmojis,
@@ -43,25 +46,30 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     } = useEmojiPickerMenu();
     const StyleUtils = useStyleUtils();
 
+    const updateEmojiList = (emojiData: EmojiUtils.EmojiPickerList | Emoji[], headerData: number[] = []) => {
+        setFilteredEmojis(emojiData);
+        setHeaderIndices(headerData);
+
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
+                setIsLoading(false);
+            });
+        });
+    };
+
     /**
      * Filter the entire list of emojis to only emojis that have the search term in their keywords
      */
     const filterEmojis = lodashDebounce((searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
-
-        if (emojiListRef.current) {
-            emojiListRef.current.scrollToOffset({offset: 0, animated: false});
-        }
+        setIsLoading(true);
 
         if (normalizedSearchTerm === '') {
-            setFilteredEmojis(allEmojis);
-            setHeaderIndices(headerRowIndices);
-
-            return;
+            updateEmojiList(allEmojis, headerRowIndices);
+        } else {
+            updateEmojiList(newFilteredEmojiList ?? [], []);
         }
-
-        setFilteredEmojis(newFilteredEmojiList ?? []);
-        setHeaderIndices([]);
     }, 300);
 
     const scrollToHeader = (headerIndex: number) => {
@@ -121,6 +129,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                     blurOnSubmit={filteredEmojis.length > 0}
                 />
             </View>
+            {isLoading && <FullScreenLoadingIndicator />}
             <BaseEmojiPickerMenu
                 isFiltered={isListFiltered}
                 headerEmojis={headerEmojis}
