@@ -188,8 +188,6 @@ function BaseVideoPlayer({
         [playVideo, videoResumeTryNumberRef],
     );
 
-    console.log(isEnded);
-
     const prevIsMutedRef = useRef(false);
     const prevVolumeRef = useRef(0);
 
