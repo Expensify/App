@@ -54,6 +54,9 @@ function LimitStep() {
                 errors.limit = translate('iou.error.invalidIntegerAmount');
             }
 
+            if (Number(values.limit) > CONST.EXPENSIFY_CARD.LIMIT_VALUE) {
+                errors.limit = translate('workspace.card.issueNewCard.cardLimitError');
+            }
             return errors;
         },
         [translate],

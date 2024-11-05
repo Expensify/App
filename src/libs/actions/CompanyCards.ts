@@ -51,12 +51,36 @@ function clearAddNewCardFlow() {
     });
 }
 
-function addNewCompanyCardsFeed(policyID: string, feedType: string, feedDetails: string) {
+function addNewCompanyCardsFeed(policyID: string, feedType: CompanyCardFeed, feedDetails: string, lastSelectedFeed?: CompanyCardFeed) {
     const authToken = NetworkStore.getAuthToken();
 
     if (!authToken) {
         return;
     }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
+            value: feedType,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
+            value: lastSelectedFeed ?? null,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
+            value: feedType,
+        },
+    ];
 
     const parameters: RequestFeedSetupParams = {
         policyID,
@@ -65,7 +89,7 @@ function addNewCompanyCardsFeed(policyID: string, feedType: string, feedDetails:
         feedDetails,
     };
 
-    API.write(WRITE_COMMANDS.REQUEST_FEED_SETUP, parameters);
+    API.write(WRITE_COMMANDS.REQUEST_FEED_SETUP, parameters, {optimisticData, failureData, successData});
 }
 
 function setWorkspaceCompanyCardFeedName(policyID: string, workspaceAccountID: number, bankName: string, userDefinedName: string) {

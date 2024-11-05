@@ -2,9 +2,14 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -16,6 +21,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,14 +41,30 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
+
+    const getVerificationState = () => {
+        if (cardOnWaitlist) {
+            return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.ON_WAITLIST;
+        }
+        if (cardSettings?.isSuccess) {
+            return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED;
+        }
+
+        if (cardSettings?.isLoading) {
+            return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.LOADING;
+        }
+
+        return '';
+    };
+
     const handleAddBankAccount = () => {
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
 
     const handleSelectBankAccount = (value?: number) => {
         Card.configureExpensifyCardsForPolicy(policyID, value);
-        Card.updateSettlementAccount(workspaceAccountID, policyID, value);
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
     };
 
     const renderBankOptions = () => {
@@ -75,6 +97,82 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         });
     };
 
+    const verificationState = getVerificationState();
+    const isInVerificationState = !!verificationState;
+
+    const renderVerificationStateView = () => {
+        switch (verificationState) {
+            case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.LOADING:
+                return (
+                    <BlockingView
+                        title={translate('workspace.expensifyCard.verifyingBankAccount')}
+                        subtitle={translate('workspace.expensifyCard.verifyingBankAccountDescription')}
+                        animation={LottieAnimations.ReviewingBankInfo}
+                        animationStyles={styles.loadingVBAAnimation}
+                        animationWebStyle={styles.loadingVBAAnimationWeb}
+                        subtitleStyle={styles.textLabelSupporting}
+                        containerStyle={styles.pb20}
+                    />
+                );
+            case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.ON_WAITLIST:
+                return (
+                    <>
+                        <BlockingView
+                            title={translate('workspace.expensifyCard.oneMoreStep')}
+                            subtitle={translate('workspace.expensifyCard.oneMoreStepDescription')}
+                            icon={Illustrations.Puzzle}
+                            subtitleStyle={styles.textLabelSupporting}
+                            iconHeight={variables.cardPreviewHeight}
+                            iconWidth={variables.cardPreviewHeight}
+                        />
+                        <Button
+                            success
+                            large
+                            text={translate('workspace.expensifyCard.goToConcierge')}
+                            style={[styles.m5]}
+                            pressOnEnter
+                            onPress={() => Navigation.navigate(ROUTES.CONCIERGE)}
+                        />
+                    </>
+                );
+            case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED:
+                return (
+                    <>
+                        <BlockingView
+                            title={translate('workspace.expensifyCard.bankAccountVerified')}
+                            subtitle={translate('workspace.expensifyCard.bankAccountVerifiedDescription')}
+                            animation={LottieAnimations.Fireworks}
+                            animationStyles={styles.loadingVBAAnimation}
+                            animationWebStyle={styles.loadingVBAAnimationWeb}
+                            subtitleStyle={styles.textLabelSupporting}
+                        />
+                        <Button
+                            success
+                            large
+                            text={translate('workspace.expensifyCard.gotIt')}
+                            style={[styles.m5]}
+                            pressOnEnter
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID))}
+                        />
+                    </>
+                );
+            default:
+                return null;
+        }
+    };
+
+    const getHeaderButtonText = () => {
+        switch (verificationState) {
+            case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.ON_WAITLIST:
+            case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.LOADING:
+                return translate('workspace.expensifyCard.verifyingHeader');
+            case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED:
+                return translate('workspace.expensifyCard.bankAccountVerifiedHeader');
+            default:
+                return translate('workspace.expensifyCard.chooseBankAccount');
+        }
+    };
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -85,21 +183,27 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 testID={WorkspaceExpensifyCardBankAccounts.displayName}
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicator={false}
             >
                 <HeaderWithBackButton
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
-                    title={translate('workspace.expensifyCard.chooseBankAccount')}
+                    title={getHeaderButtonText()}
                 />
-                <View style={styles.flex1}>
-                    <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
-                    {renderBankOptions()}
-                    <MenuItem
-                        icon={Expensicons.Plus}
-                        title={translate('workspace.expensifyCard.addNewBankAccount')}
-                        onPress={handleAddBankAccount}
-                    />
-                </View>
+                {isInVerificationState && renderVerificationStateView()}
+                {!isInVerificationState && (
+                    <FullPageOfflineBlockingView>
+                        <View style={styles.flex1}>
+                            <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
+                            {renderBankOptions()}
+                            <MenuItem
+                                icon={Expensicons.Plus}
+                                title={translate('workspace.expensifyCard.addNewBankAccount')}
+                                onPress={handleAddBankAccount}
+                            />
+                        </View>
+                    </FullPageOfflineBlockingView>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
