@@ -70,14 +70,13 @@ function AttachmentCarouselPager(
     const pageScrollHandler = usePageScrollHandler((e) => {
         'worklet';
 
-        // eslint-disable-next-line react-compiler/react-compiler
-        activePage.value = e.position;
-        isPagerScrolling.value = e.offset !== 0;
+        activePage.set(e.position);
+        isPagerScrolling.set(e.offset !== 0);
     }, []);
 
     useEffect(() => {
         setActivePageIndex(initialPage);
-        activePage.value = initialPage;
+        activePage.set(initialPage);
     }, [activePage, initialPage]);
 
     /** The `pagerItems` object that passed down to the context. Later used to detect current page, whether it's a single image gallery etc. */
