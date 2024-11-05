@@ -68,16 +68,16 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     const getDefaultWelcomeNote = useCallback(() => {
         return (
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            formData?.[INPUT_IDS.WELCOME_MESSAGE] ||
+            formData?.[INPUT_IDS.WELCOME_MESSAGE] ??
             // workspaceInviteMessageDraft can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            workspaceInviteMessageDraft ||
+            workspaceInviteMessageDraft ??
             // policy?.description can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            Parser.htmlToMarkdown(policy?.description ?? '') ||
-            translate('workspace.common.welcomeNote', {
-                workspaceName: policy?.name ?? '',
-            })
+            (Parser.htmlToMarkdown(policy?.description ?? '') ||
+                translate('workspace.common.welcomeNote', {
+                    workspaceName: policy?.name ?? '',
+                }))
         );
     }, [workspaceInviteMessageDraft, policy, translate, formData]);
 
