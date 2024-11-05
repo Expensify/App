@@ -110,7 +110,7 @@ function parseFSAttributes(): void {
     window?.document?.querySelectorAll(`[${WEB_PROP_ATTR}]`).forEach((o) => {
         const attr = o.getAttribute(WEB_PROP_ATTR) ?? '';
         if (!/fs-/gim.test(attr)) {
-            return
+            return;
         }
 
         const fsAttrs = attr.match(/fs-[a-zA-Z0-9_-]+/g) ?? [];
@@ -128,11 +128,11 @@ function parseFSAttributes(): void {
             .replace(/\s+/g, ' ')
             .trim();
 
-        if(cleanedAttrs){
-            o.setAttribute(WEB_PROP_ATTR, cleanedAttrs)
+        if (cleanedAttrs) {
+            o.setAttribute(WEB_PROP_ATTR, cleanedAttrs);
         } else {
-            o.removeAttribute(WEB_PROP_ATTR)
-        };
+            o.removeAttribute(WEB_PROP_ATTR);
+        }
     });
 }
 
