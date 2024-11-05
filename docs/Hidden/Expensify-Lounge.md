@@ -43,7 +43,7 @@ We’re thrilled to have you here to live richly, have fun, and help save the wo
 
 ---
 
-# FAQ
+{% include faq-begin.md %}
 
 ## What is Concierge? 
 Concierge is our automated system that answers member questions in real-time. Local lounge questions are routed to the Lounge’s Concierge. Message Concierge for drink requests or general inquiries—they’ll handle it for you!
