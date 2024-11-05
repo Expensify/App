@@ -11,7 +11,7 @@ function SearchRouterModal() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
 
-    const modalType = shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.POPOVER;
+    const modalType = shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT : CONST.MODAL.MODAL_TYPE.POPOVER;
 
     return (
         <Modal
@@ -19,6 +19,7 @@ function SearchRouterModal() {
             isVisible={isSearchRouterDisplayed}
             popoverAnchorPosition={{right: 6, top: 6}}
             fullscreen
+            propagateSwipe
             shouldHandleNavigationBack={Browser.isMobileChrome()}
             onClose={closeSearchRouter}
         >
