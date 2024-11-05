@@ -15,7 +15,6 @@ import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,6 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
+import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -94,7 +94,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const activeRoute = useNavigationState(getTopmostRouteName);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseWorkspaceRules} = usePermissions();
     const wasRendered = useRef(false);
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
@@ -178,6 +177,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         });
     }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
 
+    useEffect(() => {
+        App.confirmReadyToOpenApp();
+    }, []);
+
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
         const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -231,7 +234,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canUseWorkspaceRules) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.rules',
             icon: Expensicons.Feed,
@@ -414,6 +417,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     highlighted={enabledItem?.routeName === item.routeName}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
                                     badgeText={item.badgeText}
+                                    shouldIconUseAutoWidthStyle
                                 />
                             ))}
                         </View>

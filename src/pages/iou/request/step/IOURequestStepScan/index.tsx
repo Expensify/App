@@ -285,6 +285,7 @@ function IOURequestStepScan({
                 IOU.requestMoney(
                     report,
                     0,
+                    transaction?.attendees,
                     transaction?.currency ?? 'USD',
                     transaction?.created ?? '',
                     '',
@@ -296,7 +297,7 @@ function IOURequestStepScan({
                 );
             }
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.created, transaction?.currency],
+        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -379,6 +380,7 @@ function IOURequestStepScan({
                                 IOU.requestMoney(
                                     report,
                                     0,
+                                    transaction?.attendees,
                                     transaction?.currency ?? 'USD',
                                     transaction?.created ?? '',
                                     '',
@@ -422,6 +424,7 @@ function IOURequestStepScan({
         [
             backTo,
             transaction?.isFromGlobalCreate,
+            transaction?.attendees,
             transaction?.currency,
             transaction?.created,
             iouType,
@@ -517,6 +520,10 @@ function IOURequestStepScan({
         }
 
         const imageBase64 = cameraRef.current.getScreenshot();
+
+        if (imageBase64 === null) {
+            return;
+        }
 
         const filename = `receipt_${Date.now()}.png`;
         const file = FileUtils.base64ToFile(imageBase64 ?? '', filename);
@@ -659,7 +666,7 @@ function IOURequestStepScan({
                             role={CONST.ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: setReceiptAndNavigate,
+                                    onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
                                 });
                             }}
                         >
@@ -736,7 +743,7 @@ function IOURequestStepScan({
                         style={[styles.p9]}
                         onPress={() => {
                             openPicker({
-                                onPicked: setReceiptAndNavigate,
+                                onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
                             });
                         }}
                     />
@@ -776,7 +783,7 @@ function IOURequestStepScan({
                             confirmText={translate('common.close')}
                             shouldShowCancelButton={false}
                         />
-                        {startLocationPermissionFlow && fileResize && (
+                        {startLocationPermissionFlow && !!fileResize && (
                             <LocationPermissionModal
                                 startPermissionFlow={startLocationPermissionFlow}
                                 resetPermissionFlow={() => setStartLocationPermissionFlow(false)}

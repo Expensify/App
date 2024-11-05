@@ -2,8 +2,8 @@ import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -54,7 +54,6 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
         const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
         const shouldUseTransactionDraft = IOUUtils.shouldUseTransactionDraft(userAction);
-
         const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
         const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
 
@@ -66,7 +65,6 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
         if (!transactionID) {
             return <FullPageNotFoundView shouldShow={isFocused} />;
         }
-
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading

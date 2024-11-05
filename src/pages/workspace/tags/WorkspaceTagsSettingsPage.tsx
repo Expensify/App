@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -12,7 +12,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Tag from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,11 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type WorkspaceTagsSettingsPageOnyxProps = {
-    /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
-};
-type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_SETTINGS>;
+type WorkspaceTagsSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_SETTINGS>;
 
 /**
  * The pending state might be set by either setPolicyBillableMode or disableWorkspaceBillableExpenses.
@@ -53,22 +48,23 @@ function toggleBillableExpenses(policy: OnyxEntry<OnyxTypes.Policy>) {
     }
 }
 
-function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPageProps) {
-    const policyID = route.params.policyID;
+function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
+    const policyID = route.params.policyID ?? '-1';
+    const backTo = route.params.backTo;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
     const isLoading = !PolicyUtils.getTagLists(policyTags)?.at(0) || Object.keys(policyTags ?? {}).at(0) === 'undefined';
     const {isOffline} = useNetwork();
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
-    const {canUseWorkspaceRules} = usePermissions();
-
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
             Tag.setPolicyRequiresTag(policyID, value);
         },
         [policyID],
     );
+    const isQuickSettingsFlow = !!backTo;
 
     const getTagsSettings = (policy: OnyxEntry<OnyxTypes.Policy>) => (
         <View style={styles.flexGrow1}>
@@ -82,7 +78,13 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                     <MenuItemWithTopDescription
                         title={policyTagLists.at(0)?.name ?? ''}
                         description={translate(`workspace.tags.customTagName`)}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0))}
+                        onPress={() => {
+                            Navigation.navigate(
+                                isQuickSettingsFlow
+                                    ? ROUTES.SETTINGS_TAGS_EDIT.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0, backTo)
+                                    : ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0),
+                            );
+                        }}
                         shouldShowRightIcon
                     />
                 </OfflineWithFeedback>
@@ -102,7 +104,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                     />
                 </View>
             </OfflineWithFeedback>
-            {canUseWorkspaceRules && policy?.areRulesEnabled && (
+            {!!policy?.areRulesEnabled && (
                 <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Text style={[styles.textNormal]}>{translate('workspace.tags.trackBillable')}</Text>
@@ -128,7 +130,10 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                     style={[styles.defaultModalContainer]}
                     testID={WorkspaceTagsSettingsPage.displayName}
                 >
-                    <HeaderWithBackButton title={translate('common.settings')} />
+                    <HeaderWithBackButton
+                        title={translate('common.settings')}
+                        onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
+                    />
                     {isOffline && isLoading ? <FullPageOfflineBlockingView>{getTagsSettings(policy)}</FullPageOfflineBlockingView> : getTagsSettings(policy)}
                 </ScreenWrapper>
             )}
@@ -138,8 +143,4 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
 
 WorkspaceTagsSettingsPage.displayName = 'WorkspaceTagsSettingsPage';
 
-export default withOnyx<WorkspaceTagsSettingsPageProps, WorkspaceTagsSettingsPageOnyxProps>({
-    policyTags: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`,
-    },
-})(WorkspaceTagsSettingsPage);
+export default WorkspaceTagsSettingsPage;
