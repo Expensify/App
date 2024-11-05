@@ -48,6 +48,9 @@ type IconProps = {
 
     /** Determines how the image should be resized to fit its container */
     contentFit?: ImageContentFit;
+
+    /** Determines whether the icon is being used within a button. The icon size will remain the same for both icon-only buttons and buttons with text. */
+    isButtonIcon?: boolean;
 };
 
 function Icon({
@@ -64,10 +67,11 @@ function Icon({
     pressed = false,
     testID = '',
     contentFit = 'cover',
+    isButtonIcon = false,
 }: IconProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height);
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height, isButtonIcon);
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
 
     if (inline) {

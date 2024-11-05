@@ -6,7 +6,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
-import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import FocusableMenuItem from './FocusableMenuItem';
@@ -123,8 +122,7 @@ function ContextMenuItem(
         >
             {({hovered, pressed}) => (
                 <Icon
-                    height={variables.iconSizeSmall}
-                    width={variables.iconSizeSmall}
+                    small
                     src={itemIcon}
                     fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
                 />

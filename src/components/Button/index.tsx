@@ -297,6 +297,7 @@ function Button(
                                     small={small}
                                     medium={medium}
                                     large={large}
+                                    isButtonIcon
                                 />
                             </View>
                         )}
@@ -311,6 +312,7 @@ function Button(
                                     small={small}
                                     medium={medium}
                                     large={large}
+                                    isButtonIcon
                                 />
                             ) : (
                                 <Icon
@@ -319,6 +321,7 @@ function Button(
                                     small={small}
                                     medium={medium}
                                     large={large}
+                                    isButtonIcon
                                 />
                             )}
                         </View>
