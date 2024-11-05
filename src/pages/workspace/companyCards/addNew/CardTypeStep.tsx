@@ -28,20 +28,6 @@ type AvailableCompanyCardTypes = {
 function getAvailableCompanyCardTypes({translate, typeSelected, styles}: AvailableCompanyCardTypes) {
     return [
         {
-            value: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.gl1025'),
-            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
-            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
-            leftElement: (
-                <Icon
-                    src={Illustrations.AmexCardCompanyCardDetail}
-                    height={variables.iconSizeExtraLarge}
-                    width={variables.iconSizeExtraLarge}
-                    additionalStyles={styles}
-                />
-            ),
-        },
-        {
             value: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
             text: translate('workspace.companyCards.addNewCard.cardProviders.cdf'),
             keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
