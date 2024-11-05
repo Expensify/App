@@ -22,7 +22,7 @@ Invoices can be sent to anyone with or without an Expensify account and paid dir
 
 ![From the Reports page, click New Report and select Invoice](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_SendInvoice.png){:width="100%"}
 
-![Click Send and enter the recipients email address](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_SendInvoice.png){:width="100%"}
+![Click Send and enter the recipients email address](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_SendInvoice_02.png){:width="100%"}
 
 ## How to Receive an Invoice Payment in Expensify 
 
