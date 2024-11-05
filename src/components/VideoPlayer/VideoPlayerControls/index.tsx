@@ -14,7 +14,7 @@ import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContex
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import LoadingBar from './LoadingBar';
+import ProgressBar from './ProgressBar';
 import VolumeButton from './VolumeButton';
 
 type VideoPlayerControlsProps = {
