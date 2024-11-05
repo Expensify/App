@@ -1,16 +1,7 @@
 import 'react-native-url-polyfill/auto';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
-
-/**
- * Add / to the end of any URL if not present
- */
-function addTrailingForwardSlash(url: string): string {
-    if (!url.endsWith('/')) {
-        return `${url}/`;
-    }
-    return url;
-}
+import addTrailingForwardSlash from './addTrailingForwardSlash';
 
 function addLeadingForwardSlash(url: string): string {
     if (!url.startsWith('/')) {

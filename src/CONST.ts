@@ -5,9 +5,9 @@ import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
 import type {Video} from './libs/actions/Report';
+import addTrailingForwardSlash from './libs/addTrailingForwardSlash';
 import type {MileageRate} from './libs/DistanceRequestUtils';
-import BankAccount from './libs/models/BankAccount';
-import * as Url from './libs/Url';
+import BankAccountState from './libs/models/BankAccountState';
 import SCREENS from './SCREENS';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 
@@ -18,7 +18,7 @@ const EMPTY_OBJECT = Object.freeze({});
 
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
-const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
+const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
@@ -5083,7 +5083,7 @@ const CONST = {
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
-                state: BankAccount.STATE.SETUP,
+                state: BankAccountState.SETUP,
             },
             isLoading: false,
             errorFields: {},
