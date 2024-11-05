@@ -68,6 +68,7 @@ const test = (config: NativeConfig) => {
                     metric: entry.duration,
                     unit: 'ms',
                 });
+
                 openReportResolve();
             }
         });
