@@ -64,8 +64,13 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                 </View>
             </View>
             {!shouldUseNarrowLayout && (
-                <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.alignItemsCenter, styles.justifyContentEnd]}>
-                    <Text style={[styles.textLabelSupporting, styles.lh16]}>{cardType}</Text>
+                <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textLabelSupporting, styles.lh16]}
+                    >
+                        {cardType}
+                    </Text>
                 </View>
             )}
             <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.alignItemsCenter, styles.justifyContentEnd]}>
