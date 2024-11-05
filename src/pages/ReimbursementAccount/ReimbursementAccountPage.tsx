@@ -203,7 +203,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
      which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
-    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue);
+    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue());
 
     const handleNextNonUSDBankAccountStep = () => {
         switch (nonUSDBankAccountStep) {
