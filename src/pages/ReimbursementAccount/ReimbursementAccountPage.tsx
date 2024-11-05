@@ -170,6 +170,12 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
 
+    function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
+        return {
+            ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
+        };
+    }
+
     /**
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      */
@@ -198,12 +204,6 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue());
-
-    function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
-        return {
-            ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
-        };
-    }
 
     const handleNextNonUSDBankAccountStep = () => {
         switch (nonUSDBankAccountStep) {
