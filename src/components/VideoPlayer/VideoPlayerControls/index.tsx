@@ -135,7 +135,7 @@ function VideoPlayerControls({
             )}
             <View style={styles.videoPlayerControlsRow}>
                 <View style={[styles.flex1]}>
-                    <LoadingBar
+                    <ProgressBar
                         duration={duration}
                         position={position}
                         seekPosition={seekPosition}
