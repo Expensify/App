@@ -283,7 +283,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
             BankAccounts.setPlaidEvent(null);
         }
         fetchData();
-    }); // The empty dependency array ensures this runs only once after the component mounts.
+    });
 
     useEffect(
         () => {
