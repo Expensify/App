@@ -261,7 +261,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         isOnboardingCompletedRef.current = isOnboardingCompleted;
     }, [isOnboardingCompleted]);
 
-    useEffectOnce(() => {
+    useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
@@ -397,7 +397,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             unsubscribeDebugShortcut();
             Session.cleanupSession();
         };
-    });
+
+        // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     const CentralPaneScreenOptions = {
         headerShown: false,
