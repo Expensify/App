@@ -139,6 +139,7 @@ function IOURequestStepScan({
 
     const tapGesture = Gesture.Tap()
         .enabled(device?.supportsFocus ?? false)
+        // eslint-disable-next-line react-compiler/react-compiler
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 
@@ -252,6 +253,7 @@ function IOURequestStepScan({
                 IOU.requestMoney(
                     report,
                     0,
+                    transaction?.attendees,
                     transaction?.currency ?? 'USD',
                     transaction?.created ?? '',
                     '',
@@ -263,7 +265,7 @@ function IOURequestStepScan({
                 );
             }
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.created, transaction?.currency],
+        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
     );
     const navigateToConfirmationStep = useCallback(
         (file: FileObject, source: string, locationPermissionGranted = false) => {
@@ -345,6 +347,7 @@ function IOURequestStepScan({
                                 IOU.requestMoney(
                                     report,
                                     0,
+                                    transaction?.attendees,
                                     transaction?.currency ?? 'USD',
                                     transaction?.created ?? '',
                                     '',
@@ -388,6 +391,7 @@ function IOURequestStepScan({
         [
             backTo,
             transaction?.isFromGlobalCreate,
+            transaction?.attendees,
             transaction?.currency,
             transaction?.created,
             iouType,
@@ -556,7 +560,7 @@ function IOURequestStepScan({
             testID={IOURequestStepScan.displayName}
         >
             {isLoadingReceipt && <FullScreenLoadingIndicator />}
-            {pdfFile && (
+            {!!pdfFile && (
                 <PDFThumbnail
                     style={styles.invisiblePDF}
                     previewSourceURL={pdfFile?.uri ?? ''}
@@ -633,7 +637,7 @@ function IOURequestStepScan({
                             style={[styles.alignItemsStart]}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: setReceiptAndNavigate,
+                                    onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
                                 });
                             }}
                         >
@@ -676,7 +680,7 @@ function IOURequestStepScan({
                     </PressableWithFeedback>
                 )}
             </View>
-            {startLocationPermissionFlow && fileResize && (
+            {startLocationPermissionFlow && !!fileResize && (
                 <LocationPermissionModal
                     startPermissionFlow={startLocationPermissionFlow}
                     resetPermissionFlow={() => setStartLocationPermissionFlow(false)}

@@ -14,6 +14,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,6 +68,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const {isOffline} = useNetwork();
 
     const typeMenuItems: SearchTypeMenuItem[] = [
         {
@@ -139,6 +141,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             styles: [styles.alignItemsCenter],
             pendingAction: item.pendingAction,
             disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            shouldIconUseAutoWidthStyle: true,
         };
 
         if (!isNarrow) {
@@ -233,6 +236,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             />
         );
     }
+    const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
 
     return (
         <>
@@ -255,11 +259,12 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                             wrapperStyle={styles.sectionMenuItem}
                             focused={index === activeItemIndex}
                             onPress={onPress}
+                            shouldIconUseAutoWidthStyle
                         />
                     );
                 })}
             </View>
-            {savedSearches && Object.keys(savedSearches).length > 0 && (
+            {shouldShowSavedSearchesMenuItemTitle && (
                 <>
                     <Text style={[styles.sectionTitle, styles.pb1, styles.mh3, styles.mt3]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
                     <ScrollView
