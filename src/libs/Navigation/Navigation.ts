@@ -459,11 +459,11 @@ const dismissModal = (reportID?: string, ref = navigationRef) => {
     if (!reportID) {
         return;
     }
-    navigateToReportWithPolicyCheck({reportID});
+    isNavigationReady().then(() => navigateToReportWithPolicyCheck({reportID}));
 };
 const dismissModalWithReport = (report: OnyxEntry<Report>) => {
     dismissModal();
-    navigateToReportWithPolicyCheck({report});
+    isNavigationReady().then(() => navigateToReportWithPolicyCheck({report}));
 };
 
 export default {

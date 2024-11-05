@@ -1039,7 +1039,8 @@ function navigateToAndOpenReport(
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(report?.reportID ?? '', '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     if (shouldDismissModal) {
-        Navigation.dismissModal();
+        Navigation.dismissModalWithReport(report);
+        return;
     }
     Navigation.navigateToReportWithPolicyCheck({report});
 }
