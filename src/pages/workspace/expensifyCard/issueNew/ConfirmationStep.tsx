@@ -138,6 +138,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             </ScrollView>
             <ValidateCodeActionModal
                 handleSubmitForm={submit}
+                isLoading={issueNewCard?.isLoading}
                 sendValidateCode={() => User.requestValidateCodeAction()}
                 validateError={validateLoginError}
                 clearError={() => {

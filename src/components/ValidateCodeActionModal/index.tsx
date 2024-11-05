@@ -25,6 +25,7 @@ function ValidateCodeActionModal({
     footer,
     sendValidateCode,
     hasMagicCodeBeenSent,
+    isLoading,
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const firstRenderRef = useRef(true);
@@ -78,6 +79,7 @@ function ValidateCodeActionModal({
                         clearError={clearError}
                         ref={validateCodeFormRef}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        isLoading={isLoading}
                     />
                 </View>
                 {footer?.()}
