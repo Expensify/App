@@ -4053,7 +4053,7 @@ const translations = {
             },
             companyCards: {
                 title: 'Company cards',
-                description: `Company cards lets you import spend for existing company cards from all major card issuers. You can assign cards to employees, and automatically import transactions.`,
+                description: `Connect your existing corporate cards to Expensify, assign them to employees, and automatically import transactions.`,
                 onlyAvailableOnPlan: 'Company cards are only available on the Control plan, starting at ',
             },
             rules: {
