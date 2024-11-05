@@ -343,6 +343,234 @@ function validateBankAccount(bankAccountID: number, validateCode: string, policy
     API.write(WRITE_COMMANDS.VALIDATE_BANK_ACCOUNT_WITH_TRANSACTIONS, parameters, onyxData);
 }
 
+function getCorpayBankAccountFields(country: string, currency: string) {
+    // TODO - Use parameters when API is ready
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const parameters: 'GetCorpayBankAccountFieldsParams' = {
+        countryISO: country,
+        currency,
+        isWithdrawal: true,
+        isBusinessBankAccount: true,
+    };
+
+    // return API.read(READ_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS, parameters);
+    return {
+        bankCountry: 'AU',
+        bankCurrency: 'AUD',
+        classification: 'Business',
+        destinationCountry: 'AU',
+        formFields: [
+            {
+                errorMessage: 'Name is invalid. Value should be 3 to 100 characters long.',
+                id: 'accountHolderName',
+                isRequired: true,
+                isRequiredInValueSet: true,
+                label: 'Account Holder Name',
+                regEx: '^.{3,100}$',
+                validationRules: [
+                    {
+                        errorMessage: 'Name is invalid. Value should be 3 to 100 characters long.',
+                        regEx: '^.{3,100}$',
+                    },
+                    {
+                        errorMessage: 'The following characters are not allowed: <,>, "',
+                        regEx: '^[^<>\\x22]*$',
+                    },
+                ],
+            },
+            {
+                defaultValue: 'AU',
+                id: 'accountHolderCountry',
+                isRequired: true,
+                isRequiredInValueSet: true,
+                label: 'Account Holder Country',
+                regEx: '^.{2,2}$',
+                validationRules: [
+                    {
+                        regEx: '^.{2,2}$',
+                    },
+                    {
+                        errorMessage: 'The following characters are not allowed: <,>, "',
+                        regEx: '^[^<>\\x22]*$',
+                    },
+                ],
+            },
+            {
+                errorMessage: 'PO Box address isn\u2019t allowed. Address Line 1 must be less than 1000 characters',
+                id: 'accountHolderAddress1',
+                isRequired: true,
+                isRequiredInValueSet: true,
+                label: 'Account Holder Address',
+                regEx: '^(?!.*\\b(P\\.?\\s?O\\.?\\s?Box|P\\.?\\s?O\\.?\\s?B\\.?|P\\.?\\s?O\\.?\\s?Bx|PO\\.?\\s?Box|PO\\.?\\s?B\\.?|PO\\.?\\s?Bx|Post\\s?Office\\s?Box|Box\\s?No\\.?|Box\\s?#|Box\\s?\\d+|Lockbox|P\\.?\\s?O\\.?\\s?B\\.?|P\\.?\\s?O\\.?\\s?Bx|P\\s?O\\s?Box\\s?No\\.?)\\b).{0,1000}$',
+                validationRules: [
+                    {
+                        errorMessage: 'PO Box address isn\u2019t allowed. Address Line 1 must be less than 1000 characters',
+                        regEx: '^(?!.*\\b(P\\.?\\s?O\\.?\\s?Box|P\\.?\\s?O\\.?\\s?B\\.?|P\\.?\\s?O\\.?\\s?Bx|PO\\.?\\s?Box|PO\\.?\\s?B\\.?|PO\\.?\\s?Bx|Post\\s?Office\\s?Box|Box\\s?No\\.?|Box\\s?#|Box\\s?\\d+|Lockbox|P\\.?\\s?O\\.?\\s?B\\.?|P\\.?\\s?O\\.?\\s?Bx|P\\s?O\\s?Box\\s?No\\.?)\\b).{0,1000}$',
+                    },
+                    {
+                        errorMessage: 'The following characters are not allowed: <,>, "',
+                        regEx: '^[^<>\\x22]*$',
+                    },
+                ],
+            },
+            {
+                errorMessage: 'City must be less than 100 characters',
+                id: 'accountHolderCity',
+                isRequired: true,
+                isRequiredInValueSet: true,
+                label: 'Account Holder City',
+                regEx: '^.{0,100}$',
+                validationRules: [
+                    {
+                        errorMessage: 'City must be less than 100 characters',
+                        regEx: '^.{0,100}$',
+                    },
+                    {
+                        errorMessage: 'The following characters are not allowed: <,>, "',
+                        regEx: '^[^<>\\x22]*$',
+                    },
+                ],
+            },
+            {
+                errorMessage: 'Swift must be less than 12 characters',
+                id: 'swiftBicCode',
+                isRequired: false,
+                isRequiredInValueSet: true,
+                label: 'Swift Code',
+                regEx: '^.{0,12}$',
+                validationRules: [
+                    {
+                        errorMessage: 'Swift must be less than 12 characters',
+                        regEx: '^.{0,12}$',
+                    },
+                    {
+                        errorMessage: 'The following characters are not allowed: <,>, "',
+                        regEx: '^[^<>\\x22]*$',
+                    },
+                ],
+            },
+            {
+                errorMessage: 'Beneficiary Bank Name must be less than 250 characters',
+                id: 'bankName',
+                isRequired: true,
+                isRequiredInValueSet: true,
+                label: 'Bank Name',
+                regEx: '^.{0,250}$',
+                validationRules: [
+                    {
+                        errorMessage: 'Beneficiary Bank Name must be less than 250 characters',
+                        regEx: '^.{0,250}$',
+                    },
+                    {
+                        errorMessage: 'The following characters are not allowed: <,>, "',
+                        regEx: '^[^<>\\x22]*$',
+                    },
+                ],
+            },
+            {
+                errorMessage: 'City must be less than 100 characters',
+                id: 'bankCity',
+                isRequired: true,
+                isRequiredInValueSet: true,
+                label: 'Bank City',
+                regEx: '^.{0,100}$',
+                validationRules: [
+                    {
+                        errorMessage: 'City must be less than 100 characters',
+                        regEx: '^.{0,100}$',
+                    },
+                    {
+                        errorMessage: 'The following characters are not allowed: <,>, "',
+                        regEx: '^[^<>\\x22]*$',
+                    },
+                ],
+            },
+            {
+                errorMessage: 'Bank Address Line 1 must be less than 1000 characters',
+                id: 'bankAddressLine1',
+                isRequired: true,
+                isRequiredInValueSet: true,
+                label: 'Bank Address',
+                regEx: '^.{0,1000}$',
+                validationRules: [
+                    {
+                        errorMessage: 'Bank Address Line 1 must be less than 1000 characters',
+                        regEx: '^.{0,1000}$',
+                    },
+                    {
+                        errorMessage: 'The following characters are not allowed: <,>, "',
+                        regEx: '^[^<>\\x22]*$',
+                    },
+                ],
+            },
+            {
+                detailedRule: [
+                    {
+                        isRequired: true,
+                        value: [
+                            {
+                                errorMessage: 'Beneficiary Account Number is invalid. Value should be 1 to 50 characters long.',
+                                regEx: '^.{1,50}$',
+                                ruleDescription: '1 to 50 characters',
+                            },
+                        ],
+                    },
+                ],
+                errorMessage: 'Beneficiary Account Number is invalid. Value should be 1 to 50 characters long.',
+                id: 'accountNumber',
+                isRequired: true,
+                isRequiredInValueSet: true,
+                label: 'Account Number (iACH)',
+                regEx: '^.{1,50}$',
+                validationRules: [
+                    {
+                        errorMessage: 'Beneficiary Account Number is invalid. Value should be 1 to 50 characters long.',
+                        regEx: '^.{1,50}$',
+                        ruleDescription: '1 to 50 characters',
+                    },
+                    {
+                        errorMessage: 'The following characters are not allowed: <,>, "',
+                        regEx: '^[^<>\\x22]*$',
+                    },
+                ],
+            },
+            {
+                detailedRule: [
+                    {
+                        isRequired: true,
+                        value: [
+                            {
+                                errorMessage: 'BSB Number is invalid. Value should be exactly 6 digits long.',
+                                regEx: '^[0-9]{6}$',
+                                ruleDescription: 'Exactly 6 digits',
+                            },
+                        ],
+                    },
+                ],
+                errorMessage: 'BSB Number is invalid. Value should be exactly 6 digits long.',
+                id: 'routingCode',
+                isRequired: true,
+                isRequiredInValueSet: true,
+                label: 'BSB Number',
+                regEx: '^[0-9]{6}$',
+                validationRules: [
+                    {
+                        errorMessage: 'BSB Number is invalid. Value should be exactly 6 digits long.',
+                        regEx: '^[0-9]{6}$',
+                        ruleDescription: 'Exactly 6 digits',
+                    },
+                    {
+                        errorMessage: 'The following characters are not allowed: <,>, "',
+                        regEx: '^[^<>\\x22]*$',
+                    },
+                ],
+            },
+        ],
+        paymentMethods: ['E'],
+        preferredMethod: 'E',
+    };
+}
+
 function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
 }
@@ -572,6 +800,7 @@ export {
     updateAddPersonalBankAccountDraft,
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
+    getCorpayBankAccountFields,
 };
 
 export type {BusinessAddress, PersonalAddress};
