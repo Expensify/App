@@ -14,7 +14,7 @@ import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContex
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import ProgressBar from './ProgressBar';
+import LoadingBar from './LoadingBar';
 import VolumeButton from './VolumeButton';
 
 type VideoPlayerControlsProps = {
@@ -135,7 +135,7 @@ function VideoPlayerControls({
             )}
             <View style={styles.videoPlayerControlsRow}>
                 <View style={[styles.flex1]}>
-                    <ProgressBar
+                    <LoadingBar
                         duration={duration}
                         position={position}
                         seekPosition={seekPosition}

@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import ProgressBar from '@components/ProgressBar';
+import LoadingBar from '@components/LoadingBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
 import useLocalize from '@hooks/useLocalize';
@@ -65,7 +65,7 @@ function BaseSidebarScreen() {
                         activeWorkspaceID={activeWorkspaceID}
                         shouldDisplaySearch={shouldDisplaySearch}
                     />
-                    <ProgressBar shouldShow={isLoadingReportData ?? false} />
+                    <LoadingBar shouldShow={isLoadingReportData ?? false} />
                     <View style={[styles.flex1]}>
                         <SidebarLinksData
                             onLinkClick={startTimer}
