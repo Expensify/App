@@ -1,9 +1,9 @@
-import {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getBrickRoadForPolicy} from '@libs/WorkspacesSettingsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Report, ReportActions} from '@src/types/onyx';
-import {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {Report, ReportActions} from '@src/types/onyx';
+import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -60,6 +60,7 @@ describe('WorkspacesSettingsUtils', () => {
             };
 
             const actions: OnyxCollection<ReportActions> = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 reportActions_1699789757771388: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '4007735288062946397': {
@@ -146,6 +147,7 @@ describe('WorkspacesSettingsUtils', () => {
                         whisperedToAccountIDs: [],
                     },
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 reportActions_4148694821839494: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '2964625714811661556': {
@@ -203,6 +205,7 @@ describe('WorkspacesSettingsUtils', () => {
                         shouldShow: true,
                     },
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 reportActions_4625283659773773: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '7132923952865070123': {
@@ -381,6 +384,7 @@ describe('WorkspacesSettingsUtils', () => {
                         shouldShow: true,
                     },
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 reportActions_6955627196303088: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1493209744740418100': {
@@ -500,6 +504,7 @@ describe('WorkspacesSettingsUtils', () => {
                         whisperedToAccountIDs: [],
                     },
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 reportActions_4286515777714555: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1995312838979534584': {
@@ -531,6 +536,7 @@ describe('WorkspacesSettingsUtils', () => {
                         shouldShow: true,
                     },
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 reportActions_7900715127836904: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '3536855248086336861': {
@@ -570,12 +576,14 @@ describe('WorkspacesSettingsUtils', () => {
                 [ONYXKEYS.SESSION]: {
                     accountID: 18634488,
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactionViolations_3106135972713435169: [
                     {
                         name: 'missingCategory',
                         type: 'violation',
                     },
                 ],
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactionViolations_3690687111940510713: [
                     {
                         name: 'missingCategory',
