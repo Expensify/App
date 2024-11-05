@@ -828,16 +828,17 @@ function hasNoticeTypeViolation(transactionID: string, transactionViolations: On
  * Checks if any violations for the provided transaction are of type 'warning'
  */
 function hasWarningTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean | null): boolean {
-    const warningTypeViolations = transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.filter(
-        (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING && (showInReview === null || showInReview === (violation.showInReview ?? false)),
-    );
+    const warningTypeViolations =
+        transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.filter(
+            (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING && (showInReview === null || showInReview === (violation.showInReview ?? false)),
+        ) ?? [];
 
     const hasOnlyDupeDetectionViolation = warningTypeViolations?.every((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
     if (!Permissions.canUseDupeDetection(allBetas ?? []) && hasOnlyDupeDetectionViolation) {
         return false;
     }
 
-    return !!warningTypeViolations && warningTypeViolations.length > 0;
+    return warningTypeViolations.length > 0;
 }
 
 /**
