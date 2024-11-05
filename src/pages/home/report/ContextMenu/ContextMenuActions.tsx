@@ -268,7 +268,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const areHoldRequirementsMet = !!reportAction?.childHoldData;
             const isOnHold = !!reportAction?.childHoldData?.isOnHold;
 
-            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && !isOnHold;
+            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && isOnHold;
         },
         onPress: (closePopover, {reportAction}) => {
             const isOnHold = !!reportAction?.childHoldData?.isOnHold;
@@ -293,7 +293,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const areHoldRequirementsMet = !!reportAction?.childHoldData;
             const isOnHold = !!reportAction?.childHoldData?.isOnHold;
 
-            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && isOnHold;
+            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && !isOnHold;
         },
         onPress: (closePopover, {reportAction}) => {
             const isOnHold = !!reportAction?.childHoldData?.isOnHold;
