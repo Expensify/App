@@ -4,72 +4,66 @@ description: This article is about how to troubleshoot notifications from Expens
 --- 
 
 # Overview 
-Sometimes, members may have trouble receiving important email notifications from Expensify, such as Expensify Magic Code emails, account validation emails, secondary login validations, integration emails, or report action notifications (rejections, approvals, etc.). 
+Sometimes members may have trouble receiving important email notifications from Expensify, such as Expensify Magic Code emails, account validation emails, secondary login validations, integration emails, or report action notifications (rejections, approvals, etc.). 
 
-# Here's how to troubleshoot missing Expensify notifications:
+# Troubleshooting missing Expensify notifications
 
-1. **No error message, but the email is never received**
-The email might be delayed; give it 30-60 minutes to arrive in your inbox.
-Check **Email Preferences** on the web via **Settings > Your Account > Preferences**In the **Contact Preferences** section. Ensure that the relevant boxes are checked for the email type you're missing. Check your email spam and trash folders, as Expensify messages might end up there inadvertently.
-Check to make sure you haven't unintentionally blocked Expensify emails and whitelist [expensify.com](https://community.expensify.com/home/leaving?allowTrusted=1&target=http%3A%2F%2Fexpensify.com%2F), mg.expensify.com, and [amazonSES.com](https://community.expensify.com/home/leaving?allowTrusted=1&target=http%3A%2F%2Famazonses.com%2F) with your email provider.
+## Issue: The email or notification is never received, and no message, banner, or additional context is provided 
+Emails can sometimes be delayed and could take up to 30-60 minutes to arrive in your inbox. If you're expecting a notification that still hasn't arrived after waiting: 
+ - Check your **Email Preferences** on the web via **Settings > Account > Preferences**. In the **Contact Preferences** section, ensure that the relevant boxes are checked for the email type you're missing.
+ - Check your email spam and trash folders, as Expensify messages might end up there inadvertently.
+ - Check to make sure you haven't unintentionally blocked Expensify emails. Allowlist the domains expensify.com, mg.expensify.com, and amazonSES.com with your email provider.
 
-2. **A "We're having trouble emailing you" banner at the top of your screen**
-Verify that your email address in your account settings is correct and is a real deliverable email address. 
-Re-send Verification Email: Look for an option to re-send a verification email, usually provided when this banner appears.
+## Issue: A banner that says “We’re having trouble emailing you” shows the top of your screen.
+Confirm the email address on your Expensify account is a deliverable email address, and then click the link in the banner that says "here". If successful, you will see a confirmation that your email was unblocked. 
 
-![ExpensifyHelp_EmailError]({{site.url}}/assets/images/ExpensifyHelp_EmailError.png){:width="100%"}
-
-# Deep Dive 
-
-**For Private Domains**:
-
-If your organization uses a private domain, consult your IT department or IT person to ensure that the following domains are whitelisted to receive our emails: expensify.com, mg.expensify.com, and amazonSES.com. These domains are the sources of various notification emails, so make sure they aren't being blocked.
-
-**For Public Domains (e.g., Gmail, Yahoo, Hotmail)**:
-
-To whitelist our emails on public email services:
-
-1. Check your Spam Folder: Search for messages from expensify.com in your Spam folder, open them, and click "Not Spam" at the top of the message.
-2. Create a Filter: Set up a filter that identifies the entire expensify.com domain and directs all incoming messages to your inbox, preventing them from going to Spam.
-3. Add Specific Contacts: While optional, adding specific email addresses from Expensify as contacts can further prevent emails from going to Spam.
-
-Please note that even if you receive emails from our Concierge support communication, ensure that both expensify.com and mg.expensify.com are whitelisted as they use different servers.
-
-**Email Server Blocking**:
-Your email server may be blocking our emails due to spam filters or other services. Check with your IT department to investigate and resolve any server-level email blocking issues.
-
-**Mimecast**:
-If your company uses Mimecast, a service that can affect email deliverability, check with your IT department. If Mimecast is in use, reach out to us at concierge@expensify.com through a new email, as this should ensure delivery to your inbox. Mimecast should eventually recognize the Expensify domain, preventing future filtering.
-
-**For Outlook Users**:
-For Outlook users specifically:
-
-1. Click the gear icon in Outlook and select "View all Outlook settings."
-2. Choose "Mail" from the settings menu.
-3. Under the "Junk email" submenu, click "Add" under "Safe senders and domains."
-4. Enter the email address you want to whitelist.
-5. Click "Save."
-
-When you click the "Settings" link in the banner in Expensify, you'll be directed to your account settings page, where you may encounter a few different scenarios:
-
-- "Temporarily Suspended Emails": If the message mentions "temporarily suspended emails to," follow the steps provided in the yellow box. This situation typically occurs when we can't find a valid inbox to send our emails to. Possible reasons include:
-     - A misspelled email address during account creation.
-     - Use of a distribution list email (acting as an "alias" email) without a linked inbox.
-     - An auto-responder that has been responding to our emails for an extended period.
-- To resolve this issue, confirm that the email address is indeed associated with an active inbox. Then, click the link that says "here," and your email should be unblocked shortly.
-- SMTP Error (Gray Box): In some cases, you might encounter a gray box with an SMTP error message. This error can vary, but it typically looks something like this:
-
+ ![ExpensifyHelp_EmailError]({{site.url}}/assets/images/ExpensifyHelp_EmailError.png){:width="100%"}
+ 
+ **If unsuccessful, you will see another error:**
+ - If the new error or SMTP message that includes a URL, navigate to that URL for further instructions. 
+ - If the new error or SMTP message that includes "mimecast.com", consult with your company's IT team.
+ - If you see a new error or SMTP message that includes "blacklist", it means your company has configured their email servers to use a third-party email reputation or blacklisting service. Consult with your company's IT team.
+   
 ![ExpensifyHelp_SMTPError]({{site.url}}/assets/images/ExpensifyHelp_SMTPError.png){:width="100%"}
 
-**These look a bit cryptic, yes, but hang in there!** 
+# Further troubleshooting for public domains
 
-The error messages you see are the raw message text received from your email provider's server to Amazon. These messages can vary in text, but the best course of action is to follow the link provided (by copying and pasting) in the text for the next steps.
+If you are still not receiving Expensify notifications and have an email address on a public domain, you may need to add Expensify's domains expensify.com and mg.expensify.com and amazonSES.com to your email's allowlist by taking the following steps: 
 
-**Scenario 1**: If the message in the gray box includes "mimecast.com": It means that our emails are being blocked by the server. In this case, you should contact your IT person or team to address the issue.
+ - Search for messages from expensify.com in your spam folder, opening them, and clicking “Not Spam” at the top of the message.
+ - Configure an email filter that identifies Expensify's domains and directs all incoming messages to your inbox, to avoid messages going to spam.
+ - Add specific known Expensify email addresses to your email contacts list. 
 
-**Scenario 2**: If the message in the gray box mentions "blacklist at org/.com/.net," or resembles the screenshot provided, it indicates that your IT team has configured your email to use a third-party email reputation or blacklisting service. Here's what you need to know:
-- All our emails are SPF and DKIM-signed, meaning they are cryptographically signed as coming from us and are not spam.
-- The problem arises because we send mail from a cloud-based service. This means that the sender's IP serves multiple vendors, including Expensify. If one of those vendors is marked as spam, it can block all messages from that IP, even if they're from different vendors (including us).
-- The better approach is for the server to flag spam via DKIM and SPF (rather than solely relying on the sender's IP address), as our messages are correctly signed and encrypted to prevent spoofing.
+# Further troubleshooting for private domains 
 
-To resolve these issues, consider discussing them with your IT team, as they can help implement the necessary changes to ensure you receive our emails without interruption.
+If your organization uses a private domain, Expensify emails may be blocked at the server level. This can sometimes happen unexpectedly due to broader changes in email providers' handling or filtering of incoming messages. Consult your internal IT team to assist with the following:
+
+ -  Ensure that the domains expensify.com, mg.expensify.com, and amazonSES.com are allowlisted on domain email servers. These domains are the sources of various notification emails, so it's important they are allowlisted. 
+ - Confirm there is no server-level email blocking and that spam filters are not blocking Expensify emails. Even if you receive messages from our Concierge support, ensure that expensify.com, mg.expensify.com, and amazonSES.com are all allowlisted, as notifications may use different servers.
+
+## Companies using Outlook
+
+- Add Expensify to your personal Safe Senders list by following these steps: [Outlook email client](https://support.microsoft.com/en-us/office/add-recipients-of-my-email-messages-to-the-safe-senders-list-be1baea0-beab-4a30-b968-9004332336ce) / [Outlook.com](https://support.microsoft.com/en-us/office/safe-senders-in-outlook-com-470d4ee6-e3b6-402b-8cd9-a6f00eda7339)
+- **Company IT administrators:** Add Expensify to your domain's Safe Sender list by following the steps here: [Create safe sender lists in EOP](https://learn.microsoft.com/en-us/defender-office-365/create-safe-sender-lists-in-office-365)
+- **Company IT administrators:** Add expensify.com, mg.expensify.com, and amazonSES.com to the domain's explicit allowlist. You may need to contact Outlook support for specific instructions, as each company's setup varies. 
+- **Company administrators:** Contact Outlook support to see if there are additional steps to take based on your domain's email configuration. 
+
+### Companies using Google Workspaces: 
+
+- **Company IT administrators:** Adjust your domain's email allowlist and safe senders lists to add expensify.com, mg.expensify.com, and amazonSES.com by following these steps: [Allowlists, denylists, and approved senders](https://support.google.com/a/answer/60752)
+
+{% include faq-begin.md %}
+
+## How can I be sure that emails from Expensify are legitimate and not spam?
+
+Expensify's emails are SPF and DKIM-signed, meaning they are cryptographically signed as coming from us and are not spam.
+
+## Why do legitimate emails from Expensify sometimes end up marked as spam?
+
+This issue can arise because Expensify send mails from a cloud-based service. The sender’s IP serves multiple vendors, including Expensify. If another vendors using the same IP is marked as spam, it can block all messages from that IP, even if they’re from different vendors (like Expensify).
+
+## What is the best way to ensure emails are not accidentally marked as Spam? 
+
+For server-level spam detection, it’s best to use DKIM and SPF verification rather than solely relying on the sender’s IP address. Expensify's emails are signed and encrypted to prevent spoofing.
+
+{% include faq-end.md %}
