@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,41 +11,44 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import Navigation from '@navigation/Navigation';
-import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 
-type WorkspaceCompanyCardEditCardNamePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_NAME>;
+type CardNameStepProps = {
+    /** Current policy id */
+    policyID: string;
+};
 
-function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditCardNamePageProps) {
-    const {policyID, cardID, bank} = route.params;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const defaultValue = customCardNames?.[cardID];
-
+function CardNameStep({policyID}: CardNameStepProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+
+    const data = assignCard?.data;
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
-        CompanyCards.updateCompanyCardName(workspaceAccountID, cardID, values[INPUT_IDS.NAME], bank, defaultValue);
-        Navigation.goBack();
+        CompanyCards.setAssignCardStepAndData({
+            currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+            data: {
+                cardName: values.name,
+            },
+            isEditing: false,
+        });
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
         const length = values.name.length;
+
         if (length > CONST.STANDARD_LENGTH_LIMIT) {
             ErrorUtils.addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
         }
+
         return errors;
     };
 
@@ -56,20 +58,20 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceCompanyCardEditCardNamePage.displayName}
+                testID={CardNameStep.displayName}
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={translate('workspace.moreFeatures.companyCards.cardName')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank))}
+                    onBackButtonPress={() => CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false})}
                 />
                 <Text style={[styles.mt3, styles.mh5, styles.mb5]}>
                     <Text style={styles.textNormal}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
                 </Text>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM}
-                    submitButtonText={translate('common.save')}
+                    submitButtonText={translate('common.confirm')}
                     onSubmit={submit}
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
@@ -81,7 +83,7 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
                         label={translate('workspace.moreFeatures.companyCards.cardName')}
                         aria-label={translate('workspace.moreFeatures.companyCards.cardName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={defaultValue}
+                        defaultValue={data?.cardName}
                         ref={inputCallbackRef}
                     />
                 </FormProvider>
@@ -90,6 +92,6 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
     );
 }
 
-WorkspaceCompanyCardEditCardNamePage.displayName = 'WorkspaceCompanyCardEditCardNamePage';
+CardNameStep.displayName = 'CardNameStep';
 
-export default WorkspaceCompanyCardEditCardNamePage;
+export default CardNameStep;
