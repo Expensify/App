@@ -14,7 +14,6 @@ import {buildEmojisTrie} from '@libs/EmojiTrie';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
