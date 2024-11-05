@@ -2760,7 +2760,6 @@ export {
     getAttendeeOptions,
     getAlternateText,
     hasReportErrors,
-    // processContact,
 };
 
 export type {

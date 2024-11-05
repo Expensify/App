@@ -213,11 +213,10 @@ function MoneyRequestParticipantsSelector({
             shouldShow: chatOptions.recentReports.length > 0,
         });
 
-        const contactData: ReportUtils.OptionData[] = chatOptions.personalDetails;
         newSections.push({
             title: translate('common.contacts'),
-            data: contactData,
-            shouldShow: contactData.length > 0,
+            data: chatOptions.personalDetails,
+            shouldShow: chatOptions.personalDetails.length > 0,
         });
 
         if (
