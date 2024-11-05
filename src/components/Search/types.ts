@@ -45,7 +45,7 @@ type SelectedReports = {
 type PaymentData = {
     reportID: string;
     amount: number;
-    paymentMethod: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 };
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
