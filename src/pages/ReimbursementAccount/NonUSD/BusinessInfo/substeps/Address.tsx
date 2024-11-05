@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
@@ -28,6 +28,7 @@ function Address({onNext, onMove, isEditing}: AddressProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+
     const onyxValues = useMemo(() => getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const businessStepCountryDraftValue = onyxValues[COMPANY_COUNTRY];
@@ -40,11 +41,22 @@ function Address({onNext, onMove, isEditing}: AddressProps) {
         city: onyxValues[COMPANY_CITY] ?? '',
         state: onyxValues[COMPANY_STATE] ?? '',
         zipCode: onyxValues[COMPANY_ZIP_CODE] ?? '',
-        country: onyxValues[COMPANY_COUNTRY] ?? countryInitialValue,
+        country: businessStepCountryDraftValue ?? countryInitialValue,
     };
 
-    const shouldDisplayStateSelector = defaultValues.country === CONST.COUNTRY.US || defaultValues.country === CONST.COUNTRY.CA || defaultValues.country === '';
+    // Has to be stored in state and updated on country change due to the fact that we can't relay on onyxValues when user is editing the form (draft values are not being saved in that case)
+    const [shouldDisplayStateSelector, setShouldDisplayStateSelector] = useState<boolean>(
+        defaultValues.country === CONST.COUNTRY.US || defaultValues.country === CONST.COUNTRY.CA || defaultValues.country === '',
+    );
     const stepFields = shouldDisplayStateSelector ? STEP_FIELDS : STEP_FIELDS_WITHOUT_STATE;
+
+    const handleCountryChange = (country: unknown) => {
+        if (typeof country !== 'string' || country === '') {
+            return;
+        }
+
+        setShouldDisplayStateSelector(country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA);
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: stepFields,
@@ -64,6 +76,7 @@ function Address({onNext, onMove, isEditing}: AddressProps) {
             stepFields={stepFields}
             inputFieldsIDs={INPUT_KEYS}
             defaultValues={defaultValues}
+            onCountryChange={handleCountryChange}
             shouldDisplayStateSelector={shouldDisplayStateSelector}
             shouldDisplayCountrySelector
         />

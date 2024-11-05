@@ -60,6 +60,9 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
 
     /** The title of the state selector search input */
     stateSelectorSearchInputTitle?: string;
+
+    /** Callback to be called when the country is changed */
+    onCountryChange?: (country: unknown) => void;
 };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -78,16 +81,24 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     stateSelectorLabel,
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
+    onCountryChange,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const formRef = useRef<FormRef | null>(null);
 
-    const resetStateErrorFields = useCallback(() => {
-        // When country changes and state is no longer gathered we need to reset corresponding form errors
-        formRef.current?.resetFormFieldError(inputFieldsIDs.state);
-    }, [inputFieldsIDs.state]);
+    const handleCountryChange = useCallback(
+        (country: unknown) => {
+            if (onCountryChange) {
+                onCountryChange(country);
+            }
+
+            // When country changes and state is no longer gathered we need to reset corresponding form errors
+            formRef.current?.resetFormFieldError(inputFieldsIDs.state);
+        },
+        [inputFieldsIDs.state, onCountryChange],
+    );
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
@@ -132,7 +143,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     stateSelectorLabel={stateSelectorLabel}
                     stateSelectorModalHeaderTitle={stateSelectorModalHeaderTitle}
                     stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
-                    onCountryChange={resetStateErrorFields}
+                    onCountryChange={handleCountryChange}
                 />
                 {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
             </View>

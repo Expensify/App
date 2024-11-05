@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
@@ -52,7 +52,7 @@ type AddressFormProps = {
     stateSelectorSearchInputTitle?: string;
 
     /** Callback to be called when the country is changed */
-    onCountryChange?: () => void;
+    onCountryChange?: (country: unknown) => void;
 };
 
 const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce((acc, key) => {
@@ -83,6 +83,17 @@ function AddressFormFields({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const [countryInEditMode, setCountryInEditMode] = useState<string>(defaultValues?.country ?? CONST.COUNTRY.US);
+    // When draft values are not being saved we need to relay on local state to determine the currently selected country
+    const currentlySelectedCountry = shouldSaveDraft ? defaultValues?.country : countryInEditMode;
+
+    const handleCountryChange = (country: unknown) => {
+        if (typeof country === 'string' && country !== '') {
+            setCountryInEditMode(country);
+        }
+        onCountryChange?.(country);
+    };
+
     return (
         <View style={containerStyles}>
             <View>
@@ -98,6 +109,7 @@ function AddressFormFields({
                     renamedInputKeys={inputKeys}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     isLimitedToUSA={!shouldDisplayCountrySelector}
+                    onCountryChange={handleCountryChange}
                 />
             </View>
             <InputWrapper
@@ -117,7 +129,7 @@ function AddressFormFields({
                 <View style={[styles.mt3, styles.mhn5]}>
                     <InputWrapper
                         InputComponent={PushRowWithModal}
-                        optionsList={shouldDisplayCountrySelector && defaultValues?.country === CONST.COUNTRY.CA ? PROVINCES_LIST_OPTIONS : STATES_LIST_OPTIONS}
+                        optionsList={shouldDisplayCountrySelector && currentlySelectedCountry === CONST.COUNTRY.CA ? PROVINCES_LIST_OPTIONS : STATES_LIST_OPTIONS}
                         shouldSaveDraft={shouldSaveDraft}
                         description={stateSelectorLabel ?? translate('common.state')}
                         modalHeaderTitle={stateSelectorModalHeaderTitle ?? translate('common.state')}
@@ -155,7 +167,7 @@ function AddressFormFields({
                         modalHeaderTitle={translate('countryStep.selectCountry')}
                         searchInputTitle={translate('countryStep.findCountry')}
                         value={values?.country}
-                        onValueChange={onCountryChange}
+                        onValueChange={handleCountryChange}
                         stateInputIDToReset={inputKeys.state ?? 'stateInput'}
                     />
                 </View>

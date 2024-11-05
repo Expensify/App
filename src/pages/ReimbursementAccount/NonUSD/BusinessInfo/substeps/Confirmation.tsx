@@ -11,6 +11,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {annualVolumeRange, applicantType, natureOfBusiness} from '@pages/ReimbursementAccount/NonUSD/BusinessInfo/mockedCorpayLists';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -18,6 +19,7 @@ const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {
     COMPANY_NAME,
     BUSINESS_REGISTRATION_INCORPORATION_NUMBER,
+    COMPANY_COUNTRY,
     COMPANY_STREET,
     COMPANY_CITY,
     COMPANY_STATE,
@@ -32,6 +34,10 @@ const {
 
 const displayStringValue = (list: Array<{id: string; name: string; stringValue: string}>, matchingName: string) => {
     return list.find((item) => item.name === matchingName)?.stringValue ?? '';
+};
+
+const displayAddress = (street: string, city: string, state: string, zipCode: string, country: string): string => {
+    return country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA ? `${street}, ${city}, ${state}, ${zipCode}, ${country}` : `${street}, ${city}, ${zipCode}, ${country}`;
 };
 
 function Confirmation({onNext, onMove}: SubStepProps) {
@@ -73,7 +79,7 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                     />
                     <MenuItemWithTopDescription
                         description={translate('businessInfoStep.businessAddress')}
-                        title={`${values[COMPANY_STREET]}, ${values[COMPANY_CITY]}, ${values[COMPANY_STATE]}, ${values[COMPANY_ZIP_CODE]}`}
+                        title={displayAddress(values[COMPANY_STREET], values[COMPANY_CITY], values[COMPANY_STATE], values[COMPANY_ZIP_CODE], values[COMPANY_COUNTRY])}
                         shouldShowRightIcon
                         onPress={() => {
                             onMove(1);
