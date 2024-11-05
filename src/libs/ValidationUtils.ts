@@ -14,22 +14,26 @@ import * as LoginUtils from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
-/**
- * Implements the Luhn Algorithm, a checksum formula used to validate credit card
- * numbers.
- */
 function validateCardNumber(value: string): boolean {
     let sum = 0;
-    for (let i = 0; i < value.length; i++) {
-        let intVal = parseInt(value.substr(i, 1), 10);
-        if (i % 2 === 0) {
+    let shouldDouble = false;
+
+    // Loop through the card number from right to left
+    for (let i = value.length - 1; i >= 0; i--) {
+        let intVal = parseInt(value[i], 10);
+
+        // Double every second digit from the right
+        if (shouldDouble) {
             intVal *= 2;
             if (intVal > 9) {
-                intVal = 1 + (intVal % 10);
+                intVal -= 9; // Same as intVal = 1 + (intVal % 10)
             }
         }
+
         sum += intVal;
+        shouldDouble = !shouldDouble; // Toggle doubling for the next position
     }
+
     return sum % 10 === 0;
 }
 
