@@ -4,7 +4,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import ImageSize from 'react-native-image-size';
-import {interpolate, runOnUI, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
+import {interpolate, runOnUI, useSharedValue} from 'react-native-reanimated';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -143,12 +143,18 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     /**
      * Validates that value is within the provided mix/max range.
      */
-    const clamp = useWorkletCallback((value: number, [min, max]) => interpolate(value, [min, max], [min, max], 'clamp'), []);
+    const clamp = useCallback((value: number, [min, max]: [number, number]) => {
+        'worklet';
+
+        return interpolate(value, [min, max], [min, max], 'clamp');
+    }, []);
 
     /**
      * Returns current image size taking into account scale and rotation.
      */
-    const getDisplayedImageSize = useWorkletCallback(() => {
+    const getDisplayedImageSize = useCallback(() => {
+        'worklet';
+
         let height = imageContainerSize * scale.get();
         let width = imageContainerSize * scale.get();
 
@@ -161,13 +167,15 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         }
 
         return {height, width};
-    }, [imageContainerSize, scale]);
+    }, [imageContainerSize, originalImageHeight, originalImageWidth, scale]);
 
     /**
      * Validates the offset to prevent overflow, and updates the image offset.
      */
-    const updateImageOffset = useWorkletCallback(
+    const updateImageOffset = useCallback(
         (offsetX: number, offsetY: number) => {
+            'worklet';
+
             const {height, width} = getDisplayedImageSize();
             const maxOffsetX = (width - imageContainerSize) / 2;
             const maxOffsetY = (height - imageContainerSize) / 2;
@@ -176,13 +184,15 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             prevMaxOffsetX.set(maxOffsetX);
             prevMaxOffsetY.set(maxOffsetY);
         },
-        [imageContainerSize, scale, clamp],
+        [getDisplayedImageSize, imageContainerSize, translateX, clamp, translateY, prevMaxOffsetX, prevMaxOffsetY],
     );
 
-    const newScaleValue = useWorkletCallback((newSliderValue: number, containerSize: number) => {
+    const newScaleValue = useCallback((newSliderValue: number, containerSize: number) => {
+        'worklet';
+
         const {MAX_SCALE, MIN_SCALE} = CONST.AVATAR_CROP_MODAL;
         return (newSliderValue / containerSize) * (MAX_SCALE - MIN_SCALE) + MIN_SCALE;
-    });
+    }, []);
 
     /**
      * Calculates new x & y image translate value on image panning
