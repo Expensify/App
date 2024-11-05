@@ -4,7 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type LoadingBarProps = {
-    /** Whether to show the loading bar with fade out animation */
+    // Whether or not to show the loading bar
     shouldShow: boolean;
 };
 
@@ -56,7 +56,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
                 });
             });
         }
-        // we want to update only when shouldShow change
+        // we want to update only when shouldShow changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShow]);
 
