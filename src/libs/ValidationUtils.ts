@@ -507,8 +507,11 @@ function isValidEmail(email: string): boolean {
  * Validates the given value if it is correct phone number in E164 format (international standard).
  * @param phoneNumber
  */
-function isValidE164Phone(phoneNumber: string): boolean {
-    return Str.isValidE164Phone(phoneNumber);
+function isValidPhoneInternational(phoneNumber: string): boolean {
+    const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(phoneNumber);
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
+
+    return Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');
 }
 
 /**
@@ -564,6 +567,6 @@ export {
     isExistingTaxCode,
     isPublicDomain,
     isValidEmail,
-    isValidE164Phone,
+    isValidPhoneInternational,
     isValidZipCodeInternational,
 };
