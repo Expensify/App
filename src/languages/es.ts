@@ -451,6 +451,7 @@ const translations = {
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
         enabled: 'Habilitado',
+        disabled: 'Desactivada',
         ignore: 'Ignorar',
         import: 'Importar',
         offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
@@ -2871,6 +2872,18 @@ const translations = {
                         [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_BOTH]: 'Aprobado por supervisor y contabilidad',
                     },
                 },
+                accountingMethods: {
+                    label: 'Cuándo Exportar',
+                    description: 'Elige cuándo exportar los gastos:',
+                    values: {
+                        [CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL]: 'Devengo',
+                        [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Efectivo',
+                    },
+                    alternateText: {
+                        [CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL]: 'Los gastos personales se exportarán cuando sean aprobados definitivamente',
+                        [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Los gastos personales se exportarán cuando sean pagados',
+                    },
+                },
                 exportVendorBillsTo: {
                     label: 'Nivel de aprobación de facturas de proveedores',
                     description:
@@ -3834,6 +3847,7 @@ const translations = {
             exportDate: 'Fecha de exportación',
             defaultVendor: 'Proveedor predeterminado',
             autoSync: 'Autosincronización',
+            autoSyncDescription: 'Sincroniza NetSuite y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
             reimbursedReports: 'Sincronizar informes reembolsados',
             cardReconciliation: 'Conciliación de tarjetas',
             reconciliationAccount: 'Cuenta de conciliación',

@@ -461,6 +461,7 @@ const translations = {
         dropMessage: 'Drop your file here',
         ignore: 'Ignore',
         enabled: 'Enabled',
+        disabled: 'Disabled',
         import: 'Import',
         offlinePrompt: "You can't take this action right now.",
         outstanding: 'Outstanding',
@@ -2834,6 +2835,18 @@ const translations = {
                         [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_BOTH]: 'Supervisor and accounting approved',
                     },
                 },
+                accountingMethods: {
+                    label: 'When to Export',
+                    description: 'Choose when to export the expenses:',
+                    values: {
+                        [CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL]: 'Accrual',
+                        [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Cash',
+                    },
+                    alternateText: {
+                        [CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL]: 'Out of pocket expenses will export when final approved',
+                        [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Out of pocket expenses will export when paid',
+                    },
+                },
                 exportVendorBillsTo: {
                     label: 'Vendor bill approval level',
                     description: 'Once a vendor bill is approved in Expensify and exported to NetSuite, you can set an additional level of approval in NetSuite prior to posting.',
@@ -3829,6 +3842,7 @@ const translations = {
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
             autoSync: 'Auto-sync',
+            autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day. Export finalized report in realtime',
             reimbursedReports: 'Sync reimbursed reports',
             cardReconciliation: 'Card reconciliation',
             reconciliationAccount: 'Reconciliation account',

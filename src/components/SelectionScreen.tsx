@@ -159,6 +159,7 @@ function SelectionScreen<T = string>({
                         sectionListStyle={!!sections.length && [styles.flexGrow0]}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
+                        isAlternateTextMultilineSupported
                     >
                         <ErrorMessageRow
                             errors={errors}

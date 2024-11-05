@@ -31,7 +31,7 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
+type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'hintText'> & {subscribedSettings?: string[]};
 
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -40,7 +40,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const config = policy?.connections?.netsuite?.options.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
-
+    const accountingMehtod = policy?.connections?.netsuite?.options.config.accountingMehtod;
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
     const selectedReimbursementAccount = useMemo(
@@ -63,16 +63,14 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem | DividerLineItem> = [
         {
-            type: 'toggle',
-            title: translate('workspace.accounting.autoSync'),
-            subtitle: translate('workspace.netsuite.advancedConfig.autoSyncDescription'),
-            isActive: !!autoSyncConfig?.autoSync.enabled,
-            switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.autoSyncDescription'),
-            shouldPlaceSubtitleBelowSwitch: true,
-            onCloseError: () => Policy.clearNetSuiteAutoSyncErrorField(policyID),
-            onToggle: (isEnabled) => Connections.updateNetSuiteAutoSync(policyID, isEnabled),
-            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields),
-            errors: ErrorUtils.getLatestErrorField(autoSyncConfig, CONST.NETSUITE_CONFIG.AUTO_SYNC),
+            type: 'menuitem',
+            title: autoSyncConfig?.autoSync.enabled ? translate('common.enabled') : translate('common.disabled'),
+            description: translate('workspace.accounting.autoSync'),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID)),
+            hintText: (() => {
+                if (!autoSyncConfig?.autoSync.enabled) return undefined;
+                return translate(`workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMehtod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH}`);
+            })(),
         },
         {
             type: 'divider',
@@ -264,6 +262,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                                         shouldShowRightIcon
                                         onPress={item?.onPress}
                                         brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                        hintText={item.hintText}
                                     />
                                 </OfflineWithFeedback>
                             );

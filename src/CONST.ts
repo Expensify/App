@@ -1848,6 +1848,11 @@ const CONST = {
         NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
     },
 
+    NETSUITE_ACCOUNTING_METHODS: {
+        ACCRUAL: 'ACCRUAL',
+        CASH: 'CASH',
+    },
+
     NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES: {
         CUSTOM_LISTS: {
             CUSTOM_LIST_PICKER: 0,

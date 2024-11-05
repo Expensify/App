@@ -993,6 +993,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether this account is using the newer version of tax in NetSuite, SuiteTax */
         suiteTaxEnabled?: boolean;
 
+        /** The accounting Method for NetSuite conenction config */
+        accountingMehtod?: ValueOf<typeof CONST.NETSUITE_ACCOUNTING_METHODS>;
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 
