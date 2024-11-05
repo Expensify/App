@@ -310,13 +310,13 @@ const ROUTES = {
     },
     ATTACHMENTS: {
         route: 'attachment',
-        getRoute: (reportID: string, type: ValueOf<typeof CONST.ATTACHMENT_TYPE>, url: string, accountID?: number, isAuthTokenRequired?: boolean, imageHrefLink?: string) => {
+        getRoute: (reportID: string, type: ValueOf<typeof CONST.ATTACHMENT_TYPE>, url: string, accountID?: number, isAuthTokenRequired?: boolean, imageLink?: string) => {
             const reportParam = reportID ? `&reportID=${reportID}` : '';
             const accountParam = accountID ? `&accountID=${accountID}` : '';
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
-            const imageHrefLinkParam = imageHrefLink ? `&imageHrefLink=${imageHrefLink}` : '';
+            const imageLinkParam = imageLink ? `&imageLink=${imageLink}` : '';
 
-            return `attachment?source=${encodeURIComponent(url)}&type=${type}${reportParam}${accountParam}${authTokenParam}${imageHrefLinkParam}` as const;
+            return `attachment?source=${encodeURIComponent(url)}&type=${type}${reportParam}${accountParam}${authTokenParam}${imageLinkParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {

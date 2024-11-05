@@ -23,10 +23,11 @@ type HeaderProps = {
     /** Additional header container styles */
     containerStyles?: StyleProp<ViewStyle>;
 
-    imageHrefLink?: string;
+    /** The URL link associated with the attachment's subtitle, if available */
+    subTitleLink?: string;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false, imageHrefLink = ''}: HeaderProps) {
+function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = ''}: HeaderProps) {
     const styles = useThemeStyles();
     const renderedSubtitle = useMemo(
         () => (
@@ -47,15 +48,15 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
         [subtitle, styles],
     );
 
-    const renderedImageHrefLink = () => {
+    const renderedSubTitleLink = () => {
         return (
             <Text numberOfLines={1}>
                 <TextLink
                     onPress={() => {
-                        Linking.openURL(imageHrefLink);
+                        Linking.openURL(subTitleLink);
                     }}
                 >
-                    {imageHrefLink}
+                    {subTitleLink}
                 </TextLink>
             </Text>
         );
@@ -75,7 +76,7 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
                       )
                     : title}
                 {renderedSubtitle}
-                {imageHrefLink && renderedImageHrefLink()}
+                {subTitleLink && renderedSubTitleLink()}
             </View>
             {shouldShowEnvironmentBadge && <EnvironmentBadge />}
         </View>

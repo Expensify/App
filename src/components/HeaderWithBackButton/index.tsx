@@ -65,7 +65,7 @@ function HeaderWithBackButton({
     shouldDisplaySearchRouter = false,
     progressBarPercentage,
     style,
-    imageHrefLink = '',
+    subTitleLink = '',
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -109,12 +109,12 @@ function HeaderWithBackButton({
                 title={title}
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
                 textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH2]}
-                imageHrefLink={imageHrefLink}
+                subTitleLink={subTitleLink}
             />
         );
     }, [
         StyleUtils,
-        imageHrefLink,
+        subTitleLink,
         isCentralPaneSettings,
         policy,
         progressBarPercentage,
