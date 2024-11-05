@@ -2503,6 +2503,14 @@ const pickUserToInvite = ({canInviteUser, recentReports, personalDetails, search
 };
 
 /**
+ * Remove the personal details for the DMs that are already in the recent reports so that we don't show duplicates
+ */
+function filteredPersonalDetailsOfRecentReports(recentReports: ReportUtils.OptionData[], personalDetails: ReportUtils.OptionData[]) {
+    const excludedLogins = new Set(recentReports.map((report) => report.login));
+    return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
+}
+
+/**
  * Filters options based on the search input value
  */
 function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
@@ -2515,11 +2523,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         preferPolicyExpenseChat = false,
         preferRecentExpenseReports = false,
     } = config ?? {};
-    // Remove the personal details for the DMs that are already in the recent reports so that we don't show duplicates
-    function filteredPersonalDetailsOfRecentReports(recentReports: ReportUtils.OptionData[], personalDetails: ReportUtils.OptionData[]) {
-        const excludedLogins = new Set(recentReports.map((report) => report.login));
-        return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
-    }
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         const recentReports = options.recentReports.slice(0, maxRecentReportsToShow);
         const personalDetails = filteredPersonalDetailsOfRecentReports(recentReports, options.personalDetails);
@@ -2676,6 +2679,7 @@ export {
     getAlternateText,
     pickUserToInvite,
     hasReportErrors,
+    filteredPersonalDetailsOfRecentReports,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};

@@ -162,19 +162,24 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         const newOptions = findInSearchTree(debouncedInputValue);
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
-        const recentReports = newOptions.recentReports.concat(newOptions.personalDetails);
+        // See OptionListUtils.filterOptions#sortByReportTypeInSearch:
+        const filteredPersonalDetails = OptionsListUtils.filteredPersonalDetailsOfRecentReports(newOptions.recentReports, newOptions.personalDetails);
+        const recentReportsWithPersonalDetails = newOptions.recentReports.concat(filteredPersonalDetails);
+        const sortedReports = OptionsListUtils.orderOptions(recentReportsWithPersonalDetails, debouncedInputValue, {
+            preferChatroomsOverThreads: true,
+        });
 
         const userToInvite = OptionsListUtils.pickUserToInvite({
             canInviteUser: true,
-            recentReports: newOptions.recentReports,
-            personalDetails: newOptions.personalDetails,
+            recentReports: sortedReports,
+            personalDetails: filteredPersonalDetails,
             searchValue: debouncedInputValue,
             optionsToExclude: [{login: CONST.EMAIL.NOTIFICATIONS}],
         });
 
         return {
-            recentReports,
-            personalDetails: [],
+            recentReports: sortedReports,
+            personalDetails: filteredPersonalDetails,
             userToInvite,
         };
     }, [debouncedInputValue, findInSearchTree]);
