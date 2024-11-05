@@ -38,7 +38,6 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const {canUseP2PDistanceRequests} = usePermissions(iouType);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
@@ -91,7 +90,7 @@ function IOURequestStepParticipants({
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
             const firstParticipantReportID = val.at(0)?.reportID ?? '';
-            const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID, !canUseP2PDistanceRequests);
+            const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
 
@@ -108,7 +107,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = firstParticipantReportID || reportID;
         },
-        [iouType, reportID, transactionID, canUseP2PDistanceRequests],
+        [iouType, reportID, transactionID],
     );
 
     const goToNextStep = useCallback(() => {
@@ -154,7 +153,7 @@ function IOURequestStepParticipants({
             return;
         }
 
-        const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID, !canUseP2PDistanceRequests);
+        const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID);
         IOU.setCustomUnitRateID(transactionID, rateID);
         IOU.setMoneyRequestParticipantsFromReport(transactionID, ReportUtils.getReport(selfDMReportID));
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);

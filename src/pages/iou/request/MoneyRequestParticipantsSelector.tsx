@@ -79,7 +79,6 @@ function MoneyRequestParticipantsSelector({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
-    const {canUseP2PDistanceRequests} = usePermissions();
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -125,10 +124,8 @@ function MoneyRequestParticipantsSelector({
             // sees the option to submit an expense from their admin on their own Workspace Chat.
             includeOwnedWorkspaceChats: (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
 
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            includeP2P: (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            canInviteUser: (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
+            includeP2P: !isCategorizeOrShareAction,
+            canInviteUser: !isCategorizeOrShareAction,
             includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
             action,
             sortByReportTypeInSearch: isPaidGroupPolicy,
@@ -141,7 +138,6 @@ function MoneyRequestParticipantsSelector({
         action,
         areOptionsInitialized,
         betas,
-        canUseP2PDistanceRequests,
         didScreenTransitionEnd,
         iouRequestType,
         iouType,
@@ -168,7 +164,7 @@ function MoneyRequestParticipantsSelector({
 
         const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            canInviteUser: (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
+            canInviteUser: !isCategorizeOrShareAction,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -176,7 +172,7 @@ function MoneyRequestParticipantsSelector({
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, canUseP2PDistanceRequests, iouRequestType, isCategorizeOrShareAction, action]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, iouRequestType, isCategorizeOrShareAction, action]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -327,10 +323,7 @@ function MoneyRequestParticipantsSelector({
     const hasPolicyExpenseChatParticipant = participants.some((participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
 
-    // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
     const isAllowedToSplit =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
         ![CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE].some((option) => option === iouType) &&
         ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE].some((option) => option === action);
 
