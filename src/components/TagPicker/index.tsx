@@ -38,11 +38,13 @@ type TagPickerProps = {
     /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
 
+    shouldOrderListByTagName?: boolean;
+
     /** Indicates which tag list index was selected */
     tagListIndex: number;
 };
 
-function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShowDisabledAndSelectedOption = false, onSubmit}: TagPickerProps) {
+function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShowDisabledAndSelectedOption = false, shouldOrderListByTagName = false, onSubmit}: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const styles = useThemeStyles();
@@ -79,19 +81,24 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
         return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
-    const sections = useMemo(
-        () =>
-            OptionsListUtils.getFilteredOptions({
-                searchValue,
-                selectedOptions,
-                includeP2P: false,
-                includeTags: true,
-                tags: enabledTags,
-                recentlyUsedTags: policyRecentlyUsedTagsList,
-                canInviteUser: false,
-            }).tagOptions,
-        [searchValue, enabledTags, selectedOptions, policyRecentlyUsedTagsList],
-    );
+    const sections = useMemo(() => {
+        const options = OptionsListUtils.getFilteredOptions({
+            searchValue,
+            selectedOptions,
+            includeP2P: false,
+            includeTags: true,
+            tags: enabledTags,
+            recentlyUsedTags: policyRecentlyUsedTagsList,
+            canInviteUser: false,
+        }).tagOptions;
+
+        return shouldOrderListByTagName
+            ? options.map((option) => ({
+                  ...option,
+                  data: option.data.sort((a, b) => a.text?.localeCompare(b.text ?? '') ?? 0),
+              }))
+            : options;
+    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, shouldOrderListByTagName]);
 
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);
 

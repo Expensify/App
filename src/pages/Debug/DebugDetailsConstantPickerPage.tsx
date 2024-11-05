@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
 import ConstantPicker from './ConstantPicker';
+import DebugTagPicker from './DebugTagPicker';
 
 type DebugDetailsConstantPickerPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
 
@@ -55,12 +56,10 @@ function DebugDetailsConstantPickerPage({
             }
             if (fieldName === TRANSACTION_FORM_INPUT_IDS.TAG) {
                 return (
-                    <TagPicker
+                    <DebugTagPicker
                         policyID={policyID}
-                        selectedTag={fieldValue ?? ''}
-                        tagListName=""
+                        tagName={fieldValue}
                         onSubmit={onSubmit}
-                        tagListIndex={0}
                     />
                 );
             }

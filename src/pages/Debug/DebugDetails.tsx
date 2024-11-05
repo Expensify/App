@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {ObjectType, OnyxDataType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Debug from '@userActions/Debug';
 import type CONST from '@src/CONST';
@@ -53,6 +54,7 @@ function DebugDetails({formType, data, children, onSave, onDelete, validate}: De
     const [formDraftData] = useOnyx(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${(data as OnyxEntry<Transaction>)?.reportID ?? ''}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const booleanFields = useMemo(
         () =>
             Object.entries(data ?? {})
@@ -65,16 +67,13 @@ function DebugDetails({formType, data, children, onSave, onDelete, validate}: De
             Object.entries(data ?? {})
                 .filter((entry): entry is [string, string] => {
                     // Tag picker needs to be hidden when the policy has no tags available to pick
-                    if (
-                        entry[0] === TRANSACTION_FORM_INPUT_IDS.TAG &&
-                        !Object.values(policyTags ?? {}).some((policyTagList) => PolicyUtils.getCountOfEnabledTagsOfList(policyTagList.tags))
-                    ) {
+                    if (entry[0] === TRANSACTION_FORM_INPUT_IDS.TAG && !OptionsListUtils.hasEnabledTags(policyTagLists)) {
                         return false;
                     }
                     return DETAILS_CONSTANT_FIELDS[formType].some(({fieldName}) => fieldName === entry[0]);
                 })
                 .sort((a, b) => a[0].localeCompare(b[0])),
-        [data, formType, policyTags],
+        [data, formType, policyTagLists],
     );
     const numberFields = useMemo(
         () =>
