@@ -91,15 +91,21 @@ function CardTypeStep() {
     const {canUseDirectFeeds} = usePermissions();
     const [isError, setIsError] = useState(false);
     const data = getAvailableCompanyCardTypes({isAmexAvailable: !canUseDirectFeeds, translate, typeSelected, styles: styles.mr3});
+    const bankName = addNewCard?.data?.bankName;
+    const bank = addNewCard?.data?.selectedBank;
+    const type = addNewCard?.data?.feedType;
+    const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
 
     const submit = () => {
         if (!typeSelected) {
             setIsError(true);
         } else {
+            const isNewCardTypeSelected = typeSelected !== type;
             CompanyCards.setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
                 data: {
                     feedType: typeSelected,
+                    bankName: isNewCardTypeSelected && (!canUseDirectFeeds || isOtherBankSelected) ? '' : bankName,
                 },
                 isEditing: false,
             });
