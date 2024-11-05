@@ -321,9 +321,11 @@ function ReportActionItem({
     }, [latestDecision, action]);
 
     useEffect(() => {
-        if (action && popoverAnchorRef.current) {
-            parseFSAttributes();
+        const isCurrentChange = action && popoverAnchorRef.current;
+        if (!isCurrentChange) {
+            return
         }
+        parseFSAttributes();
     }, [action]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
