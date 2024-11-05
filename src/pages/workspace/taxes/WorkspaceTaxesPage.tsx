@@ -207,7 +207,7 @@ function WorkspaceTaxesPage({
         // `Disable rates` when at least one enabled rate is selected.
         if (selectedTaxesIDs.some((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled)) {
             options.push({
-                icon: Expensicons.DocumentSlash,
+                icon: Expensicons.Close,
                 text: isMultiple ? translate('workspace.taxes.actions.disableMultiple') : translate('workspace.taxes.actions.disable'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => toggleTaxes(false),
@@ -217,7 +217,7 @@ function WorkspaceTaxesPage({
         // `Enable rates` when at least one disabled rate is selected.
         if (selectedTaxesIDs.some((taxID) => policy?.taxRates?.taxes[taxID]?.isDisabled)) {
             options.push({
-                icon: Expensicons.Document,
+                icon: Expensicons.Checkmark,
                 text: isMultiple ? translate('workspace.taxes.actions.enableMultiple') : translate('workspace.taxes.actions.enable'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => toggleTaxes(true),
