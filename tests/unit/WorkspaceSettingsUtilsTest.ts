@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import {getBrickRoadForPolicy} from '@libs/WorkspacesSettingsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Report, ReportActions} from '@src/types/onyx';
+import {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -47,6 +48,21 @@ describe('WorkspacesSettingsUtils', () => {
                 description: '',
                 avatarUrl: '',
                 avatarFileName: '',
+            };
+
+            const MOCK_REPORTS: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}4286515777714555` as const]: report,
+                [`${ONYXKEYS.COLLECTION.REPORT}6955627196303088` as const]: {
+                    reportID: '6955627196303088',
+                    chatReportID: '1699789757771388',
+                    policyID: '57D0F454E0BCE54B',
+                    type: 'expense',
+                    ownerAccountID: 18634488,
+                    stateNum: 1,
+                    statusNum: 1,
+                    parentReportID: '1699789757771388',
+                    parentReportActionID: '7978085421707288417',
+                },
             };
 
             const actions: OnyxCollection<ReportActions> = {
@@ -540,8 +556,11 @@ describe('WorkspacesSettingsUtils', () => {
             };
 
             await Onyx.multiSet({
-                ...report,
+                ...MOCK_REPORTS,
                 ...actions,
+                [ONYXKEYS.SESSION]: {
+                    accountID: 18634488,
+                },
                 transactionViolations_3106135972713435169: [
                     {
                         name: 'missingCategory',
@@ -555,6 +574,8 @@ describe('WorkspacesSettingsUtils', () => {
                     },
                 ],
             });
+
+            await waitForBatchedUpdates();
 
             const result = getBrickRoadForPolicy(report, actions);
             expect(result).toBe('error');
