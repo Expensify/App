@@ -16,11 +16,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import openBankConnection from './openBankConnection';
+import Navigation from '@libs/Navigation/Navigation';
 
 let customWindow: Window | null = null;
 
 type BankConnectionStepProps = {
-    policyID?: string;
+    policyID: string;
 };
 
 function BankConnection({policyID}: BankConnectionStepProps) {
@@ -65,10 +66,11 @@ function BankConnection({policyID}: BankConnectionStepProps) {
         }
         if (isBankConnectionCompleteRoute) {
             customWindow?.close();
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
             return;
         }
         customWindow = openBankConnection(url);
-    }, [isBankConnectionCompleteRoute, url]);
+    }, [isBankConnectionCompleteRoute, policyID, url]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
