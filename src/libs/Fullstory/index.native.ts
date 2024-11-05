@@ -1,9 +1,10 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isConciergeChatReport, isExpensifyAndCustomerChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
-import type {OnyxInputOrEntry, Report, UserMetadata} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
 
 const MASK = 'fs-mask';
 const UNMASK = 'fs-unmask';
@@ -82,7 +83,7 @@ function parseFSAttributes(): void {
     in case data-test-id attribute usage,
     clean component name should be preserved in data-test-id.
 */
-function getFSAttributes(name: string, mask: bool, prefix: bool): string {
+function getFSAttributes(name: string, mask: boolean, prefix: boolean): string {
     // prefixed for Native apps should contain only component name
     if (prefix) {
         return name;
@@ -97,7 +98,7 @@ function getFSAttributes(name: string, mask: bool, prefix: bool): string {
     return fsAttrValue;
 }
 
-function getChatFSAttributes(name: string, report: OnyxInputOrEntry<Report>, prefix: bool): string {
+function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>, prefix: boolean): string {
     // prefixed for Native apps should contain only component name
     if (prefix) {
         return name;
@@ -112,7 +113,7 @@ function getChatFSAttributes(name: string, report: OnyxInputOrEntry<Report>, pre
         fs-unmask,fs-concierge-chatMessage
         */
         fsAttrValue = `${UNMASK}${componentName}`;
-    } else if (!!isExpensifyAndCustomerChat(report)) {
+    } else if (!!isExpensifyAndCustomerChat(context, report)) {
         componentName = name ? `,fs-${CUSTOMER}-${name}` : '';
         /*
         fs-mask,fs-customer-chatMessage

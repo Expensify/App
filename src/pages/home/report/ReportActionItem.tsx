@@ -322,7 +322,7 @@ function ReportActionItem({
 
     useEffect(() => {
         if (action && popoverAnchorRef.current) {
-            parseFSAttributes(popoverAnchorRef.current);
+            parseFSAttributes();
         }
     }, [action]);
 

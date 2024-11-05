@@ -1,9 +1,10 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isConciergeChatReport, isExpensifyAndCustomerChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
-import type {OnyxInputOrEntry, Report, UserMetadata} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
 import type NavigationProperties from './types';
 
 const WEB_PROP_ATTR = 'data-testid';
@@ -108,7 +109,7 @@ const FS = {
  */
 function parseFSAttributes(): void {
     window?.document?.querySelectorAll(`[${WEB_PROP_ATTR}]`).forEach((o) => {
-        let attr = o.getAttribute(WEB_PROP_ATTR);
+        let attr = o.getAttribute(WEB_PROP_ATTR) || '';
         if (/fs\-/gim.test(attr)) {
             let fsAttrs = attr.match(/fs-[a-zA-Z0-9_-]+/g) || [];
             o.setAttribute('fs-class', fsAttrs.join(','));
@@ -135,7 +136,7 @@ function parseFSAttributes(): void {
     in case data-test-id attribute usage,
     clean component name should be preserved in data-test-id.
 */
-function getFSAttributes(name: string, mask: bool, prefix: bool): string {
+function getFSAttributes(name: string, mask: boolean, prefix: boolean): string {
     const componentPrefix = prefix ? `${name},` : '';
     const componentSuffix = name ? `,fs-${name}` : '';
     const fsAttrValue = `${componentPrefix}${mask ? MASK : UNMASK}${componentSuffix}`;
@@ -146,7 +147,7 @@ function getFSAttributes(name: string, mask: bool, prefix: bool): string {
     return fsAttrValue;
 }
 
-function getChatFSAttributes(name: string, report: OnyxInputOrEntry<Report>, prefix: bool): string {
+function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>, prefix: boolean): string {
     let componentPrefix = prefix ? `${name},` : '';
     let componentSuffix = name ? `,fs-${name}` : '';
     let fsAttrValue = '';
@@ -158,7 +159,7 @@ function getChatFSAttributes(name: string, report: OnyxInputOrEntry<Report>, pre
         concierge-chatMessage,fs-unmask,fs-chatMessage
         */
         fsAttrValue = `${componentPrefix}${UNMASK}${componentSuffix}`;
-    } else if (!!isExpensifyAndCustomerChat(report)) {
+    } else if (!!isExpensifyAndCustomerChat(context, report)) {
         componentPrefix = prefix ? `${CUSTOMER}-${name},` : '';
         componentSuffix = name ? `,fs-${name}` : '';
         /*

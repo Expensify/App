@@ -3,7 +3,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 // eslint-disable-next-line lodash/import-scope
 import type {DebouncedFunc} from 'lodash';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -28,6 +28,7 @@ import Visibility from '@libs/Visibility';
 import type {AuthScreensParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
+import {PersonalDetailsContext} from '@src/components/OnyxProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -166,6 +167,7 @@ function ReportActionsList({
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const participantsContext = useContext(PersonalDetailsContext);
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
@@ -718,8 +720,8 @@ function ReportActionsList({
             />
             <View
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
-                fsClass={getChatFSAttributes('ReportActionsList', report, false)}
-                testID={getChatFSAttributes('ReportActionsList', report, true)}
+                fsClass={getChatFSAttributes(participantsContext, 'ReportActionsList', report, false)}
+                testID={getChatFSAttributes(participantsContext, 'ReportActionsList', report, true)}
             >
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}

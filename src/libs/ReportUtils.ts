@@ -18,7 +18,6 @@ import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} fr
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
-import {PersonalDetailsContext} from '@src/components/OnyxProvider';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -8409,7 +8408,7 @@ function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && report?.hasParentAccess === false;
 }
 
-function isExpensifyAndCustomerChat(report: OnyxInputOrEntry<Report>): boolean {
+function isExpensifyAndCustomerChat(participantsContext: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>): boolean {
     if (!report?.participants || isThread(report)) {
         return false;
     }
@@ -8418,30 +8417,31 @@ function isExpensifyAndCustomerChat(report: OnyxInputOrEntry<Report>): boolean {
     if (participantAccountIDs.size !== 2) {
         return false;
     }
+    if (!!participantsContext) {
+        // by email participants
+        const baseRegexp = new RegExp(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN + '$');
+        const teamRegexp = new RegExp(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN + '$');
 
-    // by email participants
-    const baseRegexp = new RegExp(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN + '$');
-    const teamRegexp = new RegExp(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN + '$');
-    const participantsContext = useContext(PersonalDetailsContext);
-
-    for (const participantAccountID of participantAccountIDs) {
-        let id = Number(participantAccountID);
-        let contextAccountData = participantsContext[id];
-        if (!contextAccountData) {
-            continue;
-        }
-        if (baseRegexp.test(contextAccountData.login)) {
-            return true;
-        }
-        if (teamRegexp.test(contextAccountData.login)) {
-            return true;
+        for (const participantAccountID of participantAccountIDs) {
+            let id = Number(participantAccountID);
+            let contextAccountData = participantsContext[id];
+            if (!contextAccountData) {
+                continue;
+            }
+            let login = contextAccountData.login || '';
+            if (baseRegexp.test(login)) {
+                return true;
+            }
+            if (teamRegexp.test(login)) {
+                return true;
+            }
         }
     }
 
     // System users communication
     const expensifyTeam = new Set(Object.values(CONST.ACCOUNT_ID));
-    const expensifyTeamParticipants = expensifyTeam.intersection(participantAccountIDs);
-    if (expensifyTeamParticipants.size > 0) {
+    const hasIntersection = [...participantAccountIDs].some((id) => expensifyTeam.has(Number(id)));
+    if (hasIntersection) {
         return true;
     }
 
