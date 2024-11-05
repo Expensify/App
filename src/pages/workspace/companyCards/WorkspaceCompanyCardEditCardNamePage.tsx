@@ -10,6 +10,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
@@ -39,8 +40,14 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
         Navigation.goBack();
     };
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> =>
-        ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
+        const length = values.name.length;
+        if (length > CONST.STANDARD_LENGTH_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+        }
+        return errors;
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -72,7 +79,6 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
                         aria-label={translate('workspace.moreFeatures.companyCards.cardName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={defaultValue}
-                        maxLength={CONST.EXPENSIFY_CARD.CARD_TITLE_INPUT_LIMIT}
                         ref={inputCallbackRef}
                     />
                 </FormProvider>
