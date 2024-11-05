@@ -190,7 +190,6 @@ function IOURequestStepParticipants({
                 onFinish={goToNextStep}
                 onTrackExpensePress={trackExpense}
                 iouType={iouType}
-                iouRequestType={iouRequestType}
                 action={action}
                 shouldDisplayTrackExpenseButton={shouldDisplayTrackExpenseButton}
             />

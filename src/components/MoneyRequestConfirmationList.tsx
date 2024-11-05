@@ -897,7 +897,6 @@ function MoneyRequestConfirmationList({
             isEditingSplitBill={isEditingSplitBill}
             isMerchantEmpty={isMerchantEmpty}
             isMerchantRequired={isMerchantRequired}
-            isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
             isPolicyExpenseChat={isPolicyExpenseChat}
             isReadOnly={isReadOnly}
             isTypeInvoice={isTypeInvoice}
