@@ -163,14 +163,14 @@ describe('NetworkTests', () => {
                     jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                 }),
             )
-            // // Call Authenticate
+            // Call Authenticate
             .mockImplementationOnce(() =>
                 Promise.resolve({
                     jsonCode: CONST.JSON_CODE.SUCCESS,
                     authToken: 'newAuthToken',
                 }),
             )
-            // // Call ReconnectApp again, it should connect with a new token
+            // Call ReconnectApp again, it should connect with a new token
             .mockImplementationOnce(() =>
                 Promise.resolve({
                     jsonCode: CONST.JSON_CODE.SUCCESS,
