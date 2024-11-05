@@ -24,6 +24,13 @@ type SelectedTransactionInfo = {
 /** Model of selected results */
 type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
+/** Model of payment data used by Search bulk actions */
+type PaymentData = {
+    reportID: string;
+    amount: number;
+    paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+};
+
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
@@ -114,4 +121,5 @@ export type {
     ChatSearchStatus,
     SearchAutocompleteResult,
     AutocompleteRange,
+    PaymentData,
 };
