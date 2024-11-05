@@ -16,9 +16,6 @@ type SearchRouterInputProps = {
     /** Value of TextInput */
     value: string;
 
-    /** Setter to TextInput value */
-    setValue: (searchTerm: string) => void;
-
     /** Callback to update search in SearchRouter */
     updateSearch: (searchTerm: string) => void;
 
@@ -58,7 +55,6 @@ type SearchRouterInputProps = {
 
 function SearchRouterInput({
     value,
-    setValue,
     updateSearch,
     onSubmit = () => {},
     routerListRef,
@@ -78,11 +74,6 @@ function SearchRouterInput({
     const {isOffline} = useNetwork();
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const onChangeText = (text: string) => {
-        setValue(text);
-        updateSearch(text);
-    };
-
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
     return (
@@ -92,7 +83,7 @@ function SearchRouterInput({
                     <TextInput
                         testID="search-router-text-input"
                         value={value}
-                        onChangeText={onChangeText}
+                        onChangeText={updateSearch}
                         autoFocus={autoFocus}
                         shouldDelayFocus={shouldDelayFocus}
                         loadingSpinnerStyle={[styles.mt0, styles.mr2]}
@@ -119,7 +110,7 @@ function SearchRouterInput({
                         isLoading={!!isSearchingForReports}
                     />
                 </View>
-                {rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
+                {!!rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
             </View>
             <FormHelpMessage
                 style={styles.ph3}

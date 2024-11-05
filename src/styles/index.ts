@@ -1798,6 +1798,13 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        popoverIconCircle: {
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: variables.buttonBorderRadius,
+            height: variables.h40,
+            width: variables.w46,
+        },
+
         rightLabelMenuItem: {
             fontSize: variables.fontSizeLabel,
             color: theme.textSupporting,
@@ -3006,6 +3013,13 @@ const styles = (theme: ThemeColors) =>
             flexGrow: 1,
             ...spacing.mh5,
             ...spacing.mv3,
+        },
+
+        sectionDividerLine: {
+            height: 1,
+            backgroundColor: theme.border,
+            ...spacing.mh5,
+            ...spacing.mv6,
         },
 
         unreadIndicatorText: {
@@ -5262,6 +5276,11 @@ const styles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        integrationIcon: {
+            overflow: 'hidden',
+            borderRadius: variables.buttonBorderRadius,
         },
 
         colorGreenSuccess: {
