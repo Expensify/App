@@ -53,7 +53,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
