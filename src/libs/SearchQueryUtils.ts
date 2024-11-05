@@ -569,7 +569,9 @@ function buildUserReadableQueryString(
                 })
                 .flat();
 
-            displayQueryFilters = taxRateNames.map((taxRate) => ({
+            const uniqueTaxRateNames = [...new Set(taxRateNames)];
+
+            displayQueryFilters = uniqueTaxRateNames.map((taxRate) => ({
                 operator: queryFilter.at(0)?.operator ?? CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 value: taxRate,
             }));
