@@ -157,14 +157,14 @@ function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: stri
     let componentSuffix = name ? `,fs-${name}` : '';
     let fsAttrValue = '';
 
-    if (!!isConciergeChatReport(report)) {
+    if (isConciergeChatReport(report)) {
         componentPrefix = prefix ? `${CONCIERGE}-${name},` : '';
         componentSuffix = name ? `,fs-${name}` : '';
         /*
         concierge-chatMessage,fs-unmask,fs-chatMessage
         */
         fsAttrValue = `${componentPrefix}${UNMASK}${componentSuffix}`;
-    } else if (!!isExpensifyAndCustomerChat(context, report)) {
+    } else if (isExpensifyAndCustomerChat(context, report)) {
         componentPrefix = prefix ? `${CUSTOMER}-${name},` : '';
         componentSuffix = name ? `,fs-${name}` : '';
         /*
