@@ -1,10 +1,10 @@
 import {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 import {getBrickRoadForPolicy} from '@libs/WorkspacesSettingsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Report, ReportActions} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('WorkspacesSettingsUtils', () => {
     beforeAll(() => {
