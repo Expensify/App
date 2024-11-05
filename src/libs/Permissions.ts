@@ -2,7 +2,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
-import * as Environment from './Environment/Environment';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
@@ -37,14 +36,6 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
-function canUseNewDotCopilot(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEW_DOT_COPILOT) || canUseAllBetas(betas);
-}
-
-function canUseWorkspaceRules(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.WORKSPACE_RULES) || canUseAllBetas(betas);
-}
-
 function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
 }
@@ -54,19 +45,8 @@ function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.COMBINED_TRACK_SUBMIT);
 }
 
-function canUseNewDotQBD(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEW_DOT_QBD) || canUseAllBetas(betas);
-}
-
-/**
- * New Search Router is under construction and for now should be displayed only in dev to allow developers to work on it.
- * We are not using BETA for this feature, as betas are heavier to cleanup,
- * and the development of new router is expected to take 2-3 weeks at most
- *
- * After everything is implemented this function can be removed, as we will always use SearchRouter in the App.
- */
-function canUseNewSearchRouter() {
-    return Environment.isDevelopment();
+function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.PER_DIEM) || canUseAllBetas(betas);
 }
 
 /**
@@ -85,10 +65,7 @@ export default {
     canUseCompanyCardFeeds,
     canUseDirectFeeds,
     canUseNetSuiteUSATax,
-    canUseNewDotCopilot,
-    canUseWorkspaceRules,
     canUseCombinedTrackSubmit,
-    canUseNewSearchRouter,
     canUseCategoryAndTagApprovers,
-    canUseNewDotQBD,
+    canUsePerDiem,
 };

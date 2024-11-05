@@ -1,9 +1,11 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import LoadingBar from '@components/LoadingBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import * as Browser from '@libs/Browser';
@@ -27,7 +29,10 @@ function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
+
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -43,6 +48,8 @@ function BaseSidebarScreen() {
         updateLastAccessedWorkspace(undefined);
     }, [activeWorkspace, activeWorkspaceID]);
 
+    const shouldDisplaySearch = shouldUseNarrowLayout;
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -56,7 +63,9 @@ function BaseSidebarScreen() {
                     <TopBar
                         breadcrumbLabel={translate('common.inbox')}
                         activeWorkspaceID={activeWorkspaceID}
+                        shouldDisplaySearch={shouldDisplaySearch}
                     />
+                    <LoadingBar shouldShow={isLoadingReportData ?? false} />
                     <View style={[styles.flex1]}>
                         <SidebarLinksData
                             onLinkClick={startTimer}

@@ -49,7 +49,11 @@ function connect(email: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegators: delegatedAccess.delegators.map((delegator) => (delegator.email === email ? {...delegator, errorFields: {connect: null}} : delegator)),
+                    errorFields: {
+                        connect: {
+                            [email]: null,
+                        },
+                    },
                 },
             },
         },
@@ -61,7 +65,11 @@ function connect(email: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegators: delegatedAccess.delegators.map((delegator) => (delegator.email === email ? {...delegator, errorFields: undefined} : delegator)),
+                    errorFields: {
+                        connect: {
+                            [email]: null,
+                        },
+                    },
                 },
             },
         },
@@ -73,9 +81,11 @@ function connect(email: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegators: delegatedAccess.delegators.map((delegator) =>
-                        delegator.email === email ? {...delegator, errorFields: {connect: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError')}} : delegator,
-                    ),
+                    errorFields: {
+                        connect: {
+                            [email]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
+                        },
+                    },
                 },
             },
         },
@@ -116,7 +126,7 @@ function disconnect() {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    errorFields: {connect: null},
+                    errorFields: {disconnect: null},
                 },
             },
         },
@@ -140,7 +150,7 @@ function disconnect() {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    errorFields: {connect: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError')},
+                    errorFields: {disconnect: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError')},
                 },
             },
         },
@@ -196,7 +206,6 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                         : {
                               ...delegate,
                               isLoading: true,
-                              errorFields: {addDelegate: null},
                               pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                               pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                           },
@@ -210,7 +219,6 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                 email,
                 role,
                 isLoading: true,
-                errorFields: {addDelegate: null},
                 pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
@@ -224,7 +232,13 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
             value: {
                 delegatedAccess: {
                     delegates: optimisticDelegateData(),
+                    errorFields: {
+                        addDelegate: {
+                            [email]: null,
+                        },
+                    },
                 },
+                isLoading: true,
             },
         },
     ];
@@ -238,7 +252,6 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                         : {
                               ...delegate,
                               isLoading: false,
-                              errorFields: {addDelegate: null},
                               pendingAction: null,
                               pendingFields: {email: null, role: null},
                               optimisticAccountID: undefined,
@@ -252,7 +265,6 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
             {
                 email,
                 role,
-                errorFields: {addDelegate: null},
                 isLoading: false,
                 pendingAction: null,
                 pendingFields: {email: null, role: null},
@@ -268,7 +280,13 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
             value: {
                 delegatedAccess: {
                     delegates: successDelegateData(),
+                    errorFields: {
+                        addDelegate: {
+                            [email]: null,
+                        },
+                    },
                 },
+                isLoading: false,
             },
         },
     ];
@@ -282,7 +300,6 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                         : {
                               ...delegate,
                               isLoading: false,
-                              errorFields: {addDelegate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin')},
                           },
                 ) ?? []
             );
@@ -293,9 +310,6 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
             {
                 email,
                 role,
-                errorFields: {
-                    addDelegate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
-                },
                 isLoading: false,
                 pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -311,6 +325,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                 delegatedAccess: {
                     delegates: failureDelegateData(),
                 },
+                isLoading: false,
             },
         },
     ];
@@ -331,11 +346,15 @@ function removeDelegate(email: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
+                    errorFields: {
+                        removeDelegate: {
+                            [email]: null,
+                        },
+                    },
                     delegates: delegatedAccess.delegates?.map((delegate) =>
                         delegate.email === email
                             ? {
                                   ...delegate,
-                                  errorFields: {removeDelegate: null},
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                                   pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
                               }
@@ -364,13 +383,15 @@ function removeDelegate(email: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
+                    errorFields: {
+                        removeDelegate: {
+                            [email]: null,
+                        },
+                    },
                     delegates: delegatedAccess.delegates?.map((delegate) =>
                         delegate.email === email
                             ? {
                                   ...delegate,
-                                  errorFields: {
-                                      removeDelegate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
-                                  },
                                   pendingAction: null,
                                   pendingFields: undefined,
                               }
@@ -386,14 +407,18 @@ function removeDelegate(email: string) {
     API.write(WRITE_COMMANDS.REMOVE_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
-function clearAddDelegateErrors(email: string, fieldName: string) {
+function clearDelegateErrorsByField(email: string, fieldName: string) {
     if (!delegatedAccess?.delegates) {
         return;
     }
 
     Onyx.merge(ONYXKEYS.ACCOUNT, {
         delegatedAccess: {
-            delegates: delegatedAccess.delegates.map((delegate) => (delegate.email !== email ? delegate : {...delegate, errorFields: {...delegate.errorFields, [fieldName]: null}})),
+            errorFields: {
+                [fieldName]: {
+                    [email]: null,
+                },
+            },
         },
     });
 }
@@ -425,12 +450,16 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
+                    errorFields: {
+                        updateDelegateRole: {
+                            [email]: null,
+                        },
+                    },
                     delegates: delegatedAccess.delegates.map((delegate) =>
                         delegate.email === email
                             ? {
                                   ...delegate,
                                   role,
-                                  errorFields: {updateDelegateRole: null},
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                                   isLoading: true,
@@ -448,12 +477,16 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
+                    errorFields: {
+                        updateDelegateRole: {
+                            [email]: null,
+                        },
+                    },
                     delegates: delegatedAccess.delegates.map((delegate) =>
                         delegate.email === email
                             ? {
                                   ...delegate,
                                   role,
-                                  errorFields: {updateDelegateRole: null},
                                   pendingAction: null,
                                   pendingFields: {role: null},
                                   isLoading: false,
@@ -475,9 +508,6 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                         delegate.email === email
                             ? {
                                   ...delegate,
-                                  errorFields: {
-                                      updateDelegateRole: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
-                                  },
                                   isLoading: false,
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -505,12 +535,16 @@ function updateDelegateRoleOptimistically(email: string, role: DelegateRole) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
+                    errorFields: {
+                        updateDelegateRole: {
+                            [email]: null,
+                        },
+                    },
                     delegates: delegatedAccess.delegates.map((delegate) =>
                         delegate.email === email
                             ? {
                                   ...delegate,
                                   role,
-                                  errorFields: {updateDelegateRole: null},
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                               }
@@ -571,7 +605,7 @@ export {
     clearDelegatorErrors,
     addDelegate,
     requestValidationCode,
-    clearAddDelegateErrors,
+    clearDelegateErrorsByField,
     removePendingDelegate,
     restoreDelegateSession,
     isConnectedAsDelegate,
