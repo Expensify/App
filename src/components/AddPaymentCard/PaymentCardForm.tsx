@@ -177,10 +177,10 @@ function PaymentCardForm({
     };
 
     const onChangeCardNumber = useCallback((newValue: string) => {
-        // replace all characters that are not spaces or digits
+        // Replace all characters that are not spaces or digits
         let validCardNumber = newValue.replace(/[^\d ]/g, '');
 
-        // gets only the first 16 digits if the inputted number have more digits than that
+        // Gets only the first 16 digits if the inputted number have more digits than that
         validCardNumber = validCardNumber.match(/(?:\d *){1,16}/)?.[0] ?? '';
 
         // Remove all spaces to simplify formatting
