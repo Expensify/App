@@ -198,11 +198,6 @@ function MoneyRequestConfirmationList({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canUseP2PDistanceRequests} = usePermissions(iouType);
     const isKeyboardShown = useIsKeyboardShown();
-    const isFirstRenderRef = useRef(true);
-
-    useEffect(() => {
-        isFirstRenderRef.current = false;
-    }, []);
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -814,7 +809,7 @@ function MoneyRequestConfirmationList({
     );
 
     const footerContent = useMemo(() => {
-        if (isReadOnly || isKeyboardShown || isFirstRenderRef.current) {
+        if (isReadOnly || isKeyboardShown) {
             return;
         }
 
