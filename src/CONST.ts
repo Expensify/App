@@ -264,6 +264,7 @@ type OnboardingTaskType = {
                   workspaceMembersLink: string;
                   integrationName: string;
                   workspaceAccountingLink: string;
+                  workspaceSettingsLink: string;
               }>,
           ) => string);
 };
@@ -4895,10 +4896,10 @@ const CONST = {
                     type: 'setupCategoriesAndTags',
                     autoCompleted: false,
                     title: 'Set up categories and tags',
-                    description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
+                    description: ({workspaceSettingsLink, workspaceAccountingLink}) =>
                         '*Set up categories and tags* so your team can code expenses for easy reporting.\n' +
                         '\n' +
-                        `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceCategoriesLink}).`,
+                        `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceSettingsLink}).`,
                 },
                 {
                     type: 'setupCategories',
