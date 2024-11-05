@@ -5,16 +5,16 @@ import log from 'electron-log';
 import type {ElectronLog} from 'electron-log';
 import {autoUpdater} from 'electron-updater';
 import {machineId} from 'node-machine-id';
+import checkForUpdates from '@libs/checkForUpdates';
+import * as Localize from '@libs/Localize';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
+import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
-import CONFIG from './src/CONFIG';
-import CONST from './src/CONST';
-import type {TranslationPaths} from './src/languages/types';
-import checkForUpdates from './src/libs/checkForUpdates';
-import * as Localize from './src/libs/Localize';
-import type PlatformSpecificUpdater from './src/setup/platformSetup/types';
-import type {Locale} from './src/types/onyx';
 
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
