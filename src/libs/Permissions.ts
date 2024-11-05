@@ -37,10 +37,6 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
-function canUseNewDotCopilot(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEW_DOT_COPILOT) || canUseAllBetas(betas);
-}
-
 function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
 }
@@ -70,7 +66,6 @@ export default {
     canUseCompanyCardFeeds,
     canUseDirectFeeds,
     canUseNetSuiteUSATax,
-    canUseNewDotCopilot,
     canUseCombinedTrackSubmit,
     canUseCategoryAndTagApprovers,
     canUsePerDiem,
