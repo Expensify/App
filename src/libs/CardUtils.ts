@@ -249,7 +249,7 @@ function getCardFeedName(feedType: CompanyCardFeed): string {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: 'Brex',
     };
 
-    return `${feedNamesMapping[feedType]} cards`;
+    return feedNamesMapping[feedType] ? `${feedNamesMapping[feedType]} cards` : '';
 }
 
 const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>): IconAsset => {
