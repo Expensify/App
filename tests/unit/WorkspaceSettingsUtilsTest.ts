@@ -34,12 +34,6 @@ describe('WorkspacesSettingsUtils', () => {
                 ownerAccountID: 0,
                 parentReportActionID: '8722650843049927838',
                 parentReportID: '6955627196303088',
-                participants: {
-                    '18634488': {
-                        notificationPreference: 'hidden',
-                        role: 'admin',
-                    },
-                },
                 policyID: '57D0F454E0BCE54B',
                 reportID: '4286515777714555',
                 reportName: 'Expense',
@@ -67,6 +61,7 @@ describe('WorkspacesSettingsUtils', () => {
 
             const actions: OnyxCollection<ReportActions> = {
                 reportActions_1699789757771388: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '4007735288062946397': {
                         reportActionID: '4007735288062946397',
                         actionName: 'CREATED',
@@ -98,6 +93,7 @@ describe('WorkspacesSettingsUtils', () => {
                         sequenceNumber: 0,
                         lastModified: '2024-11-05 11:10:47.852',
                     },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '7978085421707288417': {
                         reportActionID: '7978085421707288417',
                         reportID: '1699789757771388',
@@ -151,6 +147,7 @@ describe('WorkspacesSettingsUtils', () => {
                     },
                 },
                 reportActions_4148694821839494: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '2964625714811661556': {
                         reportActionID: '2964625714811661556',
                         actionName: 'CREATED',
@@ -179,6 +176,7 @@ describe('WorkspacesSettingsUtils', () => {
                         created: '2024-11-05 11:10:47.077',
                         shouldShow: true,
                     },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '5971844472086652538': {
                         actionName: 'ADDCOMMENT',
                         actorAccountID: 10288574,
@@ -206,6 +204,7 @@ describe('WorkspacesSettingsUtils', () => {
                     },
                 },
                 reportActions_4625283659773773: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '7132923952865070123': {
                         actionName: 'ADDCOMMENT',
                         actorAccountID: 8392101,
@@ -238,6 +237,7 @@ describe('WorkspacesSettingsUtils', () => {
                         automatic: false,
                         whisperedToAccountIDs: [],
                     },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '5686837203726341682': {
                         reportActionID: '5686837203726341682',
                         actionName: 'CREATED',
@@ -268,6 +268,7 @@ describe('WorkspacesSettingsUtils', () => {
                         shouldShow: true,
                         lastModified: '2024-11-05 11:10:38.688',
                     },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '536505040772198026': {
                         reportActionID: '536505040772198026',
                         actionName: 'ADDCOMMENT',
@@ -297,6 +298,7 @@ describe('WorkspacesSettingsUtils', () => {
                         isOptimisticAction: true,
                         lastModified: '2024-11-05 11:10:43.943',
                     },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '5286007009323266706': {
                         reportActionID: '5286007009323266706',
                         actionName: 'ADDCOMMENT',
@@ -326,6 +328,7 @@ describe('WorkspacesSettingsUtils', () => {
                         isOptimisticAction: true,
                         lastModified: '2024-11-05 11:10:43.944',
                     },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '4422060638727390382': {
                         actionName: 'ADDCOMMENT',
                         actorAccountID: 8392101,
@@ -351,6 +354,7 @@ describe('WorkspacesSettingsUtils', () => {
                         reportActionID: '4422060638727390382',
                         shouldShow: true,
                     },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '2824688328360312239': {
                         actionName: 'ADDCOMMENT',
                         actorAccountID: 8392101,
@@ -378,6 +382,7 @@ describe('WorkspacesSettingsUtils', () => {
                     },
                 },
                 reportActions_6955627196303088: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1493209744740418100': {
                         reportActionID: '1493209744740418100',
                         actionName: 'CREATED',
@@ -406,6 +411,7 @@ describe('WorkspacesSettingsUtils', () => {
                         created: '2024-11-05 11:19:18.285',
                         shouldShow: true,
                     },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '8722650843049927838': {
                         actionName: 'IOU',
                         actorAccountID: 18634488,
@@ -449,6 +455,7 @@ describe('WorkspacesSettingsUtils', () => {
                         timestamp: 1730805558,
                         whisperedToAccountIDs: [],
                     },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1783566081350093529': {
                         actionName: 'IOU',
                         actorAccountID: 18634488,
@@ -494,6 +501,7 @@ describe('WorkspacesSettingsUtils', () => {
                     },
                 },
                 reportActions_4286515777714555: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1995312838979534584': {
                         reportActionID: '1995312838979534584',
                         actionName: 'CREATED',
@@ -524,6 +532,7 @@ describe('WorkspacesSettingsUtils', () => {
                     },
                 },
                 reportActions_7900715127836904: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '3536855248086336861': {
                         reportActionID: '3536855248086336861',
                         actionName: 'CREATED',
