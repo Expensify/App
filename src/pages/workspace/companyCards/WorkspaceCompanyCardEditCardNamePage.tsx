@@ -6,6 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
@@ -63,6 +64,7 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
                     title={translate('workspace.moreFeatures.companyCards.cardName')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank))}
                 />
+                <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM}
                     submitButtonText={translate('common.save')}
@@ -75,7 +77,6 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.NAME}
                         label={translate('workspace.moreFeatures.companyCards.cardName')}
-                        hint={translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}
                         aria-label={translate('workspace.moreFeatures.companyCards.cardName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={defaultValue}
