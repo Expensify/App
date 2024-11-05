@@ -62,3 +62,5 @@ In person, please notify Concierge with your lounge location, and they’ll esca
 
 ## Where are other Expensify Lounge locations? 
 Currently, we only have the San Francisco Lounge, but stay tuned for more locations coming soon! 
+{% include faq-end.md %}
+
