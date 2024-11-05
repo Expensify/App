@@ -1,7 +1,8 @@
 import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setColumnName} from '@libs/actions/ImportSpreadsheet';
@@ -165,13 +166,12 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
     const defaultSelectedIndex = columnRoles.findIndex((item) => item.value === colName);
     const finalIndex = defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0;
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (defaultSelectedIndex === -1) {
             return;
         }
         setColumnName(columnIndex, colName);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, []);
+    });
 
     const columnHeader = containsHeader ? column.at(0) : translate('spreadsheet.column', {name: columnName});
 

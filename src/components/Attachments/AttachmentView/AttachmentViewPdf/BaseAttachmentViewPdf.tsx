@@ -1,7 +1,8 @@
-import React, {memo, useCallback, useContext, useEffect} from 'react';
+import React, {memo, useCallback, useContext} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import PDFView from '@components/PDFView';
+import useEffectOnce from '@hooks/useEffectOnce';
 import type AttachmentViewPdfProps from './types';
 
 function BaseAttachmentViewPdf({
@@ -19,13 +20,12 @@ function BaseAttachmentViewPdf({
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const isScrollEnabled = attachmentCarouselPagerContext === null ? undefined : attachmentCarouselPagerContext.isScrollEnabled;
 
-    useEffect(() => {
+    useEffectOnce(() => {
         if (!attachmentCarouselPagerContext) {
             return;
         }
         attachmentCarouselPagerContext.onScaleChanged(1);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
-    }, []);
+    });
 
     /**
      * When the PDF's onScaleChanged event is triggered, we must call the context's onScaleChanged callback,

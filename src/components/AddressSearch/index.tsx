@@ -315,7 +315,6 @@ function AddressSearch(
         </>
     );
 
-    // eslint-disable-next-line arrow-body-style
     useEffect(() => {
         return () => {
             // If the component unmounts we don't want any of the callback for geolocation to run.

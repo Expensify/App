@@ -1,6 +1,6 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -95,7 +95,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         selector: hasCompletedGuidedSetupFlowSelector,
     });
 
-    const initialState = useMemo(() => {
+    const [initialState] = useState(() => {
         if (!user || user.isFromPublicDomain) {
             return;
         }
@@ -123,10 +123,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         // Otherwise we want to redirect the user to the last visited path.
         const {adaptedState} = getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
         return adaptedState;
-
-        // The initialState value is relevant only on the first render.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(

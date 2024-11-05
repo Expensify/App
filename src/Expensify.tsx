@@ -15,6 +15,7 @@ import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
 import * as CONFIG from './CONFIG';
 import CONST from './CONST';
+import useEffectOnce from './hooks/useEffectOnce';
 import useLocalize from './hooks/useLocalize';
 import {updateLastRoute} from './libs/actions/App';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
@@ -161,7 +162,7 @@ function Expensify() {
         Log.info('App launched', false, {Platform, CONFIG});
     }, []);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         setTimeout(() => {
             const appState = AppState.currentState;
             Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
@@ -214,8 +215,7 @@ function Expensify() {
             }
             appStateChangeListener.current.remove();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, []);
+    });
 
     // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
     useEffect(() => {

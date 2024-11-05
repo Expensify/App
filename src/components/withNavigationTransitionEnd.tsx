@@ -1,7 +1,8 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
+import useEffectOnce from '@hooks/useEffectOnce';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {RootStackParamList} from '@libs/Navigation/types';
 
@@ -12,14 +13,13 @@ export default function <TProps, TRef>(WrappedComponent: ComponentType<TProps & 
         const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
         const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
-        useEffect(() => {
+        useEffectOnce(() => {
             const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
                 setDidScreenTransitionEnd(true);
             });
 
             return unsubscribeTransitionEnd;
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        }, []);
+        });
 
         return (
             <WrappedComponent
