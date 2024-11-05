@@ -171,22 +171,6 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
 
     /**
-     When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
-     Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
-     it relies on incomplete data. Thus, we should wait to calculate it until we have received
-     the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
-     which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
-     */
-    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
-    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue());
-
-    function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
-        return {
-            ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
-        };
-    }
-
-    /**
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      */
     function hasInProgressVBBA(): boolean {
@@ -203,6 +187,22 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
             return false;
         }
         return achData?.state === BankAccount.STATE.PENDING || [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''].includes(getStepToOpenFromRouteParams(route));
+    }
+
+    /**
+     When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
+     Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
+     it relies on incomplete data. Thus, we should wait to calculate it until we have received
+     the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
+     which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
+     */
+    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
+    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue());
+
+    function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
+        return {
+            ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
+        };
     }
 
     const handleNextNonUSDBankAccountStep = () => {
