@@ -260,20 +260,17 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     // Rotates the image by changing the rotation value by 90 degrees
     // and updating the position so the image remains in the same place after rotation
     const rotateImage = useCallback(() => {
-        rotation.set((value) => value - 90);
+        runOnUI(() => {
+            rotation.set((value) => value - 90);
 
-        const oldX = translateX.get();
-        const oldY = translateY.get();
-        const oldHeight = originalImageHeight.get();
-        const oldWidth = originalImageWidth.get();
+            const oldTranslateX = translateX.get();
+            translateX.set(translateY.get());
+            translateY.set(oldTranslateX * -1);
 
-        // Rotating 2d coordinates by applying the formula (x, y) → (-y, x).
-        translateX.set(oldY);
-        translateY.set(oldX * -1);
-
-        // Since we rotated the image by 90 degrees, now width becomes height and vice versa.
-        originalImageHeight.set(oldWidth);
-        originalImageWidth.set(oldHeight);
+            const oldOriginalImageHeight = originalImageHeight.get();
+            originalImageHeight.set(originalImageWidth.get());
+            originalImageWidth.set(oldOriginalImageHeight);
+        })();
     }, [originalImageHeight, originalImageWidth, rotation, translateX, translateY]);
 
     // Crops an image that was provided in the imageUri prop, using the current position/scale
