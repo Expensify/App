@@ -26,6 +26,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
     type: SearchDataTypes;
+    noExpensesCreatedYet?: boolean;
 };
 
 const tripsFeatures: FeatureListItem[] = [
@@ -39,7 +40,7 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
-function EmptySearchView({type}: EmptySearchViewProps) {
+function EmptySearchView({type, noExpensesCreatedYet = false}: EmptySearchViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -114,21 +115,26 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     ],
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                return {
-                    headerMedia: LottieAnimations.GenericEmptyState,
-                    headerStyles: [StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-                    title: translate('search.searchResults.emptyExpenseResults.title'),
-                    subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
-                    buttons: [
-                        {buttonText: translate('emptySearchView.takeATour'), buttonAction: () => Link.openExternalLink(navatticLink)},
-                        {
-                            buttonText: translate('iou.createExpense'),
-                            buttonAction: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID())),
-                            success: true,
-                        },
-                    ],
-                    headerContentStyles: styles.emptyStateFolderWebStyles,
-                };
+                if (noExpensesCreatedYet) {
+                    return {
+                        headerMedia: LottieAnimations.GenericEmptyState,
+                        headerStyles: [StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                        title: translate('search.searchResults.emptyExpenseResults.title'),
+                        subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
+                        buttons: [
+                            {buttonText: translate('emptySearchView.takeATour'), buttonAction: () => Link.openExternalLink(navatticLink)},
+                            {
+                                buttonText: translate('iou.createExpense'),
+                                buttonAction: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID())),
+                                success: true,
+                            },
+                        ],
+                        headerContentStyles: styles.emptyStateFolderWebStyles,
+                    };
+                }
+            // We want to display the default nothing to show message if the user has expenses created
+            // but the current search filter result is empty.
+            // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.CHAT:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
             default:
@@ -140,7 +146,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
         }
-    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, ctaErrorMessage, navatticLink]);
+    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, ctaErrorMessage, navatticLink, noExpensesCreatedYet]);
 
     return (
         <EmptyStateComponent
