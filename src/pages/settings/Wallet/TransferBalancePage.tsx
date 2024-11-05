@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -12,6 +12,7 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
@@ -104,7 +105,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
         Navigation.navigate(ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT);
     }
 
-    useEffect(() => {
+    useEffectOnce(() => {
         // Reset to the default account when the page is opened
         PaymentMethods.resetWalletTransferData();
 
@@ -114,8 +115,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
         }
 
         PaymentMethods.saveWalletTransferAccountTypeAndID(selectedAccount?.accountType ?? '', selectedAccount?.methodID?.toString() ?? '-1');
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want this effect to run on initial render
-    }, []);
+    });
 
     if (walletTransfer?.shouldShowSuccess && !walletTransfer?.loading) {
         return (

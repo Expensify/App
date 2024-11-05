@@ -14,6 +14,7 @@ import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputF
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -144,7 +145,7 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
         Session.beginSignIn(parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim);
     }, [login, account, closeAccount, isOffline, validate]);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         // Call clearAccountMessages on the login page (home route).
         // When the user is in the transition route and not yet authenticated, this component will also be mounted,
         // resetting account.isLoading will cause the app to briefly display the session expiration page.
@@ -162,8 +163,7 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
             input.current.focus();
         }
         return () => clearTimeout(focusTimeout);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
-    }, []);
+    });
 
     useEffect(() => {
         if (account?.isLoading !== false) {

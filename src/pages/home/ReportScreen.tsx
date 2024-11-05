@@ -21,6 +21,7 @@ import withCurrentReportID from '@components/withCurrentReportID';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -486,7 +487,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     useEffect(clearNotifications, [clearNotifications]);
     useAppFocusEvent(clearNotifications);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         Timing.end(CONST.TIMING.CHAT_RENDER);
         Performance.markEnd(CONST.TIMING.CHAT_RENDER);
 
@@ -501,10 +502,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
             Report.unsubscribeFromLeavingRoomReportChannel(reportID ?? '');
         };
-
-        // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     useEffect(() => {
         // Call OpenReport only if we are not linking to a message or the report is not available yet

@@ -7,6 +7,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WalletStatementModal from '@components/WalletStatementModal';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -33,13 +34,12 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     const {translate, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
 
-    useEffect(() => {
+    useEffectOnce(() => {
         const currentYearMonth = format(new Date(), CONST.DATE.YEAR_MONTH_FORMAT);
         if (!yearMonth || yearMonth.length !== 6 || yearMonth > currentYearMonth) {
             Navigation.dismissModal();
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we want this effect to run only on mount
-    }, []);
+    });
 
     useEffect(() => {
         DateUtils.setLocale(preferredLocale);

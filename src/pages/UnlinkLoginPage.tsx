@@ -26,7 +26,6 @@ function UnlinkLoginPage({route, account}: UnlinkLoginPageProps) {
 
     useEffectOnce(() => {
         Session.unlinkLogin(Number(accountID), validateCode);
-        // We only want this to run on mount
     });
 
     useEffect(() => {

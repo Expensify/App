@@ -14,6 +14,7 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -209,7 +210,7 @@ function IOURequestStepDistance({
     // discard changes if the user cancels out of making any changes. This is accomplished by backing up the
     // original transaction, letting the user modify the current transaction, and then if the user ever
     // cancels out of the modal without saving changes, the original transaction is restored from the backup.
-    useEffect(() => {
+    useEffectOnce(() => {
         if (isCreatingNewRequest) {
             return () => {};
         }
@@ -232,8 +233,7 @@ function IOURequestStepDistance({
             }
             Report.openReport(transaction?.reportID);
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);

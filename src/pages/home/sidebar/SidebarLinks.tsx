@@ -5,6 +5,7 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -50,7 +51,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         App.confirmReadyToOpenApp();
     }, []);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 updateLocale();
@@ -58,8 +59,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         });
 
         ReportActionContextMenu.hideContextMenu(false);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     /**
      * Show Report page with selected report id

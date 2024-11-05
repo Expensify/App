@@ -142,7 +142,6 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: Fo
 
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
         return () => window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
-        // Onfido should be initialized only once on mount
     });
 
     return (

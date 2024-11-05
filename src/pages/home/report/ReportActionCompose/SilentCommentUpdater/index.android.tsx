@@ -1,5 +1,5 @@
-import {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import useEffectOnce from '@hooks/useEffectOnce';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SilentCommentUpdaterOnyxProps, SilentCommentUpdaterProps} from './types';
 
@@ -14,10 +14,9 @@ import type {SilentCommentUpdaterOnyxProps, SilentCommentUpdaterProps} from './t
  * re-rendering a UI component for that. That's why the side effect was moved down to a separate component.
  */
 function SilentCommentUpdater({comment, updateComment}: SilentCommentUpdaterProps) {
-    useEffect(() => {
+    useEffectOnce(() => {
         updateComment(comment ?? '');
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We need to run this on mount
-    }, []);
+    });
 
     return null;
 }

@@ -36,8 +36,6 @@ function IOURequestRedirectToStartPage({
         } else if (iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));
         }
-
-        // This useEffect should only run on mount which is why there are no dependencies being passed in the second parameter
     });
 
     if (!isIouTypeValid || !isIouRequestTypeValid) {

@@ -89,7 +89,6 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                     onError(errorMessage);
                 }
             });
-        // Onfido should be initialized only once on mount
     });
 
     return <FullscreenLoadingIndicator />;

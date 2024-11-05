@@ -65,7 +65,6 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
             const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
             SessionActions.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
         }
-        // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [initialURL]);
 

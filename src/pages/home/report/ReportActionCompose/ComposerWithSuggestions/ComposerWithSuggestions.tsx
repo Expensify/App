@@ -21,6 +21,7 @@ import type {FileObject} from '@components/AttachmentModal';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
 import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -661,11 +662,10 @@ function ComposerWithSuggestions(
         focus(true);
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
 
     useImperativeHandle(
         ref,
@@ -706,12 +706,11 @@ function ComposerWithSuggestions(
         [onCleared, updateComment],
     );
 
-    useEffect(() => {
+    useEffectOnce(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
-
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    });
+
     useFocusedInputHandler(
         {
             onSelectionChange: (event) => {

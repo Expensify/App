@@ -117,7 +117,6 @@ function BaseTextInput(
             return () => clearTimeout(focusTimeout);
         }
         input.current.focus();
-        // We only want this to run on mount
     });
 
     const animateLabel = useCallback(

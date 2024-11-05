@@ -13,6 +13,7 @@ import type {Section} from '@components/SelectionList/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useEffectOnce from '@hooks/useEffectOnce';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -79,14 +80,12 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         return () => {
             Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route.params.policyID]);
 
-    useEffect(() => {
+    useEffectOnce(() => {
         Policy.clearErrors(route.params.policyID);
         openWorkspaceInvitePage();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policyID changes remount the component
-    }, []);
+    });
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
 
