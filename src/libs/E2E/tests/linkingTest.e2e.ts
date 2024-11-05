@@ -1,4 +1,5 @@
 import {DeviceEventEmitter} from 'react-native';
+import Config from 'react-native-config';
 import type {NativeConfig} from 'react-native-config';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
@@ -21,6 +22,7 @@ const test = (config: NativeConfig) => {
 
     const reportID = getConfigValueOrThrow('reportID', config);
     const linkedReportActionID = getConfigValueOrThrow('linkedReportActionID', config);
+    const name = getConfigValueOrThrow('name', config);
 
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {
@@ -28,9 +30,9 @@ const test = (config: NativeConfig) => {
         }
 
         const [appearMessagePromise, appearMessageResolve] = getPromiseWithResolve();
-        const [switchReportPromise] = getPromiseWithResolve();
+        const [openReportPromise, openReportResolve] = getPromiseWithResolve();
 
-        Promise.all([appearMessagePromise, switchReportPromise])
+        Promise.all([appearMessagePromise, openReportPromise])
             .then(() => {
                 console.debug('[E2E] Test completed successfully, exiting…');
                 E2EClient.submitTestDone();
@@ -55,6 +57,18 @@ const test = (config: NativeConfig) => {
                 console.debug('[E2E] Sidebar loaded, navigating to a report…');
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                 return;
+            }
+
+            if (entry.name === CONST.TIMING.OPEN_REPORT) {
+                console.debug('[E2E] Linking: 1');
+
+                E2EClient.submitTestResults({
+                    branch: Config.E2E_BRANCH,
+                    name,
+                    metric: entry.duration,
+                    unit: 'ms',
+                });
+                openReportResolve();
             }
         });
     });
