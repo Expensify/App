@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -182,6 +183,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 testID={WorkspaceExpensifyCardBankAccounts.displayName}
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicator={false}
             >
                 <HeaderWithBackButton
                     shouldShowBackButton
@@ -190,15 +192,17 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 />
                 {isInVerificationState && renderVerificationStateView()}
                 {!isInVerificationState && (
-                    <View style={styles.flex1}>
-                        <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
-                        {renderBankOptions()}
-                        <MenuItem
-                            icon={Expensicons.Plus}
-                            title={translate('workspace.expensifyCard.addNewBankAccount')}
-                            onPress={handleAddBankAccount}
-                        />
-                    </View>
+                    <FullPageOfflineBlockingView>
+                        <View style={styles.flex1}>
+                            <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
+                            {renderBankOptions()}
+                            <MenuItem
+                                icon={Expensicons.Plus}
+                                title={translate('workspace.expensifyCard.addNewBankAccount')}
+                                onPress={handleAddBankAccount}
+                            />
+                        </View>
+                    </FullPageOfflineBlockingView>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

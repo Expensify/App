@@ -1919,5 +1919,4 @@ export type {
     ApprovalRule,
     ExpenseRule,
     NetSuiteConnectionConfig,
-    MccGroup,
 };
