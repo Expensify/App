@@ -1,6 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {

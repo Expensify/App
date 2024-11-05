@@ -47,7 +47,7 @@ function IOURequestStartPage({
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || -1}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {canUseCombinedTrackSubmit} = usePermissions(iouType);
+    const {canUseCombinedTrackSubmit} = usePermissions();
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.submitExpense'),
