@@ -5,7 +5,6 @@ import CategoryPicker from '@components/CategoryPicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem} from '@components/SelectionList/types';
-import TagPicker from '@components/TagPicker';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {DebugParamList} from '@libs/Navigation/types';

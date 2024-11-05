@@ -65,6 +65,7 @@ function DebugReportActionPage({
                                     }}
                                     onDelete={() => {
                                         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
+                                        Navigation.goBack();
                                     }}
                                     validate={DebugUtils.validateReportActionDraftProperty}
                                 >
