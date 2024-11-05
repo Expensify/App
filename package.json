@@ -153,7 +153,7 @@
         "react-native-localize": "^2.2.6",
         "react-native-modal": "^13.0.0",
         "react-native-nitro-modules": "^0.11.0",
-        "react-native-nitro-template": "./modules/contactsNitroModule",
+        "react-native-nitro-template": "./modules/ContactsNitroModule",
         "react-native-onyx": "2.0.73",
         "react-native-pager-view": "6.4.1",
         "react-native-pdf": "6.7.3",
@@ -366,7 +366,7 @@
     "electronmon": {
         "patterns": ["!src/**", "!ios/**", "!android/**", "!tests/**", "*.test.*"]
     },
-    "workspaces": ["modules/contactsNitroModule"],
+    "workspaces": ["modules/ContactsNitroModule"],
     "engines": {
         "node": "20.18.0",
         "npm": "10.8.2"

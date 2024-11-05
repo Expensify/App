@@ -1,5 +1,5 @@
 const path = require('path');
-const pak = require('./modules/contactsNitroModule/package.json');
+const pak = require('./modules/ContactsNitroModule/package.json');
 
 module.exports = {
     project: {
@@ -9,7 +9,7 @@ module.exports = {
     assets: ['./assets/fonts/native'],
     dependencies: {
         [pak.name]: {
-            root: path.join(__dirname, 'modules', 'contactsNitroModule'),
+            root: path.join(__dirname, 'modules', 'ContactsNitroModule'),
         },
     },
 };
