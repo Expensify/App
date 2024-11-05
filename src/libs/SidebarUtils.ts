@@ -240,16 +240,11 @@ function getReasonAndReportActionThatHasRedBrickRoad(
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     const {errors, reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
-    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, ReportActionsUtils.getAllReportActions(report.reportID));
 
-    if (oneTransactionThreadReportID) {
-        const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
-
-        if (ReportUtils.shouldDisplayViolationsRBRInLHN(oneTransactionThreadReport, transactionViolations)) {
-            return {
-                reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
-            };
-        }
+    if (ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
+        return {
+            reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
+        };
     }
 
     if (hasErrors) {
