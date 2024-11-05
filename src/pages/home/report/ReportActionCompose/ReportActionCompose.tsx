@@ -342,7 +342,7 @@ function ReportActionCompose({
     const handleSendMessage = useCallback(() => {
         'worklet';
 
-        const clearComposer = composerRefShared.value.clear;
+        const clearComposer = composerRefShared.get().clear;
         if (!clearComposer) {
             throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
         }
@@ -468,10 +468,9 @@ function ReportActionCompose({
                                         <ComposerWithSuggestions
                                             ref={(ref) => {
                                                 composerRef.current = ref ?? undefined;
-                                                // eslint-disable-next-line react-compiler/react-compiler
-                                                composerRefShared.value = {
+                                                composerRefShared.set({
                                                     clear: ref?.clear,
-                                                };
+                                                });
                                             }}
                                             suggestionsRef={suggestionsRef}
                                             isNextModalWillOpenRef={isNextModalWillOpenRef}

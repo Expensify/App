@@ -17,10 +17,10 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashS
     const scale = useSharedValue(1);
 
     const opacityStyle = useAnimatedStyle<ViewStyle>(() => ({
-        opacity: opacity.value,
+        opacity: opacity.get(),
     }));
     const scaleStyle = useAnimatedStyle<ViewStyle>(() => ({
-        transform: [{scale: scale.value}],
+        transform: [{scale: scale.get()}],
     }));
 
     const hideHasBeenCalled = useRef(false);
@@ -34,19 +34,22 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashS
         hideHasBeenCalled.current = true;
 
         BootSplash.hide().then(() => {
-            // eslint-disable-next-line react-compiler/react-compiler
-            scale.value = withTiming(0, {
-                duration: 200,
-                easing: Easing.back(2),
-            });
+            scale.set(
+                withTiming(0, {
+                    duration: 200,
+                    easing: Easing.back(2),
+                }),
+            );
 
-            opacity.value = withTiming(
-                0,
-                {
-                    duration: 250,
-                    easing: Easing.out(Easing.ease),
-                },
-                () => runOnJS(onHide)(),
+            opacity.set(
+                withTiming(
+                    0,
+                    {
+                        duration: 250,
+                        easing: Easing.out(Easing.ease),
+                    },
+                    () => runOnJS(onHide)(),
+                ),
             );
         });
     }, [opacity, scale, onHide]);

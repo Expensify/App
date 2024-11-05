@@ -78,7 +78,7 @@ function BaseVideoPlayer({
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
     const controlsOpacity = useSharedValue(1);
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: controlsOpacity.value,
+        opacity: controlsOpacity.get(),
     }));
 
     const videoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
@@ -106,8 +106,7 @@ function BaseVideoPlayer({
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
 
     const hideControl = useCallback(() => {
-        // eslint-disable-next-line react-compiler/react-compiler
-        controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
+        controlsOpacity.set(withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE)));
     }, [controlsOpacity]);
     const debouncedHideControl = useMemo(() => debounce(hideControl, 1500), [hideControl]);
 
@@ -144,7 +143,7 @@ function BaseVideoPlayer({
             return;
         }
         setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
-        controlsOpacity.value = 1;
+        controlsOpacity.set(1);
     }, [controlStatusState, controlsOpacity, hideControl]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
