@@ -3460,7 +3460,6 @@ function prepareOnboardingOptimisticData(
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
-    companySize?: OnboardingCompanySize,
     userReportedIntegration?: OnboardingAccounting,
 ) {
     // If the user has the "combinedTrackSubmit" beta enabled we'll show different tasks for track and submit expense.
@@ -3886,7 +3885,13 @@ function completeOnboarding(
     companySize?: OnboardingCompanySize,
     userReportedIntegration?: OnboardingAccounting,
 ) {
-    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(engagementChoice, data, adminsChatReportID, onboardingPolicyID);
+    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(
+        engagementChoice,
+        data,
+        adminsChatReportID,
+        onboardingPolicyID,
+        userReportedIntegration,
+    );
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,
