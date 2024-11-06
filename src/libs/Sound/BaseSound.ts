@@ -1,11 +1,15 @@
 import Onyx from 'react-native-onyx';
+import getPlatform from '@libs/getPlatform';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 let isMuted = false;
 
 Onyx.connect({
-    key: ONYXKEYS.USER,
-    callback: (val) => (isMuted = !!val?.isMutedAllSounds),
+    key: ONYXKEYS.NVP_MUTED_PLATFORMS,
+    callback: (val) => {
+        const platform = getPlatform();
+        isMuted = !!val?.[platform];
+    },
 });
 
 const SOUNDS = {
