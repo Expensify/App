@@ -346,7 +346,7 @@ function validateBankAccount(bankAccountID: number, validateCode: string, policy
 function getCorpayBankAccountFields(country: string, currency: string) {
     // TODO - Use parameters when API is ready
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const parameters: 'GetCorpayBankAccountFieldsParams' = {
+    const parameters = {
         countryISO: country,
         currency,
         isWithdrawal: true,

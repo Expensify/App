@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLastFourDigits} from '@libs/BankAccountUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
 import * as FormActions from '@userActions/FormActions';
@@ -82,7 +83,9 @@ function UploadStatement({onNext, isEditing}: UploadStatementProps) {
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankInfoStep.uploadYourLatest')}</Text>
-                <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('bankInfoStep.pleaseUpload', {lastFourDigits: '1234'})}</Text>
+                <Text style={[styles.mutedTextLabel, styles.mb3]}>
+                    {translate('bankInfoStep.pleaseUpload', {lastFourDigits: getLastFourDigits(reimbursementAccountDraft?.accountNumber ?? '')})}
+                </Text>
                 <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('bankInfoStep.bankStatement')}</Text>
                 <InputWrapper
                     InputComponent={UploadFile}
