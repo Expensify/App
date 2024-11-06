@@ -29,7 +29,6 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {singleExecution} = useSingleExecution();
-    const [isLoading, setIsLoading] = useState(false);
     const {
         allEmojis,
         headerEmojis,
@@ -47,15 +46,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     const StyleUtils = useStyleUtils();
 
     const updateEmojiList = (emojiData: EmojiUtils.EmojiPickerList | Emoji[], headerData: number[] = []) => {
-        setFilteredEmojis(emojiData);
-        setHeaderIndices(headerData);
-
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
-                setIsLoading(false);
             });
         });
+        setFilteredEmojis(emojiData);
+        setHeaderIndices(headerData);
     };
 
     /**
@@ -63,7 +60,6 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
      */
     const filterEmojis = lodashDebounce((searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
-        setIsLoading(true);
 
         if (normalizedSearchTerm === '') {
             updateEmojiList(allEmojis, headerRowIndices);
@@ -129,7 +125,6 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                     blurOnSubmit={filteredEmojis.length > 0}
                 />
             </View>
-            {isLoading && <FullScreenLoadingIndicator />}
             <BaseEmojiPickerMenu
                 isFiltered={isListFiltered}
                 headerEmojis={headerEmojis}
