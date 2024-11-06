@@ -20,6 +20,7 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -629,14 +630,25 @@ function IOURequestStepScan({
                             additionalStyles={[styles.pb5]}
                         />
                         <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                        <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
-                        <Button
-                            success
-                            text={translate('common.continue')}
-                            accessibilityLabel={translate('common.continue')}
-                            style={[styles.p9, styles.pt5]}
-                            onPress={capturePhoto}
-                        />
+                        {cameraPermissionState === 'denied' ? (
+                            <Text style={[styles.subTextFileUpload]}>
+                                {translate('receipt.deniedCameraAccess')}
+                                <TextLink href="https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense">
+                                    {translate('receipt.deniedCameraAccessInstructions')}
+                                </TextLink>
+                            </Text>
+                        ) : (
+                            <>
+                                <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                                <Button
+                                    success
+                                    text={translate('common.continue')}
+                                    accessibilityLabel={translate('common.continue')}
+                                    style={[styles.p9, styles.pt5]}
+                                    onPress={capturePhoto}
+                                />
+                            </>
+                        )}
                     </View>
                 )}
                 {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (
