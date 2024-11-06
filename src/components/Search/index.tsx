@@ -1,6 +1,6 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -172,10 +172,13 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     });
 
     // save last non-empty search results to avoid ugly flash of loading screen when hash changes and onyx returns empty data
+    // eslint-disable-next-line react-compiler/react-compiler
     if (currentSearchResults?.data && currentSearchResults !== lastSearchResultsRef.current) {
+        // eslint-disable-next-line react-compiler/react-compiler
         lastSearchResultsRef.current = currentSearchResults;
     }
 
+    // eslint-disable-next-line react-compiler/react-compiler
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
 
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
@@ -193,7 +196,13 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const isSearchResultsEmpty = !searchResults?.data || SearchUIUtils.isSearchResultsEmpty(searchResults);
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
-    const data = searchResults === undefined ? [] : SearchUIUtils.getSections(type, status, searchResults.data, searchResults.search);
+
+    const data = useMemo(() => {
+        if (searchResults === undefined) {
+            return [];
+        }
+        return SearchUIUtils.getSections(type, status, searchResults.data, searchResults.search);
+    }, [searchResults, status, type]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -457,6 +466,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
             }
             contentContainerStyle={[contentContainerStyle, styles.pb3]}
             scrollEventThrottle={1}
+            shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
         />
     );
 }

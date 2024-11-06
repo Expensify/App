@@ -46,7 +46,7 @@ function CardListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, isFocused && styles.sidebarLinkActive]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -61,7 +61,7 @@ function CardListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
         >
             <>
-                {item.bankIcon && (
+                {!!item.bankIcon && (
                     <View style={[styles.mr3]}>
                         <Icon
                             src={item.bankIcon.icon}
@@ -93,7 +93,7 @@ function CardListItem<TItem extends ListItem>({
                         )}
                     </View>
                 </View>
-                {canSelectMultiple && !item.isDisabled && (
+                {!!canSelectMultiple && !item.isDisabled && (
                     <PressableWithFeedback
                         onPress={handleCheckboxPress}
                         disabled={isDisabled}
