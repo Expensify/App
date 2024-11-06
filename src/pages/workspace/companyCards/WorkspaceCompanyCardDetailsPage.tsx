@@ -62,7 +62,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
-        CompanyCards.unassignWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
+        CompanyCards.unassignWorkspaceCompanyCard(workspaceAccountID, bank, card);
         Navigation.goBack();
     };
 
