@@ -137,7 +137,6 @@ function ReportActionItemParentAction({
                                               const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(
                                                   ancestor.reportAction,
                                                   ancestor.reportAction.reportActionID ?? '-1',
-                                                  ancestor.report.reportID,
                                                   canUserPerformWriteAction,
                                               );
                                               // Pop the thread report screen before navigating to the chat report.

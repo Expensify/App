@@ -17,7 +17,7 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
 
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDWithDefault}`, {
         canEvict: false,
-        selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, reportID ?? '-1', canUserPerformWriteAction, true),
+        selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, canUserPerformWriteAction, true),
     });
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportIDWithDefault}`);
 

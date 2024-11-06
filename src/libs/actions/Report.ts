@@ -298,7 +298,7 @@ registerPaginationConfig({
     sortItems: (reportActions, reportID) => {
         const report = ReportUtils.getReport(reportID);
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
-        return ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, reportID, canUserPerformWriteAction, true);
+        return ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction, true);
     },
     getItemID: (reportAction) => reportAction.reportActionID,
 });

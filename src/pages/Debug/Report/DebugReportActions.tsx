@@ -22,11 +22,11 @@ type DebugReportActionsProps = {
 function DebugReportActions({reportID}: DebugReportActionsProps) {
     const {translate, datetimeToCalendarTime} = useLocalize();
     const styles = useThemeStyles();
-    const report = ReportUtils.getReport(reportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
-        selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, reportID, canUserPerformWriteAction, true),
+        selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, canUserPerformWriteAction, true),
     });
     const renderItem = ({item}: ListRenderItemInfo<ReportAction>) => (
         <PressableWithFeedback
