@@ -51,6 +51,8 @@ LogBox.ignoreLogs([
     // the timer is lost. Currently Expensify is using a 30 minutes interval to refresh personal details.
     // More details here: https://git.io/JJYeb
     'Setting a timer for a long period of time',
+    // We are not using expo-const, so ignore the warning.
+    'No native ExponentConstants module found',
 ]);
 
 const fill = {flex: 1};
