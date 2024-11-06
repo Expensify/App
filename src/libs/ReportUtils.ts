@@ -8406,6 +8406,11 @@ function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && report?.hasParentAccess === false;
 }
 
+function hasInvoiceReports() {
+    const allReports = Object.values(ReportConnection.getAllReports() ?? {});
+    return allReports.some((report) => isInvoiceReport(report));
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -8731,6 +8736,7 @@ export {
     shouldShowViolations,
     getAllReportErrors,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
+    hasInvoiceReports,
 };
 
 export type {

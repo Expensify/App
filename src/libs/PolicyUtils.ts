@@ -611,6 +611,11 @@ function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogi
     return getActiveAdminWorkspaces(policies, currentUserLogin).some((policy) => canSendInvoiceFromWorkspace(policy.id));
 }
 
+function hasWorkspaceWithInvoices(currentUserLogin: string | undefined): boolean {
+    const activePolicies = getActivePolicies(allPolicies);
+    return activePolicies.some((policy) => shouldShowPolicy(policy, NetworkStore.isOffline(), currentUserLogin) && policy.areInvoicesEnabled);
+}
+
 function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
     if (!policy?.hasMultipleTagLists) {
         return false;
@@ -1122,6 +1127,7 @@ export {
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSendInvoice,
+    hasWorkspaceWithInvoices,
     hasDependentTags,
     getXeroTenants,
     findCurrentXeroOrganization,
