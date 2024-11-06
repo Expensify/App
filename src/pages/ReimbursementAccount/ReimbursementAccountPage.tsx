@@ -2,7 +2,7 @@ import type {RouteProp} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -145,6 +145,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID ?? '-1';
@@ -169,15 +170,6 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
 
-    /**
-     When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
-     Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
-     it relies on incomplete data. Thus, we should wait to calculate it until we have received
-     the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
-     which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
-     */
-    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
-
     function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
         return {
             ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
@@ -187,28 +179,31 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     /**
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      */
-    const hasInProgressVBBA = useCallback(() => {
+    function hasInProgressVBBA(): boolean {
         return !!achData?.bankAccountID && !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
-    }, [achData?.bankAccountID, achData?.state]);
+    }
 
     /*
      * Calculates the state used to show the "Continue with setup" view. If a bank account setup is already in progress and
      * no specific further step was passed in the url we'll show the workspace bank account reset modal if the user wishes to start over
      */
-    const getShouldShowContinueSetupButtonInitialValue = useCallback(() => {
+    function getShouldShowContinueSetupButtonInitialValue(): boolean {
         if (!hasInProgressVBBA()) {
             // Since there is no VBBA in progress, we won't need to show the component ContinueBankAccountSetup
             return false;
         }
         return achData?.state === BankAccount.STATE.PENDING || [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''].includes(getStepToOpenFromRouteParams(route));
-    }, [achData?.state, hasInProgressVBBA, route]);
+    }
 
+    /**
+     When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
+     Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
+     it relies on incomplete data. Thus, we should wait to calculate it until we have received
+     the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
+     which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
+     */
+    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue());
-
-    useEffect(() => {
-        setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
-        setHasACHDataBeenLoaded(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
-    }, [achData, getShouldShowContinueSetupButtonInitialValue, isPreviousPolicy, reimbursementAccount]);
 
     const handleNextNonUSDBankAccountStep = () => {
         switch (nonUSDBankAccountStep) {
@@ -422,7 +417,12 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
     // eslint-disable-next-line react-compiler/react-compiler
-    if ((!hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef.current)) {
+    if (
+        (!hasACHDataBeenLoaded || isLoading) &&
+        shouldShowOfflineLoader &&
+        (shouldReopenOnfido || !requestorStepRef?.current) &&
+        !(currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && isValidateCodeActionModalVisible)
+    ) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
@@ -543,6 +543,8 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
                     plaidLinkOAuthToken={plaidLinkToken}
                     policyName={policyName}
                     policyID={policyIDParam}
+                    isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+                    toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
                 />
             );
         case CONST.BANK_ACCOUNT.STEP.REQUESTOR:

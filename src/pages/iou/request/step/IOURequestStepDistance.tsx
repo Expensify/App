@@ -162,9 +162,11 @@ function IOURequestStepDistance({
         }
 
         return (
-            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
+            iouType !== CONST.IOU.TYPE.SPLIT &&
+            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) &&
+            !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
         );
-    }, [report, skipConfirmation, policy, reportNameValuePairs]);
+    }, [report, skipConfirmation, policy, reportNameValuePairs, iouType]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -301,24 +303,6 @@ function IOURequestStepDistance({
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
-                if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    IOU.splitBill({
-                        participants,
-                        currentUserLogin: currentUserPersonalDetails.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        amount: 0,
-                        comment: '',
-                        currency: transaction?.currency ?? 'USD',
-                        merchant: translate('iou.fieldPending'),
-                        created: transaction?.created ?? '',
-                        category: '',
-                        tag: '',
-                        billable: false,
-                        iouRequestType,
-                        existingSplitChatReportID: report?.reportID,
-                    });
-                    return;
-                }
                 IOU.setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
                 IOU.setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
                 const participant = participants.at(0);
@@ -401,7 +385,6 @@ function IOURequestStepDistance({
         navigateToParticipantPage,
         navigateToConfirmationPage,
         policy,
-        iouRequestType,
         reportNameValuePairs,
         customUnitRateID,
         setDistanceRequestData,
