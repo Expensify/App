@@ -5,6 +5,10 @@ import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, R
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import * as autocompleteParser from './SearchParser/autocompleteParser';
 
+/**
+ * Parses given query using the autocomplete parser.
+ * This is a smaller and simpler version of search parser used for autocomplete displaying logic.
+ */
 function parseForAutocomplete(text: string) {
     try {
         const parsedAutocomplete = autocompleteParser.parse(text) as SearchAutocompleteResult;
@@ -14,6 +18,9 @@ function parseForAutocomplete(text: string) {
     }
 }
 
+/**
+ * Returns data for computing the `Tag` filter autocomplete list.
+ */
 function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>, policyID?: string) {
     const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
     if (!singlePolicyTagsList) {
@@ -28,6 +35,9 @@ function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
     return getTagNamesFromTagsLists(singlePolicyTagsList);
 }
 
+/**
+ * Returns data for computing the recent tags autocomplete list.
+ */
 function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTags>, policyID?: string) {
     const singlePolicyRecentTags: RecentlyUsedTags | undefined = allRecentTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`];
     if (!singlePolicyRecentTags) {
@@ -41,6 +51,9 @@ function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTag
     return Object.values(singlePolicyRecentTags ?? {}).flat(2);
 }
 
+/**
+ * Returns data for computing the `Category` filter autocomplete list.
+ */
 function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCategories>, policyID?: string) {
     const singlePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
     if (!singlePolicyCategories) {
@@ -51,6 +64,9 @@ function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCat
     return Object.values(singlePolicyCategories ?? {}).map((category) => category.name);
 }
 
+/**
+ * Returns data for computing the recent categories autocomplete list.
+ */
 function getAutocompleteRecentCategories(allRecentCategories: OnyxCollection<RecentlyUsedCategories>, policyID?: string) {
     const singlePolicyRecentCategories = allRecentCategories?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`];
     if (!singlePolicyRecentCategories) {
@@ -61,18 +77,43 @@ function getAutocompleteRecentCategories(allRecentCategories: OnyxCollection<Rec
     return Object.values(singlePolicyRecentCategories ?? {}).map((category) => category);
 }
 
-function getAutocompleteTaxList(allTaxRates: Record<string, string[]>, policy?: OnyxEntry<Policy>) {
+/**
+ * Returns data for computing the `Tax` filter autocomplete list
+ *
+ * Please note: taxes are stored in a quite convoluted and non-obvious way, and there can be multiple taxes with the same id
+ * because tax ids are generated based on a tax name, so they look like this: `id_My_Tax` and are not numeric.
+ * That is why this function may seem a bit complex.
+ */
+function getAutocompleteTaxList(taxRates: Record<string, string[]>, policy?: OnyxEntry<Policy>) {
     if (policy) {
-        return Object.keys(policy?.taxRates?.taxes ?? {}).map((taxRateName) => taxRateName);
+        const policyTaxes = policy?.taxRates?.taxes ?? {};
+
+        return Object.keys(policyTaxes).map((taxID) => ({
+            taxRateName: policyTaxes[taxID].name,
+            taxRateIds: [taxID],
+        }));
     }
-    return Object.keys(allTaxRates).map((taxRateName) => taxRateName);
+
+    return Object.keys(taxRates).map((taxName) => ({
+        taxRateName: taxName,
+        taxRateIds: taxRates[taxName].map((id) => taxRates[id] ?? id).flat(),
+    }));
 }
 
-function trimSearchQueryForAutocomplete(searchQuery: string) {
-    const lastColonIndex = searchQuery.lastIndexOf(':');
-    const lastCommaIndex = searchQuery.lastIndexOf(',');
-    const trimmedUserSearchQuery = lastColonIndex > lastCommaIndex ? searchQuery.slice(0, lastColonIndex + 1) : searchQuery.slice(0, lastCommaIndex + 1);
-    return trimmedUserSearchQuery;
+/**
+ * Given a query string, this function parses it with the autocomplete parser
+ * and returns only the part of the string before autocomplete.
+ *
+ * Ex: "test from:john@doe" -> "test from:"
+ */
+function getQueryWithoutAutocompletedPart(searchQuery: string) {
+    const parsedQuery = parseForAutocomplete(searchQuery);
+    if (!parsedQuery?.autocomplete) {
+        return searchQuery;
+    }
+
+    const sliceEnd = parsedQuery.autocomplete.start;
+    return searchQuery.slice(0, sliceEnd);
 }
 
 export {
@@ -82,5 +123,5 @@ export {
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
     getAutocompleteTaxList,
-    trimSearchQueryForAutocomplete,
+    getQueryWithoutAutocompletedPart,
 };
