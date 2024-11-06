@@ -282,9 +282,7 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
-                    isLoading: true,
                     errors: null,
-                    isSuccessful: null,
                 },
             },
         },
@@ -310,9 +308,7 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
             value: {
                 [cardID]: {
                     state: 4, // NOT_ACTIVATED
-                    isLoading: false,
                     errors: null,
-                    isSuccessful: true,
                 },
             },
         },
