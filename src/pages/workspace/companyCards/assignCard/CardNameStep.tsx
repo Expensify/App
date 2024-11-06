@@ -60,7 +60,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
             <ScreenWrapper
                 testID={CardNameStep.displayName}
                 shouldEnablePickerAvoiding={false}
-                shouldEnableMaxHeight
+                includeSafeAreaPaddingBottom={false}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.moreFeatures.companyCards.cardName')}
