@@ -2,7 +2,7 @@ import {NativeModules} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import type {OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -183,6 +183,20 @@ function resetAllChecks() {
     OnboardingFlow.clearInitialPath();
 }
 
+function setSelfTourViewed() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {
+                selfTourViewed: true,
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData});
+}
+
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
@@ -195,4 +209,5 @@ export {
     completeHybridAppOnboarding,
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
+    setSelfTourViewed,
 };
