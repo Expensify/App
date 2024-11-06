@@ -520,6 +520,7 @@ type OptionData = {
     isConciergeChat?: boolean;
     isBold?: boolean;
     lastIOUCreationDate?: string;
+    icons?: Icon[];
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {

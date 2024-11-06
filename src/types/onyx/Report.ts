@@ -83,9 +83,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report has a child task that is awaiting action from the current user */
         hasOutstandingChildTask?: boolean;
 
-        /** List of icons for report participants */
-        icons?: OnyxCommon.Icon[];
-
         /** Whether the user is not an admin of policyExpenseChat chat */
         isOwnPolicyExpenseChat?: boolean;
 
