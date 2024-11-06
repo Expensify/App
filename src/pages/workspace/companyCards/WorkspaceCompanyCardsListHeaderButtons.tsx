@@ -41,7 +41,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const formattedFeedName = translate('workspace.companyCards.feedName', {feedName});
     const isCustomFeed =
         CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD === selectedFeed || CONST.COMPANY_CARD.FEED_BANK_NAME.VISA === selectedFeed || CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX === selectedFeed;
-    const currentFeedData = cardFeeds?.settings?.companyCards?.[selectedFeed] ?? {pending: true, errors: {}};
+    const currentFeedData = cardFeeds?.settings?.companyCards?.[selectedFeed] ?? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] ?? {pending: true, errors: {}};
 
     return (
         <OfflineWithFeedback
