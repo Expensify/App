@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -15,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {LeftModalNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -22,6 +24,7 @@ import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/Worksp
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceCardCreateAWorkspace from './WorkspaceCardCreateAWorkspace';
 import WorkspacesSectionHeader from './WorkspacesSectionHeader';
@@ -34,8 +37,9 @@ type WorkspaceListItem = {
 } & ListItem;
 
 const WorkspaceCardCreateAWorkspaceInstance = <WorkspaceCardCreateAWorkspace />;
+type WorkspaceSwitcherPageProps = StackScreenProps<LeftModalNavigatorParamList, typeof SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER>;
 
-function WorkspaceSwitcherPage() {
+function WorkspaceSwitcherPage({route}: WorkspaceSwitcherPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -50,6 +54,7 @@ function WorkspaceSwitcherPage() {
 
     const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(reports, policies, reportActions), [reports, policies, reportActions]);
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(reports), [reports]);
+    const isHomeResetRequired = route?.params?.isHomeResetRequired === 'true';
 
     const getIndicatorTypeForPolicy = useCallback(
         (policyId?: string) => {
@@ -91,12 +96,15 @@ function WorkspaceSwitcherPage() {
             const {policyID} = option;
 
             setActiveWorkspaceID(policyID);
+            if (isHomeResetRequired) {
+                Navigation.resetToHome();
+            }
             Navigation.goBack();
             if (policyID !== activeWorkspaceID) {
                 Navigation.navigateWithSwitchPolicyID({policyID});
             }
         },
-        [activeWorkspaceID, setActiveWorkspaceID],
+        [activeWorkspaceID, isHomeResetRequired, setActiveWorkspaceID],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
@@ -165,7 +173,12 @@ function WorkspaceSwitcherPage() {
                 <>
                     <HeaderWithBackButton
                         title={translate('workspace.switcher.headerTitle')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => {
+                            if (isHomeResetRequired) {
+                                Navigation.resetToHome();
+                            }
+                            Navigation.goBack();
+                        }}
                     />
                     <View style={[styles.ph5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
                         <Text
