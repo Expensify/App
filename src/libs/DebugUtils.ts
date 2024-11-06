@@ -62,7 +62,6 @@ const REPORT_BOOLEAN_PROPERTIES: Array<keyof Report> = [
     'isPinned',
     'hasParentAccess',
     'isDeletedParentAction',
-    'openOnAdminRoom',
     'isOptimisticReport',
     'isWaitingOnBankAccount',
     'isCancelledIOU',

@@ -152,9 +152,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The report type */
         type?: string;
 
-        /** If the admin room should be opened */
-        openOnAdminRoom?: boolean;
-
         /** The report visibility */
         visibility?: RoomVisibility;
 
