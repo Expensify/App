@@ -5,7 +5,7 @@ function setIsSigningIn(isSigningIn: boolean) {
     Onyx.merge(ONYXKEYS.HYBRID_APP, {isSigningIn});
 }
 
-function setOldDotSignInError(oldDotSignInError: string) {
+function setOldDotSignInError(oldDotSignInError: string | null) {
     Onyx.merge(ONYXKEYS.HYBRID_APP, {oldDotSignInError});
 }
 

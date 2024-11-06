@@ -271,11 +271,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.Exit,
                     action: () => {
                         setShouldResetSigningInLogic(true);
-                        setReadyToShowAuthScreens(false);
-                        setReadyToSwitchToClassicExperience(false);
-                        setIsSigningIn(false);
-                        setUseNewDotSignInPage(true);
-
                         signOut(false);
                     },
                 },

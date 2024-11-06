@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {NativeModules, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
@@ -25,12 +25,20 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
-import {setIsSigningIn, setReadyToShowAuthScreens, setShouldResetSigningInLogic} from '@userActions/HybridApp';
+import {
+    setIsSigningIn,
+    setOldDotSignInError,
+    setReadyToShowAuthScreens,
+    setReadyToSwitchToClassicExperience,
+    setShouldResetSigningInLogic,
+    setUseNewDotSignInPage,
+} from '@userActions/HybridApp';
 import * as SessionActions from '@userActions/Session';
+import {signOut} from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS, {type OnyxKey} from '@src/ONYXKEYS';
 import type {TryNewDot} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ValidateCodeFormProps from './types';
@@ -80,7 +88,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const input2FARef = useRef<MagicCodeInputHandle>();
     const timerRef = useRef<NodeJS.Timeout>();
 
-    const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
+    const hasError = (!!account && !isEmptyObject(account?.errors) && !needToClearError) || !!hybridApp?.oldDotSignInError;
     const isLoadingResendValidationForm = account?.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
     const shouldDisableResendValidateCode = isOffline ?? account?.isLoading;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
@@ -92,6 +100,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         if (!hybridApp?.shouldResetSigningInLogic) {
             return;
         }
+        setReadyToShowAuthScreens(false);
+        setReadyToSwitchToClassicExperience(false);
+        setIsSigningIn(false);
+        setUseNewDotSignInPage(true);
+        setOldDotSignInError(null);
 
         setOldDotSignInState(CONST.OLD_DOT_SIGN_IN_STATE.NOT_STARTED);
         setNewDotSignInState(CONST.NEW_DOT_SIGN_IN_STATE.NOT_STARTED);
@@ -107,6 +120,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         }
 
         if (newDotSignInState === CONST.NEW_DOT_SIGN_IN_STATE.STARTED && !isValidateCodeFormSubmitting && !!session?.authToken) {
+            console.log('[HybridApp] session auth token', session?.authToken);
             setNewDotSignInState(CONST.NEW_DOT_SIGN_IN_STATE.FINISHED);
         }
     }, [newDotSignInState, isValidateCodeFormSubmitting, session?.authToken, hybridApp?.useNewDotSignInPage]);
@@ -251,10 +265,22 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        User.resendValidateCode(credentials?.login ?? '');
-        inputValidateCodeRef.current?.clear();
-        // Give feedback to the user to let them know the email was sent so that they don't spam the button.
-        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
+        const keysToPreserve: OnyxKey[] = [];
+        keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
+        keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
+        keysToPreserve.push(ONYXKEYS.DEVICE_ID);
+        keysToPreserve.push(ONYXKEYS.HYBRID_APP);
+        keysToPreserve.push(ONYXKEYS.ACCOUNT);
+        keysToPreserve.push(ONYXKEYS.CREDENTIALS);
+
+        signOut();
+        Onyx.clear(keysToPreserve).then(() => {
+            User.resendValidateCode(credentials?.login ?? '');
+            setShouldResetSigningInLogic(true);
+            inputValidateCodeRef.current?.clear();
+            // Give feedback to the user to let them know the email was sent so that they don't spam the button.
+            setTimeRemaining(CONST.REQUEST_CODE_DELAY);
+        });
     };
 
     /**
@@ -274,6 +300,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const clearSignInData = useCallback(() => {
         clearLocalSignInData();
         SessionActions.clearSignInData();
+        setShouldResetSigningInLogic(true);
     }, [clearLocalSignInData]);
 
     useImperativeHandle(forwardedRef, () => ({
@@ -330,6 +357,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
+        setOldDotSignInError(null);
+
         if (account?.isLoading) {
             return;
         }
@@ -461,8 +490,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                         key="validateCode"
                         testID="validateCode"
                     />
-                    {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
-                    {!!hybridApp?.oldDotSignInError && <FormHelpMessage message={hybridApp.oldDotSignInError} />}
+                    {hasError && <FormHelpMessage message={hybridApp?.oldDotSignInError ?? ErrorUtils.getLatestErrorMessage(account)} />}
                     <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !isOffline ? (
                             <Text style={[styles.mt2]}>
