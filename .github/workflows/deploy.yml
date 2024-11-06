@@ -282,7 +282,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-hybrid-sourcemap-artifact
-          path: /Users/runner/work/App/App/Mobile-Expensify/Android/build/generated/sourcemaps/react/release/index.android.bundle.map
+          path: /home/runner/work/App/App/Mobile-Expensify/Android/build/generated/sourcemaps/react/release/index.android.bundle.map
 
       - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
@@ -825,14 +825,18 @@ jobs:
             "./ios-build-artifact/New Expensify.ipa#ios.ipa"
             "./ios-hybrid-build-artifact/Expensify.ipa#ios-hybrid.ipa"
             "./ios-hybrid-sourcemap-artifact/main.jsbundle.map#ios-hybrid-sourcemap.js.map"
-            "./web-staging-sourcemaps-artifact/web-staging-sourcemap.js.map#web-staging-sourcemap.js.map"
+            "./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap.js.map"
             "./web-staging-build-tar-gz-artifact/webBuild.tar.gz#web-staging.tar.gz"
             "./web-staging-build-zip-artifact/webBuild.zip#web-staging.zip"
           )
 
           # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
           for file_entry in "${files[@]}"; do
-            gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber "$file_entry"
+            gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber "$file_entry" || {
+              echo "Failed to upload $file_entry. Continuing with the next file."
+              continue
+            }
+            echo "Successfully uploaded $file_entry."
           done
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -891,7 +895,11 @@ jobs:
 
           # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
           for file_entry in "${files[@]}"; do
-            gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber "$file_entry"
+            gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber "$file_entry" || {
+              echo "Failed to upload $file_entry. Continuing with the next file."
+              continue
+            }
+            echo "Successfully uploaded $file_entry."
           done
         env:
           GITHUB_TOKEN: ${{ github.token }}
