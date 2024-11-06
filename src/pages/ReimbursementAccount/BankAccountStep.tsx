@@ -181,7 +181,7 @@ function BankAccountStep({
                                         return;
                                     }
                                     if (!account?.validated) {
-                                        selectedSubStep.current = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+                                        selectedSubStep.current = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
                                         toggleValidateCodeActionModal?.(true);
                                         return;
                                     }
@@ -198,7 +198,7 @@ function BankAccountStep({
                                 title={translate('bankAccount.connectManually')}
                                 onPress={() => {
                                     if (!account?.validated) {
-                                        selectedSubStep.current = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
+                                        selectedSubStep.current = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
                                         toggleValidateCodeActionModal?.(true);
                                         return;
                                     }

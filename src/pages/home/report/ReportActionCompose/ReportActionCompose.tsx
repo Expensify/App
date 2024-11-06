@@ -394,17 +394,27 @@ function ReportActionCompose({
         ],
     );
 
-    const debouncedValidate = useDebounce((value, reportID) => {
-        const match = value.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
-        if (!match) {
-            setHasExceededTaskTitleLength(false);
-            validateCommentMaxLength(value, { reportID });
-            return;
-        }
-    
-        let title = match[3] ? match[3].trim().replace(/\n/g, ' ') : undefined;
-        setHasExceededTaskTitleLength(title ? title.length > CONST.TITLE_CHARACTER_LIMIT : false);
-    }, 100);
+    const onValueChange = useDebounce(
+        useCallback(
+            (value: string) => {
+                if (value.length === 0 && isComposerFullSize) {
+                    Report.setIsComposerFullSize(reportID, false);
+                }
+
+                const match = value.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
+                if (!match) {
+                    setHasExceededTaskTitleLength(false);
+                    validateCommentMaxLength(value, { reportID });
+                    return;
+                }
+            
+                let title = match[3] ? match[3].trim().replace(/\n/g, ' ') : undefined;
+                setHasExceededTaskTitleLength(title ? title.length > CONST.TITLE_CHARACTER_LIMIT : false);
+            },
+            [isComposerFullSize, reportID, validateCommentMaxLength],
+        ),
+        100,
+    );
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
@@ -503,13 +513,7 @@ function ReportActionCompose({
                                             onFocus={onFocus}
                                             onBlur={onBlur}
                                             measureParentContainer={measureContainer}
-                                            onValueChange={(value) => {
-                                                if (value.length === 0 && isComposerFullSize) {
-                                                    Report.setIsComposerFullSize(reportID, false);
-                                                }
-
-                                                debouncedValidate(value, reportID);
-                                            }}
+                                            onValueChange={onValueChange}
                                         />
                                         <ReportDropUI
                                             onDrop={(event: DragEvent) => {
