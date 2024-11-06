@@ -734,10 +734,9 @@ const translations = {
         listOfChats: 'lista de chats',
         saveTheWorld: 'Salvar el mundo',
         tooltip: '¡Comienza aquí!',
-        // TODO: ASK FOR TRANSLATIONS
         redirectToOldDotModal: {
-            title: '🚧 Under construction 🚧',
-            description: "We're fine-tuning a few more bits and pieces of New Expensify to accommodate your specific setup. In the meantime, head over to Expensify Classic.",
+            title: '🚧 En construcción 🚧',
+            description: 'Estamos ajustando algunos detalles de New Expensify para adaptarla a tu configuración específica. Mientras tanto, dirígete a Expensify Classic.',
         },
     },
     allSettingsScreen: {
