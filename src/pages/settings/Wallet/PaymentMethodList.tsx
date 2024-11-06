@@ -412,7 +412,12 @@ function PaymentMethodList({
                     iconWidth={item.iconWidth ?? item.iconSize}
                     iconStyles={item.iconStyles}
                     badgeText={
-                        shouldShowDefaultBadge(filteredPaymentMethods, item, latestAddedBankAccountPlaidID, invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.isDefault)
+                        shouldShowDefaultBadge(
+                            filteredPaymentMethods,
+                            item,
+                            latestAddedBankAccountPlaidID,
+                            invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.isDefault,
+                        )
                             ? translate('paymentMethodList.defaultPaymentMethod')
                             : undefined
                     }
@@ -429,7 +434,7 @@ function PaymentMethodList({
             </OfflineWithFeedback>
         ),
 
-        [styles.ph6, styles.paymentMethod, styles.badgeBordered, filteredPaymentMethods, invoiceTransferBankAccountID, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
+        [styles.ph6, styles.paymentMethod, styles.badgeBordered, filteredPaymentMethods, invoiceTransferBankAccountID, translate, listItemStyle, shouldShowSelectedState, selectedMethodID, latestAddedBankAccountPlaidID],
     );
 
     return (

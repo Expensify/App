@@ -247,7 +247,7 @@ const ONYXKEYS = {
     /** User's Expensify Wallet */
     USER_WALLET: 'userWallet',
 
-    /** The method ID of the latest added payment method.*/
+    /** The method ID of the latest added payment method */
     LATEST_ADDED_BANK_ACCOUNT_PLAID_ID: 'latestAddedBankAccountPlaidID',
 
     /** User's metadata that will be used to segmentation */

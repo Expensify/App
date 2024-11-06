@@ -241,7 +241,7 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.LATEST_ADDED_BANK_ACCOUNT_PLAID_ID,
                 value: account.plaidAccountID,
-              },
+            },
         ],
         failureData: [
             {
