@@ -1275,6 +1275,7 @@ const CONST = {
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
+        LIST_SCROLLING_DEBOUNCE_TIME: 200,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
