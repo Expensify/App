@@ -52,9 +52,12 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [allBankCards, allBankCardsMetadata] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
-    const card = allBankCards?.[cardID];
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const [cardsList, cardListMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
 
+    const card = cardsList?.[cardID];
     const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? -1];
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
@@ -70,7 +73,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         CompanyCards.updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
     };
 
-    if (!card && !isLoadingOnyxValue(allBankCardsMetadata)) {
+    if (!card && !isLoadingOnyxValue(cardListMetadata)) {
         return <NotFoundPage />;
     }
 
