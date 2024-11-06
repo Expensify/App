@@ -1,6 +1,7 @@
 import React, {forwardRef, useCallback} from 'react';
 import type {ForwardedRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
@@ -73,8 +74,14 @@ const setPerformanceTimersEnd = () => {
     Performance.markEnd(CONST.TIMING.SEARCH_ROUTER_RENDER);
 };
 
-function getContextualSearchQuery(reportName: string) {
-    return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${CONST.SEARCH.DATA_TYPES.CHAT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(reportName)}`;
+function getContextualSearchQuery(item: SearchQueryItem) {
+    if (item.roomType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+        return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${CONST.SEARCH.DATA_TYPES.EXPENSE} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${item.autocompleteID}`;
+    }
+    if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
+        return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${CONST.SEARCH.DATA_TYPES.INVOICE} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${item.autocompleteID}`;
+    }
+    return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${CONST.SEARCH.DATA_TYPES.CHAT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
 }
 
 function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
@@ -154,6 +161,13 @@ function SearchRouterList(
 
     if (reportForContextualSearch && !textInputValue) {
         const reportQueryValue = reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? reportForContextualSearch.reportID;
+        let type: ValueOf<typeof CONST.SEARCH.DATA_TYPES> = CONST.SEARCH.DATA_TYPES.CHAT;
+        if (reportForContextualSearch.isInvoiceRoom) {
+            type = CONST.SEARCH.DATA_TYPES.INVOICE;
+        }
+        if (reportForContextualSearch.isPolicyExpenseChat) {
+            type = CONST.SEARCH.DATA_TYPES.EXPENSE;
+        }
         sections.push({
             data: [
                 {
@@ -164,6 +178,7 @@ function SearchRouterList(
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
                     searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
+                    roomType: type,
                 },
             ],
         });
@@ -209,7 +224,7 @@ function SearchRouterList(
                     return;
                 }
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
-                    const searchQuery = getContextualSearchQuery(item.searchQuery);
+                    const searchQuery = getContextualSearchQuery(item);
                     updateSearchValue(`${searchQuery} `);
 
                     if (item.autocompleteID) {
