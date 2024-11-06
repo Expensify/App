@@ -109,6 +109,7 @@ function BaseSelectionList<TItem extends ListItem>(
         scrollEventThrottle,
         contentContainerStyle,
         shouldHighlightSelectedItem = false,
+        shouldKeepFocusedItemAtTopOfViewableArea = false,
         shouldDebounceScrolling = false,
         shouldPreventActiveCellVirtualization = false,
     }: BaseSelectionListProps<TItem>,
@@ -130,6 +131,20 @@ function BaseSelectionList<TItem extends ListItem>(
     const [currentPage, setCurrentPage] = useState(1);
     const isTextInputFocusedRef = useRef<boolean>(false);
     const {singleExecution} = useSingleExecution();
+    const [itemHeights, setItemHeights] = useState<Record<string, number>>({});
+
+    const onItemLayout = (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
+        if (!itemKey) {
+            return;
+        }
+
+        const {height} = event.nativeEvent.layout;
+
+        setItemHeights((prevHeights) => ({
+            ...prevHeights,
+            [itemKey]: height,
+        }));
+    };
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
@@ -155,7 +170,7 @@ function BaseSelectionList<TItem extends ListItem>(
         const selectedOptions: TItem[] = [];
 
         sections.forEach((section, sectionIndex) => {
-            const sectionHeaderHeight = variables.optionsListSectionHeaderHeight;
+            const sectionHeaderHeight = !!section.title || !!section.CustomSectionHeader ? variables.optionsListSectionHeaderHeight : 0;
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
 
@@ -179,7 +194,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 disabledIndex += 1;
 
                 // Account for the height of the item in getItemLayout
-                const fullItemHeight = getItemHeight(item);
+                const fullItemHeight = item?.keyForList && itemHeights[item.keyForList] ? itemHeights[item.keyForList] : getItemHeight(item);
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
@@ -211,7 +226,7 @@ function BaseSelectionList<TItem extends ListItem>(
             itemLayouts,
             allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
         };
-    }, [canSelectMultiple, sections, customListHeader, customListHeaderHeight, getItemHeight]);
+    }, [canSelectMultiple, sections, customListHeader, customListHeaderHeight, itemHeights, getItemHeight]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
@@ -261,8 +276,20 @@ function BaseSelectionList<TItem extends ListItem>(
 
             const itemIndex = item.index ?? -1;
             const sectionIndex = item.sectionIndex ?? -1;
+            let viewOffsetToKeepFocusedItemAtTopOfViewableArea = 0;
 
-            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
+            // Since there are always two items above the focused item in viewable area, and items can grow beyond the screen size
+            // in searchType chat, the focused item may move out of view. To prevent this, we will ensure that the focused item remains at
+            // the top of the viewable area at all times by adjusting the viewOffset.
+            if (shouldKeepFocusedItemAtTopOfViewableArea) {
+                const firstPreviousItem = index > 0 ? flattenedSections.allOptions.at(index - 1) : undefined;
+                const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeights[firstPreviousItem.keyForList] : 0;
+                const secondPreviousItem = index > 1 ? flattenedSections.allOptions.at(index - 2) : undefined;
+                const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeights[secondPreviousItem.keyForList] : 0;
+                viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
+            }
+
+            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea});
         },
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -463,32 +490,34 @@ function BaseSelectionList<TItem extends ListItem>(
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
         return (
-            <BaseSelectionListItemRenderer
-                ListItem={ListItem}
-                item={item}
-                index={index}
-                isFocused={isItemFocused}
-                isDisabled={isDisabled}
-                showTooltip={showTooltip}
-                canSelectMultiple={canSelectMultiple}
-                onLongPressRow={onLongPressRow}
-                shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                selectRow={selectRow}
-                onCheckboxPress={onCheckboxPress}
-                onDismissError={onDismissError}
-                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                rightHandSideComponent={rightHandSideComponent}
-                isMultilineSupported={isRowMultilineSupported}
-                isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
-                alternateTextNumberOfLines={alternateTextNumberOfLines}
-                shouldIgnoreFocus={shouldIgnoreFocus}
-                setFocusedIndex={setFocusedIndex}
-                normalizedIndex={normalizedIndex}
-                shouldSyncFocus={!isTextInputFocusedRef.current}
-                wrapperStyle={listItemWrapperStyle}
-                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
-                singleExecution={singleExecution}
-            />
+            <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
+                <BaseSelectionListItemRenderer
+                    ListItem={ListItem}
+                    item={item}
+                    index={index}
+                    isFocused={isItemFocused}
+                    isDisabled={isDisabled}
+                    showTooltip={showTooltip}
+                    canSelectMultiple={canSelectMultiple}
+                    onLongPressRow={onLongPressRow}
+                    shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                    selectRow={selectRow}
+                    onCheckboxPress={onCheckboxPress}
+                    onDismissError={onDismissError}
+                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                    rightHandSideComponent={rightHandSideComponent}
+                    isMultilineSupported={isRowMultilineSupported}
+                    isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
+                    alternateTextNumberOfLines={alternateTextNumberOfLines}
+                    shouldIgnoreFocus={shouldIgnoreFocus}
+                    setFocusedIndex={setFocusedIndex}
+                    normalizedIndex={normalizedIndex}
+                    shouldSyncFocus={!isTextInputFocusedRef.current}
+                    wrapperStyle={listItemWrapperStyle}
+                    shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+                    singleExecution={singleExecution}
+                />
+            </View>
         );
     };
 

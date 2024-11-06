@@ -35,7 +35,11 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const showModal = () => {
         const statusBarColor = StatusBar.getBackgroundColor() ?? theme.appBG;
 
-        const isFullScreenModal = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE || type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
+        const isFullScreenModal =
+            type === CONST.MODAL.MODAL_TYPE.CENTERED ||
+            type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
+            type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED ||
+            CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT;
 
         if (statusBarColor) {
             setPreviousStatusBarColor(statusBarColor);
