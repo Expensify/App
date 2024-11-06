@@ -73,11 +73,9 @@ function BankConnection({policyID}: BankConnectionStepProps) {
         if (!url) {
             return;
         }
-        if (connectedBank && !isEmptyObject(connectedBank) && customWindow) {
+        if (feedName && connectedBank && !isEmptyObject(connectedBank)) {
             customWindow?.close();
-            if (feedName && policyID) {
-                Card.updateSelectedFeed(feedName, policyID);
-            }
+            Card.updateSelectedFeed(feedName, policyID ?? '-1');
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID ?? '-1'));
             return;
         }
