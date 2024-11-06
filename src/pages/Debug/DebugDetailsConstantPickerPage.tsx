@@ -2,9 +2,11 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import CategoryPicker from '@components/CategoryPicker';
+import CurrencySelectionList from '@components/CurrencySelectionList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem} from '@components/SelectionList/types';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {DebugParamList} from '@libs/Navigation/types';
@@ -23,6 +25,7 @@ function DebugDetailsConstantPickerPage({
     },
     navigation,
 }: DebugDetailsConstantPickerPageProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onSubmit = useCallback(
         (item: ListItem) => {
@@ -43,6 +46,18 @@ function DebugDetailsConstantPickerPage({
     );
 
     const renderPicker = useCallback(() => {
+        if (([TRANSACTION_FORM_INPUT_IDS.CURRENCY, TRANSACTION_FORM_INPUT_IDS.MODIFIED_CURRENCY, TRANSACTION_FORM_INPUT_IDS.ORIGINAL_CURRENCY] as string[]).includes(fieldName)) {
+            return (
+                <CurrencySelectionList
+                    onSelect={({currencyCode}) =>
+                        onSubmit({
+                            text: currencyCode,
+                        })
+                    }
+                    searchInputLabel={translate('common.search')}
+                />
+            );
+        }
         if (formType === CONST.DEBUG.FORMS.TRANSACTION) {
             if (fieldName === TRANSACTION_FORM_INPUT_IDS.CATEGORY) {
                 return (
@@ -72,7 +87,7 @@ function DebugDetailsConstantPickerPage({
                 onSubmit={onSubmit}
             />
         );
-    }, [fieldName, fieldValue, formType, onSubmit, policyID]);
+    }, [fieldName, fieldValue, formType, onSubmit, policyID, translate]);
 
     return (
         <ScreenWrapper testID={DebugDetailsConstantPickerPage.displayName}>

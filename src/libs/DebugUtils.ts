@@ -606,7 +606,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
             return validateNumber(value);
         }
         case 'currency': {
-            return validateConstantEnum(value, CONST.CURRENCY);
+            return validateString(value);
         }
         case 'errors': {
             return validateObject<ObjectElement<Report, 'errors'>>(value, {});
@@ -1054,7 +1054,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             });
         }
         case 'currency': {
-            return validateConstantEnum(value, CONST.CURRENCY);
+            return validateString(value);
         }
         case 'errors': {
             // TODO: ObjectElement does not handle this case correctly
@@ -1255,7 +1255,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateDate(value);
         }
         case 'modifiedCurrency': {
-            return validateConstantEnum(value, CONST.CURRENCY);
+            return validateString(value);
         }
         case 'modifiedMerchant': {
             return validateString(value);
@@ -1315,7 +1315,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateNumber(value);
         }
         case 'originalCurrency': {
-            return validateConstantEnum(value, CONST.CURRENCY);
+            return validateString(value);
         }
         case 'splitShares': {
             // TODO: ObjectElement doesn't handle this case correctly
