@@ -159,7 +159,10 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
         value: {
-            participants: announceReport?.participants ?? null,
+            participants: accountIDs.reduce((acc, curr) => {
+                Object.assign(acc, {[curr]: null});
+                return acc;
+            }, {}),
             pendingChatMembers: announceReport?.pendingChatMembers ?? null,
         },
     });

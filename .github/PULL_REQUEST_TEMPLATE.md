@@ -51,7 +51,10 @@ For example:
 1. Click on the text input to bring it into focus
 2. Upload an image via copy paste
 3. Verify a modal appears displaying a preview of that image
+
+It's acceptable to write "Same as tests" if the QA team is able to run the tests in the above "Tests" section.
 --->
+// TODO: These must be filled out, or the issue title must include "[No QA]."
 
 - [ ] Verify that no errors appear in the JS console
 

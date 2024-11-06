@@ -96,7 +96,6 @@ function BaseValidateCodeForm({
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
-    const [isResent, setIsResent] = useState(false);
 
     const timerRef = useRef<NodeJS.Timeout>();
 
@@ -159,10 +158,6 @@ function BaseValidateCodeForm({
      * Request a validate code / magic code be sent to verify this contact method
      */
     const resendValidateCode = () => {
-        if (hasMagicCodeBeenSent && !isResent) {
-            return;
-        }
-
         sendValidateCode();
         inputValidateCodeRef.current?.clear();
         setTimeRemaining(CONST.REQUEST_CODE_DELAY);
@@ -233,10 +228,7 @@ function BaseValidateCodeForm({
                         <PressableWithFeedback
                             disabled={shouldDisableResendValidateCode}
                             style={[styles.mr1]}
-                            onPress={() => {
-                                resendValidateCode();
-                                setIsResent(true);
-                            }}
+                            onPress={resendValidateCode}
                             underlayColor={theme.componentBG}
                             hoverDimmingValue={1}
                             pressDimmingValue={0.2}
