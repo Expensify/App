@@ -477,20 +477,63 @@ if (ref.current && 'getBoundingClientRect' in ref.current) {
 
 ### Default value for inexistent IDs
 
- Use `'-1'` or `-1` when there is a possibility that the ID property of an Onyx value could be `null` or `undefined`.
+Use `CONST.DEFAULT_NUMBER_ID` when there is a possibility that the number ID property of an Onyx value could be `null` or `undefined`. **Do not default string IDs to any value unless absolutely necessary**, in case it's necessary use `CONST.DEFAULT_STRING_ID` instead.
 
 ``` ts
 // BAD
-const foo = report?.reportID ?? '';
-const bar = report?.reportID ?? '0';
+const accountID = report?.ownerAccountID ?? -1;
+const accountID = report?.ownerAccountID ?? 0;
+const reportID = report?.reportID ?? '-1';
 
-report ? report.reportID : '0';
-report ? report.reportID : '';
+// BAD
+report ? report.ownerAccountID : -1;
 
 // GOOD
-const foo = report?.reportID ?? '-1';
+const accountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+const accountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+const reportID = report?.reportID;
 
-report ? report.reportID : '-1';
+// GOOD
+report ? report.ownerAccountID : CONST.DEFAULT_NUMBER_ID;
+```
+
+Here are some common cases you may face when fixing your code to remove the default values.
+
+#### **Case 1**: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+
+```diff
+-Report.getNewerActions(newestActionCurrentReport?.reportID ?? '-1', newestActionCurrentReport?.reportActionID ?? '-1');
++Report.getNewerActions(newestActionCurrentReport?.reportID, newestActionCurrentReport?.reportActionID);
+```
+
+> error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'. Type 'undefined' is not assignable to type 'string'.
+
+We need to change `Report.getNewerActions()` arguments to allow `undefined`. By doing that we could add a condition that return early if one of the parameters are falsy, preventing the code (which is expecting defined IDs) from executing.
+
+```diff
+-function getNewerActions(reportID: string, reportActionID: string) {
++function getNewerActions(reportID: string | undefined, reportActionID: string | undefined) {
++    if (!reportID || !reportActionID) {
++        return;
++    }
+```
+
+#### **Case 2**: Type 'undefined' cannot be used as an index type.
+
+```diff
+function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
+-    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
++    const parentReportAction = parentReportActions?.[report?.parentReportActionID];
+```
+
+> error TS2538: Type 'undefined' cannot be used as an index type.
+
+This error is inside a component, so we can't just make conditions with early returns here. We can instead use `String(report?.parentReportActionID)` to try to convert the value to `string`. If the value is `undefined` the result string will be `'undefined'`, which will be used to find a record inside `parentReportActions` and, same as `-1`, would find nothing.
+
+```diff
+function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
+-    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
++    const parentReportAction = parentReportActions?.[String(report?.parentReportActionID)];
 ```
 
 ### Extract complex types

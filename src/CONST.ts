@@ -16,6 +16,11 @@ import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
+const DEFAULT_NUMBER_ID = 0;
+
+/** Only default a string ID to this value if absolutely necessary! */
+const DEFAULT_STRING_ID = '';
+
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
@@ -833,6 +838,8 @@ const CONST = {
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
+    DEFAULT_NUMBER_ID,
+    DEFAULT_STRING_ID,
     USE_EXPENSIFY_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
