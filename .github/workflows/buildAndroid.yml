@@ -163,7 +163,7 @@ jobs:
               echo "APK_PATH=$apkPath"
               echo "APK_FILE_NAME=$(basename "$apkPath")"
               echo "SHOULD_UPLOAD_SOURCEMAPS=$SHOULD_UPLOAD_SOURCEMAPS"
-              echo "APK_ARTIFACT_NAME=${{ inputs.artifact-prefix }}android-artifact-apk" >> "$GITHUB_OUTPUT"
+              echo "APK_ARTIFACT_NAME=${{ inputs.artifact-prefix }}android-apk-artifact" >> "$GITHUB_OUTPUT"
             } >> "$GITHUB_OUTPUT"    
 
       - name: Upload Android AAB artifact
@@ -171,7 +171,7 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-prefix }}android-artifact-aab
+          name: ${{ inputs.artifact-prefix }}android-aab-artifact
           path: ${{ steps.build.outputs.AAB_PATH }}
 
       - name: Upload Android APK artifact
@@ -187,5 +187,5 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-prefix }}android-artifact-sourcemaps
+          name: ${{ inputs.artifact-prefix }}android-sourcemaps-artifact
           path: ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map

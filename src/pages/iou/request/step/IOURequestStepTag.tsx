@@ -131,7 +131,7 @@ function IOURequestStepTag({
                     )}
                 </View>
             )}
-            {shouldShowTag && (
+            {!!shouldShowTag && (
                 <>
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
                     <TagPicker
