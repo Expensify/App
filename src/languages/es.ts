@@ -773,7 +773,7 @@ const translations = {
         dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
         chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
         takePhoto: 'Haz una foto',
-        cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
+        cameraAccess: 'Si aún no se ha concedido el acceso a la cámara, siga estas instrucciones',
         cameraErrorTitle: 'Error en la cámara',
         locationAccessTitle: 'Permitir acceso a la ubicación',
         locationAccessMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',

@@ -779,7 +779,7 @@ const translations = {
         dragReceiptAfterEmail: ' or choose a file to upload below.',
         chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
         takePhoto: 'Take a photo',
-        cameraAccess: 'Camera access is required to take pictures of receipts.',
+        cameraAccess: "Camera access still hasn't been granted, please follow these instructions",
         cameraErrorTitle: 'Camera error',
         cameraErrorMessage: 'An error occurred while taking a photo. Please try again.',
         locationAccessTitle: 'Allow location access',

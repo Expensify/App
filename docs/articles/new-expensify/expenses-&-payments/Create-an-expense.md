@@ -40,6 +40,11 @@ You can create an expense to request payment from an employer’s workspace or f
 You can also forward receipts to receipts@expensify.com using an email address that is your primary or secondary email address. SmartScan will automatically pull all of the details from the receipt and add it to your expenses.
 {% include end-info.html %}
 
+{% include info.html %}
+If the Continue button doesn't open the camera on your mobile web browser, 
+it might be because you denied camera permission. Learn how to enable camera permission in your browser [here](https://support.google.com/chrome/answer/2693767).
+{% include end-info.html %}
+
 # Manually add an expense
 
 {% include selector.html values="desktop, mobile" %}
