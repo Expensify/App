@@ -1225,7 +1225,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getAutoCompleteSuggestionItemStyle: (highlightedEmojiIndex: number, rowHeight: number, isHovered: boolean, currentEmojiIndex: number): ViewStyle[] => {
         let backgroundColor;
 
-        if (isHovered || currentEmojiIndex === highlightedEmojiIndex) {
+        if (currentEmojiIndex === highlightedEmojiIndex) {
+            backgroundColor = theme.activeComponentBG;
+        } else if (isHovered) {
             backgroundColor = theme.hoverComponentBG;
         }
 

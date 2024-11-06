@@ -36,6 +36,7 @@ import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import {ReportIDsContextProvider} from './hooks/useReportIDs';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
+import HybridApp from './libs/HybridApp';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
@@ -50,6 +51,8 @@ LogBox.ignoreLogs([
     // the timer is lost. Currently Expensify is using a 30 minutes interval to refresh personal details.
     // More details here: https://git.io/JJYeb
     'Setting a timer for a long period of time',
+    // We are not using expo-const, so ignore the warning.
+    'No native ExponentConstants module found',
 ]);
 
 const fill = {flex: 1};
@@ -59,6 +62,7 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode
 function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
+    HybridApp.init();
 
     return (
         <StrictModeWrapper>

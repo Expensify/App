@@ -26,7 +26,7 @@ type InitialURLContextProviderProps = {
 };
 
 function InitialURLContextProvider({children, url}: InitialURLContextProviderProps) {
-    const [initialURL, setInitialURL] = useState<Route | undefined>(url);
+    const [initialURL, setInitialURL] = useState<Route | undefined>();
     const {setSplashScreenState} = useSplashScreenStateContext();
 
     useEffect(() => {

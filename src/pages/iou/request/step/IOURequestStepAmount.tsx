@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -11,6 +11,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -32,25 +33,7 @@ type AmountParams = {
     paymentMethod?: PaymentMethodType;
 };
 
-type IOURequestStepAmountOnyxProps = {
-    /** The draft transaction that holds data to be persisted on the current transaction */
-    splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** Whether the confirmation step should be skipped */
-    skipConfirmation: OnyxEntry<boolean>;
-
-    /** The draft transaction object being modified in Onyx */
-    draftTransaction: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-
-    /** The policy which the user has access to and which the report is tied to */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-};
-
-type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
-    WithCurrentUserPersonalDetailsProps &
+type IOURequestStepAmountProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -65,14 +48,15 @@ function IOURequestStepAmount({
         params: {iouType, reportID, transactionID, backTo, pageIndex, action, currency: selectedCurrency = ''},
     },
     transaction,
-    policy,
-    personalDetails,
     currentUserPersonalDetails,
-    splitDraftTransaction,
-    skipConfirmation,
-    draftTransaction,
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID ?? -1}`);
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID ?? -1}`);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : -1}`);
+
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -85,7 +69,7 @@ function IOURequestStepAmount({
     const isEditingSplitBill = isEditing && isSplitBill;
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(currentTransaction) ?? {amount: 0};
-    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
+    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
@@ -195,6 +179,7 @@ function IOURequestStepAmount({
             if (shouldSkipConfirmation) {
                 // Only skip confirmation when the split is not configurable, for now Smartscanned splits cannot be configured
                 if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+                    playSound(SOUNDS.DONE);
                     IOU.splitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -223,6 +208,7 @@ function IOURequestStepAmount({
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
+                    playSound(SOUNDS.DONE);
                     IOU.requestMoney(
                         report,
                         backendAmount,
@@ -239,6 +225,7 @@ function IOURequestStepAmount({
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
+                    playSound(SOUNDS.DONE);
                     IOU.trackExpense(
                         report,
                         backendAmount,
@@ -332,34 +319,7 @@ function IOURequestStepAmount({
 
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
-const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
-    splitDraftTransaction: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? -1;
-            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-        },
-    },
-    draftTransaction: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
-        },
-    },
-    skipConfirmation: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? -1;
-            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
-        },
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
-    },
-})(IOURequestStepAmount);
-
-const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmountWithOnyx);
+const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmount);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmountWithCurrentUserPersonalDetails, true);
 // eslint-disable-next-line rulesdir/no-negated-variables

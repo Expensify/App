@@ -217,7 +217,7 @@ function PolicyDistanceRatesPage({
             options.push({
                 text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
-                icon: Expensicons.DocumentSlash,
+                icon: Expensicons.Close,
                 onSelected: () => (canDisableOrDeleteSelectedRates ? disableRates() : setIsWarningModalVisible(true)),
             });
         }
@@ -227,7 +227,7 @@ function PolicyDistanceRatesPage({
             options.push({
                 text: translate('workspace.distanceRates.enableRates', {count: disabledRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
-                icon: Expensicons.Document,
+                icon: Expensicons.Checkmark,
                 onSelected: enableRates,
             });
         }
