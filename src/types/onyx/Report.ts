@@ -98,9 +98,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The time of the last message on the report */
         lastVisibleActionCreated?: string;
 
-        /** The time of the last read of the report */
-        lastReadCreated?: string;
-
         /** The time when user read the last message */
         lastReadTime?: string;
 

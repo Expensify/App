@@ -73,9 +73,7 @@ const REPORT_BOOLEAN_PROPERTIES: Array<keyof Report> = [
     'selected',
 ] satisfies Array<keyof Report>;
 
-const REPORT_DATE_PROPERTIES: Array<keyof Report> = ['lastVisibleActionCreated', 'lastReadCreated', 'lastReadTime', 'lastMentionedTime', 'lastVisibleActionLastModified'] satisfies Array<
-    keyof Report
->;
+const REPORT_DATE_PROPERTIES: Array<keyof Report> = ['lastVisibleActionCreated', 'lastReadTime', 'lastMentionedTime', 'lastVisibleActionLastModified'] satisfies Array<keyof Report>;
 
 const REPORT_REQUIRED_PROPERTIES: Array<keyof Report> = ['reportID'] satisfies Array<keyof Report>;
 
