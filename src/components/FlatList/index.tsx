@@ -109,7 +109,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         }
     }, [getContentView, getScrollOffset, mvcpMinIndexForVisible, horizontal]);
 
-    const adjustForMaintainVisibleContentPosition = useCallback(() => {
+    const adjustForMaintainVisibleContentPosition = useCallback((animated = true) => {
         if (mvcpMinIndexForVisible == null) {
             return;
         }
@@ -127,7 +127,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
             prevFirstVisibleOffsetRef.current = firstVisibleViewOffset;
             scrollToOffset(scrollOffset + delta, false, true);
             if (mvcpAutoscrollToTopThresholdRef.current != null && scrollOffset <= mvcpAutoscrollToTopThresholdRef.current) {
-                scrollToOffset(0, true, false);
+                scrollToOffset(0, animated, false);
             }
         }
     }, [scrollToOffset, mvcpMinIndexForVisible, horizontal]);
@@ -141,6 +141,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         mutationObserverRef.current?.disconnect();
 
         const mutationObserver = new MutationObserver((mutations) => {
+            let isEditComposerAdded = false;
             // Check if the first visible view is removed and re-calculate it
             // if needed.
             mutations.forEach((mutation) => {
@@ -149,6 +150,12 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
                         return;
                     }
                     firstVisibleViewRef.current = null;
+                });
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === Node.ELEMENT_NODE && (node as HTMLElement).dataset.isEditing === "true") {
+                        isEditComposerAdded = true;
+                        return;
+                    }
                 });
             });
 
@@ -162,7 +169,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
                 return;
             }
 
-            adjustForMaintainVisibleContentPosition();
+            adjustForMaintainVisibleContentPosition(!isEditComposerAdded);
             prepareForMaintainVisibleContentPosition();
         });
         mutationObserver.observe(contentView, {
