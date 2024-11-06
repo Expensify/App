@@ -23,7 +23,7 @@ import openBankConnection from './openBankConnection';
 let customWindow: Window | null = null;
 
 type BankConnectionStepProps = {
-    policyID: string;
+    policyID?: string;
 };
 
 function BankConnection({policyID}: BankConnectionStepProps) {
@@ -74,7 +74,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
         }
         if (connectedBank && !isEmptyObject(connectedBank) && customWindow) {
             customWindow?.close();
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID ?? '-1'));
             return;
         }
         if (isBankConnectionCompleteRoute) {

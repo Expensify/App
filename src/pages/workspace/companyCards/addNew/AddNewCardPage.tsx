@@ -30,7 +30,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
                 return <CardTypeStep />;
             case CONST.COMPANY_CARDS.STEP.BANK_CONNECTION:
-                return <BankConnection policyID={policyID ?? '-1'} />;
+                return <BankConnection policyID={policyID} />;
             case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
                 return <CardInstructionsStep policyID={policyID} />;
             case CONST.COMPANY_CARDS.STEP.CARD_NAME:
