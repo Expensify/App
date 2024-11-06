@@ -13,6 +13,7 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
@@ -30,26 +31,37 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const values = useMemo(() => getSubstepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
 
     const items = useMemo(
-        () =>
-            corpayFields.map((field) => {
-                return (
-                    <MenuItemWithTopDescription
-                        description={field.label}
-                        title={values[field.id] ? String(values[field.id]) : ''}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            if (field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX)) {
-                                onMove(1);
-                                return;
-                            }
+        () => (
+            <>
+                {corpayFields.map((field) => {
+                    return (
+                        <MenuItemWithTopDescription
+                            description={field.label}
+                            title={values[field.id] ? String(values[field.id]) : ''}
+                            shouldShowRightIcon
+                            onPress={() => {
+                                if (field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX)) {
+                                    onMove(1);
+                                    return;
+                                }
 
-                            onMove(0);
-                        }}
-                        key={field.id}
+                                onMove(0);
+                            }}
+                            key={field.id}
+                        />
+                    );
+                })}
+                {!!reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT] && (
+                    <MenuItemWithTopDescription
+                        description={translate('bankInfoStep.bankStatement')}
+                        title={reimbursementAccountDraft[INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT].map((file) => file.name).join(', ')}
+                        shouldShowRightIcon
+                        onPress={() => onMove(2)}
                     />
-                );
-            }),
-        [corpayFields, onMove, values],
+                )}
+            </>
+        ),
+        [corpayFields, onMove, reimbursementAccountDraft, translate, values],
     );
 
     return (
