@@ -333,6 +333,7 @@ function setConnectionError(policyID: string, connectionName: PolicyConnectionNa
             [connectionName]: {
                 lastSync: {
                     isSuccessful: false,
+                    isConnected: false,
                     errorDate: new Date().toISOString(),
                     errorMessage,
                 },
