@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import getCurrentUrl from '@navigation/currentUrl';
+import * as Card from '@userActions/Card';
 import * as CompanyCards from '@userActions/CompanyCards';
 import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
@@ -74,6 +75,9 @@ function BankConnection({policyID}: BankConnectionStepProps) {
         }
         if (connectedBank && !isEmptyObject(connectedBank) && customWindow) {
             customWindow?.close();
+            if (feedName && policyID) {
+                Card.updateSelectedFeed(feedName, policyID);
+            }
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID ?? '-1'));
             return;
         }
@@ -82,7 +86,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
             return;
         }
         customWindow = openBankConnection(url);
-    }, [connectedBank, isBankConnectionCompleteRoute, policyID, url]);
+    }, [connectedBank, feedName, isBankConnectionCompleteRoute, policyID, url]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
