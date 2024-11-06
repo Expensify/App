@@ -1,5 +1,7 @@
 import Onyx from 'react-native-onyx';
+import * as Browser from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 let isMuted = false;
@@ -7,7 +9,7 @@ let isMuted = false;
 Onyx.connect({
     key: ONYXKEYS.NVP_MUTED_PLATFORMS,
     callback: (val) => {
-        const platform = getPlatform();
+        const platform = Browser.isMobile() ? CONST.PLATFORM.MOBILEWEB : getPlatform();
         isMuted = !!val?.[platform];
     },
 });
