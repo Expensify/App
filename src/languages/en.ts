@@ -2265,7 +2265,6 @@ const translations = {
         chooseFile: 'Choose file',
         uploadYourLatest: 'Upload your latest statement',
         pleaseUpload: ({lastFourDigits}: LastFourDigitsParams) => `Please upload the most recent monthly statement for your business bank account ending in ${lastFourDigits}.`,
-        confirmBankInfo: 'Confirm bank info',
     },
     signerInfoStep: {
         signerInfo: 'Signer info',
