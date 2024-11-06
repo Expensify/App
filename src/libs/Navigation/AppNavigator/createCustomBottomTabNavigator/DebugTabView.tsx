@@ -134,7 +134,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
             const report = getChatTabBrickRoadReport(activeWorkspaceID);
 
             if (report) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID));
             }
         }
         if (selectedTab === SCREENS.SETTINGS.ROOT) {
@@ -157,7 +157,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
                     src={Expensicons.DotIndicator}
                     fill={indicator}
                 />
-                {message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
+                {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
             </View>
             <Button
                 text="View"
