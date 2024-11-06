@@ -118,9 +118,9 @@ function AttachmentPicker({
     fileLimit = 1,
 }: AttachmentPickerProps) {
     const styles = useThemeStyles();
+    const [isVisible, setIsVisible] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const [isVisible, setIsVisible] = useState(false);
 
     const completeAttachmentSelection = useRef<(data: FileObject[]) => void>(() => {});
     const onModalHide = useRef<() => void>();

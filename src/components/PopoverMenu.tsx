@@ -168,8 +168,8 @@ function PopoverMenu({
     shouldUpdateFocusedIndex = true,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -264,7 +264,6 @@ function PopoverMenu({
                         }
                         setFocusedIndex(menuIndex);
                     }}
-                    style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
                     wrapperStyle={StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, theme.activeComponentBG, theme.hoverComponentBG)}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
