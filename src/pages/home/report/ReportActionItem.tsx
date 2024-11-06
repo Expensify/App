@@ -964,7 +964,10 @@ function ReportActionItem({
                 shouldFreezeCapture={isPaymentMethodPopoverActive}
             >
                 {(hovered) => (
-                    <View style={highlightedBackgroundColorIfNeeded} dataSet={{isEditing: !!draftMessage}}>
+                    <View
+                        style={highlightedBackgroundColorIfNeeded}
+                        dataSet={{isEditing: !!draftMessage}}
+                    >
                         {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
                         {shouldDisplayContextMenu && (
                             <MiniReportActionContextMenu

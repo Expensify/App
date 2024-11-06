@@ -109,28 +109,31 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         }
     }, [getContentView, getScrollOffset, mvcpMinIndexForVisible, horizontal]);
 
-    const adjustForMaintainVisibleContentPosition = useCallback((animated = true) => {
-        if (mvcpMinIndexForVisible == null) {
-            return;
-        }
-
-        const firstVisibleView = firstVisibleViewRef.current;
-        const prevFirstVisibleOffset = prevFirstVisibleOffsetRef.current;
-        if (firstVisibleView == null || !firstVisibleView.isConnected || prevFirstVisibleOffset == null) {
-            return;
-        }
-
-        const firstVisibleViewOffset = horizontal ? firstVisibleView.offsetLeft : firstVisibleView.offsetTop;
-        const delta = firstVisibleViewOffset - prevFirstVisibleOffset;
-        if (Math.abs(delta) > (IS_MOBILE_SAFARI ? 100 : 0.5)) {
-            const scrollOffset = lastScrollOffsetRef.current;
-            prevFirstVisibleOffsetRef.current = firstVisibleViewOffset;
-            scrollToOffset(scrollOffset + delta, false, true);
-            if (mvcpAutoscrollToTopThresholdRef.current != null && scrollOffset <= mvcpAutoscrollToTopThresholdRef.current) {
-                scrollToOffset(0, animated, false);
+    const adjustForMaintainVisibleContentPosition = useCallback(
+        (animated = true) => {
+            if (mvcpMinIndexForVisible == null) {
+                return;
             }
-        }
-    }, [scrollToOffset, mvcpMinIndexForVisible, horizontal]);
+
+            const firstVisibleView = firstVisibleViewRef.current;
+            const prevFirstVisibleOffset = prevFirstVisibleOffsetRef.current;
+            if (firstVisibleView == null || !firstVisibleView.isConnected || prevFirstVisibleOffset == null) {
+                return;
+            }
+
+            const firstVisibleViewOffset = horizontal ? firstVisibleView.offsetLeft : firstVisibleView.offsetTop;
+            const delta = firstVisibleViewOffset - prevFirstVisibleOffset;
+            if (Math.abs(delta) > (IS_MOBILE_SAFARI ? 100 : 0.5)) {
+                const scrollOffset = lastScrollOffsetRef.current;
+                prevFirstVisibleOffsetRef.current = firstVisibleViewOffset;
+                scrollToOffset(scrollOffset + delta, false, true);
+                if (mvcpAutoscrollToTopThresholdRef.current != null && scrollOffset <= mvcpAutoscrollToTopThresholdRef.current) {
+                    scrollToOffset(0, animated, false);
+                }
+            }
+        },
+        [scrollToOffset, mvcpMinIndexForVisible, horizontal],
+    );
 
     const setupMutationObserver = useCallback(() => {
         const contentView = getContentView();
@@ -152,7 +155,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
                     firstVisibleViewRef.current = null;
                 });
                 mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === Node.ELEMENT_NODE && (node as HTMLElement).dataset.isEditing === "true") {
+                    if (node.nodeType === Node.ELEMENT_NODE && (node as HTMLElement).dataset.isEditing === 'true') {
                         isEditComposerAdded = true;
                         return;
                     }
