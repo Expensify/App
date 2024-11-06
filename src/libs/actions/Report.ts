@@ -853,7 +853,7 @@ function openReport(
         parentReportActionID,
     };
 
-    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? true;
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
 
     if (introSelected && !isInviteOnboardingComplete) {
         const {choice, inviteType} = introSelected;
@@ -1032,7 +1032,6 @@ function openReport(
             paginationConfig,
         ).finally(() => {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
-            Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: true});
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
