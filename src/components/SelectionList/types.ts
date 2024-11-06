@@ -597,6 +597,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether we highlight all the selected items */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Determines if the focused item should remain at the top of the viewable area when navigating with arrow keys */
+    shouldKeepFocusedItemAtTopOfViewableArea?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
