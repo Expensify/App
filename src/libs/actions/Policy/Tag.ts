@@ -1040,6 +1040,10 @@ function downloadTagsCSV(policyID: string, onDownloadFailed: () => void) {
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+function getPolicyTagsData(policyID: string) {
+    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+}
+
 export {
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
@@ -1058,6 +1062,7 @@ export {
     setPolicyTagApprover,
     importPolicyTags,
     downloadTagsCSV,
+    getPolicyTagsData,
 };
 
 export type {NewCustomUnit};
