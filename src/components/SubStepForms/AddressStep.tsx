@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef, FormValue} from '@components/Form/types';
@@ -37,7 +37,7 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
     /** Fields list of the form */
     stepFields: Array<FormOnyxKeys<TFormID>>;
 
-    /* The IDs of the input fields */
+    /** The IDs of the input fields */
     inputFieldsIDs: AddressValues;
 
     /** The default values for the form */
@@ -88,17 +88,10 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
 
     const formRef = useRef<FormRef | null>(null);
 
-    const handleCountryChange = useCallback(
-        (country: unknown) => {
-            if (onCountryChange) {
-                onCountryChange(country);
-            }
-
-            // When country changes and state is no longer gathered we need to reset corresponding form errors
-            formRef.current?.resetFormFieldError(inputFieldsIDs.state);
-        },
-        [inputFieldsIDs.state, onCountryChange],
-    );
+    useEffect(() => {
+        // When stepFields change (e.g. country changes) we need to reset state errors manually
+        formRef.current?.resetFormFieldError(inputFieldsIDs.state);
+    }, [inputFieldsIDs.state, stepFields]);
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
@@ -143,7 +136,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     stateSelectorLabel={stateSelectorLabel}
                     stateSelectorModalHeaderTitle={stateSelectorModalHeaderTitle}
                     stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
-                    onCountryChange={handleCountryChange}
+                    onCountryChange={onCountryChange}
                 />
                 {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
             </View>
