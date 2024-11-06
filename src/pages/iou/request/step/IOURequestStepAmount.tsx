@@ -11,6 +11,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -178,6 +179,7 @@ function IOURequestStepAmount({
             if (shouldSkipConfirmation) {
                 // Only skip confirmation when the split is not configurable, for now Smartscanned splits cannot be configured
                 if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+                    playSound(SOUNDS.DONE);
                     IOU.splitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -206,6 +208,7 @@ function IOURequestStepAmount({
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
+                    playSound(SOUNDS.DONE);
                     IOU.requestMoney(
                         report,
                         backendAmount,
@@ -222,6 +225,7 @@ function IOURequestStepAmount({
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
+                    playSound(SOUNDS.DONE);
                     IOU.trackExpense(
                         report,
                         backendAmount,
