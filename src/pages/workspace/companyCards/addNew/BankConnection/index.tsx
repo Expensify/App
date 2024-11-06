@@ -33,8 +33,8 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = addNewCard?.data?.selectedBank;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID ?? '-1');
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const bankKey = Object.keys(CONST.COMPANY_CARDS.BANKS).find((value) => CONST.COMPANY_CARDS.BANKS[value] === bankName);
-    const feedName = bankKey ? CONST.COMPANY_CARD.FEED_BANK_NAME?.[bankKey] : undefined;
+    const bankKey = Object.keys(CONST.COMPANY_CARDS.BANKS).find((value) => CONST.COMPANY_CARDS.BANKS?.[value as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
+    const feedName = bankKey && bankKey !== CONST.COMPANY_CARDS.BANKS.OTHER ? CONST.COMPANY_CARD.FEED_BANK_NAME?.[bankKey as keyof typeof CONST.COMPANY_CARD.FEED_BANK_NAME] : undefined;
     const connectedBank = feedName ? cardFeeds?.settings?.oAuthAccountDetails?.[feedName] : undefined;
 
     const currentUrl = getCurrentUrl();
