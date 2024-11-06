@@ -88,16 +88,6 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
         [styles, translate],
     );
 
-    if (!cardsList) {
-        return (
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                style={styles.flex1}
-                color={theme.spinner}
-            />
-        );
-    }
-
     if (sortedCards.length === 0) {
         return <WorkspaceCompanyCardsFeedAddedEmptyPage />;
     }
