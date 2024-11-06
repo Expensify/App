@@ -3104,8 +3104,8 @@ const translations = {
         },
         type: {
             free: 'Gratis',
-            control: 'Control',
-            collect: 'Recolección',
+            control: 'Controlar',
+            collect: 'Recopilar',
         },
         companyCards: {
             addCompanyCards: 'Agregar tarjetas de empresa',
@@ -5476,7 +5476,7 @@ const translations = {
         yourPlan: {
             title: 'Tu plan',
             collect: {
-                title: 'Recolección',
+                title: 'Recopilar',
                 priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 benefit1: 'SmartScans ilimitados y seguimiento de la distancia',
@@ -5488,10 +5488,10 @@ const translations = {
                 benefit7: 'Reportes e informes personalizados',
             },
             control: {
-                title: 'Control',
+                title: 'Controlar',
                 priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
-                benefit1: 'Todo en Recolección, más:',
+                benefit1: 'Todo en Recopilar, más:',
                 benefit2: 'Integraciones con NetSuite y Sage Intacct',
                 benefit3: 'Sincronización de Certinia y Workday',
                 benefit4: 'Varios aprobadores de gastos',
