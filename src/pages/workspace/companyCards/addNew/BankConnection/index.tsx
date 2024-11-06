@@ -10,12 +10,14 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import getCurrentUrl from '@navigation/currentUrl';
 import * as CompanyCards from '@userActions/CompanyCards';
 import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import openBankConnection from './openBankConnection';
 
 let customWindow: Window | null = null;
@@ -29,6 +31,12 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = addNewCard?.data?.selectedBank;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID ?? '-1');
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const bankKey = Object.keys(CONST.COMPANY_CARDS.BANKS).find((value) => CONST.COMPANY_CARDS.BANKS[value] === bankName);
+    const feedName = CONST.COMPANY_CARD.FEED_BANK_NAME[bankKey];
+    const connectedBank = cardFeeds?.settings?.oAuthAccountDetails?.[feedName] ?? undefined;
+
     const currentUrl = getCurrentUrl();
     const isBankConnectionCompleteRoute = currentUrl.includes(ROUTES.BANK_CONNECTION_COMPLETE);
     const url = getCompanyCardBankConnection(policyID, bankName);
@@ -64,13 +72,17 @@ function BankConnection({policyID}: BankConnectionStepProps) {
         if (!url) {
             return;
         }
-        if (isBankConnectionCompleteRoute) {
+        if (connectedBank && !isEmptyObject(connectedBank) && customWindow) {
             customWindow?.close();
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
             return;
         }
+        if (isBankConnectionCompleteRoute) {
+            customWindow?.close();
+            return;
+        }
         customWindow = openBankConnection(url);
-    }, [isBankConnectionCompleteRoute, policyID, url]);
+    }, [connectedBank, isBankConnectionCompleteRoute, policyID, url]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
