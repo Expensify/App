@@ -111,7 +111,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_ENABLED]: policy?.arePerDiemEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled,
         }),
         [policy],
     ) as PolicyFeatureStates;
@@ -226,7 +226,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_ENABLED]) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.perDiem',
             icon: Expensicons.CalendarSolid,

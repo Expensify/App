@@ -67,9 +67,9 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    arePerDiemEnabled: enabled,
+                    arePerDiemRatesEnabled: enabled,
                     pendingFields: {
-                        arePerDiemEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        arePerDiemRatesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                     ...(doesCustomUnitExists ? {} : {customUnits: {[finalCustomUnitID]: optimisticCustomUnit}}),
                 },
@@ -81,7 +81,7 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     pendingFields: {
-                        arePerDiemEnabled: null,
+                        arePerDiemRatesEnabled: null,
                     },
                 },
             },
@@ -91,9 +91,9 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    arePerDiemEnabled: !enabled,
+                    arePerDiemRatesEnabled: !enabled,
                     pendingFields: {
-                        arePerDiemEnabled: null,
+                        arePerDiemRatesEnabled: null,
                     },
                 },
             },

@@ -150,8 +150,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.PerDiem,
             titleTranslationKey: 'workspace.moreFeatures.perDiem.title',
             subtitleTranslationKey: 'workspace.moreFeatures.perDiem.subtitle',
-            isActive: policy?.arePerDiemEnabled ?? false,
-            pendingAction: policy?.pendingFields?.arePerDiemEnabled,
+            isActive: policy?.arePerDiemRatesEnabled ?? false,
+            pendingAction: policy?.pendingFields?.arePerDiemRatesEnabled,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
                     return;
