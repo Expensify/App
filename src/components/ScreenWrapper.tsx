@@ -1,9 +1,9 @@
-import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Keyboard, PanResponder, View} from 'react-native';
+import {Keyboard, NativeModules, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useEnvironment from '@hooks/useEnvironment';
@@ -26,7 +26,6 @@ import ImportedStateIndicator from './ImportedStateIndicator';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
 import OfflineIndicator from './OfflineIndicator';
 import SafeAreaConsumer from './SafeAreaConsumer';
-import TestToolsModal from './TestToolsModal';
 import withNavigationFallback from './withNavigationFallback';
 
 type ScreenWrapperChildrenProps = {
@@ -165,6 +164,15 @@ function ScreenWrapper(
     // eslint-disable-next-line react-compiler/react-compiler
     isKeyboardShownRef.current = keyboardState?.isKeyboardShown ?? false;
 
+    const route = useRoute();
+    const shouldReturnToOldDot = useMemo(() => {
+        return !!route?.params && 'singleNewDotEntry' in route.params && route.params.singleNewDotEntry === 'true';
+    }, [route?.params]);
+
+    UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
+        NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
+    });
+
     const panResponder = useRef(
         PanResponder.create({
             onStartShouldSetPanResponderCapture: (_e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
@@ -172,7 +180,7 @@ function ScreenWrapper(
         }),
     ).current;
 
-    const keyboardDissmissPanResponder = useRef(
+    const keyboardDismissPanResponder = useRef(
         PanResponder.create({
             onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
                 const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
@@ -265,7 +273,7 @@ function ScreenWrapper(
                                 fsClass="fs-unmask"
                                 style={[styles.flex1, paddingStyle, style]}
                                 // eslint-disable-next-line react/jsx-props-no-spreading
-                                {...keyboardDissmissPanResponder.panHandlers}
+                                {...keyboardDismissPanResponder.panHandlers}
                             >
                                 <KeyboardAvoidingView
                                     style={[styles.w100, styles.h100, {maxHeight}, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
@@ -277,7 +285,6 @@ function ScreenWrapper(
                                         enabled={shouldEnablePickerAvoiding}
                                     >
                                         <HeaderGap styles={headerGapStyles} />
-                                        <TestToolsModal />
                                         {isDevelopment && <CustomDevMenu />}
                                         <ScreenWrapperStatusContext.Provider value={contextValue}>
                                             {

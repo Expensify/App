@@ -125,11 +125,11 @@ function getFilters(queryJSON: SearchQueryJSON) {
             return;
         }
 
-        if (typeof node?.left === 'object' && node.left) {
+        if (typeof node.left === 'object' && node.left) {
             traverse(node.left);
         }
 
-        if (typeof node?.right === 'object' && node.right && !Array.isArray(node.right)) {
+        if (typeof node.right === 'object' && node.right && !Array.isArray(node.right)) {
             traverse(node.right);
         }
 
@@ -148,7 +148,7 @@ function getFilters(queryJSON: SearchQueryJSON) {
             node.right.forEach((element) => {
                 filterArray.push({
                     operator: node.operator,
-                    value: element as string | number,
+                    value: element,
                 });
             });
         }
@@ -163,52 +163,66 @@ function getFilters(queryJSON: SearchQueryJSON) {
 }
 
 /**
- * @private
  * Given a filter name and its value, this function returns the corresponding ID found in Onyx data.
+ * Returns a function that can be used as a computeNodeValue callback for traversing the filters tree
  */
-function findIDFromDisplayValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filter: string | string[], cardList: OnyxTypes.CardList, taxRates: Record<string, string[]>) {
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-        if (typeof filter === 'string') {
-            const email = filter;
-            return PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? filter;
+function getFindIDFromDisplayValue(cardList: OnyxTypes.CardList, taxRates: Record<string, string[]>) {
+    return (filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filter: string | string[]) => {
+        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+            if (typeof filter === 'string') {
+                const email = filter;
+                return PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? filter;
+            }
+            const emails = filter;
+            return emails.map((email) => PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
         }
-        const emails = filter;
-        return emails.map((email) => PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-        const names = Array.isArray(filter) ? filter : ([filter] as string[]);
-        return names.map((name) => taxRates[name] ?? name).flat();
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-        if (typeof filter === 'string') {
-            const bank = filter;
-            const ids =
-                Object.values(cardList)
-                    .filter((card) => card.bank === bank)
-                    .map((card) => card.cardID.toString()) ?? filter;
-            return ids.length > 0 ? ids : bank;
+        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+            const names = Array.isArray(filter) ? filter : ([filter] as string[]);
+            return names.map((name) => taxRates[name] ?? name).flat();
         }
-        const banks = filter;
-        return banks
-            .map(
-                (bank) =>
+        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+            if (typeof filter === 'string') {
+                const bank = filter;
+                const ids =
                     Object.values(cardList)
                         .filter((card) => card.bank === bank)
-                        .map((card) => card.cardID.toString()) ?? bank,
-            )
-            .flat();
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-        if (typeof filter === 'string') {
-            const backendAmount = CurrencyUtils.convertToBackendAmount(Number(filter));
-            return Number.isNaN(backendAmount) ? filter : backendAmount.toString();
+                        .map((card) => card.cardID.toString()) ?? filter;
+                return ids.length > 0 ? ids : bank;
+            }
+            const banks = filter;
+            return banks
+                .map(
+                    (bank) =>
+                        Object.values(cardList)
+                            .filter((card) => card.bank === bank)
+                            .map((card) => card.cardID.toString()) ?? bank,
+                )
+                .flat();
         }
-        return filter.map((amount) => {
-            const backendAmount = CurrencyUtils.convertToBackendAmount(Number(amount));
-            return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
-        });
+        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+            return getUpdatedAmountValue(filterName, filter);
+        }
+
+        return filter;
+    };
+}
+
+/**
+ * Returns an updated amount value for query filters, correctly formatted to "backend" amount
+ */
+function getUpdatedAmountValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filter: string | string[]) {
+    if (filterName !== CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+        return filter;
     }
-    return filter;
+
+    if (typeof filter === 'string') {
+        const backendAmount = CurrencyUtils.convertToBackendAmount(Number(filter));
+        return Number.isNaN(backendAmount) ? filter : backendAmount.toString();
+    }
+    return filter.map((amount) => {
+        const backendAmount = CurrencyUtils.convertToBackendAmount(Number(amount));
+        return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
+    });
 }
 
 /**
@@ -216,15 +230,10 @@ function findIDFromDisplayValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_F
  * Computes and returns a numerical hash for a given queryJSON.
  * Sorts the query keys and values to ensure that hashes stay consistent.
  */
-function getQueryHash(query: SearchQueryJSON): number {
+function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSearchHash: number} {
     let orderedQuery = '';
-    if (query.policyID) {
-        orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${query.policyID} `;
-    }
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${query.status}`;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
 
     query.flatFilters.forEach((filter) => {
         filter.filters.sort((a, b) => localeCompare(a.value.toString(), b.value.toString()));
@@ -235,7 +244,16 @@ function getQueryHash(query: SearchQueryJSON): number {
         .sort()
         .forEach((filterString) => (orderedQuery += ` ${filterString}`));
 
-    return UserUtils.hashText(orderedQuery, 2 ** 32);
+    const recentSearchHash = UserUtils.hashText(orderedQuery, 2 ** 32);
+
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
+    if (query.policyID) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${query.policyID} `;
+    }
+    const primaryHash = UserUtils.hashText(orderedQuery, 2 ** 32);
+
+    return {primaryHash, recentSearchHash};
 }
 
 /**
@@ -252,7 +270,9 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
-        result.hash = getQueryHash(result);
+        const {primaryHash, recentSearchHash} = getQueryHashes(result);
+        result.hash = primaryHash;
+        result.recentSearchHash = recentSearchHash;
 
         return result;
     } catch (e) {
@@ -555,7 +575,9 @@ function buildUserReadableQueryString(
                 })
                 .flat();
 
-            displayQueryFilters = taxRateNames.map((taxRate) => ({
+            const uniqueTaxRateNames = [...new Set(taxRateNames)];
+
+            displayQueryFilters = uniqueTaxRateNames.map((taxRate) => ({
                 operator: queryFilter.at(0)?.operator ?? CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 value: taxRate,
             }));
@@ -604,23 +626,23 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
 /**
  *  Given a search query, this function will standardize the query by replacing display values with their corresponding IDs.
  */
-function standardizeQueryJSON(queryJSON: SearchQueryJSON, cardList: OnyxTypes.CardList, taxRates: Record<string, string[]>) {
+function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, right: string | string[]) => string | string[]) {
     const standardQuery = cloneDeep(queryJSON);
     const filters = standardQuery.filters;
     const traverse = (node: ASTNode) => {
         if (!node.operator) {
             return;
         }
-        if (typeof node.left === 'object' && node.left) {
+        if (typeof node.left === 'object') {
             traverse(node.left);
         }
-        if (typeof node.right === 'object' && node.right && !Array.isArray(node.right)) {
+        if (typeof node.right === 'object' && !Array.isArray(node.right)) {
             traverse(node.right);
         }
 
-        if (typeof node.left !== 'object') {
+        if (typeof node.left !== 'object' && (Array.isArray(node.right) || typeof node.right === 'string')) {
             // eslint-disable-next-line no-param-reassign
-            node.right = findIDFromDisplayValue(node.left, node.right as string | string[], cardList, taxRates);
+            node.right = computeNodeValue(node.left, node.right);
         }
     };
 
@@ -641,5 +663,8 @@ export {
     getPolicyIDFromSearchQuery,
     buildCannedSearchQuery,
     isCannedSearchQuery,
-    standardizeQueryJSON,
+    traverseAndUpdatedQuery,
+    getFindIDFromDisplayValue,
+    getUpdatedAmountValue,
+    sanitizeSearchValue,
 };
