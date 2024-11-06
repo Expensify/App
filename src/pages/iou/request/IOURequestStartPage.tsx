@@ -73,10 +73,6 @@ function IOURequestStartPage({
         IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
     }, [transaction, policy, reportID, iouType, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]);
 
-    const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-    const isExpenseReport = ReportUtils.isExpenseReport(report);
-    const shouldDisplayDistanceRequest = !!canUseCombinedTrackSubmit || isExpenseChat || isExpenseReport || (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT);
-
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
@@ -163,15 +159,13 @@ function IOURequestStartPage({
                                             </TabScreenWithFocusTrapWrapper>
                                         )}
                                     </TopTab.Screen>
-                                    {shouldDisplayDistanceRequest && (
-                                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
-                                            {() => (
-                                                <TabScreenWithFocusTrapWrapper>
-                                                    <IOURequestStepDistance route={route} />
-                                                </TabScreenWithFocusTrapWrapper>
-                                            )}
-                                        </TopTab.Screen>
-                                    )}
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
+                                        {() => (
+                                            <TabScreenWithFocusTrapWrapper>
+                                                <IOURequestStepDistance route={route} />
+                                            </TabScreenWithFocusTrapWrapper>
+                                        )}
+                                    </TopTab.Screen>
                                 </OnyxTabNavigator>
                             ) : (
                                 <FocusTrapContainerElement
