@@ -547,6 +547,11 @@ type CompanyCardBankName = {
     bankName: string;
 };
 
+type WorkspaceLockedPlanTypeParams = {
+    subscriptionUsersCount: number;
+    annualSubscriptionEndDate: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -746,4 +751,5 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    WorkspaceLockedPlanTypeParams,
 };

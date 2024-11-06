@@ -186,6 +186,7 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkspaceLockedPlanTypeParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
@@ -2400,6 +2401,7 @@ const translations = {
                         return 'Member';
                 }
             },
+            planType: 'Plan Type',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Desktop.',
@@ -4186,6 +4188,21 @@ const translations = {
                 goTo: 'Go to',
                 andEnableWorkflows: 'and enable workflows, then add approvals to unlock this feature.',
             },
+        },
+        planTypePage: {
+            title: 'Plan type',
+            planTypes: {
+                team: {
+                    label: 'Collect',
+                    description: 'For teams looking to automate their processes.',
+                },
+                corporate: {
+                    label: 'Control',
+                    description: 'For organizations with advanced requirements.',
+                },
+            },
+            lockedPlanNote: ({subscriptionUsersCount, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) =>
+                `You've committed to ${subscriptionUsersCount} active users on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
         },
     },
     getAssistancePage: {

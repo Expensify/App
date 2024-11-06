@@ -1064,6 +1064,17 @@ function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
 }
 
+function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
+    switch (workspaceType) {
+        case CONST.POLICY.TYPE.CORPORATE:
+            return Localize.translateLocal('workspace.type.control');
+        case CONST.POLICY.TYPE.TEAM:
+            return Localize.translateLocal('workspace.type.collect');
+        default:
+            return Localize.translateLocal('workspace.type.free');
+    }
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1181,6 +1192,7 @@ export {
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
     getActivePolicy,
+    getUserFriendlyWorkspaceType,
 };
 
 export type {MemberEmailsToAccountIDs};

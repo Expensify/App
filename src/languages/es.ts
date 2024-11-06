@@ -185,6 +185,7 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkspaceLockedPlanTypeParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
@@ -2423,6 +2424,7 @@ const translations = {
                         return 'Miembro';
                 }
             },
+            planType: 'Tipo de plan',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Desktop.',
@@ -4062,6 +4064,21 @@ const translations = {
             confirmText: 'Sí, exportar de nuevo',
             cancelText: 'Cancelar',
         },
+        planTypePage: {
+            title: 'Tipo de plan',
+            planTypes: {
+                team: {
+                    label: 'Collect',
+                    description: 'Para equipos que buscan automatizar sus procesos.',
+                },
+                corporate: {
+                    label: 'Recolectar',
+                    description: 'Para organizaciones con requisitos avanzados.',
+                },
+            },
+            lockedPlanNote: ({subscriptionUsersCount, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) =>
+                `Te has comprometido a ${subscriptionUsersCount} usuarios activos en el plan Control hasta que termine tu suscripción anual el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Collect a partir del ${annualSubscriptionEndDate} deshabilitando la renovación automática en`,
+        },
         upgrade: {
             reportFields: {
                 title: 'Los campos',
@@ -4232,6 +4249,9 @@ const translations = {
                 goTo: 'Ve a',
                 andEnableWorkflows: 'y habilita los flujos de trabajo, luego añade aprobaciones para desbloquear esta función.',
             },
+        },
+        planType: {
+            title: 'Tipo de plan',
         },
     },
     getAssistancePage: {
