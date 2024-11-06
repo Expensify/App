@@ -26,7 +26,6 @@ export default function createRandomOptionData(index: number): OptionData {
         hasOutstandingChildRequest: randBoolean(),
         isOwnPolicyExpenseChat: randBoolean(),
         lastMessageText: randWord(),
-        lastMessageTimestamp: Date.now(),
         lastVisibleActionCreated: new Date().toISOString(),
         lastReadCreated: new Date().toISOString(),
         lastReadTime: new Date().toISOString(),

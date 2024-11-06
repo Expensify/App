@@ -95,9 +95,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The text of the last message on the report */
         lastMessageText?: string;
 
-        /** The timestamp of the last message on the report */
-        lastMessageTimestamp?: number;
-
         /** The time of the last message on the report */
         lastVisibleActionCreated?: string;
 

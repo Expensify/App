@@ -44,7 +44,6 @@ type PropertyTypes = Array<'string' | 'number' | 'object' | 'boolean' | 'undefin
 const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
 
 const REPORT_NUMBER_PROPERTIES: Array<keyof Report> = [
-    'lastMessageTimestamp',
     'lastReadSequenceNumber',
     'managerID',
     'lastActorAccountID',
