@@ -276,19 +276,19 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                     },
                 },
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {
-                    [cardID]: null,
-                },
-            },
         ],
 
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+                value: {
+                    [cardID]: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
                 value: {
                     [cardID]: null,
                 },
