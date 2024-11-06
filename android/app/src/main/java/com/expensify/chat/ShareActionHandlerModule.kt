@@ -34,7 +34,6 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
 
             val shareObject = JSONObject(shareObjectString)
             val filePath = shareObject.optString("content")
-            Log.i("ShareActionHandlerModule", "processFiles filePath: $filePath")
             val mimeType = shareObject.optString("mimeType")
             val fileUriPath = "file://$filePath"
             val timestamp = System.currentTimeMillis()
