@@ -2843,8 +2843,8 @@ const translations = {
                         [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Cash',
                     },
                     alternateText: {
-                        [CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL]: 'Out of pocket expenses will export when final approved',
-                        [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Out of pocket expenses will export when paid',
+                        [CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                        [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Out-of-pocket expenses will export when paid',
                     },
                 },
                 exportVendorBillsTo: {

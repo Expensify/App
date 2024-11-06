@@ -40,7 +40,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const config = policy?.connections?.netsuite?.options.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
-    const accountingMehtod = policy?.connections?.netsuite?.options.config.accountingMehtod;
+    const accountingMethod = policy?.connections?.netsuite?.options.config.accountingMethod;
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
     const selectedReimbursementAccount = useMemo(
@@ -68,8 +68,11 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.accounting.autoSync'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID)),
             hintText: (() => {
-                if (!autoSyncConfig?.autoSync.enabled) return undefined;
-                return translate(`workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMehtod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH}`);
+                if (!autoSyncConfig?.autoSync.enabled) 
+                    {
+                    return undefined;
+                    }
+                return translate(`workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMethod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH}`);
             })(),
         },
         {

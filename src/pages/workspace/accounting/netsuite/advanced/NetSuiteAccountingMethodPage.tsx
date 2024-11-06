@@ -44,7 +44,7 @@ function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
 
     const selectExpenseReportApprovalLevel = useCallback(
         (row: MenuListItem) => {
-            if (row.value != config?.accountingMethod) {
+            if (row.value !== config?.accountingMethod) {
                 Connections.updateNetSuiteAccountingMethod(policyID, row.value, config?.accountingMethod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID));

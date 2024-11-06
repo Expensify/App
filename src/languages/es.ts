@@ -2880,8 +2880,8 @@ const translations = {
                         [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Efectivo',
                     },
                     alternateText: {
-                        [CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL]: 'Los gastos personales se exportarán cuando sean aprobados definitivamente',
-                        [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Los gastos personales se exportarán cuando sean pagados',
+                        [CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados definitivamente',
+                        [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
                     },
                 },
                 exportVendorBillsTo: {
