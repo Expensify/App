@@ -3172,8 +3172,8 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 1dca942403ed9342f98334bf4c3621f011aa7946
-  DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
+  boost: 26992d1adf73c1c7676360643e687aee6dda994b
+  DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXAV: 8996468e7e113e59d13c6530a0f5f54ee542439e
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
   Expo: a4a1728b92a9328a1de4b1820498439e5fcd855e
@@ -3192,10 +3192,10 @@ SPEC CHECKSUMS:
   FirebaseInstallations: 40bd9054049b2eae9a2c38ef1c3dd213df3605cd
   FirebasePerformance: 0c01a7a496657d7cea86d40c0b1725259d164c6c
   FirebaseRemoteConfig: 2d6e2cfdb49af79535c8af8a80a4a5009038ec2b
-  fmt: 10c6e61f4be25dc963c36bd73fc7b1705fe975be
+  fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
   FullStory: c8a10b2358c0d33c57be84d16e4c440b0434b33d
   fullstory_react-native: 44dc2c85a6316df2713e6cb0048ce5719c3b0bab
-  glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
+  glog: 69ef571f3de08433d766d614c73a9838a06bf7eb
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
@@ -3217,7 +3217,7 @@ SPEC CHECKSUMS:
   onfido-react-native-sdk: 4ccfdeb10f9ccb4a5799d2555cdbc2a068a42c0d
   Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  RCT-Folly: bf5c0376ffe4dd2cf438dcf86db385df9fdce648
+  RCT-Folly: 4464f4d875961fce86008d45f4ecf6cef6de0740
   RCTDeprecation: fde92935b3caa6cb65cbff9fbb7d3a9867ffb259
   RCTRequired: 75c6cee42d21c1530a6f204ba32ff57335d19007
   RCTTypeSafety: 7e6fe47bfb693c50d4669db1a480ca5331795f5b
