@@ -68,10 +68,9 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.accounting.autoSync'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID)),
             hintText: (() => {
-                if (!autoSyncConfig?.autoSync.enabled) 
-                    {
+                if (!autoSyncConfig?.autoSync.enabled) {
                     return undefined;
-                    }
+                }
                 return translate(`workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMethod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH}`);
             })(),
         },
