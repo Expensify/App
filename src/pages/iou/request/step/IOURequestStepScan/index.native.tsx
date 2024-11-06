@@ -35,6 +35,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -295,6 +296,7 @@ function IOURequestStepScan({
                 receipt.source = source;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
+                    playSound(SOUNDS.DONE);
                     IOU.startSplitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails?.login ?? '',
@@ -318,6 +320,7 @@ function IOURequestStepScan({
                 if (locationPermissionGranted) {
                     getCurrentPosition(
                         (successData) => {
+                            playSound(SOUNDS.DONE);
                             if (iouType === CONST.IOU.TYPE.TRACK && report) {
                                 IOU.trackExpense(
                                     report,
@@ -374,6 +377,7 @@ function IOURequestStepScan({
                         (errorData) => {
                             Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                            playSound(SOUNDS.DONE);
                             createTransaction(receipt, participant);
                         },
                         {
@@ -383,6 +387,7 @@ function IOURequestStepScan({
                     );
                     return;
                 }
+                playSound(SOUNDS.DONE);
                 createTransaction(receipt, participant);
                 return;
             }
