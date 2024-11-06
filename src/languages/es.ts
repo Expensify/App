@@ -590,8 +590,8 @@ const translations = {
     },
     login: {
         hero: {
-            header: 'Gestiona, divide gastos y chatea con tu equipo.',
-            body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
+            header: 'Viajes y gastos, a la velocidad del chat',
+            body: 'Bienvenido a la próxima generación de Expensify, donde tus viajes y gastos avanzan más rápido con la ayuda de un chat contextual en tiempo real.',
         },
     },
     thirdPartySignIn: {
@@ -661,7 +661,7 @@ const translations = {
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) =>
             `Este chat es con los administradores del espacio de trabajo ${workspaceName}.`,
         beginningOfChatHistoryAdminRoomPartTwo: ' Use it to chat about workspace setup and more.',
-        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `Este chat es con todos en el espacio de trabajo ${workspaceName}.`,
+        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `Este chat es con todos en ${workspaceName}.`,
         beginningOfChatHistoryAnnounceRoomPartTwo: ` Úsalo para hablar sobre la configuración del espacio de trabajo y más.`,
         beginningOfChatHistoryUserRoomPartOne: 'ste chat es para todo lo relacionado con ',
         beginningOfChatHistoryUserRoomPartTwo: ' Fue creado por.',
@@ -3145,14 +3145,17 @@ const translations = {
                         processorLabel: 'ID del procesador',
                         bankLabel: 'Identificación de la institución financiera (banco)',
                         companyLabel: 'Empresa ID',
+                        helpLabel: '¿Dónde encuentro estos IDs?',
                     },
                     gl1025: {
                         title: `¿Cuál es el nombre del archivo de entrega de Amex?`,
                         fileNameLabel: 'Nombre del archivo de entrega',
+                        helpLabel: '¿Dónde encuentro el nombre del archivo de entrega?',
                     },
                     cdf: {
                         title: `¿Cuál es el identificador de distribución de Mastercard?`,
                         distributionLabel: 'ID de distribución',
+                        helpLabel: '¿Dónde encuentro el ID de distribución?',
                     },
                 },
                 amexCorporate: 'Seleccione esto si el frente de sus tarjetas dice “Corporativa”',
@@ -3166,6 +3169,7 @@ const translations = {
             assignCard: 'Asignar tarjeta',
             cardNumber: 'Número de la tarjeta',
             customFeed: 'Fuente personalizada',
+            feedName: ({feedName}: CompanyCardFeedNameParams) => `Tarjetas ${feedName}`,
             directFeed: 'Fuente directa',
             whoNeedsCardAssigned: '¿Quién necesita una tarjeta?',
             chooseCard: 'Elige una tarjeta',
@@ -3193,6 +3197,8 @@ const translations = {
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
             getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
+            verificationInProgress: 'Verificación en curso...',
+            verifyingTheDetails: "We're verifying a few details. Concierge will let you know when Expensify Cards are ready to issue.",
             disclaimer:
                 'La tarjeta comercial Expensify Visa® es emitida por The Bancorp Bank, N.A., miembro de la FDIC, en virtud de una licencia de Visa U.S.A. Inc. y no puede utilizarse en todos los comercios que aceptan tarjetas Visa. Apple® y el logotipo de Apple® son marcas comerciales de Apple Inc. registradas en EE.UU. y otros países. App Store es una marca de servicio de Apple Inc. Google Play y el logotipo de Google Play son marcas comerciales de Google LLC.',
             issueCard: 'Emitir tarjeta',
@@ -3250,6 +3256,16 @@ const translations = {
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta se enviará una vez que se agreguen los detalles de envío.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `¡emitió a ${assignee} una ${link} virtual! La tarjeta puede utilizarse inmediatamente.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} agregó los detalles de envío. La Tarjeta Expensify llegará en 2-3 días hábiles.`,
+            verifyingHeader: 'Verificando',
+            bankAccountVerifiedHeader: 'Cuenta bancaria verificada',
+            verifyingBankAccount: 'Verificando cuenta bancaria...',
+            verifyingBankAccountDescription: 'Por favor, espere mientras confirmamos que esta cuenta se puede utilizar para emitir tarjetas Expensify.',
+            bankAccountVerified: '¡Cuenta bancaria verificada!',
+            bankAccountVerifiedDescription: 'Ahora puedes emitir tarjetas de Expensify para los miembros de tu espacio de trabajo.',
+            oneMoreStep: 'Un paso más',
+            oneMoreStepDescription: 'Parece que tenemos que verificar manualmente tu cuenta bancaria. Dirígete a Concierge, donde te esperan las instrucciones.',
+            gotIt: 'Entendido',
+            goToConcierge: 'Ir a Concierge',
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -3348,7 +3364,7 @@ const translations = {
                 cardNumber: 'Número de la tarjeta',
                 cardholder: 'Titular de la tarjeta',
                 cardName: 'Nombre de la tarjeta',
-                integrationExport: ({integration, type}: IntegrationExportParams) => `Exportación a ${integration} ${type}`,
+                integrationExport: ({integration, type}: IntegrationExportParams) => `Exportación a ${integration} ${type?.toLowerCase()}`,
                 integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) =>
                     `Seleccione la cuenta ${integration} donde se deben exportar las transacciones. Seleccione una cuenta diferente`,
                 integrationExportTitleLinkPart: 'opción de exportación',
@@ -3546,12 +3562,12 @@ const translations = {
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
-            subtitle: 'En los espacios de trabajo podrás chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas, y mucho más - todo en un mismo lugar.',
+            subtitle: 'Crea un espacio de trabajo para organizar recibos, reembolsar gastos, enviar facturas y mucho más, todo a la velocidad del chat.',
             createAWorkspaceCTA: 'Comenzar',
             features: {
                 trackAndCollect: 'Organiza recibos',
-                companyCards: 'Tarjetas de crédito corporativas',
-                reimbursements: 'Reembolsos fáciles',
+                reimbursements: 'Reembolsa a los empleados',
+                companyCards: 'Gestiona tarjetas de la empresa',
             },
             notFound: 'No se encontró ningún espacio de trabajo',
             description: 'Las salas son un gran lugar para discutir y trabajar con varias personas. Para comenzar a colaborar, cree o únase a un espacio de trabajo',
@@ -3853,6 +3869,7 @@ const translations = {
                 monthlyDescription: 'Gasta hasta una determinada cantidad al mes',
                 fixedAmount: 'Cantidad fija',
                 fixedAmountDescription: 'Gasta hasta una determinada cantidad una vez',
+                cardLimitError: 'Por favor, introduce un monto menor a $21,474,836',
                 setLimit: 'Establecer un límite',
                 giveItName: 'Dale un nombre',
                 giveItNameInstruction: 'Hazlo lo suficientemente único para distinguirla de otras tarjetas. ¡Los casos de uso específicos son aún mejores!',
@@ -4324,7 +4341,6 @@ const translations = {
     },
     statementPage: {
         title: ({year, monthName}: StatementTitleParams) => `Estado de cuenta de ${monthName} ${year}`,
-        generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
     keyboardShortcutsPage: {
         title: 'Atajos de teclado',
@@ -5255,7 +5271,7 @@ const translations = {
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
-        receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma la exactitud',
+        receiptNotSmartScanned: 'Escaneo de recibo incompleto. Por favor, verifica los detalles manualmente.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Recibo obligatorio';
             if (formattedLimit ?? category) {
@@ -5646,6 +5662,7 @@ const translations = {
         RBR: 'RBR',
         true: 'verdadero',
         false: 'falso',
+        viewReport: 'Ver Informe',
         reasonVisibleInLHN: {
             hasDraftComment: 'Tiene comentario en borrador',
             hasGBR: 'Tiene GBR',
@@ -5689,6 +5706,10 @@ const translations = {
     },
     emptySearchView: {
         takeATour: 'Haz un tour',
+    },
+    tour: {
+        takeATwoMinuteTour: 'Haz un tour de 2 minutos',
+        exploreExpensify: 'Explora todo lo que Expensify tiene para ofrecer',
     },
 };
 

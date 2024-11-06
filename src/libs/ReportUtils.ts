@@ -53,7 +53,7 @@ import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
-import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/ReportAction';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -258,6 +258,11 @@ type OptimisticCancelPaymentReportAction = Pick<
     'actionName' | 'actorAccountID' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
+type OptimisticChangeFieldAction = Pick<
+    OldDotReportAction & ReportAction,
+    'actionName' | 'actorAccountID' | 'originalMessage' | 'person' | 'reportActionID' | 'created' | 'pendingAction' | 'message'
+>;
+
 type OptimisticEditedTaskReportAction = Pick<
     ReportAction,
     'reportActionID' | 'actionName' | 'pendingAction' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'shouldShow' | 'message' | 'person' | 'delegateAccountID'
@@ -452,6 +457,7 @@ type OptimisticIOUReport = Pick<
     | 'parentReportID'
     | 'lastVisibleActionCreated'
     | 'fieldList'
+    | 'parentReportActionID'
 >;
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
@@ -756,7 +762,7 @@ function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
  * Returns the root parentReport if the given report is nested.
  * Uses recursion to iterate any depth of nested reports.
  */
-function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
+function getRootParentReport(report: OnyxEntry<Report>, visitedReportIDs: Set<string> = new Set<string>()): OnyxEntry<Report> {
     if (!report) {
         return undefined;
     }
@@ -766,10 +772,18 @@ function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
         return report;
     }
 
+    // Detect and prevent an infinite loop caused by a cycle in the ancestry. This should normally
+    // never happen
+    if (visitedReportIDs.has(report.reportID)) {
+        Log.alert('Report ancestry cycle detected.', {reportID: report.reportID, ancestry: Array.from(visitedReportIDs)});
+        return undefined;
+    }
+    visitedReportIDs.add(report.reportID);
+
     const parentReport = getReportOrDraftReport(report?.parentReportID);
 
     // Runs recursion to iterate a parent report
-    return getRootParentReport(!isEmptyObject(parentReport) ? parentReport : undefined);
+    return getRootParentReport(!isEmptyObject(parentReport) ? parentReport : undefined, visitedReportIDs);
 }
 
 /**
@@ -2298,7 +2312,7 @@ function getIcons(
     if (isChatThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 
-        const actorAccountID = getReportActionActorAccountID(parentReportAction, report);
+        const actorAccountID = getReportActionActorAccountID(parentReportAction, report, report);
         const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1], '', false);
         const actorIcon = {
             id: actorAccountID,
@@ -2560,6 +2574,56 @@ function getReimbursementDeQueuedActionMessage(
     }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
     return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount: formattedAmount});
+}
+
+/**
+ * Builds an optimistic REIMBURSEMENT_DEQUEUED report action with a randomly generated reportActionID.
+ *
+ */
+function buildOptimisticChangeFieldAction(reportField: PolicyReportField, previousReportField: PolicyReportField): OptimisticChangeFieldAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: 'TEXT',
+                style: 'strong',
+                text: 'You',
+            },
+            {
+                type: 'TEXT',
+                style: 'normal',
+                text: ` modified field '${reportField.name}'.`,
+            },
+            {
+                type: 'TEXT',
+                style: 'normal',
+                text: ` New value is '${reportField.value}'`,
+            },
+            {
+                type: 'TEXT',
+                style: 'normal',
+                text: ` (previously '${previousReportField.value}').`,
+            },
+        ],
+        originalMessage: {
+            fieldName: reportField.name,
+            newType: reportField.type,
+            newValue: reportField.value,
+            oldType: previousReportField.type,
+            oldValue: previousReportField.value,
+        },
+        person: [
+            {
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
 }
 
 /**
@@ -4258,12 +4322,17 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
     return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
 }
 
-function getReportDescriptionText(report: OnyxEntry<Report>): string {
+function getReportDescription(report: OnyxEntry<Report>): string {
     if (!report?.description) {
         return '';
     }
-
-    return Parser.htmlToText(report?.description);
+    try {
+        const reportDescription = report?.description;
+        const objectDescription = JSON.parse(reportDescription) as {html: string};
+        return objectDescription.html ?? reportDescription ?? '';
+    } catch (error) {
+        return report?.description ?? '';
+    }
 }
 
 function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
@@ -4435,9 +4504,18 @@ function buildOptimisticTaskCommentReportAction(
  * @param chatReportID - Report ID of the chat where the IOU is.
  * @param currency - IOU currency.
  * @param isSendingMoney - If we pay someone the IOU should be created as settled
+ * @param parentReportActionID - The parent report action ID of the IOU report
  */
 
-function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number, total: number, chatReportID: string, currency: string, isSendingMoney = false): OptimisticIOUReport {
+function buildOptimisticIOUReport(
+    payeeAccountID: number,
+    payerAccountID: number,
+    total: number,
+    chatReportID: string,
+    currency: string,
+    isSendingMoney = false,
+    parentReportActionID?: string,
+): OptimisticIOUReport {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
@@ -4467,6 +4545,7 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
         fieldList: policy?.fieldList,
+        parentReportActionID,
     };
 }
 
@@ -5046,6 +5125,7 @@ function buildOptimisticReportPreview(
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const message = getReportPreviewMessage(iouReport);
     const created = DateUtils.getDBTime();
+    const reportActorAccountID = (isInvoiceReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     return {
         reportActionID: reportActionID ?? NumberUtils.rand64(),
         reportID: chatReport?.reportID,
@@ -5065,7 +5145,7 @@ function buildOptimisticReportPreview(
         created,
         accountID: iouReport?.managerID ?? -1,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
-        actorAccountID: hasReceipt ? currentUserAccountID : iouReport?.managerID ?? -1,
+        actorAccountID: hasReceipt ? currentUserAccountID : reportActorAccountID,
         childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
@@ -6346,7 +6426,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: O
         }
     }
     const parentReportAction: OnyxEntry<ReportAction> =
-        !report?.parentReportID || !report?.parentReportActionID ? undefined : allReportActions?.[report.parentReportID ?? '-1']?.[report.parentReportActionID ?? '-1'];
+        !report?.parentReportID || !report?.parentReportActionID
+            ? undefined
+            : allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? '-1'}`]?.[report.parentReportActionID ?? '-1'];
 
     if (ReportActionsUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
         const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID : null;
@@ -8034,10 +8116,17 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
     return (isChatThread(report) && !!getReportNotificationPreference(report)) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
-function getReportActionActorAccountID(reportAction: OnyxInputOrEntry<ReportAction>, iouReport: OnyxInputOrEntry<Report> | undefined): number | undefined {
+function getReportActionActorAccountID(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    iouReport: OnyxInputOrEntry<Report> | undefined,
+    report: OnyxInputOrEntry<Report> | undefined,
+): number | undefined {
     switch (reportAction?.actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW:
-            return !isEmptyObject(iouReport) ? iouReport.managerID : reportAction?.childManagerAccountID;
+        case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW: {
+            const ownerAccountID = iouReport?.ownerAccountID ?? reportAction?.childOwnerAccountID;
+            const actorAccountID = iouReport?.managerID ?? reportAction?.childManagerAccountID;
+            return isPolicyExpenseChat(report) ? ownerAccountID : actorAccountID;
+        }
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
             return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
@@ -8046,7 +8135,6 @@ function getReportActionActorAccountID(reportAction: OnyxInputOrEntry<ReportActi
             return reportAction?.actorAccountID;
     }
 }
-
 function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: string, actionName: IOUAction): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
     const {expenseChatReportID, policyID, policyName} = PolicyActions.createDraftWorkspace();
@@ -8089,6 +8177,8 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         linkedTrackedExpenseReportID: reportID,
         created,
         modifiedCreated: undefined,
+        modifiedAmount: undefined,
+        modifiedCurrency: undefined,
         amount,
         currency,
         comment,
@@ -8447,7 +8537,7 @@ export {
     getReimbursementDeQueuedActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,
-    getReportDescriptionText,
+    getReportDescription,
     getReportFieldKey,
     getReportIDFromLink,
     getReportName,
@@ -8636,6 +8726,7 @@ export {
     hasMissingInvoiceBankAccount,
     reasonForReportToBeInOptionList,
     getReasonAndReportActionThatRequiresAttention,
+    buildOptimisticChangeFieldAction,
     isPolicyRelatedReport,
     hasReportErrorsOtherThanFailedReceipt,
     shouldShowViolations,

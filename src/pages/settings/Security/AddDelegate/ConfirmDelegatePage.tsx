@@ -73,20 +73,18 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role))}
                 shouldShowRightIcon
             />
-
-            {isValidateCodeActionModalVisible && (
-                <DelegateMagicCodeModal
-                    login={login}
-                    role={role}
-                    onClose={() => {
-                        if (!showValidateActionModal) {
-                            return;
-                        }
-
-                        Navigation.navigate(ROUTES.SETTINGS_SECURITY);
-                    }}
-                />
-            )}
+            <DelegateMagicCodeModal
+                login={login}
+                role={role}
+                onClose={() => {
+                    if (!showValidateActionModal) {
+                        setIsValidateCodeActionModalVisible(false);
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SETTINGS_SECURITY);
+                }}
+                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+            />
         </HeaderPageLayout>
     );
 }
