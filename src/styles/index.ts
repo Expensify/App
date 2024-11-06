@@ -1811,6 +1811,13 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        popoverIconCircle: {
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: variables.buttonBorderRadius,
+            height: variables.h40,
+            width: variables.w46,
+        },
+
         rightLabelMenuItem: {
             fontSize: variables.fontSizeLabel,
             color: theme.textSupporting,
@@ -3019,6 +3026,13 @@ const styles = (theme: ThemeColors) =>
             flexGrow: 1,
             ...spacing.mh5,
             ...spacing.mv3,
+        },
+
+        sectionDividerLine: {
+            height: 1,
+            backgroundColor: theme.border,
+            ...spacing.mh5,
+            ...spacing.mv6,
         },
 
         unreadIndicatorText: {
@@ -5304,6 +5318,20 @@ const styles = (theme: ThemeColors) =>
         accountSwitcherAnchorPosition: {
             top: 80,
             left: 12,
+        },
+
+        progressBarWrapper: {
+            height: 2,
+            width: '100%',
+            backgroundColor: theme.border,
+            borderRadius: 5,
+            overflow: 'hidden',
+        },
+
+        progressBar: {
+            height: '100%',
+            backgroundColor: theme.success,
+            width: '100%',
         },
 
         qbdSetupLinkBox: {
