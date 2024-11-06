@@ -71,6 +71,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
                                 .then((res) => res.blob())
                                 .then((blob) => {
                                     const reconstructedFile = new File([blob], message.file.name, {type: message.file.type});
+                                    reconstructedFile.uri = message.file.uri;
                                     IOU.replaceReceipt(message.transactionID, reconstructedFile, message.source, false);
                                 });
                             
