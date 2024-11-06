@@ -47,7 +47,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
     dobInputID,
     dobDefaultValue,
     isEditing,
-    footerComponent
+    footerComponent,
 }: DateOfBirthStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
