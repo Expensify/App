@@ -79,6 +79,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 <View style={[styles.flexRow, styles.gap2]}>
                     <Button
                         success
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isDisabled={currentFeedData.pending || !!currentFeedData.errors}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed))}
                         icon={Expensicons.Plus}
