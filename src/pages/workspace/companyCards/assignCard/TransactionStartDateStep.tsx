@@ -1,3 +1,4 @@
+import {subDays} from 'date-fns';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -55,11 +56,13 @@ function TransactionStartDateStep() {
     };
 
     const submit = () => {
+        const date90DaysBack = DateUtils.extractDate(subDays(new Date(), 90).toString());
+
         CompanyCards.setAssignCardStepAndData({
             currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
             data: {
                 dateOption: dateOptionSelected,
-                startDate,
+                startDate: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate,
             },
             isEditing: false,
         });
