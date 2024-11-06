@@ -170,7 +170,7 @@ index 367ac6e..2ffb38b 100644
     * The string that will be rendered before text input has been entered.
     */
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index d5e2e22..a11679a 100644
+index d5e2e22..065a819 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 @@ -13,6 +13,10 @@
@@ -184,7 +184,7 @@ index d5e2e22..a11679a 100644
  @implementation RCTUITextView {
    UILabel *_placeholderView;
    UITextView *_detachedTextView;
-@@ -172,7 +176,32 @@ - (void)scrollRangeToVisible:(NSRange)range
+@@ -172,7 +176,31 @@ - (void)scrollRangeToVisible:(NSRange)range
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
@@ -197,8 +197,7 @@ index d5e2e22..a11679a 100644
 +          if (UTTypeConformsTo((__bridge CFStringRef)identifier, kUTTypeImage)) {
 +            NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
 +            NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
-+            NSString *fileName = [NSString stringWithFormat:@"%@.%@", [[NSUUID UUID] UUIDString], fileExtension];
-+            NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
++            NSString *filePath = RCTTempFilePath(fileExtension, nil);
 +            NSURL *fileURL = [NSURL fileURLWithPath:filePath];
 +            NSData *fileData = [clipboard dataForPasteboardType:identifier];
 +            [fileData writeToFile:filePath atomically:YES];
@@ -218,7 +217,7 @@ index d5e2e22..a11679a 100644
  }
  
  // Turn off scroll animation to fix flaky scrolling.
-@@ -264,6 +293,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
+@@ -264,6 +292,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
      return NO;
    }
  
@@ -346,7 +345,7 @@ index f58f147..e367394 100644
  RCT_EXPORT_VIEW_PROPERTY(mostRecentEventCount, NSInteger)
  
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-index 0318671..bb165d7 100644
+index 0318671..667e646 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 @@ -12,6 +12,10 @@
@@ -371,7 +370,7 @@ index 0318671..bb165d7 100644
    return [super canPerformAction:action withSender:sender];
  }
  
-@@ -222,7 +230,32 @@ - (void)scrollRangeToVisible:(NSRange)range
+@@ -222,7 +230,31 @@ - (void)scrollRangeToVisible:(NSRange)range
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
@@ -384,8 +383,7 @@ index 0318671..bb165d7 100644
 +          if (UTTypeConformsTo((__bridge CFStringRef)identifier, kUTTypeImage)) {
 +            NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
 +            NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
-+            NSString *fileName = [NSString stringWithFormat:@"%@.%@", [[NSUUID UUID] UUIDString], fileExtension];
-+            NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
++            NSString *filePath = RCTTempFilePath(fileExtension, nil);
 +            NSURL *fileURL = [NSURL fileURLWithPath:filePath];
 +            NSData *fileData = [clipboard dataForPasteboardType:identifier];
 +            [fileData writeToFile:filePath atomically:YES];
