@@ -22,6 +22,7 @@ import compare from './compare/compare';
 import defaultConfig from './config';
 import createServerInstance from './server';
 import reversePort from './utils/androidReversePort';
+import closeANRPopup from './utils/closeANRPopup';
 import installApp from './utils/installApp';
 import killApp from './utils/killApp';
 import launchApp from './utils/launchApp';
@@ -287,6 +288,7 @@ const runTests = async (): Promise<void> => {
                     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     Logger.error(`Warmup failed with error: ${e}`);
 
+                    closeANRPopup();
                     MeasureUtils.stop('error-warmup');
                     server.clearAllTestDoneListeners();
 
@@ -314,6 +316,7 @@ const runTests = async (): Promise<void> => {
                     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     Logger.error(`Unexpected error during test execution: ${e}. `);
                     MeasureUtils.stop('error');
+                    closeANRPopup();
                     server.clearAllTestDoneListeners();
                     errorCountRef.errorCount += 1;
                     if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
