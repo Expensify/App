@@ -427,7 +427,7 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
 
     const parameters = {
         authToken,
-        cardID,
+        cardID: Number(cardID),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD, parameters, {optimisticData, finallyData, failureData});
