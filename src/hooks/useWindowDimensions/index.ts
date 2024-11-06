@@ -127,8 +127,10 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         return windowDimensions;
     }
 
+    const didScreenReturnToOriginalSize = lockedWindowDimensionsRef.current.windowWidth === windowWidth && lockedWindowDimensionsRef.current.windowHeight === windowHeight;
+
     // if video exits fullscreen mode, unlock the window dimensions
-    if (lockedWindowDimensionsRef.current && !isFullScreenRef.current) {
+    if (lockedWindowDimensionsRef.current && !isFullScreenRef.current && didScreenReturnToOriginalSize) {
         const lastLockedWindowDimensions = {...lockedWindowDimensionsRef.current};
         unlockWindowDimensions();
         return {windowWidth: lastLockedWindowDimensions.windowWidth, windowHeight: lastLockedWindowDimensions.windowHeight};
