@@ -519,7 +519,7 @@ function isValidPhoneInternational(phoneNumber: string): boolean {
     const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(phoneNumber);
     const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
-    return Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');
+    return parsedPhoneNumber.possible && Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');
 }
 
 /**
