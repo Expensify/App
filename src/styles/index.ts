@@ -1116,6 +1116,17 @@ const styles = (theme: ThemeColors) =>
             height: 25,
         },
 
+        deletedAttachmentIndicator: {
+            zIndex: 20,
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+        },
+
+        deletedIndicatorOverlay: {
+            opacity: 0.8,
+        },
+
         // Actions
         actionAvatar: {
             borderRadius: 20,
@@ -1785,6 +1796,13 @@ const styles = (theme: ThemeColors) =>
             width: variables.componentSizeNormal,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+
+        popoverIconCircle: {
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: variables.buttonBorderRadius,
+            height: variables.h40,
+            width: variables.w46,
         },
 
         rightLabelMenuItem: {
@@ -2891,8 +2909,9 @@ const styles = (theme: ThemeColors) =>
 
         sectionMenuItem: {
             borderRadius: 8,
-            paddingHorizontal: 8,
-            height: 56,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            height: 52,
             alignItems: 'center',
         },
 
@@ -2994,6 +3013,13 @@ const styles = (theme: ThemeColors) =>
             flexGrow: 1,
             ...spacing.mh5,
             ...spacing.mv3,
+        },
+
+        sectionDividerLine: {
+            height: 1,
+            backgroundColor: theme.border,
+            ...spacing.mh5,
+            ...spacing.mv6,
         },
 
         unreadIndicatorText: {
@@ -5252,6 +5278,11 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
         },
 
+        integrationIcon: {
+            overflow: 'hidden',
+            borderRadius: variables.buttonBorderRadius,
+        },
+
         colorGreenSuccess: {
             color: colors.green400,
         },
@@ -5274,6 +5305,20 @@ const styles = (theme: ThemeColors) =>
         accountSwitcherAnchorPosition: {
             top: 80,
             left: 12,
+        },
+
+        progressBarWrapper: {
+            height: 2,
+            width: '100%',
+            backgroundColor: theme.border,
+            borderRadius: 5,
+            overflow: 'hidden',
+        },
+
+        progressBar: {
+            height: '100%',
+            backgroundColor: theme.success,
+            width: '100%',
         },
 
         qbdSetupLinkBox: {

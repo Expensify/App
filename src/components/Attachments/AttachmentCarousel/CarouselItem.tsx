@@ -86,7 +86,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
                 />
             </View>
 
-            {item.hasBeenFlagged && (
+            {!!item.hasBeenFlagged && (
                 <SafeAreaConsumer>
                     {({safeAreaPaddingBottomStyle}) => <View style={[styles.appBG, safeAreaPaddingBottomStyle]}>{renderButton([styles.m4, styles.alignSelfCenter])}</View>}
                 </SafeAreaConsumer>

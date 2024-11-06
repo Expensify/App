@@ -114,6 +114,9 @@ type MenuItemBaseProps = {
     /** Any additional styles to pass to the icon container. */
     iconStyles?: StyleProp<ViewStyle>;
 
+    /** Additional styles to pass to the icon itself */
+    additionalIconStyles?: StyleProp<ViewStyle>;
+
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: IconAsset;
 
@@ -248,6 +251,9 @@ type MenuItemBaseProps = {
     /** Should we remove the background color of the menu item */
     shouldRemoveBackground?: boolean;
 
+    /** Should we remove the hover background color of the menu item */
+    shouldRemoveHoverBackground?: boolean;
+
     /** Should we use default cursor for disabled content */
     shouldUseDefaultCursorWhenDisabled?: boolean;
 
@@ -333,6 +339,9 @@ type MenuItemBaseProps = {
 
     /** Handles what to do when hiding the tooltip */
     onHideTooltip?: () => void;
+
+    /** Should use auto width for the icon container. */
+    shouldIconUseAutoWidthStyle?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -405,6 +414,7 @@ function MenuItem(
         shouldEscapeText = undefined,
         shouldGreyOutWhenDisabled = true,
         shouldRemoveBackground = false,
+        shouldRemoveHoverBackground = false,
         shouldUseDefaultCursorWhenDisabled = false,
         shouldShowLoadingSpinnerIcon = false,
         isAnonymousAction = false,
@@ -430,8 +440,10 @@ function MenuItem(
         tooltipShiftHorizontal = 0,
         tooltipShiftVertical = 0,
         renderTooltipContent,
+        additionalIconStyles,
         shouldShowSelectedItemCheck = false,
         onHideTooltip,
+        shouldIconUseAutoWidthStyle = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -586,7 +598,7 @@ function MenuItem(
                                             StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && styles.hoveredComponentBG,
+                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
@@ -623,10 +635,22 @@ function MenuItem(
                                                         />
                                                     )}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (
-                                                        <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]} />
+                                                        <View
+                                                            style={[
+                                                                styles.popoverMenuIcon,
+                                                                iconStyles,
+                                                                shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
+                                                            ]}
+                                                        />
                                                     )}
-                                                    {icon && !Array.isArray(icon) && (
-                                                        <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]}>
+                                                    {!!icon && !Array.isArray(icon) && (
+                                                        <View
+                                                            style={[
+                                                                styles.popoverMenuIcon,
+                                                                iconStyles,
+                                                                shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
+                                                            ]}
+                                                        >
                                                             {typeof icon !== 'string' &&
                                                                 iconType === CONST.ICON_TYPE_ICON &&
                                                                 (!shouldShowLoadingSpinnerIcon ? (
@@ -647,6 +671,7 @@ function MenuItem(
                                                                                       isPaneMenu,
                                                                                   )
                                                                         }
+                                                                        additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
                                                                     <ActivityIndicator
@@ -654,7 +679,7 @@ function MenuItem(
                                                                         color={theme.textSupporting}
                                                                     />
                                                                 ))}
-                                                            {icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
+                                                            {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -677,7 +702,7 @@ function MenuItem(
                                                             )}
                                                         </View>
                                                     )}
-                                                    {secondaryIcon && (
+                                                    {!!secondaryIcon && (
                                                         <View style={[styles.popoverMenuIcon, iconStyles, isSecondaryIconHoverable && StyleUtils.getBackgroundAndBorderStyle(theme.border)]}>
                                                             <Icon
                                                                 contentFit={contentFit}
@@ -723,7 +748,7 @@ function MenuItem(
                                                                         {renderTitleContent()}
                                                                     </Text>
                                                                 )}
-                                                                {shouldShowTitleIcon && titleIcon && (
+                                                                {!!shouldShowTitleIcon && !!titleIcon && (
                                                                     <View style={[styles.ml2]}>
                                                                         <Icon
                                                                             src={titleIcon}
@@ -765,19 +790,19 @@ function MenuItem(
                                                 </View>
                                             </View>
                                             <View style={[styles.flexRow, styles.menuItemTextContainer, !hasPressableRightComponent && styles.pointerEventsNone]}>
-                                                {badgeText && (
+                                                {!!badgeText && (
                                                     <Badge
                                                         text={badgeText}
                                                         badgeStyles={badgeStyle}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
-                                                {(subtitle === 0 || subtitle) && (
+                                                {(subtitle === 0 || !!subtitle) && (
                                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
                                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                                     </View>
                                                 )}
-                                                {floatRightAvatars?.length > 0 && firstIcon && (
+                                                {floatRightAvatars?.length > 0 && !!firstIcon && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
                                                         {shouldShowSubscriptRightAvatar ? (
                                                             <SubscriptAvatar

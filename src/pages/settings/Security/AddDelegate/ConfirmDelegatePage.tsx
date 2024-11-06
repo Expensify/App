@@ -27,9 +27,10 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const styles = useThemeStyles();
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
+    const showValidateActionModal = route.params.showValidateActionModal === 'true';
     const {isOffline} = useNetwork();
 
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(showValidateActionModal ?? false);
 
     const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(login);
     const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
@@ -72,13 +73,18 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role))}
                 shouldShowRightIcon
             />
-
-            {isValidateCodeActionModalVisible && (
-                <DelegateMagicCodeModal
-                    login={login}
-                    role={role}
-                />
-            )}
+            <DelegateMagicCodeModal
+                login={login}
+                role={role}
+                onClose={() => {
+                    if (!showValidateActionModal) {
+                        setIsValidateCodeActionModalVisible(false);
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SETTINGS_SECURITY);
+                }}
+                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+            />
         </HeaderPageLayout>
     );
 }

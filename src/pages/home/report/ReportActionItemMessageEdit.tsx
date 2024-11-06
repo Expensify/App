@@ -243,6 +243,7 @@ function ReportActionItemMessageEdit(
      */
     const debouncedSaveDraft = useMemo(
         () =>
+            // eslint-disable-next-line react-compiler/react-compiler
             lodashDebounce((newDraft: string) => {
                 Report.saveReportActionDraft(reportID, action, newDraft);
                 isCommentPendingSaved.current = false;
@@ -559,6 +560,7 @@ function ReportActionItemMessageEdit(
 
                     <Suggestions
                         ref={suggestionsRef}
+                        // eslint-disable-next-line react-compiler/react-compiler
                         isComposerFocused={textInputRef.current?.isFocused()}
                         updateComment={updateDraft}
                         measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
