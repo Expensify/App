@@ -443,6 +443,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | null;
 
+    /** Whether the text input should be shown after list header */
+    shouldShowTextInputAfterHeader?: boolean;
+
     /** Callback to fire when the list is scrolled */
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 

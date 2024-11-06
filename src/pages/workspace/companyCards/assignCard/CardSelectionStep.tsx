@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
+import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -126,8 +127,6 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         <InteractiveStepWrapper
             wrapperID={CardSelectionStep.displayName}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={listOptions.length ? 1 : undefined}
-            stepNames={listOptions.length ? CONST.COMPANY_CARD.STEP_NAMES : undefined}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={assigneeDisplayName}
         >
@@ -152,13 +151,6 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                 </View>
             ) : (
                 <>
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
-                    <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
-                        {translate('workspace.companyCards.chooseCardFor', {
-                            assignee: assigneeDisplayName,
-                            feed: CardUtils.getCardFeedName(feed),
-                        })}
-                    </Text>
                     <SelectionList
                         sections={[{data: searchedListOptions}]}
                         shouldShowTextInput={listOptions.length > CONST.COMPANY_CARDS.BIG_CARD_LIST_ITEMS_AMOUNT}
@@ -168,6 +160,25 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                         ListItem={RadioListItem}
                         onSelectRow={({value}) => handleSelectCard(value)}
                         initiallyFocusedOptionKey={cardSelected}
+                        listHeaderContent={
+                            <View>
+                                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                                    <InteractiveStepSubHeader
+                                        startStepIndex={1}
+                                        stepNames={CONST.COMPANY_CARD.STEP_NAMES}
+                                    />
+                                </View>
+                                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
+                                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
+                                    {translate('workspace.companyCards.chooseCardFor', {
+                                        assignee: assigneeDisplayName,
+                                        feed: CardUtils.getCardFeedName(feed),
+                                    })}
+                                </Text>
+                            </View>
+                        }
+                        shouldShowTextInputAfterHeader
+                        shouldShowListEmptyContent={false}
                         shouldUpdateFocusedIndex
                     />
                     <FormAlertWithSubmitButton
@@ -176,7 +187,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                         isAlertVisible={shouldShowError}
                         containerStyles={styles.ph5}
                         message={translate('common.error.pleaseSelectOne')}
-                        buttonStyles={styles.mb5}
+                        buttonStyles={styles.mv5}
                     />
                 </>
             )}
