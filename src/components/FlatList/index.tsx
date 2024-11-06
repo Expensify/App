@@ -155,10 +155,10 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
                     firstVisibleViewRef.current = null;
                 });
                 mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === Node.ELEMENT_NODE && (node as HTMLElement).dataset.isEditing === 'true') {
-                        isEditComposerAdded = true;
+                    if (node.nodeType !== Node.ELEMENT_NODE || (node as HTMLElement).dataset.isEditing !== 'true') {
                         return;
                     }
+                    isEditComposerAdded = true;
                 });
             });
 
