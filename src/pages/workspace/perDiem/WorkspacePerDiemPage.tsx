@@ -13,7 +13,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -173,7 +172,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                                     {CurrencyUtils.convertAmountToDisplayString(value.rate, value.currency)}
                                 </Text>
                             </View>
-                            <ListItemRightCaretWithLabel />
                         </>
                     ),
                 };
@@ -202,7 +200,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     };
 
     const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr8, !canSelectMultiple && styles.m5]}>
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, !canSelectMultiple && [styles.ph9, styles.pv3, styles.pb5]]}>
             <View style={styles.flex1}>
                 <Text style={[styles.searchInputStyle, styles.alignSelfStart]}>{translate('workspace.perDiem.destination')}</Text>
             </View>
