@@ -89,6 +89,13 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
+const selfGuidedTourTask: OnboardingTaskType = {
+    type: 'viewTour',
+    autoCompleted: false,
+    title: 'Take a 2-minute tour',
+    description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
+};
+
 const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     video: {
@@ -99,6 +106,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
         height: 960,
     },
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -264,6 +272,7 @@ type OnboardingTaskType = {
                   workspaceMembersLink: string;
                   integrationName: string;
                   workspaceAccountingLink: string;
+                  navatticURL: string;
               }>,
           ) => string);
 };
@@ -305,6 +314,9 @@ const CONST = {
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
+    ANIMATED_PROGRESS_BAR_DELAY: 300,
+    ANIMATED_PROGRESS_BAR_OPACITY_DURATION: 300,
+    ANIMATED_PROGRESS_BAR_DURATION: 750,
     ANIMATION_IN_TIMING: 100,
     ANIMATION_DIRECTION: {
         IN: 'in',
@@ -465,6 +477,7 @@ const CONST = {
         OLD_DOT_ANDROID: 'https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&pli=1',
         OLD_DOT_IOS: 'https://apps.apple.com/us/app/expensify-expense-tracker/id471713959',
     },
+    COMPANY_WEBSITE_DEFAULT_SCHEME: 'http',
     DATE: {
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
@@ -1600,6 +1613,7 @@ const CONST = {
         CONTRIBUTORS: 'contributors@expensify.com',
         FIRST_RESPONDER: 'firstresponders@expensify.com',
         GUIDES_DOMAIN: 'team.expensify.com',
+        QA_DOMAIN: 'applause.expensifail.com',
         HELP: 'help@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
         NOTIFICATIONS: 'notifications@expensify.com',
@@ -3041,10 +3055,6 @@ const CONST = {
     // Account IDs that profile view is prohibited
     get RESTRICTED_ACCOUNT_IDS() {
         return [this.ACCOUNT_ID.NOTIFICATIONS];
-    },
-    // Account IDs that can't be added as a group member
-    get NON_ADDABLE_ACCOUNT_IDS() {
-        return [this.ACCOUNT_ID.NOTIFICATIONS, this.ACCOUNT_ID.CHRONOS];
     },
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
@@ -4884,6 +4894,7 @@ const CONST = {
                         '\n' +
                         '*Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.*',
                 },
+                selfGuidedTourTask,
                 {
                     type: 'meetGuide',
                     autoCompleted: false,
@@ -4988,7 +4999,10 @@ const CONST = {
                 },
             ],
         },
-        [onboardingChoices.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
+        [onboardingChoices.PERSONAL_SPEND]: {
+            ...onboardingPersonalSpendMessage,
+            tasks: [selfGuidedTourTask, ...onboardingPersonalSpendMessage.tasks],
+        },
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             video: {
@@ -4999,6 +5013,7 @@ const CONST = {
                 height: 960,
             },
             tasks: [
+                selfGuidedTourTask,
                 {
                     type: 'startChat',
                     autoCompleted: false,

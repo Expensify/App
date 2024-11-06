@@ -2497,6 +2497,10 @@ const translations = {
             setupPage: {
                 title: 'Open this link to connect',
                 body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running.',
+                setupErrorTitle: 'Something went wrong',
+                setupErrorBody1: "The QuickBooks Desktop connection isn't working at the moment. Please try again later or",
+                setupErrorBody2: 'if the problem persists.',
+                setupErrorBodyContactConcierge: 'reach out to Concierge',
             },
             importDescription: 'Choose which coding configurations to import from QuickBooks Desktop to Expensify.',
             classes: 'Classes',
@@ -3682,6 +3686,8 @@ const translations = {
                         return "Can't connect to Xero.";
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                         return "Can't connect to NetSuite.";
+                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
+                        return "Can't connect to QuickBooks Desktop.";
                     default: {
                         return "Can't connect to integration.";
                     }
@@ -4077,7 +4083,7 @@ const translations = {
             },
             companyCards: {
                 title: 'Company cards',
-                description: `Company cards lets you import spend for existing company cards from all major card issuers. You can assign cards to employees, and automatically import transactions.`,
+                description: `Connect your existing corporate cards to Expensify, assign them to employees, and automatically import transactions.`,
                 onlyAvailableOnPlan: 'Company cards are only available on the Control plan, starting at ',
             },
             rules: {
@@ -5177,6 +5183,7 @@ const translations = {
         RBR: 'RBR',
         true: 'true',
         false: 'false',
+        viewReport: 'View Report',
         reasonVisibleInLHN: {
             hasDraftComment: 'Has draft comment',
             hasGBR: 'Has GBR',
