@@ -740,6 +740,10 @@ const translations = {
         listOfChats: 'List of chats',
         saveTheWorld: 'Save the world',
         tooltip: 'Get started here!',
+        redirectToOldDotModal: {
+            title: '🚧 Under construction 🚧',
+            description: "We're fine-tuning a few more bits and pieces of New Expensify to accommodate your specific setup. In the meantime, head over to Expensify Classic.",
+        },
     },
     allSettingsScreen: {
         subscription: 'Subscription',

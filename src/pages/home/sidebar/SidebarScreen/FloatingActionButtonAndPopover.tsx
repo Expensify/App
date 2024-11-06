@@ -525,14 +525,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 anchorRef={fabRef}
             />
             <ConfirmModal
-                prompt="Due to how your workspace is set up, submitting and tracking expenses has been disabled for now. Please go to Expensify Classic to add an expense."
+                prompt={translate('sidebarScreen.redirectToOldDotModal.description')}
                 isVisible={modalVisible}
                 onConfirm={() => {
                     setModalVisible(false);
                     Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                 }}
                 onCancel={() => setModalVisible(false)}
-                title="Your workspace is not ready for New Expensify"
+                title={translate('sidebarScreen.redirectToOldDotModal.title')}
                 confirmText={translate('exitSurvey.goToExpensifyClassic')}
                 cancelText={translate('common.cancel')}
             />
