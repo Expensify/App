@@ -13,6 +13,7 @@ import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 function SearchFiltersExpenseTypePage() {
     const styles = useThemeStyles();
@@ -21,7 +22,7 @@ function SearchFiltersExpenseTypePage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const initiallySelectedItems = useMemo(
         () =>
-            searchAdvancedFiltersForm?.expenseType
+            searchAdvancedFiltersForm?.[FILTER_KEYS.EXPENSE_TYPE]
                 ?.filter((expenseType) => Object.values(CONST.SEARCH.TRANSACTION_TYPE).includes(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>))
                 .map((expenseType) => {
                     const expenseTypeName = translate(getExpenseTypeTranslationKey(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
@@ -38,7 +39,7 @@ function SearchFiltersExpenseTypePage() {
         });
     }, [allExpenseTypes, translate]);
 
-    const updateExpenseTypeFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({expenseType: values}), []);
+    const updateExpenseTypeFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({[CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: values}), []);
 
     return (
         <ScreenWrapper

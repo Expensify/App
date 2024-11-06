@@ -13,6 +13,7 @@ import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 function SearchFiltersTaxRatePage() {
     const styles = useThemeStyles();
@@ -22,14 +23,14 @@ function SearchFiltersTaxRatePage() {
     const allTaxRates = getAllTaxRates();
     const selectedTaxesItems: SearchMultipleSelectionPickerItem[] = [];
     Object.entries(allTaxRates).forEach(([taxRateName, taxRateKeys]) => {
-        searchAdvancedFiltersForm?.taxRate?.forEach((taxRateKey) => {
+        searchAdvancedFiltersForm?.[FILTER_KEYS.TAX_RATE]?.forEach((taxRateKey) => {
             if (!taxRateKeys.includes(taxRateKey) || selectedTaxesItems.some((item) => item.name === taxRateName)) {
                 return;
             }
             selectedTaxesItems.push({name: taxRateName, value: taxRateKeys});
         });
     });
-    const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
+    const policyID = searchAdvancedFiltersForm?.[FILTER_KEYS.POLICY_ID] ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const singlePolicyTaxRates = policy?.taxRates?.taxes;
 

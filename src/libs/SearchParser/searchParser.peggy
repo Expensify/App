@@ -110,13 +110,13 @@ key "key"
       / "category"
       / "to"
       / "tax-rate"
-      / "dard"
+      / "card"
       / "from"
       / "expense-type"
     )
 
 defaultKey "default key"
-  = @("type" / "status" / "sort-by" / "sort-order" / "workspacec")
+  = @("type" / "status" / "sort-by" / "sort-order" / "workspace")
 
 identifier
   = (","+)? parts:(quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

@@ -16,6 +16,7 @@ import Navigation from '@navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 function SearchFiltersCardPage() {
     const styles = useThemeStyles();
@@ -23,7 +24,7 @@ function SearchFiltersCardPage() {
 
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const currentCards = searchAdvancedFiltersForm?.cardID;
+    const currentCards = searchAdvancedFiltersForm?.[FILTER_KEYS.CARD_ID];
     const [newCards, setNewCards] = useState(currentCards ?? []);
 
     const sections = useMemo(() => {
@@ -52,7 +53,7 @@ function SearchFiltersCardPage() {
 
     const handleConfirmSelection = useCallback(() => {
         SearchActions.updateAdvancedFilters({
-            cardID: newCards,
+            [FILTER_KEYS.CARD_ID]: newCards,
         });
 
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
