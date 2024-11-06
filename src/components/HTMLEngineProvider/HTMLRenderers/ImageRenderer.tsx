@@ -67,7 +67,6 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
     const fileType = FileUtils.getFileType(attachmentSourceAttribute);
     const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
-    const [, setHasLoadFailed] = useState(true);
     const theme = useTheme();
 
     const thumbnailImageComponent = (
@@ -80,8 +79,6 @@ function ImageRenderer({tnode}: ImageRendererProps) {
             imageHeight={imageHeight}
             isDeleted={isDeleted}
             altText={alt}
-            onLoadFailure={() => setHasLoadFailed(true)}
-            onMeasure={() => setHasLoadFailed(false)}
             fallbackIconBackground={theme.highlightBG}
             fallbackIconColor={theme.border}
         />
