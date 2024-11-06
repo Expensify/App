@@ -34,9 +34,6 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const email = session?.email ?? '';
     const domain = email.split('@').at(1) ?? '';
 
-    // TODO
-    const clearError = useCallback(() => {}, []);
-
     const sendValidateCode = useCallback(() => {
         if (!credentials?.login) {
             return;
@@ -66,11 +63,11 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                     validateCodeAction={validateCodeAction}
                     handleSubmitForm={(code) => {
                         User.validateUserAndGetAccessiblePolicies(code);
+                        return Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
                     }}
                     sendValidateCode={sendValidateCode}
-                    clearError={clearError}
-                    // validateError={null}
-                    hideButton
+                    clearError={() => {}}
+                    hideSubmitButton
                 />
                 <View style={[styles.flex2, styles.justifyContentEnd]}>
                     <Button
@@ -80,7 +77,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         style={[styles.mb5]}
                         text={translate('common.skip')}
                         isLoading={isValidateCodeFormSubmitting}
-                        onPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params.backTo))}
+                        onPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo))}
                     />
                     {shouldUseNarrowLayout && <OfflineIndicator />}
                 </View>

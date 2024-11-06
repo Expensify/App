@@ -61,7 +61,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             PersonalDetails.setDisplayName(firstName, lastName);
 
             if (isPrivateDomain) {
-                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(route.params.backTo));
+                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(route.params?.backTo));
                 return;
             }
 

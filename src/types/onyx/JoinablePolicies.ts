@@ -1,5 +1,3 @@
-import type {Errors} from './OnyxCommon';
-
 /** Model of Joinable Policy */
 type JoinablePolicy = {
     /** Policy id of the workspace */
@@ -17,16 +15,8 @@ type JoinablePolicy = {
 };
 
 /** Model of Joinable Policies */
-type KeyJoinablePolicies = {
-    /** Record of joinable policies, indexed by policy id */
-    policies: Record<string, JoinablePolicy>;
-    /** Whether we are loading the data via the API */
-    isLoading?: boolean;
+type JoinablePolicies = Record<string, JoinablePolicy>;
 
-    /** Error message */
-    errors?: Errors;
-};
-
-export default KeyJoinablePolicies;
+export default JoinablePolicies;
 
 export type {JoinablePolicy};

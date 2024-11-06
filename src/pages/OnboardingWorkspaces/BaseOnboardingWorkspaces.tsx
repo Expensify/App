@@ -1,5 +1,6 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,37 +18,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as MemberAction from '@userActions/Policy/Member';
 import * as Report from '@userActions/Report';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingWorkspacesProps} from './types';
-
-// TODO remove
-const response = {
-    D35BAB0CFAC69F52: {
-        policyID: 'D35BAB0CFAC69F52',
-        policyOwner: 'bob@domain.com',
-        policyName: 'Health Coverage',
-        employeeCount: 150,
-        hasPendingAccess: false,
-        automaticJoiningEnabled: true,
-    },
-    E56CAB1DFBC78A13: {
-        policyOwner: 'alice@domain.com',
-        policyID: 'E56CAB1DFBC78A13',
-        policyName: 'Travel Support',
-        employeeCount: 50,
-        hasPendingAccess: true,
-        automaticJoiningEnabled: false,
-    },
-    F67DAC2EABC89B24: {
-        policyOwner: 'eve@domain.com',
-        policyID: 'F67DAC2EABC89B24',
-        policyName: 'Tech Equipment',
-        employeeCount: 200,
-        hasPendingAccess: false,
-        automaticJoiningEnabled: false,
-    },
-};
 
 function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboardingWorkspacesProps) {
     const {isOffline} = useNetwork();
@@ -57,23 +32,27 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [selectedPolicyID, setSelectedPolicyID] = useState<string | null | undefined>();
+    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
+    const [joinablePoliciesLoading] = useOnyx(ONYXKEYS.JOINABLE_POLICIES_LOADING);
 
     const handleJoinWorkspace = (policyID: string, automaticJoiningEnabled: boolean) => {
+        Report.completeOnboarding(CONST.ONBOARDING_CHOICES.LOOKING_AROUND, CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND], policyID);
+        Welcome.setOnboardingAdminsChatReportID();
+        Welcome.setOnboardingPolicyID(policyID);
+
         if (automaticJoiningEnabled) {
             MemberAction.addMemberToPrivateDomainWorkspace(policyID);
             navigateAfterJoinRequest();
-            Report.navigateToConciergeChat();
         } else {
-            // TODO
             Report.navigateToConciergeChat();
         }
     };
 
     const policyIDItems = useMemo(() => {
-        return Object.values(response).map((policyInfo) => {
+        return Object.values(joinablePolicies ?? {}).map((policyInfo) => {
             return {
                 text: policyInfo.policyName,
-                alternateText: `${policyInfo.employeeCount} ${translate('common.members').charAt(0).toLowerCase() + translate('common.members').slice(1)}· ${policyInfo.policyOwner}`,
+                alternateText: translate('onboarding.workspaceMemberList', {employeeCount: policyInfo.employeeCount, policyOwner: policyInfo.policyOwner}),
                 keyForList: policyInfo.policyID,
                 isSelected: policyInfo.policyID === selectedPolicyID,
                 rightElement: (
@@ -81,7 +60,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                         isDisabled={isOffline}
                         success
                         medium
-                        text={policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')} // TODO change
+                        text={policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}
                         onPress={() => {
                             handleJoinWorkspace(policyInfo.policyID, policyInfo.automaticJoiningEnabled);
                         }}
@@ -98,7 +77,17 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                 ],
             };
         });
-    }, [translate, selectedPolicyID, isOffline]);
+    }, [translate, selectedPolicyID, isOffline, joinablePolicies]);
+
+    const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
+
+    useEffect(() => {
+        if (joinablePoliciesLoading === true || joinablePoliciesLoading === undefined || !joinablePolicies || Object.keys(joinablePolicies).length > 0) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+    }, [joinablePoliciesLoading, joinablePolicies, route.params?.backTo]);
 
     return (
         <ScreenWrapper
@@ -111,9 +100,11 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                 progressBarPercentage={80}
                 onBackButtonPress={Navigation.goBack}
             />
-            <View style={[styles.flex1, styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <Text style={styles.textHeadlineH1}>{translate('onboarding.joinAWorkspace')}</Text>
-                <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.listOfWorkspaces')}</Text>
+            <View style={[styles.flex1, styles.mb5, styles.mt8]}>
+                <View style={[wrapperPadding, styles.mb5]}>
+                    <Text style={styles.textHeadlineH1}>{translate('onboarding.joinAWorkspace')}</Text>
+                    <Text style={[styles.textSupporting, styles.mt3]}>{translate('onboarding.listOfWorkspaces')}</Text>
+                </View>
 
                 <SelectionList
                     sections={[{data: policyIDItems}]}
@@ -124,9 +115,10 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                     shouldUpdateFocusedIndex
                     ListItem={UserListItem}
                     listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
+                    showLoadingPlaceholder={joinablePoliciesLoading}
                 />
 
-                <View style={[styles.flex1, styles.justifyContentEnd]}>
+                <View style={[styles.flex1, styles.justifyContentEnd, wrapperPadding]}>
                     <Button
                         isDisabled={isOffline}
                         success={false}

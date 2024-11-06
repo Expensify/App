@@ -46,10 +46,7 @@ type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryC
 
 type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
-function BaseValidateCodeForm(
-    {autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible, useOnboardingPrivateDomainSettings}: BaseValidateCodeFormProps,
-    forwardedRef: ForwardedRef<BaseValidateCodeFormRef>,
-) {
+function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps, forwardedRef: ForwardedRef<BaseValidateCodeFormRef>) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -391,20 +388,20 @@ function BaseValidateCodeForm(
                 </View>
             )}
             <View>
-                {!useOnboardingPrivateDomainSettings && (
-                    <Button
-                        isDisabled={isOffline}
-                        success
-                        large
-                        style={[styles.mv3]}
-                        text={translate('common.signIn')}
-                        isLoading={isValidateCodeFormSubmitting}
-                        onPress={validateAndSubmitForm}
-                    />
-                )}
-                {!useOnboardingPrivateDomainSettings && <ChangeExpensifyLoginLink onPress={clearSignInData} />}
+                <Button
+                    isDisabled={isOffline}
+                    success
+                    large
+                    style={[styles.mv3]}
+                    text={translate('common.signIn')}
+                    isLoading={isValidateCodeFormSubmitting}
+                    onPress={validateAndSubmitForm}
+                />
+                <ChangeExpensifyLoginLink onPress={clearSignInData} />
             </View>
-            <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>{!useOnboardingPrivateDomainSettings && <Terms />}</View>
+            <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
+                <Terms />
+            </View>
         </SafariFormWrapper>
     );
 }
