@@ -37,6 +37,7 @@ import ROUTES from '@src/ROUTES';
 import SearchRouterInput from './SearchRouterInput';
 import SearchRouterList from './SearchRouterList';
 import type {ItemWithQuery} from './SearchRouterList';
+import isEmpty from 'lodash/isEmpty';
 
 type SearchRouterProps = {
     onRouterClose: () => void;
@@ -293,6 +294,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         ],
     );
 
+    const prevUserQueryRef = useRef<string | null>(null);
     const onSearchChange = useCallback(
         (userQuery: string) => {
             let newUserQuery = userQuery;
@@ -302,11 +304,14 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
             setTextInputValue(newUserQuery);
             const autocompleteParsedQuery = parseForAutocomplete(newUserQuery);
             updateAutocomplete(autocompleteParsedQuery?.autocomplete?.value ?? '', autocompleteParsedQuery?.ranges ?? [], autocompleteParsedQuery?.autocomplete?.key);
-            if (newUserQuery) {
+            if (newUserQuery || !isEmpty(prevUserQueryRef.current)) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
             } else {
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
+
+            // Store the previous newUserQuery
+            prevUserQueryRef.current = newUserQuery;
         },
         [autocompleteSuggestions, setTextInputValue, updateAutocomplete],
     );
