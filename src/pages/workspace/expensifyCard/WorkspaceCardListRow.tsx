@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import Badge from '@components/Badge';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -59,12 +58,12 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                         numberOfLines={1}
                         style={[styles.textLabelSupporting, styles.lh16]}
                     >
-                        {shouldUseNarrowLayout ? `${name} • ${cardType}` : name}
+                        {name}
                     </Text>
                 </View>
             </View>
             {!shouldUseNarrowLayout && (
-                <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.textLabelSupporting, styles.lh16]}
@@ -81,8 +80,31 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     {lastFourPAN}
                 </Text>
             </View>
-            <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex3 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
-                <Badge text={CurrencyUtils.convertToDisplayString(limit, currency)} />
+            <View
+                style={[
+                    !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn,
+                    shouldUseNarrowLayout ? styles.flex3 : styles.flex1,
+                    !shouldUseNarrowLayout && styles.gap2,
+                    !shouldUseNarrowLayout ? styles.alignItemsCenter : styles.alignItemsEnd,
+                    styles.justifyContentEnd,
+                ]}
+            >
+                <Text
+                    numberOfLines={1}
+                    style={[styles.textLabelSupporting, styles.lh16]}
+                >
+                    {CurrencyUtils.convertToDisplayString(limit, currency)}
+                </Text>
+                {shouldUseNarrowLayout && (
+                    <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textLabelSupporting, styles.lh16]}
+                        >
+                            {cardType}
+                        </Text>
+                    </View>
+                )}
             </View>
         </View>
     );
