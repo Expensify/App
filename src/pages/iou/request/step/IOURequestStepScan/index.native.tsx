@@ -27,7 +27,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -76,7 +75,7 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
-    const platform = Browser.isMobile() ? CONST.PLATFORM.MOBILEWEB : getPlatform();
+    const platform = getPlatform(true);
     const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
     const isPlatformMuted = mutedPlatforms[platform];
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
