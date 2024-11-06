@@ -1,4 +1,4 @@
-import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import type {ValueOf} from 'type-fest';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -33,6 +33,7 @@ type SelectedTransactionInfo = {
 /** Model of selected transactons */
 type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
+<<<<<<< HEAD
 /** Model of selected reports */
 type SelectedReports = {
     reportID: string;
@@ -41,6 +42,8 @@ type SelectedReports = {
     total: number;
 };
 
+=======
+>>>>>>> cmartins-showButtons
 /** Model of payment data used by Search bulk actions */
 type PaymentData = {
     reportID: string;
@@ -80,10 +83,14 @@ type QueryFilter = {
     value: string | number;
 };
 
-type AdvancedFiltersKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
+type SearchFilterKey =
+    | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID;
 
 type QueryFilters = Array<{
-    key: AdvancedFiltersKeys;
+    key: SearchFilterKey;
     filters: QueryFilter[];
 }>;
 
@@ -106,16 +113,16 @@ type SearchQueryJSON = {
     flatFilters: QueryFilters;
 } & SearchQueryAST;
 
-type AutocompleteRange = {
-    key: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS & typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+type SearchAutocompleteResult = {
+    autocomplete: SearchAutocompleteQueryRange | null;
+    ranges: SearchAutocompleteQueryRange[];
+};
+
+type SearchAutocompleteQueryRange = {
+    key: SearchFilterKey;
     length: number;
     start: number;
     value: string;
-};
-
-type SearchAutocompleteResult = {
-    autocomplete: AutocompleteRange | null;
-    ranges: AutocompleteRange[];
 };
 
 export type {
@@ -131,12 +138,12 @@ export type {
     ASTNode,
     QueryFilter,
     QueryFilters,
-    AdvancedFiltersKeys,
+    SearchFilterKey,
     ExpenseSearchStatus,
     InvoiceSearchStatus,
     TripSearchStatus,
     ChatSearchStatus,
     SearchAutocompleteResult,
-    AutocompleteRange,
     PaymentData,
+    SearchAutocompleteQueryRange,
 };
