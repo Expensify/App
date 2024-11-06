@@ -193,7 +193,7 @@ function BaseModal(
               safeAreaPaddingRight,
               shouldAddBottomSafeAreaMargin,
               shouldAddTopSafeAreaMargin,
-              shouldAddBottomSafeAreaPadding: !keyboardStateContextValue?.isKeyboardShown && shouldAddBottomSafeAreaPadding,
+              shouldAddBottomSafeAreaPadding: (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
               shouldAddTopSafeAreaPadding,
               modalContainerStyleMarginTop: modalContainerStyle.marginTop,
               modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
