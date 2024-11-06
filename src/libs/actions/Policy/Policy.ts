@@ -1014,6 +1014,16 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                 isLoadingInitialReportActions: false,
             },
         });
+
+        workspaceMembersChats.onyxFailureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
+            value: {
+                errorFields: {
+                    createChat: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+                },
+            },
+        });
     });
     return workspaceMembersChats;
 }
