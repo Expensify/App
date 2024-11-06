@@ -33,7 +33,6 @@ type SelectedTransactionInfo = {
 /** Model of selected transactons */
 type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
-<<<<<<< HEAD
 /** Model of selected reports */
 type SelectedReports = {
     reportID: string;
@@ -42,8 +41,6 @@ type SelectedReports = {
     total: number;
 };
 
-=======
->>>>>>> cmartins-showButtons
 /** Model of payment data used by Search bulk actions */
 type PaymentData = {
     reportID: string;
