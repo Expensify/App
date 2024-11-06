@@ -218,13 +218,13 @@ function findIDFromDisplayValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_F
  */
 function getQueryHash(query: SearchQueryJSON): number {
     let orderedQuery = '';
-    if (query.policyID) {
-        orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${query.policyID} `;
+    if (query.workspace) {
+        orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${query.workspace} `;
     }
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${query.status}`;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query['sort-by']}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query['sort-order']}`;
 
     query.flatFilters.forEach((filter) => {
         filter.filters.sort((a, b) => localeCompare(a.value.toString(), b.value.toString()));
@@ -301,7 +301,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
  */
 function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, policyID, ...otherFilters} = filterValues;
+    const {type, status, workspace, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
@@ -317,8 +317,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
     }
 
-    if (policyID) {
-        const sanitizedPolicyID = sanitizeSearchValue(policyID);
+    if (workspace) {
+        const sanitizedPolicyID = sanitizeSearchValue(workspace);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${sanitizedPolicyID}`);
     }
 
@@ -389,7 +389,7 @@ function buildFilterFormValuesFromQuery(
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
-    const policyID = queryJSON.policyID;
+    const policyID = queryJSON.workspace;
     for (const queryFilter of filters) {
         const filterKey = queryFilter.key;
         const filterList = queryFilter.filters;
@@ -471,8 +471,8 @@ function buildFilterFormValuesFromQuery(
     const [statusKey] = Object.entries(CONST.SEARCH.STATUS).find(([, value]) => Object.values(value).includes(queryJSON.status)) ?? [];
     filtersForm[FILTER_KEYS.STATUS] = typeKey === statusKey ? queryJSON.status : CONST.SEARCH.STATUS.EXPENSE.ALL;
 
-    if (queryJSON.policyID) {
-        filtersForm[FILTER_KEYS.POLICY_ID] = queryJSON.policyID;
+    if (queryJSON.workspace) {
+        filtersForm[FILTER_KEYS.POLICY_ID] = queryJSON.workspace;
     }
 
     return filtersForm;
@@ -486,7 +486,7 @@ function buildFilterFormValuesFromQuery(
  * however there are several places in the app (related to WorkspaceSwitcher) that will accept only a single policyID.
  */
 function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
-    const policyIDFilter = queryJSON.policyID;
+    const policyIDFilter = queryJSON.workspace;
 
     if (!policyIDFilter) {
         return;

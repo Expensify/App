@@ -68,10 +68,10 @@ type SearchQueryString = string;
 type SearchQueryAST = {
     type: SearchDataTypes;
     status: SearchStatus;
-    sortBy: SearchColumnType;
-    sortOrder: SortOrder;
+    'sort-by': SearchColumnType;
+    'sort-order': SortOrder;
     filters: ASTNode;
-    policyID?: string;
+    workspace?: string;
 };
 
 type SearchQueryJSON = {

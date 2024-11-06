@@ -30,77 +30,77 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
 
 const baseFilterConfig = {
-    date: {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE]: {
         getTitle: getFilterDisplayTitle,
         description: 'common.date' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
     },
-    currency: {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY]: {
         getTitle: getFilterDisplayTitle,
         description: 'common.currency' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
     },
-    merchant: {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: {
         getTitle: getFilterDisplayTitle,
         description: 'common.merchant' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
     },
-    description: {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]: {
         getTitle: getFilterDisplayTitle,
         description: 'common.description' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
     },
-    reportid: {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID]: {
         getTitle: getFilterDisplayTitle,
         description: 'common.reportID' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
     },
-    amount: {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]: {
         getTitle: getFilterDisplayTitle,
         description: 'common.total' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
     },
-    category: {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]: {
         getTitle: getFilterDisplayTitle,
         description: 'common.category' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
     },
-    keyword: {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: {
         getTitle: getFilterDisplayTitle,
         description: 'search.filters.hasKeywords' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_KEYWORD,
     },
-    card: {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID]: {
         getTitle: getFilterCardDisplayTitle,
         description: 'common.card' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
     },
-    'tax-rate': {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: {
         getTitle: getFilterTaxRateDisplayTitle,
         description: 'workspace.taxes.taxRate' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
     },
-    'expense-type': {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE]: {
         getTitle: getFilterExpenseDisplayTitle,
         description: 'search.expenseType' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
     },
-    tag: {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG]: {
         getTitle: getFilterDisplayTitle,
         description: 'common.tag' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
     },
-    from: {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM]: {
         getTitle: getFilterParticipantDisplayTitle,
         description: 'common.from' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
     },
-    to: {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TO]: {
         getTitle: getFilterParticipantDisplayTitle,
         description: 'common.to' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
     },
-    in: {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.IN]: {
         getTitle: getFilterInDisplayTitle,
         description: 'common.in' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
