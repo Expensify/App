@@ -1,8 +1,12 @@
+import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type Response from '@src/types/onyx/Response';
-import * as Delegate from './actions/Delegate';
+import {confirmReadyToOpenApp, openApp} from './actions/App';
+import isConnectedAsDelegate from './actions/isConnectedAsDelegate';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
+import updateSessionUser from './actions/Session/updateSessionUser';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as ErrorUtils from './ErrorUtils';
 import Log from './Log';
@@ -20,6 +24,32 @@ type Parameters = {
     email?: string;
     authToken?: string;
 };
+
+const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
+    ONYXKEYS.NVP_TRY_FOCUS_MODE,
+    ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.NVP_PREFERRED_LOCALE,
+    ONYXKEYS.SESSION,
+    ONYXKEYS.IS_LOADING_APP,
+    ONYXKEYS.CREDENTIALS,
+
+    // We need to preserve the sidebar loaded state since we never unrender the sidebar when connecting as a delegate
+    // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
+    ONYXKEYS.IS_SIDEBAR_LOADED,
+];
+
+function restoreDelegateSession(authenticateResponse: Response) {
+    Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS).then(() => {
+        updateSessionAuthTokens(authenticateResponse?.authToken, authenticateResponse?.encryptedAuthToken);
+        updateSessionUser(authenticateResponse?.accountID, authenticateResponse?.email);
+
+        NetworkStore.setAuthToken(authenticateResponse.authToken ?? null);
+        NetworkStore.setIsAuthenticating(false);
+
+        confirmReadyToOpenApp();
+        openApp();
+    });
+}
 
 function Authenticate(parameters: Parameters): Promise<Response> {
     const commandName = 'Authenticate';
@@ -88,9 +118,9 @@ function reauthenticate(command = ''): Promise<void> {
 
             // If we reauthenticated due to an expired delegate token, restore the delegate's original account.
             // This is because the credentials used to reauthenticate were for the delegate's original account, and not for the account they were connected as.
-            if (Delegate.isConnectedAsDelegate()) {
+            if (isConnectedAsDelegate()) {
                 Log.info('Reauthenticated while connected as a delegate. Restoring original account.');
-                Delegate.restoreDelegateSession(response);
+                restoreDelegateSession(response);
                 return;
             }
 
