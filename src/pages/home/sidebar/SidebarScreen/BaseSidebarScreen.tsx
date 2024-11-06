@@ -12,7 +12,6 @@ import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
-import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
