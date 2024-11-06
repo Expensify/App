@@ -487,7 +487,7 @@ function AttachmentModal({
 
     const submitRef = useRef<View | HTMLElement>(null);
 
-    const getSubTitleLink = () => {
+    const getSubTitleLink = useMemo(() => {
         if (shouldShowNotFoundPage) {
             return '';
         }
@@ -501,7 +501,7 @@ function AttachmentModal({
         }
 
         return '';
-    };
+    }, [shouldShowNotFoundPage, report, isReceiptAttachment, attachmentCarouselImageLink, isAuthTokenRequired, imageLink]);
 
     return (
         <>
@@ -548,7 +548,7 @@ function AttachmentModal({
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                         threeDotsMenuItems={threeDotsMenuItems}
                         shouldOverlayDots
-                        subTitleLink={getSubTitleLink()}
+                        subTitleLink={getSubTitleLink}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
                         {isLoading && <FullScreenLoadingIndicator />}

@@ -91,7 +91,7 @@ function extractAttachments(
             }
         },
         onclosetag: (name) => {
-            if (!(name === 'a') || !currentImageLink) {
+            if (name !== 'a' || !currentImageLink) {
                 return;
             }
 
