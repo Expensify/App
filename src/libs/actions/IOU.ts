@@ -6594,7 +6594,15 @@ function getReportFromHoldRequestsOnyxData(
               false,
               newParentReportActionID,
           )
-        : ReportUtils.buildOptimisticIOUReport(recipient.accountID ?? 1, iouReport?.managerID ?? 1, holdTransactionAmount, chatReport.reportID, getCurrency(firstHoldTransaction), false);
+        : ReportUtils.buildOptimisticIOUReport(
+              iouReport?.ownerAccountID ?? -1,
+              iouReport?.managerID ?? -1,
+              holdTransactionAmount,
+              chatReport.reportID,
+              getCurrency(firstHoldTransaction),
+              false,
+              newParentReportActionID,
+          );
 
     const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(
         chatReport,
