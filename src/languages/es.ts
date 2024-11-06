@@ -2358,7 +2358,7 @@ const translations = {
             rules: 'Reglas',
             plan: 'Plan',
             profile: 'Perfil',
-            perDiem: 'Per diem',
+            perDiem: 'Dieta',
             bankAccount: 'Cuenta bancaria',
             displayedAs: 'Mostrado como',
             connectBankAccount: 'Conectar cuenta bancaria',
@@ -2426,22 +2426,22 @@ const translations = {
             },
         },
         perDiem: {
-            subtitle: 'Set per diem rates to control daily employee spend.',
-            destination: 'Destination',
-            subrate: 'Subrate',
-            amount: 'Amount',
+            subtitle: 'Establece las tasas de dieta para controlar los gastos diarios de los empleados.',
+            destination: 'Destino',
+            subrate: 'Subtasa',
+            amount: 'Cantidad',
             deleteRates: () => ({
-                one: 'Delete rate',
-                other: 'Delete rates',
+                one: 'Eliminar tasa',
+                other: 'Eliminar tasas',
             }),
-            deletePerDiemRate: 'Delete per diem rate',
+            deletePerDiemRate: 'Eliminar tasa de dieta',
             areYouSureDelete: () => ({
-                one: 'Are you sure you want to delete this rate?',
-                other: 'Are you sure you want to delete these rates?',
+                one: '¿Estás seguro de que quieres eliminar esta tasa?',
+                other: '¿Estás seguro de que quieres eliminar estas tasas?',
             }),
             emptyList: {
-                title: 'Per diem',
-                subtitle: 'Set per diem rates to control daily employee spend. Import rates from a spreadsheet to get started.',
+                title: 'Dieta',
+                subtitle: 'Establece dietas per diem para controlar el gasto diario de los empleados. Importa las tarifas desde una hoja de cálculo para comenzar.',
             },
         },
         qbd: {
@@ -3354,7 +3354,7 @@ const translations = {
             },
             perDiem: {
                 title: 'Dietas',
-                subtitle: 'Set Per diem rates to control daily employee spend.',
+                subtitle: 'Establece las tasas de dieta para controlar los gastos diarios de los empleados.',
             },
             expensifyCard: {
                 title: 'Tarjeta Expensify',
@@ -4141,7 +4141,7 @@ const translations = {
                 title: 'Dietas',
                 description:
                     'Las dietas (ej.: $100 por día para comidas) son una excelente forma de mantener los costos diarios predecibles y conformes con las políticas de la empresa, especialmente si tus empleados viajan por negocios. Disfruta de funciones como tasas personalizadas, categorías por defecto y detalles más específicos como destinos y subtasas.',
-                onlyAvailableOnPlan: 'Las dietas solo están disponibles en el plan Control, a partir de ',
+                onlyAvailableOnPlan: 'Las dietas per diem solo están disponibles en el plan Control, a partir de ',
             },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
