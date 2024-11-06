@@ -1,4 +1,4 @@
-import type {OnboardingAccountingType, OnboardingCompanySizeType} from '@src/CONST';
+import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
 import type {OnboardingPurpose} from '@src/types/onyx';
 
 type CompleteGuidedSetupParams = {
@@ -8,8 +8,8 @@ type CompleteGuidedSetupParams = {
     guidedSetupData: string;
     engagementChoice: OnboardingPurpose;
     paymentSelected?: string;
-    companySize?: OnboardingCompanySizeType;
-    userReportedIntegration?: OnboardingAccountingType;
+    companySize?: OnboardingCompanySize;
+    userReportedIntegration?: OnboardingAccounting;
     policyID?: string;
 };
 

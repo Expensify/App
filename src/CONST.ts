@@ -6281,13 +6281,13 @@ export type {
     IOUAction,
     IOUType,
     OnboardingPurpose,
-    OnboardingCompanySize as OnboardingCompanySizeType,
+    OnboardingCompanySize,
     IOURequestType,
     SubscriptionType,
     FeedbackSurveyOptionID,
     CancellationType,
-    OnboardingInvite as OnboardingInviteType,
-    OnboardingAccounting as OnboardingAccountingType,
+    OnboardingInvite,
+    OnboardingAccounting,
 };
 
 export default CONST;

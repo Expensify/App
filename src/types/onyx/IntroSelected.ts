@@ -1,4 +1,4 @@
-import type {OnboardingInviteType} from '@src/CONST';
+import type {OnboardingInvite} from '@src/CONST';
 import type {OnboardingPurpose} from './index';
 
 /** Model of onboarding */
@@ -7,7 +7,7 @@ type IntroSelected = {
     choice?: OnboardingPurpose;
 
     /** The invite type */
-    inviteType?: OnboardingInviteType;
+    inviteType?: OnboardingInvite;
 
     /** Whether the onboarding is complete */
     isInviteOnboardingComplete?: boolean;

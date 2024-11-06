@@ -89,7 +89,7 @@ import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {getNavatticURL} from '@libs/TourUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
-import type {OnboardingAccountingType, OnboardingCompanySizeType} from '@src/CONST';
+import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -3461,8 +3461,8 @@ function prepareOnboardingOptimisticData(
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
-    companySize?: OnboardingCompanySizeType,
-    userReportedIntegration?: OnboardingAccountingType,
+    companySize?: OnboardingCompanySize,
+    userReportedIntegration?: OnboardingAccounting,
 ) {
     // If the user has the "combinedTrackSubmit" beta enabled we'll show different tasks for track and submit expense.
     if (Permissions.canUseCombinedTrackSubmit(allBetas)) {
@@ -3884,8 +3884,8 @@ function completeOnboarding(
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
     paymentSelected?: string,
-    companySize?: OnboardingCompanySizeType,
-    userReportedIntegration?: OnboardingAccountingType,
+    companySize?: OnboardingCompanySize,
+    userReportedIntegration?: OnboardingAccounting,
 ) {
     const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(engagementChoice, data, adminsChatReportID, onboardingPolicyID);
 
