@@ -4500,6 +4500,12 @@ const CONST = {
         ALL: 'all',
         SUBMITTER: 'submitter',
     },
+    DELEGATE: {
+        DENIED_ACCESS_VARIANTS: {
+            DELEGATE: 'delegate',
+            SUBMITTER: 'submitter',
+        },
+    },
     DELEGATE_ROLE_HELPDOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',

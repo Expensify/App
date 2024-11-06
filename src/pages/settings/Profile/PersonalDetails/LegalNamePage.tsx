@@ -1,7 +1,8 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -33,12 +34,14 @@ type LegalNamePageProps = LegalNamePageOnyxProps;
 const updateLegalName = (values: PrivatePersonalDetails) => {
     PersonalDetails.updateLegalName(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '');
 };
-
 function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNamePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const legalFirstName = privatePersonalDetails?.legalFirstName ?? '';
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>) => {
@@ -83,6 +86,14 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
         [translate],
     );
 
+    // For delegates, modifying legal Name is a restricted action.
+    // So, on pressing submit, skip validation and show delegateNoAccessModal
+
+    const skipValidation = isActingAsDelegate;
+    const handleSubmit = (values: PrivatePersonalDetails) => {
+        isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : updateLegalName(values);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -99,8 +110,8 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
-                    validate={validate}
-                    onSubmit={updateLegalName}
+                    validate={skipValidation ? undefined : validate}
+                    onSubmit={handleSubmit}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
@@ -130,6 +141,10 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
                     </View>
                 </FormProvider>
             )}
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
         </ScreenWrapper>
     );
 }

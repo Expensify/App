@@ -36,7 +36,6 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const {delegatorEmail} = useDelegateUserDetails();
 
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
     // The default contact method is determined by checking against the session email (the current login).
@@ -132,7 +131,6 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                delegatorEmail={delegatorEmail ?? ''}
             />
         </ScreenWrapper>
     );

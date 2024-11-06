@@ -1,4 +1,5 @@
 import React from 'react';
+import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import ConfirmModal from './ConfirmModal';
@@ -8,14 +9,13 @@ import TextLink from './TextLink';
 type DelegateNoAccessModalProps = {
     isNoDelegateAccessMenuVisible: boolean;
     onClose: () => void;
-    delegatorEmail: string;
 };
 
-export default function DelegateNoAccessModal({isNoDelegateAccessMenuVisible = false, onClose, delegatorEmail = ''}: DelegateNoAccessModalProps) {
+export default function DelegateNoAccessModal({isNoDelegateAccessMenuVisible = false, onClose}: DelegateNoAccessModalProps) {
     const {translate} = useLocalize();
-    const noDelegateAccessPromptStart = translate('delegate.notAllowedMessageStart', {accountOwnerEmail: delegatorEmail});
+    const {delegatorEmail} = useDelegateUserDetails();
+    const noDelegateAccessPromptStart = translate('delegate.notAllowedMessageStart', {accountOwnerEmail: delegatorEmail ?? ''});
     const noDelegateAccessHyperLinked = translate('delegate.notAllowedMessageHyperLinked');
-
     const delegateNoAccessPrompt = (
         <Text>
             {noDelegateAccessPromptStart}

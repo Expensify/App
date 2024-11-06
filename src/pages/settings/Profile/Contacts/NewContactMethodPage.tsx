@@ -3,6 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -110,7 +111,8 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     }, [navigateBackTo]);
 
     return (
-        <AccessOrNotFoundWrapper shouldBeBlocked={isActingAsDelegate}>
+        // <AccessOrNotFoundWrapper shouldBeBlocked={isActingAsDelegate}>
+        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
             <ScreenWrapper
                 onEntryTransitionEnd={() => loginInputRef.current?.focus()}
                 includeSafeAreaPaddingBottom={false}
@@ -174,7 +176,8 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                     description={translate('contacts.enterMagicCode', {contactMethod})}
                 />
             </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+        </DelegateNoAccessWrapper>
+        // </AccessOrNotFoundWrapper>
     );
 }
 

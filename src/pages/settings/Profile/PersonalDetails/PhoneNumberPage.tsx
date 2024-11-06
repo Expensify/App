@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -31,6 +32,10 @@ function PhoneNumberPage() {
 
     const validateLoginError = ErrorUtils.getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
+
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const updatePhoneNumber = (values: PrivatePersonalDetails) => {
         // Clear the error when the user tries to submit the form
@@ -66,6 +71,12 @@ function PhoneNumberPage() {
         },
         [translate, validateLoginError],
     );
+    // For delegates, modifying Phone Number is a restricted action.
+    // So, on pressing submit, skip validation and show delegateNoAccessModal
+    const skipValidation = isActingAsDelegate;
+    const handleSubmit = (values: PrivatePersonalDetails) => {
+        isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : updatePhoneNumber(values);
+    };
 
     return (
         <ScreenWrapper
@@ -83,8 +94,8 @@ function PhoneNumberPage() {
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
-                    validate={validate}
-                    onSubmit={updatePhoneNumber}
+                    validate={skipValidation ? undefined : validate}
+                    onSubmit={handleSubmit}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
@@ -112,6 +123,10 @@ function PhoneNumberPage() {
                     </OfflineWithFeedback>
                 </FormProvider>
             )}
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
         </ScreenWrapper>
     );
 }

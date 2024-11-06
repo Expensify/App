@@ -7,6 +7,7 @@ import {ActivityIndicator, Dimensions, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -22,6 +23,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
@@ -58,6 +60,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}});
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -177,6 +183,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             });
             setShouldShowDefaultDeleteMenu(true);
             setMenuPosition();
+            return;
+        }
+        if (isActingAsDelegate) {
+            setIsNoDelegateAccessMenuVisible(true);
             return;
         }
         setShouldShowAddPaymentMenu(true);
@@ -499,6 +509,11 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         <MenuItem
                                                             ref={buttonRef as ForwardedRef<View>}
                                                             onPress={() => {
+                                                                if (isActingAsDelegate) {
+                                                                    setIsNoDelegateAccessMenuVisible(true);
+                                                                    return;
+                                                                }
+
                                                                 if (!isUserValidated) {
                                                                     Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_ENABLE_PAYMENTS));
                                                                     return;
@@ -594,6 +609,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 onItemSelected={(method: string) => addPaymentMethodTypePressed(method)}
                 anchorRef={addPaymentMethodAnchorRef}
                 shouldShowPersonalBankAccountOption
+            />
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
             />
         </>
     );
