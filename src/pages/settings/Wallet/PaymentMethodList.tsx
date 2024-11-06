@@ -434,7 +434,18 @@ function PaymentMethodList({
             </OfflineWithFeedback>
         ),
 
-        [styles.ph6, styles.paymentMethod, styles.badgeBordered, filteredPaymentMethods, invoiceTransferBankAccountID, translate, listItemStyle, shouldShowSelectedState, selectedMethodID, latestAddedBankAccountPlaidID],
+        [
+            styles.ph6,
+            styles.paymentMethod,
+            styles.badgeBordered,
+            filteredPaymentMethods,
+            invoiceTransferBankAccountID,
+            translate,
+            listItemStyle,
+            shouldShowSelectedState,
+            selectedMethodID,
+            latestAddedBankAccountPlaidID,
+        ],
     );
 
     return (
