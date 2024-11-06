@@ -49,13 +49,13 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     });
 
     const handleSelectIDFile = (files: FileObject[]) => {
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_ADDRESS_PROOF]: [...uploadedIDs, ...files]});
+        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_COPY_OF_ID]: [...uploadedIDs, ...files]});
         setUploadedID((prev) => [...prev, ...files]);
     };
 
     const handleRemoveIDFile = (fileUri: string) => {
         const newUploadedIDs = uploadedIDs.filter((file) => file.uri !== fileUri);
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_ADDRESS_PROOF]: newUploadedIDs});
+        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_COPY_OF_ID]: newUploadedIDs});
         setUploadedID(newUploadedIDs);
     };
 
@@ -95,7 +95,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                     onRemove={handleRemoveIDFile}
                     acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                     value={uploadedIDs}
-                    inputID={SIGNER_ADDRESS_PROOF}
+                    inputID={SIGNER_COPY_OF_ID}
                     setError={setError}
                 />
                 <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.proofOf')}</Text>
