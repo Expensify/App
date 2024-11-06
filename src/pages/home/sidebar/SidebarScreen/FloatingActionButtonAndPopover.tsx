@@ -353,6 +353,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 {
                     icon: getIconForAction(CONST.IOU.TYPE.CREATE),
                     text: translate('iou.createExpense'),
+                    shouldCallAfterModalHide: shouldRedirectToOD,
                     onSelected: () =>
                         interceptAnonymousUser(() => {
                             if (shouldRedirectToOD) {
@@ -376,6 +377,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                       {
                           icon: getIconForAction(CONST.IOU.TYPE.TRACK),
                           text: translate('iou.trackExpense'),
+                          shouldCallAfterModalHide: shouldRedirectToOD,
                           onSelected: () => {
                               if (shouldRedirectToOD) {
                                   setModalVisible(true);
@@ -402,6 +404,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             {
                 icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
                 text: translate('iou.submitExpense'),
+                shouldCallAfterModalHide: shouldRedirectToOD,
                 onSelected: () =>
                     interceptAnonymousUser(() => {
                         if (shouldRedirectToOD) {
