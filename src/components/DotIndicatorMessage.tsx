@@ -15,6 +15,8 @@ import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 import TextLink from './TextLink';
 
+import * as IOU from '@userActions/IOU';
+
 type DotIndicatorMessageProps = {
     /**
      * In most cases this should just be errors from onxyData
@@ -62,6 +64,21 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
                     style={styles.offlineFeedback.text}
                 >
                     <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
+                    <TextLink
+                        style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
+                        onPress={() => {
+                            fetch(message.file.uri)
+                                .then((res) => res.blob())
+                                .then((blob) => {
+                                    const reconstructedFile = new File([blob], message.file.name, {type: message.file.type});
+                                    IOU.replaceReceipt(message.transactionID, reconstructedFile, message.source, false);
+                                });
+                            
+                        }}
+                    >
+                        {Localize.translateLocal('iou.error.tryAgainMessage')}
+                    </TextLink>
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.alternativelyMessage')}</Text>
                     <TextLink
                         style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
                         onPress={() => {

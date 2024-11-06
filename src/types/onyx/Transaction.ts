@@ -164,6 +164,10 @@ type ReceiptError = {
 
     /** Name of the receipt file */
     filename: string;
+
+    file: File;
+
+    transactionID: string;
 };
 
 /** Collection of receipt errors, indexed by a UNIX timestamp of when the error occurred */
