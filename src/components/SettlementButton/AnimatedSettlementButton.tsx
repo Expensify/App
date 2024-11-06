@@ -12,15 +12,15 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isPaidAnimationRunning: boolean;
     onAnimationFinish: () => void;
     isApprovedAnimationRunning: boolean;
-    onApprovedAnimationFinish: () => void;
+    canIOUBePaid: boolean;
 };
 
 function AnimatedSettlementButton({
     isPaidAnimationRunning,
     onAnimationFinish,
     isApprovedAnimationRunning,
-    onApprovedAnimationFinish,
     isDisabled,
+    canIOUBePaid,
     ...settlementButtonProps
 }: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
@@ -77,19 +77,15 @@ function AnimatedSettlementButton({
 
         // Wait for the above animation + 1s delay before hiding the component
         const totalDelay = CONST.ANIMATION_PAID_DURATION + CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
+        const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
         height.value = withDelay(
             totalDelay,
-            withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}, () =>
-                runOnJS(() => {
-                    if (isApprovedAnimationRunning) {
-                        onApprovedAnimationFinish();
-                    } else {
-                        onAnimationFinish();
-                    }
-                })(),
-            ),
+            withTiming(willShowPaymentButton ? variables.componentSizeNormal : 0, {duration: CONST.ANIMATION_PAID_DURATION}, () => runOnJS(onAnimationFinish)()),
         );
-        buttonMarginTop.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
+        buttonMarginTop.value = withDelay(
+            totalDelay,
+            withTiming(willShowPaymentButton ? styles.expenseAndReportPreviewTextButtonContainer.gap : 0, {duration: CONST.ANIMATION_PAID_DURATION}),
+        );
         paymentCompleteTextOpacity.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
     }, [
         isPaidAnimationRunning,
@@ -102,7 +98,8 @@ function AnimatedSettlementButton({
         paymentCompleteTextScale,
         buttonMarginTop,
         resetAnimation,
-        onApprovedAnimationFinish,
+        canIOUBePaid,
+        styles.expenseAndReportPreviewTextButtonContainer.gap,
     ]);
 
     return (
