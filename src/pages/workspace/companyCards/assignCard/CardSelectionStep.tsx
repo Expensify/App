@@ -42,7 +42,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const accountCardList = cardFeeds?.settings?.oAuthAccountDetails?.[feed]?.accountList ?? [];
 
     const isEditing = assignCard?.isEditing;
-    const assignee = assignCard?.data?.email ?? '';
+    const assigneeDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
     const {cardList, ...cards} = list ?? {};
     // We need to filter out cards which already has been assigned
     const filteredCardList = Object.fromEntries(
@@ -88,14 +88,14 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             return;
         }
 
-        const cardName =
+        const cardNumber =
             Object.entries(filteredCardList)
                 .find(([, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
                 ?.at(0) ?? '';
 
         CompanyCards.setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
-            data: {encryptedCardNumber: cardSelected, cardName: accountCardList?.length > 0 ? cardSelected : cardName},
+            data: {encryptedCardNumber: cardSelected, cardNumber: accountCardList?.length > 0 ? cardSelected : cardNumber},
             isEditing: false,
         });
     };
@@ -124,6 +124,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             startStepIndex={listOptions.length ? 1 : undefined}
             stepNames={listOptions.length ? CONST.COMPANY_CARD.STEP_NAMES : undefined}
             headerTitle={translate('workspace.companyCards.assignCard')}
+            headerSubtitle={assigneeDisplayName}
         >
             {!listOptions.length ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
@@ -149,7 +150,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
                     <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
                         {translate('workspace.companyCards.chooseCardFor', {
-                            assignee: PersonalDetailsUtils.getPersonalDetailByEmail(assignee ?? '')?.displayName ?? '',
+                            assignee: assigneeDisplayName,
                             feed: CardUtils.getCardFeedName(feed),
                         })}
                     </Text>

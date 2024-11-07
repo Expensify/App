@@ -20,16 +20,24 @@ import StringUtils from './StringUtils';
  */
 function validateCardNumber(value: string): boolean {
     let sum = 0;
-    for (let i = 0; i < value.length; i++) {
-        let intVal = parseInt(value.substr(i, 1), 10);
-        if (i % 2 === 0) {
+    let shouldDouble = false;
+
+    // Loop through the card number from right to left
+    for (let i = value.length - 1; i >= 0; i--) {
+        let intVal = parseInt(value[i], 10);
+
+        // Double every second digit from the right
+        if (shouldDouble) {
             intVal *= 2;
             if (intVal > 9) {
-                intVal = 1 + (intVal % 10);
+                intVal -= 9;
             }
         }
+
         sum += intVal;
+        shouldDouble = !shouldDouble;
     }
+
     return sum % 10 === 0;
 }
 
@@ -238,8 +246,7 @@ function getDatePassedError(inputDate: string): string {
  * http/https/ftp URL scheme required.
  */
 function isValidWebsite(url: string): boolean {
-    const isLowerCase = url === url.toLowerCase();
-    return new RegExp(`^${Url.URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
+    return new RegExp(`^${Url.URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
 }
 
 /** Checks if the domain is public */

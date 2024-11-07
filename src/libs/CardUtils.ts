@@ -202,7 +202,7 @@ function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: st
         return '';
     }
 
-    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? '';
+    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? maskCard(lastFourPAN);
 }
 
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK): IconAsset {

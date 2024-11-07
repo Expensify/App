@@ -89,6 +89,13 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
+const selfGuidedTourTask: OnboardingTaskType = {
+    type: 'viewTour',
+    autoCompleted: false,
+    title: 'Take a 2-minute tour',
+    description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
+};
+
 const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     video: {
@@ -99,6 +106,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
         height: 960,
     },
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -264,6 +272,7 @@ type OnboardingTaskType = {
                   workspaceMembersLink: string;
                   integrationName: string;
                   workspaceAccountingLink: string;
+                  navatticURL: string;
               }>,
           ) => string);
 };
@@ -465,6 +474,7 @@ const CONST = {
         OLD_DOT_ANDROID: 'https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&pli=1',
         OLD_DOT_IOS: 'https://apps.apple.com/us/app/expensify-expense-tracker/id471713959',
     },
+    COMPANY_WEBSITE_DEFAULT_SCHEME: 'http',
     DATE: {
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
@@ -620,7 +630,6 @@ const CONST = {
         COMPANY_CARD_FEEDS: 'companyCardFeeds',
         DIRECT_FEEDS: 'directFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
-        NEW_DOT_COPILOT: 'newDotCopilot',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
@@ -835,6 +844,7 @@ const CONST = {
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
     DEEP_DIVE_ERECEIPTS: 'https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts/',
+    DEEP_DIVE_PER_DIEM: 'https://community.expensify.com/discussion/4772/how-to-add-a-single-rate-per-diem',
     GITHUB_URL: 'https://github.com/Expensify/App',
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
     PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
@@ -879,8 +889,10 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     NAVATTIC: {
-        ADMIN_TOUR: 'https://expensify.navattic.com/kh204a7',
-        EMPLOYEE_TOUR: 'https://expensify.navattic.com/35609gb',
+        ADMIN_TOUR_PRODUCTION: 'https://expensify.navattic.com/kh204a7',
+        ADMIN_TOUR_STAGING: 'https://expensify.navattic.com/3i300k18',
+        EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
+        EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
     },
 
     OLDDOT_URLS: {
@@ -1264,6 +1276,7 @@ const CONST = {
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
+        LIST_SCROLLING_DEBOUNCE_TIME: 200,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1599,6 +1612,7 @@ const CONST = {
         CONTRIBUTORS: 'contributors@expensify.com',
         FIRST_RESPONDER: 'firstresponders@expensify.com',
         GUIDES_DOMAIN: 'team.expensify.com',
+        QA_DOMAIN: 'applause.expensifail.com',
         HELP: 'help@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
         NOTIFICATIONS: 'notifications@expensify.com',
@@ -2453,6 +2467,7 @@ const CONST = {
             ARE_INVOICES_ENABLED: 'areInvoicesEnabled',
             ARE_TAXES_ENABLED: 'tax',
             ARE_RULES_ENABLED: 'areRulesEnabled',
+            ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
         },
         DEFAULT_CATEGORIES: [
             'Advertising',
@@ -2619,6 +2634,7 @@ const CONST = {
 
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
+        NAME_PER_DIEM_INTERNATIONAL: 'Per Diem International',
         DISTANCE_UNIT_MILES: 'mi',
         DISTANCE_UNIT_KILOMETERS: 'km',
         MILEAGE_IRS_RATE: 0.67,
@@ -2683,6 +2699,7 @@ const CONST = {
         STEP: {
             ASSIGNEE: 'Assignee',
             CARD: 'Card',
+            CARD_NAME: 'CardName',
             TRANSACTION_START_DATE: 'TransactionStartDate',
             CONFIRMATION: 'Confirmation',
         },
@@ -2736,7 +2753,6 @@ const CONST = {
             DAILY: 'daily',
             MONTHLY: 'monthly',
         },
-        CARD_TITLE_INPUT_LIMIT: 255,
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
     },
     COMPANY_CARDS: {
@@ -3040,10 +3056,6 @@ const CONST = {
     get RESTRICTED_ACCOUNT_IDS() {
         return [this.ACCOUNT_ID.NOTIFICATIONS];
     },
-    // Account IDs that can't be added as a group member
-    get NON_ADDABLE_ACCOUNT_IDS() {
-        return [this.ACCOUNT_ID.NOTIFICATIONS, this.ACCOUNT_ID.CHRONOS];
-    },
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
     MAX_COMMENT_LENGTH: 10000,
@@ -3056,6 +3068,7 @@ const CONST = {
     // Character Limits
     FORM_CHARACTER_LIMIT: 50,
     STANDARD_LENGTH_LIMIT: 100,
+    STANDARD_LIST_ITEM_LIMIT: 8,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
@@ -4882,6 +4895,7 @@ const CONST = {
                         '\n' +
                         '*Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.*',
                 },
+                selfGuidedTourTask,
                 {
                     type: 'meetGuide',
                     autoCompleted: false,
@@ -4986,7 +5000,10 @@ const CONST = {
                 },
             ],
         },
-        [onboardingChoices.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
+        [onboardingChoices.PERSONAL_SPEND]: {
+            ...onboardingPersonalSpendMessage,
+            tasks: [selfGuidedTourTask, ...onboardingPersonalSpendMessage.tasks],
+        },
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             video: {
@@ -4997,6 +5014,7 @@ const CONST = {
                 height: 960,
             },
             tasks: [
+                selfGuidedTourTask,
                 {
                     type: 'startChat',
                     autoCompleted: false,
@@ -6079,6 +6097,14 @@ const CONST = {
                 title: 'workspace.upgrade.rules.title' as const,
                 description: 'workspace.upgrade.rules.description' as const,
                 icon: 'Rules',
+            },
+            perDiem: {
+                id: 'perDiem' as const,
+                alias: 'per-diem',
+                name: 'Per diem',
+                title: 'workspace.upgrade.perDiem.title' as const,
+                description: 'workspace.upgrade.perDiem.description' as const,
+                icon: 'PerDiem',
             },
         };
     },
