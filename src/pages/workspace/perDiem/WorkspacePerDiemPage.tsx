@@ -18,6 +18,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -34,6 +35,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Link from '@userActions/Link';
 import * as Modal from '@userActions/Modal';
 import * as PerDiem from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
@@ -286,7 +288,15 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.perDiem.subtitle')}</Text>
+            <Text>
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.perDiem.subtitle')}</Text>
+                <TextLink
+                    style={[styles.textNormal, styles.link]}
+                    onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_PER_DIEM)}
+                >
+                    {translate('workspace.common.learnMore')}
+                </TextLink>
+            </Text>
         </View>
     );
 

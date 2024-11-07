@@ -2403,7 +2403,7 @@ const translations = {
             },
         },
         perDiem: {
-            subtitle: 'Set per diem rates to control daily employee spend.',
+            subtitle: 'Set per diem rates to control daily employee spend. ',
             destination: 'Destination',
             subrate: 'Subrate',
             amount: 'Amount',
