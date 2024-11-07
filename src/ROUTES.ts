@@ -951,6 +951,10 @@ const ROUTES = {
         getRoute: (policyID: string, featureName: string, backTo?: string) =>
             getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const, backTo),
     },
+    WORKSPACE_DOWNGRADE: {
+        route: 'settings/workspaces/:policyID/downgrade/',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/downgrade/` as const,
+    },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,

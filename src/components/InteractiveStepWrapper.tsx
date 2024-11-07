@@ -20,6 +20,9 @@ type InteractiveStepWrapperProps = {
     // Title of the back button header
     headerTitle: string;
 
+    // Subtitle of the back button header
+    headerSubtitle?: string;
+
     // Index of the highlighted step
     startStepIndex?: number;
 
@@ -48,6 +51,7 @@ function InteractiveStepWrapper(
         wrapperID,
         handleBackButtonPress,
         headerTitle,
+        headerSubtitle,
         startStepIndex,
         stepNames,
         shouldEnableMaxHeight,
@@ -72,10 +76,11 @@ function InteractiveStepWrapper(
         >
             <HeaderWithBackButton
                 title={headerTitle}
+                subtitle={headerSubtitle}
                 onBackButtonPress={handleBackButtonPress}
                 guidesCallTaskID={guidesCallTaskID}
             />
-            {stepNames && (
+            {!!stepNames && (
                 <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                     <InteractiveStepSubHeader
                         startStepIndex={startStepIndex}
