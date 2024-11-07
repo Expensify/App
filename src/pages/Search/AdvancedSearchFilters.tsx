@@ -27,7 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {CardList, PersonalDetailsList, PolicyTagLists, Report} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/types/onyx';
 
 const baseFilterConfig = {
     date: {
@@ -265,6 +265,7 @@ function AdvancedSearchFilters() {
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
+    const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const singlePolicyCategories = allPolicyCategories[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
     const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -274,8 +275,14 @@ function AdvancedSearchFilters() {
         .map(getTagNamesFromTagsLists)
         .flat();
 
+    // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
+    const nonPersonalPolicyCategoryIds = Object.values(policies)
+        .filter((policy): policy is NonNullable<Policy> => !!(policy && policy.type !== CONST.POLICY.TYPE.PERSONAL))
+        .map((policy) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
+    const nonPersonalPolicyCategoryCount = Object.keys(allPolicyCategories).filter((policyCategoryId) => nonPersonalPolicyCategoryIds.includes(policyCategoryId)).length;
+
+    const shouldDisplayCategoryFilter = nonPersonalPolicyCategoryCount !== 0 || !!singlePolicyCategories;
     const shouldDisplayTagFilter = tagListsUnpacked.length !== 0 || !!singlePolicyTagLists;
-    const shouldDisplayCategoryFilter = Object.keys(allPolicyCategories).length !== 0 || !!singlePolicyCategories;
     const shouldDisplayCardFilter = Object.keys(cardList).length !== 0;
     const shouldDisplayTaxFilter = Object.keys(taxRates).length !== 0;
 
