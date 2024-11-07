@@ -636,14 +636,14 @@ const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTy
  * and supported type, it's not deleted and also not closed.
  */
 function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean): boolean {
+    if (!reportAction) {
+        return false;
+    }
+
     if (
         (isActionableReportMentionWhisper(reportAction) || isActionableJoinRequestPendingReportAction(reportAction) || isActionableMentionWhisper(reportAction)) &&
         !canUserPerformWriteAction
     ) {
-        return false;
-    }
-
-    if (!reportAction) {
         return false;
     }
 
