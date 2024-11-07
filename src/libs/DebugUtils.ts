@@ -1066,7 +1066,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 () =>
                     validateArray<ArrayElement<ReportAction, 'message'>>(value, {
                         text: 'string',
-                        html: ['string', 'undefined'],
+                        html: 'string',
                         type: 'string',
                         isDeletedParentAction: 'boolean',
                         policyID: 'string',
@@ -1100,12 +1100,72 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                         type: 'string',
                         policyID: 'string',
                         reportID: 'string',
-                        isDeletedParentAction: 'string',
+                        isDeletedParentAction: 'boolean',
                         target: 'string',
                         style: 'string',
                         href: 'string',
+                        iconUrl: 'boolean',
+                        isEdited: 'boolean',
+                        isReversedTransaction: 'boolean',
+                        whisperedTo: 'array',
+                        moderationDecision: 'object',
+                        translationKey: 'string',
+                        taskReportID: 'string',
+                        cancellationReason: 'string',
+                        expenseReportID: 'string',
+                        resolution: {
+                            ...CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION,
+                            ...CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION,
+                        },
+                        deleted: 'string',
+                    }),
+            );
+        }
+        case 'originalMessage': {
+            return validateObject<ObjectElement<ReportAction, 'originalMessage'>>(value, {});
+        }
+        case 'previousMessage': {
+            return unionValidation(
+                () =>
+                    validateObject<ObjectElement<ReportAction, 'previousMessage'>>(value, {
+                        html: 'string',
+                        text: 'string',
+                        amount: 'string',
+                        currency: 'string',
+                        type: 'string',
+                        policyID: 'string',
+                        reportID: 'string',
+                        style: 'string',
+                        target: 'string',
+                        href: 'string',
+                        iconUrl: 'string',
+                        isEdited: 'boolean',
+                        isDeletedParentAction: 'boolean',
+                        isReversedTransaction: 'boolean',
+                        whisperedTo: 'array',
+                        moderationDecision: 'string',
+                        translationKey: 'string',
+                        taskReportID: 'string',
+                        cancellationReason: 'string',
+                        expenseReportID: 'string',
+                        resolution: 'string',
+                        deleted: 'string',
+                    }),
+                () =>
+                    validateArray<ArrayElement<ReportAction, 'previousMessage'>>(value, {
+                        reportID: 'string',
+                        html: 'string',
+                        text: 'string',
+                        amount: 'string',
+                        currency: 'string',
+                        type: 'string',
+                        policyID: 'string',
+                        style: 'string',
+                        target: 'string',
+                        href: 'string',
                         iconUrl: 'string',
                         isEdited: 'string',
+                        isDeletedParentAction: 'string',
                         isReversedTransaction: 'string',
                         whisperedTo: 'string',
                         moderationDecision: 'string',
@@ -1117,35 +1177,6 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                         deleted: 'string',
                     }),
             );
-        }
-        case 'originalMessage': {
-            return validateObject<ObjectElement<ReportAction, 'originalMessage'>>(value, {});
-        }
-        case 'previousMessage': {
-            return validateObject<ObjectElement<ReportAction, 'previousMessage'>>(value, {
-                html: 'string',
-                text: 'string',
-                amount: 'string',
-                currency: 'string',
-                type: 'string',
-                policyID: 'string',
-                reportID: 'string',
-                style: 'string',
-                target: 'string',
-                href: 'string',
-                iconUrl: 'string',
-                isEdited: 'string',
-                isDeletedParentAction: 'string',
-                isReversedTransaction: 'string',
-                whisperedTo: 'string',
-                moderationDecision: 'string',
-                translationKey: 'string',
-                taskReportID: 'string',
-                cancellationReason: 'string',
-                expenseReportID: 'string',
-                resolution: 'string',
-                deleted: 'string',
-            });
         }
     }
 }
