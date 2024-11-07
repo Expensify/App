@@ -340,7 +340,10 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         }
         const inputQueryJSON = SearchQueryUtils.buildSearchQueryJSON(inputValue);
         if (inputQueryJSON) {
-            const standardizedQuery = SearchQueryUtils.standardizeQueryJSON(inputQueryJSON, cardList, taxRates);
+            // Todo traverse the tree to update all the display values into id values; this is only temporary until autocomplete code from SearchRouter is implement here
+            // After https://github.com/Expensify/App/pull/51633 is merged, autocomplete functionality will be included into this component, and `getFindIDFromDisplayValue` can be removed
+            const computeNodeValueFn = SearchQueryUtils.getFindIDFromDisplayValue(cardList, taxRates);
+            const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(inputQueryJSON, computeNodeValueFn);
             const query = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
             SearchActions.clearAllFilters();
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));

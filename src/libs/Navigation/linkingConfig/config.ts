@@ -1424,6 +1424,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.COMPANY_CARDS]: {
                     path: ROUTES.WORKSPACE_COMPANY_CARDS.route,
                 },
+                [SCREENS.WORKSPACE.PER_DIEM]: {
+                    path: ROUTES.WORKSPACE_PER_DIEM.route,
+                },
                 [SCREENS.WORKSPACE.WORKFLOWS]: {
                     path: ROUTES.WORKSPACE_WORKFLOWS.route,
                 },
