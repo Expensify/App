@@ -77,11 +77,24 @@ const onboardingChoices = {
     ...backendOnboardingChoices,
 } as const;
 
+const combinedTrackSubmitOnboardingChoices = {
+    PERSONAL_SPEND: selectableOnboardingChoices.PERSONAL_SPEND,
+    EMPLOYER: selectableOnboardingChoices.EMPLOYER,
+    SUBMIT: backendOnboardingChoices.SUBMIT,
+} as const;
+
 const signupQualifiers = {
     INDIVIDUAL: 'individual',
     VSB: 'vsb',
     SMB: 'smb',
 } as const;
+
+const selfGuidedTourTask: OnboardingTaskType = {
+    type: 'viewTour',
+    autoCompleted: false,
+    title: 'Take a 2-minute tour',
+    description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
+};
 
 const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
@@ -93,6 +106,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
         height: 960,
     },
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -127,6 +141,95 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
     ],
 };
 
+const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessageType = {
+    ...onboardingEmployerOrSubmitMessage,
+    tasks: [
+        {
+            type: 'submitExpense',
+            autoCompleted: false,
+            title: 'Submit an expense',
+            description:
+                '*Submit an expense* by entering an amount or scanning a receipt.\n' +
+                '\n' +
+                'Here’s how to submit an expense:\n' +
+                '\n' +
+                '1. Click the green *+* button.\n' +
+                '2. Choose *Create expense*.\n' +
+                '3. Enter an amount or scan a receipt.\n' +
+                '4. Add your reimburser to the request.\n' +
+                '5. Click *Submit*.\n' +
+                '\n' +
+                'And you’re done! Now wait for that sweet “Cha-ching!” when it’s complete.',
+        },
+        {
+            type: 'addBankAccount',
+            autoCompleted: false,
+            title: 'Add personal bank account',
+            description:
+                'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
+                '\n' +
+                'Here’s how to set up your bank account:\n' +
+                '\n' +
+                '1. Click your profile picture.\n' +
+                '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
+                '3. Connect your bank account.\n' +
+                '\n' +
+                'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
+        },
+    ],
+};
+
+const onboardingPersonalSpendMessage: OnboardingMessageType = {
+    message: 'Here’s how to track your spend in a few clicks.',
+    video: {
+        url: `${CLOUDFRONT_URL}/videos/guided-setup-track-personal-v2.mp4`,
+        thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-track-personal.jpg`,
+        duration: 55,
+        width: 1280,
+        height: 960,
+    },
+    tasks: [
+        {
+            type: 'trackExpense',
+            autoCompleted: false,
+            title: 'Track an expense',
+            description:
+                '*Track an expense* in any currency, whether you have a receipt or not.\n' +
+                '\n' +
+                'Here’s how to track an expense:\n' +
+                '\n' +
+                '1. Click the green *+* button.\n' +
+                '2. Choose *Track expense*.\n' +
+                '3. Enter an amount or scan a receipt.\n' +
+                '4. Click *Track*.\n' +
+                '\n' +
+                'And you’re done! Yep, it’s that easy.',
+        },
+    ],
+};
+const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessageType = {
+    ...onboardingPersonalSpendMessage,
+    tasks: [
+        {
+            type: 'trackExpense',
+            autoCompleted: false,
+            title: 'Track an expense',
+            description:
+                '*Track an expense* in any currency, whether you have a receipt or not.\n' +
+                '\n' +
+                'Here’s how to track an expense:\n' +
+                '\n' +
+                '1. Click the green *+* button.\n' +
+                '2. Choose *Create expense*.\n' +
+                '3. Enter an amount or scan a receipt.\n' +
+                '4. Click "Just track it (don\'t submit it)".\n' +
+                '5. Click *Track*.\n' +
+                '\n' +
+                'And you’re done! Yep, it’s that easy.',
+        },
+    ],
+};
+
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 type OnboardingCompanySizeType = ValueOf<typeof onboardingCompanySize>;
@@ -152,8 +255,26 @@ type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
 type OnboardingTaskType = {
     type: string;
     autoCompleted: boolean;
-    title: string;
-    description: string | ((params: Partial<{adminsRoomLink: string; workspaceCategoriesLink: string; workspaceMoreFeaturesLink: string; workspaceMembersLink: string}>) => string);
+    title:
+        | string
+        | ((
+              params: Partial<{
+                  integrationName: string;
+              }>,
+          ) => string);
+    description:
+        | string
+        | ((
+              params: Partial<{
+                  adminsRoomLink: string;
+                  workspaceCategoriesLink: string;
+                  workspaceMoreFeaturesLink: string;
+                  workspaceMembersLink: string;
+                  integrationName: string;
+                  workspaceAccountingLink: string;
+                  navatticURL: string;
+              }>,
+          ) => string);
 };
 
 type OnboardingMessageType = {
@@ -353,6 +474,7 @@ const CONST = {
         OLD_DOT_ANDROID: 'https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&pli=1',
         OLD_DOT_IOS: 'https://apps.apple.com/us/app/expensify-expense-tracker/id471713959',
     },
+    COMPANY_WEBSITE_DEFAULT_SCHEME: 'http',
     DATE: {
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
@@ -508,10 +630,9 @@ const CONST = {
         COMPANY_CARD_FEEDS: 'companyCardFeeds',
         DIRECT_FEEDS: 'directFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
-        NEW_DOT_COPILOT: 'newDotCopilot',
-        WORKSPACE_RULES: 'workspaceRules',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
+        PER_DIEM: 'newDotPerDiem',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -767,8 +888,10 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     NAVATTIC: {
-        ADMIN_TOUR: 'https://expensify.navattic.com/kh204a7',
-        EMPLOYEE_TOUR: 'https://expensify.navattic.com/35609gb',
+        ADMIN_TOUR_PRODUCTION: 'https://expensify.navattic.com/kh204a7',
+        ADMIN_TOUR_STAGING: 'https://expensify.navattic.com/3i300k18',
+        EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
+        EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
     },
 
     OLDDOT_URLS: {
@@ -1102,6 +1225,7 @@ const CONST = {
         MODAL_TYPE: {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
+            CENTERED_SWIPABLE_TO_RIGHT: 'centered_swipable_to_right',
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
             CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
@@ -1151,6 +1275,7 @@ const CONST = {
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
+        LIST_SCROLLING_DEBOUNCE_TIME: 200,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1182,7 +1307,13 @@ const CONST = {
             PENDING: 'Pending',
             POSTED: 'Posted',
         },
+        STATE: {
+            CURRENT: 'current',
+            DRAFT: 'draft',
+            BACKUP: 'backup',
+        },
     },
+
     MCC_GROUPS: {
         AIRLINES: 'Airlines',
         COMMUTER: 'Commuter',
@@ -1480,6 +1611,7 @@ const CONST = {
         CONTRIBUTORS: 'contributors@expensify.com',
         FIRST_RESPONDER: 'firstresponders@expensify.com',
         GUIDES_DOMAIN: 'team.expensify.com',
+        QA_DOMAIN: 'applause.expensifail.com',
         HELP: 'help@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
         NOTIFICATIONS: 'notifications@expensify.com',
@@ -2580,6 +2712,11 @@ const CONST = {
             INDIVIDUAL: 'individual',
             NONE: 'none',
         },
+        VERIFICATION_STATE: {
+            LOADING: 'loading',
+            VERIFIED: 'verified',
+            ON_WAITLIST: 'onWaitlist',
+        },
         STATE: {
             STATE_NOT_ISSUED: 2,
             OPEN: 3,
@@ -2594,6 +2731,7 @@ const CONST = {
             MONTHLY: 'monthly',
             FIXED: 'fixed',
         },
+        LIMIT_VALUE: 21474836,
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEP: {
             ASSIGNEE: 'Assignee',
@@ -2611,7 +2749,6 @@ const CONST = {
             DAILY: 'daily',
             MONTHLY: 'monthly',
         },
-        CARD_TITLE_INPUT_LIMIT: 255,
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
     },
     COMPANY_CARDS: {
@@ -2841,6 +2978,7 @@ const CONST = {
         SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
         REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
         DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
+        WHITESPACE: /\s+/g,
 
         get EXPENSIFY_POLICY_DOMAIN_NAME() {
             return new RegExp(`${EXPENSIFY_POLICY_DOMAIN}([a-zA-Z0-9]+)\\${EXPENSIFY_POLICY_DOMAIN_EXTENSION}`);
@@ -2914,10 +3052,6 @@ const CONST = {
     get RESTRICTED_ACCOUNT_IDS() {
         return [this.ACCOUNT_ID.NOTIFICATIONS];
     },
-    // Account IDs that can't be added as a group member
-    get NON_ADDABLE_ACCOUNT_IDS() {
-        return [this.ACCOUNT_ID.NOTIFICATIONS, this.ACCOUNT_ID.CHRONOS];
-    },
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
     MAX_COMMENT_LENGTH: 10000,
@@ -2929,6 +3063,7 @@ const CONST = {
 
     // Character Limits
     FORM_CHARACTER_LIMIT: 50,
+    STANDARD_LENGTH_LIMIT: 100,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
@@ -4677,6 +4812,7 @@ const CONST = {
     ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
+    COMBINED_TRACK_SUBMIT_ONBOARDING_CHOICES: {...combinedTrackSubmitOnboardingChoices},
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
@@ -4720,7 +4856,13 @@ const CONST = {
             '\n' +
             "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
     },
-
+    ONBOARDING_ACCOUNTING_MAPPING: {
+        quickbooksOnline: 'QuickBooks Online',
+        xero: 'Xero',
+        netsuite: 'NetSuite',
+        intacct: 'Sage Intacct',
+        quickbooksDesktop: 'QuickBooks Desktop',
+    },
     ONBOARDING_MESSAGES: {
         [onboardingChoices.EMPLOYER]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.SUBMIT]: onboardingEmployerOrSubmitMessage,
@@ -4748,6 +4890,7 @@ const CONST = {
                         '\n' +
                         '*Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.*',
                 },
+                selfGuidedTourTask,
                 {
                     type: 'meetGuide',
                     autoCompleted: false,
@@ -4832,35 +4975,29 @@ const CONST = {
                         '\n' +
                         `[Take me to workspace members](${workspaceMembersLink}). That’s it, happy expensing! :)`,
                 },
+                {
+                    type: 'addAccountingIntegration',
+                    autoCompleted: false,
+                    title: ({integrationName}) => `Connect to ${integrationName}`,
+                    description: ({integrationName, workspaceAccountingLink}) =>
+                        `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
+                        '\n' +
+                        `Here’s how to connect to ${integrationName}:\n` +
+                        '\n' +
+                        '1. Click your profile photo.\n' +
+                        '2. Go to Workspaces.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click Accounting.\n' +
+                        `5. Find ${integrationName}.\n` +
+                        '6. Click Connect.\n' +
+                        '\n' +
+                        `[Take me to Accounting!](${workspaceAccountingLink})`,
+                },
             ],
         },
         [onboardingChoices.PERSONAL_SPEND]: {
-            message: 'Here’s how to track your spend in a few clicks.',
-            video: {
-                url: `${CLOUDFRONT_URL}/videos/guided-setup-track-personal-v2.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-track-personal.jpg`,
-                duration: 55,
-                width: 1280,
-                height: 960,
-            },
-            tasks: [
-                {
-                    type: 'trackExpense',
-                    autoCompleted: false,
-                    title: 'Track an expense',
-                    description:
-                        '*Track an expense* in any currency, whether you have a receipt or not.\n' +
-                        '\n' +
-                        'Here’s how to track an expense:\n' +
-                        '\n' +
-                        '1. Click the green *+* button.\n' +
-                        '2. Choose *Track expense*.\n' +
-                        '3. Enter an amount or scan a receipt.\n' +
-                        '4. Click *Track*.\n' +
-                        '\n' +
-                        'And you’re done! Yep, it’s that easy.',
-                },
-            ],
+            ...onboardingPersonalSpendMessage,
+            tasks: [selfGuidedTourTask, ...onboardingPersonalSpendMessage.tasks],
         },
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
@@ -4872,6 +5009,7 @@ const CONST = {
                 height: 960,
             },
             tasks: [
+                selfGuidedTourTask,
                 {
                     type: 'startChat',
                     autoCompleted: false,
@@ -4929,6 +5067,12 @@ const CONST = {
             tasks: [],
         },
     } satisfies Record<OnboardingPurposeType, OnboardingMessageType>,
+
+    COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES: {
+        [combinedTrackSubmitOnboardingChoices.PERSONAL_SPEND]: combinedTrackSubmitOnboardingPersonalSpendMessage,
+        [combinedTrackSubmitOnboardingChoices.EMPLOYER]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
+        [combinedTrackSubmitOnboardingChoices.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
+    } satisfies Record<ValueOf<typeof combinedTrackSubmitOnboardingChoices>, OnboardingMessageType>,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
@@ -5804,6 +5948,11 @@ const CONST = {
             IN: 'in',
         },
         EMPTY_VALUE: 'none',
+        SEARCH_ROUTER_ITEM_TYPE: {
+            CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
+            AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
+            SEARCH: 'searchItem',
+        },
     },
 
     REFERRER: {
