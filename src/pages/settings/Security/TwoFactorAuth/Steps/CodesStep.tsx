@@ -28,8 +28,8 @@ import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SCREENS from '@src/SCREENS';
 
 type CodesStepProps = BackToParams;
 
