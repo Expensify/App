@@ -80,7 +80,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD)}
                 />
                 <MenuItemWithTopDescription
-                    description={translate('workspace.companyCards.startTransactionDate')}
+                    description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
                     title={data?.dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? translate('workspace.companyCards.fromTheBeginning') : data?.startDate}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE)}

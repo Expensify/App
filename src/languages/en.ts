@@ -3150,7 +3150,6 @@ const translations = {
             confirmationDescription: 'We’ll begin importing transactions immediately.',
             cardholder: 'Cardholder',
             card: 'Card',
-            startTransactionDate: 'Start transaction date',
             cardName: 'Card name',
             brokenConnectionErrorFirstPart: `Card feed connection is broken. Please `,
             brokenConnectionErrorLink: 'log into your bank ',
