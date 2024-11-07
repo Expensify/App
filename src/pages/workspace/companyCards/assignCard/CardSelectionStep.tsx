@@ -153,7 +153,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                 <>
                     <SelectionList
                         sections={[{data: searchedListOptions}]}
-                        shouldShowTextInput={listOptions.length > CONST.COMPANY_CARDS.BIG_CARD_LIST_ITEMS_AMOUNT}
+                        shouldShowTextInput={listOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
                         textInputLabel={translate('common.search')}
                         textInputValue={searchText}
                         onChangeText={setSearchText}

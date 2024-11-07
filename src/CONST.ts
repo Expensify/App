@@ -2803,7 +2803,7 @@ const CONST = {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
         },
-        BIG_CARD_LIST_ITEMS_AMOUNT: 8,
+        CARD_LIST_THRESHOLD: 8,
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
