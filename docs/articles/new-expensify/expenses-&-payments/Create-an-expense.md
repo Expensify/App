@@ -47,6 +47,8 @@ When an expense is submitted to a workspace, your approver will receive an email
 5. Add a description, category, tags, or tax as desired or as required by your workspace.
 6. (Optional) Enable the expense as billable if it should be billed to a client.
 7. Tap **Submit expense**.
+{% include end-option.html %}
+
 {% include end-selector.html %}
 
 {% include info.html %}
