@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -14,6 +15,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
 function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
@@ -54,9 +56,9 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                 {!!autoSyncConfig?.autoSync?.enabled && (
                     <MenuItemWithTopDescription
                         title={
-                            accountingMethod === CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL
-                                ? translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL}`)
-                                : translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${CONST.NETSUITE_ACCOUNTING_METHODS.CASH}`)
+                            accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
+                                ? translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
+                                : translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
                         }
                         description={translate('workspace.netsuite.advancedConfig.accountingMethods.label')}
                         shouldShowRightIcon

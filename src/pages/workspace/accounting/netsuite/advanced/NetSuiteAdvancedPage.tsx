@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -29,6 +30,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'hintText'> & {subscribedSettings?: string[]};
@@ -38,9 +40,9 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
 
-    const config = policy?.connections?.netsuite?.options.config;
+    const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
-    const accountingMethod = policy?.connections?.netsuite?.options.config.accountingMethod;
+    const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
     const selectedReimbursementAccount = useMemo(
@@ -71,7 +73,9 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 if (!autoSyncConfig?.autoSync?.enabled) {
                     return undefined;
                 }
-                return translate(`workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMethod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH}`);
+                return translate(
+                    `workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths,
+                );
             })(),
         },
         {

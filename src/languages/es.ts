@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import CONST from '@src/CONST';
 import type en from './en';
 import type {
@@ -2929,12 +2930,12 @@ const translations = {
                     label: 'Cuándo Exportar',
                     description: 'Elige cuándo exportar los gastos:',
                     values: {
-                        [CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL]: 'Devengo',
-                        [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Efectivo',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
                     },
                     alternateText: {
-                        [CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados definitivamente',
-                        [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados definitivamente',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
                     },
                 },
                 exportVendorBillsTo: {

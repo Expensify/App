@@ -2892,12 +2892,12 @@ const translations = {
                     label: 'When to Export',
                     description: 'Choose when to export the expenses:',
                     values: {
-                        [CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL]: 'Accrual',
-                        [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Cash',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
                     },
                     alternateText: {
-                        [CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
-                        [CONST.NETSUITE_ACCOUNTING_METHODS.CASH]: 'Out-of-pocket expenses will export when paid',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
                     },
                 },
                 exportVendorBillsTo: {

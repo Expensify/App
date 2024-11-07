@@ -1,9 +1,9 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
 
 type UpdateNetSuiteAccountingMethodParams = {
     policyID: string;
-    accountingMethod: ValueOf<typeof CONST.NETSUITE_ACCOUNTING_METHODS>;
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 export default UpdateNetSuiteAccountingMethodParams;

@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -13,22 +14,23 @@ import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
-    value: ValueOf<typeof CONST.NETSUITE_ACCOUNTING_METHODS>;
+    value: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
-    const config = policy?.connections?.netsuite?.options?.config;
-    const accountingMethod = config?.accountingMethod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH;
-    const data: MenuListItem[] = Object.values(CONST.NETSUITE_ACCOUNTING_METHODS).map((accountingMethodType) => ({
+    const config = policy?.connections?.netsuite.options.config;
+    const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
+    const data: MenuListItem[] = Object.values(COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD).map((accountingMethodType) => ({
         value: accountingMethodType,
-        text: translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${accountingMethodType}`),
-        alternateText: translate(`workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMethodType}`),
+        text: translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${accountingMethodType}` as TranslationPaths),
+        alternateText: translate(`workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMethodType}` as TranslationPaths),
         keyForList: accountingMethodType,
         isSelected: accountingMethod === accountingMethodType,
     }));
@@ -45,7 +47,7 @@ function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const selectExpenseReportApprovalLevel = useCallback(
         (row: MenuListItem) => {
             if (row.value !== config?.accountingMethod) {
-                Connections.updateNetSuiteAccountingMethod(policyID, row.value, config?.accountingMethod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH);
+                Connections.updateNetSuiteAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID));
         },

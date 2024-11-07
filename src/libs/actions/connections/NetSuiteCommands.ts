@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import isObject from 'lodash/isObject';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -937,8 +938,8 @@ function updateNetSuiteExportReportsTo(
 
 function updateNetSuiteAccountingMethod(
     policyID: string,
-    accountingMethod: ValueOf<typeof CONST.NETSUITE_ACCOUNTING_METHODS>,
-    oldAccountingMethod: ValueOf<typeof CONST.NETSUITE_ACCOUNTING_METHODS>,
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
+    oldAccountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
 ) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod);
 
