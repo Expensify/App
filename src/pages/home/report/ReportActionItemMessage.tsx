@@ -3,17 +3,15 @@ import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
+import AddBankAccountActionButton from './AddBankAccountActionButton';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
@@ -121,29 +119,12 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         return shouldWrapInText ? <Text style={styles.ltr}>{reportActionItemFragments}</Text> : reportActionItemFragments;
     };
 
-    const openWorkspaceInvoicesPage = () => {
-        const policyID = ReportUtils.getReport(reportID)?.policyID;
-
-        if (!policyID) {
-            return;
-        }
-
-        Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
-    };
-
     return (
         <View style={[styles.chatItemMessage, style]}>
             {!isHidden ? (
                 <>
                     {renderReportActionItemFragments(isApprovedOrSubmittedReportAction)}
-                    {action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && ReportUtils.hasMissingInvoiceBankAccount(reportID) && (
-                        <Button
-                            style={[styles.mt2, styles.alignSelfStart]}
-                            success
-                            text={translate('workspace.invoices.paymentMethods.addBankAccount')}
-                            onPress={openWorkspaceInvoicesPage}
-                        />
-                    )}
+                    {action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && <AddBankAccountActionButton reportID={reportID} />}
                 </>
             ) : (
                 <Text style={[styles.textLabelSupporting, styles.lh20]}>{translate('moderation.flaggedContent')}</Text>
