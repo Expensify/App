@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
+import setTimeSkew from './setTimeSkew';
 
 function setIsOffline(isOffline: boolean, reason = '') {
     if (reason) {
@@ -15,10 +16,6 @@ function setIsOffline(isOffline: boolean, reason = '') {
 
 function setNetWorkStatus(status: NetworkStatus) {
     Onyx.merge(ONYXKEYS.NETWORK, {networkStatus: status});
-}
-
-function setTimeSkew(skew: number) {
-    Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: skew});
 }
 
 function setShouldForceOffline(shouldForceOffline: boolean) {

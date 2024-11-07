@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
-import * as NetworkActions from './actions/Network';
+import setTimeSkew from './actions/setTimeSkew';
 import * as UpdateRequired from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import * as ApiUtils from './ApiUtils';
@@ -68,7 +68,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                 const endTime = new Date().valueOf();
                 const latency = (endTime - startTime) / 2;
                 const skew = serverTime - startTime + latency;
-                NetworkActions.setTimeSkew(dateHeaderValue ? skew : 0);
+                setTimeSkew(dateHeaderValue ? skew : 0);
             }
             return response;
         })
