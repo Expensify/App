@@ -23,6 +23,7 @@ import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
 import BellSlash from '@assets/images/bellSlash.svg';
 import Bill from '@assets/images/bill.svg';
+import Binoculars from '@assets/images/binoculars.svg';
 import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
 import Box from '@assets/images/box.svg';
@@ -93,6 +94,7 @@ import FlagLevelTwo from '@assets/images/flag_level_02.svg';
 import FlagLevelThree from '@assets/images/flag_level_03.svg';
 import Folder from '@assets/images/folder.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
+import GalleryNotFound from '@assets/images/gallery-not-found.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
 import Globe from '@assets/images/globe.svg';
@@ -222,6 +224,7 @@ export {
     Bill,
     Bell,
     BellSlash,
+    Binoculars,
     Bolt,
     Box,
     Briefcase,
@@ -404,4 +407,5 @@ export {
     Bookmark,
     Star,
     QBDSquare,
+    GalleryNotFound,
 };

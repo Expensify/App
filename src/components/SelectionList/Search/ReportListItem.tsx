@@ -89,7 +89,6 @@ function ReportListItem<TItem extends ListItem>({
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
-        isFocused && styles.sidebarLinkActive,
         styles.mh0,
     ];
 
@@ -110,7 +109,7 @@ function ReportListItem<TItem extends ListItem>({
     const participantFrom = reportItem.from;
     const participantTo = reportItem.to;
 
-    // These values should come as part of the item via SearchUtils.getSections() but ReportListItem is not yet 100% handled
+    // These values should come as part of the item via SearchUIUtils.getSections() but ReportListItem is not yet 100% handled
     // This will be simplified in future once sorting of ReportListItem is done
     const participantFromDisplayName = participantFrom?.displayName ?? participantFrom?.login ?? '';
     const participantToDisplayName = participantTo?.displayName ?? participantTo?.login ?? '';
@@ -171,7 +170,7 @@ function ReportListItem<TItem extends ListItem>({
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph3, styles.pv1half]}>
                     <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, styles.mnh40]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
-                            {canSelectMultiple && (
+                            {!!canSelectMultiple && (
                                 <Checkbox
                                     onPress={() => onCheckboxPress?.(item)}
                                     isChecked={item.isSelected}

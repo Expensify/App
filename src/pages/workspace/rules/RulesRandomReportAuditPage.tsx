@@ -50,7 +50,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, styles.mt5]}
+                    style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM}
                     onSubmit={({auditRatePercentage}) => {
                         PolicyActions.setPolicyAutomaticApprovalRate(policyID, auditRatePercentage);

@@ -19,7 +19,6 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -55,7 +54,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
-    const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState('');
+    const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
@@ -65,17 +64,11 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const isFocusedScreen = useIsFocused();
     const {isOffline} = useNetwork();
 
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
-
-    useEffect(() => {
-        setSearchValue(userSearchPhrase ?? '');
-    }, [isFocusedScreen, setSearchValue, userSearchPhrase]);
-
-    useEffect(() => {
-        UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
-    }, [debouncedSearchTerm]);
 
     useEffect(() => {
         if (isFocusedScreen) {
@@ -161,7 +154,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
 
     /** Add or remove all users passed from the selectedMembers list */
     const toggleAllUsers = (memberList: ListItem[]) => {
-        const enabledAccounts = memberList.filter((member) => !member.isDisabled);
+        const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
         const everyoneSelected = enabledAccounts.every((member) => {
             if (!member.accountID) {
                 return false;
@@ -194,6 +187,17 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     }, [participants, personalDetails, isOffline, report]);
 
     useEffect(() => {
+        if (!isFocusedScreen || !shouldShowTextInput) {
+            return;
+        }
+        setSearchValue(userSearchPhrase ?? '');
+    }, [isFocusedScreen, shouldShowTextInput, userSearchPhrase]);
+
+    useEffect(() => {
+        UserSearchPhraseActions.updateUserSearchPhrase(searchValue);
+    }, [searchValue]);
+
+    useEffect(() => {
         if (!isFocusedScreen) {
             return;
         }
@@ -216,19 +220,20 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                 return;
             }
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            const isAdmin = !!(policy && policy.employeeList && details.login && policy.employeeList[details.login]?.role === CONST.POLICY.ROLE.ADMIN);
-            const isDisabled =
+            const isAdmin = PolicyUtils.isUserPolicyAdmin(policy, details.login);
+            const isDisabled = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details.isOptimisticPersonalDetail;
+            const isDisabledCheckbox =
                 (isPolicyExpenseChat && isAdmin) ||
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                details.accountID === report.ownerAccountID ||
-                details.isOptimisticPersonalDetail;
+                details.accountID === report.ownerAccountID;
 
             result.push({
                 keyForList: String(accountID),
                 accountID,
                 isSelected: selectedMembers.includes(accountID),
                 isDisabled,
+                isDisabledCheckbox,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
@@ -382,9 +387,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                         textInputLabel={translate('selectionList.findMember')}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         textInputValue={searchValue}
-                        onChangeText={(value) => {
-                            setSearchValue(value);
-                        }}
+                        onChangeText={setSearchValue}
                         headerMessage={headerMessage}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
