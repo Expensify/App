@@ -64,11 +64,11 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem | DividerLineItem> = [
         {
             type: 'menuitem',
-            title: autoSyncConfig?.autoSync.enabled ? translate('common.enabled') : translate('common.disabled'),
+            title: autoSyncConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled'),
             description: translate('workspace.accounting.autoSync'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID)),
             hintText: (() => {
-                if (!autoSyncConfig?.autoSync.enabled) {
+                if (!autoSyncConfig?.autoSync?.enabled) {
                     return undefined;
                 }
                 return translate(`workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMethod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH}`);

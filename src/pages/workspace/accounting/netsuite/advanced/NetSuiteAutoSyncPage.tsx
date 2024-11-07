@@ -21,7 +21,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const autoSyncConfig = policy?.connections?.netsuite?.config;
     const policyID = route.params.policyID ?? '-1';
-    const accountingMethod = policy?.connections?.netsuite?.options.config.accountingMethod;
+    const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
 
     return (
         <AccessOrNotFoundWrapper
@@ -42,7 +42,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                     title={translate('workspace.accounting.autoSync')}
                     // wil be converted to translate and spanish translation too
                     subtitle={translate('workspace.accounting.autoSyncDescription')}
-                    isActive={!!autoSyncConfig?.autoSync.enabled}
+                    isActive={!!autoSyncConfig?.autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     switchAccessibilityLabel={translate('workspace.netsuite.advancedConfig.autoSyncDescription')}
                     shouldPlaceSubtitleBelowSwitch
@@ -51,10 +51,14 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                     pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields)}
                     errors={ErrorUtils.getLatestErrorField(autoSyncConfig, CONST.NETSUITE_CONFIG.AUTO_SYNC)}
                 />
-                {!!autoSyncConfig?.autoSync.enabled && (
+                {!!autoSyncConfig?.autoSync?.enabled && (
                     <MenuItemWithTopDescription
-                        title={accountingMethod === CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL ? 'Accural' : 'Cash'}
-                        description="When to export"
+                        title={
+                            accountingMethod === CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL
+                                ? translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${CONST.NETSUITE_ACCOUNTING_METHODS.ACCRUAL}`)
+                                : translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${CONST.NETSUITE_ACCOUNTING_METHODS.CASH}`)
+                        }
+                        description={translate('workspace.netsuite.advancedConfig.accountingMethods.label')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD.getRoute(policyID))}
                     />

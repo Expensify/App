@@ -23,14 +23,14 @@ function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
-    const config = policy?.connections?.netsuite.options.config;
-    const accountingMehtod = config?.accountingMethod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH;
-    const data: MenuListItem[] = Object.values(CONST.NETSUITE_ACCOUNTING_METHODS).map((accountingMehtodType) => ({
-        value: accountingMehtodType,
-        text: translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${accountingMehtodType}`),
-        alternateText: translate(`workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMehtodType}`),
-        keyForList: accountingMehtodType,
-        isSelected: accountingMehtod === accountingMehtodType,
+    const config = policy?.connections?.netsuite?.options?.config;
+    const accountingMethod = config?.accountingMethod ?? CONST.NETSUITE_ACCOUNTING_METHODS.CASH;
+    const data: MenuListItem[] = Object.values(CONST.NETSUITE_ACCOUNTING_METHODS).map((accountingMethodType) => ({
+        value: accountingMethodType,
+        text: translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${accountingMethodType}`),
+        alternateText: translate(`workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMethodType}`),
+        keyForList: accountingMethodType,
+        isSelected: accountingMethod === accountingMethodType,
     }));
 
     const headerContent = useMemo(
