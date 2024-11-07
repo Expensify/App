@@ -8112,9 +8112,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
         {optimisticData, successData, failureData},
     );
 
-    const report = ReportUtils.getReport(reportID);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-    const currentReportID = ReportUtils.isOneTransactionThread(report?.reportID ?? '', report?.parentReportID ?? '', parentReportAction) ? report?.parentReportID : reportID;
+    const currentReportID = ReportUtils.getCurrentReportIDInOneTransactionThread(reportID);
     Report.notifyNewAction(currentReportID ?? '', userAccountID);
 }
 
@@ -8216,9 +8214,7 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
         {optimisticData, successData, failureData},
     );
 
-    const report = ReportUtils.getReport(reportID);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-    const currentReportID = ReportUtils.isOneTransactionThread(report?.reportID ?? '', report?.parentReportID ?? '', parentReportAction) ? report?.parentReportID : reportID;
+    const currentReportID = ReportUtils.getCurrentReportIDInOneTransactionThread(reportID);
     Report.notifyNewAction(currentReportID ?? '', userAccountID);
 }
 // eslint-disable-next-line rulesdir/no-negated-variables

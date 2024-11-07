@@ -1698,6 +1698,13 @@ function isOneTransactionThread(reportID: string, parentReportID: string, thread
     return reportID === transactionThreadReportID && !ReportActionsUtils.isSentMoneyReportAction(threadParentReportAction);
 }
 
+function getCurrentReportIDInOneTransactionThread(reportID: string) {
+    const report = getReport(reportID);
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+    const currentReportID = isOneTransactionThread(report?.reportID ?? '', report?.parentReportID ?? '', parentReportAction) ? report?.parentReportID : reportID;
+    return currentReportID;
+}
+
 /**
  * Should return true only for personal 1:1 report
  *
@@ -8553,6 +8560,7 @@ export {
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
     getTransactionReportName,
+    getCurrentReportIDInOneTransactionThread,
     getTransactionsWithReceipts,
     getUserDetailTooltipText,
     getWhisperDisplayNames,
