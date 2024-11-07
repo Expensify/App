@@ -3426,7 +3426,7 @@ function completeOnboarding(
     userReportedIntegration?: OnboardingAccountingType,
 ) {
     // If the user has the "combinedTrackSubmit" beta enabled we'll show different tasks for track and submit expense.
-    if (Permissions.canUseCombinedTrackSubmit(allBetas)) {
+    if (Permissions.canUseCombinedTrackSubmit()) {
         if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
             // eslint-disable-next-line no-param-reassign
             data = CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
