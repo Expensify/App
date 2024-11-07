@@ -4567,7 +4567,7 @@ const translations = {
         pressKit: 'Press Kit',
         support: 'Support',
         expensifyHelp: 'ExpensifyHelp',
-        community: 'Community',
+        terms: 'Terms of Service',
         privacy: 'Privacy',
         learnMore: 'Learn More',
         aboutExpensify: 'About Expensify',
