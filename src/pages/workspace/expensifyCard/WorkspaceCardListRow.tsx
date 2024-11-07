@@ -1,9 +1,9 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import Badge from '@components/Badge';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -26,14 +26,18 @@ type WorkspacesListRowProps = {
 
     /** Policy currency */
     currency: string;
+
+    /** Type of card */
+    isVirtual: boolean;
 };
 
-function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency}: WorkspacesListRowProps) {
+function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, isVirtual}: WorkspacesListRowProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     const cardholderName = useMemo(() => PersonalDetailsUtils.getDisplayNameOrDefault(cardholder), [cardholder]);
-
+    const cardType = isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
     return (
         <View style={[styles.flexRow, styles.gap5, styles.br3, styles.p4]}>
             <View style={[styles.flexRow, styles.flex5, styles.gap3, styles.alignItemsCenter]}>
@@ -58,16 +62,49 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency}: 
                     </Text>
                 </View>
             </View>
-            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.alignItemsCenter, styles.justifyContentEnd]}>
+            {!shouldUseNarrowLayout && (
+                <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textNormalThemeText]}
+                    >
+                        {cardType}
+                    </Text>
+                </View>
+            )}
+            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <Text
                     numberOfLines={1}
-                    style={[styles.textLabelSupporting, styles.lh16]}
+                    style={[styles.textNormalThemeText]}
                 >
                     {lastFourPAN}
                 </Text>
             </View>
-            <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex3 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
-                <Badge text={CurrencyUtils.convertToDisplayString(limit, currency)} />
+            <View
+                style={[
+                    !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn,
+                    shouldUseNarrowLayout ? styles.flex3 : styles.flex1,
+                    !shouldUseNarrowLayout && styles.gap2,
+                    !shouldUseNarrowLayout ? styles.alignItemsCenter : styles.alignItemsEnd,
+                    styles.justifyContentEnd,
+                ]}
+            >
+                <Text
+                    numberOfLines={1}
+                    style={[styles.textNormalThemeText]}
+                >
+                    {CurrencyUtils.convertToDisplayString(limit, currency)}
+                </Text>
+                {shouldUseNarrowLayout && (
+                    <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textLabelSupporting]}
+                        >
+                            {cardType}
+                        </Text>
+                    </View>
+                )}
             </View>
         </View>
     );
