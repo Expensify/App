@@ -51,7 +51,10 @@ For example:
 1. Click on the text input to bring it into focus
 2. Upload an image via copy paste
 3. Verify a modal appears displaying a preview of that image
+
+It's acceptable to write "Same as tests" if the QA team is able to run the tests in the above "Tests" section.
 --->
+// TODO: These must be filled out, or the issue title must include "[No QA]."
 
 - [ ] Verify that no errors appear in the JS console
 
@@ -79,7 +82,6 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
 - [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`)
-    - [ ] I verified that the left part of a conditional rendering a React component is a boolean and NOT a string, e.g. `myBool && <MyComponent />`.
     - [ ] I verified that comments were added to code that is not self explanatory
     - [ ] I verified that any new or modified comments were clear, correct English, and explained "why" the code was doing something instead of only explaining "what" the code was doing.
     - [ ] I verified any copy / text shown in the product is localized by adding it to `src/languages/*` files and using the [translation method](https://github.com/Expensify/App/blob/4bd99402cebdf4d7394e0d1f260879ea238197eb/src/components/withLocalize.js#L60)
