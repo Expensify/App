@@ -278,9 +278,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Participant account id's */
         participantAccountIDs?: number[];
-
-        /** Visible chat member account id's */
-        visibleChatMemberAccountIDs?: number[];
     },
     PolicyReportField['fieldID']
 >;

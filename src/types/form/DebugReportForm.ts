@@ -44,7 +44,6 @@ const INPUT_IDS = {
     TOTAL: 'total',
     TYPE: 'type',
     UNHELD_TOTAL: 'unheldTotal',
-    VISIBLE_CHAT_MEMBER_ACCOUNT_IDS: 'visibleChatMemberAccountIDs',
     WELCOME_MESSAGE: 'welcomeMessage',
     WRITE_CAPABILITY: 'writeCapability',
 } as const;

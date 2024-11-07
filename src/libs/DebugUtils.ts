@@ -496,9 +496,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
     if (key === 'pendingFields') {
         return validateObject(value, {});
     }
-    if (key === 'visibleChatMemberAccountIDs') {
-        return validateArray(value, 'number');
-    }
     if (key === 'participantAccountIDs') {
         return validateArray(value, 'number');
     }
