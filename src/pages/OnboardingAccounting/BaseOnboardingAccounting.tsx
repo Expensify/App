@@ -61,7 +61,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         if (!isVsb || !!onboardingPolicyID) {
             return;
         }
-        
+
         const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
         Welcome.setOnboardingPolicyID(policyID);
