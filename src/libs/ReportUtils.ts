@@ -8408,28 +8408,35 @@ function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {
 }
 
 function isExpensifyAndCustomerChat(participantsContext: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>): boolean {
-    if (!report?.participants || isThread(report)) {
-        return false;
+    if (!report?.participants) {
+        return true;
     }
 
     const participantAccountIDs = new Set(Object.keys(report.participants));
-    if (participantAccountIDs.size !== 2) {
+    if (participantAccountIDs.size > 2) {
         return false;
     }
+
+    if (isThread(report) && CONST.WORKSPACE_REPORT_ROOM_TYPES.includes(report.chatType)) {
+        return true;
+    }
+
+    if (isThread(report) && report.type === CONST.REPORT.TYPE.EXPENSE) {
+        return true;
+    }
+
     if (participantsContext) {
         // by email participants
-        const baseRegexp = new RegExp(`${CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN}$`);
-        const teamRegexp = new RegExp(`${CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN}$`);
-
         for (const participantAccountID of participantAccountIDs) {
             const id = Number(participantAccountID);
             const contextAccountData = participantsContext[id];
             if (contextAccountData) {
                 const login = contextAccountData.login ?? '';
-                if (baseRegexp.test(login)) {
+                if (login.endsWith(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
                     return true;
                 }
-                if (teamRegexp.test(login)) {
+
+                if (login.endsWith(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN)) {
                     return true;
                 }
             }

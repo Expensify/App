@@ -142,45 +142,29 @@ function parseFSAttributes(): void {
     clean component name should be preserved in data-test-id.
 */
 function getFSAttributes(name: string, mask: boolean, prefix: boolean): string {
-    const componentPrefix = prefix ? `${name},` : '';
-    const componentSuffix = name ? `,fs-${name}` : '';
-    const fsAttrValue = `${componentPrefix}${mask ? MASK : UNMASK}${componentSuffix}`;
-    /*
-    testID: componentName,fs-unmask,fs-componentName
-    fsClass: fs-unmask,fs-componentName
-    */
-    return fsAttrValue;
-}
-
-function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>, prefix: boolean): string {
-    let componentPrefix = prefix ? `${name},` : '';
-    let componentSuffix = name ? `,fs-${name}` : '';
-    let fsAttrValue = '';
-
-    if (isConciergeChatReport(report)) {
-        componentPrefix = prefix ? `${CONCIERGE}-${name},` : '';
-        componentSuffix = name ? `,fs-${name}` : '';
-        /*
-        concierge-chatMessage,fs-unmask,fs-chatMessage
-        */
-        fsAttrValue = `${componentPrefix}${UNMASK}${componentSuffix}`;
-    } else if (isExpensifyAndCustomerChat(context, report)) {
-        componentPrefix = prefix ? `${CUSTOMER}-${name},` : '';
-        componentSuffix = name ? `,fs-${name}` : '';
-        /*
-        customer-chatMessage,fs-unmask,fs-chatMessage
-        */
-        fsAttrValue = `${componentPrefix}${UNMASK}${componentSuffix}`;
-    } else {
-        componentPrefix = prefix ? `${OTHER}-${name},` : '';
-        componentSuffix = name ? `,fs-${name}` : '';
-        /*
-        other-chatMessage,fs-mask,fs-chatMessage
-        */
-        fsAttrValue = `${componentPrefix}${MASK}${componentSuffix}`;
+    if (!name) {
+        return `${mask ? MASK : UNMASK}`;
     }
 
-    return fsAttrValue;
+    if (prefix) {
+        return `${name},${mask ? MASK : UNMASK}`;
+    }
+
+    return `${name}`;
+}
+
+function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>): string {
+    if (!name) {
+        return '';
+    }
+    let config = {prefix: OTHER, mask: MASK};
+
+    if (isConciergeChatReport(report)) {
+        config = {prefix: CONCIERGE, mask: UNMASK};
+    } else if (isExpensifyAndCustomerChat(context, report)) {
+        config = {prefix: CUSTOMER, mask: UNMASK};
+    }
+    return [`${config.prefix}-${name},${config.mask}`, `${config.prefix}-${name}`];
 }
 
 export default FS;

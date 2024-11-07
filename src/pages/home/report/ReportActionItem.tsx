@@ -44,7 +44,6 @@ import ControlSelection from '@libs/ControlSelection';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import {parseFSAttributes} from '@libs/Fullstory';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
@@ -319,14 +318,6 @@ function ReportActionItem({
         }
         setIsHidden(false);
     }, [latestDecision, action]);
-
-    useEffect(() => {
-        const isCurrentChange = action && popoverAnchorRef.current;
-        if (!isCurrentChange) {
-            return;
-        }
-        parseFSAttributes();
-    }, [action]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(action.reportActionID));

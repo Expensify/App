@@ -712,6 +712,8 @@ function ReportActionsList({
     // When performing comment linking, initially 25 items are added to the list. Subsequent fetches add 15 items from the cache or 50 items from the server.
     // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
     const canScrollToNewerComments = !isLoadingInitialReportActions && !hasNewestReportAction && sortedReportActions.length > 25 && !isLastPendingActionIsDelete;
+    const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
+
     return (
         <>
             <FloatingMessageCounter
@@ -720,8 +722,8 @@ function ReportActionsList({
             />
             <View
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
-                fsClass={getChatFSAttributes(participantsContext, 'ReportActionsList', report, false)}
-                testID={getChatFSAttributes(participantsContext, 'ReportActionsList', report, true)}
+                testID={reportActionsListTestID}
+                fsClass={reportActionsListFSClass}
             >
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}

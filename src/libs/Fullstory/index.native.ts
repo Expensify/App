@@ -83,50 +83,29 @@ function parseFSAttributes(): void {
     clean component name should be preserved in data-test-id.
 */
 function getFSAttributes(name: string, mask: boolean, prefix: boolean): string {
+    if (!name && !prefix) {
+        return `${mask ? MASK : UNMASK}`;
+    }
     // prefixed for Native apps should contain only component name
     if (prefix) {
         return name;
     }
-    const componentPrefix = prefix ? `${name},` : '';
-    const componentSuffix = name ? `,fs-${name}` : '';
-    const fsAttrValue = `${componentPrefix}${mask ? MASK : UNMASK}${componentSuffix}`;
-    /*
-    testID: componentName,fs-unmask,fs-componentName
-    fsClass: fs-unmask,fs-componentName
-    */
-    return fsAttrValue;
+
+    return `${name},${mask ? MASK : UNMASK}`;
 }
 
-function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>, prefix: boolean): string {
-    // prefixed for Native apps should contain only component name
-    if (prefix) {
-        return name;
+function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>): string {
+    if (!name) {
+        return '';
     }
-    // default
-    let componentName = name ? `,fs-${name}` : '';
-    let fsAttrValue = '';
-
+    let config = {prefix: OTHER, mask: MASK};
     if (isConciergeChatReport(report)) {
-        componentName = name ? `,fs-${CONCIERGE}-${name}` : '';
-        /*
-        fs-unmask,fs-concierge-chatMessage
-        */
-        fsAttrValue = `${UNMASK}${componentName}`;
+        config = {prefix: CONCIERGE, mask: UNMASK};
     } else if (isExpensifyAndCustomerChat(context, report)) {
-        componentName = name ? `,fs-${CUSTOMER}-${name}` : '';
-        /*
-        fs-mask,fs-customer-chatMessage
-        */
-        fsAttrValue = `${MASK}${componentName}`;
-    } else {
-        componentName = name ? `,fs-${OTHER}-${name}` : '';
-        /*
-        fs-mask,fs-other-chatMessage
-        */
-        fsAttrValue = `${MASK}${componentName}`;
+        config = {prefix: CUSTOMER, mask: UNMASK};
     }
-    return fsAttrValue;
+    const formattedName = `${config.prefix}-${name}`;
+    return [`${formattedName}`, `${config.mask},${formattedName}`];
 }
-
 export default FS;
 export {FSPage, parseFSAttributes, getFSAttributes, getChatFSAttributes};
