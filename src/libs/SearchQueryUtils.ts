@@ -561,7 +561,7 @@ function buildUserReadableQueryString(
     const {type, status} = queryJSON;
     const filters = queryJSON.flatFilters ?? {};
 
-    let title = `type:${type} status:${status}`;
+    let title = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
 
     for (const filterObject of filters) {
         const key = filterObject.key;
