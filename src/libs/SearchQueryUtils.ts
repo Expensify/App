@@ -488,8 +488,13 @@ function buildFilterFormValuesFromQuery(
 
     const [typeKey = '', typeValue] = Object.entries(CONST.SEARCH.DATA_TYPES).find(([, value]) => value === queryJSON.type) ?? [];
     filtersForm[FILTER_KEYS.TYPE] = typeValue ? queryJSON.type : CONST.SEARCH.DATA_TYPES.EXPENSE;
-    const [statusKey] = Object.entries(CONST.SEARCH.STATUS).find(([, value]) => Object.values(value).includes(queryJSON.status)) ?? [];
-    filtersForm[FILTER_KEYS.STATUS] = typeKey === statusKey ? queryJSON.status : CONST.SEARCH.STATUS.EXPENSE.ALL;
+    const [statusKey] = Object.entries(CONST.SEARCH.STATUS).find(([, value]) => 
+        Array.isArray(queryJSON.status)
+            ? queryJSON.status.some((status) => Object.values(value).includes(status))
+            : Object.values(value).includes(queryJSON.status)
+    ) ?? [];
+    
+    filtersForm[FILTER_KEYS.STATUS] = typeKey === statusKey ? Array.isArray(queryJSON.status) ? queryJSON.status.join(',') : queryJSON.status : CONST.SEARCH.STATUS.EXPENSE.ALL;
 
     if (queryJSON.policyID) {
         filtersForm[FILTER_KEYS.POLICY_ID] = queryJSON.policyID;
