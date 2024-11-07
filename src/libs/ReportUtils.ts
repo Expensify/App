@@ -1447,7 +1447,14 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isArchivedRoom(report: OnyxInputOrEntry<Report>, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
-    return !!report?.private_isArchived;
+    return !isExpenseReport(report) && !!report?.private_isArchived;
+}
+
+/**
+ * Whether the provided report is an archived expense report
+ */
+function isArchivedExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
+    return isExpenseReport(report) && !!report?.private_isArchived;
 }
 
 /**
@@ -6998,7 +7005,7 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  */
 function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], filterDeprecatedTypes = false): IOUType[] {
     // In any thread or task report, we do not allow any new expenses yet
-    if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report) || isSystemChat(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report) || isSystemChat(report) || isArchivedExpenseReport(report)) {
         return [];
     }
 
@@ -8587,6 +8594,7 @@ export {
     isAllowedToSubmitDraftExpenseReport,
     isAnnounceRoom,
     isArchivedRoom,
+    isArchivedExpenseReport,
     isArchivedRoomWithID,
     isClosedReport,
     isCanceledTaskReport,
