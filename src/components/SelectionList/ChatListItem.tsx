@@ -62,9 +62,7 @@ function ChatListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            pressableStyle={[
-                [styles.selectionListPressableItemWrapper, styles.textAlignLeft, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive, item.cursorStyle],
-            ]}
+            pressableStyle={[[styles.selectionListPressableItemWrapper, styles.textAlignLeft, item.isSelected && styles.activeComponentBG, item.cursorStyle]]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
             containerStyle={styles.mb2}
             isFocused={isFocused}

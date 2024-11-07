@@ -26,8 +26,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import isReportOpenInRHP from '@libs/Navigation/isReportOpenInRHP';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
-import FreeTrialBadge from '@pages/settings/Subscription/FreeTrialBadge';
+import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
@@ -97,7 +98,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     });
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
-    const reportDescription = ReportUtils.getReportDescriptionText(report);
+    const reportDescription = Parser.htmlToText(ReportUtils.getReportDescription(report));
     const policyName = ReportUtils.getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report?.reportID ?? '');
@@ -126,6 +127,8 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
         />
     );
 
+    const freeTrialButton = <FreeTrial pressable />;
+
     const renderAdditionalText = () => {
         if (shouldShowSubtitle() || isPersonalExpenseChat || !policyName || !isEmptyObject(parentNavigationSubtitleData) || isSelfDM) {
             return null;
@@ -149,6 +152,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
 
     const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
     const shouldDisplaySearchRouter = !isReportInRHP;
+    const isChatUsedForOnboarding = ReportUtils.isChatUsedForOnboarding(report);
 
     return (
         <View
@@ -286,7 +290,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 )}
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrialBadge />}
+                                {!shouldUseNarrowLayout && isChatUsedForOnboarding && freeTrialButton}
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
@@ -310,6 +314,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                 )}
             </View>
             {!isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+            {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && <View style={[styles.pb3, styles.ph5]}>{freeTrialButton}</View>}
         </View>
     );
 }

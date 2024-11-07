@@ -314,6 +314,19 @@ function getForReportAction({
         );
     }
 
+    const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'attendees' in reportActionOriginalMessage;
+    if (hasModifiedAttendees) {
+        buildMessageFragmentForValue(
+            reportActionOriginalMessage.oldAttendees ?? '',
+            reportActionOriginalMessage.attendees ?? '',
+            Localize.translateLocal('iou.attendees'),
+            false,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
+
     const message =
         getMessageLine(`\n${Localize.translateLocal('iou.changed')}`, changeFragments) +
         getMessageLine(`\n${Localize.translateLocal('iou.set')}`, setFragments) +

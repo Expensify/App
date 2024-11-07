@@ -38,13 +38,13 @@ function ValidateCodeActionModal({
     }, [onClose, clearError]);
 
     useEffect(() => {
-        if (!firstRenderRef.current || !isVisible) {
+        if (!firstRenderRef.current || !isVisible || hasMagicCodeBeenSent) {
             return;
         }
         firstRenderRef.current = false;
 
         sendValidateCode();
-    }, [isVisible, sendValidateCode]);
+    }, [isVisible, sendValidateCode, hasMagicCodeBeenSent]);
 
     return (
         <Modal
@@ -67,7 +67,7 @@ function ValidateCodeActionModal({
                     onBackButtonPress={hide}
                 />
 
-                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
+                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7, themeStyles.flex1]}>
                     <Text style={[themeStyles.mb3]}>{description}</Text>
                     <ValidateCodeForm
                         validateCodeAction={validateCodeAction}
@@ -78,6 +78,7 @@ function ValidateCodeActionModal({
                         clearError={clearError}
                         ref={validateCodeFormRef}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        buttonStyles={themeStyles.mtAuto}
                     />
                 </View>
                 {footer?.()}

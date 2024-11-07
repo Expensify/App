@@ -301,6 +301,10 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? '-1'}`);
 
+    const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
+        ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
+        : '';
+
     const cancelPayment = useCallback(() => {
         if (!chatReport) {
             return;
@@ -370,6 +374,42 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 shouldShowRightIcon: true,
                 action: () => {
                     Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1', backTo));
+                },
+            });
+        }
+
+        if (isTrackExpenseReport) {
+            const actionReportID = ReportUtils.getOriginalReportID(report.reportID, parentReportAction) ?? '0';
+            const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID ?? '0');
+            const actionableWhisperReportActionID = whisperAction?.reportActionID ?? '0';
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
+                translationKey: 'actionableMentionTrackExpense.submit',
+                icon: Expensicons.Send,
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+                action: () => {
+                    ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SUBMIT, actionableWhisperReportActionID);
+                },
+            });
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
+                translationKey: 'actionableMentionTrackExpense.categorize',
+                icon: Expensicons.Folder,
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+                action: () => {
+                    ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.CATEGORIZE, actionableWhisperReportActionID);
+                },
+            });
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
+                translationKey: 'actionableMentionTrackExpense.share',
+                icon: Expensicons.UserPlus,
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+                action: () => {
+                    ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SHARE, actionableWhisperReportActionID);
                 },
             });
         }
@@ -520,6 +560,10 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         isExpenseReport,
         backTo,
         canActionTask,
+        isTrackExpenseReport,
+        iouTransactionID,
+        parentReportAction,
+        moneyRequestReport?.reportID,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -592,10 +636,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             </View>
         );
     }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
-
-    const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
-        ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
-        : '';
 
     const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(moneyRequestAction);
     const shouldShowHoldAction =
@@ -729,7 +769,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         />
     );
 
-    const nameSectionTitleField = titleField && (
+    const nameSectionTitleField = !!titleField && (
         <OfflineWithFeedback
             pendingAction={report.pendingFields?.[fieldKey] ?? report.pendingFields?.reportName}
             errors={report.errorFields?.[fieldKey] ?? report.errorFields?.reportName}
@@ -808,7 +848,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon
                                     interactive
-                                    title={report.description}
+                                    title={ReportUtils.getReportDescription(report)}
                                     shouldRenderAsHTML
                                     shouldTruncateTitle
                                     characterLimit={100}

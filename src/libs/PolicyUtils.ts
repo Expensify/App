@@ -137,6 +137,13 @@ function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | unde
 }
 
 /**
+ * Retrieves the per diem custom unit object for the given policy
+ */
+function getPerDiemCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
+    return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+}
+
+/**
  * Retrieves custom unit rate object from the given customUnitRateID
  */
 function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
@@ -861,7 +868,7 @@ function getNetSuiteImportCustomFieldLabel(
     const mappingSet = new Set(fieldData.map((item) => item.mapping));
     const importedTypes = Array.from(mappingSet)
         .sort((a, b) => b.localeCompare(a))
-        .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping}.label`).toLowerCase());
+        .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping !== '' ? mapping : 'TAG'}.label`).toLowerCase());
     return translate(`workspace.netsuite.import.importCustomFields.label`, {importedTypes});
 }
 
@@ -1064,6 +1071,10 @@ function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
 }
 
+function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
+    return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1149,6 +1160,7 @@ export {
     getSageIntacctCreditCards,
     getSageIntacctBankAccounts,
     getDistanceRateCustomUnit,
+    getPerDiemCustomUnit,
     getDistanceRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
@@ -1181,6 +1193,7 @@ export {
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
     getActivePolicy,
+    isPolicyAccessible,
 };
 
 export type {MemberEmailsToAccountIDs};
