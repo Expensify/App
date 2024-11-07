@@ -67,34 +67,24 @@ describe('NetworkTests', () => {
             },
         });
 
-        // Given a test user login and account ID
+        // And given they are signed in
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN).then(() => {
             expect(isOffline).toBe(false);
 
-            // Mock fetch() so that it throws a TypeError to simulate a bad network connection
-            global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
-
-            const actualXhr = HttpUtils.xhr;
-
+            // Set up mocks for the requests
             const mockedXhr = jest.fn();
             mockedXhr
                 .mockImplementationOnce(() =>
+                    // Given the first request is made with an expired authToken
                     Promise.resolve({
                         jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                     }),
                 )
 
-                // Fail the call to re-authenticate
-                .mockImplementationOnce(actualXhr)
+                // And the call to re-authenticate fails to fetch
+                .mockImplementationOnce(() => Promise.reject(new Error('Failed to fetch')))
 
-                // The next call should still be using the old authToken
-                .mockImplementationOnce(() =>
-                    Promise.resolve({
-                        jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                    }),
-                )
-
-                // Succeed the call to set a new authToken
+                // And there's another request to Authenticate and it succeeds
                 .mockImplementationOnce(() =>
                     Promise.resolve({
                         jsonCode: CONST.JSON_CODE.SUCCESS,
@@ -102,7 +92,7 @@ describe('NetworkTests', () => {
                     }),
                 )
 
-                // All remaining requests should succeed
+                // And all remaining requests should succeed
                 .mockImplementation(() =>
                     Promise.resolve({
                         jsonCode: CONST.JSON_CODE.SUCCESS,
@@ -111,8 +101,10 @@ describe('NetworkTests', () => {
 
             HttpUtils.xhr = mockedXhr;
 
-            // This should first trigger re-authentication and then a Failed to fetch
+            // When the user opens their public profile page
             PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+
+            // And the network is back online to process the requests
             return waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
                 .then(() => {
@@ -123,12 +115,13 @@ describe('NetworkTests', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    // Then we will eventually have 1 call to OpenPublicProfilePage and 1 calls to Authenticate
-                    const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
+                    // Then there will have been 2 calls to Authenticate, one for the failed re-authentication and one retry that succeeds
                     const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                    expect(callsToAuthenticate.length).toBe(2);
 
+                    // And two calls to openPublicProfilePage, one with the expired token and one after re-authentication
+                    const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
                     expect(callsToOpenPublicProfilePage.length).toBe(1);
-                    expect(callsToAuthenticate.length).toBe(1);
                 });
         });
     });
