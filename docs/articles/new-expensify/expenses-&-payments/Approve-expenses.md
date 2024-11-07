@@ -60,8 +60,9 @@ If the transaction is pending (a common occurrence with recent company cards or 
 3. Click the drop-down arrow at the top of the expense.
 4. Click the **Hold** button.
 5. Enter a reason for the delay. The reason for the hold will be added to the expense report.
+{% include end-option.html %}
 
-
+{% include option.html value="desktop" %}
 When you’re ready to remove the hold,
 
 1. Locate the expense on the Search page.
@@ -77,8 +78,9 @@ When you’re ready to remove the hold,
 3. Tap the drop-down arrow at the top of the expense.
 4. Select the **Hold** button.
 5. Enter a reason for the delay. The reason for the hold will be added to the expense report.
+{% include end-option.html %}
 
-
+{% include option.html value="mobile" %}
 When you’re ready to remove the hold, 
 
 1. Tap **Search** and select the expense.
