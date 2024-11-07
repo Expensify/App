@@ -5,17 +5,17 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ImportMembersPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORT>;
+type ImportPerDiemPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_IMPORT>;
 
-function ImportMembersPage({route}: ImportMembersPageProps) {
+function ImportPerDiemPage({route}: ImportPerDiemPageProps) {
     const policyID = route.params.policyID;
 
     return (
         <ImportSpreadsheet
-            backTo={ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)}
-            goTo={ROUTES.WORKSPACE_MEMBERS_IMPORTED.getRoute(policyID)}
+            backTo={ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)}
+            goTo={ROUTES.WORKSPACE_PER_DIEM_IMPORTED.getRoute(policyID)}
         />
     );
 }
 
-export default ImportMembersPage;
+export default ImportPerDiemPage;
