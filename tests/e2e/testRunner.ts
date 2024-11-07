@@ -288,7 +288,7 @@ const runTests = async (): Promise<void> => {
                     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     Logger.error(`Warmup failed with error: ${e}`);
 
-                    closeANRPopup();
+                    await closeANRPopup();
                     MeasureUtils.stop('error-warmup');
                     server.clearAllTestDoneListeners();
 
@@ -312,11 +312,11 @@ const runTests = async (): Promise<void> => {
 
             // We run each test multiple time to average out the results
             for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
-                const onError = (e: Error) => {
+                const onError = async (e: Error) => {
                     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     Logger.error(`Unexpected error during test execution: ${e}. `);
                     MeasureUtils.stop('error');
-                    closeANRPopup();
+                    await closeANRPopup();
                     server.clearAllTestDoneListeners();
                     errorCountRef.errorCount += 1;
                     if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
@@ -344,7 +344,7 @@ const runTests = async (): Promise<void> => {
                     // Run the test on the delta app:
                     await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, config.BRANCH_DELTA, launchArgs);
                 } catch (e) {
-                    onError(e as Error);
+                    await onError(e as Error);
                 }
             }
         } catch (exception) {
