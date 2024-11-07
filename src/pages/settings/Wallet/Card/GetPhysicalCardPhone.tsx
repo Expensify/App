@@ -43,6 +43,7 @@ function GetPhysicalCardPhone({
         const {phoneNumber: phoneNumberToValidate = ''} = values ?? {};
 
         const errors: OnValidateResult = {};
+
         if (!ValidationUtils.isRequiredFulfilled(phoneNumberToValidate)) {
             errors.phoneNumber = translate('common.error.fieldRequired');
         }

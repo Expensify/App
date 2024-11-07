@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as PhoneNumberUtils from '@libs/PhoneNumber';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {GetPhysicalCardForm} from '@src/types/form';
@@ -8,6 +7,7 @@ import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
 import * as LoginUtils from './LoginUtils';
 import Navigation from './Navigation/Navigation';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as PhoneNumberUtils from './PhoneNumber';
 import * as UserUtils from './UserUtils';
 
 function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): Route {
