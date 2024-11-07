@@ -617,7 +617,9 @@ function buildCannedSearchQuery({
     status?: SearchStatus;
     policyID?: string;
 } = {}): SearchQueryString {
-    const queryString = policyID ? `type:${type} status:${Array.isArray(status) ? status.join(',') : status} policyID:${policyID}` : `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
+    const queryString = policyID
+        ? `type:${type} status:${Array.isArray(status) ? status.join(',') : status} policyID:${policyID}`
+        : `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
 
     // Parse the query to fill all default query fields with values
     const normalizedQueryJSON = buildSearchQueryJSON(queryString);
