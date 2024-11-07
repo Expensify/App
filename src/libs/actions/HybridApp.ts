@@ -25,4 +25,8 @@ function setUseNewDotSignInPage(useNewDotSignInPage: boolean) {
     Onyx.merge(ONYXKEYS.HYBRID_APP, {useNewDotSignInPage});
 }
 
-export {setOldDotSignInError, setIsSigningIn, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setShouldResetSigningInLogic, setUseNewDotSignInPage};
+function setLoggedOutFromOldDot(loggedOutFromOldDot: boolean) {
+    Onyx.merge(ONYXKEYS.HYBRID_APP, {loggedOutFromOldDot});
+}
+
+export {setOldDotSignInError, setIsSigningIn, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setShouldResetSigningInLogic, setUseNewDotSignInPage, setLoggedOutFromOldDot};

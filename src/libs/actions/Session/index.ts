@@ -42,7 +42,7 @@ import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContex
 import * as App from '@userActions/App';
 import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import * as Device from '@userActions/Device';
-import {setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setUseNewDotSignInPage} from '@userActions/HybridApp';
+import {setLoggedOutFromOldDot, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setUseNewDotSignInPage} from '@userActions/HybridApp';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
@@ -482,14 +482,14 @@ function signUpUser() {
 
 function signInAfterTransitionFromOldDot(transitionURL: string) {
     const [route, queryParams] = transitionURL.split('?');
-    const {useNewDotSignInPage, isSingleNewDotEntry} = queryParams
+    const {useNewDotSignInPage, isSingleNewDotEntry, loggedOutFromOldDot} = queryParams
         ? Object.fromEntries(
               queryParams.split('&').map((param) => {
                   const [key, value] = param.split('=');
                   return [key, value];
               }),
           )
-        : {useNewDotSignInPage: undefined, isSingleNewDotEntry: undefined};
+        : {useNewDotSignInPage: undefined, isSingleNewDotEntry: undefined, loggedOutFromOldDot: undefined};
 
     const clearOnyxBeforeSignIn = () => {
         if (useNewDotSignInPage !== 'true') {
@@ -513,6 +513,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
         clearOnyxBeforeSignIn()
             .then(() => {
                 setUseNewDotSignInPage(useNewDotSignInPage === 'true');
+                setLoggedOutFromOldDot(loggedOutFromOldDot === 'true');
                 const useOldDot = 'true';
                 const dismissed = useNewDotSignInPage === 'true' ? useOldDot : 'false';
                 Onyx.multiSet({

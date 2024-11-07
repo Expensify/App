@@ -117,10 +117,12 @@ function Expensify() {
     const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
-    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
+    const shouldInit = !!NativeModules.HybridAppModule
+        ? !hybridApp?.loggedOutFromOldDot && isNavigationReady && hasAttemptedToOpenPublicRoom
+        : isNavigationReady && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash =
         shouldInit &&
-        (NativeModules.HybridAppModule
+        (!!NativeModules.HybridAppModule
             ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && (isAuthenticated || !!hybridApp?.useNewDotSignInPage)
             : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
 

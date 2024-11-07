@@ -17,6 +17,9 @@ type HybridApp = {
 
     /** */
     shouldResetSigningInLogic?: boolean;
+
+    /** stores infromation if last log out was performed from OldDot */
+    loggedOutFromOldDot?: boolean;
 };
 
 export default HybridApp;
