@@ -45,10 +45,6 @@ As a workspace admin, you can set an [approval workflow](https://help.expensify.
 
 {% include end-selector.html %}
 
-![The approve button in an expense]({{site.url}}/assets/images/ExpensifyHelp_ApproveExpense_1.png){:width="100%"}
-
-![The approve button when you click into the expense]({{site.url}}/assets/images/ExpensifyHelp_ApproveExpense_2.png){:width="100%"}
-
 {% include info.html %}
 If the transaction is pending (a common occurrence with recent company cards or SmartScan expenses), you’ll need to wait until the transaction posts before approving it. 
 {% include end-info.html %}
@@ -89,11 +85,11 @@ When you’re ready to remove the hold,
 4. Complete the steps above to “Approve expenses.” Once the expense has been approved, you can pay it. 
 {% include end-option.html %}
 
+{% include end-selector.html %}
+
 {% include info.html %}
 Held expenses will not be available for payment until they have been approved.
 {% include end-info.html %}
-
-{% include end-selector.html %}
 
 # Unapprove a workspace expense
 
