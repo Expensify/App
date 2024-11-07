@@ -248,7 +248,19 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
 /**
  * Given the edit made to the expense, return an updated transaction object.
  */
-function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean, shouldUpdateReceiptState = true): Transaction {
+function getUpdatedTransaction({
+    transaction,
+    transactionChanges,
+    isFromExpenseReport,
+    shouldUpdateReceiptState = true,
+    policy = undefined,
+}: {
+    transaction: Transaction;
+    transactionChanges: TransactionChanges;
+    isFromExpenseReport: boolean;
+    shouldUpdateReceiptState?: boolean;
+    policy?: OnyxEntry<Policy>;
+}): Transaction {
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = lodashDeepClone(transaction);
     let shouldStopSmartscan = false;
@@ -289,10 +301,6 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         shouldStopSmartscan = true;
 
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
-        const allReports = ReportConnection.getAllReports();
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? null;
-        const policyID = report?.policyID ?? '';
-        const policy = PolicyUtils.getPolicy(policyID);
 
         // Get the new distance unit from the rate's unit
         const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});

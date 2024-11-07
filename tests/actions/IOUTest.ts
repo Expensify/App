@@ -1613,6 +1613,8 @@ describe('actions/IOU', () => {
         const comment = '💸💸💸💸';
         const merchant = 'NASDAQ';
 
+        const modifiedComment = 'Modified the comment!';
+
         afterEach(() => {
             mockFetch?.resume?.();
         });
@@ -1684,10 +1686,10 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     if (transaction) {
-                        IOU.editMoneyRequest(
-                            transaction,
+                        IOU.updateMoneyRequestDescription(
+                            transaction.transactionID,
                             thread.reportID,
-                            {amount: 20000, comment: 'Double the amount!'},
+                            modifiedComment,
                             {
                                 id: '123',
                                 role: 'user',
@@ -1713,8 +1715,7 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
 
                                     const updatedTransaction = Object.values(allTransactions ?? {}).find((t) => !isEmptyObject(t));
-                                    expect(updatedTransaction?.modifiedAmount).toBe(20000);
-                                    expect(updatedTransaction?.comment).toMatchObject({comment: 'Double the amount!'});
+                                    expect(updatedTransaction?.comment).toMatchObject({comment: modifiedComment});
                                     resolve();
                                 },
                             });
@@ -1731,7 +1732,7 @@ describe('actions/IOU', () => {
                                     const updatedAction = Object.values(allActions ?? {}).find((reportAction) => !isEmptyObject(reportAction));
                                     expect(updatedAction?.actionName).toEqual('MODIFIEDEXPENSE');
                                     expect(updatedAction && ReportActionsUtils.getOriginalMessage(updatedAction)).toEqual(
-                                        expect.objectContaining({amount: 20000, newComment: 'Double the amount!', oldAmount: amount, oldComment: comment}),
+                                        expect.objectContaining({newComment: modifiedComment, oldComment: comment}),
                                     );
                                     resolve();
                                 },
@@ -1839,10 +1840,10 @@ describe('actions/IOU', () => {
                     mockFetch?.fail?.();
 
                     if (transaction) {
-                        IOU.editMoneyRequest(
-                            transaction,
+                        IOU.updateMoneyRequestDescription(
+                            transaction.transactionID,
                             thread.reportID,
-                            {amount: 20000, comment: 'Double the amount!'},
+                            modifiedComment,
                             {
                                 id: '123',
                                 role: 'user',
@@ -2596,10 +2597,10 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
-                IOU.editMoneyRequest(
-                    transaction,
+                IOU.updateMoneyRequestDescription(
+                    transaction.transactionID,
                     thread.reportID,
-                    {amount: 20000, comment: 'Double the amount!'},
+                    'Modified the comment!',
                     {
                         id: '123',
                         role: 'user',
