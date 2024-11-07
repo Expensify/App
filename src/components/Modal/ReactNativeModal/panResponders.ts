@@ -3,7 +3,7 @@ import type {PanResponderGestureState} from 'react-native';
 import {Animated} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import {calcDistancePercentage, createAnimationEventForSwipe, getAccDistancePerDirection, getSwipingDirection, isSwipeDirectionAllowed, shouldPropagateSwipe} from './panHandlers';
-import type {AnimationEvent, Direction, GestureResponderEvent, OrNull} from './types';
+import type {AnimationEvent, Direction, GestureResponderEvent} from './types';
 
 type RemainingModalProps = Omit<
     ModalProps,
@@ -29,10 +29,15 @@ type RemainingModalProps = Omit<
     | 'testName'
 >;
 
+type EnhancedGestureEvent = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/naming-convention
+    _dispatchInstances: any;
+} & GestureResponderEvent;
+
 const onMoveShouldSetPanResponder = (
     props: RemainingModalProps,
     setCurrentAnimEvt: (currentAnim: AnimationEvent | null) => void,
-    setCurrentSwipingDirection: (direction: OrNull<Direction>) => void,
+    setCurrentSwipingDirection: (direction: Direction | null) => void,
     pan: Animated.ValueXY,
 ) => {
     return (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
@@ -52,8 +57,9 @@ const onMoveShouldSetPanResponder = (
 };
 
 // using _dispatchInstances causes typing problems
-const onStartShouldSetPanResponder = (props: RemainingModalProps, setCurrentSwipingDirection: (direction: OrNull<Direction>) => void) => {
-    return (e: any, gestureState: PanResponderGestureState) => {
+const onStartShouldSetPanResponder = (props: RemainingModalProps, setCurrentSwipingDirection: (direction: Direction | null) => void) => {
+    return (e: EnhancedGestureEvent, gestureState: PanResponderGestureState) => {
+        // eslint-disable-next-line
         const hasScrollableView = e._dispatchInstances ?? e._dispatchInstances.some((instance: any) => /scrollview|flatlist/i.test(instance.type));
 
         if (hasScrollableView && shouldPropagateSwipe(e, gestureState) && props.scrollTo && props.scrollOffset > 0) {
@@ -70,7 +76,7 @@ const onStartShouldSetPanResponder = (props: RemainingModalProps, setCurrentSwip
 const onPanResponderMove = (
     props: RemainingModalProps,
     currentSwipingDirection: Direction | null,
-    setCurrentSwipingDirection: (direction: OrNull<Direction>) => void,
+    setCurrentSwipingDirection: (direction: Direction | null) => void,
     setCurrentAnimEvt: (currentAnim: AnimationEvent | null) => void,
     animEvt: MutableRefObject<AnimationEvent | null>,
     pan: Animated.ValueXY,
@@ -154,4 +160,5 @@ const onPanResponderRelease = (props: RemainingModalProps, currentSwipingDirecti
     };
 };
 
+export type {EnhancedGestureEvent};
 export {onMoveShouldSetPanResponder, onStartShouldSetPanResponder, onPanResponderMove, onPanResponderRelease};
