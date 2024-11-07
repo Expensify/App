@@ -191,7 +191,10 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === type && Array.isArray(status) ? searchResults?.search?.status === status.join(',') : searchResults?.search?.status === status;
+    const isDataLoaded =
+        searchResults?.data !== undefined && searchResults?.search?.type === type && Array.isArray(status)
+            ? searchResults?.search?.status === status.join(',')
+            : searchResults?.search?.status === status;
 
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
@@ -403,9 +406,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     };
 
     const shouldShowYear = SearchUIUtils.shouldShowYear(searchResults?.data);
-    const shouldShowSorting = Array.isArray(status) 
-        ? status.some((s) => sortableSearchStatuses.includes(s))
-        : sortableSearchStatuses.includes(status);
+    const shouldShowSorting = Array.isArray(status) ? status.some((s) => sortableSearchStatuses.includes(s)) : sortableSearchStatuses.includes(status);
 
     return (
         <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>

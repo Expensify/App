@@ -179,9 +179,7 @@ function SearchStatusBar({queryJSON, onStatusChange}: SearchStatusBarProps) {
                     onStatusChange?.();
                     let newStatus;
                     if (Array.isArray(queryJSON.status)) {
-                        newStatus = queryJSON.status.includes(item.status)
-                            ? queryJSON.status.filter((status) => status !== item.status)
-                            : [...queryJSON.status, item.status];
+                        newStatus = queryJSON.status.includes(item.status) ? queryJSON.status.filter((status) => status !== item.status) : [...queryJSON.status, item.status];
                     } else {
                         newStatus = queryJSON.status === item.status ? [] : [queryJSON.status, item.status];
                     }
