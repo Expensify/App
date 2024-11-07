@@ -597,6 +597,15 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether we highlight all the selected items */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Determines if the focused item should remain at the top of the viewable area when navigating with arrow keys */
+    shouldKeepFocusedItemAtTopOfViewableArea?: boolean;
+
+    /** Whether to debounce scrolling on focused index change */
+    shouldDebounceScrolling?: boolean;
+
+    /** Whether to prevent the active cell from being virtualized and losing focus in browsers */
+    shouldPreventActiveCellVirtualization?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
