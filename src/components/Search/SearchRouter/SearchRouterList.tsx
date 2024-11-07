@@ -14,16 +14,18 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import * as Report from '@userActions/Report';
+import * as ReportActions from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type Report from '@src/types/onyx/Report';
 import {getSubstitutionMapKey} from './getQueryWithSubstitutions';
 
 type SearchQueryItemData = {
@@ -75,8 +77,16 @@ const setPerformanceTimersEnd = () => {
 };
 
 function getContextualSearchQuery(item: SearchQueryItem) {
-    if (item.roomType === CONST.SEARCH.DATA_TYPES.EXPENSE || item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
-        return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${item.roomType} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${item.autocompleteID}`;
+    if (item.roomType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+        return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${item.roomType} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${item.policyID}`;
+    }
+    if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
+        if (item.autocompleteID) {
+            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${item.roomType} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${item.policyID} ${
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.TO
+            }:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+        }
+        return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${item.roomType} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${item.policyID}`;
     }
     return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${CONST.SEARCH.DATA_TYPES.CHAT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
 }
@@ -159,11 +169,20 @@ function SearchRouterList(
     if (reportForContextualSearch && !textInputValue) {
         const reportQueryValue = reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? reportForContextualSearch.reportID;
         let roomType: ValueOf<typeof CONST.SEARCH.DATA_TYPES> = CONST.SEARCH.DATA_TYPES.CHAT;
+        let autocompleteID = reportForContextualSearch.reportID;
         if (reportForContextualSearch.isInvoiceRoom) {
             roomType = CONST.SEARCH.DATA_TYPES.INVOICE;
+            const xd = reportForContextualSearch as SearchOption<Report>;
+            const invoiceReceiver = xd.item.invoiceReceiver;
+            if (invoiceReceiver?.type === 'individual') {
+                autocompleteID = invoiceReceiver.accountID.toString();
+            } else {
+                autocompleteID = '';
+            }
         }
         if (reportForContextualSearch.isPolicyExpenseChat) {
             roomType = CONST.SEARCH.DATA_TYPES.EXPENSE;
+            autocompleteID = reportForContextualSearch.policyID ?? '';
         }
         sections.push({
             data: [
@@ -171,11 +190,12 @@ function SearchRouterList(
                     text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
                     singleIcon: Expensicons.MagnifyingGlass,
                     searchQuery: reportQueryValue,
-                    autocompleteID: reportForContextualSearch.reportID,
+                    autocompleteID,
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
                     searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
                     roomType,
+                    policyID: reportForContextualSearch.policyID,
                 },
             ],
         });
@@ -224,7 +244,11 @@ function SearchRouterList(
                     const searchQuery = getContextualSearchQuery(item);
                     updateSearchValue(`${searchQuery} `);
 
-                    if (item.autocompleteID) {
+                    if (item.roomType === 'invoice' && item.autocompleteID) {
+                        const autocompleteKey = `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${item.searchQuery}`;
+                        onAutocompleteSuggestionClick(autocompleteKey, item.autocompleteID);
+                    }
+                    if (item.roomType === 'chat' && item.autocompleteID) {
                         const autocompleteKey = `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery}`;
                         onAutocompleteSuggestionClick(autocompleteKey, item.autocompleteID);
                     }
@@ -248,7 +272,7 @@ function SearchRouterList(
             if ('reportID' in item && item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
-                Report.navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                ReportActions.navigateToAndOpenReport(item.login ? [item.login] : [], false);
             }
         },
         [closeRouter, textInputValue, onSearchSubmit, updateSearchValue, onAutocompleteSuggestionClick],
