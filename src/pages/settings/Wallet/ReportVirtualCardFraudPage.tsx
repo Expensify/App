@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -34,14 +34,20 @@ function ReportVirtualCardFraudPage({
     const virtualCard = cardList?.[cardID];
     const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard);
 
+    const [shouldShowNotFoundPage, setShouldShowNotFoundPage] = useState(false);
+
+    useEffect(() => {
+        if (!isEmptyObject(virtualCard) || formData?.isLoading) {
+            return;
+        }
+        setShouldShowNotFoundPage(true);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const prevIsLoading = usePrevious(formData?.isLoading);
 
-    const submit = useCallback(() => {
-        Navigation.dismissModal();
-        InteractionManager.runAfterInteractions(() => {
-            Card.reportVirtualExpensifyCardFraud(virtualCard);
-        });
-    }, [virtualCard]);
+    const submit = () => Card.reportVirtualExpensifyCardFraud(virtualCard);
 
     useEffect(() => {
         if (!prevIsLoading || formData?.isLoading) {
@@ -50,11 +56,10 @@ function ReportVirtualCardFraudPage({
         if (!isEmptyObject(virtualCard?.errors)) {
             return;
         }
-
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET);
     }, [cardID, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
 
-    if (isEmptyObject(virtualCard)) {
+    if (shouldShowNotFoundPage) {
         return <NotFoundPage />;
     }
 
