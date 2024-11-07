@@ -70,7 +70,10 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         CompanyCards.updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
     };
 
-    if (!card && !isLoadingOnyxValue(allBankCardsMetadata)) {
+    const allBanks = Object.values(CONST.COMPANY_CARD.FEED_BANK_NAME) as string[];
+    const isBankMatchesFeed = allBanks.includes(bank);
+
+    if (!card && !isLoadingOnyxValue(allBankCardsMetadata) && !isBankMatchesFeed) {
         return <NotFoundPage />;
     }
 
