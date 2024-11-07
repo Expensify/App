@@ -3843,14 +3843,14 @@ function trackExpense(
                 moneyRequestPreviewReportActionID: iouAction?.reportActionID ?? '-1',
                 moneyRequestReportID: iouReport?.reportID ?? '-1',
                 moneyRequestCreatedReportActionID: createdIOUReportActionID ?? '-1',
-                actionableWhisperReportActionID: actionableWhisperReportActionID,
+                actionableWhisperReportActionID,
                 linkedTrackedExpenseReportAction,
                 linkedTrackedExpenseReportID,
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '-1',
                 onyxData,
             } as CategorizeTrackedExpenseInformation;
-            // eslint-disable-next-line object-shorthand
+            
             const transactionParams = {
                 amount,
                 currency,
