@@ -99,7 +99,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
                         <Text
                             numberOfLines={1}
-                            style={[styles.textNormalThemeText]}
+                            style={[styles.textLabelSupporting]}
                         >
                             {cardType}
                         </Text>
