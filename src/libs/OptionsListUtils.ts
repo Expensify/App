@@ -2561,12 +2561,12 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
     const {recentReports, personalDetails} = matchResults;
 
-    const noneReportPersonalDetails = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
+    const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
 
-    let filteredPersonalDetails: ReportUtils.OptionData[] = noneReportPersonalDetails;
+    let filteredPersonalDetails: ReportUtils.OptionData[] = personalDetailsWithoutDMs;
     let filteredRecentReports: ReportUtils.OptionData[] = recentReports;
     if (sortByReportTypeInSearch) {
-        filteredRecentReports = recentReports.concat(noneReportPersonalDetails);
+        filteredRecentReports = recentReports.concat(personalDetailsWithoutDMs);
         filteredPersonalDetails = [];
     }
 
