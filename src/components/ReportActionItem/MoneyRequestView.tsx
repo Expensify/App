@@ -307,7 +307,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const distanceRequestFields = (
         <>
-            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
                 <MenuItemWithTopDescription
                     description={translate('common.distance')}
                     title={distanceToDisplay}

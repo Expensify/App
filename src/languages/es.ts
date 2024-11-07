@@ -1937,7 +1937,7 @@ const translations = {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible.',
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria.',
             taxID: 'Por favor, introduce un número de identificación fiscal válido.',
-            website: 'Por favor, introduce un sitio web válido. El sitio web debe estar en minúsculas.',
+            website: 'Por favor, introduce un sitio web válido.',
             zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
             phoneNumber: 'Por favor, introduce un teléfono válido.',
             companyName: 'Por favor, introduce un nombre comercial legal válido.',
@@ -2358,6 +2358,7 @@ const translations = {
             rules: 'Reglas',
             plan: 'Plan',
             profile: 'Perfil',
+            perDiem: 'Per diem',
             bankAccount: 'Cuenta bancaria',
             displayedAs: 'Mostrado como',
             connectBankAccount: 'Conectar cuenta bancaria',
@@ -2422,6 +2423,25 @@ const translations = {
                     default:
                         return 'Miembro';
                 }
+            },
+        },
+        perDiem: {
+            subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
+            destination: 'Destino',
+            subrate: 'Subtasa',
+            amount: 'Cantidad',
+            deleteRates: () => ({
+                one: 'Eliminar tasa',
+                other: 'Eliminar tasas',
+            }),
+            deletePerDiemRate: 'Eliminar tasa per diem',
+            areYouSureDelete: () => ({
+                one: '¿Estás seguro de que quieres eliminar esta tasa?',
+                other: '¿Estás seguro de que quieres eliminar estas tasas?',
+            }),
+            emptyList: {
+                title: 'Per diem',
+                subtitle: 'Establece dietas per diem para controlar el gasto diario de los empleados. Importa las tarifas desde una hoja de cálculo para comenzar.',
             },
         },
         qbd: {
@@ -3332,6 +3352,10 @@ const translations = {
                 title: 'Tasas de distancia',
                 subtitle: 'Añade, actualiza y haz cumplir las tasas.',
             },
+            perDiem: {
+                title: 'Per diem',
+                subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados.',
+            },
             expensifyCard: {
                 title: 'Tarjeta Expensify',
                 subtitle: 'Obtén información y control sobre tus gastos.',
@@ -4112,6 +4136,12 @@ const translations = {
                 title: 'Reglas',
                 description: `Las reglas se ejecutan en segundo plano y mantienen tus gastos bajo control para que no tengas que preocuparte por los detalles pequeños.\n\nExige detalles de los gastos, como recibos y descripciones, establece límites y valores predeterminados, y automatiza las aprobaciones y los pagos, todo en un mismo lugar.`,
                 onlyAvailableOnPlan: 'Las reglas están disponibles solo en el plan Controlar, que comienza en ',
+            },
+            perDiem: {
+                title: 'Per diem',
+                description:
+                    'Las dietas per diem (ej.: $100 por día para comidas) son una excelente forma de mantener los gastos diarios predecibles y ajustados a las políticas de la empresa, especialmente si tus empleados viajan por negocios. Disfruta de funciones como tasas personalizadas, categorías por defecto y detalles más específicos como destinos y subtasas.',
+                onlyAvailableOnPlan: 'Las dietas per diem solo están disponibles en el plan Control, a partir de ',
             },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
