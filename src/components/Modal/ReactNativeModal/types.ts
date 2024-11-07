@@ -55,7 +55,7 @@ type ModalProps = ViewProps & {
     onModalWillHide?: () => void;
     onBackdropPress?: () => void;
     onBackButtonPress?: () => void;
-    scrollTo?: (e?: any) => void;
+    scrollTo?: (e?: GestureResponderEvent) => void;
     scrollOffset?: number;
     scrollOffsetMax?: number;
     scrollHorizontal?: boolean;

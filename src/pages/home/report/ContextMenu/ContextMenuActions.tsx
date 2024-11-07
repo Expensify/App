@@ -474,7 +474,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
                     setClipboardMessage(ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(reportAction));
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
-                    const {label, errorMessage} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
+                    const {label, errorMessage} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {
+                        label: '',
+                        errorMessage: '',
+                    };
                     setClipboardMessage(Localize.translateLocal('report.actions.type.integrationSyncFailed', label, errorMessage));
                 } else if (ReportActionsUtils.isCardIssuedAction(reportAction)) {
                     setClipboardMessage(ReportActionsUtils.getCardIssuedMessage(reportAction, true));

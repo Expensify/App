@@ -1,4 +1,4 @@
-import type {Orientation} from './types';
+import type {Direction, Orientation} from './types';
 
 const defaultProps = {
     animationIn: 'slideInUp',
@@ -37,5 +37,10 @@ const defaultProps = {
 };
 
 const reversePercentage = (x: number) => -(x - 1);
-
-export {reversePercentage, defaultProps};
+const isSwipeHorizontal = (swipeDirection: Direction | null): boolean => {
+    return swipeDirection === 'left' || swipeDirection === 'right';
+};
+const isSwipeVertical = (swipeDirection: Direction | null): boolean => {
+    return swipeDirection === 'up' || swipeDirection === 'down';
+};
+export {reversePercentage, defaultProps, isSwipeHorizontal, isSwipeVertical};
