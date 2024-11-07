@@ -41,9 +41,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
     const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
     const contactMethod = UserUtils.getContactMethod();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
-    const validateLoginError = ErrorUtils.getLatestErrorField(loginData, 'addedLogin');
+    const validateLoginError = issueNewCard?.errors;
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
@@ -142,15 +140,12 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 sendValidateCode={() => User.requestValidateCodeAction()}
                 validateError={validateLoginError}
                 clearError={() => {
-                    if (!loginData) {
-                        return;
-                    }
                     User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin');
                 }}
                 onClose={() => {
-                    if (loginData?.errorFields && pendingContactAction?.contactMethod) {
+                    if (validateLoginError && pendingContactAction?.contactMethod) {
                         User.clearContactMethod(pendingContactAction?.contactMethod);
-                        User.clearUnvalidatedNewContactMethodAction();
+                        Card.clearIssueNewCardError();
                     }
                     setIsValidateCodeActionModalVisible(false);
                 }}

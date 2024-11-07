@@ -388,6 +388,11 @@ function clearIssueNewCardFlow() {
         data: {},
     });
 }
+function clearIssueNewCardError() {
+    Onyx.set(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {
+        errors: null,
+    });
+}
 
 function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, newAvailableSpend: number, oldLimit?: number, oldAvailableSpend?: number) {
     const authToken = NetworkStore.getAuthToken();
@@ -882,6 +887,7 @@ export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
     clearCardListErrors,
+    clearIssueNewCardError,
     reportVirtualExpensifyCardFraud,
     revealVirtualCardDetails,
     updateSettlementFrequency,
