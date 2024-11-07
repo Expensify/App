@@ -209,9 +209,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** For expense reports, this is the currency of the expense */
         currency?: string;
 
-        /** Collection of errors to be shown to the user */
-        errors?: OnyxCommon.Errors;
-
         /** Collection of errors that exist in report fields */
         errorFields?: OnyxCommon.ErrorFields;
 
