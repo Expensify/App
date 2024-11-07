@@ -1613,7 +1613,26 @@ describe('actions/IOU', () => {
         const comment = '💸💸💸💸';
         const merchant = 'NASDAQ';
 
-        const modifiedComment = 'Modified the comment!';
+        const buildUpdateParams = (transactionID: string, transactionThreadReportID: string) => ({
+            transactionID,
+            transactionThreadReportID,
+            amount: 20000,
+            currency: CONST.CURRENCY.USD,
+            taxAmount: 0,
+            taxCode: '',
+            policy: {
+                id: '123',
+                role: 'user',
+                type:
+                CONST.POLICY.TYPE.TEAM,
+                name: '',
+                owner: '',
+                outputCurrency: '',
+                isPolicyExpenseChatEnabled: false,
+            } as OnyxTypes.Policy,
+            policyTagList: {},
+            policyCategories: {},
+        });
 
         afterEach(() => {
             mockFetch?.resume?.();
@@ -1686,22 +1705,8 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     if (transaction) {
-                        IOU.updateMoneyRequestDescription(
-                            transaction.transactionID,
-                            thread.reportID,
-                            modifiedComment,
-                            {
-                                id: '123',
-                                role: 'user',
-                                type: CONST.POLICY.TYPE.TEAM,
-                                name: '',
-                                owner: '',
-                                outputCurrency: '',
-                                isPolicyExpenseChatEnabled: false,
-                            },
-                            {},
-                            {},
-                        );
+                        const params = buildUpdateParams(transaction.transactionID, thread.reportID);
+                        IOU.updateMoneyRequestAmountAndCurrency(params);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -1715,7 +1720,7 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
 
                                     const updatedTransaction = Object.values(allTransactions ?? {}).find((t) => !isEmptyObject(t));
-                                    expect(updatedTransaction?.comment).toMatchObject({comment: modifiedComment});
+                                    expect(updatedTransaction?.modifiedAmount).toBe(20000);
                                     resolve();
                                 },
                             });
@@ -1732,7 +1737,7 @@ describe('actions/IOU', () => {
                                     const updatedAction = Object.values(allActions ?? {}).find((reportAction) => !isEmptyObject(reportAction));
                                     expect(updatedAction?.actionName).toEqual('MODIFIEDEXPENSE');
                                     expect(updatedAction && ReportActionsUtils.getOriginalMessage(updatedAction)).toEqual(
-                                        expect.objectContaining({newComment: modifiedComment, oldComment: comment}),
+                                        expect.objectContaining({amount: 20000, oldAmount: amount}),
                                     );
                                     resolve();
                                 },
@@ -1840,22 +1845,8 @@ describe('actions/IOU', () => {
                     mockFetch?.fail?.();
 
                     if (transaction) {
-                        IOU.updateMoneyRequestDescription(
-                            transaction.transactionID,
-                            thread.reportID,
-                            modifiedComment,
-                            {
-                                id: '123',
-                                role: 'user',
-                                type: CONST.POLICY.TYPE.TEAM,
-                                name: '',
-                                owner: '',
-                                outputCurrency: '',
-                                isPolicyExpenseChatEnabled: false,
-                            },
-                            {},
-                            {},
-                        );
+                        const params = buildUpdateParams(transaction.transactionID, thread.reportID);
+                        IOU.updateMoneyRequestAmountAndCurrency(params);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2597,22 +2588,26 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
-                IOU.updateMoneyRequestDescription(
-                    transaction.transactionID,
-                    thread.reportID,
-                    'Modified the comment!',
-                    {
+                IOU.updateMoneyRequestAmountAndCurrency({
+                    transactionID: transaction.transactionID,
+                    transactionThreadReportID: thread.reportID,
+                    amount: 20000,
+                    currency: CONST.CURRENCY.USD,
+                    taxAmount: 0,
+                    taxCode: '',
+                    policy: {
                         id: '123',
                         role: 'user',
-                        type: CONST.POLICY.TYPE.TEAM,
+                        type:
+                        CONST.POLICY.TYPE.TEAM,
                         name: '',
                         owner: '',
                         outputCurrency: '',
                         isPolicyExpenseChatEnabled: false,
                     },
-                    {},
-                    {},
-                );
+                    policyTagList: {},
+                    policyCategories: {},
+                });
             }
             await waitForBatchedUpdates();
 
