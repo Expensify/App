@@ -1,9 +1,18 @@
 import AmexCompanyCards from '@assets/images/companyCards/amex.svg';
 import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
+import BankOfAmericaCompanyCardDetail from '@assets/images/companyCards/card-bofa.svg';
+import BrexCompanyCardDetail from '@assets/images/companyCards/card-brex.svg';
+import CapitalOneCompanyCardDetail from '@assets/images/companyCards/card-capitalone.svg';
+import ChaseCompanyCardDetail from '@assets/images/companyCards/card-chase.svg';
+import CitibankCompanyCardDetail from '@assets/images/companyCards/card-citi.svg';
 import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
+import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
+import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
+import OtherCompanyCardDetail from '@assets/images/companyCards/card=-generic.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import MasterCardCompanyCards from '@assets/images/companyCards/mastercard.svg';
+import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 import VisaCompanyCards from '@assets/images/companyCards/visa.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
@@ -45,6 +54,7 @@ import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_l
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
+import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -191,6 +201,7 @@ export {
     TrashCan,
     TeleScope,
     Profile,
+    Puzzle,
     PalmTree,
     LockClosed,
     Gears,
@@ -199,6 +210,7 @@ export {
     Approval,
     WalletAlt,
     Workflows,
+    PendingBank,
     ThreeLeggedLaptopWoman,
     House,
     Alert,
@@ -244,4 +256,12 @@ export {
     MasterCardCompanyCardDetail,
     AmexCardCompanyCardDetail,
     TurtleInShell,
+    BankOfAmericaCompanyCardDetail,
+    BrexCompanyCardDetail,
+    CapitalOneCompanyCardDetail,
+    ChaseCompanyCardDetail,
+    CitibankCompanyCardDetail,
+    OtherCompanyCardDetail,
+    StripeCompanyCardDetail,
+    WellsFargoCompanyCardDetail,
 };

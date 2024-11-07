@@ -12,7 +12,8 @@ import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
-import type {AddNewCompanyCardFeed} from './CardFeeds';
+import type {AddNewCompanyCardFeed, CompanyCardFeed} from './CardFeeds';
+import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
@@ -64,6 +65,7 @@ import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
+import type {RecentSearchItem} from './RecentSearch';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type Report from './Report';
@@ -105,7 +107,6 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
-import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
 import type WorkspaceTooltip from './WorkspaceTooltip';
 
 export type {
@@ -119,6 +120,7 @@ export type {
     BlockedFromConcierge,
     Card,
     CardList,
+    CardOnWaitlist,
     Credentials,
     Currency,
     CurrencyList,
@@ -134,6 +136,7 @@ export type {
     IOU,
     IssueNewCard,
     AddNewCompanyCardFeed,
+    CompanyCardFeed,
     LastExportMethod,
     Locale,
     Login,
@@ -207,7 +210,6 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
-    WorkspaceRateAndUnit,
     ReportUserIsTyping,
     PolicyReportField,
     RecentlyUsedReportFields,
@@ -232,6 +234,7 @@ export type {
     WorkspaceTooltip,
     CardFeeds,
     SaveSearch,
+    RecentSearchItem,
     ImportedSpreadsheet,
     ValidateMagicCodeAction,
 };

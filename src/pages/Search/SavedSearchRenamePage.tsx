@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,19 +25,21 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
 
     const applyFiltersAndNavigate = () => {
         SearchActions.clearAdvancedFilters();
+        Navigation.dismissModal();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                 query: q,
+                name: newName?.trim(),
             }),
         );
     };
 
     const onSaveSearch = () => {
-        const queryJSON = SearchUtils.buildSearchQueryJSON(q || SearchUtils.buildCannedSearchQuery()) ?? ({} as SearchQueryJSON);
+        const queryJSON = SearchQueryUtils.buildSearchQueryJSON(q || SearchQueryUtils.buildCannedSearchQuery()) ?? ({} as SearchQueryJSON);
 
         SearchActions.saveSearch({
             queryJSON,
-            name: newName,
+            newName: newName?.trim() || q,
         });
 
         applyFiltersAndNavigate();
@@ -56,6 +58,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                 submitButtonText={translate('common.save')}
                 onSubmit={onSaveSearch}
                 style={[styles.mh5, styles.flex1]}
+                enabledWhenOffline
             >
                 <InputWrapper
                     InputComponent={TextInput}
@@ -66,6 +69,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                     onChangeText={(renamedName) => setNewName(renamedName)}
                     ref={inputCallbackRef}
                     defaultValue={name}
+                    shouldShowClearButton
                 />
             </FormProvider>
         </ScreenWrapper>

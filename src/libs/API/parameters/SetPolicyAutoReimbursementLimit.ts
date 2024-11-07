@@ -1,6 +1,6 @@
 type SetPolicyAutoReimbursementLimitParams = {
     policyID: string;
-    autoReimbursement: {limit: number};
+    limit: number;
 };
 
 export default SetPolicyAutoReimbursementLimitParams;

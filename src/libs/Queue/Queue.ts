@@ -59,7 +59,7 @@ function createQueue<T>(processItem: (item: T) => Promise<void>): Queue<T> {
 
     // Function to get the item at the front of the queue without removing it
     function peek(): T | undefined {
-        return elements.length > 0 ? elements[0] : undefined;
+        return elements.length > 0 ? elements.at(0) : undefined;
     }
 
     // Function to get the number of items in the queue

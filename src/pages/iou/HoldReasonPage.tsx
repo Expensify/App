@@ -24,6 +24,8 @@ type HoldReasonPageRouteParams = {
 
     /** Link to previous page */
     backTo: Route;
+
+    searchHash?: number;
 };
 
 type HoldReasonPageProps = {
@@ -34,7 +36,7 @@ type HoldReasonPageProps = {
 function HoldReasonPage({route}: HoldReasonPageProps) {
     const {translate} = useLocalize();
 
-    const {transactionID, reportID, backTo} = route.params;
+    const {transactionID, reportID, backTo, searchHash} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
 
@@ -51,7 +53,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        IOU.putOnHold(transactionID, values.comment, reportID);
+        IOU.putOnHold(transactionID, values.comment, reportID, searchHash);
         Navigation.navigate(backTo);
     };
 

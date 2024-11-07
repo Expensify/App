@@ -24,17 +24,20 @@ type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.SHARE | typeof CONST.PROMOTED_ACTIONS.JOIN;
+type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.JOIN;
 
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
-    message: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
 } & {
-    hold: (params: {
+    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
+} & {
+    [CONST.PROMOTED_ACTIONS.HOLD]: (params: {
         isTextHold: boolean;
         reportAction: ReportAction | undefined;
         reportID?: string;
         isDelegateAccessRestricted: boolean;
         setIsNoDelegateAccessMenuVisible: (isVisible: boolean) => void;
+        currentSearchHash?: number;
     }) => PromotedAction;
 };
 
@@ -43,9 +46,9 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.PIN,
         ...HeaderUtils.getPinMenuItem(report),
     }),
-    share: (report) => ({
+    share: (report, backTo) => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
-        ...HeaderUtils.getShareMenuItem(report),
+        ...HeaderUtils.getShareMenuItem(report, backTo),
     }),
     join: (report) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
@@ -76,7 +79,7 @@ const PromotedActions = {
             }
         },
     }),
-    hold: ({isTextHold, reportAction, reportID, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible}) => ({
+    hold: ({isTextHold, reportAction, reportID, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible, currentSearchHash}) => ({
         key: CONST.PROMOTED_ACTIONS.HOLD,
         icon: Expensicons.Stopwatch,
         text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
@@ -97,7 +100,7 @@ const PromotedActions = {
                 return;
             }
 
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(targetedReportID));
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute({reportID: targetedReportID}), currentSearchHash);
         },
     }),
 } satisfies PromotedActionsType;
