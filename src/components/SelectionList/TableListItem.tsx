@@ -69,7 +69,7 @@ function TableListItem<TItem extends ListItem>({
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            disabled={isDisabled || item.isDisabledCheckbox}
+                            disabled={(isDisabled && !item.shouldPreventDisableCheckboxIfDisabled) || item.isDisabledCheckbox}
                             onPress={handleCheckboxPress}
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3, item.cursorStyle]}
                         >
