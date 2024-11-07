@@ -1,8 +1,8 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -161,7 +161,7 @@ function MoneyRequestConfirmationList({
     payeePersonalDetails: payeePersonalDetailsProp,
     isReadOnly = false,
     bankAccountRoute = '',
-    policyID = '',
+    policyID,
     reportID = '',
     receiptPath = '',
     iouAttendees,
@@ -177,16 +177,17 @@ function MoneyRequestConfirmationList({
     shouldPlaySound = true,
     isConfirmed,
 }: MoneyRequestConfirmationListProps) {
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID ?? -1}`);
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID ?? -1}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID ?? -1}`);
-    const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? -1}`, {
-        selector: DistanceRequestUtils.getDefaultMileageRate,
-    });
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? -1}`);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID ?? -1}`);
+    const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID ?? -1}`, {
+        selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
+    });
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID ?? -1}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
-    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID ?? -1}`);
+
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
@@ -302,6 +303,8 @@ function MoneyRequestConfirmationList({
 
         return false;
     };
+
+    const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
 
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
@@ -717,6 +720,9 @@ function MoneyRequestConfirmationList({
      */
     const confirm = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
+            if (routeError) {
+                return;
+            }
             if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy)) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                 return;
@@ -789,6 +795,7 @@ function MoneyRequestConfirmationList({
             transactionID,
             reportID,
             policy,
+            routeError,
         ],
     );
 
@@ -803,6 +810,16 @@ function MoneyRequestConfirmationList({
             return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
         }, []),
     );
+
+    const errorMessage = useMemo(() => {
+        if (routeError) {
+            return routeError;
+        }
+        if (isTypeSplit && !shouldShowReadOnlySplits) {
+            return debouncedFormError && translate(debouncedFormError);
+        }
+        return formError && translate(formError);
+    }, [routeError, isTypeSplit, shouldShowReadOnlySplits, debouncedFormError, formError, translate]);
 
     const footerContent = useMemo(() => {
         if (isReadOnly) {
@@ -846,33 +863,18 @@ function MoneyRequestConfirmationList({
 
         return (
             <>
-                {!!formError && (
+                {!!errorMessage && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={isTypeSplit && !shouldShowReadOnlySplits ? debouncedFormError && translate(debouncedFormError) : translate(formError)}
+                        message={errorMessage}
                     />
                 )}
 
                 {button}
             </>
         );
-    }, [
-        isReadOnly,
-        isTypeSplit,
-        iouType,
-        confirm,
-        bankAccountRoute,
-        iouCurrencyCode,
-        policyID,
-        splitOrRequestOptions,
-        formError,
-        styles.ph1,
-        styles.mb2,
-        shouldShowReadOnlySplits,
-        debouncedFormError,
-        translate,
-    ]);
+    }, [isReadOnly, iouType, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, styles.ph1, styles.mb2, errorMessage]);
 
     const listFooterContent = (
         <MoneyRequestConfirmationListFooter

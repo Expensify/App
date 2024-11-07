@@ -2183,7 +2183,8 @@ function getMoneyRequestInformation(
           }
         : {};
 
-    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.OPEN);
+    const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, predictedNextStatus);
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
@@ -6570,7 +6571,15 @@ function getReportFromHoldRequestsOnyxData(
               false,
               newParentReportActionID,
           )
-        : ReportUtils.buildOptimisticIOUReport(recipient.accountID ?? 1, iouReport?.managerID ?? 1, holdTransactionAmount, chatReport.reportID, getCurrency(firstHoldTransaction), false);
+        : ReportUtils.buildOptimisticIOUReport(
+              iouReport?.ownerAccountID ?? -1,
+              iouReport?.managerID ?? -1,
+              holdTransactionAmount,
+              chatReport.reportID,
+              getCurrency(firstHoldTransaction),
+              false,
+              newParentReportActionID,
+          );
 
     const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(
         chatReport,
@@ -7040,9 +7049,19 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, 
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(iouReport?.reportID);
     const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);
-    const unheldTotalIsZero = iouReport && iouReport.unheldTotal === 0;
+    let isTransactionBeingScanned = false;
+    const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID);
+    for (const transaction of reportTransactions) {
+        const hasReceipt = TransactionUtils.hasReceipt(transaction);
+        const isReceiptBeingScanned = TransactionUtils.isReceiptBeingScanned(transaction);
 
-    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !unheldTotalIsZero;
+        // If transaction has receipt (scan) and its receipt is being scanned, we shouldn't be able to Approve
+        if (hasReceipt && isReceiptBeingScanned) {
+            isTransactionBeingScanned = true;
+        }
+    }
+
+    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !isTransactionBeingScanned;
 }
 
 function canIOUBePaid(
