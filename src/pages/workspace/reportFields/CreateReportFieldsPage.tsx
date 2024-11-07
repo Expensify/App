@@ -52,11 +52,11 @@ function CreateReportFieldsPage({
             ReportField.createReportField(policyID, {
                 name: values[INPUT_IDS.NAME],
                 type: values[INPUT_IDS.TYPE],
-                initialValue: values[INPUT_IDS.INITIAL_VALUE],
+                initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
             });
             Navigation.goBack();
         },
-        [policyID],
+        [availableListValuesLength, policyID],
     );
 
     const validateForm = useCallback(
@@ -91,6 +91,8 @@ function CreateReportFieldsPage({
     }, []);
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
+
+    const listValues = [...(formDraft?.[INPUT_IDS.LIST_VALUES] ?? [])].sort(localeCompare).join(', ');
 
     return (
         <AccessOrNotFoundWrapper
@@ -148,7 +150,7 @@ function CreateReportFieldsPage({
                                     description={translate('workspace.reportFields.listValues')}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID))}
-                                    title={formDraft?.[INPUT_IDS.LIST_VALUES]?.sort(localeCompare)?.join(', ')}
+                                    title={listValues}
                                     numberOfLinesTitle={5}
                                 />
                             )}

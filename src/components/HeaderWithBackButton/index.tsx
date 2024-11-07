@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {Keyboard, StyleSheet, View} from 'react-native';
+import {ActivityIndicator, Keyboard, StyleSheet, View} from 'react-native';
 import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
@@ -7,6 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -38,6 +39,7 @@ function HeaderWithBackButton({
     shouldShowBorderBottom = false,
     shouldShowCloseButton = false,
     shouldShowDownloadButton = false,
+    isDownloading = false,
     shouldShowGetAssistanceButton = false,
     shouldDisableGetAssistanceButton = false,
     shouldShowPinButton = false,
@@ -60,6 +62,7 @@ function HeaderWithBackButton({
     shouldOverlayDots = false,
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
+    shouldDisplaySearchRouter = false,
     progressBarPercentage,
     style,
 }: HeaderWithBackButtonProps) {
@@ -171,7 +174,7 @@ function HeaderWithBackButton({
                         </PressableWithoutFeedback>
                     </Tooltip>
                 )}
-                {icon && (
+                {!!icon && (
                     <Icon
                         src={icon}
                         width={variables.iconHeader}
@@ -179,7 +182,7 @@ function HeaderWithBackButton({
                         additionalStyles={[styles.mr2]}
                     />
                 )}
-                {policyAvatar && (
+                {!!policyAvatar && (
                     <Avatar
                         containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
                         source={policyAvatar?.source}
@@ -191,32 +194,39 @@ function HeaderWithBackButton({
                 {middleContent}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
                     {children}
-                    {shouldShowDownloadButton && (
-                        <Tooltip text={translate('common.download')}>
-                            <PressableWithoutFeedback
-                                onPress={(event) => {
-                                    // Blur the pressable in case this button triggers a Growl notification
-                                    // We do not want to overlap Growl with the Tooltip (#15271)
-                                    (event?.currentTarget as HTMLElement)?.blur();
+                    {shouldShowDownloadButton &&
+                        (!isDownloading ? (
+                            <Tooltip text={translate('common.download')}>
+                                <PressableWithoutFeedback
+                                    onPress={(event) => {
+                                        // Blur the pressable in case this button triggers a Growl notification
+                                        // We do not want to overlap Growl with the Tooltip (#15271)
+                                        (event?.currentTarget as HTMLElement)?.blur();
 
-                                    if (!isDownloadButtonActive) {
-                                        return;
-                                    }
+                                        if (!isDownloadButtonActive) {
+                                            return;
+                                        }
 
-                                    onDownloadButtonPress();
-                                    temporarilyDisableDownloadButton();
-                                }}
+                                        onDownloadButtonPress();
+                                        temporarilyDisableDownloadButton();
+                                    }}
+                                    style={[styles.touchableButtonImage]}
+                                    role="button"
+                                    accessibilityLabel={translate('common.download')}
+                                >
+                                    <Icon
+                                        src={Expensicons.Download}
+                                        fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+                                    />
+                                </PressableWithoutFeedback>
+                            </Tooltip>
+                        ) : (
+                            <ActivityIndicator
                                 style={[styles.touchableButtonImage]}
-                                role="button"
-                                accessibilityLabel={translate('common.download')}
-                            >
-                                <Icon
-                                    src={Expensicons.Download}
-                                    fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
-                                />
-                            </PressableWithoutFeedback>
-                        </Tooltip>
-                    )}
+                                size="small"
+                                color={theme.spinner}
+                            />
+                        ))}
                     {shouldShowGetAssistanceButton && (
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
@@ -262,6 +272,7 @@ function HeaderWithBackButton({
                         </Tooltip>
                     )}
                 </View>
+                {shouldDisplaySearchRouter && <SearchButton style={styles.mr5} />}
             </View>
         </View>
     );

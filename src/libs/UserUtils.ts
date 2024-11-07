@@ -1,10 +1,12 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import type {LoginList} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Account, LoginList, PrivatePersonalDetails, Session} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
@@ -14,6 +16,22 @@ type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 
 type AvatarSource = IconAsset | string;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+
+let account: OnyxEntry<Account>;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value ?? {};
+    },
+});
+
+let session: OnyxEntry<Session>;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        session = value ?? {};
+    },
+});
 
 /**
  * Searches through given loginList for any contact method / login with an error.
@@ -46,7 +64,7 @@ function hasLoginListError(loginList: OnyxEntry<LoginList>): boolean {
  * has an unvalidated contact method.
  */
 function hasLoginListInfo(loginList: OnyxEntry<LoginList>): boolean {
-    return !Object.values(loginList ?? {}).every((field) => field.validatedDate);
+    return Object.values(loginList ?? {}).some((login) => session?.email !== login.partnerUserID && !login.validatedDate);
 }
 
 /**
@@ -60,6 +78,23 @@ function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>): LoginL
     if (hasLoginListInfo(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
+
+    return undefined;
+}
+
+/**
+ * Gets the appropriate brick road indicator status for the Profile section.
+ * Error status is higher priority, so we check for that first.
+ */
+function getProfilePageBrickRoadIndicator(loginList: OnyxEntry<LoginList>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): LoginListIndicator {
+    const hasPhoneNumberError = !!privatePersonalDetails?.errorFields?.phoneNumber;
+    if (hasLoginListError(loginList) || hasPhoneNumberError) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    }
+    if (hasLoginListInfo(loginList)) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    }
+
     return undefined;
 }
 
@@ -208,6 +243,13 @@ function getSecondaryPhoneLogin(loginList: OnyxEntry<Login>): string | undefined
     return parsedLoginList.find((login) => Str.isValidE164Phone(login));
 }
 
+/**
+ * Gets the contact method
+ */
+function getContactMethod(): string {
+    return account?.primaryLogin ?? session?.email ?? '';
+}
+
 export {
     generateAccountID,
     getAvatar,
@@ -215,11 +257,13 @@ export {
     getDefaultAvatarURL,
     getFullSizeAvatar,
     getLoginListBrickRoadIndicator,
+    getProfilePageBrickRoadIndicator,
     getSecondaryPhoneLogin,
     getSmallSizeAvatar,
     hasLoginListError,
     hasLoginListInfo,
     hashText,
     isDefaultAvatar,
+    getContactMethod,
 };
 export type {AvatarSource, LoginListIndicator};

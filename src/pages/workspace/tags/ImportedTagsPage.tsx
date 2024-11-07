@@ -30,10 +30,12 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
+    const isQuickSettingsFlow = !!backTo;
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -62,13 +64,13 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             // eslint-disable-next-line rulesdir/prefer-early-return
             requiredColumns.forEach((requiredColumn) => {
                 if (!columns.includes(requiredColumn.value)) {
-                    errors.required = translate('spreadsheet.fieldNotMapped', requiredColumn.text);
+                    errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: requiredColumn.text});
                 }
             });
         } else {
             const duplicate = findDuplicate(columns);
             if (duplicate) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicate});
             } else {
                 errors = {};
             }
@@ -92,7 +94,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         const tagsGLCode = tagsGLCodeColumn !== -1 ? spreadsheet?.data[tagsGLCodeColumn].map((glCode) => glCode) : [];
         const tags = tagsNames?.slice(containsHeader ? 1 : 0).map((name, index) => {
             // Right now we support only single-level tags, this check should be updated when we add multi-level support
-            const tagAlreadyExists = policyTagLists[0]?.tags?.[name];
+            const tagAlreadyExists = policyTagLists.at(0)?.tags?.[name];
             const existingGLCodeOrDefault = tagAlreadyExists?.['GL Code'] ?? '';
             return {
                 name,
@@ -116,7 +118,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const closeImportPageAndModal = () => {
         setIsImportingTags(false);
         closeImportPage();
-        Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID));
     };
 
     return (
@@ -126,7 +128,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.tags.importTags')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID))}
+                onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID))}
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}

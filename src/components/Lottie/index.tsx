@@ -2,7 +2,7 @@ import {NavigationContainerRefContext, NavigationContext} from '@react-navigatio
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useContext, useEffect, useState} from 'react';
+import React, {forwardRef, useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
@@ -18,7 +18,8 @@ type Props = {
     shouldLoadAfterInteractions?: boolean;
 } & Omit<LottieViewProps, 'source'>;
 
-function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props, ref: ForwardedRef<LottieView>) {
+function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props, forwardedRef: ForwardedRef<LottieView>) {
+    const animationRef = useRef<LottieView | null>(null);
     const appState = useAppState();
     const {splashScreenState} = useSplashScreenStateContext();
     const styles = useThemeStyles();
@@ -79,19 +80,20 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         return unsubscribeNavigationBlur;
     }, [browser, navigationContainerRef, navigator]);
 
+    // If user is being navigated away, let pause the animation to prevent memory leak.
+    // see issue: https://github.com/Expensify/App/issues/36645
+    useEffect(() => {
+        if (!animationRef.current || !hasNavigatedAway) {
+            return;
+        }
+        animationRef?.current?.pause();
+    }, [hasNavigatedAway]);
+
     // If the page navigates to another screen, the image fails to load, app is in background state, animation file isn't ready, or the splash screen isn't hidden yet,
     // we'll just render an empty view as the fallback to prevent
-    // 1. memory leak, see issue: https://github.com/Expensify/App/issues/36645
-    // 2. heavy rendering, see issues: https://github.com/Expensify/App/issues/34696 and https://github.com/Expensify/App/issues/47273
-    // 3. lag on react navigation transitions, see issue: https://github.com/Expensify/App/issues/44812
-    if (
-        hasNavigatedAway ||
-        isError ||
-        appState.isBackground ||
-        !animationFile ||
-        splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN ||
-        (!isInteractionComplete && shouldLoadAfterInteractions)
-    ) {
+    // 1. heavy rendering, see issues: https://github.com/Expensify/App/issues/34696 and https://github.com/Expensify/App/issues/47273
+    // 2. lag on react navigation transitions, see issue: https://github.com/Expensify/App/issues/44812
+    if (isError || appState.isBackground || !animationFile || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || (!isInteractionComplete && shouldLoadAfterInteractions)) {
         return <View style={[aspectRatioStyle, props.style]} />;
     }
 
@@ -100,7 +102,15 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             source={animationFile}
-            ref={ref}
+            ref={(ref) => {
+                if (typeof forwardedRef === 'function') {
+                    forwardedRef(ref);
+                } else if (forwardedRef && 'current' in forwardedRef) {
+                    // eslint-disable-next-line no-param-reassign
+                    forwardedRef.current = ref;
+                }
+                animationRef.current = ref;
+            }}
             style={[aspectRatioStyle, props.style]}
             webStyle={{...aspectRatioStyle, ...webStyle}}
             onAnimationFailure={() => setIsError(true)}

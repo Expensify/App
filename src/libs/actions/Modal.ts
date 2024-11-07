@@ -32,9 +32,11 @@ function closeTop() {
     }
     if (onModalClose) {
         closeModals[closeModals.length - 1](isNavigate);
+        closeModals.pop();
         return;
     }
     closeModals[closeModals.length - 1]();
+    closeModals.pop();
 }
 
 /**

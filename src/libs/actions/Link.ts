@@ -111,7 +111,7 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
         policyID,
     };
 
-    return new Promise((_, reject) => {
+    return new Promise((resolve, reject) => {
         const error = new Error('Failed to generate spotnana token.');
 
         asyncOpenURL(
@@ -122,7 +122,9 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
                         reject(error);
                         throw error;
                     }
-                    return buildTravelDotURL(response.spotnanaToken, postLoginPath);
+                    const travelURL = buildTravelDotURL(response.spotnanaToken, postLoginPath);
+                    resolve(undefined);
+                    return travelURL;
                 })
                 .catch(() => {
                     reject(error);
@@ -195,7 +197,8 @@ function buildURLWithAuthToken(url: string, shortLivedAuthToken?: string) {
     const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
     const exitTo = `exitTo=${url}`;
     const accountID = `accountID=${currentUserAccountID}`;
-    const paramsArray = [accountID, emailParam, authTokenParam, exitTo];
+    const referrer = 'referrer=desktop';
+    const paramsArray = [accountID, emailParam, authTokenParam, exitTo, referrer];
     const params = paramsArray.filter(Boolean).join('&');
 
     return `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}transition?${params}`;

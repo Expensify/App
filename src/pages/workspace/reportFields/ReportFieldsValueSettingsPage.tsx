@@ -48,8 +48,8 @@ function ReportFieldsValueSettingsPage({
         if (reportFieldID) {
             const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
 
-            reportFieldValue = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.[valueIndex] ?? '';
-            reportFieldDisabledValue = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {})?.[valueIndex] ?? false;
+            reportFieldValue = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.at(valueIndex) ?? '';
+            reportFieldDisabledValue = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {})?.at(valueIndex) ?? false;
         } else {
             reportFieldValue = formDraft?.listValues?.[valueIndex] ?? '';
             reportFieldDisabledValue = formDraft?.disabledListValues?.[valueIndex] ?? false;

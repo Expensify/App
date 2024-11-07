@@ -31,7 +31,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             description: translate('workspace.accounting.preferredExporter'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID)),
             title: qboConfig?.export?.exporter ?? policyOwner,
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORTER],
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT],
         },
         {
             description: translate('workspace.qbo.date'),
@@ -82,7 +82,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack()}
         >
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback

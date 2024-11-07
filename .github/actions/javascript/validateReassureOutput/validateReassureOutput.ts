@@ -15,7 +15,12 @@ const run = (): boolean => {
     console.log(`Processing ${regressionOutput.countChanged.length} measurements...`);
 
     for (let i = 0; i < regressionOutput.countChanged.length; i++) {
-        const measurement = regressionOutput.countChanged[i];
+        const measurement = regressionOutput.countChanged.at(i);
+
+        if (!measurement) {
+            continue;
+        }
+
         const baseline: MeasureEntry = measurement.baseline;
         const current: MeasureEntry = measurement.current;
 

@@ -13,14 +13,29 @@ function isMemoizeStatsEntry(entry: any): entry is MemoizeStatsEntry {
 }
 
 class MemoizeStats {
+    /**
+     * Number of calls to the memoized function. Both cache hits and misses are counted.
+     */
     private calls = 0;
 
+    /**
+     * Number of cache hits. This is the number of times the cache returned a value instead of calling the original function.
+     */
     private hits = 0;
 
+    /**
+     * Average time of cache retrieval. This is the time it takes to retrieve a value from the cache, without calling the original function.
+     */
     private avgCacheTime = 0;
 
+    /**
+     * Average time of original function execution. This is the time it takes to execute the original function when the cache does not have a value.
+     */
     private avgFnTime = 0;
 
+    /**
+     * Current cache size. This is the number of entries in the cache.
+     */
     private cacheSize = 0;
 
     isEnabled = false;

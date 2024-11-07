@@ -97,6 +97,12 @@ function ProfilePage() {
             pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
         },
         {
+            description: translate('common.phoneNumber'),
+            title: privateDetails.phoneNumber ?? '',
+            pageRoute: ROUTES.SETTINGS_PHONE_NUMBER,
+            brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        },
+        {
             description: translate('privatePersonalDetails.address'),
             title: PersonalDetailsUtils.getFormattedAddress(privateDetails),
             pageRoute: ROUTES.SETTINGS_ADDRESS,
@@ -113,6 +119,7 @@ function ProfilePage() {
                 title={translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 icon={Illustrations.Profile}
             />
             <ScrollView style={styles.pt3}>
@@ -126,7 +133,7 @@ function ProfilePage() {
                             childrenStyles={styles.pt5}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
-                            <View style={[styles.pt3, styles.pb6, styles.alignSelfStart]}>
+                            <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
                                     <AvatarSkeleton size={CONST.AVATAR_SIZE.XLARGE} />
                                 ) : (
@@ -194,6 +201,7 @@ function ProfilePage() {
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
                                             onPress={() => Navigation.navigate(detail.pageRoute)}
+                                            brickRoadIndicator={detail.brickRoadIndicator}
                                         />
                                     ))}
                                 </>
