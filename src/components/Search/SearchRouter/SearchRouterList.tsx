@@ -172,8 +172,8 @@ function SearchRouterList(
         let autocompleteID = reportForContextualSearch.reportID;
         if (reportForContextualSearch.isInvoiceRoom) {
             roomType = CONST.SEARCH.DATA_TYPES.INVOICE;
-            const xd = reportForContextualSearch as SearchOption<Report>;
-            const invoiceReceiver = xd.item.invoiceReceiver;
+            const report = reportForContextualSearch as SearchOption<Report>;
+            const invoiceReceiver = report.item.invoiceReceiver;
             if (invoiceReceiver?.type === 'individual') {
                 autocompleteID = invoiceReceiver.accountID.toString();
             } else {
