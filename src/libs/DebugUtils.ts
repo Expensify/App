@@ -59,7 +59,6 @@ const REPORT_BOOLEAN_PROPERTIES: Array<keyof Report> = [
     'hasOutstandingChildRequest',
     'hasOutstandingChildTask',
     'isOwnPolicyExpenseChat',
-    'isPolicyExpenseChat',
     'isPinned',
     'hasParentAccess',
     'isDeletedParentAction',

@@ -179,7 +179,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 writeCapability: reportOnyx.writeCapability,
                 type: reportOnyx.type,
                 errorFields: reportOnyx.errorFields,
-                isPolicyExpenseChat: reportOnyx.isPolicyExpenseChat,
                 parentReportID: reportOnyx.parentReportID,
                 parentReportActionID: reportOnyx.parentReportActionID,
                 chatType: reportOnyx.chatType,
