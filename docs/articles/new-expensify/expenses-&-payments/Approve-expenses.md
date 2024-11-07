@@ -28,7 +28,7 @@ As a workspace admin, you can set an [approval workflow](https://help.expensify.
 
 {% include selector.html values="desktop, mobile" %}
 
-{% include option.html value="desktop" %}
+{% include option.html value="desktop or WebApp" %}
 1. When an expense is submitted, you will receive an email and in-app notification with the details of the expense.
 2. Click the expense in the email to be directed to New Expensify, where you can review it.
 3. Click on the expense to view the receipt, amount, description, and additional details the submitter provides.
@@ -42,6 +42,12 @@ As a workspace admin, you can set an [approval workflow](https://help.expensify.
 3. Tap on the expense to view the receipt, amount, description, and any additional details the submitter provides.
 4. Tap **Approve**.
 {% include end-option.html %}
+
+{% include end-selector.html %}
+
+![The approve button in an expense]({{site.url}}/assets/images/ExpensifyHelp_ApproveExpense_1.png){:width="100%"}
+
+![The approve button when you click into the expense]({{site.url}}/assets/images/ExpensifyHelp_ApproveExpense_2.png){:width="100%"}
 
 {% include info.html %}
 If the transaction is pending (a common occurrence with recent company cards or SmartScan expenses), you’ll need to wait until the transaction posts before approving it. 
@@ -87,6 +93,8 @@ When you’re ready to remove the hold,
 Held expenses will not be available for payment until they have been approved.
 {% include end-info.html %}
 
+{% include end-selector.html %}
+
 # Unapprove a workspace expense
 
 {% include selector.html values="desktop, mobile" %}
@@ -108,6 +116,8 @@ Held expenses will not be available for payment until they have been approved.
 5. The submitter will receive a text and in-app notification that the expense has been unapproved.
 6. An unapproved expense can be deleted by clicking the drop-down arrow at the top of the expense.
 {% include end-option.html %}
+
+{% include end-selector.html %}
 
 Reports that have been paid cannot be unapproved. 
 
