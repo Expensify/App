@@ -10,7 +10,9 @@ This help article has more details about creating and submitting an expense to a
 
 # Receiving an expense from an Individual
 
-When an expense is submitted to an individual, it doesn’t need approval. It only needs to be paid. This help article has the steps to pay the expense. 
+When an expense is submitted to an individual, it doesn’t need approval. It only needs to be paid. 
+
+This help article has the steps to pay the expense. 
 
 # Receiving a workspace expense
 
@@ -45,9 +47,6 @@ As a workspace admin, you can set an [approval workflow](https://help.expensify.
 If the transaction is pending (a common occurrence with recent company cards or SmartScan expenses), you’ll need to wait until the transaction posts before approving it. 
 {% include end-info.html %}
 
-![The approve button in an expense]({{site.url}}/assets/images/ExpensifyHelp_ApproveExpense_1.png){:width="100%"}
-
-![The approve button when you click into the expense]({{site.url}}/assets/images/ExpensifyHelp_ApproveExpense_2.png){:width="100%"}
 
 # Hold a workspace expense
 
