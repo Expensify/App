@@ -12,7 +12,10 @@ import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
 import type {ValuePickerItem, ValuePickerProps} from './ValuePicker/types';
 
-function CurrencyPicker({selectedCurrency, label, errorText = '', value, onInputChange, furtherDetails}: ValuePickerProps, forwardedRef: ForwardedRef<View>) {
+type CurrencyPickerProps = {
+    selectedCurrency?: string;
+};
+function CurrencyPicker({selectedCurrency, label, errorText = '', value, onInputChange, furtherDetails}: ValuePickerProps & CurrencyPickerProps, forwardedRef: ForwardedRef<View>) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const [isPickerVisible, setIsPickerVisible] = useState(false);

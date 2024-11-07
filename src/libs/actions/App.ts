@@ -402,7 +402,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
  * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
-function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency?: '', file?: File) {
+function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File) {
     Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, '', currency, file);
 }
 

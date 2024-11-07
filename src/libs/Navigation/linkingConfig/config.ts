@@ -872,7 +872,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.KEYBOARD_SHORTCUTS,
                         },
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_PROFILE_NAME.route,
-                        // [SCREENS.WORKSPACE.CONFIRMATION]: {path: ROUTES.WORKSPACE_CONFIRMATION},
                         [SCREENS.SETTINGS.SHARE_CODE]: {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
@@ -949,11 +948,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.REPORT_DETAILS.ROOT]: ROUTES.REPORT_WITH_ID_DETAILS.route,
                         [SCREENS.REPORT_DETAILS.SHARE_CODE]: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route,
                         [SCREENS.REPORT_DETAILS.EXPORT]: ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.route,
-                    },
-                },
-                [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
-                    screens: {
-                        [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: {
@@ -1102,7 +1096,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.REPORT_DESCRIPTION_ROOT]: ROUTES.REPORT_DESCRIPTION.route,
                     },
                 },
-
                 [SCREENS.RIGHT_MODAL.NEW_CHAT]: {
                     screens: {
                         [SCREENS.NEW_CHAT.ROOT]: {
@@ -1127,6 +1120,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.NEW_CHAT_EDIT_NAME,
                             exact: true,
                         },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
+                    screens: {
+                        [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {

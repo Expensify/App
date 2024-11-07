@@ -1853,7 +1853,7 @@ function createWorkspace(
     policyName = '',
     policyID = generatePolicyID(),
     engagementChoice = '',
-    currency?: '',
+    currency = '',
     file?: File,
 ): CreateWorkspaceParams {
     const {optimisticData, failureData, successData, params} = buildPolicyData(policyOwnerEmail, makeMeAdmin, policyName, policyID, undefined, engagementChoice, currency, file);
