@@ -3702,12 +3702,10 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
         originalMessage.oldMerchant = TransactionUtils.getMerchant(oldTransaction);
 
-        const modifiedDistanceFields = TransactionUtils.calculateAmountForUpdatedWaypointOrRate(updatedTransaction, transactionChanges, policy, isFromExpenseReport);
-
         // For the originalMessage, we should use the non-negative amount, similar to what TransactionUtils.getAmount does for oldAmount
-        originalMessage.amount = Math.abs(modifiedDistanceFields.modifiedAmount);
-        originalMessage.currency = modifiedDistanceFields.modifiedCurrency ?? CONST.CURRENCY.USD;
-        originalMessage.merchant = modifiedDistanceFields.modifiedMerchant;
+        originalMessage.amount = Math.abs(updatedTransaction.modifiedAmount ?? 0);
+        originalMessage.currency = updatedTransaction.modifiedCurrency ?? CONST.CURRENCY.USD;
+        originalMessage.merchant = updatedTransaction.modifiedMerchant;
     }
 
     return originalMessage;
