@@ -57,7 +57,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     >
                         <WorkspaceCompanyCardsListRow
                             cardholder={personalDetails?.[item.accountID ?? '-1']}
-                            cardNumber={CardUtils.maskCardName(cardName)}
+                            cardNumber={CardUtils.maskCardNumber(cardName)}
                             name={customCardNames?.[item.cardID] ?? ''}
                         />
                     </PressableWithFeedback>

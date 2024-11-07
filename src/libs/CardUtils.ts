@@ -137,7 +137,7 @@ function maskCard(lastFour = ''): string {
  * @param [cardName=""] - card name with XXXX in the middle.
  * @returns - The masked card string.
  */
-function maskCardName(cardName = ''): string {
+function maskCardNumber(cardName = ''): string {
     const maskedString = cardName.replace(/X/g, '•');
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
@@ -325,7 +325,7 @@ export {
     getMonthFromExpirationDateString,
     getYearFromExpirationDateString,
     maskCard,
-    maskCardName,
+    maskCardNumber,
     getCardDescription,
     findPhysicalCard,
     hasDetectedFraud,
