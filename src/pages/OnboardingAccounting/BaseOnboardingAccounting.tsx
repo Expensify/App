@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -60,7 +61,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         if (!isVsb || !!onboardingPolicyID) {
             return;
         }
-
+        
         const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
         Welcome.setOnboardingPolicyID(policyID);
@@ -162,10 +163,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                         onboardingCompanySize,
                         userReportedIntegration,
                     );
-
-                    Welcome.setOnboardingAdminsChatReportID();
-                    Welcome.setOnboardingPolicyID();
-
+                    InteractionManager.runAfterInteractions(() => {
+                        Welcome.setOnboardingAdminsChatReportID();
+                        Welcome.setOnboardingPolicyID();
+                    });
                     navigateAfterOnboarding(isSmallScreenWidth, shouldUseNarrowLayout, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, route.params?.backTo);
                 }}
                 pressOnEnter
