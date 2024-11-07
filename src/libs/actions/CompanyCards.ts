@@ -183,7 +183,7 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
     if (!data) {
         return;
     }
-    const {bankName = '', email = '', encryptedCardNumber = '', startDate = ''} = data;
+    const {bankName = '', email = '', encryptedCardNumber = '', startDate = '', cardName = ''} = data;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
     const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? -1);
 
@@ -191,6 +191,7 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
         policyID,
         bankName,
         encryptedCardNumber,
+        cardName,
         email,
         startDate,
         reportActionID: optimisticCardAssignedReportAction.reportActionID,
