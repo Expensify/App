@@ -1,6 +1,6 @@
 type UnassignCompanyCard = {
     authToken?: string | null;
-    cardID: string;
+    cardID: number;
 };
 
 export default UnassignCompanyCard;
