@@ -195,10 +195,11 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin: strin
  */
 function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean, currentUserLogin: string | undefined): boolean {
     return (
-        !!policy &&
-        (policy?.type !== CONST.POLICY.TYPE.PERSONAL || !!policy?.isJoinRequestPending) &&
-        (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
-        !!getPolicyRole(policy, currentUserLogin)
+        !!policy?.isJoinRequestPending ||
+        (!!policy &&
+            policy?.type !== CONST.POLICY.TYPE.PERSONAL &&
+            (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
+            !!getPolicyRole(policy, currentUserLogin))
     );
 }
 
