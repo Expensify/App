@@ -3850,7 +3850,7 @@ function trackExpense(
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '-1',
                 onyxData,
             } as CategorizeTrackedExpenseInformation;
-            
+
             const transactionParams = {
                 amount,
                 currency,
