@@ -1,12 +1,14 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import lodashIsEqual from 'lodash/isEqual';
-import type {RefObject} from 'react';
+import type {ReactNode, RefObject} from 'react';
 import React, {useLayoutEffect, useState} from 'react';
-import {StyleSheet} from 'react-native';
-import type {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -67,7 +69,7 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     isVisible: boolean;
 
     /** Callback to fire when a CreateMenu item is selected */
-    onItemSelected: (selectedItem: PopoverMenuItem, index: number) => void;
+    onItemSelected?: (selectedItem: PopoverMenuItem, index: number) => void;
 
     /** Menu items to be rendered on the list */
     menuItems: PopoverMenuItem[];
@@ -107,6 +109,32 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Whether to show the selected option checkmark */
     shouldShowSelectedItemCheck?: boolean;
+
+    /** The style of content container which wraps all child views */
+    containerStyles?: StyleProp<ViewStyle>;
+
+    /** Used to apply styles specifically to the header text */
+    headerStyles?: StyleProp<TextStyle>;
+
+    /** Modal container styles  */
+    innerContainerStyle?: ViewStyle;
+
+    /** These styles will be applied to the scroll view content container which wraps all of the child views */
+    scrollContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether we should wrap the list item in a scroll view */
+    shouldUseScrollView?: boolean;
+
+    /** Whether to update the focused index on a row select */
+    shouldUpdateFocusedIndex?: boolean;
+};
+
+const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
+    if (shouldUseScrollView) {
+        return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
+    }
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <>{children}</>;
 };
 
 function PopoverMenu({
@@ -132,10 +160,18 @@ function PopoverMenu({
     shouldEnableNewFocusManagement,
     restoreFocusType,
     shouldShowSelectedItemCheck = false,
+    containerStyles,
+    headerStyles,
+    innerContainerStyle,
+    scrollContainerStyle,
+    shouldUseScrollView = false,
+    shouldUpdateFocusedIndex = true,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
@@ -155,7 +191,7 @@ function PopoverMenu({
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
-            onItemSelected(selectedItem, index);
+            onItemSelected?.(selectedItem, index);
             Modal.close(
                 () => {
                     selectedItem.onSelected?.();
@@ -164,7 +200,7 @@ function PopoverMenu({
                 selectedItem.shouldCloseAllModals,
             );
         } else {
-            onItemSelected(selectedItem, index);
+            onItemSelected?.(selectedItem, index);
             selectedItem.onSelected?.();
         }
     };
@@ -206,11 +242,49 @@ function PopoverMenu({
         );
     };
 
+    const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
+        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
+        return (
+            <OfflineWithFeedback
+                // eslint-disable-next-line react/no-array-index-key
+                key={`${item.text}_${menuIndex}`}
+                pendingAction={item.pendingAction}
+            >
+                <FocusableMenuItem
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`${item.text}_${menuIndex}`}
+                    title={text}
+                    onPress={() => selectItem(menuIndex)}
+                    focused={focusedIndex === menuIndex}
+                    shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                    shouldCheckActionAllowedOnPress={false}
+                    onFocus={() => {
+                        if (!shouldUpdateFocusedIndex) {
+                            return;
+                        }
+                        setFocusedIndex(menuIndex);
+                    }}
+                    wrapperStyle={StyleUtils.getItemBackgroundColorStyle(
+                        !!item.isSelected,
+                        focusedIndex === menuIndex,
+                        item.disabled ?? false,
+                        theme.activeComponentBG,
+                        theme.hoverComponentBG,
+                    )}
+                    shouldRemoveHoverBackground={item.isSelected}
+                    titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
+                    // Spread other props dynamically
+                    {...menuItemProps}
+                />
+            </OfflineWithFeedback>
+        );
+    });
+
     const renderHeaderText = () => {
         if (!headerText || enteredSubMenuIndexes.length !== 0) {
             return;
         }
-        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>;
+        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}>{headerText}</Text>;
     };
 
     useKeyboardShortcut(
@@ -263,61 +337,14 @@ function PopoverMenu({
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             useNativeDriver
             restoreFocusType={restoreFocusType}
+            innerContainerStyle={innerContainerStyle}
         >
             <FocusTrapForModal active={isVisible}>
-                <ScrollView style={isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer}>
+                <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {currentMenuItems.map((item, menuIndex) => (
-                        <OfflineWithFeedback
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`${item.text}_${menuIndex}`}
-                            pendingAction={item.pendingAction}
-                        >
-                            <FocusableMenuItem
-                                icon={item.icon}
-                                iconWidth={item.iconWidth}
-                                iconHeight={item.iconHeight}
-                                iconFill={item.iconFill}
-                                contentFit={item.contentFit}
-                                title={item.text}
-                                shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
-                                titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
-                                shouldCheckActionAllowedOnPress={false}
-                                description={item.description}
-                                numberOfLinesDescription={item.numberOfLinesDescription}
-                                onPress={() => selectItem(menuIndex)}
-                                focused={focusedIndex === menuIndex}
-                                displayInDefaultIconColor={item.displayInDefaultIconColor}
-                                shouldShowRightIcon={item.shouldShowRightIcon}
-                                shouldShowRightComponent={item.shouldShowRightComponent}
-                                iconRight={item.iconRight}
-                                rightComponent={item.rightComponent}
-                                shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
-                                label={item.label}
-                                style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
-                                isLabelHoverable={item.isLabelHoverable}
-                                floatRightAvatars={item.floatRightAvatars}
-                                floatRightAvatarSize={item.floatRightAvatarSize}
-                                shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
-                                disabled={item.disabled}
-                                onFocus={() => setFocusedIndex(menuIndex)}
-                                success={item.success}
-                                containerStyle={item.containerStyle}
-                                shouldRenderTooltip={item.shouldRenderTooltip}
-                                tooltipAnchorAlignment={item.tooltipAnchorAlignment}
-                                tooltipShiftHorizontal={item.tooltipShiftHorizontal}
-                                tooltipShiftVertical={item.tooltipShiftVertical}
-                                tooltipWrapperStyle={item.tooltipWrapperStyle}
-                                renderTooltipContent={item.renderTooltipContent}
-                                numberOfLinesTitle={item.numberOfLinesTitle}
-                                interactive={item.interactive}
-                                isSelected={item.isSelected}
-                                badgeText={item.badgeText}
-                            />
-                        </OfflineWithFeedback>
-                    ))}
-                </ScrollView>
+                    {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}
+                </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );
@@ -328,7 +355,7 @@ PopoverMenu.displayName = 'PopoverMenu';
 export default React.memo(
     PopoverMenu,
     (prevProps, nextProps) =>
-        prevProps.menuItems.length === nextProps.menuItems.length &&
+        lodashIsEqual(prevProps.menuItems, nextProps.menuItems) &&
         prevProps.isVisible === nextProps.isVisible &&
         lodashIsEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
         prevProps.anchorRef === nextProps.anchorRef &&

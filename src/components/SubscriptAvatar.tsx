@@ -88,7 +88,7 @@ function SubscriptAvatar({
                     />
                 </View>
             </UserDetailsTooltip>
-            {secondaryAvatar && (
+            {!!secondaryAvatar && (
                 <UserDetailsTooltip
                     shouldRender={showTooltip}
                     accountID={Number(secondaryAvatar.id ?? -1)}
@@ -116,7 +116,7 @@ function SubscriptAvatar({
                     </View>
                 </UserDetailsTooltip>
             )}
-            {subscriptIcon && (
+            {!!subscriptIcon && (
                 <View
                     style={[
                         size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {},

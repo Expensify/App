@@ -6,6 +6,7 @@ import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPage
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -16,6 +17,7 @@ import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
@@ -83,14 +85,20 @@ type AccessOrNotFoundWrapperProps = {
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
-type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {shouldShowFullScreenFallback: boolean; isMoneyRequest: boolean};
+type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {
+    isFeatureEnabled: boolean;
+    isPolicyNotAccessible: boolean;
+    isMoneyRequest: boolean;
+};
 
-function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageNotFoundViewProps, isMoneyRequest}: PageNotFoundFallbackProps) {
+function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEnabled, isPolicyNotAccessible, isMoneyRequest}: PageNotFoundFallbackProps) {
+    const shouldShowFullScreenFallback = !isFeatureEnabled || isPolicyNotAccessible;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     return (
         <NotFoundPage
             shouldForceFullScreen={shouldShowFullScreenFallback}
             onBackButtonPress={() => {
-                if (shouldShowFullScreenFallback) {
+                if (isPolicyNotAccessible) {
                     Navigation.dismissModal();
                     return;
                 }
@@ -98,6 +106,7 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
             }}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...fullPageNotFoundViewProps}
+            shouldShowBackButton={fullPageNotFoundViewProps?.shouldShowBackButton ?? (!shouldShowFullScreenFallback ? shouldUseNarrowLayout : undefined)}
         />
     );
 }
@@ -144,7 +153,7 @@ function AccessOrNotFoundWrapper({
         return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType);
     }, true);
 
-    const isPolicyNotAccessible = isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors)) || !policy?.id;
+    const isPolicyNotAccessible = !PolicyUtils.isPolicyAccessible(policy);
     const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !isPolicyFeatureEnabled || shouldBeBlocked;
 
     // We only update the feature state if it isn't pending.
@@ -157,6 +166,14 @@ function AccessOrNotFoundWrapper({
         setIsPolicyFeatureEnabled(isFeatureEnabled);
     }, [pendingField, isOffline, isFeatureEnabled]);
 
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (isLoadingReportData || !isPolicyNotAccessible) {
+            return;
+        }
+        Navigation.removeScreenFromNavigationState(SCREENS.WORKSPACE.INITIAL);
+    }, [isLoadingReportData, isPolicyNotAccessible]);
+
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;
     }
@@ -166,7 +183,8 @@ function AccessOrNotFoundWrapper({
             <PageNotFoundFallback
                 policyID={policyID}
                 isMoneyRequest={isMoneyRequest}
-                shouldShowFullScreenFallback={!isFeatureEnabled || isPolicyNotAccessible}
+                isFeatureEnabled={isFeatureEnabled}
+                isPolicyNotAccessible={isPolicyNotAccessible}
                 fullPageNotFoundViewProps={fullPageNotFoundViewProps}
             />
         );

@@ -17,22 +17,34 @@ type TaxRateAttributes = {
     taxRateExternalID?: string;
 };
 
-/** Model of policy distance rate */
+/** Model of policy subrate */
+type Subrate = {
+    /** Generated ID to identify the subrate */
+    id: string;
+
+    /** Name of the subrate */
+    name: string;
+
+    /** Amount to be reimbursed per unit */
+    rate: number;
+};
+
+/** Model of policy rate */
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
-        /** Name of the distance rate */
+        /** Name of the rate */
         name?: string;
 
-        /** Amount to be reimbursed per distance unit travelled */
+        /** Amount to be reimbursed per unit */
         rate?: number;
 
-        /** Currency used to pay the distance rate */
+        /** Currency used to pay the rate */
         currency?: string;
 
-        /** Generated ID to identify the distance rate */
+        /** Generated ID to identify the rate */
         customUnitRateID?: string;
 
-        /** Whether this distance rate is currently enabled */
+        /** Whether this rate is currently enabled */
         enabled?: boolean;
 
         /** Error messages to show in UI */
@@ -43,6 +55,9 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Tax rate attributes of the policy */
         attributes?: TaxRateAttributes;
+
+        /** Subrates of the given rate */
+        subRates?: Subrate[];
     },
     keyof TaxRateAttributes
 >;
@@ -66,7 +81,7 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<
         customUnitID: string;
 
         /** Contains custom attributes like unit, for this custom unit */
-        attributes: Attributes;
+        attributes?: Attributes;
 
         /** Distance rates using this custom unit */
         rates: Record<string, Rate>;
@@ -198,6 +213,26 @@ type ConnectionLastSync = {
      * show an error message
      */
     isConnected?: boolean;
+};
+
+/**
+ * Model of QBO credentials data.
+ */
+type QBOCredentials = {
+    /**
+     * The company ID that's connected from QBO.
+     */
+    companyID: string;
+
+    /**
+     * The company name that's connected from QBO.
+     */
+    companyName: string;
+
+    /**
+     * The current scope of QBO connection.
+     */
+    scope: string;
 };
 
 /** Financial account (bank account, debit card, etc) */
@@ -437,7 +472,20 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;
+
+    /** Credentials of the current QBO connection */
+    credentials: QBOCredentials;
 }>;
+
+/**
+ * Reimbursable account types exported from QuickBooks Desktop
+ */
+type QBDReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE>;
+
+/**
+ * Non reimbursable account types exported from QuickBooks Desktop
+ */
+type QBDNonReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE>;
 
 /** Xero bill status values
  *
@@ -751,7 +799,7 @@ type NetSuiteExportDateOptions = 'SUBMITTED' | 'EXPORTED' | 'LAST_EXPENSE';
 type NetSuiteJournalPostingPreferences = 'JOURNALS_POSTING_TOTAL_LINE' | 'JOURNALS_POSTING_INDIVIDUAL_LINE';
 
 /** NetSuite custom segment/records and custom lists mapping values */
-type NetSuiteCustomFieldMapping = 'TAG' | 'REPORT_FIELD';
+type NetSuiteCustomFieldMapping = 'TAG' | 'REPORT_FIELD' | '';
 
 /** The custom form selection options for transactions (any one will be used at most) */
 type NetSuiteCustomFormIDOptions = {
@@ -1237,12 +1285,60 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
     autoSync: {
-        /** TODO: Will be handled in another issue */
+        /** Job ID of the synchronization */
         jobID: string;
 
-        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
+        /** Whether changes made in QuickBooks Desktop should be reflected into the app automatically */
         enabled: boolean;
     };
+
+    /** Whether a check to be printed */
+    markChecksToBePrinted: boolean;
+
+    /** Determines if a vendor should be automatically created */
+    shouldAutoCreateVendor: boolean;
+
+    /** Whether items is imported */
+    importItems: boolean;
+
+    /** Configuration of the export */
+    export: {
+        /** E-mail of the exporter */
+        exporter: string;
+
+        /** Defines how reimbursable expenses are exported */
+        reimbursable: QBDReimbursableExportAccountType;
+
+        /** Account that receives the reimbursable expenses */
+        reimbursableAccount: string;
+
+        /** Export date type */
+        exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+
+        /** Defines how non-reimbursable expenses are exported */
+        nonReimbursable: QBDNonReimbursableExportAccountType;
+
+        /** Account that receives the non reimbursable expenses */
+        nonReimbursableAccount: string;
+
+        /** Default vendor of non reimbursable bill */
+        nonReimbursableBillDefaultVendor: string;
+    };
+
+    /** Configuration of import settings from QuickBooks Desktop to the app */
+    mappings: {
+        /** How QuickBooks Desktop classes displayed as */
+        classes: IntegrationEntityMap;
+
+        /** How QuickBooks Desktop customers displayed as */
+        customers: IntegrationEntityMap;
+    };
+
+    /** Whether new categories are enabled in chart of accounts */
+    enableNewCategories: boolean;
+
+    /** Collections of form field errors */
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 /** State of integration connection */
@@ -1674,6 +1770,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
 
+        /** Whether the Per diem rates feature is enabled */
+        arePerDiemRatesEnabled?: boolean;
+
         /** Whether the Expensify Card feature is enabled */
         areExpensifyCardsEnabled?: boolean;
 
@@ -1789,11 +1888,13 @@ export type {
     Tenant,
     Account,
     QBONonReimbursableExportAccountType,
+    QBDNonReimbursableExportAccountType,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
     XeroTrackingCategory,
     NetSuiteConnection,
     ConnectionLastSync,
+    QBDReimbursableExportAccountType,
     NetSuiteSubsidiary,
     NetSuiteCustomList,
     NetSuiteCustomSegment,

@@ -41,6 +41,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type ProfilePageProps = StackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
 
@@ -76,7 +77,7 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
     };
 
 function ProfilePage({route}: ProfilePageProps) {
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: chatReportSelector});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, chatReportSelector)});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -280,7 +281,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID, navigateBackTo))}
                             />
                         )}
-                        {!isEmptyObject(report) && report.reportID && !isCurrentUser && (
+                        {!isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
                             <MenuItem
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
@@ -291,7 +292,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                         )}
-                        {isConcierge && guideCalendarLink && (
+                        {isConcierge && !!guideCalendarLink && (
                             <MenuItem
                                 title={translate('videoChatButtonAndMenu.tooltip')}
                                 icon={Expensicons.Phone}
@@ -301,7 +302,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 })}
                             />
                         )}
-                        {!!report?.reportID && isDebugModeEnabled && (
+                        {!!report?.reportID && !!isDebugModeEnabled && (
                             <MenuItem
                                 title={translate('debug.debug')}
                                 icon={Expensicons.Bug}

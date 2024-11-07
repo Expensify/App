@@ -116,6 +116,7 @@ function ReportActionCompose({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
@@ -392,6 +393,16 @@ function ReportActionCompose({
         ],
     );
 
+    const onValueChange = useCallback(
+        (value: string) => {
+            if (value.length === 0 && isComposerFullSize) {
+                Report.setIsComposerFullSize(reportID, false);
+            }
+            validateCommentMaxLength(value, {reportID});
+        },
+        [isComposerFullSize, reportID, validateCommentMaxLength],
+    );
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -408,7 +419,7 @@ function ReportActionCompose({
                         shouldRender={!shouldHideEducationalTooltip && shouldShowEducationalTooltip}
                         renderTooltipContent={renderWorkspaceChatTooltip}
                         shouldUseOverlay
-                        onHideTooltip={() => User.dismissWorkspaceTooltip()}
+                        onHideTooltip={User.dismissWorkspaceTooltip}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -432,6 +443,7 @@ function ReportActionCompose({
                                 onConfirm={addAttachment}
                                 onModalShow={() => setIsAttachmentPreviewActive(true)}
                                 onModalHide={onAttachmentPreviewClose}
+                                shouldDisableSendButton={hasExceededMaxCommentLength}
                             >
                                 {({displayFileInModal}) => (
                                     <>
@@ -451,6 +463,7 @@ function ReportActionCompose({
                                             onAddActionPressed={onAddActionPressed}
                                             onItemSelected={onItemSelected}
                                             actionButtonRef={actionButtonRef}
+                                            shouldDisableAttachmentItem={hasExceededMaxCommentLength}
                                         />
                                         <ComposerWithSuggestions
                                             ref={(ref) => {
@@ -487,12 +500,7 @@ function ReportActionCompose({
                                             onFocus={onFocus}
                                             onBlur={onBlur}
                                             measureParentContainer={measureContainer}
-                                            onValueChange={(value) => {
-                                                if (value.length === 0 && isComposerFullSize) {
-                                                    Report.setIsComposerFullSize(reportID, false);
-                                                }
-                                                validateCommentMaxLength(value, {reportID});
-                                            }}
+                                            onValueChange={onValueChange}
                                         />
                                         <ReportDropUI
                                             onDrop={(event: DragEvent) => {
