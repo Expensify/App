@@ -453,7 +453,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     onSelected: () =>
                         interceptAnonymousUser(() => {
                             selectOption(() => {
-                                const isValidReport = !(isEmptyObject(policyChatForActivePolicy) || ReportUtils.isArchivedRoom(policyChatForActivePolicy, reportNameValuePairs));
                                 const quickActionReportID = isValidReport ? policyChatForActivePolicy?.reportID ?? '-1' : ReportUtils.generateReportID();
                                 IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID ?? '-1', CONST.IOU.REQUEST_TYPE.SCAN, true);
                             }, true);
@@ -473,14 +472,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         styles.quickActionTooltipWrapper,
         renderQuickActionTooltip,
         quickAction?.action,
-        quickAction?.isFirstQuickAction,
+        quickAction.isFirstQuickAction,
         policyChatForActivePolicy,
         quickActionTitle,
         hideQABSubtitle,
         quickActionReport,
         navigateToQuickAction,
         selectOption,
-        reportNameValuePairs,
+        isValidReport,
     ]);
 
     return (
