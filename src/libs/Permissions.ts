@@ -1,7 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
-import * as Environment from './Environment/Environment';
 import * as SessionUtils from './SessionUtils';
 
 const isAccountIDEven = (accountID: number) => accountID % 2 === 0;
