@@ -2555,13 +2555,15 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         };
     }, options);
 
-    let {recentReports, personalDetails} = matchResults;
+    const {recentReports, personalDetails} = matchResults;
 
+    const noneReportPersonalDetails = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
+
+    let filteredPersonalDetails: ReportUtils.OptionData[] = noneReportPersonalDetails;
+    let filteredRecentReports: ReportUtils.OptionData[] = recentReports;
     if (sortByReportTypeInSearch) {
-        personalDetails = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
-        recentReports = recentReports.concat(personalDetails);
-        personalDetails = [];
-        recentReports = orderOptions(recentReports, searchValue);
+        filteredRecentReports = recentReports.concat(noneReportPersonalDetails);
+        filteredPersonalDetails = [];
     }
 
     let userToInvite = null;
@@ -2578,11 +2580,11 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     if (maxRecentReportsToShow > 0 && recentReports.length > maxRecentReportsToShow) {
         recentReports.splice(maxRecentReportsToShow);
     }
-    const filteredPersonalDetails = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
 
+    const sortedRecentReports = orderOptions(filteredRecentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat, preferRecentExpenseReports});
     return {
         personalDetails: filteredPersonalDetails,
-        recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat, preferRecentExpenseReports}),
+        recentReports: sortedRecentReports,
         userToInvite,
         currentUserOption: matchResults.currentUserOption,
         categoryOptions: [],
