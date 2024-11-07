@@ -249,7 +249,6 @@ function BaseValidateCodeForm({
                 pendingAction={validatePendingAction}
                 errors={validateError}
                 errorRowStyles={[styles.mt2]}
-                shouldDisplayErrorAbove
                 onClose={() => clearError()}
                 style={buttonStyles}
             >

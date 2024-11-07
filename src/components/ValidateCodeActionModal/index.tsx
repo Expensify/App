@@ -81,7 +81,6 @@ function ValidateCodeActionModal({
                         buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1, safePaddingBottomStyle]}
                         ref={validateCodeFormRef}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        buttonStyles={themeStyles.mtAuto}
                     />
                 </View>
                 {footer?.()}
