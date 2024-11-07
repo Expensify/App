@@ -221,9 +221,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The ID of the IOU report */
         iouReportID?: string;
 
-        /** Total amount of money owed for IOU report */
-        iouReportAmount?: number;
-
         /** The ID of the preexisting report (it is possible that we optimistically created a Report for which a report already exists) */
         preexistingReportID?: string;
 

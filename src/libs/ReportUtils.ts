@@ -521,6 +521,7 @@ type OptionData = {
     isBold?: boolean;
     lastIOUCreationDate?: string;
     icons?: Icon[];
+    iouReportAmount?: number;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {

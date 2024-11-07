@@ -50,7 +50,6 @@ const REPORT_NUMBER_PROPERTIES: Array<keyof Report> = [
     'ownerAccountID',
     'total',
     'unheldTotal',
-    'iouReportAmount',
     'nonReimbursableTotal',
 ] satisfies Array<keyof Report>;
 

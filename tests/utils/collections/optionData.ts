@@ -44,7 +44,6 @@ export default function createRandomOptionData(index: number): OptionData {
         visibility: rand(Object.values(CONST.REPORT.VISIBILITY)),
         isCancelledIOU: randBoolean(),
         iouReportID: `iou_${index}`,
-        iouReportAmount: randNumber({min: 0, max: 1000}),
         currency: randWord(),
         isWaitingOnBankAccount: randBoolean(),
         lastVisibleActionLastModified: new Date().toISOString(),
