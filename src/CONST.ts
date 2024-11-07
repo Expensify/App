@@ -844,6 +844,7 @@ const CONST = {
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
     DEEP_DIVE_ERECEIPTS: 'https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts/',
+    DEEP_DIVE_PER_DIEM: 'https://community.expensify.com/discussion/4772/how-to-add-a-single-rate-per-diem',
     GITHUB_URL: 'https://github.com/Expensify/App',
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
     PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
@@ -2466,6 +2467,7 @@ const CONST = {
             ARE_INVOICES_ENABLED: 'areInvoicesEnabled',
             ARE_TAXES_ENABLED: 'tax',
             ARE_RULES_ENABLED: 'areRulesEnabled',
+            ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
         },
         DEFAULT_CATEGORIES: [
             'Advertising',
@@ -2632,6 +2634,7 @@ const CONST = {
 
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
+        NAME_PER_DIEM_INTERNATIONAL: 'Per Diem International',
         DISTANCE_UNIT_MILES: 'mi',
         DISTANCE_UNIT_KILOMETERS: 'km',
         MILEAGE_IRS_RATE: 0.67,
@@ -6092,6 +6095,14 @@ const CONST = {
                 title: 'workspace.upgrade.rules.title' as const,
                 description: 'workspace.upgrade.rules.description' as const,
                 icon: 'Rules',
+            },
+            perDiem: {
+                id: 'perDiem' as const,
+                alias: 'per-diem',
+                name: 'Per diem',
+                title: 'workspace.upgrade.perDiem.title' as const,
+                description: 'workspace.upgrade.perDiem.description' as const,
+                icon: 'PerDiem',
             },
         };
     },

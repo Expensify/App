@@ -50,6 +50,10 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
             return;
         }
 
+        if (!distanceUnit.attributes) {
+            return;
+        }
+
         mileageRates[rateID] = {
             rate: rate.rate,
             currency: rate.currency,
@@ -79,7 +83,7 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
     }
 
     const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
-    if (!distanceUnit?.rates) {
+    if (!distanceUnit?.rates || !distanceUnit.attributes) {
         return;
     }
     const mileageRates = Object.values(getMileageRates(policy));
