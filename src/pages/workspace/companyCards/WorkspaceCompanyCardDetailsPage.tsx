@@ -110,7 +110,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                                title={card?.cardName}
+                                title={CardUtils.maskCardName(card?.cardName)}
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
