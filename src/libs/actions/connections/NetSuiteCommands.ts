@@ -1,4 +1,4 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
+import type {CONST as COMMON_CONST} from 'expensify-common';
 import isObject from 'lodash/isObject';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';

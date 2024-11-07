@@ -1,4 +1,4 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
+import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
