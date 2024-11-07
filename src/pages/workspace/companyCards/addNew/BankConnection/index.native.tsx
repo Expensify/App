@@ -8,10 +8,15 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
 import getUAForWebView from '@libs/getUAForWebView';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as Card from '@userActions/Card';
 import * as CompanyCards from '@userActions/CompanyCards';
 import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type BankConnectionStepProps = {
     policyID?: string;
@@ -26,6 +31,11 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = addNewCard?.data?.selectedBank;
     const url = getCompanyCardBankConnection(policyID, bankName);
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID ?? '-1');
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const bankKey = Object.keys(CONST.COMPANY_CARDS.BANKS).find((value) => CONST.COMPANY_CARDS.BANKS?.[value as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
+    const feedName = bankKey && bankKey !== CONST.COMPANY_CARDS.BANKS.OTHER ? CONST.COMPANY_CARD.FEED_BANK_NAME?.[bankKey as keyof typeof CONST.COMPANY_CARD.FEED_BANK_NAME] : undefined;
+    const connectedBank = feedName ? cardFeeds?.settings?.oAuthAccountDetails?.[feedName] : undefined;
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
@@ -45,6 +55,16 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     useEffect(() => {
         setWebViewOpen(true);
     }, []);
+
+    useEffect(() => {
+        if (!url) {
+            return;
+        }
+        if (feedName && connectedBank && !isEmptyObject(connectedBank)) {
+            Card.updateSelectedFeed(feedName, policyID ?? '-1');
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID ?? '-1'));
+        }
+    }, [connectedBank, feedName, policyID, url]);
 
     return (
         <Modal

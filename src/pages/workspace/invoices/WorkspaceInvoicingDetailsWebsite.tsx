@@ -34,7 +34,8 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM>) => {
-        Policy.updateInvoiceCompanyWebsite(policyID, values[INPUT_IDS.COMPANY_WEBSITE]);
+        const companyWebsite = Str.sanitizeURL(values[INPUT_IDS.COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
+        Policy.updateInvoiceCompanyWebsite(policyID, companyWebsite);
         Navigation.goBack();
     };
 
@@ -44,10 +45,11 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
         const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_WEBSITE]);
 
         if (values.companyWebsite) {
-            if (!ValidationUtils.isValidWebsite(values.companyWebsite)) {
+            const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
+            if (!ValidationUtils.isValidWebsite(companyWebsite)) {
                 errors.companyWebsite = translate('bankAccount.error.website');
             } else {
-                const domain = Url.extractUrlDomain(values.companyWebsite);
+                const domain = Url.extractUrlDomain(companyWebsite);
 
                 if (!domain || !Str.isValidDomainName(domain)) {
                     errors.companyWebsite = translate('iou.invalidDomainError');

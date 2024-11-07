@@ -48,7 +48,7 @@ function IOURequestStartPage({
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || -1}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {canUseP2PDistanceRequests, canUseCombinedTrackSubmit} = usePermissions(iouType);
+    const {canUseCombinedTrackSubmit} = usePermissions();
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.submitExpense'),
@@ -73,11 +73,6 @@ function IOURequestStartPage({
         }
         IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
     }, [transaction, policy, reportID, iouType, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]);
-
-    const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-    const isExpenseReport = ReportUtils.isExpenseReport(report);
-    const shouldDisplayDistanceRequest =
-        !!canUseCombinedTrackSubmit || !!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT);
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();
@@ -169,18 +164,16 @@ function IOURequestStartPage({
                                             </TabScreenWithFocusTrapWrapper>
                                         )}
                                     </TopTab.Screen>
-                                    {shouldDisplayDistanceRequest && (
-                                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
-                                            {() => (
-                                                <TabScreenWithFocusTrapWrapper>
-                                                    <IOURequestStepDistance
-                                                        route={route}
-                                                        navigation={navigation}
-                                                    />
-                                                </TabScreenWithFocusTrapWrapper>
-                                            )}
-                                        </TopTab.Screen>
-                                    )}
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
+                                        {() => (
+                                            <TabScreenWithFocusTrapWrapper>
+                                                <IOURequestStepDistance
+                                                    route={route}
+                                                    navigation={navigation}
+                                                />
+                                            </TabScreenWithFocusTrapWrapper>
+                                        )}
+                                    </TopTab.Screen>
                                 </OnyxTabNavigator>
                             ) : (
                                 <FocusTrapContainerElement
