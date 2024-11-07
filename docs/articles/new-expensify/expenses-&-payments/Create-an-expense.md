@@ -27,7 +27,7 @@ When an expense is submitted to a workspace, your approver will receive an email
 
 # SmartScan a receipt
 
-{% include selector.html values="desktop or mobile" %}
+{% include selector.html values="desktop, mobile" %}
 
 {% include option.html value="desktop or WebApp" %}
 1. Click the **Global Create** button and select **Submit Expense**.
@@ -57,7 +57,7 @@ You can also forward receipts to receipts@expensify.com using your primary or se
 
 # Manually add an expense
 
-{% include selector.html values="desktop or WebApp, mobile" %}
+{% include selector.html values="desktop, mobile" %}
 
 {% include option.html value="desktop or WebApp" %}
 1. Click the **Global Create** button and select **Submit Expense**.
@@ -85,7 +85,7 @@ You can also forward receipts to receipts@expensify.com using your primary or se
 
 # Create a distance expense
 
-{% include selector.html values="desktop or WebApp, mobile" %}
+{% include selector.html values="desktop, mobile" %}
 
 {% include option.html value="desktop or WebApp" %}
 1. Click the **Global Create** button and select **Submit Expense**.
