@@ -3782,7 +3782,7 @@ function trackExpense(
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
-    const receipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;
+    const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;
 
     const {
         createdWorkspaceParams,
@@ -3806,7 +3806,7 @@ function trackExpense(
             currency,
             created,
             merchant,
-            receipt,
+            trackedReceipt,
             category,
             tag,
             taxCode,
@@ -3850,6 +3850,7 @@ function trackExpense(
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '-1',
                 onyxData,
             } as CategorizeTrackedExpenseInformation;
+            // eslint-disable-next-line object-shorthand
             const transactionParams = {
                 amount,
                 currency,
@@ -3861,7 +3862,7 @@ function trackExpense(
                 category,
                 tag,
                 billable,
-                receipt,
+                receipt: trackedReceipt,
             } as CategorizeTrackedExpenseTransactionParams;
             categorizeTrackedExpense(trackedExpenseInformation, transactionParams, createdWorkspaceParams);
             break;
