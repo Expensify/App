@@ -66,16 +66,16 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                 <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textLabelSupporting, styles.lh16]}
+                        style={[styles.textNormalThemeText]}
                     >
                         {cardType}
                     </Text>
                 </View>
             )}
-            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.alignItemsCenter, styles.justifyContentEnd]}>
+            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <Text
                     numberOfLines={1}
-                    style={[styles.textLabelSupporting, styles.lh16]}
+                    style={[styles.textNormalThemeText]}
                 >
                     {lastFourPAN}
                 </Text>
@@ -91,7 +91,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
             >
                 <Text
                     numberOfLines={1}
-                    style={[styles.textLabelSupporting, styles.lh16]}
+                    style={[styles.textNormalThemeText]}
                 >
                     {CurrencyUtils.convertToDisplayString(limit, currency)}
                 </Text>
@@ -99,7 +99,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
                         <Text
                             numberOfLines={1}
-                            style={[styles.textLabelSupporting, styles.lh16]}
+                            style={[styles.textNormalThemeText]}
                         >
                             {cardType}
                         </Text>
