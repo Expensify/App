@@ -1841,7 +1841,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
 
     // Publish a workspace created event if this is their first policy
     if (getAdminPolicies().length === 0) {
-        GoogleTagManager.publishEvent('workspace_created', sessionAccountID);
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, sessionAccountID);
     }
 
     return params;

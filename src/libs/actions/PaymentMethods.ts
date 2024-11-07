@@ -205,7 +205,7 @@ function addPaymentCard(accountID: number, params: PaymentCardParams) {
         failureData,
     });
 
-    GoogleTagManager.publishEvent('paid_adoption', accountID);
+    GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
 }
 
 /**
@@ -272,7 +272,7 @@ function addSubscriptionPaymentCard(
         });
     }
 
-    GoogleTagManager.publishEvent('paid_adoption', accountID);
+    GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
 }
 
 /**

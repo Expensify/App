@@ -50,7 +50,7 @@ describe('GoogleTagManagerTest', () => {
 
         // Then we publish the sign_up event only once
         expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toBeCalledWith('sign_up', accountID);
+        expect(GoogleTagManager.publishEvent).toBeCalledWith(CONST.ANALYTICS.EVENT.SIGN_UP, accountID);
     });
 
     test('workspace_created', async () => {
@@ -63,7 +63,7 @@ describe('GoogleTagManagerTest', () => {
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toBeCalledWith('workspace_created', accountID);
+        expect(GoogleTagManager.publishEvent).toBeCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, accountID);
     });
 
     test('workspace_created - categorizeTrackedExpense', () => {
@@ -113,7 +113,7 @@ describe('GoogleTagManagerTest', () => {
 
         // Then we publish a paid_adoption event only once
         expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toBeCalledWith('paid_adoption', accountID);
+        expect(GoogleTagManager.publishEvent).toBeCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
     });
 
     test('paid_adoption - addSubscriptionPaymentCard', () => {
@@ -130,6 +130,6 @@ describe('GoogleTagManagerTest', () => {
 
         // Then we publish a paid_adoption event only once
         expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toBeCalledWith('paid_adoption', accountID);
+        expect(GoogleTagManager.publishEvent).toBeCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
     });
 });

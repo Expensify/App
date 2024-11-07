@@ -35,7 +35,7 @@ function OnboardingModalNavigator() {
             return;
         }
 
-        GoogleTagManager.publishEvent('sign_up', accountID);
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.SIGN_UP, accountID);
     }, [accountID]);
 
     const handleOuterClick = useCallback(() => {
