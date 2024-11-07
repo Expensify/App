@@ -266,6 +266,9 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
+        setOldDotSignInState(CONST.OLD_DOT_SIGN_IN_STATE.NOT_STARTED);
+        setNewDotSignInState(CONST.NEW_DOT_SIGN_IN_STATE.NOT_STARTED);
+        setOldDotSignInError(null);
         User.resendValidateCode(credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
@@ -350,7 +353,20 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        setOldDotSignInError(null);
+        if (session?.authToken) {
+            setOldDotSignInState(CONST.OLD_DOT_SIGN_IN_STATE.WAITING_FOR_SIGN_OUT);
+            setNewDotSignInState(CONST.NEW_DOT_SIGN_IN_STATE.WAITING_FOR_SIGN_OUT);
+            signOut();
+            Onyx.merge(ONYXKEYS.SESSION, {
+                authToken: null,
+            }).then(() => {
+                console.log('[HybridApp] authToken cleared');
+                setIsSigningIn(false);
+                setOldDotSignInError(null);
+                setOldDotSignInState(CONST.OLD_DOT_SIGN_IN_STATE.NOT_STARTED);
+                setNewDotSignInState(CONST.NEW_DOT_SIGN_IN_STATE.STARTED);
+            });
+        }
 
         if (account?.isLoading) {
             return;
@@ -409,7 +425,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         } else {
             SessionActions.signIn(validateCode, recoveryCodeOr2faCode);
         }
-    }, [account, credentials, twoFactorAuthCode, validateCode, isUsingRecoveryCode, recoveryCode]);
+    }, [session?.authToken, account?.isLoading, account?.errors, account?.requiresTwoFactorAuth, isUsingRecoveryCode, recoveryCode, twoFactorAuthCode, credentials?.accountID, validateCode]);
 
     return (
         <SafariFormWrapper>
