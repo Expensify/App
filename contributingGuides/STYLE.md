@@ -490,14 +490,13 @@ report ? report.ownerAccountID : -1;
 
 // GOOD
 const accountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-const accountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
 const reportID = report?.reportID;
 
 // GOOD
 report ? report.ownerAccountID : CONST.DEFAULT_NUMBER_ID;
 ```
 
-Here are some common cases you may face when fixing your code to remove the default values.
+Here are some common cases you may face when fixing your code to remove the old/bad default values.
 
 #### **Case 1**: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
 
@@ -522,13 +521,16 @@ We need to change `Report.getNewerActions()` arguments to allow `undefined`. By 
 
 ```diff
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
--    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
-+    const parentReportAction = parentReportActions?.[report?.parentReportActionID];
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+        canEvict: false,
+    });
+-   const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
++   const parentReportAction = parentReportActions?.[report?.parentReportActionID];
 ```
 
 > error TS2538: Type 'undefined' cannot be used as an index type.
 
-This error is inside a component, so we can't just make conditions with early returns here. We can instead use `String(report?.parentReportActionID)` to try to convert the value to `string`. If the value is `undefined` the result string will be `'undefined'`, which will be used to find a record inside `parentReportActions` and, same as `-1`, would find nothing.
+This error is inside a component, so we can't simply use early return conditions here. Instead, we can use `String(report?.parentReportActionID)` to try to convert the value to `string`. If the value is `undefined`, the result string will be `'undefined'`, which will be used to find a record inside `parentReportActions` and, just like `-1`, would find nothing.
 
 ```diff
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
