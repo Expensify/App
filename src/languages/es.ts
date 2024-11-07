@@ -4645,7 +4645,7 @@ const translations = {
         pressKit: 'Kit de Prensa',
         support: 'Soporte',
         expensifyHelp: 'ExpensifyHelp',
-        community: 'Comunidad',
+        terms: 'Términos de Servicio',
         privacy: 'Privacidad',
         learnMore: 'Más Información',
         aboutExpensify: 'Acerca de Expensify',
