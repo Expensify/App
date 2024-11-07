@@ -50,6 +50,37 @@ function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], requ
     };
 }
 
+function resolveOpenReportDuplicationConflictAction(persistedRequests: OnyxRequest[], originalReportID: string): ConflictActionData {
+    for (let index = 0; index < persistedRequests.length; index++) {
+        const request = persistedRequests.at(index);
+        if (request && request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === originalReportID) {
+            // If the previous request had guided setup data, we can safely ignore the new request
+            if (request.data.guidedSetupData) {
+                return {
+                    conflictAction: {
+                        type: 'noAction',
+                    },
+                };
+            }
+
+            // In other cases it's safe to replace the previous request with the new one
+            return {
+                conflictAction: {
+                    type: 'replace',
+                    index,
+                },
+            };
+        }
+    }
+
+    // If we didn't find any request to replace, we should push the new request
+    return {
+        conflictAction: {
+            type: 'push',
+        },
+    };
+}
+
 function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], reportActionID: string, originalReportID: string): ConflictActionData {
     const commentIndicesToDelete: number[] = [];
     const commentCouldBeThread: Record<string, number> = {};
@@ -144,4 +175,10 @@ function resolveEditCommentWithNewAddCommentRequest(persistedRequests: OnyxReque
     } as ConflictActionData;
 }
 
-export {resolveDuplicationConflictAction, resolveCommentDeletionConflicts, resolveEditCommentWithNewAddCommentRequest, createUpdateCommentMatcher};
+export {
+    resolveDuplicationConflictAction,
+    resolveOpenReportDuplicationConflictAction,
+    resolveCommentDeletionConflicts,
+    resolveEditCommentWithNewAddCommentRequest,
+    createUpdateCommentMatcher,
+};

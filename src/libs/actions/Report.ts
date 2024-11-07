@@ -118,7 +118,13 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import navigateFromNotification from './navigateFromNotification';
-import {createUpdateCommentMatcher, resolveCommentDeletionConflicts, resolveDuplicationConflictAction, resolveEditCommentWithNewAddCommentRequest} from './RequestConflictUtils';
+import {
+    createUpdateCommentMatcher,
+    resolveCommentDeletionConflicts,
+    resolveDuplicationConflictAction,
+    resolveEditCommentWithNewAddCommentRequest,
+    resolveOpenReportDuplicationConflictAction,
+} from './RequestConflictUtils';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 import * as OnboardingFlow from './Welcome/OnboardingFlow';
@@ -868,7 +874,6 @@ function openReport(
             }
 
             const onboardingData = prepareOnboardingOptimisticData(choice, onboardingMessage);
-            introSelected.isInviteOnboardingComplete = true;
 
             optimisticData.push(...onboardingData.optimisticData, {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1036,8 +1041,7 @@ function openReport(
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig, {
-            checkAndFixConflictingRequest: (persistedRequests) =>
-                resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID),
+            checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, reportID),
         });
     }
 }
