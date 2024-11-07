@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.0.58-0",
+  "version": "9.0.58-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -173,7 +173,7 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-view-shot": "3.8.0",
     "react-native-vision-camera": "4.0.0-beta.13",
-    "react-native-web": "^0.19.12",
+    "react-native-web": "0.19.13",
     "react-native-webview": "13.8.6",
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
