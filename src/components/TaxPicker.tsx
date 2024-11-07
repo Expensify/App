@@ -69,7 +69,7 @@ function TaxPicker({selectedTaxRate = '', policy, transaction, insets, onSubmit,
 
     const taxRates = policy?.taxRates;
     const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates?.taxes ?? {});
-    const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
+    const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
