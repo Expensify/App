@@ -25,6 +25,14 @@ const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
 // geolocation api (window.navigator.geolocation.getCurrentPosition) to work on desktop.
 // Source: https://github.com/electron/electron/blob/98cd16d336f512406eee3565be1cead86514db7b/docs/api/environment-variables.md#google_api_key
 process.env.GOOGLE_API_KEY = CONFIG.GCP_GEOLOCATION_API_KEY;
+/**
+ * Suppresses Content Security Policy (CSP) console warnings related to 'unsafe-eval'.
+ * This is required because:
+ * 1. Webpack utilizes eval() for module bundling
+ * 2. The application requires 'unsafe-eval' in CSP to function properly
+ * Note: CSP warnings are expected and unavoidable in this context
+ */
+process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = CONFIG.ELECTRON_DISABLE_SECURITY_WARNINGS;
 
 app.setName('New Expensify');
 
