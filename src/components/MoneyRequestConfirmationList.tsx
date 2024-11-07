@@ -305,6 +305,8 @@ function MoneyRequestConfirmationList({
         return false;
     };
 
+    const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
+
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
@@ -719,6 +721,9 @@ function MoneyRequestConfirmationList({
      */
     const confirm = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
+            if (routeError) {
+                return;
+            }
             if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy)) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                 return;
@@ -791,6 +796,7 @@ function MoneyRequestConfirmationList({
             transactionID,
             reportID,
             policy,
+            routeError,
         ],
     );
 
@@ -805,6 +811,16 @@ function MoneyRequestConfirmationList({
             return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
         }, []),
     );
+
+    const errorMessage = useMemo(() => {
+        if (routeError) {
+            return routeError;
+        }
+        if (isTypeSplit && !shouldShowReadOnlySplits) {
+            return debouncedFormError && translate(debouncedFormError);
+        }
+        return formError && translate(formError);
+    }, [routeError, isTypeSplit, shouldShowReadOnlySplits, debouncedFormError, formError, translate]);
 
     const footerContent = useMemo(() => {
         if (isReadOnly) {
@@ -848,33 +864,18 @@ function MoneyRequestConfirmationList({
 
         return (
             <>
-                {!!formError && (
+                {!!errorMessage && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={isTypeSplit && !shouldShowReadOnlySplits ? debouncedFormError && translate(debouncedFormError) : translate(formError)}
+                        message={errorMessage}
                     />
                 )}
 
                 {button}
             </>
         );
-    }, [
-        isReadOnly,
-        isTypeSplit,
-        iouType,
-        confirm,
-        bankAccountRoute,
-        iouCurrencyCode,
-        policyID,
-        splitOrRequestOptions,
-        formError,
-        styles.ph1,
-        styles.mb2,
-        shouldShowReadOnlySplits,
-        debouncedFormError,
-        translate,
-    ]);
+    }, [isReadOnly, iouType, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, styles.ph1, styles.mb2, errorMessage]);
 
     const listFooterContent = (
         <MoneyRequestConfirmationListFooter

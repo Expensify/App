@@ -74,7 +74,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 Policy.enablePolicyRules(policyID, true, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
-                Policy.enableCompanyCards(policyID, true);
+                Policy.enableCompanyCards(policyID, true, true);
                 break;
             default:
         }

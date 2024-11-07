@@ -61,6 +61,7 @@ autocompleteKey "key"
       / "expenseType"
       / "type"
       / "status"
+      / "cardID"
     )
 
 identifier
