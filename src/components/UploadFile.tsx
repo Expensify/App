@@ -134,7 +134,7 @@ function UploadFile({
                         medium
                     />
                     <Text
-                        style={[styles.ml2, styles.mr2, styles.textBold, styles.breakWord, styles.w100]}
+                        style={[styles.ml2, styles.mr2, styles.textBold, styles.breakWord, styles.w100, styles.flexShrink1]}
                         numberOfLines={2}
                     >
                         {file.name}
