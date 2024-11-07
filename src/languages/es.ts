@@ -2280,14 +2280,14 @@ const translations = {
         selectCountry: 'Seleccione su país',
     },
     bankInfoStep: {
-        whatAreYour: '¿Cuáles son los detalles de su cuenta bancaria comercial?',
+        whatAreYour: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',
         letsDoubleCheck: 'Verifiquemos que todo esté bien.',
-        thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en su espacio de trabajo.',
+        thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo.',
         accountNumber: 'Número de cuenta',
         bankStatement: 'Extracto bancario',
         chooseFile: 'Elegir archivo',
-        uploadYourLatest: '¿Cuáles son los detalles de su cuenta bancaria comercial?',
-        pleaseUpload: ({lastFourDigits}: LastFourDigitsParams) => `Por favor suba el estado de cuenta mensual más reciente de su cuenta bancaria comercial que termina en ${lastFourDigits}.`,
+        uploadYourLatest: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',
+        pleaseUpload: ({lastFourDigits}: LastFourDigitsParams) => `Por favor suba el estado de cuenta mensual más reciente de tu cuenta bancaria comercial que termina en ${lastFourDigits}.`,
     },
     signerInfoStep: {
         signerInfo: 'Información del firmante',
