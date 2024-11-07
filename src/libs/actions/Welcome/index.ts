@@ -8,8 +8,8 @@ import type {OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST'
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
-import * as OnboardingFlow from './OnboardingFlow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as OnboardingFlow from './OnboardingFlow';
 
 type OnboardingData = Onboarding | [] | undefined;
 
