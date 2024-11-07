@@ -12,7 +12,6 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
@@ -63,7 +62,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {canUseCompanyCardFeeds} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -120,31 +118,27 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
-    if (canUseCompanyCardFeeds) {
-        spendItems.push({
-            icon: Illustrations.CompanyCard,
-            titleTranslationKey: 'workspace.moreFeatures.companyCards.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
-            isActive: policy?.areCompanyCardsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
-            disabled: !isEmptyObject(CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards)),
-            action: (isEnabled: boolean) => {
-                if (!policyID) {
-                    return;
-                }
-                if (isEnabled && !isControlPolicy(policy)) {
-                    Navigation.navigate(
-                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                    );
-                    return;
-                }
-                Policy.enableCompanyCards(policyID, isEnabled);
-            },
-            disabledAction: () => {
-                setIsDisableCompanyCardsWarningModalOpen(true);
-            },
-        });
-    }
+    spendItems.push({
+        icon: Illustrations.CompanyCard,
+        titleTranslationKey: 'workspace.moreFeatures.companyCards.title',
+        subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
+        isActive: policy?.areCompanyCardsEnabled ?? false,
+        pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
+        disabled: !isEmptyObject(CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards)),
+        action: (isEnabled: boolean) => {
+            if (!policyID) {
+                return;
+            }
+            if (isEnabled && !isControlPolicy(policy)) {
+                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                return;
+            }
+            Policy.enableCompanyCards(policyID, isEnabled);
+        },
+        disabledAction: () => {
+            setIsDisableCompanyCardsWarningModalOpen(true);
+        },
+    });
 
     const manageItems: Item[] = [
         {
