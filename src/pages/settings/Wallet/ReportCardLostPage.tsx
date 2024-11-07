@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -27,8 +26,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ReportPhysicalCardForm} from '@src/types/form';
-import type {Card, PrivatePersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const OPTIONS_KEYS = {
@@ -53,53 +50,31 @@ const OPTIONS: Option[] = [
     },
 ];
 
-type ReportCardLostPageOnyxProps = {
-    /** Onyx form data */
-    formData: OnyxEntry<ReportPhysicalCardForm>;
-
-    /** User's private personal details */
-    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
-
-    /** User's cards list */
-    cardList: OnyxEntry<Record<string, Card>>;
-};
-
-type ReportCardLostPageProps = ReportCardLostPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED>;
+type ReportCardLostPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED>;
 
 function ReportCardLostPage({
-    privatePersonalDetails = {
-        addresses: [
-            {
-                street: '',
-                street2: '',
-                city: '',
-                state: '',
-                zip: '',
-                country: '',
-            },
-        ],
-    },
-    cardList = {},
     route: {
         params: {cardID = ''},
     },
-    formData,
 }: ReportCardLostPageProps) {
     const styles = useThemeStyles();
-
-    const physicalCard = cardList?.[cardID];
 
     const {translate} = useLocalize();
 
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+
     const [reason, setReason] = useState<Option>();
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
     const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
 
+    const physicalCard = cardList?.[cardID];
     const validateError = ErrorUtils.getLatestErrorMessageField(physicalCard);
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(formData?.isLoading ?? !isEmptyObject(physicalCard?.errors));
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const prevIsLoading = usePrevious(formData?.isLoading);
 
@@ -125,9 +100,12 @@ function ReportCardLostPage({
 
     const handleValidateCodeEntered = useCallback(
         (validateCode: string) => {
+            if (!physicalCard) {
+                return;
+            }
             CardActions.requestReplacementExpensifyCard(physicalCard.cardID, reason?.key as ReplacementReason, validateCode);
         },
-        [physicalCard.cardID, reason?.key],
+        [physicalCard, reason?.key],
     );
 
     if (isEmptyObject(physicalCard)) {
@@ -251,14 +229,4 @@ function ReportCardLostPage({
 
 ReportCardLostPage.displayName = 'ReportCardLostPage';
 
-export default withOnyx<ReportCardLostPageProps, ReportCardLostPageOnyxProps>({
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    formData: {
-        key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-    },
-})(ReportCardLostPage);
+export default ReportCardLostPage;
