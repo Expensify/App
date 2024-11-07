@@ -2477,6 +2477,15 @@ function getPersonalDetailSearchTerms(item: Partial<ReportUtils.OptionData>) {
 function getCurrentUserSearchTerms(item: ReportUtils.OptionData) {
     return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
 }
+
+/**
+ * Remove the personal details for the DMs that are already in the recent reports so that we don't show duplicates.
+ */
+function filteredPersonalDetailsOfRecentReports(recentReports: ReportUtils.OptionData[], personalDetails: ReportUtils.OptionData[]) {
+    const excludedLogins = new Set(recentReports.map((report) => report.login));
+    return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
+}
+
 /**
  * Filters options based on the search input value
  */
@@ -2490,11 +2499,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         preferPolicyExpenseChat = false,
         preferRecentExpenseReports = false,
     } = config ?? {};
-    // Remove the personal details for the DMs that are already in the recent reports so that we don't show duplicates
-    function filteredPersonalDetailsOfRecentReports(recentReports: ReportUtils.OptionData[], personalDetails: ReportUtils.OptionData[]) {
-        const excludedLogins = new Set(recentReports.map((report) => report.login));
-        return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
-    }
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         const recentReports = options.recentReports.slice(0, maxRecentReportsToShow);
         const personalDetails = filteredPersonalDetailsOfRecentReports(recentReports, options.personalDetails);
@@ -2646,6 +2650,7 @@ export {
     formatSectionsFromSearchTerm,
     getShareLogOptions,
     filterOptions,
+    filteredPersonalDetailsOfRecentReports,
     createOptionList,
     createOptionFromReport,
     getReportOption,
