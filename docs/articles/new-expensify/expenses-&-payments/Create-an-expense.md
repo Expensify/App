@@ -19,7 +19,7 @@ When an expense is submitted to an individual’s email or phone number, the pay
 
 # Submit an expense to a workspace or employer
 
-If you are an employee or a workspace member, you should submit the expense to the workspace instead of an individual. A workspace groups people who are incurring expenses on behalf of a company or a non-profit organization. All workspace expenses can be configured. 
+If you are an employee or a workspace member, you should submit the expense to the workspace instead of an individual. A workspace is designed to code expenses to the company's requirements. 
 
 When an expense is submitted to a workspace, your approver will receive an email or text notification prompting them to approve and pay it. 
 
