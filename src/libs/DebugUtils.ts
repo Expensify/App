@@ -4,7 +4,7 @@
 import {isMatch, isValid} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {TupleToUnion, UnionToIntersection, ValueOf} from 'type-fest';
+import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,17 +46,23 @@ type ConstantEnum = Record<string, string | number | boolean | Record<string, st
 
 type PropertyTypes = Array<'string' | 'number' | 'object' | 'boolean' | 'undefined'>;
 
-type PropertyDefinition<T> = Required<NonNullable<T>>;
+type ArrayTypeFromOnyxDefinition<T> = T extends unknown[] ? NonNullable<T[number]> : never;
 
-type ArrayElement<T extends Record<string, unknown>, K extends keyof T> = T[K] extends unknown[] | undefined ? PropertyDefinition<T[K]>[number] : never;
+type ArrayElement<TOnyx extends Record<string, unknown>, K extends keyof TOnyx> = ArrayTypeFromOnyxDefinition<Required<TOnyx>[K]>;
 
-type ObjectElement<T extends Record<string, unknown>, K extends keyof T> = UnionToIntersection<
-    T[K] extends Record<string, unknown> | undefined | null
-        ? ValueOf<PropertyDefinition<T[K]>> extends Record<string, unknown>
-            ? ValueOf<PropertyDefinition<T[K]>>
-            : PropertyDefinition<T[K]>
-        : never
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+
+type ObjectTypeFromOnyxDefinition<T, TCollectionKey extends string | number | undefined = undefined> = T extends Record<string | number, infer ValueType>
+    ? TCollectionKey extends string | number
+        ? {[ValueTypeKey in KeysOfUnion<ValueType>]: ValueType[ValueTypeKey]}
+        : {[ElementKey in KeysOfUnion<T>]: T[ElementKey]}
+    : never;
+
+type ObjectElement<TOnyx extends Record<string, unknown>, K extends keyof TOnyx, TCollectionKey extends string | number | undefined = undefined> = ObjectTypeFromOnyxDefinition<
+    TOnyx[K],
+    TCollectionKey
 >;
+
 const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
 
 const REPORT_REQUIRED_PROPERTIES: Array<keyof Report> = ['reportID'] satisfies Array<keyof Report>;
@@ -424,6 +430,17 @@ function validateString(value: string) {
 }
 
 /**
+ * Execute validation of a union type (e.g. Record<string, string> | Array<string>)
+ */
+function unionValidation(firstValidation: () => void, secondValidation: () => void) {
+    try {
+        firstValidation();
+    } catch (e) {
+        secondValidation();
+    }
+}
+
+/**
  * Validates if a property of Report is of the expected type
  *
  * @param key - property key
@@ -547,8 +564,11 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
             return validateString(value);
         }
         case 'invoiceReceiver': {
-            // TODO: ObjectElement doesn't handle this case correctly
-            return validateObject<ObjectElement<Report, 'invoiceReceiver'>>(value, {});
+            return validateObject<ObjectElement<Report, 'invoiceReceiver'>>(value, {
+                type: 'string',
+                policyID: 'string',
+                accountID: 'string',
+            });
         }
         case 'lastMessageTranslationKey': {
             return validateString(value);
@@ -587,7 +607,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
             return validateString(value);
         }
         case 'participants': {
-            return validateObject<ObjectElement<Report, 'participants'>>(
+            return validateObject<ObjectElement<Report, 'participants', number>>(
                 value,
                 {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
@@ -612,8 +632,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
             return validateObject<ObjectElement<Report, 'errors'>>(value, {});
         }
         case 'errorFields': {
-            // TODO: ObjectElement doesn't handle this case correctly
-            return validateObject<ObjectElement<Report, 'errorFields'>>(value, {}, 'string');
+            return validateObject<ObjectElement<Report, 'errorFields', string>>(value, {}, 'string');
         }
         case 'isWaitingOnBankAccount': {
             return validateBoolean(value);
@@ -670,7 +689,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
             return validateString(value);
         }
         case 'privateNotes': {
-            return validateObject<ObjectElement<Report, 'privateNotes'>>(
+            return validateObject<ObjectElement<Report, 'privateNotes', number>>(
                 value,
                 {
                     note: 'string',
@@ -744,8 +763,83 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         }
         case 'pendingFields': {
-            // TODO: ObjectElement doesn't handle this case correctly
-            return validateObject<ObjectElement<Report, 'pendingFields'>>(value, {});
+            return validateObject<ObjectElement<Report, 'pendingFields'>>(value, {
+                errors: 'string',
+                text: 'string',
+                description: 'string',
+                privateNotes: 'string',
+                currency: 'string',
+                type: 'string',
+                policyID: 'string',
+                reportID: 'string',
+                displayName: 'string',
+                avatarUrl: 'string',
+                avatarFileName: 'string',
+                chatType: 'string',
+                hasOutstandingChildRequest: 'string',
+                hasOutstandingChildTask: 'string',
+                icons: 'string',
+                isOwnPolicyExpenseChat: 'string',
+                isPolicyExpenseChat: 'string',
+                isPinned: 'string',
+                lastMessageText: 'string',
+                lastMessageTimestamp: 'string',
+                lastVisibleActionCreated: 'string',
+                lastReadCreated: 'string',
+                lastReadTime: 'string',
+                lastReadSequenceNumber: 'string',
+                lastMentionedTime: 'string',
+                policyAvatar: 'string',
+                policyName: 'string',
+                oldPolicyName: 'string',
+                hasParentAccess: 'string',
+                isDeletedParentAction: 'string',
+                reportName: 'string',
+                reportActionID: 'string',
+                chatReportID: 'string',
+                stateNum: 'string',
+                statusNum: 'string',
+                writeCapability: 'string',
+                openOnAdminRoom: 'string',
+                visibility: 'string',
+                cachedTotal: 'string',
+                invoiceReceiver: 'string',
+                lastMessageTranslationKey: 'string',
+                parentReportID: 'string',
+                parentReportActionID: 'string',
+                isOptimisticReport: 'string',
+                managerID: 'string',
+                lastVisibleActionLastModified: 'string',
+                lastMessageHtml: 'string',
+                lastActorAccountID: 'string',
+                lastActionType: 'string',
+                ownerAccountID: 'string',
+                ownerEmail: 'string',
+                participants: 'string',
+                total: 'string',
+                unheldTotal: 'string',
+                isWaitingOnBankAccount: 'string',
+                isCancelledIOU: 'string',
+                isLastMessageDeletedParentAction: 'string',
+                iouReportID: 'string',
+                iouReportAmount: 'string',
+                preexistingReportID: 'string',
+                nonReimbursableTotal: 'string',
+                isHidden: 'string',
+                isChatRoom: 'string',
+                participantsList: 'string',
+                isLoadingPrivateNotes: 'string',
+                selected: 'string',
+                pendingChatMembers: 'string',
+                transactionThreadReportID: 'string',
+                fieldList: 'string',
+                permissions: 'string',
+                tripData: 'string',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: 'string',
+                participantAccountIDs: 'string',
+                visibleChatMemberAccountIDs: 'string',
+            });
         }
     }
 }
@@ -771,8 +865,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
             return validateString(value);
         }
         case 'errors': {
-            // TODO: ObjectElement doesn't handle this case correctly
-            return validateObject<ObjectElement<ReportAction, 'errors'>>(value, {}, 'string');
+            return validateObject<ObjectElement<ReportAction, 'errors'>>(value, {});
         }
         case 'pendingAction': {
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
@@ -969,42 +1062,90 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
             return validateString(value);
         }
         case 'message': {
-            // TODO: ArrayElement doesn't handle this case correctly
-            return validateArray<ArrayElement<ReportAction, 'message'>>(value, {
+            return unionValidation(
+                () =>
+                    validateArray<ArrayElement<ReportAction, 'message'>>(value, {
+                        text: 'string',
+                        html: ['string', 'undefined'],
+                        type: 'string',
+                        isDeletedParentAction: 'boolean',
+                        policyID: 'string',
+                        reportID: 'string',
+                        currency: 'string',
+                        amount: 'number',
+                        style: 'string',
+                        target: 'string',
+                        href: 'string',
+                        iconUrl: 'string',
+                        isEdited: 'boolean',
+                        isReversedTransaction: 'boolean',
+                        whisperedTo: 'array',
+                        moderationDecision: 'object',
+                        translationKey: 'string',
+                        taskReportID: 'string',
+                        cancellationReason: 'string',
+                        expenseReportID: 'string',
+                        resolution: {
+                            ...CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION,
+                            ...CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION,
+                        },
+                        deleted: 'string',
+                    }),
+                () =>
+                    validateObject<ObjectElement<ReportAction, 'message'>>(value, {
+                        html: 'string',
+                        text: 'string',
+                        amount: 'string',
+                        currency: 'string',
+                        type: 'string',
+                        policyID: 'string',
+                        reportID: 'string',
+                        isDeletedParentAction: 'string',
+                        target: 'string',
+                        style: 'string',
+                        href: 'string',
+                        iconUrl: 'string',
+                        isEdited: 'string',
+                        isReversedTransaction: 'string',
+                        whisperedTo: 'string',
+                        moderationDecision: 'string',
+                        translationKey: 'string',
+                        taskReportID: 'string',
+                        cancellationReason: 'string',
+                        expenseReportID: 'string',
+                        resolution: 'string',
+                        deleted: 'string',
+                    }),
+            );
+        }
+        case 'originalMessage': {
+            return validateObject<ObjectElement<ReportAction, 'originalMessage'>>(value, {});
+        }
+        case 'previousMessage': {
+            return validateObject<ObjectElement<ReportAction, 'previousMessage'>>(value, {
+                html: 'string',
                 text: 'string',
-                html: ['string', 'undefined'],
+                amount: 'string',
+                currency: 'string',
                 type: 'string',
-                isDeletedParentAction: 'boolean',
                 policyID: 'string',
                 reportID: 'string',
-                currency: 'string',
-                amount: 'number',
                 style: 'string',
                 target: 'string',
                 href: 'string',
                 iconUrl: 'string',
-                isEdited: 'boolean',
-                isReversedTransaction: 'boolean',
-                whisperedTo: 'array',
-                moderationDecision: 'object',
+                isEdited: 'string',
+                isDeletedParentAction: 'string',
+                isReversedTransaction: 'string',
+                whisperedTo: 'string',
+                moderationDecision: 'string',
                 translationKey: 'string',
                 taskReportID: 'string',
                 cancellationReason: 'string',
                 expenseReportID: 'string',
-                resolution: {
-                    ...CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION,
-                    ...CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION,
-                },
+                resolution: 'string',
                 deleted: 'string',
-            } as never);
-        }
-        case 'originalMessage': {
-            // TODO: ObjectElement doesn't handle this case correctly
-            return validateObject<ObjectElement<ReportAction, 'originalMessage'>>(value, {});
-        }
-        case 'previousMessage': {
-            // TODO: ObjectElement doesn't handle this case correctly
-            return validateObject<ObjectElement<ReportAction, 'previousMessage'>>(value, {});
+            });
         }
     }
 }
@@ -1057,15 +1198,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateString(value);
         }
         case 'errors': {
-            // TODO: ObjectElement does not handle this case correctly
-            return validateObject<ObjectElement<Transaction, 'errors'>>(
-                value,
-                {
-                    source: 'string',
-                    filename: 'string',
-                },
-                'string',
-            );
+            return validateObject<ObjectElement<Transaction, 'errors'>>(value, {});
         }
         case 'errorFields': {
             return validateObject<ObjectElement<Transaction, 'errorFields'>>(
@@ -1318,12 +1451,11 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateString(value);
         }
         case 'splitShares': {
-            // TODO: ObjectElement doesn't handle this case correctly
-            return validateObject<ObjectElement<Transaction, 'splitShares'>>(
+            return validateObject<ObjectElement<Transaction, 'splitShares', number>>(
                 value,
                 {
-                    // amount: 'number',
-                    // isModified: 'boolean',
+                    amount: 'number',
+                    isModified: 'boolean',
                 },
                 'number',
             );
