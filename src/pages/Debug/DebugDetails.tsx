@@ -14,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ObjectType, OnyxDataType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import Debug from '@userActions/Debug';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -236,7 +235,6 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                         text={translate('common.delete')}
                         onPress={() => {
                             onDelete();
-                            Navigation.goBack();
                         }}
                     />
                 </View>
