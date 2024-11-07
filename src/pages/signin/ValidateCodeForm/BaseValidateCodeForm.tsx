@@ -38,7 +38,7 @@ import {signOut} from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS, {type OnyxKey} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {TryNewDot} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ValidateCodeFormProps from './types';
@@ -100,6 +100,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         if (!hybridApp?.shouldResetSigningInLogic) {
             return;
         }
+        console.log('[HybridApp] Resetting sign in flow');
         setReadyToShowAuthScreens(false);
         setReadyToSwitchToClassicExperience(false);
         setIsSigningIn(false);
@@ -265,22 +266,10 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        const keysToPreserve: OnyxKey[] = [];
-        keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
-        keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
-        keysToPreserve.push(ONYXKEYS.DEVICE_ID);
-        keysToPreserve.push(ONYXKEYS.HYBRID_APP);
-        keysToPreserve.push(ONYXKEYS.ACCOUNT);
-        keysToPreserve.push(ONYXKEYS.CREDENTIALS);
-
-        signOut();
-        Onyx.clear(keysToPreserve).then(() => {
-            User.resendValidateCode(credentials?.login ?? '');
-            setShouldResetSigningInLogic(true);
-            inputValidateCodeRef.current?.clear();
-            // Give feedback to the user to let them know the email was sent so that they don't spam the button.
-            setTimeRemaining(CONST.REQUEST_CODE_DELAY);
-        });
+        User.resendValidateCode(credentials?.login ?? '');
+        inputValidateCodeRef.current?.clear();
+        // Give feedback to the user to let them know the email was sent so that they don't spam the button.
+        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
     };
 
     /**
@@ -299,9 +288,13 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      */
     const clearSignInData = useCallback(() => {
         clearLocalSignInData();
+        if (session?.authToken) {
+            signOut();
+            Onyx.set(ONYXKEYS.SESSION, null);
+        }
         SessionActions.clearSignInData();
         setShouldResetSigningInLogic(true);
-    }, [clearLocalSignInData]);
+    }, [clearLocalSignInData, session?.authToken]);
 
     useImperativeHandle(forwardedRef, () => ({
         clearSignInData,
