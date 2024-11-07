@@ -153,18 +153,21 @@ function getFSAttributes(name: string, mask: boolean, prefix: boolean): string {
     return `${name}`;
 }
 
-function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>): string {
+function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>): string[] {
     if (!name) {
         return '';
     }
-    let config = {prefix: OTHER, mask: MASK};
-
     if (isConciergeChatReport(report)) {
-        config = {prefix: CONCIERGE, mask: UNMASK};
-    } else if (isExpensifyAndCustomerChat(context, report)) {
-        config = {prefix: CUSTOMER, mask: UNMASK};
+        const formattedName = `${CONCIERGE}-${name}`;
+        return [`${formattedName},${UNMASK}`, `${formattedName}`];
     }
-    return [`${config.prefix}-${name},${config.mask}`, `${config.prefix}-${name}`];
+    if (isExpensifyAndCustomerChat(context, report)) {
+        const formattedName = `${CUSTOMER}-${name}`;
+        return [`${formattedName},${UNMASK}`, `${formattedName}`];
+    }
+
+    const formattedName = `${OTHER}-${name}`;
+    return [`${formattedName},${MASK}`, `${formattedName}`];
 }
 
 export default FS;
