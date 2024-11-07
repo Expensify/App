@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Category from '@userActions/Policy/Category';
@@ -40,25 +41,27 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const styles = useThemeStyles();
     const [isCategoryPickerVisible, setIsCategoryPickerVisible] = useState(false);
     const {translate} = useLocalize();
-    const customUnits = policy?.customUnits ?? {};
-    const customUnit = customUnits[Object.keys(customUnits)[0]];
+    const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = customUnit?.customUnitID ?? '';
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
 
-    const defaultCategory = customUnits[customUnitID]?.defaultCategory;
-    const defaultUnit = customUnits[customUnitID]?.attributes?.unit;
-    const errorFields = customUnits[customUnitID]?.errorFields;
+    const defaultCategory = customUnit?.defaultCategory;
+    const defaultUnit = customUnit?.attributes?.unit;
+    const errorFields = customUnit?.errorFields;
 
     const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
 
     const setNewUnit = (unit: UnitItemType) => {
-        const attributes = {...customUnits[customUnitID].attributes, unit: unit.value};
+        if (!customUnit) {
+            return;
+        }
+        const attributes = {...customUnit?.attributes, unit: unit.value};
         DistanceRate.setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes});
     };
 
     const setNewCategory = (category: ListItem) => {
-        if (!category.searchText) {
+        if (!category.searchText || !customUnit) {
             return;
         }
 
@@ -73,7 +76,10 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     };
 
     const onToggleTrackTax = (isOn: boolean) => {
-        const attributes = {...customUnits[customUnitID].attributes, taxEnabled: isOn};
+        if (!customUnit || !customUnit.attributes) {
+            return;
+        }
+        const attributes = {...customUnit?.attributes, taxEnabled: isOn};
         Policy.enableDistanceRequestTax(policyID, customUnit?.name, customUnitID, attributes);
     };
 
@@ -95,10 +101,10 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                         keyboardShouldPersistTaps="always"
                     >
                         <View>
-                            {defaultUnit && (
+                            {!!defaultUnit && (
                                 <OfflineWithFeedback
-                                    errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'attributes')}
-                                    pendingAction={customUnits[customUnitID]?.pendingFields?.attributes}
+                                    errors={ErrorUtils.getLatestErrorField(customUnit ?? {}, 'attributes')}
+                                    pendingAction={customUnit?.pendingFields?.attributes}
                                     errorRowStyles={styles.mh5}
                                     onClose={() => clearErrorFields('attributes')}
                                 >
@@ -110,10 +116,10 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     />
                                 </OfflineWithFeedback>
                             )}
-                            {policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
+                            {!!policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
                                 <OfflineWithFeedback
-                                    errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'defaultCategory')}
-                                    pendingAction={customUnits[customUnitID]?.pendingFields?.defaultCategory}
+                                    errors={ErrorUtils.getLatestErrorField(customUnit ?? {}, 'defaultCategory')}
+                                    pendingAction={customUnit?.pendingFields?.defaultCategory}
                                     errorRowStyles={styles.mh5}
                                     onClose={() => clearErrorFields('defaultCategory')}
                                 >
@@ -130,9 +136,9 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 </OfflineWithFeedback>
                             )}
                             <OfflineWithFeedback
-                                errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'taxEnabled')}
+                                errors={ErrorUtils.getLatestErrorField(customUnit ?? {}, 'taxEnabled')}
                                 errorRowStyles={styles.mh5}
-                                pendingAction={customUnits[customUnitID]?.pendingFields?.taxEnabled}
+                                pendingAction={customUnit?.pendingFields?.taxEnabled}
                             >
                                 <View style={[styles.mt2, styles.mh5]}>
                                     <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>

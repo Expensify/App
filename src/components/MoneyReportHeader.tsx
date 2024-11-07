@@ -7,6 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrentUserAccountID} from '@libs/actions/Report';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import isReportOpenInRHP from '@libs/Navigation/isReportOpenInRHP';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -61,6 +62,8 @@ type MoneyReportHeaderProps = {
 };
 
 function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, onBackButtonPress}: MoneyReportHeaderProps) {
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? '-1'}`);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID ?? '-1'}`);
@@ -131,13 +134,21 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
-    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, policy), [moneyRequestReport, policy]);
+    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions, [moneyRequestReport, policy, hasOnlyPendingTransactions]);
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSubmitButton = !!moneyRequestReport && isDraft && reimbursableSpend !== 0 && !hasAllPendingRTERViolations && !shouldShowBrokenConnectionViolation;
-
+    const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+    const shouldShowSubmitButton =
+        !!moneyRequestReport &&
+        isDraft &&
+        reimbursableSpend !== 0 &&
+        !hasAllPendingRTERViolations &&
+        !shouldShowBrokenConnectionViolation &&
+        (moneyRequestReport?.ownerAccountID === currentUserAccountID || isAdmin || moneyRequestReport?.managerID === currentUserAccountID);
+
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(moneyRequestReport);
 
     const shouldShowSettlementButton =
@@ -166,7 +177,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
-    const shouldDisplaySearchRouter = !isReportInRHP;
+    const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
 
     const confirmPayment = useCallback(
         (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
@@ -368,7 +379,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
-                {shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
+                {!!shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
                     <View style={[styles.pv2]}>
                         <ExportWithDropdownMenu
                             policy={policy}
@@ -399,7 +410,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     </View>
                 )}
             </HeaderWithBackButton>
-            {isMoreContentShown && (
+            {!!isMoreContentShown && (
                 <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5, styles.borderBottom]}>
                     <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
                         {isDuplicate && shouldUseNarrowLayout && (
@@ -432,7 +443,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 isLoading={!isOffline && !canAllowSettlement}
                             />
                         )}
-                        {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
+                        {!!shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
                             <ExportWithDropdownMenu
                                 policy={policy}
                                 report={moneyRequestReport}
@@ -458,7 +469,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         )}
                     </View>
                     {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={nextStep} />}
-                    {statusBarProps && (
+                    {!!statusBarProps && (
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}
                             description={statusBarProps.description}

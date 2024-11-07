@@ -45,6 +45,8 @@ type MoneyRequestHeaderProps = {
 };
 
 function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`);
     const [transaction] = useOnyx(
@@ -64,7 +66,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const reportID = report?.reportID;
 
     const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
-    const shouldDisplaySearchRouter = !isReportInRHP;
+    const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
 
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
 
@@ -202,7 +204,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         />
                     </View>
                 )}
-                {statusBarProps && (
+                {!!statusBarProps && (
                     <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}

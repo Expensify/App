@@ -75,7 +75,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
                     }}
                 />
                 <View style={[styles.containerWithSpaceBetween, error !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.ph5 : styles.ph0, styles.pb0]}>
-                    {policy?.isLoading && <FullScreenLoadingIndicator />}
+                    {!!policy?.isLoading && <FullScreenLoadingIndicator />}
                     {shouldShowPaymentCardForm && <WorkspaceOwnerPaymentCardForm policy={policy} />}
                     {!policy?.isLoading && !shouldShowPaymentCardForm && (
                         <WorkspaceOwnerChangeCheck

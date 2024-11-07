@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import {PROTECTED_SCREENS} from '@src/SCREENS';
+import type {Screen} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import originalCloseRHPFlow from './closeRHPFlow';
 import originalDismissModal from './dismissModal';
@@ -418,6 +419,20 @@ function getTopMostCentralPaneRouteFromRootState() {
     return getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
 }
 
+function removeScreenFromNavigationState(screen: Screen) {
+    isNavigationReady().then(() => {
+        navigationRef.dispatch((state) => {
+            const routes = state.routes?.filter((item) => item.name !== screen);
+
+            return CommonActions.reset({
+                ...state,
+                routes,
+                index: routes.length < state.routes.length ? state.index - 1 : state.index,
+            });
+        });
+    });
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -442,6 +457,7 @@ export default {
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
     getTopMostCentralPaneRouteFromRootState,
+    removeScreenFromNavigationState,
 };
 
 export {navigationRef};

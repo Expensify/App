@@ -9,7 +9,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
-import type {AdvancedFiltersKeys} from '@components/Search/types';
+import type {SearchFilterKey} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,14 +20,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import * as SearchUIUtils from '@libs/SearchUIUtils';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const baseFilterConfig = {
     date: {
@@ -139,8 +139,19 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
         .join(', ');
 }
 
-function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
+const sortOptionsWithEmptyValue = (a: string, b: string) => {
+    // Always show `No category` and `No tag` as the first option
+    if (a === CONST.SEARCH.EMPTY_VALUE) {
+        return -1;
+    }
+    if (b === CONST.SEARCH.EMPTY_VALUE) {
+        return 1;
+    }
+    return localeCompare(a, b);
+};
+
+function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filterKey: SearchFilterKey, translate: LocaleContextProps['translate']) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
         // the value of date filter is a combination of dateBefore + dateAfter values
         const {dateAfter, dateBefore} = filters;
         let dateValue = '';
@@ -157,7 +168,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return dateValue;
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const {lessThan, greaterThan} = filters;
         if (lessThan && greaterThan) {
             return translate('search.filters.amount.between', {
@@ -175,19 +186,32 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return;
     }
 
-    if (
-        (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) &&
-        filters[fieldName]
-    ) {
-        const filterArray = filters[fieldName] ?? [];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && filters[filterKey]) {
+        const filterArray = filters[filterKey] ?? [];
         return filterArray.sort(localeCompare).join(', ');
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
-        return filters[fieldName];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[filterKey]) {
+        const filterArray = filters[filterKey] ?? [];
+        return filterArray
+            .sort(sortOptionsWithEmptyValue)
+            .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noCategory') : value))
+            .join(', ');
     }
 
-    const filterValue = filters[fieldName];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters[filterKey]) {
+        const filterArray = filters[filterKey] ?? [];
+        return filterArray
+            .sort(sortOptionsWithEmptyValue)
+            .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noTag') : value))
+            .join(', ');
+    }
+
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
+        return filters[filterKey];
+    }
+
+    const filterValue = filters[filterKey];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
 
@@ -213,7 +237,7 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
     return filterValue
         ? Object.values(CONST.SEARCH.TRANSACTION_TYPE)
               .filter((expenseType) => filterValue.includes(expenseType))
-              .map((expenseType) => translate(SearchUtils.getExpenseTypeTranslationKey(expenseType)))
+              .map((expenseType) => translate(SearchUIUtils.getExpenseTypeTranslationKey(expenseType)))
               .join(', ')
         : undefined;
 }
@@ -242,8 +266,8 @@ function AdvancedSearchFilters() {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
     }
 
-    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
-    const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery()), [queryString]);
+    const queryString = useMemo(() => SearchQueryUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
+    const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(queryString || SearchQueryUtils.buildCannedSearchQuery()), [queryString]);
 
     const applyFiltersAndNavigate = () => {
         SearchActions.clearAllFilters();
@@ -263,7 +287,8 @@ function AdvancedSearchFilters() {
             return;
         }
 
-        if (isEmptyObject(savedSearches)) {
+        // We only want to show the tooltip once, the NVP will not be set if the user has not saved a search yet
+        if (!savedSearches) {
             SearchActions.showSavedSearchRenameTooltip();
         }
 
@@ -313,7 +338,7 @@ function AdvancedSearchFilters() {
         })
         .sort((a, b) => (a?.description ?? '')?.localeCompare(b?.description ?? ''));
 
-    const displaySearchButton = queryJSON && !SearchUtils.isCannedSearchQuery(queryJSON);
+    const displaySearchButton = queryJSON && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
 
     return (
         <>
@@ -336,7 +361,7 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
-            {displaySearchButton && (
+            {!!displaySearchButton && (
                 <Button
                     text={translate('search.saveSearch')}
                     onPress={onSaveSearch}

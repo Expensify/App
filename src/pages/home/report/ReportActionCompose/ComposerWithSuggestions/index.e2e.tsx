@@ -1,3 +1,4 @@
+/* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
@@ -56,11 +57,12 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
 
                 textInputRef.current?.blur();
                 setFocus();
-                // Simulate user behavior and don't set focus immediately
-            }, 5_000);
+                // 1000ms is enough time for any keyboard to open
+            }, 1_000);
         };
 
-        setFocus();
+        // Simulate user behavior and don't set focus immediately
+        setTimeout(setFocus, 2_000);
     }, []);
 
     return (
