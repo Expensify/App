@@ -65,7 +65,6 @@ const REPORT_BOOLEAN_PROPERTIES: Array<keyof Report> = [
     'isOptimisticReport',
     'isWaitingOnBankAccount',
     'isCancelledIOU',
-    'isLastMessageDeletedParentAction',
     'isHidden',
     'isChatRoom',
     'isLoadingPrivateNotes',

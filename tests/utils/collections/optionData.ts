@@ -42,7 +42,6 @@ export default function createRandomOptionData(index: number): OptionData {
         statusNum: rand(Object.values(CONST.REPORT.STATUS_NUM)),
         type: rand(Object.values(CONST.REPORT.TYPE)),
         visibility: rand(Object.values(CONST.REPORT.VISIBILITY)),
-        isLastMessageDeletedParentAction: randBoolean(),
         isCancelledIOU: randBoolean(),
         iouReportID: `iou_${index}`,
         iouReportAmount: randNumber({min: 0, max: 1000}),

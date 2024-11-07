@@ -218,9 +218,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is cancelled */
         isCancelledIOU?: boolean;
 
-        /** Whether the last message was deleted */
-        isLastMessageDeletedParentAction?: boolean;
-
         /** The ID of the IOU report */
         iouReportID?: string;
 
