@@ -253,7 +253,7 @@ function getInvoicePrimaryWorkspace(activePolicyID: OnyxEntry<string>, currentUs
  */
 function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>> | OnyxCollection<PolicySelector>, includeOnlyAdminPolicies = false): boolean {
     const chatEnabledPolicies = Object.values(policies ?? {}).filter(
-        (policy) => policy?.isPolicyExpenseChatEnabled && (!includeOnlyAdminPolicies || policy.role === CONST.POLICY.ROLE.ADMIN),
+        (policy) => policy?.type !== CONST.POLICY.TYPE.PERSONAL && (!includeOnlyAdminPolicies || policy?.role === CONST.POLICY.ROLE.ADMIN),
     );
 
     if (chatEnabledPolicies.length === 0) {
