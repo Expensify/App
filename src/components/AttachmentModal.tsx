@@ -135,7 +135,7 @@ type AttachmentModalProps = {
 
     shouldDisableSendButton?: boolean;
 
-    imageLink?: string;
+    attachmentLink?: string;
 };
 
 function AttachmentModal({
@@ -163,7 +163,7 @@ function AttachmentModal({
     type = undefined,
     accountID = undefined,
     shouldDisableSendButton = false,
-    imageLink = '',
+    attachmentLink = '',
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -188,7 +188,7 @@ function AttachmentModal({
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
     const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    const [attachmentCarouselImageLink, setAttachmentCarouselImageLink] = useState('');
+    const [currentAttachmentLink, setCurrentAttachmentLink] = useState('');
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -215,7 +215,7 @@ function AttachmentModal({
             setFile(attachment.file);
             setIsAuthTokenRequiredState(attachment.isAuthTokenRequired ?? false);
             onCarouselAttachmentChange(attachment);
-            setAttachmentCarouselImageLink(attachment?.imageLink ?? '');
+            setCurrentAttachmentLink(attachment?.attachmentLink ?? '');
         },
         [onCarouselAttachmentChange],
     );
@@ -493,15 +493,15 @@ function AttachmentModal({
         }
 
         if (!isEmptyObject(report) && !isReceiptAttachment) {
-            return attachmentCarouselImageLink;
+            return currentAttachmentLink;
         }
 
-        if (!isAuthTokenRequired && imageLink) {
-            return imageLink;
+        if (!isAuthTokenRequired && attachmentLink) {
+            return attachmentLink;
         }
 
         return '';
-    }, [shouldShowNotFoundPage, report, isReceiptAttachment, attachmentCarouselImageLink, isAuthTokenRequired, imageLink]);
+    }, [shouldShowNotFoundPage, report, isReceiptAttachment, currentAttachmentLink, isAuthTokenRequired, attachmentLink]);
 
     return (
         <>

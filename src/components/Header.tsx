@@ -50,18 +50,15 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
 
     const renderedSubTitleLink = useMemo(
         () => (
-            <Text
+            <TextLink
+                onPress={() => {
+                    Linking.openURL(subTitleLink);
+                }}
                 numberOfLines={1}
                 style={styles.label}
             >
-                <TextLink
-                    onPress={() => {
-                        Linking.openURL(subTitleLink);
-                    }}
-                >
-                    {subTitleLink}
-                </TextLink>
-            </Text>
+                {subTitleLink}
+            </TextLink>
         ),
         [styles.label, subTitleLink],
     );
@@ -80,7 +77,7 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
                       )
                     : title}
                 {renderedSubtitle}
-                {subTitleLink && renderedSubTitleLink}
+                {!!subTitleLink && renderedSubTitleLink}
             </View>
             {shouldShowEnvironmentBadge && <EnvironmentBadge />}
         </View>

@@ -29,7 +29,7 @@ type Attachment = {
 
     duration?: number;
 
-    imageLink?: string;
+    attachmentLink?: string;
 };
 
 export type {AttachmentSource, Attachment};
