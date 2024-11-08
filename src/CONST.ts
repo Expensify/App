@@ -20,6 +20,7 @@ const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
+const EXPENSIFY_URL = 'https://www.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
@@ -832,6 +833,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     USE_EXPENSIFY_URL,
+    EXPENSIFY_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
     IMAGE_BASE64_MATCH: 'base64',
@@ -846,12 +848,12 @@ const CONST = {
     DEEP_DIVE_ERECEIPTS: 'https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts/',
     DEEP_DIVE_PER_DIEM: 'https://community.expensify.com/discussion/4772/how-to-add-a-single-rate-per-diem',
     GITHUB_URL: 'https://github.com/Expensify/App',
-    TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
-    PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
+    TERMS_URL: `${EXPENSIFY_URL}/terms`,
+    PRIVACY_URL: `${EXPENSIFY_URL}/privacy`,
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
-    ACH_TERMS_URL: `${USE_EXPENSIFY_URL}/achterms`,
-    WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/walletagreement`,
-    BANCORP_WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
+    ACH_TERMS_URL: `${EXPENSIFY_URL}/achterms`,
+    WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/expensify-payments-wallet-terms-of-service`,
+    BANCORP_WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
     HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
@@ -864,7 +866,6 @@ const CONST = {
     NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
-    EXPENSIFY_URL: 'https://www.expensify.com',
     BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL:
         'https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account',
     PERSONAL_DATA_PROTECTION_INFO_URL: 'https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information',
@@ -872,7 +873,7 @@ const CONST = {
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
-    TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
+    TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
@@ -2805,6 +2806,7 @@ const CONST = {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
         },
+        CARD_LIST_THRESHOLD: 8,
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
@@ -3142,8 +3144,8 @@ const CONST = {
         EXPENSIFY_APPROVED_URL: `${USE_EXPENSIFY_URL}/accountants`,
         PRESS_KIT_URL: 'https://we.are.expensify.com/press-kit',
         SUPPORT_URL: `${USE_EXPENSIFY_URL}/support`,
-        COMMUNITY_URL: 'https://community.expensify.com/',
-        PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
+        TERMS_URL: `${EXPENSIFY_URL}/terms`,
+        PRIVACY_URL: `${EXPENSIFY_URL}/privacy`,
         ABOUT_URL: 'https://we.are.expensify.com/how-we-got-here',
         BLOG_URL: 'https://blog.expensify.com/',
         JOBS_URL: 'https://we.are.expensify.com/apply',
