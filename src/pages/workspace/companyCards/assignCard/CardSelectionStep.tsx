@@ -88,14 +88,14 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             return;
         }
 
-        const cardName =
+        const cardNumber =
             Object.entries(filteredCardList)
                 .find(([, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
                 ?.at(0) ?? '';
 
         CompanyCards.setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
-            data: {encryptedCardNumber: cardSelected, cardName: accountCardList?.length > 0 ? cardSelected : cardName},
+            data: {encryptedCardNumber: cardSelected, cardNumber: accountCardList?.length > 0 ? cardSelected : cardNumber},
             isEditing: false,
         });
     };
