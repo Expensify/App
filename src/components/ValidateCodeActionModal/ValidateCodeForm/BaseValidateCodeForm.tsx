@@ -249,6 +249,7 @@ function BaseValidateCodeForm({
                 />
             )}
             <OfflineWithFeedback
+                shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
                 errors={validateError}
                 errorRowStyles={[styles.mt2]}
