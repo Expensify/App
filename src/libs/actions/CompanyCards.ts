@@ -17,6 +17,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Card} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
 import type {AddNewCardFeedData, AddNewCardFeedStep, CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -183,7 +184,7 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
     if (!data) {
         return;
     }
-    const {bankName = '', email = '', encryptedCardNumber = '', startDate = ''} = data;
+    const {bankName = '', email = '', encryptedCardNumber = '', startDate = '', cardName = ''} = data;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
     const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? -1);
 
@@ -191,6 +192,7 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
         policyID,
         bankName,
         encryptedCardNumber,
+        cardName,
         email,
         startDate,
         reportActionID: optimisticCardAssignedReportAction.reportActionID,
@@ -232,8 +234,9 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
     API.write(WRITE_COMMANDS.ASSIGN_COMPANY_CARD, parameters, onyxData);
 }
 
-function unassignWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: string) {
+function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: string, card?: Card) {
     const authToken = NetworkStore.getAuthToken();
+    const cardID = card?.cardID ?? '-1';
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -244,12 +247,42 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, cardID: string
                     [cardID]: null,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {
+                    [cardID]: null,
+                },
+            },
+        ],
+
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+                value: {
+                    [cardID]: {
+                        ...card,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {
+                    [cardID]: {
+                        ...card,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
         ],
     };
 
     const parameters = {
         authToken,
-        cardID,
+        cardID: Number(cardID),
     };
 
     API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, onyxData);
@@ -378,7 +411,7 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
 
     const parameters = {
         authToken,
-        cardID,
+        cardID: Number(cardID),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD, parameters, {optimisticData, finallyData, failureData});
