@@ -282,6 +282,7 @@ function TransactionListItemRow({
                         isDisabled={item.isDisabled}
                         isDisabledCheckbox={item.isDisabledCheckbox}
                         handleCheckboxPress={onCheckboxPress}
+                        isLoading={isLoading}
                     />
                 )}
 
