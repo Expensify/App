@@ -8128,7 +8128,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
     );
 
     const currentReportID = ReportUtils.getDisplayedReportID(reportID);
-    Report.notifyNewAction(currentReportID ?? '', userAccountID);
+    Report.notifyNewAction(currentReportID, userAccountID);
 }
 
 /**
