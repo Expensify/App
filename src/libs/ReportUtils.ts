@@ -8427,27 +8427,26 @@ function shouldUnmaskChat(participantsContext: OnyxEntry<PersonalDetailsList>, r
 
     if (participantsContext) {
         // by email participants
+        let teamInChat = false;
+        let userInChat = false;
         for (const participantAccountID of participantAccountIDs) {
             const id = Number(participantAccountID);
             const contextAccountData = participantsContext[id];
+
             if (contextAccountData) {
                 const login = contextAccountData.login ?? '';
-                if (login.endsWith(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
-                    return true;
-                }
 
-                if (login.endsWith(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN)) {
-                    return true;
+                if (login.endsWith(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN) ?? login.endsWith(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN)) {
+                    teamInChat = true;
+                } else {
+                    userInChat = true;
                 }
             }
         }
-    }
-
-    // System users communication
-    const expensifyTeam = new Set(Object.values(CONST.ACCOUNT_ID));
-    const hasIntersection = [...participantAccountIDs].some((id) => expensifyTeam.has(Number(id)));
-    if (hasIntersection) {
-        return true;
+        // exclude teamOnly chat
+        if (teamInChat && userInChat) {
+            return true;
+        }
     }
 
     return false;
