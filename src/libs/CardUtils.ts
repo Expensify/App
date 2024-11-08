@@ -137,7 +137,10 @@ function maskCard(lastFour = ''): string {
  * @param [cardName=""] - card name with XXXX in the middle.
  * @returns - The masked card string.
  */
-function maskCardNumber(cardName = ''): string {
+function maskCardNumber(cardName: string): string {
+    if (!cardName || cardName === '') {
+        return '';
+    }
     const maskedString = cardName.replace(/X/g, '•');
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
