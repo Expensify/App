@@ -552,6 +552,10 @@ type WorkspaceLockedPlanTypeParams = {
     annualSubscriptionEndDate: string;
 };
 
+type CurrencyCodeParams = {
+    currencyCode: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -752,4 +756,5 @@ export type {
     AssignCardParams,
     ImportedTypesParams,
     WorkspaceLockedPlanTypeParams,
+    CurrencyCodeParams,
 };

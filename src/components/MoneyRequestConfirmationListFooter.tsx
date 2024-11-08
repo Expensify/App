@@ -42,9 +42,6 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
     action: IOUAction;
 
-    /** Flag indicating if P2P distance requests can be used */
-    canUseP2PDistanceRequests: boolean | undefined;
-
     /** The currency of the transaction */
     currency: string;
 
@@ -104,9 +101,6 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if the merchant is required */
     isMerchantRequired: boolean | undefined;
-
-    /** Flag indicating if the transaction is moved from track expense */
-    isMovingTransactionFromTrackExpense: boolean;
 
     /** Flag indicating if it is a policy expense chat */
     isPolicyExpenseChat: boolean;
@@ -177,7 +171,6 @@ type MoneyRequestConfirmationListFooterProps = {
 
 function MoneyRequestConfirmationListFooter({
     action,
-    canUseP2PDistanceRequests,
     currency,
     didConfirm,
     distance,
@@ -198,7 +191,6 @@ function MoneyRequestConfirmationListFooter({
     isEditingSplitBill,
     isMerchantEmpty,
     isMerchantRequired,
-    isMovingTransactionFromTrackExpense,
     isPolicyExpenseChat,
     isReadOnly,
     isTypeInvoice,
@@ -353,24 +345,6 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly && !isMovingTransactionFromTrackExpense}
-                    title={isMerchantEmpty ? '' : iouMerchant}
-                    description={translate('common.distance')}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
-                    disabled={didConfirm}
-                    // todo: handle edit for transaction while moving from track expense
-                    interactive={!isReadOnly && !isMovingTransactionFromTrackExpense}
-                />
-            ),
-            shouldShow: isDistanceRequest && !canUseP2PDistanceRequests,
-            isSupplementary: false,
-        },
-        {
-            item: (
-                <MenuItemWithTopDescription
-                    key={translate('common.distance')}
                     shouldShowRightIcon={!isReadOnly}
                     title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate)}
                     description={translate('common.distance')}
@@ -381,7 +355,7 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!isReadOnly}
                 />
             ),
-            shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
+            shouldShow: isDistanceRequest,
             isSupplementary: false,
         },
         {
@@ -398,7 +372,7 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!!rate && !isReadOnly && isPolicyExpenseChat}
                 />
             ),
-            shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
+            shouldShow: isDistanceRequest,
             isSupplementary: false,
         },
         {
@@ -692,7 +666,6 @@ export default memo(
     MoneyRequestConfirmationListFooter,
     (prevProps, nextProps) =>
         lodashIsEqual(prevProps.action, nextProps.action) &&
-        prevProps.canUseP2PDistanceRequests === nextProps.canUseP2PDistanceRequests &&
         prevProps.currency === nextProps.currency &&
         prevProps.didConfirm === nextProps.didConfirm &&
         prevProps.distance === nextProps.distance &&
@@ -711,7 +684,6 @@ export default memo(
         prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
         prevProps.isMerchantEmpty === nextProps.isMerchantEmpty &&
         prevProps.isMerchantRequired === nextProps.isMerchantRequired &&
-        prevProps.isMovingTransactionFromTrackExpense === nextProps.isMovingTransactionFromTrackExpense &&
         prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
         prevProps.isReadOnly === nextProps.isReadOnly &&
         prevProps.isTypeInvoice === nextProps.isTypeInvoice &&
