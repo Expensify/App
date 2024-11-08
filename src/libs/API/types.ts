@@ -288,6 +288,7 @@ const WRITE_COMMANDS = {
     ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE: 'AddBillingCardAndRequestPolicyOwnerChange',
     SET_POLICY_DISTANCE_RATES_UNIT: 'SetPolicyDistanceRatesUnit',
     SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY: 'SetPolicyDistanceRatesDefaultCategory',
+    SET_POLICY_PER_DIEM_RATES_DEFAULT_CATEGORY: 'SetPolicyPerDiemRatesDefaultCategory',
     ENABLE_DISTANCE_REQUEST_TAX: 'EnableDistanceRequestTax',
     UPDATE_POLICY_DISTANCE_RATE_VALUE: 'UpdatePolicyDistanceRateValue',
     UPDATE_POLICY_DISTANCE_TAX_RATE_VALUE: 'UpdateDistanceTaxRate',
@@ -692,6 +693,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_POLICY_TAX_CODE]: Parameters.UpdatePolicyTaxCodeParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT]: Parameters.SetPolicyDistanceRatesUnitParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
+    [WRITE_COMMANDS.SET_POLICY_PER_DIEM_RATES_DEFAULT_CATEGORY]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
     [WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
     [WRITE_COMMANDS.REPORT_EXPORT]: Parameters.ReportExportParams;
     [WRITE_COMMANDS.MARK_AS_EXPORTED]: Parameters.MarkAsExportedParams;

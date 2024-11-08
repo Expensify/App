@@ -23,12 +23,12 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Category from '@userActions/Policy/Category';
 import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import * as Policy from '@userActions/Policy/Policy';
+import CategorySelector from '@src/components/CategorySelector';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CustomUnit} from '@src/types/onyx/Policy';
-import CategorySelector from './CategorySelector';
 import UnitSelector from './UnitSelector';
 
 type PolicyDistanceRatesSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
@@ -125,7 +125,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 >
                                     <CategorySelector
                                         policyID={policyID}
-                                        label={translate('workspace.distanceRates.defaultCategory')}
+                                        label={translate('workspace.common.defaultCategory')}
                                         defaultValue={defaultCategory}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
                                         setNewCategory={setNewCategory}

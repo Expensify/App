@@ -935,6 +935,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
                             path: ROUTES.RULES_BILLABLE_DEFAULT.route,
                         },
+                        [SCREENS.WORKSPACE.PER_DIEM_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_SETTINGS.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {

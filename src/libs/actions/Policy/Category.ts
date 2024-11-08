@@ -1069,6 +1069,60 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
 }
 
+function setPolicyPerDiemRatesDefaultCategory(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        ...newCustomUnit,
+                        pendingFields: {defaultCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        pendingFields: {defaultCategory: null},
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [currentCustomUnit.customUnitID]: {
+                        ...currentCustomUnit,
+                        errorFields: {defaultCategory: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                        pendingFields: {defaultCategory: null},
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: SetPolicyDistanceRatesDefaultCategoryParams = {
+        policyID,
+        customUnit: JSON.stringify(removePendingFieldsFromCustomUnit(newCustomUnit)),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_PER_DIEM_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
+}
+
 function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_CATEGORIES_CSV, {
         policyID,
@@ -1365,6 +1419,7 @@ export {
     clearCategoryErrors,
     enablePolicyCategories,
     setPolicyDistanceRatesDefaultCategory,
+    setPolicyPerDiemRatesDefaultCategory,
     deleteWorkspaceCategories,
     buildOptimisticPolicyCategories,
     setPolicyCategoryReceiptsRequired,
