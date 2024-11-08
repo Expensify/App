@@ -14,8 +14,6 @@ import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import * as User from '@userActions/User';
@@ -40,8 +38,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
     const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
-    const contactMethod = UserUtils.getContactMethod();
-    const validateLoginError = issueNewCard?.errors;
+    const validateLoginError = ErrorUtils.getLatestErrorMessageField(issueNewCard);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
@@ -140,11 +137,10 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 sendValidateCode={() => User.requestValidateCodeAction()}
                 validateError={validateLoginError}
                 clearError={() => {
-                    User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin');
+                    Card.clearIssueNewCardError();
                 }}
                 onClose={() => {
                     if (validateLoginError && pendingContactAction?.contactMethod) {
-                        User.clearContactMethod(pendingContactAction?.contactMethod);
                         Card.clearIssueNewCardError();
                     }
                     setIsValidateCodeActionModalVisible(false);
