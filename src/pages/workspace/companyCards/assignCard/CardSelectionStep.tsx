@@ -187,7 +187,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                         isAlertVisible={shouldShowError}
                         containerStyles={styles.ph5}
                         message={translate('common.error.pleaseSelectOne')}
-                        buttonStyles={[styles.mb5, styles.mt1]}
+                        buttonStyles={styles.mb5}
                     />
                 </>
             )}
