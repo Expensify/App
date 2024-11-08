@@ -707,7 +707,7 @@ const translations = {
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
-        multipleUsers: 'Multiple members',
+        multipleMembers: 'Multiple members',
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
