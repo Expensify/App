@@ -39,7 +39,7 @@ If you are still not receiving Expensify notifications and have an email address
 If your organization uses a private domain, Expensify emails may be blocked at the server level. This can sometimes happen unexpectedly due to broader changes in email provider's handling or filtering of incoming messages. Consult your internal IT team to assist with the following:
 
  -  Ensure that the domain expensify.com is allowlisted on domain email servers. This domains is the sources of various notification emails, so it's important it is allowlisted. 
- - Confirm there is no server-level email blocking and that spam filters are not blocking Expensify emails. Even if you receive messages from our Concierge support, ensure that expensify.com, mg.expensify.com, and amazonSES.com are all allowlisted, as notifications may use different servers.
+ - Confirm there is no server-level email blocking and that spam filters are not blocking Expensify emails. Even if you have received messages from our Concierge support in the past, ensure that expensify.com is allowlisted.
 
 ## Companies using Outlook
 
