@@ -1698,11 +1698,13 @@ function isOneTransactionThread(reportID: string, parentReportID: string, thread
     return reportID === transactionThreadReportID && !ReportActionsUtils.isSentMoneyReportAction(threadParentReportAction);
 }
 
-function getCurrentReportIDInOneTransactionThread(reportID: string) {
+/**
+ * Get displayed repport ID in one transaction thread
+ */
+function getDisplayedReportID(reportID: string): string {
     const report = getReport(reportID);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-    const currentReportID = isOneTransactionThread(report?.reportID ?? '', report?.parentReportID ?? '', parentReportAction) ? report?.parentReportID : reportID;
-    return currentReportID;
+    return (isOneTransactionThread(report?.reportID ?? '', report?.parentReportID ?? '', parentReportAction) ? report?.parentReportID : reportID) ?? '';
 }
 
 /**
@@ -8560,7 +8562,7 @@ export {
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
     getTransactionReportName,
-    getCurrentReportIDInOneTransactionThread,
+    getDisplayedReportID,
     getTransactionsWithReceipts,
     getUserDetailTooltipText,
     getWhisperDisplayNames,
