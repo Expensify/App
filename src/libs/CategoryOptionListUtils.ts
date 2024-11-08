@@ -1,3 +1,4 @@
+// eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
 import lodashSet from 'lodash/set';
 import CONST from '@src/CONST';
