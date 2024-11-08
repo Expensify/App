@@ -146,6 +146,9 @@ type SearchReport = {
     /** Whether the report is archived */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     private_isArchived?: string;
+
+    /** Whether the action is loading */
+    isActionLoading?: boolean;
 };
 
 /** Model of report action search result */

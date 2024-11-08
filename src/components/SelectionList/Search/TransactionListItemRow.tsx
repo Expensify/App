@@ -59,6 +59,7 @@ type TransactionListItemRowProps = {
     isButtonSelected?: boolean;
     parentAction?: string;
     shouldShowTransactionCheckbox?: boolean;
+    isLoading?: boolean;
 };
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -257,6 +258,7 @@ function TransactionListItemRow({
     isButtonSelected = false,
     parentAction = '',
     shouldShowTransactionCheckbox,
+    isLoading = false,
 }: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -445,6 +447,7 @@ function TransactionListItemRow({
                         isChildListItem={isChildListItem}
                         parentAction={parentAction}
                         goToItem={onButtonPress}
+                        isLoading={isLoading}
                     />
                 </View>
             </View>

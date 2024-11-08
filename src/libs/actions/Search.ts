@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod} from '@src/types/onyx';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
 
 let currentUserEmail: string;
@@ -189,7 +189,18 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
 }
 
 function approveMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    const createOnyxLoadingData = (isLoading: boolean): OnyxUpdate[] => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isActionLoading: isLoading}])) as Partial<SearchReport>,
+            },
+        },
+    ];
+
+    const optimisticData: OnyxUpdate[] = createOnyxLoadingData(true);
+    const finallyData: OnyxUpdate[] = createOnyxLoadingData(false);
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
 }

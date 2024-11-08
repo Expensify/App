@@ -202,6 +202,7 @@ function ReportListItem<TItem extends ListItem>({
                                 action={reportItem.action}
                                 goToItem={handleOnButtonPress}
                                 isSelected={item.isSelected}
+                                isLoading={reportItem.isActionLoading}
                             />
                         </View>
                     )}
