@@ -3,8 +3,8 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-const useIsKeyboardShown = () => {
-    const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+const useIsWindowHeightReducedByKeyboard = () => {
+    const [isWindowHeightReducedByKeyboard, setIsWindowHeightReducedByKeyboard] = useState(false);
     const {windowHeight} = useWindowDimensions();
     const prevWindowHeight = usePrevious(windowHeight);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -13,19 +13,19 @@ const useIsKeyboardShown = () => {
             if (!shouldUseNarrowLayout) {
                 return;
             }
-            setIsKeyboardOpen(isKBOpen);
+            setIsWindowHeightReducedByKeyboard(isKBOpen);
         },
         [shouldUseNarrowLayout],
     );
     useEffect(() => {
-        if (!isKeyboardOpen && windowHeight < prevWindowHeight - 100) {
+        if (!isWindowHeightReducedByKeyboard && windowHeight < prevWindowHeight - 100) {
             toggleKeyboardOnSmallScreens(true);
-        } else if (isKeyboardOpen && windowHeight > prevWindowHeight) {
+        } else if (isWindowHeightReducedByKeyboard && windowHeight > prevWindowHeight) {
             toggleKeyboardOnSmallScreens(false);
         }
-    }, [isKeyboardOpen, prevWindowHeight, toggleKeyboardOnSmallScreens, windowHeight]);
+    }, [isWindowHeightReducedByKeyboard, prevWindowHeight, toggleKeyboardOnSmallScreens, windowHeight]);
 
-    return isKeyboardOpen;
+    return isWindowHeightReducedByKeyboard;
 };
 
-export default useIsKeyboardShown;
+export default useIsWindowHeightReducedByKeyboard;
