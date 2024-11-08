@@ -126,7 +126,7 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
     if (Number.isNaN(numValue)) {
         return NaN;
     }
-    return numValue.toFixed(CONST.CUSTOM_UNITS.RATE_DECIMALS);
+    return numValue;
 }
 
 /**
@@ -158,11 +158,10 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     }
 
     if (withDecimals) {
-        const decimalPart = numValue.toString().split('.').at(1);
-        if (decimalPart) {
-            const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
-            return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
-        }
+        const decimalPart = numValue.toString().split('.').at(1) ?? '';
+        // Set the fraction digits to be between 2 and 4 (OD Behavior)
+        const fractionDigits = Math.min(Math.max(decimalPart.length, CONST.MIN_TAX_RATE_DECIMAL_PLACES), CONST.MAX_TAX_RATE_DECIMAL_PLACES);
+        return Number(numValue).toFixed(fractionDigits).toString().replace('.', toLocaleDigit('.'));
     }
 
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
@@ -195,10 +194,11 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin: strin
  */
 function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean, currentUserLogin: string | undefined): boolean {
     return (
-        !!policy &&
-        (policy?.type !== CONST.POLICY.TYPE.PERSONAL || !!policy?.isJoinRequestPending) &&
-        (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
-        !!getPolicyRole(policy, currentUserLogin)
+        !!policy?.isJoinRequestPending ||
+        (!!policy &&
+            policy?.type !== CONST.POLICY.TYPE.PERSONAL &&
+            (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
+            !!getPolicyRole(policy, currentUserLogin))
     );
 }
 
