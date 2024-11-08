@@ -406,7 +406,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     };
 
     const shouldShowYear = SearchUIUtils.shouldShowYear(searchResults?.data);
-    const shouldShowSorting = Array.isArray(status) ? false : sortableSearchStatuses.includes(status);
+    const shouldShowSorting = !Array.isArray(status) && sortableSearchStatuses.includes(status);
 
     return (
         <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
