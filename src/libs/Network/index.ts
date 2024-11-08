@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
-import {reauthenticate} from '@libs/Middleware/Reauthentication';
+// import {reauthenticate} from '@libs/Middleware/Reauthentication';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
@@ -17,15 +17,15 @@ ActiveClientManager.isReady().then(() => {
     setInterval(MainQueue.process, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
 
     // If a reauthentication request is set make sure it is processed
-    Onyx.connect({
-        key: ONYXKEYS.REAUTHENTICATION_REQUEST,
-        callback: (request) => {
-            if (!request) {
-                return;
-            }
-            reauthenticate(request.commandName);
-        },
-    });
+    // Onyx.connect({
+    //     key: ONYXKEYS.REAUTHENTICATION_REQUEST,
+    //     callback: (request) => {
+    //         if (!request) {
+    //             return;
+    //         }
+    //         // reauthenticate(request.commandName);
+    //     },
+    // });
 });
 
 /**
