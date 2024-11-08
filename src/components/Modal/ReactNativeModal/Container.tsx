@@ -30,7 +30,7 @@ function Container({isVisible, isContainerOpen, isTransitioning, isHeightCalcula
         // eslint-disable-next-line react-compiler/react-compiler
         translateY.value = withDelay(0, withTiming(isVisible ? 0 : 500, {duration: 300, easing: Easing.inOut(Easing.ease)}));
         setMH(0);
-    }, [isVisible, isTransitioning]);
+    }, [isVisible, isTransitioning, translateY]);
 
     const animatedStyles = useAnimatedStyle(() => {
         return {

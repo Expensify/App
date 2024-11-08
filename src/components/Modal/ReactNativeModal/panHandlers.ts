@@ -1,7 +1,6 @@
 import type {GestureResponderEvent, PanResponderGestureState} from 'react-native';
 import {Animated} from 'react-native';
 import type {Direction} from './types';
-import type ModalProps from './types';
 import {isSwipeHorizontal} from './utils';
 
 const reversePercentage = (x: number) => -(x - 1);
@@ -81,7 +80,11 @@ const getSwipingDirection = ({dx, dy}: PanResponderGestureState): Direction => {
     return Math.abs(dx) > Math.abs(dy) ? xDirection : yDirection;
 };
 
-const shouldPropagateSwipe = (evt: GestureResponderEvent, gestureState: PanResponderGestureState, propagateSwipe: ModalProps['propagateSwipe']) => {
+const shouldPropagateSwipe = (
+    evt: GestureResponderEvent,
+    gestureState: PanResponderGestureState,
+    propagateSwipe: boolean | ((event: GestureResponderEvent, gestureState: PanResponderGestureState) => boolean) = false,
+) => {
     return typeof propagateSwipe === 'function' ? propagateSwipe(evt, gestureState) : propagateSwipe;
 };
 

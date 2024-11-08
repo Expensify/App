@@ -5,6 +5,8 @@ type Orientation = 'portrait' | 'portrait-upside-down' | 'landscape' | 'landscap
 
 type Direction = 'up' | 'down' | 'left' | 'right';
 type PresentationStyle = 'fullScreen' | 'pageSheet' | 'formSheet' | 'overFullScreen';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type OnOrientationChange = (orientation: NativeSyntheticEvent<any>) => void;
 
 type OnSwipeCompleteParams = {
@@ -150,6 +152,8 @@ type ModalProps = ViewProps & {
 };
 
 type GestureResponderEvent = NativeSyntheticEvent<NativeTouchEvent>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnimationEvent = (...args: any[]) => void;
 
 export default ModalProps;

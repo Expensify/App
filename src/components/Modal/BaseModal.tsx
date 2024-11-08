@@ -62,6 +62,7 @@ function BaseModal(
     const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const keyboardStateContextValue = useKeyboardState();
 
@@ -246,7 +247,11 @@ function BaseModal(
                     style={modalStyle}
                     deviceHeight={windowHeight}
                     deviceWidth={windowWidth}
+                    /* eslint-disable @typescript-eslint/ban-ts-comment */
+                    // @ts-ignore
                     animationIn={animationIn ?? modalStyleAnimationIn}
+                    /* eslint-disable @typescript-eslint/ban-ts-comment */
+                    // @ts-ignoreanimationOut={animationOut ?? modalStyleAnimationOut}
                     animationOut={animationOut ?? modalStyleAnimationOut}
                     // eslint-disable-next-line react-compiler/react-compiler
                     useNativeDriver={useNativeDriverProp && useNativeDriver}
