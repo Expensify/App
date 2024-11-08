@@ -1699,7 +1699,7 @@ function isOneTransactionThread(reportID: string, parentReportID: string, thread
 }
 
 /**
- * Get displayed repport ID in one transaction thread
+ * Get displayed report ID, it will be parentReportID if the report is one transaction thread
  */
 function getDisplayedReportID(reportID: string): string {
     const report = getReport(reportID);
