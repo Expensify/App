@@ -50,7 +50,7 @@ If your organization uses a private domain, Expensify emails may be blocked at t
 
 ### Companies using Google Workspaces: 
 
-- **Company IT administrators:** Adjust your domain's email allowlist and safe senders lists to add expensify.com, mg.expensify.com, and amazonSES.com by following these steps: [Allowlists, denylists, and approved senders](https://support.google.com/a/answer/60752)
+- **Company IT administrators:** Adjust your domain's email allowlist and safe senders lists to include expensify.com by following these steps: [Allowlists, denylists, and approved senders](https://support.google.com/a/answer/60752)
 
 {% include faq-begin.md %}
 
