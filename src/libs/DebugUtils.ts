@@ -52,16 +52,11 @@ type ArrayElement<TOnyx extends Record<string, unknown>, K extends keyof TOnyx> 
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 
-type ObjectTypeFromOnyxDefinition<T, TCollectionKey extends string | number | undefined = undefined> = T extends Record<string | number, infer ValueType>
+type ObjectElement<TOnyx, K extends keyof TOnyx, TCollectionKey extends string | number | undefined = undefined> = Required<TOnyx>[K] extends Record<string | number, infer ValueType>
     ? TCollectionKey extends string | number
         ? {[ValueTypeKey in KeysOfUnion<ValueType>]: ValueType[ValueTypeKey]}
-        : {[ElementKey in KeysOfUnion<T>]: T[ElementKey]}
+        : {[ElementKey in KeysOfUnion<Required<TOnyx>[K]>]: Required<Required<TOnyx>[K]>[ElementKey]}
     : never;
-
-type ObjectElement<TOnyx extends Record<string, unknown>, K extends keyof TOnyx, TCollectionKey extends string | number | undefined = undefined> = ObjectTypeFromOnyxDefinition<
-    TOnyx[K],
-    TCollectionKey
->;
 
 const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
 
