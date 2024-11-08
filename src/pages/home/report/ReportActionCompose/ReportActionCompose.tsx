@@ -274,8 +274,8 @@ function ReportActionCompose({
                 Report.addAttachment(reportID, attachmentFileRef.current, newCommentTrimmed);
                 attachmentFileRef.current = null;
             } else {
-                Performance.markStart(CONST.TIMING.MESSAGE_SENT, {message: newCommentTrimmed});
-                Timing.start(CONST.TIMING.MESSAGE_SENT);
+                Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
+                Timing.start(CONST.TIMING.SEND_MESSAGE);
                 onSubmit(newCommentTrimmed);
             }
         },

@@ -53,8 +53,8 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
-        Performance.markEnd(CONST.TIMING.MESSAGE_SENT, {message: text});
-        Timing.end(CONST.TIMING.MESSAGE_SENT);
+        Performance.markEnd(CONST.TIMING.SEND_MESSAGE, {message: text});
+        Timing.end(CONST.TIMING.SEND_MESSAGE);
     }, [text]);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag

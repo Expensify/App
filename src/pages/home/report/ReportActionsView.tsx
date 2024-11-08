@@ -428,7 +428,11 @@ function ReportActionsView({
 
         Performance.markEnd(CONST.TIMING.OPEN_REPORT);
         Timing.end(CONST.TIMING.OPEN_REPORT);
+
+        Performance.markEnd(CONST.TIMING.OPEN_REPORT_THREAD);
         Timing.end(CONST.TIMING.OPEN_REPORT_THREAD);
+
+        Performance.markEnd(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.end(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
     }, []);
 
