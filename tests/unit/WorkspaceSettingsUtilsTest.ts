@@ -47,7 +47,6 @@ describe('WorkspacesSettingsUtils', () => {
         it('Should return "undefined"', async () => {
             // Given mock data for reports, transaction violations, sessions, and report actions
             const report = Object.values(mockData.reports)?.at(0);
-            const transactionViolations = mockData.transactionViolations;
             const reports = mockData.reports;
             const session = mockData.session;
             const reportActions = mockData.reportActions;
