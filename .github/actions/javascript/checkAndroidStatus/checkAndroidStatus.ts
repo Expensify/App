@@ -1,21 +1,21 @@
-import { google } from 'googleapis';
-import GithubUtils from "@github/libs/GithubUtils";
 import * as core from '@actions/core';
-import CONST from "@github/libs/CONST";
+import {google} from 'googleapis';
+import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
 
-const PACKAGE_NAME = core.getInput('PACKAGE_NAME', { required: true });
-const GOOGLE_KEY_FILE = core.getInput('GOOGLE_KEY_FILE', { required: true });
+const PACKAGE_NAME = core.getInput('PACKAGE_NAME', {required: true});
+const GOOGLE_KEY_FILE = core.getInput('GOOGLE_KEY_FILE', {required: true});
 const HALTED_STATUS = 'halted';
 
 async function checkAndroidStatus() {
     const auth = new google.auth.GoogleAuth({
         keyFile: GOOGLE_KEY_FILE,
-        scopes: ['https://www.googleapis.com/auth/androidpublisher']
+        scopes: ['https://www.googleapis.com/auth/androidpublisher'],
     });
 
     const androidApi = google.androidpublisher({
         version: 'v3',
-        auth: auth
+        auth: auth,
     });
 
     try {
@@ -45,7 +45,7 @@ async function checkAndroidStatus() {
 }
 
 async function getLatestReleaseDate() {
-    const { data } = await GithubUtils.octokit.repos.getLatestRelease({
+    const {data} = await GithubUtils.octokit.repos.getLatestRelease({
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
     });
@@ -69,7 +69,7 @@ function calculateRolloutPercentage(releaseDate: string): number {
     if (daysSinceRelease === 1) return 0.01;
     if (daysSinceRelease === 2) return 0.02;
     if (daysSinceRelease === 3) return 0.05;
-    if (daysSinceRelease === 4) return 0.10;
+    if (daysSinceRelease === 4) return 0.1;
     if (daysSinceRelease === 5) return 0.2;
     if (daysSinceRelease === 6) return 0.5;
     return 1;
@@ -81,4 +81,4 @@ checkAndroidStatus()
         const rolloutPercentage = calculateRolloutPercentage(releaseDate);
         console.log('Rollout percentage:', rolloutPercentage);
         core.setOutput('ROLLOUT_PERCENTAGE', rolloutPercentage);
-});
+    });
