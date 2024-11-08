@@ -32,7 +32,7 @@ If you are still not receiving Expensify notifications and have an email address
 
  - Search for messages from expensify.com in your spam folder, open them, and click “Not Spam” at the top of each message.
  - Configure an email filter that identifies Expensify's email domain expensify.com and directs all incoming messages to your inbox, to avoid messages going to spam.
- - Add specific known Expensify email addresses to your email contacts list. 
+ - Add specific known Expensify email addresses such as concierge@expensify.com to your email contacts list. 
 
 # Further troubleshooting for private domains 
 
