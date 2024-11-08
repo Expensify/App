@@ -80,7 +80,7 @@ function SelectionListWithModal<TItem extends ListItem>(
 
     const handleLongPressRow = (item: TItem) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (!turnOnSelectionModeOnLongPress || item?.isDisabled || item?.isDisabledCheckbox || (!isFocused && !isScreenFocused)) {
+        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || (!isFocused && !isScreenFocused)) {
             return;
         }
         setLongPressedItem(item);
