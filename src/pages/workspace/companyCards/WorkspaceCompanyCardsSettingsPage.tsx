@@ -41,7 +41,8 @@ function WorkspaceCompanyCardsSettingsPage({
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
     const feedName = cardFeeds?.settings?.companyCardNicknames?.[selectedFeed] ?? translate('workspace.companyCards.feedName', {feedName: CardUtils.getCardFeedName(selectedFeed)});
-    const liabilityType = cardFeeds?.settings?.companyCards?.[selectedFeed]?.liabilityType;
+    const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
+    const liabilityType = companyFeeds[selectedFeed]?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
 
     const navigateToChangeFeedName = () => {

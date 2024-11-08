@@ -227,11 +227,22 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
     return Illustrations.AmexCompanyCards;
 }
 
-function removeExpensifyCardFromCompanyCards(companyCards?: Record<string, CardFeedData>) {
-    if (!companyCards) {
+function isCustomFeed(feed: CompanyCardFeed): boolean {
+    return CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD === feed || CONST.COMPANY_CARD.FEED_BANK_NAME.VISA === feed || CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX === feed;
+}
+
+function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): Partial<Record<CompanyCardFeed, CardFeedData>> {
+    return {...cardFeeds?.settings?.companyCards, ...cardFeeds?.settings?.oAuthAccountDetails};
+}
+
+function removeExpensifyCardFromCompanyCards(cardFeeds: OnyxEntry<CardFeeds>): Partial<Record<CompanyCardFeed, CardFeedData>> {
+    if (!cardFeeds) {
         return {};
     }
-    return Object.fromEntries(Object.entries(companyCards).filter(([key]) => key !== CONST.EXPENSIFY_CARD.BANK));
+
+    const companyCards = getCompanyFeeds(cardFeeds);
+
+    return Object.fromEntries(Object.entries(companyCards).filter(([key]) => key !== CONST.EXPENSIFY_CARD.BANK)) as Partial<Record<CompanyCardFeed, CardFeedData>>;
 }
 
 function getCardFeedName(feedType: CompanyCardFeed): string {
@@ -301,7 +312,7 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
 };
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed {
-    const defaultFeed = Object.keys(removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards)).at(0) as CompanyCardFeed;
+    const defaultFeed = Object.keys(removeExpensifyCardFromCompanyCards(cardFeeds)).at(0) as CompanyCardFeed;
     return lastSelectedFeed ?? defaultFeed;
 }
 
@@ -323,6 +334,8 @@ export {
     getCompanyCardNumber,
     getCardFeedIcon,
     getCardFeedName,
+    getCompanyFeeds,
+    isCustomFeed,
     getBankCardDetailsImage,
     getSelectedFeed,
     getCorrectStepForSelectedBank,

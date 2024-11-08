@@ -10,6 +10,7 @@ import type {
     UpdateCompanyCardNameParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -123,17 +124,18 @@ function setWorkspaceCompanyCardFeedName(policyID: string, workspaceAccountID: n
 
 function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number, policyID: string, bankName: string, liabilityType: string) {
     const authToken = NetworkStore.getAuthToken();
+    const isCustomFeed = CardUtils.isCustomFeed(bankName as CompanyCardFeed);
+    const feedUpdates = {
+        [bankName]: {liabilityType},
+    };
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
                 value: {
-                    settings: {
-                        companyCards: {
-                            [bankName]: {liabilityType},
-                        },
-                    },
+                    settings: isCustomFeed ? {companyCards: feedUpdates} : {oAuthAccountDetails: feedUpdates},
                 },
             },
         ],
@@ -151,6 +153,8 @@ function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number,
 
 function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: number, bankName: string) {
     const authToken = NetworkStore.getAuthToken();
+    const isCustomFeed = CardUtils.isCustomFeed(bankName as CompanyCardFeed);
+    const feedUpdates = isCustomFeed ? {companyCards: {[bankName]: null}} : {oAuthAccountDetails: {[bankName]: null}};
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -159,9 +163,7 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: nu
                 key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
                 value: {
                     settings: {
-                        companyCards: {
-                            [bankName]: null,
-                        },
+                        ...feedUpdates,
                         companyCardNicknames: {
                             [bankName]: null,
                         },
@@ -290,6 +292,8 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
 
 function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: string) {
     const authToken = NetworkStore.getAuthToken();
+    const isCustomFeed = CardUtils.isCustomFeed(bankName as CompanyCardFeed);
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -325,13 +329,7 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
-                settings: {
-                    companyCards: {
-                        [bankName]: {
-                            errors: null,
-                        },
-                    },
-                },
+                settings: isCustomFeed ? {companyCards: {[bankName]: {errors: null}}} : {oAuthAccountDetails: {[bankName]: {errors: null}}},
             },
         },
     ];
@@ -398,13 +396,17 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
-                settings: {
-                    companyCards: {
-                        [bankName]: {
-                            errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR},
-                        },
-                    },
-                },
+                settings: isCustomFeed
+                    ? {
+                          companyCards: {
+                              [bankName]: {errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR}},
+                          },
+                      }
+                    : {
+                          oAuthAccountDetails: {
+                              [bankName]: {errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR}},
+                          },
+                      },
             },
         },
     ];

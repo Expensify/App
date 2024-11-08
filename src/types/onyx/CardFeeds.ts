@@ -12,8 +12,8 @@ type CardFeedProvider =
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
 
-/** Card feed data */
-type CardFeedData = {
+/** Custom card feed data */
+type CustomCardFeedData = {
     /** Whether any actions are pending */
     pending: boolean;
 
@@ -24,7 +24,7 @@ type CardFeedData = {
     forceReimbursable: string;
 
     /** Defines the type of liability for the card */
-    liabilityType: string;
+    liabilityType?: string;
 
     /** Preferred policy */
     preferredPolicy: string;
@@ -39,6 +39,30 @@ type CardFeedData = {
     errors?: OnyxCommon.Errors;
 };
 
+/** Direct card feed data */
+type DirectCardFeedData = {
+    /** List of accounts */
+    accountList: string[];
+
+    /** Credentials info */
+    credentials: string;
+
+    /** Expiration number */
+    expiration: number;
+
+    /** Defines the type of liability for the card */
+    liabilityType?: string;
+
+    /** Whether any actions are pending */
+    pending?: boolean;
+
+    /** Broken connection errors */
+    errors?: OnyxCommon.Errors;
+};
+
+/** Card feed data */
+type CardFeedData = CustomCardFeedData | DirectCardFeedData;
+
 /** Card feeds model */
 type CardFeeds = {
     /** Feed settings */
@@ -47,28 +71,10 @@ type CardFeeds = {
         companyCardNicknames: Record<string, string>;
 
         /** Company cards feeds */
-        companyCards: Record<string, CardFeedData>;
+        companyCards: Record<string, CustomCardFeedData>;
 
         /** Account details */
-        oAuthAccountDetails: Record<
-            ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>,
-            {
-                /** List of accounts */
-                accountList: string[];
-
-                /** Credentials info */
-                credentials: string;
-
-                /** Expiration number */
-                expiration: number;
-
-                /** Whether any actions are pending */
-                pending?: boolean;
-
-                /** Broken connection errors */
-                errors?: OnyxCommon.Errors;
-            }
-        >;
+        oAuthAccountDetails: Record<ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>, DirectCardFeedData>;
     };
 
     /** Whether we are loading the data via the API */
@@ -112,4 +118,4 @@ type AddNewCompanyCardFeed = {
 };
 
 export default CardFeeds;
-export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData, CompanyCardFeed, CardFeedProvider};
+export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData, CustomCardFeedData, CompanyCardFeed, DirectCardFeedData, CardFeedProvider};
