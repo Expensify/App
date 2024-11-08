@@ -8407,7 +8407,7 @@ function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && report?.hasParentAccess === false;
 }
 
-function isExpensifyAndCustomerChat(participantsContext: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>): boolean {
+function shouldUnmaskChat(participantsContext: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>): boolean {
     if (!report?.participants) {
         return true;
     }
@@ -8645,7 +8645,7 @@ export {
     isClosedExpenseReportWithNoExpenses,
     isCompletedTaskReport,
     isConciergeChatReport,
-    isExpensifyAndCustomerChat,
+    shouldUnmaskChat,
     isControlPolicyExpenseChat,
     isControlPolicyExpenseReport,
     isCurrentUserSubmitter,

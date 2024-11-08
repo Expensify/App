@@ -1,6 +1,6 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
 import type {OnyxEntry} from 'react-native-onyx';
-import {isConciergeChatReport, isExpensifyAndCustomerChat} from '@libs/ReportUtils';
+import {isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
 import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
@@ -161,7 +161,7 @@ function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: stri
         const formattedName = `${CONCIERGE}-${name}`;
         return [`${formattedName},${UNMASK}`, `${formattedName}`];
     }
-    if (isExpensifyAndCustomerChat(context, report)) {
+    if (shouldUnmaskChat(context, report)) {
         const formattedName = `${CUSTOMER}-${name}`;
         return [`${formattedName},${UNMASK}`, `${formattedName}`];
     }
