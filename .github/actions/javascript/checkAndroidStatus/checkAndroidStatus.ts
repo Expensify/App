@@ -66,13 +66,13 @@ function calculateRolloutPercentage(releaseDate: string): number {
     console.log('Days since release:', daysSinceRelease);
 
     if (daysSinceRelease <= 0) return 0;
-    if (daysSinceRelease === 1) return 1;
-    if (daysSinceRelease === 2) return 2;
-    if (daysSinceRelease === 3) return 5;
-    if (daysSinceRelease === 4) return 10;
-    if (daysSinceRelease === 5) return 20;
-    if (daysSinceRelease === 6) return 50;
-    return 100;
+    if (daysSinceRelease === 1) return 0.01;
+    if (daysSinceRelease === 2) return 0.02;
+    if (daysSinceRelease === 3) return 0.05;
+    if (daysSinceRelease === 4) return 0.10;
+    if (daysSinceRelease === 5) return 0.2;
+    if (daysSinceRelease === 6) return 0.5;
+    return 1;
 }
 
 checkAndroidStatus()
