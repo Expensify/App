@@ -3238,7 +3238,6 @@ const translations = {
             confirmationDescription: 'Comenzaremos a importar transacciones inmediatamente.',
             cardholder: 'Titular de la tarjeta',
             card: 'Tarjeta',
-            startTransactionDate: 'Fecha de inicio de transacciones',
             cardName: 'Nombre de la tarjeta',
             brokenConnectionErrorFirstPart: `La conexión de la fuente de tarjetas está rota. Por favor, `,
             brokenConnectionErrorLink: 'inicia sesión en tu banco ',
