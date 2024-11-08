@@ -62,7 +62,7 @@ describe('WorkspacesSettingsUtils', () => {
             // When calling getBrickRoadForPolicy with a report and report actions
             const result = getBrickRoadForPolicy(report as Report, reportActions as OnyxCollection<ReportActions>);
 
-            // Then the result should be 'error'
+            // Then the result should be 'undefined'
             expect(result).toBe(undefined);
         });
     });
