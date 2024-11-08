@@ -4224,7 +4224,7 @@ function createSplitsAndOnyxData(
     const hasMultipleParticipants = participants.length > 1;
     participants.forEach((participant) => {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
-        const isPolicyExpenseChat = OptionsListUtils.isOptionPolicyExpenseChat(participant);
+        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
         const splitAmount = splitShares?.[participant.accountID ?? -1]?.amount ?? IOUUtils.calculateAmount(participants.length, amount, currency, false);
         const splitTaxAmount = IOUUtils.calculateAmount(participants.length, taxAmount, currency, false);
 
@@ -4844,7 +4844,7 @@ function startSplitBill({
     });
 
     participants.forEach((participant) => {
-        const isPolicyExpenseChat = OptionsListUtils.isOptionPolicyExpenseChat(participant);
+        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
         if (!isPolicyExpenseChat) {
             return;
         }

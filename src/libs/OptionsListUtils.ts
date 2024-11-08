@@ -833,7 +833,7 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
  * Get the option for a policy expense report.
  */
 function getPolicyExpenseReportOption(participant: Participant | ReportUtils.OptionData): ReportUtils.OptionData {
-    const expenseReport = isOptionPolicyExpenseChat(participant) ? ReportUtils.getReportOrDraftReport(participant.reportID) : null;
+    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReportOrDraftReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
         .filter(([, reportParticipant]) => reportParticipant && reportParticipant.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
@@ -2612,10 +2612,6 @@ function shouldUseBoldText(report: ReportUtils.OptionData): boolean {
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
-function isOptionPolicyExpenseChat(option: ReportUtils.OptionData | Participant): boolean {
-    return option?.isPolicyExpenseChat ?? false;
-}
-
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2662,7 +2658,6 @@ export {
     getAttendeeOptions,
     getAlternateText,
     hasReportErrors,
-    isOptionPolicyExpenseChat,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
