@@ -3439,8 +3439,11 @@ function completeOnboarding(
     }
 
     const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
-    const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
-    const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
+    const actorAccountID = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? CONST.ACCOUNT_ID.QA_GUIDE : CONST.ACCOUNT_ID.CONCIERGE;
+    // const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+    const adminsChatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
+    const targetChatReport = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? adminsChatReport : ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
+    // const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     // Introductory message
@@ -3507,7 +3510,8 @@ function completeOnboarding(
                 targetChatPolicyID,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             );
-            const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.EMAIL.CONCIERGE);
+            const emailCreatingAction = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? CONST.EMAIL.QA_GUIDES : CONST.EMAIL.CONCIERGE;
+            const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(emailCreatingAction);
             const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
                 currentTask.reportID,
                 taskTitle,
