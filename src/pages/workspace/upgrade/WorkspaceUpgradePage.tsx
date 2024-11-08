@@ -11,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import * as PerDiem from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ROUTES from '@src/ROUTES';
@@ -32,6 +33,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const canPerformUpgrade = !!feature && !!policy && PolicyUtils.isPolicyAdmin(policy);
     const isUpgraded = React.useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
+    const perDiemCustomUnit = PolicyUtils.getPerDiemCustomUnit(policy);
+
     const goBack = useCallback(() => {
         if (!feature) {
             return;
@@ -46,6 +49,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
                 Navigation.dismissModal();
                 return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
@@ -76,9 +80,12 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 Policy.enableCompanyCards(policyID, true, true);
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
+                PerDiem.enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID);
+                break;
             default:
         }
-    }, [feature, policyID]);
+    }, [feature, perDiemCustomUnit?.customUnitID, policyID]);
 
     useEffect(() => {
         const unsubscribeListener = navigation.addListener('blur', () => {

@@ -53,6 +53,22 @@ const INPUT_IDS = {
     AMOUNT3: 'amount3',
     ADDITIONAL_DATA: {
         COUNTRY: 'country',
+        CORPAY: {
+            COMPANY_NAME: 'companyName',
+            COMPANY_STREET: 'companyStreet',
+            COMPANY_CITY: 'companyCity',
+            COMPANY_STATE: 'companyState',
+            COMPANY_ZIP_CODE: 'companyZipCode',
+            COMPANY_COUNTRY: 'companyCountry',
+            BUSINESS_CONTACT_NUMBER: 'businessContactNumber',
+            BUSINESS_CONFIRMATION_EMAIL: 'businessConfirmationEmail',
+            BUSINESS_REGISTRATION_INCORPORATION_NUMBER: 'businessRegistrationIncorporationNumber',
+            FORMATION_INCORPORATION_STATE: 'formationIncorporationState',
+            FORMATION_INCORPORATION_COUNTRY_CODE: 'formationIncorporationCountryCode',
+            BUSINESS_CATEGORY: 'natureOfBusiness',
+            APPLICANT_TYPE_ID: 'applicantTypeID',
+            ANNUAL_VOLUME: 'annualVolume',
+        },
     },
 } as const;
 
@@ -129,6 +145,48 @@ type ReimbursementAccountProps = {
 type NonUSDReimbursementAccountAdditionalProps = {
     /** Country of the reimbursement account */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
+
+    /** Company name */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
+
+    /** Company street */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STREET]: string;
+
+    /** Company city */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_CITY]: string;
+
+    /** Company state */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STATE]: string;
+
+    /** Company zip code */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_ZIP_CODE]: string;
+
+    /** Company country */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_COUNTRY]: Country | '';
+
+    /** Company contact number */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CONTACT_NUMBER]: string;
+
+    /** Company email */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CONFIRMATION_EMAIL]: string;
+
+    /** Company registration number */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_REGISTRATION_INCORPORATION_NUMBER]: string;
+
+    /** Company incorporation country */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FORMATION_INCORPORATION_COUNTRY_CODE]: string;
+
+    /** Company incorporation state */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FORMATION_INCORPORATION_STATE]: string;
+
+    /** Company business category */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CATEGORY]: string;
+
+    /** Company applicant type ID */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.APPLICANT_TYPE_ID]: string;
+
+    /** Company annual volume */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME]: string;
 };
 
 type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
