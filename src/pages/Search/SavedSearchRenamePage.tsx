@@ -25,10 +25,11 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
 
     const applyFiltersAndNavigate = () => {
         SearchActions.clearAdvancedFilters();
+        Navigation.dismissModal();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                 query: q,
-                name: newName,
+                name: newName?.trim(),
             }),
         );
     };
@@ -38,7 +39,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
 
         SearchActions.saveSearch({
             queryJSON,
-            newName,
+            newName: newName?.trim() || q,
         });
 
         applyFiltersAndNavigate();

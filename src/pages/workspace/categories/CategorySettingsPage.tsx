@@ -102,8 +102,8 @@ function CategorySettingsPage({
         if (!policy) {
             return '';
         }
-        return CategoryUtils.formatRequireReceiptsOverText(translate, policy, policyCategory?.maxExpenseAmountNoReceipt);
-    }, [policy, policyCategory?.maxExpenseAmountNoReceipt, translate]);
+        return CategoryUtils.formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
+    }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
 
     if (!policyCategory) {
         return <NotFoundPage />;
@@ -233,7 +233,7 @@ function CategorySettingsPage({
                                 />
                             </OfflineWithFeedback>
 
-                            {policy?.areRulesEnabled && (
+                            {!!policy?.areRulesEnabled && (
                                 <>
                                     <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
                                         <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.rules.categoryRules.title')}</Text>
@@ -250,7 +250,7 @@ function CategorySettingsPage({
                                             </View>
                                         </View>
                                     </OfflineWithFeedback>
-                                    {policyCategory?.areCommentsRequired && (
+                                    {!!policyCategory?.areCommentsRequired && (
                                         <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
                                             <MenuItemWithTopDescription
                                                 title={policyCategory?.commentHint}
@@ -262,7 +262,7 @@ function CategorySettingsPage({
                                             />
                                         </OfflineWithFeedback>
                                     )}
-                                    {canUseCategoryAndTagApprovers && (
+                                    {!!canUseCategoryAndTagApprovers && (
                                         <>
                                             <MenuItemWithTopDescription
                                                 title={approverText}
@@ -287,7 +287,7 @@ function CategorySettingsPage({
                                             )}
                                         </>
                                     )}
-                                    {policy?.tax?.trackingEnabled && (
+                                    {!!policy?.tax?.trackingEnabled && (
                                         <MenuItemWithTopDescription
                                             title={defaultTaxRateText}
                                             description={translate('workspace.rules.categoryRules.defaultTaxRate')}
@@ -308,7 +308,7 @@ function CategorySettingsPage({
                                             shouldShowRightIcon
                                         />
                                     </OfflineWithFeedback>
-                                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmountNoReceipt}>
+                                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoReceipt}>
                                         <MenuItemWithTopDescription
                                             title={requireReceiptsOverText}
                                             description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
