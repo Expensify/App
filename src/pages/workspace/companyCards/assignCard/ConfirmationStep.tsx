@@ -75,15 +75,21 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={data?.cardName}
+                    title={data?.cardNumber}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD)}
                 />
                 <MenuItemWithTopDescription
-                    description={translate('workspace.companyCards.startTransactionDate')}
-                    title={data?.startDate}
+                    description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
+                    title={data?.dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? translate('workspace.companyCards.fromTheBeginning') : data?.startDate}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE)}
+                />
+                <MenuItemWithTopDescription
+                    description={translate('workspace.companyCards.cardName')}
+                    title={data?.cardName}
+                    shouldShowRightIcon
+                    onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
                 />
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <Button

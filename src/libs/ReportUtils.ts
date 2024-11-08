@@ -53,7 +53,7 @@ import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
-import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/ReportAction';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -256,6 +256,11 @@ type OptimisticHoldReportAction = Pick<
 type OptimisticCancelPaymentReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+>;
+
+type OptimisticChangeFieldAction = Pick<
+    OldDotReportAction & ReportAction,
+    'actionName' | 'actorAccountID' | 'originalMessage' | 'person' | 'reportActionID' | 'created' | 'pendingAction' | 'message'
 >;
 
 type OptimisticEditedTaskReportAction = Pick<
@@ -515,6 +520,8 @@ type OptionData = {
     isConciergeChat?: boolean;
     isBold?: boolean;
     lastIOUCreationDate?: string;
+    icons?: Icon[];
+    iouReportAmount?: number;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -2569,6 +2576,56 @@ function getReimbursementDeQueuedActionMessage(
     }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
     return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount: formattedAmount});
+}
+
+/**
+ * Builds an optimistic REIMBURSEMENT_DEQUEUED report action with a randomly generated reportActionID.
+ *
+ */
+function buildOptimisticChangeFieldAction(reportField: PolicyReportField, previousReportField: PolicyReportField): OptimisticChangeFieldAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: 'TEXT',
+                style: 'strong',
+                text: 'You',
+            },
+            {
+                type: 'TEXT',
+                style: 'normal',
+                text: ` modified field '${reportField.name}'.`,
+            },
+            {
+                type: 'TEXT',
+                style: 'normal',
+                text: ` New value is '${reportField.value}'`,
+            },
+            {
+                type: 'TEXT',
+                style: 'normal',
+                text: ` (previously '${previousReportField.value}').`,
+            },
+        ],
+        originalMessage: {
+            fieldName: reportField.name,
+            newType: reportField.type,
+            newValue: reportField.value,
+            oldType: previousReportField.type,
+            oldValue: previousReportField.value,
+        },
+        person: [
+            {
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
 }
 
 /**
@@ -7271,8 +7328,7 @@ function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, 
     return requestOptions.includes(iouType);
 }
 
-function getWorkspaceChats(policyID: string, accountIDs: number[]): Array<OnyxEntry<Report>> {
-    const allReports = ReportConnection.getAllReports();
+function getWorkspaceChats(policyID: string, accountIDs: number[], allReports: OnyxCollection<Report> = ReportConnection.getAllReports()): Array<OnyxEntry<Report>> {
     return Object.values(allReports ?? {}).filter((report) => isPolicyExpenseChat(report) && (report?.policyID ?? '-1') === policyID && accountIDs.includes(report?.ownerAccountID ?? -1));
 }
 
@@ -8190,8 +8246,8 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
  * only use the Concierge chat.
  */
 function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData): boolean {
-    // onboarding can be an array for old accounts and accounts created from olddot
-    if (onboarding && !Array.isArray(onboarding) && onboarding.chatReportID) {
+    // onboarding can be an array or an empty object for old accounts and accounts created from olddot
+    if (onboarding && !Array.isArray(onboarding) && !isEmptyObject(onboarding) && onboarding.chatReportID) {
         return onboarding.chatReportID === optionOrReport?.reportID;
     }
 
@@ -8350,6 +8406,11 @@ function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
 
 function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && report?.hasParentAccess === false;
+}
+
+function hasInvoiceReports() {
+    const allReports = Object.values(ReportConnection.getAllReports() ?? {});
+    return allReports.some((report) => isInvoiceReport(report));
 }
 
 export {
@@ -8671,11 +8732,13 @@ export {
     hasMissingInvoiceBankAccount,
     reasonForReportToBeInOptionList,
     getReasonAndReportActionThatRequiresAttention,
+    buildOptimisticChangeFieldAction,
     isPolicyRelatedReport,
     hasReportErrorsOtherThanFailedReceipt,
     shouldShowViolations,
     getAllReportErrors,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
+    hasInvoiceReports,
 };
 
 export type {
