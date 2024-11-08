@@ -56,7 +56,7 @@ If your organization uses a private domain, Expensify emails may be blocked at t
 
 ## How can I be sure that emails from Expensify are legitimate and not spam?
 
-Expensify's emails are SPF and DKIM-signed, meaning they are cryptographically signed as coming from us and are not spam.
+Expensify's emails are SPF and DKIM-signed, meaning they are cryptographically signed and encrypted to prevent spoofing.
 
 ## Why do legitimate emails from Expensify sometimes end up marked as spam?
 
