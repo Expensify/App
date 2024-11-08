@@ -1510,7 +1510,7 @@ describe('DebugUtils', () => {
                         ownerAccountID: 1234,
                         policyID: '1',
                     },
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}0` as const]: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
                         transactionID: '1',
                         amount: 10,
                         modifiedAmount: 10,
