@@ -8412,17 +8412,17 @@ function shouldUnmaskChat(participantsContext: OnyxEntry<PersonalDetailsList>, r
         return true;
     }
 
-    const participantAccountIDs = new Set(Object.keys(report.participants));
-    if (participantAccountIDs.size > 2) {
-        return false;
-    }
-
     if (isThread(report) && report.chatType && report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) {
         return true;
     }
 
     if (isThread(report) && report.type === CONST.REPORT.TYPE.EXPENSE) {
         return true;
+    }
+
+    const participantAccountIDs = new Set(Object.keys(report.participants));
+    if (participantAccountIDs.size > 2) {
+        return false;
     }
 
     if (participantsContext) {
