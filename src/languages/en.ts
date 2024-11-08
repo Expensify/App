@@ -707,7 +707,7 @@ const translations = {
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
-        multipleUsers: 'Multiple users',
+        multipleMembers: 'Multiple members',
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
@@ -1210,7 +1210,7 @@ const translations = {
             deviceCredentials: 'Device credentials',
             invalidate: 'Invalidate',
             destroy: 'Destroy',
-            maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
+            maskExportOnyxStateData: 'Mask fragile member data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
             importOnyxState: 'Import Onyx state',
             testCrash: 'Test crash',
@@ -1643,7 +1643,7 @@ const translations = {
     },
     groupChat: {
         lastMemberTitle: 'Heads up!',
-        lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all users. Are you sure you want to leave?",
+        lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all members. Are you sure you want to leave?",
         defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `${displayName}'s group chat`,
     },
     languagePage: {
@@ -3595,7 +3595,7 @@ const translations = {
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
         },
         people: {
-            genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
+            genericFailureMessage: 'An error occurred removing a member from the workspace, please try again.',
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Are you sure you want to remove ${memberName}?`,
                 other: 'Are you sure you want to remove these members?',
@@ -4563,11 +4563,11 @@ const translations = {
                 selectedForRandomAudit: `randomly selected for review`,
                 selectedForRandomAuditMarkdown: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
                 share: ({to}: ShareParams) => `invited member ${to}`,
-                unshare: ({to}: UnshareParams) => `removed user ${to}`,
+                unshare: ({to}: UnshareParams) => `removed member ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
-                addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
+                addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'member' || role === 'user' ? 'member' : 'admin'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -4617,7 +4617,7 @@ const translations = {
         chatMessage: 'Chat message',
         lastChatMessagePreview: 'Last chat message preview',
         workspaceName: 'Workspace name',
-        chatUserDisplayNames: 'Chat user display names',
+        chatUserDisplayNames: 'Chat member display names',
         scrollToNewestMessages: 'Scroll to newest messages',
         prestyledText: 'Prestyled text',
         viewAttachment: 'View attachment',
@@ -5216,7 +5216,7 @@ const translations = {
             hasDraftComment: 'Has draft comment',
             hasGBR: 'Has GBR',
             hasRBR: 'Has RBR',
-            pinnedByUser: 'Pinned by user',
+            pinnedByUser: 'Pinned by member',
             hasIOUViolations: 'Has IOU violations',
             hasAddWorkspaceRoomErrors: 'Has add workspace room errors',
             isUnread: 'Is unread (focus mode)',
