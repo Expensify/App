@@ -7,7 +7,7 @@ The Left Hand Navigation (LHN) is designed to show different types of reports ba
 The following outlines the expected behavior regarding which reports are displayed in the LHN:
 
 - The report currently being viewed by the user is highlighted as the active report in the LHN, making it easy for users to locate their focus point within the navigation.
-- If a report has unresolved issues, like an unapproved expense or outstanding violations, it will display a red dot next to it, indicating urgent action is required. These reports are displayed at the top of the LHN list and sorted alphabetically by report name for easy access.
+If a report has unresolved issues, like an unapproved expense or outstanding violations, it will display a red dot next to it, indicating urgent action is required. These reports are displayed at the top of the LHN list (under pinned chats) and sorted alphabetically by report name for easy access.
 - Reports that need user action, such as responding to a message that mentions them, completing an assigned task, or addressing an expense, will display a green dot next to them.  Additionally, if a system or concierge message indicates a trial period has expired and a payment method is missing, it will prompt the user with a similar green dot. This visual indicator helps users quickly identify where their attention is required.
 - If a user has started drafting a comment in a report, a pencil icon as indicator appears next to it in the LHN, letting users know there is an incomplete draft. These reports are sorted alphabetically by report name.
 - Pinned reports are always displayed at the top of the LHN list and are sorted alphabetically by name, giving quick access to reports the user wants to keep top-of-mind.
@@ -23,14 +23,14 @@ Certain reports are excluded from the LHN to avoid clutter and to focus on relev
 - Reports with no participants are not displayed, as they lack meaningful content.
 - If the user does not have permission to access a report (due to policy restrictions), it will not be shown.
 - Transaction threads that contain only one transaction are excluded.
-- If a report is an empty chat.
+- If a report is an empty chat, unless it's a report user is actively looking at.
 - For users with domain-based email addresses, reports are hidden if the includeDomainEmail setting is disabled.
 - Reports with a parent message pending deletion.
 - When focus mode is enabled and there are no unread messages.
 
 ### Sorting priorities for displayed report groups
 
-1. Pinned and attention-required (GBR) reports:
+1. Pinned, RBR and attention-required (GBR) reports:
     - Always sorted alphabetically by report name.
 2.  Error reports:
     - Sorted alphabetically by report name.
