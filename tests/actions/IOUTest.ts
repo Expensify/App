@@ -2067,7 +2067,7 @@ describe('actions/IOU', () => {
                     if (chatReport) {
                         IOU.requestMoney(
                             {
-                                report: {reportID: ''},
+                                report: chatReport,
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
@@ -2195,7 +2195,7 @@ describe('actions/IOU', () => {
                     if (chatReport) {
                         IOU.requestMoney(
                             {
-                                report: {reportID: ''},
+                                report: chatReport,
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
