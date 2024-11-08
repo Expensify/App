@@ -246,8 +246,7 @@ function getDatePassedError(inputDate: string): string {
  * http/https/ftp URL scheme required.
  */
 function isValidWebsite(url: string): boolean {
-    const isLowerCase = url === url.toLowerCase();
-    return new RegExp(`^${Url.URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
+    return new RegExp(`^${Url.URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
 }
 
 /** Checks if the domain is public */
