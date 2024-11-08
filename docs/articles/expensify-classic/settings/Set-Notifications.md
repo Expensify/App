@@ -31,7 +31,7 @@ Confirm the email address on your Expensify account is a deliverable email addre
 If you are still not receiving Expensify notifications and have an email address on a public domain, you may need to add Expensify's domains expensify.com and mg.expensify.com and amazonSES.com to your email's allowlist by taking the following steps: 
 
  - Search for messages from expensify.com in your spam folder, open them, and click “Not Spam” at the top of each message.
- - Configure an email filter that identifies Expensify's domains and directs all incoming messages to your inbox, to avoid messages going to spam.
+ - Configure an email filter that identifies Expensify's email domain expensify.com and directs all incoming messages to your inbox, to avoid messages going to spam.
  - Add specific known Expensify email addresses to your email contacts list. 
 
 # Further troubleshooting for private domains 
