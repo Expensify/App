@@ -40,6 +40,7 @@ type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: StyleProp<ViewStyle>;
+    isSearchScreenFocused?: boolean;
 };
 
 const transactionItemMobileHeight = 100;
@@ -86,7 +87,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
 }
 
-function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchProps) {
+function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentContainerStyle}: SearchProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -467,6 +468,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
             contentContainerStyle={[contentContainerStyle, styles.pb3]}
             scrollEventThrottle={1}
             shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
+            isScreenFocused={isSearchScreenFocused}
         />
     );
 }
