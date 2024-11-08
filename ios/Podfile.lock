@@ -35,11 +35,11 @@ PODS:
   - EXImageLoader (5.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (52.0.0-preview.18):
+  - Expo (52.0.0-preview.23):
     - ExpoModulesCore
   - ExpoAsset (11.0.0):
     - ExpoModulesCore
-  - ExpoFont (13.0.0):
+  - ExpoFont (13.0.1):
     - ExpoModulesCore
   - ExpoImage (2.0.0-preview.1):
     - ExpoModulesCore
@@ -51,7 +51,7 @@ PODS:
     - EXImageLoader
     - ExpoModulesCore
     - SDWebImageWebPCoder
-  - ExpoModulesCore (2.0.0-preview.9):
+  - ExpoModulesCore (2.0.0-preview.10):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1637,7 +1637,26 @@ PODS:
   - react-native-config (1.5.3):
     - react-native-config/App (= 1.5.3)
   - react-native-config/App (1.5.3):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-document-picker (9.3.1):
     - DoubleConversion
     - glog
@@ -1902,8 +1921,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-render-html (6.3.1):
-    - React-Core
   - react-native-safe-area-context (4.11.1):
     - DoubleConversion
     - glog
@@ -2305,7 +2322,26 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - RNDeviceInfo (10.3.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNFBAnalytics (12.9.3):
     - Firebase/Analytics (= 8.8.0)
     - React-Core
@@ -2695,9 +2731,26 @@ PODS:
   - SocketRocket (0.7.1)
   - Turf (2.8.0)
   - VisionCamera (4.0.0-beta.13):
-    - React
-    - React-callinvoker
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2770,7 +2823,6 @@ DEPENDENCIES:
   - react-native-plaid-link-sdk (from `../node_modules/react-native-plaid-link-sdk`)
   - react-native-quick-sqlite (from `../node_modules/react-native-quick-sqlite`)
   - react-native-release-profiler (from `../node_modules/react-native-release-profiler`)
-  - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -3001,8 +3053,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-quick-sqlite"
   react-native-release-profiler:
     :path: "../node_modules/react-native-release-profiler"
-  react-native-render-html:
-    :path: "../node_modules/react-native-render-html"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-view-shot:
@@ -3126,12 +3176,12 @@ SPEC CHECKSUMS:
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXAV: 8996468e7e113e59d13c6530a0f5f54ee542439e
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
-  Expo: 2db249097c0ba2a0e111eb4c32da6ca61d6df6f5
+  Expo: 22775a567db450535b91cace34cbb2f4fb54cf81
   ExpoAsset: 9de2f325e8c97a4c6c2bc85e507ae7f0809c91aa
-  ExpoFont: 2fb6d98e0a5352bebcaa568d6bfbba0e0f2e0097
+  ExpoFont: 7522d869d84ee2ee8093ee997fef5b86f85d856b
   ExpoImage: 477328a1973421192cd4efda1fe7ccb8f944a10e
   ExpoImageManipulator: e88e86d4ff8548ef1b54054cdfb7c7b3bc5a6ee5
-  ExpoModulesCore: bd0747596285533477365a0232260750b81a2c1b
+  ExpoModulesCore: f085fa8306860953744e07577f5817dd22f94445
   FBLazyVector: 7075bb12898bc3998fd60f4b7ca422496cc2cdf7
   Firebase: 629510f1a9ddb235f3a7c5c8ceb23ba887f0f814
   FirebaseABTesting: 10cbce8db9985ae2e3847ea44e9947dd18f94e10
@@ -3201,7 +3251,7 @@ SPEC CHECKSUMS:
   react-native-app-logs: ee32b6e80bf8d1b883dfc5ac96efa7c1bd9a06a5
   react-native-blob-util: 221c61c98ae507b758472ac4d2d489119d1a6c44
   react-native-cameraroll: 478a0c1fcdd39f08f6ac272b7ed06e92b2c7c129
-  react-native-config: 8f7283449bbb048902f4e764affbbf24504454af
+  react-native-config: 742a9e0a378a78d0eaff1fb3477d8c0ae222eb51
   react-native-document-picker: e9d83c149bdd72dc01cf8dcb8df0389c6bd5fddb
   react-native-geolocation: b9bd12beaf0ebca61a01514517ca8455bd26fa06
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
@@ -3215,7 +3265,6 @@ SPEC CHECKSUMS:
   react-native-plaid-link-sdk: f91a22b45b7c3d4cd6c47273200dc57df35068b0
   react-native-quick-sqlite: 7c793c9f5834e756b336257a8d8b8239b7ceb451
   react-native-release-profiler: 131ec5e4145d900b2be2a8d6641e2ce0dd784259
-  react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 2279fe040bc93af8624f7d034806180fdbe5fa02
   react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
   react-native-webview: ad29375839c9aa0409ce8e8693291b42bdc067a4
@@ -3249,7 +3298,7 @@ SPEC CHECKSUMS:
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCClipboard: c84275d07e3f73ff296b17e6c27e9ccdc194a0bb
   RNCPicker: 21ae0659666767a5c1253aef985ee5b7c527e345
-  RNDeviceInfo: 468a7cd19ad2b6697bab25c8baebf22c0603cb7c
+  RNDeviceInfo: 130237d8e97a89b68f2202d5dd18ac6bb68e7648
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
   RNFBCrashlytics: 2061ca863e8e2fa1aae9b12477d7dfa8e88ca0f9
@@ -3274,7 +3323,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
-  VisionCamera: 9f26224fce1233ffdad9fa4e56863e3de2190dc0
+  VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
   Yoga: db69236006b8b1c6d55ab453390c882306cbf219
 
 PODFILE CHECKSUM: 5a2343a46b9010028fa516182b5ff5257d4d4d0d

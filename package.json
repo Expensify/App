@@ -109,7 +109,7 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
     "expensify-common": "2.0.106",
-    "expo": "52.0.0-preview.18",
+    "expo": "52.0.0-preview.23",
     "expo-asset": "^11.0.0",
     "expo-av": "^15.0.0",
     "expo-font": "^13.0.0",
@@ -360,7 +360,7 @@
     "body-parser": "1.20.3",
     "path-to-regexp": "0.1.10",
     "send": "0.19.0",
-    "expo": "52.0.0-preview.18",
+    "expo": "52.0.0-preview.23",
     "regexpu-core": "5.3.2"
   },
   "expo": {
