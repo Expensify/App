@@ -12,7 +12,7 @@ Sometimes members may have trouble receiving important email notifications from 
 Emails can sometimes be delayed and could take up to 30-60 minutes to arrive in your inbox. If you're expecting a notification that still hasn't arrived after waiting: 
  - Check your **Email Preferences** on the web via **Settings > Account > Preferences**. In the **Contact Preferences** section, ensure that the relevant boxes are checked for the email type you're missing.
  - Check your email spam and trash folders, as Expensify messages might end up there inadvertently.
- - Check to make sure you haven't unintentionally blocked Expensify emails. Allowlist the domains expensify.com, mg.expensify.com, and amazonSES.com with your email provider.
+ - Check to make sure you haven't unintentionally blocked Expensify emails. Allowlist the domain expensify.com with your email provider.
 
 ## Issue: A banner that says “We’re having trouble emailing you” shows the top of your screen.
 Confirm the email address on your Expensify account is a deliverable email address, and then click the link in the banner that says "here". If successful, you will see a confirmation that your email was unblocked. 
