@@ -60,4 +60,13 @@ describe('SuffixUkkonenTree', () => {
         // "2" in ASCII is 50, so base26(50) = [0, 23]
         expect(Array.from(numeric)).toEqual([SuffixUkkonenTree.SPECIAL_CHAR_CODE, 0, 23]);
     });
+
+    it('should have prefix matches first, then substring matches', () => {
+        const strings = ['abcdef', 'cdef', 'def'];
+        const numericIntArray = helperStringsToNumericForTree(strings);
+        const tree = SuffixUkkonenTree.makeTree(numericIntArray);
+        tree.build();
+        const searchValue = SuffixUkkonenTree.stringToNumeric('def', {clamp: true}).numeric;
+        expect(tree.findSubstring(Array.from(searchValue))).toEqual(expect.arrayContaining([18, 15, 10]));
+    });
 });

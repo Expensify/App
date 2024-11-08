@@ -1687,7 +1687,11 @@ function getUserToInviteOption({
 }
 
 /**
- * filter options based on specific conditions
+ * TODO: What is the purpose of this function
+ *
+ * - It seems to convert Report & PersonalDetails into a unified format
+ * - It applies ordering to the items
+ * - Given a searchValue, it will filter the items
  */
 function getOptions(
     options: OptionList,
