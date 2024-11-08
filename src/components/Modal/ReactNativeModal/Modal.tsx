@@ -10,7 +10,7 @@ import type ModalProps from './types';
 import type {AnimationEvent, Direction} from './types';
 import {defaultProps} from './utils';
 
-type TransactionType = 'open' | 'close';
+type TransitionType = 'open' | 'close';
 
 function ReactNativeModal(incomingProps: ModalProps) {
     const {
@@ -95,7 +95,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
         return false;
     };
 
-    const handleTransition = (type: TransactionType, onFinish: () => void) => {
+    const handleTransition = (type: TransitionType, onFinish: () => void) => {
         const shouldAnimate = isVisible !== isContainerOpen;
 
         if (shouldAnimate && !isTransitioning && isHeightCalculated) {
