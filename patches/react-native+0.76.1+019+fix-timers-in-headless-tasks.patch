@@ -1,0 +1,55 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/core/JavaTimerManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/core/JavaTimerManager.kt
+index ecce674..70261eb 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/core/JavaTimerManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/core/JavaTimerManager.kt
+@@ -65,6 +65,8 @@ public open class JavaTimerManager(
+ 
+   init {
+     reactApplicationContext.addLifecycleEventListener(this)
++    HeadlessJsTaskContext.getInstance(reactApplicationContext)
++        .addTaskEventListener(this)
+   }
+ 
+   override fun onHostPause() {
+@@ -103,6 +105,8 @@ public open class JavaTimerManager(
+   }
+ 
+   public open fun onInstanceDestroy() {
++    HeadlessJsTaskContext.getInstance(reactApplicationContext)
++      .removeTaskEventListener(this)
+     reactApplicationContext.removeLifecycleEventListener(this)
+     clearFrameCallback()
+     clearChoreographerIdleCallback()
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/core/TimingModule.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/core/TimingModule.kt
+index bfa0219..caf7846 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/core/TimingModule.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/core/TimingModule.kt
+@@ -12,7 +12,6 @@ import com.facebook.react.bridge.ReactApplicationContext
+ import com.facebook.react.bridge.WritableArray
+ import com.facebook.react.common.annotations.VisibleForTesting
+ import com.facebook.react.devsupport.interfaces.DevSupportManager
+-import com.facebook.react.jstasks.HeadlessJsTaskContext
+ import com.facebook.react.module.annotations.ReactModule
+ 
+ /** Native module for JS timer execution. Timers fire on frame boundaries. */
+@@ -24,11 +23,6 @@ public class TimingModule(
+   private val javaTimerManager: JavaTimerManager =
+       JavaTimerManager(reactContext, this, ReactChoreographer.getInstance(), devSupportManager)
+ 
+-  override fun initialize() {
+-    HeadlessJsTaskContext.getInstance(getReactApplicationContext())
+-        .addTaskEventListener(javaTimerManager)
+-  }
+-
+   override fun createTimer(
+       callbackIDDouble: Double,
+       durationDouble: Double,
+@@ -68,8 +62,6 @@ public class TimingModule(
+   }
+ 
+   override fun invalidate() {
+-    val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(getReactApplicationContext())
+-    headlessJsTaskContext.removeTaskEventListener(javaTimerManager)
+     javaTimerManager.onInstanceDestroy()
+   }
+ 
