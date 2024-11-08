@@ -446,6 +446,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether the text input should be shown after list header */
     shouldShowTextInputAfterHeader?: boolean;
 
+    /** Whether to include padding bottom */
+    includeSafeAreaPaddingBottom?: boolean;
+
     /** Callback to fire when the list is scrolled */
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
