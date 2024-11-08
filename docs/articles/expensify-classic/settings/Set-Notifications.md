@@ -64,6 +64,6 @@ The problem typically arises when our domain or one of our sending IP addresses 
 
 ## What is the best way to ensure emails are not accidentally marked as Spam? 
 
-For server-level spam detection, it’s best to use DKIM and SPF verification rather than solely relying on the sender’s IP address. Expensify's emails are signed and encrypted to prevent spoofing.
+For server-level spam detection, the safest approach to allowlisting email from Expensify is to verify DKIM and SPF, rather than solely relying on the third-party reputation of the sending IP address.
 
 {% include faq-end.md %}
