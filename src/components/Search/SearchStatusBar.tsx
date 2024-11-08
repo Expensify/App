@@ -177,13 +177,7 @@ function SearchStatusBar({queryJSON, onStatusChange}: SearchStatusBarProps) {
             {options.map((item, index) => {
                 const onPress = singleExecution(() => {
                     onStatusChange?.();
-                    let newStatus;
-                    if (Array.isArray(queryJSON.status)) {
-                        newStatus = queryJSON.status.includes(item.status) ? queryJSON.status.filter((status) => status !== item.status) : [...queryJSON.status, item.status];
-                    } else {
-                        newStatus = queryJSON.status === item.status ? [] : [queryJSON.status, item.status];
-                    }
-                    const query = SearchQueryUtils.buildSearchQueryString({...queryJSON, status: newStatus});
+                    const query = SearchQueryUtils.buildSearchQueryString({...queryJSON, status: item.status});
                     Navigation.setParams({q: query});
                 });
                 const isActive = Array.isArray(queryJSON.status) ? queryJSON.status.includes(item.status) : queryJSON.status === item.status;
