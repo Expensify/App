@@ -281,7 +281,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 break;
             default:
         }
-    }, [quickAction, quickActionReport, reportNameValuePairs, selectOption]);
+    }, [isValidReport, quickAction?.action, quickAction?.targetAccountID, quickActionReport?.reportID, selectOption]);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -472,7 +472,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         styles.quickActionTooltipWrapper,
         renderQuickActionTooltip,
         quickAction?.action,
-        quickAction.isFirstQuickAction,
+        quickAction?.isFirstQuickAction,
         policyChatForActivePolicy,
         quickActionTitle,
         hideQABSubtitle,
