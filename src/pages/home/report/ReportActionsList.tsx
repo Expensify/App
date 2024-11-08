@@ -700,13 +700,12 @@ function ReportActionsList({
     }, [isLoadingNewerReportActions, canShowHeader, hasLoadingNewerReportActionsError, retryLoadNewerChatsError]);
 
     const onStartReached = useCallback(() => {
-        const loadChats = () => loadNewerChats(false);
-
-        if (isSearchTopmostCentralPane()) {
-            InteractionManager.runAfterInteractions(() => requestAnimationFrame(loadChats));
-        } else {
-            loadChats();
+        if (!isSearchTopmostCentralPane()) {
+            loadNewerChats(false);
+            return;
         }
+
+        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
     }, [loadNewerChats]);
 
     const onEndReached = useCallback(() => {
