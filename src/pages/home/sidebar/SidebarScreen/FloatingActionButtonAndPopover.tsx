@@ -247,17 +247,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
 
         switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, undefined, true), true);
-                return;
             case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, undefined, true), true);
-                return;
             case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, undefined, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, true), true);
-                return;
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, true), true);
                 return;
@@ -271,11 +265,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? quickActionReportID : '', quickAction.targetAccountID ?? -1), false);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, undefined, true), false);
-                break;
             case CONST.QUICK_ACTIONS.TRACK_SCAN:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, undefined, true), false);
-                break;
             case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, undefined, true), false);
                 break;
