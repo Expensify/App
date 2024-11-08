@@ -1,0 +1,34 @@
+name: Android Rollout Bumper
+
+on:
+#  schedule:
+#    - cron: '0 0 * * *' # Runs at midnight every day
+  push:
+    branches:
+      - andrew-android-bump
+
+jobs:
+  android_bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Decrypt json Google Play credentials
+        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+        working-directory: android/app
+
+      - name: Generate version
+        id: checkAndroidStatus
+        uses: ./.github/actions/javascript/checkAndroidStatus
+        with:
+          GOOGLE_KEY_FILE: android/app/android-fastlane-json-key.json
+          PACKAGE_NAME: org.me.mobiexpensifyg
+
+      - name: Update Rollout Percentage with Fastlane
+        run: |
+          echo "HALTED: ${{ steps.checkAndroidStatus.outputs.HALTED }}"
+          echo "ROLLOUT_PERCENTAGE: ${{ steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE }}"
