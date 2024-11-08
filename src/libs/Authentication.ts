@@ -4,11 +4,14 @@ import type Response from '@src/types/onyx/Response';
 import * as Delegate from './actions/Delegate';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import redirectToSignIn from './actions/SignInRedirect';
+import HttpsError from './Errors/HttpsError';
 import * as ErrorUtils from './ErrorUtils';
 import Log from './Log';
 import * as Network from './Network';
 import * as NetworkStore from './Network/NetworkStore';
 import requireParameters from './requireParameters';
+
+let hasFailedToFetch = false;
 
 type Parameters = {
     useExpensifyLogin?: boolean;
@@ -44,6 +47,14 @@ function Authenticate(parameters: Parameters): Promise<Response> {
 
         // Add email param so the first Authenticate request is logged on the server w/ this email
         email: parameters.email,
+    }).then((response) => {
+        if (hasFailedToFetch) {
+            return response;
+        }
+        hasFailedToFetch = true;
+        throw new HttpsError({
+            message: CONST.ERROR.FAILED_TO_FETCH,
+        });
     });
 }
 
