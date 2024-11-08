@@ -40,7 +40,7 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
         case CONST.SEARCH.ACTION_TYPES.PAY: {
             const lastPolicyPaymentMethod = item.policyID ? (lastPaymentMethod?.[item.policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) : null;
             const amount = isReportListItemType(item) ? item.total ?? 0 : item.formattedTotal;
-            return lastPolicyPaymentMethod ? payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}]) : goToItem();
+            return lastPolicyPaymentMethod ? payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID) : goToItem();
         }
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             return approveMoneyRequestOnSearch(hash, [item.reportID], transactionID);
@@ -209,8 +209,21 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
 }
 
-function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[]) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], transactionID?: string) {
+    const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: transactionID
+                    ? {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {isActionLoading: isLoading}}
+                    : (Object.fromEntries(paymentData.map((item) => [`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {isActionLoading: isLoading}])) as Partial<SearchReport>),
+            },
+        },
+    ];
+
+    const optimisticData: OnyxUpdate[] = createActionLoadingData(true);
+    const finallyData: OnyxUpdate[] = createActionLoadingData(false);
 
     API.write(WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, paymentData: JSON.stringify(paymentData)}, {optimisticData, finallyData});
 }
