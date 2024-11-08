@@ -1,0 +1,29 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenWindowTraits.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenWindowTraits.kt
+index edcfa7d..afa6874 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenWindowTraits.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenWindowTraits.kt
+@@ -17,6 +17,7 @@ import com.facebook.react.bridge.GuardedRunnable
+ import com.facebook.react.bridge.ReactContext
+ import com.facebook.react.bridge.UiThreadUtil
+ import com.swmansion.rnscreens.Screen.WindowTraits
++import kotlin.math.max
+ 
+ object ScreenWindowTraits {
+     // Methods concerning statusBar management were taken from `react-native`'s status bar module:
+@@ -130,6 +131,7 @@ object ScreenWindowTraits {
+                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                 val windowInsets =
+                                     defaultInsets.getInsets(WindowInsetsCompat.Type.statusBars())
++                                val imeInsets = defaultInsets.getInsets(WindowInsetsCompat.Type.ime())
+ 
+                                 WindowInsetsCompat
+                                     .Builder()
+@@ -139,7 +141,7 @@ object ScreenWindowTraits {
+                                             windowInsets.left,
+                                             0,
+                                             windowInsets.right,
+-                                            windowInsets.bottom,
++                                            max(windowInsets.bottom, imeInsets.bottom),
+                                         ),
+                                     ).build()
+                             } else {
