@@ -45,13 +45,14 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     const StyleUtils = useStyleUtils();
 
     const updateEmojiList = (emojiData: EmojiUtils.EmojiPickerList | Emoji[], headerData: number[] = []) => {
+        setFilteredEmojis(emojiData);
+        setHeaderIndices(headerData);
+
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
             });
         });
-        setFilteredEmojis(emojiData);
-        setHeaderIndices(headerData);
     };
 
     /**
