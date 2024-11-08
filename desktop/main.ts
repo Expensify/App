@@ -115,7 +115,7 @@ process.argv.forEach((arg) => {
         return;
     }
 
-    expectedUpdateVersion = arg.substr(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
+    expectedUpdateVersion = arg.substring(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
 });
 
 // Add the listeners and variables required to ensure that auto-updating
@@ -513,9 +513,8 @@ const mainWindow = (): Promise<void> => {
                 // open the default browser instead of a new electron window
                 browserWindow.webContents.setWindowOpenHandler(({url}) => {
                     const denial = {action: 'deny'} as const;
-
                     // Make sure local urls stay in electron perimeter
-                    if (url.substr(0, 'file://'.length).toLowerCase() === 'file://') {
+                    if (url.substring(0, 'file://'.length).toLowerCase() === 'file://') {
                         return denial;
                     }
 
