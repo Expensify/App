@@ -46,7 +46,6 @@ function getTagListSections({
     searchValue = '',
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
 }: {
-    // TODO: can we be sure that this is always an array?!
     tags: PolicyTags | Array<SelectedTagOption | PolicyTag>;
     recentlyUsedTags?: string[];
     selectedOptions?: SelectedTagOption[];
@@ -54,7 +53,8 @@ function getTagListSections({
     maxRecentReportsToShow?: number;
 }) {
     const tagSections = [];
-    const sortedTags = sortTags(tags);
+    const sortedTags = sortTags(tags) as PolicyTag[];
+
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledTags = sortedTags.filter((tag) => tag.enabled);
     const enabledTagsNames = enabledTags.map((tag) => tag.name);
@@ -157,10 +157,9 @@ function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists
 /**
  * Sorts tags alphabetically by name.
  */
-function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>): Array<PolicyTag | SelectedTagOption> {
+function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>) {
     const sortedTags = Array.isArray(tags) ? tags : Object.values(tags);
 
-    // TODO:  fix the error here, might be fixable by enforcing array
     // Use lodash's sortBy to ensure consistency with oldDot.
     return lodashSortBy(sortedTags, 'name', localeCompare);
 }
