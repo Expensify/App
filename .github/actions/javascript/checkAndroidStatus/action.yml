@@ -1,6 +1,9 @@
 name: 'Check Android Status'
 description: 'Checks the status of the Android track and calculates the rollout percentage.'
 inputs:
+    GITHUB_TOKEN:
+        description: Auth token for New Expensify Github
+        required: true
     GOOGLE_KEY_FILE:
         description: Authentication file for Google Cloud API
         required: true

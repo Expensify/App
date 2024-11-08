@@ -27,6 +27,7 @@ jobs:
         with:
           GOOGLE_KEY_FILE: android/app/android-fastlane-json-key.json
           PACKAGE_NAME: org.me.mobiexpensifyg
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Rollout Percentage with Fastlane
         run: |
