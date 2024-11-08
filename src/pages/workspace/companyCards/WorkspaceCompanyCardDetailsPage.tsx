@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import {format} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -157,7 +157,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                                title={card?.scrapeMinDate ? format(card.scrapeMinDate, CONST.DATE.FNS_FORMAT_STRING) : ''}
+                                title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
                                 interactive={false}
                             />
                             <OfflineWithFeedback
