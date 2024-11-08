@@ -60,7 +60,7 @@ Expensify's emails are SPF and DKIM-signed, meaning they are cryptographically s
 
 ## Why do legitimate emails from Expensify sometimes end up marked as spam?
 
-This issue can arise because Expensify send mails from a cloud-based service. The sender’s IP serves multiple vendors, including Expensify. If another vendors using the same IP is marked as spam, it can block all messages from that IP, even if they’re from different vendors (like Expensify).
+The problem typically arises when our domain or one of our sending IP addresses gets erroneously flagged by a 3rd party domain or IP reputation services. Many IT departments use lists published by such services to filter email for the entire company.
 
 ## What is the best way to ensure emails are not accidentally marked as Spam? 
 
