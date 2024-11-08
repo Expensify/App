@@ -45,7 +45,7 @@ If your organization uses a private domain, Expensify emails may be blocked at t
 
 - Add Expensify to your personal Safe Senders list by following these steps: [Outlook email client](https://support.microsoft.com/en-us/office/add-recipients-of-my-email-messages-to-the-safe-senders-list-be1baea0-beab-4a30-b968-9004332336ce) / [Outlook.com](https://support.microsoft.com/en-us/office/safe-senders-in-outlook-com-470d4ee6-e3b6-402b-8cd9-a6f00eda7339)
 - **Company IT administrators:** Add Expensify to your domain's Safe Sender list by following the steps here: [Create safe sender lists in EOP](https://learn.microsoft.com/en-us/defender-office-365/create-safe-sender-lists-in-office-365)
-- **Company IT administrators:** Add expensify.com, mg.expensify.com, and amazonSES.com to the domain's explicit allowlist. You may need to contact Outlook support for specific instructions, as each company's setup varies. 
+- **Company IT administrators:** Add expensify.com to the domain's explicit allowlist. You may need to contact Outlook support for specific instructions, as each company's setup varies. 
 - **Company administrators:** Contact Outlook support to see if there are additional steps to take based on your domain's email configuration. 
 
 ## Companies using Google Workspaces: 
