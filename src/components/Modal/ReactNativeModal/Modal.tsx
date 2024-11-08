@@ -33,14 +33,12 @@ function ReactNativeModal(incomingProps: ModalProps) {
         testID,
         style,
         avoidKeyboard,
-        testName,
+        testName = '',
         ...props
     } = {
         ...defaultProps,
         ...incomingProps,
     };
-    const [measuredHeight, setMeasuredHeight] = useState<number>(0);
-    const [showContent, setShowContent] = useState(isVisible);
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
     const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -127,7 +125,6 @@ function ReactNativeModal(incomingProps: ModalProps) {
             props.onModalWillShow();
         }
         setIsVisibleState(true);
-        setShowContent(true);
         handleTransition('open', () => {
             if (!isVisible) {
                 setIsContainerOpen(false);
@@ -156,8 +153,6 @@ function ReactNativeModal(incomingProps: ModalProps) {
             if (isVisible) {
                 setIsContainerOpen(true);
             } else {
-                setShowContent(false);
-                setMeasuredHeight(0);
                 setIsHeightCalculated(false);
                 props.onModalHide();
             }
@@ -230,7 +225,6 @@ function ReactNativeModal(incomingProps: ModalProps) {
             toggleCalculatedHeight={setIsHeightCalculated}
             isContainerOpen={isContainerOpen}
             isTransitioning={isTransitioning}
-            setMeasuredHeight={setMeasuredHeight}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...otherProps}
         >

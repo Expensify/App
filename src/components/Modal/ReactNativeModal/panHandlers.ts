@@ -81,7 +81,7 @@ const getSwipingDirection = ({dx, dy}: PanResponderGestureState): Direction => {
     return Math.abs(dx) > Math.abs(dy) ? xDirection : yDirection;
 };
 
-const shouldPropagateSwipe = (evt: GestureResponderEvent, gestureState: PanResponderGestureState, propagateSwipe?: ModalProps['propagateSwipe']) => {
+const shouldPropagateSwipe = (evt: GestureResponderEvent, gestureState: PanResponderGestureState, propagateSwipe: ModalProps['propagateSwipe']) => {
     return typeof propagateSwipe === 'function' ? propagateSwipe(evt, gestureState) : propagateSwipe;
 };
 

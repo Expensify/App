@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
-import Animated, {Easing, SlideInDown, useAnimatedRef, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
-import useThemeStyles from '@hooks/useThemeStyles';
+import type {ModalProps} from 'react-native-modal';
+import Animated, {Easing, useAnimatedRef, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import type {ThemeStyles} from '@src/styles';
 
 type ContainerProps = Partial<ModalProps> & {
     isVisible: boolean;
@@ -10,13 +11,12 @@ type ContainerProps = Partial<ModalProps> & {
     isHeightCalculated: boolean;
     toggleCalculatedHeight: (value: boolean) => void;
     deviceHeight?: number | undefined | null;
-    style?: any;
+    style?: ThemeStyles;
     onLayout?: (event: LayoutChangeEvent) => void;
-    setMeasuredHeight: (value: number) => void;
+    testName: string;
 };
 
-function Container({isVisible, isContainerOpen, isTransitioning, isHeightCalculated, toggleCalculatedHeight, style, onLayout, setMeasuredHeight, testName, ...props}: ContainerProps) {
-    const styles = useThemeStyles();
+function Container({isVisible, isContainerOpen, isTransitioning, isHeightCalculated, toggleCalculatedHeight, style, onLayout, testName, ...props}: ContainerProps) {
     const animatedRef = useAnimatedRef();
     const [measuredHeight, setMH] = useState<number>(0);
 
@@ -38,26 +38,26 @@ function Container({isVisible, isContainerOpen, isTransitioning, isHeightCalcula
             opacity: !isHeightCalculated || (isVisible !== isContainerOpen && !isTransitioning) ? 0 : 1,
         };
     });
-
-    console.log('props: ', Object.keys(props).join('-'));
     return (
         <Animated.View
             ref={animatedRef}
             style={[style, animatedStyles]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            {...props.panHandlers}
         >
             <Animated.View
                 // TODO: check this 100%
                 style={{width: '100%'}}
                 onLayout={(event) => {
-                    if (!measuredHeight && event.nativeEvent.layout.height && measuredHeight !== event.nativeEvent.layout.height) {
-                        // translateY.value = 500;
-                        setMH(event.nativeEvent.layout.height);
-                        setMeasuredHeight(event.nativeEvent.layout.height);
-                        toggleCalculatedHeight(true);
+                    const {height} = event.nativeEvent.layout;
+
+                    // Early return if conditions are not met
+                    if (measuredHeight || !height || measuredHeight === height) {
+                        return;
                     }
+
+                    setMH(height);
+                    toggleCalculatedHeight(true);
                 }}
             >
                 {props.children}

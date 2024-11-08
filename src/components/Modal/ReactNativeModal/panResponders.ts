@@ -36,7 +36,7 @@ type EnhancedGestureEvent = {
 
 const onMoveShouldSetPanResponder = (
     props: RemainingModalProps,
-    setCurrentAnimEvt: (currentAnim: AnimationEvent | null) => void,
+    setCurrentAnimEvt: (currentAnim: null) => void,
     setCurrentSwipingDirection: (direction: Direction | null) => void,
     pan: Animated.ValueXY,
 ) => {
@@ -62,7 +62,7 @@ const onStartShouldSetPanResponder = (props: RemainingModalProps, setCurrentSwip
         // eslint-disable-next-line
         const hasScrollableView = e._dispatchInstances ?? e._dispatchInstances.some((instance: any) => /scrollview|flatlist/i.test(instance.type));
 
-        if (hasScrollableView && shouldPropagateSwipe(e, gestureState) && props.scrollTo && props.scrollOffset > 0) {
+        if (hasScrollableView && shouldPropagateSwipe(e, gestureState, undefined) && props.scrollTo && props.scrollOffset > 0) {
             return false;
         }
         if (props.onSwipeStart) {

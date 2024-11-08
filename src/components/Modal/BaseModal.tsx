@@ -18,9 +18,9 @@ import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import ReactNativeModal from "@components/Modal/ReactNativeModal/Modal";
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
+import ReactNativeModal from './ReactNativeModal/Modal';
 import type BaseModalProps from './types';
 
 function BaseModal(
@@ -62,7 +62,6 @@ function BaseModal(
     const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const keyboardStateContextValue = useKeyboardState();
 
