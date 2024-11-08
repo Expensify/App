@@ -26,7 +26,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
     type: SearchDataTypes;
-    noExpensesCreatedYet?: boolean;
+    hasNoExpensesCreatedYet?: boolean;
 };
 
 const tripsFeatures: FeatureListItem[] = [
@@ -40,7 +40,7 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
-function EmptySearchView({type, noExpensesCreatedYet = false}: EmptySearchViewProps) {
+function EmptySearchView({type, hasNoExpensesCreatedYet = false}: EmptySearchViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -115,7 +115,7 @@ function EmptySearchView({type, noExpensesCreatedYet = false}: EmptySearchViewPr
                     ],
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                if (noExpensesCreatedYet) {
+                if (hasNoExpensesCreatedYet) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         headerStyles: [StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
@@ -146,7 +146,7 @@ function EmptySearchView({type, noExpensesCreatedYet = false}: EmptySearchViewPr
                     headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
         }
-    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, ctaErrorMessage, navatticLink, noExpensesCreatedYet]);
+    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, ctaErrorMessage, navatticLink, hasNoExpensesCreatedYet]);
 
     return (
         <EmptyStateComponent

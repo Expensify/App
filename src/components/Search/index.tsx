@@ -310,7 +310,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
                     type={type}
-                    noExpensesCreatedYet={isEmptyObject(transactions)}
+                    hasNoExpensesCreatedYet={isEmptyObject(transactions)}
                 />
             </View>
         );
