@@ -164,6 +164,37 @@ type GPSPoint = {
     long: number;
 };
 
+type RequestMoneyInformation = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    payeeEmail: string | undefined;
+    payeeAccountID: number;
+    participant: Participant;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    gpsPoints?: GPSPoint;
+    action?: IOUAction;
+    reimbursible?: boolean;
+};
+
+type RequestMoneyTransactionData = {
+    attendees: Attendee[] | undefined;
+    amount: number;
+    currency: string;
+    comment?: string;
+    receipt?: Receipt;
+    category?: string;
+    tag?: string;
+    taxCode?: string;
+    taxAmount?: number;
+    billable?: boolean;
+    merchant: string;
+    created: string;
+    actionableWhisperReportActionID?: string;
+    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
+    linkedTrackedExpenseReportID?: string;
+};
+
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -3558,33 +3589,26 @@ function shareTrackedExpense(
 /**
  * Submit expense to another user
  */
-function requestMoney(
-    report: OnyxEntry<OnyxTypes.Report>,
-    amount: number,
-    attendees: Attendee[] | undefined,
-    currency: string,
-    created: string,
-    merchant: string,
-    payeeEmail: string | undefined,
-    payeeAccountID: number,
-    participant: Participant,
-    comment: string,
-    receipt: Receipt | undefined,
-    category?: string,
-    tag?: string,
-    taxCode = '',
-    taxAmount = 0,
-    billable?: boolean,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    gpsPoints?: GPSPoint,
-    action?: IOUAction,
-    actionableWhisperReportActionID?: string,
-    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
-    linkedTrackedExpenseReportID?: string,
-    reimbursible?: boolean,
-) {
+function requestMoney(requestMoneyInformation: RequestMoneyInformation, requestMoneyTransactionData: RequestMoneyTransactionData) {
+    const {report, payeeEmail, payeeAccountID, participant, policy, policyTagList, policyCategories, gpsPoints, action, reimbursible} = requestMoneyInformation;
+    const {
+        amount,
+        currency,
+        merchant,
+        comment = '',
+        receipt,
+        category,
+        tag,
+        taxCode = '',
+        taxAmount = 0,
+        billable,
+        created,
+        attendees,
+        actionableWhisperReportActionID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+    } = requestMoneyTransactionData;
+
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReportOrDraftReport(report?.chatReportID) : report;

@@ -210,17 +210,19 @@ function IOURequestStepAmount({
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
                     playSound(SOUNDS.DONE);
                     IOU.requestMoney(
-                        report,
-                        backendAmount,
-                        transaction?.attendees,
-                        currency,
-                        transaction?.created ?? '',
-                        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
-                        participants.at(0) ?? {},
-                        '',
-                        {},
+                        {
+                            report,
+                            participant: participants.at(0) ?? {},
+                            payeeEmail: currentUserPersonalDetails.login,
+                            payeeAccountID: currentUserPersonalDetails.accountID,
+                        },
+                        {
+                            amount: backendAmount,
+                            currency,
+                            created: transaction?.created ?? '',
+                            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                            attendees: transaction?.attendees,
+                        },
                     );
                     return;
                 }

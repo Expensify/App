@@ -255,17 +255,20 @@ function IOURequestStepScan({
                 );
             } else {
                 IOU.requestMoney(
-                    report,
-                    0,
-                    transaction?.attendees,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    '',
-                    receipt,
+                    {
+                        report,
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
+                        participant,
+                    },
+                    {
+                        amount: 0,
+                        attendees: transaction?.attendees,
+                        currency: transaction?.currency ?? 'USD',
+                        created: transaction?.created ?? '',
+                        merchant: '',
+                        receipt,
+                    },
                 );
             }
         },
@@ -351,28 +354,25 @@ function IOURequestStepScan({
                                 );
                             } else {
                                 IOU.requestMoney(
-                                    report,
-                                    0,
-                                    transaction?.attendees,
-                                    transaction?.currency ?? 'USD',
-                                    transaction?.created ?? '',
-                                    '',
-                                    currentUserPersonalDetails.login,
-                                    currentUserPersonalDetails.accountID,
-                                    participant,
-                                    '',
-                                    receipt,
-                                    '',
-                                    '',
-                                    '',
-                                    0,
-                                    false,
-                                    policy,
-                                    {},
-                                    {},
                                     {
-                                        lat: successData.coords.latitude,
-                                        long: successData.coords.longitude,
+                                        report,
+                                        payeeEmail: currentUserPersonalDetails.login,
+                                        payeeAccountID: currentUserPersonalDetails.accountID,
+                                        participant,
+                                        policy,
+                                        gpsPoints: {
+                                            lat: successData.coords.latitude,
+                                            long: successData.coords.longitude,
+                                        },
+                                    },
+                                    {
+                                        amount: 0,
+                                        attendees: transaction?.attendees,
+                                        currency: transaction?.currency ?? 'USD',
+                                        created: transaction?.created ?? '',
+                                        merchant: '',
+                                        receipt,
+                                        billable: false,
                                     },
                                 );
                             }
