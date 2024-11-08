@@ -111,7 +111,8 @@ describe('NetworkTests', () => {
                     expect(isOffline).toBe(false);
 
                     // Advance the network request queue by 1 second so that it can realize it's back online
-                    jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+                    // And advance past the retry delay
+                    jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS + CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
