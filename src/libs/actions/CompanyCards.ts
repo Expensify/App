@@ -472,14 +472,12 @@ function setCompanyCardExportAccount(policyID: string, workspaceAccountID: numbe
                 [cardID]: {
                     nameValuePairs: {
                         pendingFields: {
-                            exportAccountDetails: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            [accountKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                         errorFields: {
-                            exportAccountDetails: null,
+                            [accountKey]: null,
                         },
-                        exportAccountDetails: {
-                            [accountKey]: newAccount,
-                        },
+                        [accountKey]: newAccount,
                     },
                 },
             },
@@ -494,7 +492,7 @@ function setCompanyCardExportAccount(policyID: string, workspaceAccountID: numbe
                 [cardID]: {
                     nameValuePairs: {
                         pendingFields: {
-                            exportAccountDetails: null,
+                            [accountKey]: null,
                         },
                     },
                 },
@@ -509,10 +507,10 @@ function setCompanyCardExportAccount(policyID: string, workspaceAccountID: numbe
                 [cardID]: {
                     nameValuePairs: {
                         pendingFields: {
-                            exportAccountDetails: null,
+                            [accountKey]: newAccount,
                         },
                         errorFields: {
-                            exportAccountDetails: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            [accountKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                         },
                     },
                 },
@@ -542,6 +540,15 @@ function clearCompanyCardErrorField(workspaceAccountID: number, cardID: string, 
         [cardID]: {
             nameValuePairs: {
                 errorFields: {[fieldName]: null},
+            },
+        },
+    });
+    Onyx.merge(ONYXKEYS.CARD_LIST, {
+        [cardID]: {
+            nameValuePairs: {
+                errorFields: {
+                    [fieldName]: null,
+                },
             },
         },
     });

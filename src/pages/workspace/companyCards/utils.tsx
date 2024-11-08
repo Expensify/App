@@ -1,3 +1,4 @@
+import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -20,7 +21,7 @@ type ExportIntegration = {
     description?: string;
     onExportPagePress: () => void;
     data: SelectorType[];
-    exportType?: string;
+    exportType?: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>;
     shouldShowMenuItem?: boolean;
 };
 
@@ -47,16 +48,16 @@ function getExportMenuItem(
             let data: Account[];
             let shouldShowMenuItem = true;
             let title: string | undefined = '';
-            let exportType: string | undefined = '';
+            let exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | undefined;
             switch (nonReimbursableExpensesExportDestination) {
                 case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
                     data = creditCards ?? [];
-                    title = companyCard?.nameValuePairs?.exportAccountDetails?.quickbooks_desktop_export_account_credit ?? nonReimbursableExpensesAccount?.name;
+                    title = companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit ?? nonReimbursableExpensesAccount?.name;
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT;
                     break;
                 case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD:
                     data = quickbooksOnlineBankAccounts ?? [];
-                    title = companyCard?.nameValuePairs?.exportAccountDetails?.quickbooks_online_export_account_debit ?? nonReimbursableExpensesAccount?.name;
+                    title = companyCard?.nameValuePairs?.quickbooks_online_export_account_debit ?? nonReimbursableExpensesAccount?.name;
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_DEBIT;
                     break;
                 default:
@@ -87,7 +88,7 @@ function getExportMenuItem(
                 description,
                 exportType,
                 shouldShowMenuItem: true,
-                title: companyCard?.nameValuePairs?.exportAccountDetails?.xero_export_bank_account ?? selectedAccount?.name ?? bankAccounts?.[0]?.name ?? '',
+                title: companyCard?.nameValuePairs?.xero_export_bank_account ?? selectedAccount?.name ?? bankAccounts?.[0]?.name ?? '',
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
                 data: getXeroBankAccounts(policy ?? undefined, exportConfiguration?.nonReimbursableAccount),
             };
@@ -97,19 +98,19 @@ function getExportMenuItem(
                 ? translate(`workspace.netsuite.exportDestination.values.${config.nonreimbursableExpensesExportDestination}.label`)
                 : undefined;
             let title: string | undefined = '';
-            let exportType: string | undefined = '';
+            let exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | undefined;
             let shouldShowMenuItem = true;
             const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', {integration: currentConnectionName, type}) : undefined;
             let data: SelectorType[];
             switch (config?.nonreimbursableExpensesExportDestination) {
                 case CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL:
                     data = getNetSuiteVendorOptions(policy ?? undefined, config?.defaultVendor);
-                    title = companyCard?.nameValuePairs?.exportAccountDetails?.netsuite_export_vendor ?? data.find((exportVendor) => exportVendor.isSelected)?.text;
+                    title = companyCard?.nameValuePairs?.netsuite_export_vendor ?? data.find((exportVendor) => exportVendor.isSelected)?.text;
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_VENDOR;
                     break;
                 case CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY:
                     data = getNetSuitePayableAccountOptions(policy ?? undefined, config?.payableAcct);
-                    title = companyCard?.nameValuePairs?.exportAccountDetails?.netsuite_export_payable_account ?? data.find((exportPayable) => exportPayable.isSelected)?.text;
+                    title = companyCard?.nameValuePairs?.netsuite_export_payable_account ?? data.find((exportPayable) => exportPayable.isSelected)?.text;
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT;
                     break;
                 default:
@@ -137,9 +138,7 @@ function getExportMenuItem(
                 description,
                 shouldShowMenuItem: true,
                 exportType: isVendor ? CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_INTACCT_EXPORT_VENDOR : CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_INTACCT_EXPORT_CHARGE_CARD,
-                title: isVendor
-                    ? companyCard?.nameValuePairs?.exportAccountDetails?.intacct_export_vendor ?? selectedAccount
-                    : companyCard?.nameValuePairs?.exportAccountDetails?.intacct_export_charge_card ?? selectedAccount,
+                title: isVendor ? companyCard?.nameValuePairs?.intacct_export_vendor ?? selectedAccount : companyCard?.nameValuePairs?.intacct_export_charge_card ?? selectedAccount,
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
                 data,
             };
