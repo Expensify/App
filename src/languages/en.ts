@@ -44,6 +44,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    CurrencyCodeParams,
     CustomersOrJobsLabelParams,
     DateParams,
     DateShouldBeAfterParams,
@@ -346,6 +347,7 @@ const translations = {
             pleaseSelectOne: 'Please select an option above.',
             invalidRateError: 'Please enter a valid rate.',
             lowRateError: 'Rate must be greater than 0.',
+            email: 'Please enter a valid email address.',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -1401,7 +1403,7 @@ const translations = {
         enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
         walletEnabledToSendAndReceiveMoney: 'Your wallet has been enabled to send and receive money with friends.',
         enableWallet: 'Enable wallet',
-        addBankAccountToSendAndReceive: 'Adding a bank account allows you to get paid back for expenses you submit to a workspace.',
+        addBankAccountToSendAndReceive: 'Add a bank account to get paid back for expenses you submit to a workspace.',
         addBankAccount: 'Add bank account',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
@@ -1918,7 +1920,7 @@ const translations = {
             noBankAccountAvailable: "Sorry, there's no bank account available.",
             noBankAccountSelected: 'Please choose an account.',
             taxID: 'Please enter a valid tax ID number.',
-            website: 'Please enter a valid website using lower-case letters.',
+            website: 'Please enter a valid website.',
             zipCode: `Please enter a valid ZIP code using the format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
             phoneNumber: 'Please enter a valid phone number.',
             companyName: 'Please enter a valid business name.',
@@ -2169,6 +2171,33 @@ const translations = {
         listOfRestrictedBusinesses: 'list of restricted businesses',
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         businessInfoTitle: 'Business info',
+        legalBusinessName: 'Legal business name',
+        whatsTheBusinessName: "What's the business name?",
+        whatsTheBusinessAddress: "What's the business address?",
+        whatsTheBusinessContactInformation: "What's the business contact information?",
+        whatsTheBusinessRegistrationNumber: "What's the business registration number?",
+        whatsThisNumber: "What's this number?",
+        whereWasTheBusinessIncorporated: 'Where was the business incorporated?',
+        whatTypeOfBusinessIsIt: 'What type of business is it?',
+        whatsTheBusinessAnnualPayment: "What's the business's annual payment volume?",
+        registrationNumber: 'Registration number',
+        businessAddress: 'Business address',
+        businessType: 'Business type',
+        incorporation: 'Incorporation',
+        incorporationCountry: 'Incorporation country',
+        incorporationTypeName: 'Incorporation type',
+        businessCategory: 'Business category',
+        annualPaymentVolume: 'Annual payment volume',
+        annualPaymentVolumeInCurrency: ({currencyCode}: CurrencyCodeParams) => `Annual payment volume in ${currencyCode}`,
+        selectIncorporationType: 'Select incorporation type',
+        selectBusinessCategory: 'Select business category',
+        selectAnnualPaymentVolume: 'Select annual payment volume',
+        selectIncorporationCountry: 'Select incorporation country',
+        selectIncorporationState: 'Select incorporation state',
+        findIncorporationType: 'Find incorporation type',
+        findBusinessCategory: 'Find business category',
+        findAnnualPaymentVolume: 'Find annual payment volume',
+        findIncorporationState: 'Find incorporation state',
     },
     beneficialOwnerInfoStep: {
         doYouOwn25percent: 'Do you own 25% or more of',
@@ -2337,6 +2366,7 @@ const translations = {
             displayedAs: 'Displayed as',
             plan: 'Plan',
             profile: 'Profile',
+            perDiem: 'Per diem',
             bankAccount: 'Bank account',
             connectBankAccount: 'Connect bank account',
             testTransactions: 'Test transactions',
@@ -2399,6 +2429,25 @@ const translations = {
                     default:
                         return 'Member';
                 }
+            },
+        },
+        perDiem: {
+            subtitle: 'Set per diem rates to control daily employee spend. ',
+            destination: 'Destination',
+            subrate: 'Subrate',
+            amount: 'Amount',
+            deleteRates: () => ({
+                one: 'Delete rate',
+                other: 'Delete rates',
+            }),
+            deletePerDiemRate: 'Delete per diem rate',
+            areYouSureDelete: () => ({
+                one: 'Are you sure you want to delete this rate?',
+                other: 'Are you sure you want to delete these rates?',
+            }),
+            emptyList: {
+                title: 'Per diem',
+                subtitle: 'Set per diem rates to control daily employee spend. Import rates from a spreadsheet to get started.',
             },
         },
         qbd: {
@@ -2477,6 +2526,10 @@ const translations = {
             setupPage: {
                 title: 'Open this link to connect',
                 body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running.',
+                setupErrorTitle: 'Something went wrong',
+                setupErrorBody1: "The QuickBooks Desktop connection isn't working at the moment. Please try again later or",
+                setupErrorBody2: 'if the problem persists.',
+                setupErrorBodyContactConcierge: 'reach out to Concierge',
             },
             importDescription: 'Choose which coding configurations to import from QuickBooks Desktop to Expensify.',
             classes: 'Classes',
@@ -3287,6 +3340,10 @@ const translations = {
                 title: 'Distance rates',
                 subtitle: 'Add, update, and enforce rates.',
             },
+            perDiem: {
+                title: 'Per diem',
+                subtitle: 'Set Per diem rates to control daily employee spend.',
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: 'Gain insights and control over spend.',
@@ -3658,6 +3715,8 @@ const translations = {
                         return "Can't connect to Xero.";
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                         return "Can't connect to NetSuite.";
+                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
+                        return "Can't connect to QuickBooks Desktop.";
                     default: {
                         return "Can't connect to integration.";
                     }
@@ -4053,13 +4112,19 @@ const translations = {
             },
             companyCards: {
                 title: 'Company cards',
-                description: `Company cards lets you import spend for existing company cards from all major card issuers. You can assign cards to employees, and automatically import transactions.`,
+                description: `Connect your existing corporate cards to Expensify, assign them to employees, and automatically import transactions.`,
                 onlyAvailableOnPlan: 'Company cards are only available on the Control plan, starting at ',
             },
             rules: {
                 title: 'Rules',
                 description: `Rules run in the background and keep your spend under control so you don't have to sweat the small stuff.\n\nRequire expense details like receipts and descriptions, set limits and defaults, and automate approvals and payments – all in one place.`,
                 onlyAvailableOnPlan: 'Rules are only available on the Control plan, starting at ',
+            },
+            perDiem: {
+                title: 'Per diem',
+                description:
+                    'Per diem is a great way to keep your daily costs compliant and predictable whenever your employees travel. Enjoy features like custom rates, default categories, and more granular details like destinations and subrates.',
+                onlyAvailableOnPlan: 'Per diem are only available on the Control plan, starting at ',
             },
             pricing: {
                 amount: '$9 ',
@@ -4531,7 +4596,7 @@ const translations = {
         pressKit: 'Press Kit',
         support: 'Support',
         expensifyHelp: 'ExpensifyHelp',
-        community: 'Community',
+        terms: 'Terms of Service',
         privacy: 'Privacy',
         learnMore: 'Learn More',
         aboutExpensify: 'About Expensify',
