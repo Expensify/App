@@ -1,9 +1,10 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
+import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -36,6 +37,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
@@ -117,12 +119,14 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
 
     const listOptions = accountCardList?.length > 0 ? accountCardListOptions : cardListOptions;
 
+    const searchedListOptions = useMemo(() => {
+        return listOptions.filter((option) => option.text.toLowerCase().includes(searchText));
+    }, [searchText, listOptions]);
+
     return (
         <InteractiveStepWrapper
             wrapperID={CardSelectionStep.displayName}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={listOptions.length ? 1 : undefined}
-            stepNames={listOptions.length ? CONST.COMPANY_CARD.STEP_NAMES : undefined}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={assigneeDisplayName}
         >
@@ -147,18 +151,35 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                 </View>
             ) : (
                 <>
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
-                    <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
-                        {translate('workspace.companyCards.chooseCardFor', {
-                            assignee: assigneeDisplayName,
-                            feed: CardUtils.getCardFeedName(feed),
-                        })}
-                    </Text>
                     <SelectionList
-                        sections={[{data: listOptions}]}
+                        sections={[{data: searchedListOptions}]}
+                        shouldShowTextInput={listOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
+                        textInputLabel={translate('common.search')}
+                        textInputValue={searchText}
+                        onChangeText={setSearchText}
                         ListItem={RadioListItem}
                         onSelectRow={({value}) => handleSelectCard(value)}
                         initiallyFocusedOptionKey={cardSelected}
+                        listHeaderContent={
+                            <View>
+                                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                                    <InteractiveStepSubHeader
+                                        startStepIndex={1}
+                                        stepNames={CONST.COMPANY_CARD.STEP_NAMES}
+                                    />
+                                </View>
+                                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
+                                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
+                                    {translate('workspace.companyCards.chooseCardFor', {
+                                        assignee: assigneeDisplayName,
+                                        feed: CardUtils.getCardFeedName(feed),
+                                    })}
+                                </Text>
+                            </View>
+                        }
+                        shouldShowTextInputAfterHeader
+                        includeSafeAreaPaddingBottom={false}
+                        shouldShowListEmptyContent={false}
                         shouldUpdateFocusedIndex
                     />
                     <FormAlertWithSubmitButton
