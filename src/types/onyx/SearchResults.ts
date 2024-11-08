@@ -333,6 +333,9 @@ type SearchTransaction = {
 
     /** Whether the transaction report has only a single transaction */
     isFromOneTransactionReport?: boolean;
+
+    /** Whether the action is loading */
+    isActionLoading?: boolean;
 };
 
 /** Types of searchable transactions */

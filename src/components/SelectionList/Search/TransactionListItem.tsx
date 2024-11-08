@@ -85,7 +85,7 @@ function TransactionListItem<TItem extends ListItem>({
                 canSelectMultiple={!!canSelectMultiple}
                 isButtonSelected={item.isSelected}
                 shouldShowTransactionCheckbox={false}
-                isLoading={false}
+                isLoading={transactionItem.isActionLoading}
             />
         </BaseListItem>
     );

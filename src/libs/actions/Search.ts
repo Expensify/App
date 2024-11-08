@@ -10,7 +10,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import {isReportListItemType} from '@libs/SearchUIUtils';
+import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
@@ -35,13 +35,15 @@ Onyx.connect({
 });
 
 function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
-    const lastPolicyPaymentMethod = item.policyID ? (lastPaymentMethod?.[item.policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) : null;
-    const amount = isReportListItemType(item) ? item.total ?? 0 : item.formattedTotal;
+    const transactionID = isTransactionListItemType(item) ? item.transactionID : undefined;
     switch (item.action) {
-        case CONST.SEARCH.ACTION_TYPES.PAY:
+        case CONST.SEARCH.ACTION_TYPES.PAY: {
+            const lastPolicyPaymentMethod = item.policyID ? (lastPaymentMethod?.[item.policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) : null;
+            const amount = isReportListItemType(item) ? item.total ?? 0 : item.formattedTotal;
             return lastPolicyPaymentMethod ? payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}]) : goToItem();
+        }
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
-            return approveMoneyRequestOnSearch(hash, [item.reportID]);
+            return approveMoneyRequestOnSearch(hash, [item.reportID], transactionID);
         default:
             return goToItem();
     }
@@ -188,19 +190,21 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-function approveMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
-    const createOnyxLoadingData = (isLoading: boolean): OnyxUpdate[] => [
+function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], transactionID?: string) {
+    const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                data: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isActionLoading: isLoading}])) as Partial<SearchReport>,
+                data: transactionID
+                    ? {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {isActionLoading: isLoading}}
+                    : (Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isActionLoading: isLoading}])) as Partial<SearchReport>),
             },
         },
     ];
 
-    const optimisticData: OnyxUpdate[] = createOnyxLoadingData(true);
-    const finallyData: OnyxUpdate[] = createOnyxLoadingData(false);
+    const optimisticData: OnyxUpdate[] = createActionLoadingData(true);
+    const finallyData: OnyxUpdate[] = createActionLoadingData(false);
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
 }
