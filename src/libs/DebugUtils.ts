@@ -69,9 +69,7 @@ const REPORT_BOOLEAN_PROPERTIES: Array<keyof Report> = [
     'isCancelledIOU',
     'isLastMessageDeletedParentAction',
     'isHidden',
-    'isChatRoom',
     'isLoadingPrivateNotes',
-    'selected',
 ] satisfies Array<keyof Report>;
 
 const REPORT_DATE_PROPERTIES: Array<keyof Report> = ['lastVisibleActionCreated', 'lastReadCreated', 'lastReadTime', 'lastMentionedTime', 'lastVisibleActionLastModified'] satisfies Array<
@@ -503,9 +501,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         return validateObject(value, {});
     }
     if (key === 'visibleChatMemberAccountIDs') {
-        return validateArray(value, 'number');
-    }
-    if (key === 'participantAccountIDs') {
         return validateArray(value, 'number');
     }
 
