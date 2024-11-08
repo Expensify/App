@@ -1,3 +1,4 @@
+import type {FileObject} from '@components/AttachmentModal';
 import type {Country} from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type Form from './Form';
@@ -68,6 +69,10 @@ const INPUT_IDS = {
             BUSINESS_CATEGORY: 'natureOfBusiness',
             APPLICANT_TYPE_ID: 'applicantTypeID',
             ANNUAL_VOLUME: 'annualVolume',
+            OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
+            ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE: 'anyIndividualOwn25PercentOrMore',
+            BENEFICIAL_OWNERS: 'beneficialOwners',
+            ENTITY_CHART: 'entityChart',
         },
     },
 } as const;
@@ -187,6 +192,18 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Company annual volume */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME]: string;
+
+    /** Current user owns more than 25 percent of company */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OWNS_MORE_THAN_25_PERCENT]: boolean;
+
+    /** Any individual owns 25 percent or more of company */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
+
+    /** Beneficial owners */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]: string;
+
+    /** Entity chart */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ENTITY_CHART]: FileObject[];
 };
 
 type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &

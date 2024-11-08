@@ -530,6 +530,31 @@ function isValidZipCodeInternational(zipCode: string): boolean {
     return /^[a-z0-9][a-z0-9\- ]{0,10}[a-z0-9]$/.test(zipCode);
 }
 
+/**
+ * Validates the given value if it is correct ownership percentage
+ * @param value
+ * @param totalOwnedPercentage
+ * @param ownerBeingModifiedID
+ */
+function isValidOwnershipPercentage(value: string, totalOwnedPercentage: Record<string, number>, ownerBeingModifiedID: string): boolean {
+    const parsedValue = Number(value);
+    const isValidNumber = !Number.isNaN(parsedValue) && parsedValue >= 25 && parsedValue <= 100;
+
+    let totalOwnedPercentageSum = 0;
+    const totalOwnedPercentageKeys = Object.keys(totalOwnedPercentage);
+    totalOwnedPercentageKeys.forEach((key) => {
+        if (key === ownerBeingModifiedID) {
+            return;
+        }
+
+        totalOwnedPercentageSum += totalOwnedPercentage[key];
+    });
+
+    const isTotalSumValid = totalOwnedPercentageSum + parsedValue <= 100;
+
+    return isValidNumber && isTotalSumValid;
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -577,4 +602,5 @@ export {
     isValidEmail,
     isValidPhoneInternational,
     isValidZipCodeInternational,
+    isValidOwnershipPercentage,
 };

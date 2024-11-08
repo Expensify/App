@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
@@ -55,6 +56,18 @@ type Corpay = {
 
     /** Company annual volume */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME]: string;
+
+    /** Is user also an owner */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OWNS_MORE_THAN_25_PERCENT]: boolean;
+
+    /** Are the more owners */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
+
+    /** Stringified array of owners data */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
+
+    /** Entity chart files */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ENTITY_CHART]?: FileObject[];
 };
 
 /** Additional data where details of the non-USD reimbursements account are stored */
