@@ -250,9 +250,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is hidden from options list */
         isHidden?: boolean;
 
-        /** Text to be displayed in options list, which matches reportName by default */
-        text?: string;
-
         /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;
 
