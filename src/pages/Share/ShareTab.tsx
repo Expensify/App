@@ -11,11 +11,10 @@ function ShareTab() {
             onFinish={() => {}}
             onParticipantsAdded={(value) => {
                 const reportID = value.at(0)?.reportID;
-
-                if (!reportID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID));
+                const accountID = value.at(0)?.accountID;
+                // alert(ROUTES.SHARE_DETAILS.getRoute(`${!reportID ? accountID : reportID}`));
+                // alert(JSON.stringify(value));
+                Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(`${!reportID ? accountID : reportID}`));
             }}
             iouRequestType="manual"
             action="create"

@@ -993,6 +993,23 @@ function openReport(
     }
 }
 
+function getOptimisticChatReport(reportId: string): ReportUtils.OptimisticChatReport {
+    const accountId = parseInt(reportId, 10);
+    return ReportUtils.buildOptimisticChatReport(
+        [accountId, currentUserAccountID],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    );
+}
+
 /**
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
@@ -4325,4 +4342,5 @@ export {
     updateReportName,
     updateRoomVisibility,
     updateWriteCapability,
+    getOptimisticChatReport,
 };
