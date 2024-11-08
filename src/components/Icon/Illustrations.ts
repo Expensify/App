@@ -54,6 +54,7 @@ import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_l
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
+import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -100,6 +101,7 @@ import MoneyWings from '@assets/images/simple-illustrations/simple-illustration_
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
+import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
 import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__piggybank.svg';
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
@@ -200,6 +202,7 @@ export {
     TrashCan,
     TeleScope,
     Profile,
+    Puzzle,
     PalmTree,
     LockClosed,
     Gears,
@@ -262,4 +265,5 @@ export {
     OtherCompanyCardDetail,
     StripeCompanyCardDetail,
     WellsFargoCompanyCardDetail,
+    PerDiem,
 };
