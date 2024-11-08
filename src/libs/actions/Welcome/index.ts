@@ -2,12 +2,13 @@ import {NativeModules} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import type {OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as OnboardingFlow from './OnboardingFlow';
 
 type OnboardingData = Onboarding | [] | undefined;
@@ -41,7 +42,7 @@ function onServerDataReady(): Promise<void> {
 let isOnboardingInProgress = false;
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
-        if (Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
+        if (Array.isArray(onboarding) || isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
             onCanceled?.();
             return;
         }
@@ -183,6 +184,20 @@ function resetAllChecks() {
     OnboardingFlow.clearInitialPath();
 }
 
+function setSelfTourViewed() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {
+                selfTourViewed: true,
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData});
+}
+
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
@@ -195,4 +210,5 @@ export {
     completeHybridAppOnboarding,
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
+    setSelfTourViewed,
 };
