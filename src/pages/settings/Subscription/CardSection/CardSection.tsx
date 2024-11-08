@@ -195,7 +195,7 @@ function CardSection() {
                     />
                 )}
 
-                {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && <RequestEarlyCancellationMenuItem />}
+                {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && account?.hasPurchases && <RequestEarlyCancellationMenuItem />}
             </Section>
 
             {!!account?.isEligibleForRefund && (
