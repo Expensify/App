@@ -1302,7 +1302,7 @@ function getTagListSections(
  */
 function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>) {
     const policyTagValueList = policyTagList
-        .filter(tag => tag && tag.tags)
+        .filter((tag) => tag && tag.tags)
         .map(({tags}) => Object.values(tags))
         .flat();
 
