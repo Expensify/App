@@ -1,11 +1,10 @@
 import { google } from 'googleapis';
 import GithubUtils from "@github/libs/GithubUtils";
 import * as core from '@actions/core';
+import CONST from "@github/libs/CONST";
 
-const PACKAGE_NAME = process.env.PACKAGE_NAME;
-const GOOGLE_KEY_FILE = process.env.GOOGLE_KEY_FILE;
-const REPO_OWNER = process.env.REPO_OWNER || '';
-const REPO_NAME = process.env.REPO_NAME || '';
+const PACKAGE_NAME = core.getInput('PACKAGE_NAME', { required: true });
+const GOOGLE_KEY_FILE = core.getInput('GOOGLE_KEY_FILE', { required: true });
 const HALTED_STATUS = 'halted';
 
 async function checkAndroidStatus() {
@@ -47,8 +46,8 @@ async function checkAndroidStatus() {
 
 async function getLatestReleaseDate() {
     const { data } = await GithubUtils.octokit.repos.getLatestRelease({
-        owner: REPO_OWNER,
-        repo: REPO_NAME,
+        owner: CONST.GITHUB_OWNER,
+        repo: CONST.APP_REPO,
     });
 
     const releaseDate = data.published_at?.split('T')[0];
