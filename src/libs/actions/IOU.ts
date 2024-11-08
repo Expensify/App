@@ -476,10 +476,19 @@ function setMoneyRequestDistanceRate(transactionID: string, rateID: string, poli
 }
 
 /** Helper function to get the receipt error for expenses, or the generic error if there's no receipt */
-function getReceiptError(receipt: OnyxEntry<Receipt>, filename?: string, isScanRequest = true, errorKey?: number): Errors | ErrorFields {
+function getReceiptError(receipt: OnyxEntry<Receipt>, filename?: string, isScanRequest = true, errorKey?: number, file?: File, transactionID?: string): Errors | ErrorFields {
+    const fileData = {
+        name: file?.name,
+        type: file?.type,
+        uri: file?.uri,
+    };
+
     return isEmptyObject(receipt) || !isScanRequest
         ? ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage', errorKey)
-        : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? ''}, errorKey);
+        : ErrorUtils.getMicroSecondOnyxErrorObject(
+              {error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? '', file: fileData ?? {}, transactionID: transactionID ?? ''},
+              errorKey,
+          );
 }
 
 /** Helper function to get optimistic fields violations onyx data */
@@ -7806,7 +7815,7 @@ function detachReceipt(transactionID: string) {
     API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
 
-function replaceReceipt(transactionID: string, file: File, source: string) {
+function replaceReceipt(transactionID: string, file: File, source: string, simulateFailure = true) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
@@ -7824,6 +7833,7 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
                 pendingFields: {
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
+                errors: null,
             },
         },
     ];
@@ -7847,7 +7857,7 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
             value: {
                 receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
                 filename: transaction?.filename,
-                errors: getReceiptError(receiptOptimistic, file.name),
+                errors: getReceiptError(receiptOptimistic, file.name, undefined, undefined, file, transactionID),
                 pendingFields: {
                     receipt: null,
                 },
@@ -7857,7 +7867,7 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
 
     const parameters: ReplaceReceiptParams = {
         transactionID,
-        receipt: file,
+        ...(!simulateFailure && {receipt: file}),
     };
 
     API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, successData, failureData});

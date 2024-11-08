@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
+import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
@@ -62,6 +63,26 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
                     style={styles.offlineFeedback.text}
                 >
                     <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
+                    <TextLink
+                        style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
+                        onPress={() => {
+                            if (message.file.uri) {
+                                fetch(message.file.uri)
+                                    .then((res) => res.blob())
+                                    .then((blob) => {
+                                        const reconstructedFile = new File([blob], message.file.name, {type: message.file.type});
+                                        reconstructedFile.uri = message.file.uri;
+                                        IOU.replaceReceipt(message.transactionID, reconstructedFile, message.source, false);
+                                    })
+                                    .catch((error) => {
+                                        console.error('Error fetching file:', error);
+                                    });
+                            }
+                        }}
+                    >
+                        {Localize.translateLocal('iou.error.tryAgainMessage')}
+                    </TextLink>
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.alternativelyMessage')}</Text>
                     <TextLink
                         style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
                         onPress={() => {
