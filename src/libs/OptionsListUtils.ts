@@ -1,9 +1,6 @@
 /* eslint-disable no-continue */
 import {Str} from 'expensify-common';
-// eslint-disable-next-line you-dont-need-lodash-underscore/get
-import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
-import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -39,7 +36,6 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import times from '@src/utils/times';
 import Timing from './actions/Timing';
 import filterArrayByMatch from './filterArrayByMatch';
 import localeCompare from './LocaleCompare';
@@ -93,15 +89,6 @@ type PayeePersonalDetails = {
     keyForList: string;
 };
 
-type CategorySectionBase = {
-    title: string | undefined;
-    shouldShow: boolean;
-};
-
-type CategorySection = CategorySectionBase & {
-    data: Option[];
-};
-
 type TaxRatesOption = {
     text?: string;
     code?: string;
@@ -119,25 +106,11 @@ type TaxSection = {
     data: TaxRatesOption[];
 };
 
-type CategoryTreeSection = CategorySectionBase & {
-    data: OptionTree[];
-    indexOffset?: number;
-};
-
-type Category = {
-    name: string;
-    enabled: boolean;
-    isSelected?: boolean;
-    pendingAction?: OnyxCommon.PendingAction;
-};
-
 type Tax = {
     modifiedName: string;
     isSelected?: boolean;
     isDisabled?: boolean;
 };
-
-type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
 
 type GetOptionsConfig = {
     reportActions?: ReportActions;
@@ -159,9 +132,6 @@ type GetOptionsConfig = {
     includeMoneyRequests?: boolean;
     excludeUnknownUsers?: boolean;
     includeP2P?: boolean;
-    includeCategories?: boolean;
-    categories?: PolicyCategories;
-    recentlyUsedCategories?: string[];
     includeTags?: boolean;
     tags?: PolicyTags | Array<SelectedTagOption | PolicyTag>;
     recentlyUsedTags?: string[];
@@ -206,6 +176,15 @@ type MemberForList = {
     reportID: string;
 };
 
+type CategorySectionBase = {
+    title: string | undefined;
+    shouldShow: boolean;
+};
+
+type CategorySection = CategorySectionBase & {
+    data: Option[];
+};
+
 type SectionForSearchTerm = {
     section: CategorySection;
 };
@@ -214,7 +193,6 @@ type Options = {
     personalDetails: ReportUtils.OptionData[];
     userToInvite: ReportUtils.OptionData | null;
     currentUserOption: ReportUtils.OptionData | null | undefined;
-    categoryOptions: CategoryTreeSection[];
     tagOptions: CategorySection[];
     taxRatesOptions: CategorySection[];
     policyReportFieldOptions?: CategorySection[] | null;
@@ -917,72 +895,6 @@ function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
 }
 
 /**
- * Sorts categories using a simple object.
- * It builds an hierarchy (based on an object), where each category has a name and other keys as subcategories.
- * Via the hierarchy we avoid duplicating and sort categories one by one. Subcategories are being sorted alphabetically.
- */
-function sortCategories(categories: Record<string, Category>): Category[] {
-    // Sorts categories alphabetically by name.
-    const sortedCategories = Object.values(categories).sort((a, b) => a.name.localeCompare(b.name));
-
-    // An object that respects nesting of categories. Also, can contain only uniq categories.
-    const hierarchy: Hierarchy = {};
-    /**
-     * Iterates over all categories to set each category in a proper place in hierarchy
-     * It gets a path based on a category name e.g. "Parent: Child: Subcategory" -> "Parent.Child.Subcategory".
-     * {
-     *   Parent: {
-     *     name: "Parent",
-     *     Child: {
-     *       name: "Child"
-     *       Subcategory: {
-     *         name: "Subcategory"
-     *       }
-     *     }
-     *   }
-     * }
-     */
-    sortedCategories.forEach((category) => {
-        const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
-        const existedValue = lodashGet(hierarchy, path, {}) as Hierarchy;
-        lodashSet(hierarchy, path, {
-            ...existedValue,
-            name: category.name,
-            pendingAction: category.pendingAction,
-        });
-    });
-
-    /**
-     * A recursive function to convert hierarchy into an array of category objects.
-     * The category object contains base 2 properties: "name" and "enabled".
-     * It iterates each key one by one. When a category has subcategories, goes deeper into them. Also, sorts subcategories alphabetically.
-     */
-    const flatHierarchy = (initialHierarchy: Hierarchy) =>
-        Object.values(initialHierarchy).reduce((acc: Category[], category) => {
-            const {name, pendingAction, ...subcategories} = category;
-            if (name) {
-                const categoryObject: Category = {
-                    name,
-                    pendingAction,
-                    enabled: categories[name]?.enabled ?? false,
-                };
-
-                acc.push(categoryObject);
-            }
-
-            if (!isEmptyObject(subcategories)) {
-                const nestedCategories = flatHierarchy(subcategories);
-
-                acc.push(...nestedCategories.sort((a, b) => a.name.localeCompare(b.name)));
-            }
-
-            return acc;
-        }, []);
-
-    return flatHierarchy(hierarchy);
-}
-
-/**
  * Sorts tags alphabetically by name.
  */
 function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>) {
@@ -990,188 +902,6 @@ function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<Po
 
     // Use lodash's sortBy to ensure consistency with oldDot.
     return lodashSortBy(sortedTags, 'name', localeCompare);
-}
-
-/**
- * Builds the options for the category tree hierarchy via indents
- *
- * @param options - an initial object array
- * @param options[].enabled - a flag to enable/disable option in a list
- * @param options[].name - a name of an option
- * @param [isOneLine] - a flag to determine if text should be one line
- */
-function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false, selectedOptions: Category[] = []): OptionTree[] {
-    const optionCollection = new Map<string, OptionTree>();
-    Object.values(options).forEach((option) => {
-        if (isOneLine) {
-            if (optionCollection.has(option.name)) {
-                return;
-            }
-
-            optionCollection.set(option.name, {
-                text: option.name,
-                keyForList: option.name,
-                searchText: option.name,
-                tooltipText: option.name,
-                isDisabled: !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                isSelected: !!option.isSelected,
-                pendingAction: option.pendingAction,
-            });
-
-            return;
-        }
-
-        option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
-            const indents = times(index, () => CONST.INDENTS).join('');
-            const isChild = array.length - 1 === index;
-            const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
-            const selectedParentOption = !isChild && Object.values(selectedOptions).find((op) => op.name === searchText);
-            const isParentOptionDisabled = !selectedParentOption || !selectedParentOption.enabled || selectedParentOption.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-            if (optionCollection.has(searchText)) {
-                return;
-            }
-
-            optionCollection.set(searchText, {
-                text: `${indents}${optionName}`,
-                keyForList: searchText,
-                searchText,
-                tooltipText: optionName,
-                isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : isParentOptionDisabled,
-                isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
-                pendingAction: option.pendingAction,
-            });
-        });
-    });
-
-    return Array.from(optionCollection.values());
-}
-
-/**
- * Builds the section list for categories
- */
-function getCategoryListSections(
-    categories: PolicyCategories,
-    recentlyUsedCategories: string[],
-    selectedOptions: Category[],
-    searchInputValue: string,
-    maxRecentReportsToShow: number,
-): CategoryTreeSection[] {
-    const sortedCategories = sortCategories(categories);
-    const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
-    const enabledCategoriesNames = enabledCategories.map((category) => category.name);
-    const selectedOptionsWithDisabledState: Category[] = [];
-    const categorySections: CategoryTreeSection[] = [];
-    const numberOfEnabledCategories = enabledCategories.length;
-
-    selectedOptions.forEach((option) => {
-        if (enabledCategoriesNames.includes(option.name)) {
-            const categoryObj = enabledCategories.find((category) => category.name === option.name);
-            selectedOptionsWithDisabledState.push({...(categoryObj ?? option), isSelected: true, enabled: true});
-            return;
-        }
-        selectedOptionsWithDisabledState.push({...option, isSelected: true, enabled: false});
-    });
-
-    if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
-        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, true);
-        categorySections.push({
-            // "Selected" section
-            title: '',
-            shouldShow: false,
-            data,
-            indexOffset: data.length,
-        });
-
-        return categorySections;
-    }
-
-    if (searchInputValue) {
-        const categoriesForSearch = [...selectedOptionsWithDisabledState, ...enabledCategories];
-        const searchCategories: Category[] = [];
-
-        categoriesForSearch.forEach((category) => {
-            if (!category.name.toLowerCase().includes(searchInputValue.toLowerCase())) {
-                return;
-            }
-            searchCategories.push({
-                ...category,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
-            });
-        });
-
-        const data = getCategoryOptionTree(searchCategories, true);
-        categorySections.push({
-            // "Search" section
-            title: '',
-            shouldShow: true,
-            data,
-            indexOffset: data.length,
-        });
-
-        return categorySections;
-    }
-
-    if (selectedOptions.length > 0) {
-        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, true);
-        categorySections.push({
-            // "Selected" section
-            title: '',
-            shouldShow: false,
-            data,
-            indexOffset: data.length,
-        });
-    }
-
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
-
-    if (numberOfEnabledCategories < CONST.CATEGORY_LIST_THRESHOLD) {
-        const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
-        categorySections.push({
-            // "All" section when items amount less than the threshold
-            title: '',
-            shouldShow: false,
-            data,
-            indexOffset: data.length,
-        });
-
-        return categorySections;
-    }
-
-    const filteredRecentlyUsedCategories = recentlyUsedCategories
-        .filter(
-            (categoryName) =>
-                !selectedOptionNames.includes(categoryName) && categories[categoryName]?.enabled && categories[categoryName]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        )
-        .map((categoryName) => ({
-            name: categoryName,
-            enabled: categories[categoryName].enabled ?? false,
-        }));
-
-    if (filteredRecentlyUsedCategories.length > 0) {
-        const cutRecentlyUsedCategories = filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow);
-
-        const data = getCategoryOptionTree(cutRecentlyUsedCategories, true);
-        categorySections.push({
-            // "Recent" section
-            title: Localize.translateLocal('common.recent'),
-            shouldShow: true,
-            data,
-            indexOffset: data.length,
-        });
-    }
-
-    const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
-    categorySections.push({
-        // "All" section when items amount more than the threshold
-        title: Localize.translateLocal('common.all'),
-        shouldShow: true,
-        data,
-        indexOffset: data.length,
-    });
-
-    return categorySections;
 }
 
 /**
@@ -1711,9 +1441,6 @@ function getOptions(
         includeMoneyRequests = false,
         excludeUnknownUsers = false,
         includeP2P = true,
-        includeCategories = false,
-        categories = {},
-        recentlyUsedCategories = [],
         includeTags = false,
         tags = {},
         recentlyUsedTags = [],
@@ -1734,20 +1461,6 @@ function getOptions(
         shouldBoldTitleByDefault = true,
     }: GetOptionsConfig,
 ): Options {
-    if (includeCategories) {
-        const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions as Category[], searchInputValue, maxRecentReportsToShow);
-
-        return {
-            recentReports: [],
-            personalDetails: [],
-            userToInvite: null,
-            currentUserOption: null,
-            categoryOptions,
-            tagOptions: [],
-            taxRatesOptions: [],
-        };
-    }
-
     if (includeTags) {
         const tagOptions = getTagListSections(Object.values(tags), recentlyUsedTags, selectedOptions as SelectedTagOption[], searchInputValue, maxRecentReportsToShow);
 
@@ -1756,7 +1469,6 @@ function getOptions(
             personalDetails: [],
             userToInvite: null,
             currentUserOption: null,
-            categoryOptions: [],
             tagOptions,
             taxRatesOptions: [],
         };
@@ -1770,7 +1482,6 @@ function getOptions(
             personalDetails: [],
             userToInvite: null,
             currentUserOption: null,
-            categoryOptions: [],
             tagOptions: [],
             taxRatesOptions,
         };
@@ -1783,7 +1494,6 @@ function getOptions(
             personalDetails: [],
             userToInvite: null,
             currentUserOption: null,
-            categoryOptions: [],
             tagOptions: [],
             taxRatesOptions: [],
             policyReportFieldOptions: transformedPolicyReportFieldOptions,
@@ -2045,7 +1755,6 @@ function getOptions(
         recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
-        categoryOptions: [],
         tagOptions: [],
         taxRatesOptions: [],
     };
@@ -2130,9 +1839,6 @@ type FilteredOptionsParams = {
     excludeLogins?: string[];
     includeOwnedWorkspaceChats?: boolean;
     includeP2P?: boolean;
-    includeCategories?: boolean;
-    categories?: PolicyCategories;
-    recentlyUsedCategories?: string[];
     includeTags?: boolean;
     tags?: PolicyTags | Array<PolicyTag | SelectedTagOption>;
     recentlyUsedTags?: string[];
@@ -2171,9 +1877,6 @@ function getFilteredOptions(params: FilteredOptionsParamsWithDefaultSearchValue 
         excludeLogins = [],
         includeOwnedWorkspaceChats = false,
         includeP2P = true,
-        includeCategories = false,
-        categories = {},
-        recentlyUsedCategories = [],
         includeTags = false,
         tags = {},
         recentlyUsedTags = [],
@@ -2201,9 +1904,6 @@ function getFilteredOptions(params: FilteredOptionsParamsWithDefaultSearchValue 
             excludeLogins,
             includeOwnedWorkspaceChats,
             includeP2P,
-            includeCategories,
-            categories,
-            recentlyUsedCategories,
             includeTags,
             tags,
             recentlyUsedTags,
@@ -2245,9 +1945,6 @@ function getAttendeeOptions(
             includeOwnedWorkspaceChats,
             includeRecentReports: false,
             includeP2P,
-            includeCategories: false,
-            categories: {},
-            recentlyUsedCategories: [],
             includeTags: false,
             tags: {},
             recentlyUsedTags: [],
@@ -2549,7 +2246,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             personalDetails: personalDetails ?? [],
             userToInvite: null,
             currentUserOption,
-            categoryOptions: [],
             tagOptions: [],
             taxRatesOptions: [],
         };
@@ -2585,7 +2281,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat, preferRecentExpenseReports}),
         userToInvite,
         currentUserOption: matchResults.currentUserOption,
-        categoryOptions: [],
         tagOptions: [],
         taxRatesOptions: [],
     };
@@ -2601,7 +2296,6 @@ function getEmptyOptions(): Options {
         personalDetails: [],
         userToInvite: null,
         currentUserOption: null,
-        categoryOptions: [],
         tagOptions: [],
         taxRatesOptions: [],
     };
@@ -2635,10 +2329,8 @@ export {
     getLastMessageTextForReport,
     getEnabledCategoriesCount,
     hasEnabledOptions,
-    sortCategories,
     sortAlphabetically,
     sortTags,
-    getCategoryOptionTree,
     hasEnabledTags,
     formatMemberForList,
     formatSectionsFromSearchTerm,
@@ -2660,4 +2352,4 @@ export {
     hasReportErrors,
 };
 
-export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
+export type {CategorySection, CategorySectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Tax, TaxRatesOption, Option, OptionTree};
