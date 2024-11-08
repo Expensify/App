@@ -21,6 +21,7 @@ const test = (config: NativeConfig) => {
     console.debug('[E2E] Logging in for comment linking');
 
     const reportID = getConfigValueOrThrow('reportID', config);
+    const linkedReportID = getConfigValueOrThrow('linkedReportID', config);
     const linkedReportActionID = getConfigValueOrThrow('linkedReportActionID', config);
     const name = getConfigValueOrThrow('name', config);
 
@@ -55,12 +56,15 @@ const test = (config: NativeConfig) => {
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
                 console.debug('[E2E] Sidebar loaded, navigating to a report…');
+                Performance.markStart(CONST.TIMING.OPEN_REPORT);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                 return;
             }
 
             if (entry.name === CONST.TIMING.OPEN_REPORT) {
                 console.debug('[E2E] Linking: 1');
+                console.debug('[E2E] Navigating to the linked report action…');
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(linkedReportID, linkedReportActionID));
 
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
