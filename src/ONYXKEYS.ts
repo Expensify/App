@@ -36,6 +36,9 @@ const ONYXKEYS = {
     PERSISTED_REQUESTS: 'networkRequestQueue',
     PERSISTED_ONGOING_REQUESTS: 'networkOngoingRequestQueue',
 
+    /** The re-authentication request to be retried as needed */
+    REAUTHENTICATION_REQUEST: 'reauthenticationRequest',
+
     /** Stores current date */
     CURRENT_DATE: 'currentDate',
 
