@@ -306,7 +306,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Visible chat member account id's */
         visibleChatMemberAccountIDs?: number[];
     },
-    'addWorkspaceRoom' | 'avatar' | 'createChat'
+    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview'
 >;
 
 /** Collection of reports, indexed by report_{reportID} */

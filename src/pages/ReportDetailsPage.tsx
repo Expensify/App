@@ -768,7 +768,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
     const nameSectionTitleField = !!titleField && (
         <OfflineWithFeedback
-            pendingAction={report.pendingFields?.[fieldKey] ?? report.pendingFields?.reportName}
+            pendingAction={report.pendingFields?.[fieldKey as keyof typeof report.pendingFields] ?? report.pendingFields?.reportName}
             errors={report.errorFields?.[fieldKey] ?? report.errorFields?.reportName}
             errorRowStyles={styles.ph5}
             key={`menuItem-${fieldKey}`}
