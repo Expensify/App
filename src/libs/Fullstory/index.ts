@@ -155,7 +155,7 @@ function getFSAttributes(name: string, mask: boolean, prefix: boolean): string {
 
 function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>): string[] {
     if (!name) {
-        return '';
+        return ['', ''];
     }
     if (isConciergeChatReport(report)) {
         const formattedName = `${CONCIERGE}-${name}`;

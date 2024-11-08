@@ -8417,7 +8417,7 @@ function isExpensifyAndCustomerChat(participantsContext: OnyxEntry<PersonalDetai
         return false;
     }
 
-    if (isThread(report) && CONST.WORKSPACE_REPORT_ROOM_TYPES.includes(report.chatType)) {
+    if (isThread(report) && report.chatType && report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) {
         return true;
     }
 
