@@ -20,9 +20,9 @@ Confirm the email address on your Expensify account is a deliverable email addre
  ![ExpensifyHelp_EmailError]({{site.url}}/assets/images/ExpensifyHelp_EmailError.png){:width="100%"}
  
  **If unsuccessful, you will see another error:**
- - If the new error or SMTP message that includes a URL, navigate to that URL for further instructions. 
- - If the new error or SMTP message that includes "mimecast.com", consult with your company's IT team.
- - If you see a new error or SMTP message that includes "blacklist", it means your company has configured their email servers to use a third-party email reputation or blacklisting service. Consult with your company's IT team.
+ - If the new error or SMTP message includes a URL, navigate to that URL for further instructions. 
+ - If the new error or SMTP message includes "mimecast.com", consult with your company's IT team.
+ - If the new error or SMTP message includes "blacklist", it means your company has configured their email servers to use a third-party email reputation or blocklisting service. Consult with your company's IT team.
    
 ![ExpensifyHelp_SMTPError]({{site.url}}/assets/images/ExpensifyHelp_SMTPError.png){:width="100%"}
 
