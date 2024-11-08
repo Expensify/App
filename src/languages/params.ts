@@ -547,6 +547,10 @@ type CompanyCardBankName = {
     bankName: string;
 };
 
+type CurrencyCodeParams = {
+    currencyCode: string;
+};
+
 type CompanyNameParams = {
     companyName: string;
 };
@@ -750,5 +754,6 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    CurrencyCodeParams,
     CompanyNameParams,
 };
