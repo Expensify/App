@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,6 +28,7 @@ function ValidateCodeActionModal({
     hasMagicCodeBeenSent,
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
     const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
 
@@ -76,6 +78,7 @@ function ValidateCodeActionModal({
                         handleSubmitForm={handleSubmitForm}
                         sendValidateCode={sendValidateCode}
                         clearError={clearError}
+                        buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1, safePaddingBottomStyle]}
                         ref={validateCodeFormRef}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         menuItems={footer}

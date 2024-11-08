@@ -258,6 +258,7 @@ function BaseValidateCodeForm({
 
             <View style={[styles.flex1, styles.justifyContentEnd, safePaddingBottomStyle, styles.ph5]}>
                 <OfflineWithFeedback
+                    shouldDisplayErrorAbove
                     pendingAction={validatePendingAction}
                     errors={validateError}
                     errorRowStyles={[styles.mt2]}
