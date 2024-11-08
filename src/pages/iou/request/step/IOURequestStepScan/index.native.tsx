@@ -30,11 +30,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import getPlatform from '@libs/getPlatform';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -74,7 +76,9 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const platform = getPlatform(true);
+    const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
+    const isPlatformMuted = mutedPlatforms[platform];
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
@@ -139,6 +143,7 @@ function IOURequestStepScan({
 
     const tapGesture = Gesture.Tap()
         .enabled(device?.supportsFocus ?? false)
+        // eslint-disable-next-line react-compiler/react-compiler
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 
@@ -252,6 +257,7 @@ function IOURequestStepScan({
                 IOU.requestMoney(
                     report,
                     0,
+                    transaction?.attendees,
                     transaction?.currency ?? 'USD',
                     transaction?.created ?? '',
                     '',
@@ -263,7 +269,7 @@ function IOURequestStepScan({
                 );
             }
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.created, transaction?.currency],
+        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
     );
     const navigateToConfirmationStep = useCallback(
         (file: FileObject, source: string, locationPermissionGranted = false) => {
@@ -293,6 +299,7 @@ function IOURequestStepScan({
                 receipt.source = source;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
+                    playSound(SOUNDS.DONE);
                     IOU.startSplitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails?.login ?? '',
@@ -316,6 +323,7 @@ function IOURequestStepScan({
                 if (locationPermissionGranted) {
                     getCurrentPosition(
                         (successData) => {
+                            playSound(SOUNDS.DONE);
                             if (iouType === CONST.IOU.TYPE.TRACK && report) {
                                 IOU.trackExpense(
                                     report,
@@ -345,6 +353,7 @@ function IOURequestStepScan({
                                 IOU.requestMoney(
                                     report,
                                     0,
+                                    transaction?.attendees,
                                     transaction?.currency ?? 'USD',
                                     transaction?.created ?? '',
                                     '',
@@ -371,6 +380,7 @@ function IOURequestStepScan({
                         (errorData) => {
                             Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                            playSound(SOUNDS.DONE);
                             createTransaction(receipt, participant);
                         },
                         {
@@ -380,6 +390,7 @@ function IOURequestStepScan({
                     );
                     return;
                 }
+                playSound(SOUNDS.DONE);
                 createTransaction(receipt, participant);
                 return;
             }
@@ -388,6 +399,7 @@ function IOURequestStepScan({
         [
             backTo,
             transaction?.isFromGlobalCreate,
+            transaction?.attendees,
             transaction?.currency,
             transaction?.created,
             iouType,
@@ -480,36 +492,46 @@ function IOURequestStepScan({
             return;
         }
 
+        setDidCapturePhoto(true);
+
         camera?.current
             ?.takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !user?.isMutedAllSounds,
+                enableShutterSound: !isPlatformMuted,
             })
             .then((photo: PhotoFile) => {
                 // Store the receipt on the transaction object in Onyx
                 const source = getPhotoSource(photo.path);
                 IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
 
-                FileUtils.readFileAsync(source, photo.path, (file) => {
-                    if (isEditing) {
-                        updateScanAndNavigate(file, source);
-                        return;
-                    }
-                    setDidCapturePhoto(true);
-                    if (shouldSkipConfirmation) {
-                        setFileResize(file);
-                        setFileSource(source);
-                        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
-                        if (gpsRequired) {
-                            const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
-                            if (shouldStartLocationPermissionFlow) {
-                                setStartLocationPermissionFlow(true);
-                                return;
+                FileUtils.readFileAsync(
+                    source,
+                    photo.path,
+                    (file) => {
+                        if (isEditing) {
+                            updateScanAndNavigate(file, source);
+                            return;
+                        }
+                        if (shouldSkipConfirmation) {
+                            setFileResize(file);
+                            setFileSource(source);
+                            const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
+                            if (gpsRequired) {
+                                const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
+                                if (shouldStartLocationPermissionFlow) {
+                                    setStartLocationPermissionFlow(true);
+                                    return;
+                                }
                             }
                         }
-                    }
-                    navigateToConfirmationStep(file, source, false);
-                });
+                        navigateToConfirmationStep(file, source, false);
+                    },
+                    () => {
+                        setDidCapturePhoto(false);
+                        showCameraAlert();
+                        Log.warn('Error reading photo');
+                    },
+                );
             })
             .catch((error: string) => {
                 setDidCapturePhoto(false);
@@ -521,7 +543,7 @@ function IOURequestStepScan({
         didCapturePhoto,
         flash,
         hasFlash,
-        user?.isMutedAllSounds,
+        isPlatformMuted,
         translate,
         transactionID,
         isEditing,
@@ -546,7 +568,7 @@ function IOURequestStepScan({
             testID={IOURequestStepScan.displayName}
         >
             {isLoadingReceipt && <FullScreenLoadingIndicator />}
-            {pdfFile && (
+            {!!pdfFile && (
                 <PDFThumbnail
                     style={styles.invisiblePDF}
                     previewSourceURL={pdfFile?.uri ?? ''}
@@ -623,7 +645,7 @@ function IOURequestStepScan({
                             style={[styles.alignItemsStart]}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: setReceiptAndNavigate,
+                                    onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
                                 });
                             }}
                         >
@@ -666,7 +688,7 @@ function IOURequestStepScan({
                     </PressableWithFeedback>
                 )}
             </View>
-            {startLocationPermissionFlow && fileResize && (
+            {startLocationPermissionFlow && !!fileResize && (
                 <LocationPermissionModal
                     startPermissionFlow={startLocationPermissionFlow}
                     resetPermissionFlow={() => setStartLocationPermissionFlow(false)}

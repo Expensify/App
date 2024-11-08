@@ -1,4 +1,4 @@
-import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import type {ValueOf} from 'type-fest';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
@@ -56,11 +56,16 @@ type QueryFilter = {
     value: string | number;
 };
 
-type AdvancedFiltersKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
+type SearchFilterKey =
+    | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID;
 
-type QueryFilters = {
-    [K in AdvancedFiltersKeys]?: QueryFilter[];
-};
+type QueryFilters = Array<{
+    key: SearchFilterKey;
+    filters: QueryFilter[];
+}>;
 
 type SearchQueryString = string;
 
@@ -76,8 +81,22 @@ type SearchQueryAST = {
 type SearchQueryJSON = {
     inputQuery: SearchQueryString;
     hash: number;
+    /** Hash used for putting queries in recent searches list. It ignores sortOrder and sortBy, because we want to treat queries differing only in sort params as the same query */
+    recentSearchHash: number;
     flatFilters: QueryFilters;
 } & SearchQueryAST;
+
+type SearchAutocompleteResult = {
+    autocomplete: SearchAutocompleteQueryRange | null;
+    ranges: SearchAutocompleteQueryRange[];
+};
+
+type SearchAutocompleteQueryRange = {
+    key: SearchFilterKey;
+    length: number;
+    start: number;
+    value: string;
+};
 
 export type {
     SelectedTransactionInfo,
@@ -92,9 +111,11 @@ export type {
     ASTNode,
     QueryFilter,
     QueryFilters,
-    AdvancedFiltersKeys,
+    SearchFilterKey,
     ExpenseSearchStatus,
     InvoiceSearchStatus,
     TripSearchStatus,
     ChatSearchStatus,
+    SearchAutocompleteResult,
+    SearchAutocompleteQueryRange,
 };

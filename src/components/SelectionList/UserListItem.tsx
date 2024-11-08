@@ -72,7 +72,7 @@ function UserListItem<TItem extends ListItem>({
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
-            pressableStyle={[isFocused && styles.sidebarLinkActive, pressableStyle]}
+            pressableStyle={pressableStyle}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
@@ -86,7 +86,7 @@ function UserListItem<TItem extends ListItem>({
         >
             {(hovered?: boolean) => (
                 <>
-                    {canSelectMultiple && (
+                    {!!canSelectMultiple && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
@@ -96,7 +96,7 @@ function UserListItem<TItem extends ListItem>({
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
                         >
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                {item.isSelected && (
+                                {!!item.isSelected && (
                                     <Icon
                                         src={Expensicons.Checkmark}
                                         fill={theme.textLight}
