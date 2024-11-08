@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
+import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
@@ -58,54 +59,56 @@ function SearchPage({route}: SearchPageProps) {
     }
 
     return (
-        <FullPageNotFoundView
-            shouldForceFullScreen
-            shouldShow={!queryJSON}
-            onBackButtonPress={handleOnBackButtonPress}
-            shouldShowLink={false}
-        >
-            {!!queryJSON && (
-                <View style={styles.searchSplitContainer}>
-                    <View style={styles.searchSidebar}>
-                        {/* {!selectionMode?.isEnabled && queryJSON ? ( */}
-                        {queryJSON ? (
-                            <View>
-                                <TopBar
-                                    activeWorkspaceID={policyID}
-                                    breadcrumbLabel={translate('common.search')}
-                                    shouldDisplaySearch={false}
+        <FreezeWrapper>
+            <FullPageNotFoundView
+                shouldForceFullScreen
+                shouldShow={!queryJSON}
+                onBackButtonPress={handleOnBackButtonPress}
+                shouldShowLink={false}
+            >
+                {!!queryJSON && (
+                    <View style={styles.searchSplitContainer}>
+                        <View style={styles.searchSidebar}>
+                            {/* {!selectionMode?.isEnabled && queryJSON ? ( */}
+                            {queryJSON ? (
+                                <View>
+                                    <TopBar
+                                        activeWorkspaceID={policyID}
+                                        breadcrumbLabel={translate('common.search')}
+                                        shouldDisplaySearch={false}
+                                    />
+                                    <SearchTypeMenu
+                                        queryJSON={queryJSON}
+                                        searchName={searchName}
+                                    />
+                                </View>
+                            ) : (
+                                <HeaderWithBackButton
+                                    title={translate('common.selectMultiple')}
+                                    onBackButtonPress={() => {
+                                        clearSelectedTransactions();
+                                        turnOffMobileSelectionMode();
+                                    }}
                                 />
-                                <SearchTypeMenu
-                                    queryJSON={queryJSON}
-                                    searchName={searchName}
-                                />
-                            </View>
-                        ) : (
-                            <HeaderWithBackButton
-                                title={translate('common.selectMultiple')}
-                                onBackButtonPress={() => {
-                                    clearSelectedTransactions();
-                                    turnOffMobileSelectionMode();
-                                }}
+                            )}
+                            <BottomTabBar selectedTab={SCREENS.SEARCH.CENTRAL_PANE} />
+                        </View>
+                        <ScreenWrapper
+                            testID={Search.displayName}
+                            shouldShowOfflineIndicatorInWideScreen
+                            offlineIndicatorStyle={styles.mtAuto}
+                        >
+                            <SearchPageHeader
+                                queryJSON={queryJSON}
+                                hash={queryJSON.hash}
                             />
-                        )}
-                        <BottomTabBar selectedTab={SCREENS.SEARCH.CENTRAL_PANE} />
+                            <SearchStatusBar queryJSON={queryJSON} />
+                            <Search queryJSON={queryJSON} />
+                        </ScreenWrapper>
                     </View>
-                    <ScreenWrapper
-                        testID={Search.displayName}
-                        shouldShowOfflineIndicatorInWideScreen
-                        offlineIndicatorStyle={styles.mtAuto}
-                    >
-                        <SearchPageHeader
-                            queryJSON={queryJSON}
-                            hash={queryJSON.hash}
-                        />
-                        <SearchStatusBar queryJSON={queryJSON} />
-                        <Search queryJSON={queryJSON} />
-                    </ScreenWrapper>
-                </View>
-            )}
-        </FullPageNotFoundView>
+                )}
+            </FullPageNotFoundView>
+        </FreezeWrapper>
     );
 }
 

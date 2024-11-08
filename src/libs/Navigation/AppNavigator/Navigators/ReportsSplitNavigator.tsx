@@ -1,42 +1,19 @@
-import {useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useRef} from 'react';
-import {Freeze} from 'react-freeze';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
-import memoize from '@libs/memoize';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
+import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {isFullScreenName} from '@libs/NavigationUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
-function FrozenScreen<TProps extends React.JSX.IntrinsicAttributes>(WrappedComponent: React.ComponentType<TProps>, freeze: boolean) {
-    return (props: TProps) => (
-        <Freeze freeze={freeze}>
-            <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />
-        </Freeze>
-    );
-}
-
-function freezeScreenWithLazyLoading(lazyComponent: () => React.ComponentType, freeze: boolean) {
-    return memoize(
-        () => {
-            const Component = lazyComponent();
-            return FrozenScreen(Component, freeze);
-        },
-        {monitoringName: 'freezeScreenWithLazyLoading'},
-    );
-}
-
 const loadReportScreen = () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default;
+const loadSidebarScreen = () => require<ReactComponentModule>('@pages/home/sidebar/SidebarScreen').default;
 
 const Stack = createSplitStackNavigator<ReportsSplitNavigatorParamList>();
 
@@ -47,8 +24,8 @@ function ReportsSplitNavigator() {
     let initialReportID: string | undefined;
     const isInitialRender = useRef(true);
 
-    const currentRoute = useRoute();
-
+    // TODO: Figure out if compiler affects this code.
+    // eslint-disable-next-line react-compiler/react-compiler
     if (isInitialRender.current) {
         const currentURL = getCurrentUrl();
         if (currentURL) {
@@ -60,18 +37,12 @@ function ReportsSplitNavigator() {
             initialReportID = initialReport?.reportID ?? '';
         }
 
+        // eslint-disable-next-line react-compiler/react-compiler
         isInitialRender.current = false;
     }
 
-    const shouldFreeze = useNavigationState((state) => {
-        const lastFullScreenRoute = state.routes.findLast((route) => isFullScreenName(route.name));
-        return lastFullScreenRoute?.key !== currentRoute.key;
-    });
-
-    const getSidebarScreen = freezeScreenWithLazyLoading(() => require<ReactComponentModule>('@pages/home/sidebar/SidebarScreen').default, shouldFreeze);
-
     return (
-        <Freeze freeze={shouldFreeze}>
+        <FreezeWrapper>
             <FocusTrapForScreens>
                 <Stack.Navigator
                     sidebarScreen={SCREENS.HOME}
@@ -79,7 +50,7 @@ function ReportsSplitNavigator() {
                 >
                     <Stack.Screen
                         name={SCREENS.HOME}
-                        getComponent={getSidebarScreen}
+                        getComponent={loadSidebarScreen}
                     />
                     <Stack.Screen
                         name={SCREENS.REPORT}
@@ -88,7 +59,7 @@ function ReportsSplitNavigator() {
                     />
                 </Stack.Navigator>
             </FocusTrapForScreens>
-        </Freeze>
+        </FreezeWrapper>
     );
 }
 
