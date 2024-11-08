@@ -139,6 +139,13 @@ function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | unde
 }
 
 /**
+ * Retrieves the per diem custom unit object for the given policy
+ */
+function getPerDiemCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
+    return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+}
+
+/**
  * Retrieves custom unit rate object from the given customUnitRateID
  */
 function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
@@ -190,10 +197,11 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin: strin
  */
 function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean, currentUserLogin: string | undefined): boolean {
     return (
-        !!policy &&
-        (policy?.type !== CONST.POLICY.TYPE.PERSONAL || !!policy?.isJoinRequestPending) &&
-        (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
-        !!getPolicyRole(policy, currentUserLogin)
+        !!policy?.isJoinRequestPending ||
+        (!!policy &&
+            policy?.type !== CONST.POLICY.TYPE.PERSONAL &&
+            (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
+            !!getPolicyRole(policy, currentUserLogin))
     );
 }
 
@@ -1091,6 +1099,10 @@ function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
 }
 
+function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
+    return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1176,6 +1188,7 @@ export {
     getSageIntacctCreditCards,
     getSageIntacctBankAccounts,
     getDistanceRateCustomUnit,
+    getPerDiemCustomUnit,
     getDistanceRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
@@ -1208,6 +1221,7 @@ export {
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
     getActivePolicy,
+    isPolicyAccessible,
 };
 
 export type {MemberEmailsToAccountIDs};

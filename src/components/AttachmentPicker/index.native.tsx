@@ -118,9 +118,9 @@ function AttachmentPicker({
     fileLimit = 1,
 }: AttachmentPickerProps) {
     const styles = useThemeStyles();
+    const [isVisible, setIsVisible] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const [isVisible, setIsVisible] = useState(false);
 
     const completeAttachmentSelection = useRef<(data: FileObject[]) => void>(() => {});
     const onModalHide = useRef<() => void>();
@@ -448,7 +448,7 @@ function AttachmentPicker({
                             title={translate(item.textTranslationKey)}
                             onPress={() => selectItem(item)}
                             focused={focusedIndex === menuIndex}
-                            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === menuIndex, theme.activeComponentBG, theme.hoverComponentBG)}
+                            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === menuIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
                         />
                     ))}
                 </View>
