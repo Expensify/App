@@ -1,3 +1,4 @@
+import Onyx from 'react-native-onyx';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
 import * as Authentication from '@libs/Authentication';
 import Log from '@libs/Log';
@@ -24,6 +25,7 @@ function reauthenticate(commandName?: string): Promise<void> {
     const reauthRequest = {
         commandName,
     };
+    // eslint-disable-next-line rulesdir/prefer-actions-set-data
     Onyx.set(ONYXKEYS.REAUTHENTICATION_REQUEST, reauthRequest);
 
     isAuthenticating = retryReauthenticate(commandName)
@@ -34,7 +36,8 @@ function reauthenticate(commandName?: string): Promise<void> {
             throw error;
         })
         .finally(() => {
-            Onyx.set(CONST.ONYXKEYS.REAUTHENTICATION_REQUEST, null);
+            // eslint-disable-next-line rulesdir/prefer-actions-set-data
+            Onyx.set(ONYXKEYS.REAUTHENTICATION_REQUEST, null);
             isAuthenticating = null;
         });
 

@@ -9,7 +9,7 @@ import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
-import * as RequestThrottle from '@src/libs/RequestThrottle';
+import RequestThrottle from '@src/libs/RequestThrottle';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
@@ -39,6 +39,7 @@ type XhrCalls = Array<{
 }>;
 
 const originalXHR = HttpUtils.xhr;
+const requestThrottle = new RequestThrottle();
 
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
@@ -47,6 +48,7 @@ beforeEach(() => {
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     PersistedRequests.clear();
+    requestThrottle.clear();
     NetworkStore.checkRequiredData();
 
     // Wait for any Log command to finish and Onyx to fully clear
@@ -242,7 +244,7 @@ describe('APITests', () => {
 
                     // We let the SequentialQueue process again after its wait time
                     return new Promise((resolve) => {
-                        setTimeout(resolve, RequestThrottle.getLastRequestWaitTime());
+                        setTimeout(resolve, requestThrottle.getLastRequestWaitTime());
                     });
                 })
                 .then(() => {
@@ -255,7 +257,7 @@ describe('APITests', () => {
 
                     // We let the SequentialQueue process again after its wait time
                     return new Promise((resolve) => {
-                        setTimeout(resolve, RequestThrottle.getLastRequestWaitTime());
+                        setTimeout(resolve, requestThrottle.getLastRequestWaitTime());
                     }).then(waitForBatchedUpdates);
                 })
                 .then(() => {
