@@ -41,7 +41,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const formattedFeedName = translate('workspace.companyCards.feedName', {feedName});
     const isCustomFeed =
         CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD === selectedFeed || CONST.COMPANY_CARD.FEED_BANK_NAME.VISA === selectedFeed || CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX === selectedFeed;
-    const currentFeedData = cardFeeds?.settings?.companyCards?.[selectedFeed] ?? {pending: true, errors: {}};
+    const currentFeedData = cardFeeds?.settings?.companyCards?.[selectedFeed] ?? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] ?? {pending: true, errors: {}};
 
     return (
         <OfflineWithFeedback
@@ -79,6 +79,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 <View style={[styles.flexRow, styles.gap2]}>
                     <Button
                         success
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isDisabled={currentFeedData.pending || !!currentFeedData.errors}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed))}
                         icon={Expensicons.Plus}
