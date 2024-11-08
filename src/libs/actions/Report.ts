@@ -58,6 +58,8 @@ import DateUtils from '@libs/DateUtils';
 import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
+import getEnvironment from '@libs/Environment/getEnvironment';
+import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import HttpUtils from '@libs/HttpUtils';
@@ -71,6 +73,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import Parser from '@libs/Parser';
+import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
@@ -83,6 +86,7 @@ import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
+import {getNavatticURL} from '@libs/TourUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccountingType, OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
@@ -92,6 +96,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    Beta,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
     PersonalDetailsList,
@@ -270,8 +275,19 @@ Onyx.connect({
     callback: (value) => (allReportDraftComments = value),
 });
 
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
+});
+
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
+
+let environment: EnvironmentType;
+getEnvironment().then((env) => {
+    environment = env;
+});
 
 registerPaginationConfig({
     initialCommand: WRITE_COMMANDS.OPEN_REPORT,
@@ -1372,6 +1388,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
     if (report?.reportID && report.preexistingReportID) {
         let callback = () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.preexistingReportID}`, {...report, reportID: report.preexistingReportID, preexistingReportID: null});
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, null);
         };
         // Only re-route them if they are still looking at the optimistically created report
@@ -1926,6 +1943,8 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
     const fieldViolation = ReportUtils.getFieldViolation(reportViolations, reportField);
     const recentlyUsedValues = allRecentlyUsedReportFields?.[fieldKey] ?? [];
 
+    const optimisticChangeFieldAction = ReportUtils.buildOptimisticChangeFieldAction(reportField, previousReportField);
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1937,6 +1956,13 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
                 pendingFields: {
                     [fieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticChangeFieldAction.reportActionID]: optimisticChangeFieldAction,
             },
         },
     ];
@@ -1979,6 +2005,15 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticChangeFieldAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericUpdateReportFieldFailureMessage'),
+                },
+            },
+        },
     ];
 
     if (reportField.type === 'dropdown') {
@@ -2004,11 +2039,21 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticChangeFieldAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
     ];
 
     const parameters = {
         reportID,
         reportFields: JSON.stringify({[fieldKey]: reportField}),
+        reportFieldsActionIDs: JSON.stringify({[fieldKey]: optimisticChangeFieldAction.reportActionID}),
     };
 
     API.write(WRITE_COMMANDS.SET_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
@@ -3380,6 +3425,19 @@ function completeOnboarding(
     companySize?: OnboardingCompanySizeType,
     userReportedIntegration?: OnboardingAccountingType,
 ) {
+    // If the user has the "combinedTrackSubmit" beta enabled we'll show different tasks for track and submit expense.
+    if (Permissions.canUseCombinedTrackSubmit(allBetas)) {
+        if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
+            // eslint-disable-next-line no-param-reassign
+            data = CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
+        }
+
+        if (engagementChoice === CONST.ONBOARDING_CHOICES.EMPLOYER || engagementChoice === CONST.ONBOARDING_CHOICES.SUBMIT) {
+            // eslint-disable-next-line no-param-reassign
+            data = CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.SUBMIT];
+        }
+    }
+
     const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
     const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
@@ -3414,7 +3472,6 @@ function completeOnboarding(
             reportComment: videoComment.commentText,
         };
     }
-
     const tasksData = data.tasks
         .filter((task) => {
             if (task.type === 'addAccountingIntegration' && !userReportedIntegration) {
@@ -3430,6 +3487,7 @@ function completeOnboarding(
                           workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID ?? '-1')}`,
                           workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID ?? '-1')}`,
                           workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID ?? '-1')}`,
+                          navatticURL: getNavatticURL(environment, engagementChoice),
                           integrationName,
                           workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID ?? '-1')}`,
                       })
@@ -3483,7 +3541,7 @@ function completeOnboarding(
         parentReportActionID: taskReportAction.reportAction.reportActionID,
         assigneeChatReportID: '',
         createdTaskReportActionID: taskCreatedAction.reportActionID,
-        completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? '-1',
+        completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? undefined,
         title: currentTask.reportName ?? '',
         description: taskDescription ?? '',
     }));
@@ -3618,6 +3676,9 @@ function completeOnboarding(
     }, []);
 
     const optimisticData: OnyxUpdate[] = [...tasksForOptimisticData];
+    const lastVisibleActionCreated =
+        tasksData.at(-1)?.completedTaskReportAction?.created ?? tasksData.at(-1)?.taskReportAction.reportAction.created ?? videoCommentAction?.created ?? textCommentAction.created;
+
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3625,6 +3686,7 @@ function completeOnboarding(
             value: {
                 lastMentionedTime: DateUtils.getDBTime(),
                 hasOutstandingChildTask,
+                lastVisibleActionCreated,
             },
         },
         {
@@ -3666,12 +3728,12 @@ function completeOnboarding(
     const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(targetChatReportID);
     if (lastMessageText || lastMessageTranslationKey) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(targetChatReportID);
-        const lastVisibleActionCreated = lastVisibleAction?.created;
+        const prevLastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
             lastMessageTranslationKey,
             lastMessageText,
-            lastVisibleActionCreated,
+            lastVisibleActionCreated: prevLastVisibleActionCreated,
             lastActorAccountID,
         };
     }
