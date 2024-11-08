@@ -8230,7 +8230,7 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
     );
 
     const currentReportID = ReportUtils.getDisplayedReportID(reportID);
-    Report.notifyNewAction(currentReportID ?? '', userAccountID);
+    Report.notifyNewAction(currentReportID, userAccountID);
 }
 // eslint-disable-next-line rulesdir/no-negated-variables
 function navigateToStartStepIfScanFileCannotBeRead(
