@@ -737,7 +737,7 @@ const translations = {
         saveTheWorld: 'Salvar el mundo',
         tooltip: '¡Comienza aquí!',
         redirectToOldDotModal: {
-            title: '🚧 En construcción 🚧',
+            title: 'Próximamente',
             description: 'Estamos ajustando algunos detalles de New Expensify para adaptarla a tu configuración específica. Mientras tanto, dirígete a Expensify Classic.',
         },
     },
