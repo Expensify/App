@@ -89,7 +89,7 @@ function Composer(
 
             onClearProp(nativeEvent.text);
         },
-        [onClearProp],
+        [onClearProp, setIsFullComposerAvailable],
     );
 
     const pasteFile = useCallback(
