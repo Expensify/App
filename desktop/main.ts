@@ -1,5 +1,5 @@
 import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
-import type {BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
+import type {BaseWindow, BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
 import contextMenu from 'electron-context-menu';
 import log from 'electron-log';
 import type {ElectronLog} from 'electron-log';
@@ -132,7 +132,7 @@ const quitAndInstallWithUpdate = () => {
 };
 
 /** Menu Item callback to trigger an update check */
-const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BrowserWindow) => {
+const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow) => {
     if (menuItem) {
         // Disable item until the check (and download) is complete
         // eslint-disable-next-line no-param-reassign -- menu item flags like enabled or visible can be dynamically toggled by mutating the object
