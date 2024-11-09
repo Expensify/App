@@ -198,6 +198,12 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedCurrencies = val ?? []),
 });
 
+let activePolicyID: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (value) => (activePolicyID = value),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
@@ -1620,6 +1626,8 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
 
     const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, CONST.POLICY.DEFAULT_CATEGORIES);
 
+    const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1705,7 +1713,20 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${expenseChatReportID}`,
             value: null,
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${adminsChatReportID}`,
+            value: null,
+        },
     ];
+
+    if (shouldSetCreatedWorkspaceAsActivePolicy) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: policyID,
+        });
+    }
 
     const successData: OnyxUpdate[] = [
         {
@@ -1794,6 +1815,14 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             value: null,
         },
     ];
+
+    if (shouldSetCreatedWorkspaceAsActivePolicy) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: activePolicyID ?? '',
+        });
+    }
 
     if (optimisticCategoriesData.optimisticData) {
         optimisticData.push(...optimisticCategoriesData.optimisticData);
