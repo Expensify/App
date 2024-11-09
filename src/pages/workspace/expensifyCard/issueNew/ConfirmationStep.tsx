@@ -37,8 +37,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
-    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
-    const validateLoginError = ErrorUtils.getLatestErrorMessageField(issueNewCard);
+    const validateError = ErrorUtils.getLatestErrorMessageField(issueNewCard);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
@@ -135,12 +134,12 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 handleSubmitForm={submit}
                 isLoading={issueNewCard?.isLoading}
                 sendValidateCode={() => User.requestValidateCodeAction()}
-                validateError={validateLoginError}
+                validateError={validateError}
                 clearError={() => {
                     Card.clearIssueNewCardError();
                 }}
                 onClose={() => {
-                    if (validateLoginError && pendingContactAction?.contactMethod) {
+                    if (validateError) {
                         Card.clearIssueNewCardError();
                     }
                     setIsValidateCodeActionModalVisible(false);
