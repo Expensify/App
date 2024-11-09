@@ -7,6 +7,8 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -16,7 +18,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,7 +29,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
-import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,20 +42,31 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
 
+    /** Callback to navigate to Track Expense confirmation flow  */
+    onTrackExpensePress?: () => void;
+
     /** Selected participants from MoneyRequestModal with login */
     participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
 
     /** The type of IOU report, i.e. split, request, send, track */
     iouType: IOUType;
 
-    /** The expense type, ie. manual, scan, distance */
-    iouRequestType: IOURequestType;
-
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
+
+    /** Whether we should display the Track Expense button at the top of the participants list */
+    shouldDisplayTrackExpenseButton?: boolean;
 };
 
-function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onFinish, onParticipantsAdded, iouType, iouRequestType, action}: MoneyRequestParticipantsSelectorProps) {
+function MoneyRequestParticipantsSelector({
+    participants = CONST.EMPTY_ARRAY,
+    onTrackExpensePress,
+    onFinish,
+    onParticipantsAdded,
+    iouType,
+    action,
+    shouldDisplayTrackExpenseButton,
+}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -62,7 +74,6 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
-    const {canUseP2PDistanceRequests} = usePermissions();
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -97,56 +108,28 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             };
         }
 
-        const optionList = OptionsListUtils.getFilteredOptions(
-            options.reports,
-            options.personalDetails,
+        const optionList = OptionsListUtils.getFilteredOptions({
+            reports: options.reports,
+            personalDetails: options.personalDetails,
             betas,
-            '',
-            participants as Participant[],
-            CONST.EXPENSIFY_EMAILS,
+            selectedOptions: participants as Participant[],
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
 
-            // If we are using this component in the "Submit expense" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+            // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to submit an expense from their admin on their own Workspace Chat.
-            (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
+            includeOwnedWorkspaceChats: (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
 
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
-            false,
-            false,
-            0,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            iouType === CONST.IOU.TYPE.INVOICE,
+            includeP2P: !isCategorizeOrShareAction,
+            canInviteUser: !isCategorizeOrShareAction,
+            includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
             action,
-            isPaidGroupPolicy,
-        );
+            sortByReportTypeInSearch: isPaidGroupPolicy,
+            searchValue: '',
+            maxRecentReportsToShow: 0,
+        });
 
         return optionList;
-    }, [
-        action,
-        areOptionsInitialized,
-        betas,
-        canUseP2PDistanceRequests,
-        didScreenTransitionEnd,
-        iouRequestType,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
-        options.reports,
-        participants,
-        isPaidGroupPolicy,
-    ]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants, isPaidGroupPolicy]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -164,14 +147,15 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
         const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            canInviteUser: (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
+            canInviteUser: !isCategorizeOrShareAction,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
+            preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, canUseP2PDistanceRequests, iouRequestType, isCategorizeOrShareAction]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -322,10 +306,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
     const hasPolicyExpenseChatParticipant = participants.some((participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
 
-    // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
     const isAllowedToSplit =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
         ![CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE].some((option) => option === iouType) &&
         ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE].some((option) => option === action);
 
@@ -362,6 +343,22 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
     const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !showLoadingPlaceholder, [optionLength, showLoadingPlaceholder]);
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
+
+    const headerContent = useMemo(() => {
+        if (!shouldDisplayTrackExpenseButton) {
+            return;
+        }
+
+        // We only display the track expense button if the user is coming from the combined submit/track flow.
+        return (
+            <MenuItem
+                title={translate('iou.justTrackIt')}
+                shouldShowRightIcon
+                icon={Expensicons.Coins}
+                onPress={onTrackExpensePress}
+            />
+        );
+    }, [shouldDisplayTrackExpenseButton, translate, onTrackExpensePress]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
@@ -448,6 +445,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onSelectRow={onSelectRow}
             shouldSingleExecuteRowSelect
+            headerContent={headerContent}
             footerContent={footerContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             headerMessage={header}
@@ -461,8 +459,4 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
 MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-export default memo(
-    MoneyRequestParticipantsSelector,
-    (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.participants, nextProps.participants) && prevProps.iouRequestType === nextProps.iouRequestType && prevProps.iouType === nextProps.iouType,
-);
+export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => lodashIsEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);

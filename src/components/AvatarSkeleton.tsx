@@ -17,6 +17,7 @@ function AvatarSkeleton({size = CONST.AVATAR_SIZE.SMALL}: {size?: ValueOf<typeof
         <SkeletonViewContentLoader
             animate
             height={avatarSize}
+            width={avatarSize}
             backgroundColor={theme.skeletonLHNIn}
             foregroundColor={theme.skeletonLHNOut}
         >

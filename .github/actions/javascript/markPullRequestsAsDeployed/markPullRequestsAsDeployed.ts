@@ -51,8 +51,10 @@ async function run() {
     const version = core.getInput('DEPLOY_VERSION', {required: true});
 
     const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}) as PlatformResult);
+    const androidHybridResult = getDeployTableMessage(core.getInput('ANDROID_HYBRID', {required: true}) as PlatformResult);
     const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}) as PlatformResult);
     const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}) as PlatformResult);
+    const iOSHybridResult = getDeployTableMessage(core.getInput('IOS_HYBRID', {required: true}) as PlatformResult);
     const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}) as PlatformResult);
 
     const date = core.getInput('DATE');
@@ -67,6 +69,7 @@ async function run() {
         message += `🚀`;
         message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
+        message += `\n🤖🔄 android HybridApp 🤖🔄|${androidHybridResult}\n🍎🔄 iOS HybridApp 🍎🔄|${iOSHybridResult}`;
 
         if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle ?? '')) {
             // eslint-disable-next-line max-len
@@ -89,7 +92,10 @@ async function run() {
             labels: CONST.LABELS.STAGING_DEPLOY,
             state: 'closed',
         });
-        const previousChecklistID = deployChecklists[0].number;
+        const previousChecklistID = deployChecklists.at(0)?.number;
+        if (!previousChecklistID) {
+            throw new Error('Could not find the previous checklist ID');
+        }
 
         // who closed the last deploy checklist?
         const deployer = await GithubUtils.getActorWhoClosedIssue(previousChecklistID);

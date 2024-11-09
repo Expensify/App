@@ -1,3 +1,4 @@
+/* eslint-disable react-compiler/react-compiler */
 import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {Animated, View} from 'react-native';
@@ -50,8 +51,17 @@ function BaseGenericTooltip({
     useLayoutEffect(() => {
         // Calculate the tooltip width and height before the browser repaints the screen to prevent flicker
         // because of the late update of the width and the height from onLayout.
+        const rootWrapperStyle = rootWrapper?.current?.style;
+        const isScaled = rootWrapperStyle?.transform === 'scale(0)';
+        if (isScaled) {
+            // Temporarily reset the scale caused by animation to get the untransformed size.
+            rootWrapperStyle.transform = 'scale(1)';
+        }
         setContentMeasuredWidth(contentRef.current?.getBoundingClientRect().width);
         setWrapperMeasuredHeight(rootWrapper.current?.getBoundingClientRect().height);
+        if (isScaled) {
+            rootWrapperStyle.transform = 'scale(0)';
+        }
     }, []);
 
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(

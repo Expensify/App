@@ -80,7 +80,7 @@ describe('actions/IOU', () => {
             let transactionThread: OnyxEntry<OnyxTypes.Report>;
             let transactionThreadCreatedAction: OnyxEntry<OnyxTypes.ReportAction>;
             mockFetch?.pause?.();
-            IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+            IOU.requestMoney({reportID: ''}, amount, [], CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -96,9 +96,9 @@ describe('actions/IOU', () => {
                                     const iouReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.IOU);
                                     expect(Object.keys(chatReports).length).toBe(2);
                                     expect(Object.keys(iouReports).length).toBe(1);
-                                    const chatReport = chatReports[0];
-                                    const transactionThreadReport = chatReports[1];
-                                    const iouReport = iouReports[0];
+                                    const chatReport = chatReports.at(0);
+                                    const transactionThreadReport = chatReports.at(1);
+                                    const iouReport = iouReports.at(0);
                                     iouReportID = iouReport?.reportID;
                                     transactionThread = transactionThreadReport;
 
@@ -135,8 +135,8 @@ describe('actions/IOU', () => {
                                     );
                                     expect(Object.values(createdActions).length).toBe(1);
                                     expect(Object.values(iouActions).length).toBe(1);
-                                    createdAction = createdActions?.[0] ?? null;
-                                    iouAction = iouActions?.[0] ?? null;
+                                    createdAction = createdActions?.at(0);
+                                    iouAction = iouActions?.at(0);
                                     const originalMessage = ReportActionsUtils.isMoneyRequestAction(iouAction) ? ReportActionsUtils.getOriginalMessage(iouAction) : undefined;
 
                                     // The CREATED action should not be created after the IOU action
@@ -178,7 +178,7 @@ describe('actions/IOU', () => {
                                         (reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED,
                                     );
                                     expect(Object.values(createdActions).length).toBe(1);
-                                    transactionThreadCreatedAction = createdActions[0];
+                                    transactionThreadCreatedAction = createdActions.at(0);
 
                                     expect(transactionThreadCreatedAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     resolve();
@@ -279,7 +279,7 @@ describe('actions/IOU', () => {
                     }),
                 )
                 .then(() => {
-                    IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+                    IOU.requestMoney(chatReport, amount, [], CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -436,6 +436,7 @@ describe('actions/IOU', () => {
             };
             const existingTransaction: OnyxTypes.Transaction = {
                 transactionID: NumberUtils.rand64(),
+                attendees: [{email: 'text@expensify.com'}],
                 amount: 1000,
                 comment: {
                     comment: 'Existing transaction',
@@ -482,7 +483,7 @@ describe('actions/IOU', () => {
                 .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransaction.transactionID}`, existingTransaction))
                 .then(() => {
                     if (chatReport) {
-                        IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+                        IOU.requestMoney(chatReport, amount, [], CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
                     }
                     return waitForBatchedUpdates();
                 })
@@ -622,7 +623,7 @@ describe('actions/IOU', () => {
             let transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
             let transactionThreadAction: OnyxEntry<OnyxTypes.ReportAction>;
             mockFetch?.pause?.();
-            IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+            IOU.requestMoney({reportID: ''}, amount, [], CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
             return (
                 waitForBatchedUpdates()
                     .then(
@@ -639,11 +640,11 @@ describe('actions/IOU', () => {
                                         const iouReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.IOU);
                                         expect(Object.values(chatReports).length).toBe(2);
                                         expect(Object.values(iouReports).length).toBe(1);
-                                        const chatReport = chatReports[0];
+                                        const chatReport = chatReports.at(0);
                                         chatReportID = chatReport?.reportID;
-                                        transactionThreadReport = chatReports[1];
+                                        transactionThreadReport = chatReports.at(1);
 
-                                        const iouReport = iouReports[0];
+                                        const iouReport = iouReports.at(0);
                                         iouReportID = iouReport?.reportID;
 
                                         expect(chatReport?.participants).toStrictEqual({[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
@@ -677,12 +678,12 @@ describe('actions/IOU', () => {
                                             ) ?? null;
                                         expect(Object.values(createdActions).length).toBe(1);
                                         expect(Object.values(iouActions).length).toBe(1);
-                                        createdAction = createdActions[0];
-                                        iouAction = iouActions[0];
+                                        createdAction = createdActions.at(0);
+                                        iouAction = iouActions.at(0);
                                         const originalMessage = ReportActionsUtils.getOriginalMessage(iouAction);
 
                                         // The CREATED action should not be created after the IOU action
-                                        expect(Date.parse(createdAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? {}));
+                                        expect(Date.parse(createdAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
 
                                         // The IOUReportID should be correct
                                         expect(originalMessage?.IOUReportID).toBe(iouReportID);
@@ -784,7 +785,7 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connection);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                         expect(transaction?.errors).toBeTruthy();
-                                        expect(Object.values(transaction?.errors ?? {})[0]).toEqual(Localize.translateLocal('iou.error.genericCreateFailureMessage'));
+                                        expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(Localize.translateLocal('iou.error.genericCreateFailureMessage'));
                                         resolve();
                                     },
                                 });
@@ -982,6 +983,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(200);
             const julesExistingTransaction: OnyxEntry<OnyxTypes.Transaction> = {
                 transactionID: NumberUtils.rand64(),
+                attendees: [{email: 'text@expensify.com'}],
                 amount: 1000,
                 comment: {
                     comment: 'This is an existing transaction',
@@ -1422,7 +1424,7 @@ describe('actions/IOU', () => {
             let createIOUAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let payIOUAction: OnyxEntry<OnyxTypes.ReportAction>;
             let transaction: OnyxEntry<OnyxTypes.Transaction>;
-            IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+            IOU.requestMoney({reportID: ''}, amount, [], CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -1436,7 +1438,7 @@ describe('actions/IOU', () => {
                                     expect(Object.values(allReports ?? {}).length).toBe(3);
 
                                     const chatReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.CHAT);
-                                    chatReport = chatReports[0];
+                                    chatReport = chatReports.at(0);
                                     expect(chatReport).toBeTruthy();
                                     expect(chatReport).toHaveProperty('reportID');
                                     expect(chatReport).toHaveProperty('iouReportID');
@@ -1622,7 +1624,7 @@ describe('actions/IOU', () => {
             let transaction: OnyxEntry<OnyxTypes.Transaction>;
 
             mockFetch?.pause?.();
-            IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+            IOU.requestMoney({reportID: ''}, amount, [], CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
             return waitForBatchedUpdates()
                 .then(() => {
                     Onyx.set(ONYXKEYS.SESSION, {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID});
@@ -1776,7 +1778,7 @@ describe('actions/IOU', () => {
             let iouAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-            IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+            IOU.requestMoney({reportID: ''}, amount, [], CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
             return waitForBatchedUpdates()
                 .then(() => {
                     Onyx.set(ONYXKEYS.SESSION, {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID});
@@ -1884,7 +1886,7 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     const updatedAction = Object.values(allActions ?? {}).find((reportAction) => !isEmptyObject(reportAction));
                                     expect(updatedAction?.actionName).toEqual('MODIFIEDEXPENSE');
-                                    expect(Object.values(updatedAction?.errors ?? {})[0]).toEqual(Localize.translateLocal('iou.error.genericEditFailureMessage'));
+                                    expect(Object.values(updatedAction?.errors ?? {}).at(0)).toEqual(Localize.translateLocal('iou.error.genericEditFailureMessage'));
                                     resolve();
                                 },
                             });
@@ -1958,7 +1960,19 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport) {
-                        IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+                        IOU.requestMoney(
+                            chatReport,
+                            amount,
+                            [],
+                            CONST.CURRENCY.USD,
+                            '',
+                            merchant,
+                            RORY_EMAIL,
+                            RORY_ACCOUNT_ID,
+                            {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                            comment,
+                            {},
+                        );
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2071,7 +2085,19 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport) {
-                        IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+                        IOU.requestMoney(
+                            chatReport,
+                            amount,
+                            [],
+                            CONST.CURRENCY.USD,
+                            '',
+                            merchant,
+                            RORY_EMAIL,
+                            RORY_ACCOUNT_ID,
+                            {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                            comment,
+                            {},
+                        );
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2106,7 +2132,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connection);
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
-                                    expect(Object.values(erroredAction?.errors ?? {})[0]).toEqual(Localize.translateLocal('iou.error.other'));
+                                    expect(Object.values(erroredAction?.errors ?? {}).at(0)).toEqual(Localize.translateLocal('iou.error.other'));
                                     resolve();
                                 },
                             });
@@ -2157,7 +2183,7 @@ describe('actions/IOU', () => {
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
             // When a submit IOU expense is made
-            IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', '', TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID}, comment, {});
+            IOU.requestMoney({reportID: ''}, amount, [], CONST.CURRENCY.USD, '', '', TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID}, comment, {});
             await waitForBatchedUpdates();
 
             // When fetching all reports from Onyx
@@ -2888,7 +2914,7 @@ describe('actions/IOU', () => {
             const amount2 = 20000;
             const comment2 = 'Send me money please 2';
             if (chatReport) {
-                IOU.requestMoney(chatReport, amount2, CONST.CURRENCY.USD, '', '', TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID}, comment2, {});
+                IOU.requestMoney(chatReport, amount2, [], CONST.CURRENCY.USD, '', '', TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID}, comment2, {});
             }
 
             await waitForBatchedUpdates();
@@ -3094,6 +3120,7 @@ describe('actions/IOU', () => {
                         IOU.requestMoney(
                             chatReport,
                             amount,
+                            [],
                             CONST.CURRENCY.USD,
                             '',
                             merchant,
@@ -3197,6 +3224,7 @@ describe('actions/IOU', () => {
                         IOU.requestMoney(
                             chatReport,
                             amount,
+                            [],
                             CONST.CURRENCY.USD,
                             '',
                             merchant,
@@ -3301,6 +3329,7 @@ describe('actions/IOU', () => {
                         IOU.requestMoney(
                             chatReport,
                             amount,
+                            [],
                             CONST.CURRENCY.USD,
                             '',
                             merchant,

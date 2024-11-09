@@ -35,12 +35,12 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 function Confirmation() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '-1');
     const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
@@ -49,9 +49,8 @@ function Confirmation() {
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
 
-    const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
-
     const transactionsMergeParams = useMemo(() => TransactionUtils.buildTransactionsMergeParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
+    const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const mergeDuplicates = useCallback(() => {
         IOU.mergeDuplicates(transactionsMergeParams);
@@ -60,7 +59,7 @@ function Confirmation() {
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID ?? '-1'));
+        Navigation.dismissModal(reportAction?.childReportID ?? '-1');
     }, [transactionsMergeParams, reportAction?.childReportID]);
 
     const contextValue = useMemo(
@@ -119,6 +118,7 @@ function Confirmation() {
                                     report={report}
                                     shouldShowAnimatedBackground={false}
                                     readonly
+                                    isFromReviewDuplicates
                                     updatedTransaction={transaction as OnyxEntry<Transaction>}
                                 />
                             </ShowContextMenuContext.Provider>

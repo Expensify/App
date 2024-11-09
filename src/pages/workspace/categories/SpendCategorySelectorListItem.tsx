@@ -15,12 +15,12 @@ function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRo
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[isFocused && styles.sidebarLinkActive]}
             pressableStyle={[styles.mt2]}
             onSelectRow={onSelectRow}
             isFocused={isFocused}
             showTooltip
             keyForList={item.keyForList}
+            pendingAction={item.pendingAction}
         >
             <MenuItemWithTopDescription
                 shouldShowRightIcon

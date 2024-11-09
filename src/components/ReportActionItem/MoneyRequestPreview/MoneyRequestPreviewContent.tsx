@@ -31,6 +31,7 @@ import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -77,6 +78,7 @@ function MoneyRequestPreviewContent({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID || '-1'}`);
 
+    const policy = PolicyUtils.getPolicy(iouReport?.policyID);
     const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
     const transactionID = isMoneyRequestAction ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : '-1';
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -208,9 +210,10 @@ function MoneyRequestPreviewContent({
             if (shouldShowHoldMessage) {
                 return `${message} ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
             }
-            if (violations?.[0]) {
-                const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
-                const violationsCount = violations.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length;
+            const firstViolation = violations?.at(0);
+            if (firstViolation) {
+                const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate);
+                const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
@@ -246,6 +249,9 @@ function MoneyRequestPreviewContent({
         }
         if (TransactionUtils.isPending(transaction)) {
             return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
+        }
+        if (TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', iouReport, policy)) {
+            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
         if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
@@ -288,8 +294,13 @@ function MoneyRequestPreviewContent({
 
     const navigateToReviewFields = () => {
         const backTo = route.params.backTo;
-        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID);
-        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID ?? ''});
+
+        // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
+        // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
+        Transaction.abandonReviewDuplicateTransactions();
+        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID ?? '');
+        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID ?? '', reportID: transaction?.reportID});
+
         if ('merchant' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo));
         } else if ('category' in comparisonResult.change) {

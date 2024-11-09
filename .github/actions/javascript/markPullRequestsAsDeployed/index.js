@@ -12710,8 +12710,10 @@ async function run() {
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', { required: true });
     const version = core.getInput('DEPLOY_VERSION', { required: true });
     const androidResult = getDeployTableMessage(core.getInput('ANDROID', { required: true }));
+    const androidHybridResult = getDeployTableMessage(core.getInput('ANDROID_HYBRID', { required: true }));
     const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', { required: true }));
     const iOSResult = getDeployTableMessage(core.getInput('IOS', { required: true }));
+    const iOSHybridResult = getDeployTableMessage(core.getInput('IOS_HYBRID', { required: true }));
     const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
     const date = core.getInput('DATE');
     const note = core.getInput('NOTE');
@@ -12724,6 +12726,7 @@ async function run() {
         message += `🚀`;
         message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
+        message += `\n🤖🔄 android HybridApp 🤖🔄|${androidHybridResult}\n🍎🔄 iOS HybridApp 🍎🔄|${iOSHybridResult}`;
         if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle ?? '')) {
             // eslint-disable-next-line max-len
             message +=
@@ -12742,7 +12745,10 @@ async function run() {
             labels: CONST_1.default.LABELS.STAGING_DEPLOY,
             state: 'closed',
         });
-        const previousChecklistID = deployChecklists[0].number;
+        const previousChecklistID = deployChecklists.at(0)?.number;
+        if (!previousChecklistID) {
+            throw new Error('Could not find the previous checklist ID');
+        }
         // who closed the last deploy checklist?
         const deployer = await GithubUtils_1.default.getActorWhoClosedIssue(previousChecklistID);
         // Create comment on each pull request (one at a time to avoid throttling issues)
@@ -13058,7 +13064,11 @@ class GithubUtils {
             if (data.length > 1) {
                 throw new Error(`Found more than one ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
             }
-            return this.getStagingDeployCashData(data[0]);
+            const issue = data.at(0);
+            if (!issue) {
+                throw new Error(`Found an undefined ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
+            }
+            return this.getStagingDeployCashData(issue);
         });
     }
     /**
@@ -13136,7 +13146,7 @@ class GithubUtils {
         }
         internalQASection = internalQASection[1];
         const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2].split('-')[0].trim(),
+            url: match[2].split('-').at(0)?.trim() ?? '',
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
@@ -13220,7 +13230,7 @@ class GithubUtils {
      * Fetch all pull requests given a list of PR numbers.
      */
     static fetchAllPullRequests(pullRequestNumbers) {
-        const oldestPR = pullRequestNumbers.sort((a, b) => a - b)[0];
+        const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(this.octokit.pulls.list, {
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
@@ -13294,7 +13304,7 @@ class GithubUtils {
             repo: CONST_1.default.APP_REPO,
             workflow_id: workflow,
         })
-            .then((response) => response.data.workflow_runs[0]?.id);
+            .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.
@@ -13362,7 +13372,7 @@ class GithubUtils {
             per_page: 1,
             name: artifactName,
         })
-            .then((response) => response.data.artifacts[0]);
+            .then((response) => response.data.artifacts.at(0));
     }
     /**
      * Given an artifact ID, returns the download URL to a zip file containing the artifact.

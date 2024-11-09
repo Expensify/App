@@ -12,7 +12,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
 const ESH_ACCOUNT_ID = 1;
-const ESH_PARTICIPANT_ANNOUNCE_ROOM: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 const ESH_PARTICIPANT_ADMINS_ROOM: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 const ESH_PARTICIPANT_EXPENSE_CHAT = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 const WORKSPACE_NAME = "Esh's Workspace";
@@ -37,7 +36,6 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             let adminReportID;
-            let announceReportID;
             let expenseReportID;
             const policyID = Policy.generatePolicyID();
 
@@ -75,20 +73,15 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Three reports should be created: #announce, #admins and expense report
+            // Two reports should be created: #admins and expense report
             const workspaceReports = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID);
-            expect(workspaceReports.length).toBe(3);
+            expect(workspaceReports.length).toBe(2);
             workspaceReports.forEach((report) => {
                 expect(report?.pendingFields?.addWorkspaceRoom).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 switch (report?.chatType) {
                     case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS: {
                         expect(report?.participants).toEqual({[ESH_ACCOUNT_ID]: ESH_PARTICIPANT_ADMINS_ROOM});
                         adminReportID = report.reportID;
-                        break;
-                    }
-                    case CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE: {
-                        expect(report?.participants).toEqual({[ESH_ACCOUNT_ID]: ESH_PARTICIPANT_ANNOUNCE_ROOM});
-                        announceReportID = report.reportID;
                         break;
                     }
                     case CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT: {
@@ -114,13 +107,12 @@ describe('actions/Policy', () => {
 
             // Each of the three reports should have a a `CREATED` action.
             let adminReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
-            let announceReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceReportID}`] ?? {});
             let expenseReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
-            let workspaceReportActions: ReportAction[] = adminReportActions.concat(announceReportActions, expenseReportActions);
-            [adminReportActions, announceReportActions, expenseReportActions].forEach((actions) => {
+            let workspaceReportActions: ReportAction[] = adminReportActions.concat(expenseReportActions);
+            [adminReportActions, expenseReportActions].forEach((actions) => {
                 expect(actions.length).toBe(1);
             });
-            [...adminReportActions, ...announceReportActions, ...expenseReportActions].forEach((reportAction) => {
+            [...adminReportActions, ...expenseReportActions].forEach((reportAction) => {
                 expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
                 expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
@@ -174,9 +166,8 @@ describe('actions/Policy', () => {
 
             // Check if the report action pending action was cleared
             adminReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
-            announceReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceReportID}`] ?? {});
             expenseReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
-            workspaceReportActions = adminReportActions.concat(announceReportActions, expenseReportActions);
+            workspaceReportActions = adminReportActions.concat(expenseReportActions);
             workspaceReportActions.forEach((reportAction) => {
                 expect(reportAction.pendingAction).toBeFalsy();
             });

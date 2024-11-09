@@ -1,9 +1,23 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
-import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {
+    GestureResponderEvent,
+    InputModeOptions,
+    LayoutChangeEvent,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    SectionListData,
+    StyleProp,
+    TextInput,
+    TextStyle,
+    ViewStyle,
+} from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
+import type {SearchRouterItem} from '@components/Search/SearchRouter/SearchRouterList';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -13,6 +27,7 @@ import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type ReportListItem from './Search/ReportListItem';
+import type SearchQueryListItem from './Search/SearchQueryListItem';
 import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
@@ -46,6 +61,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Styles for the pressable component */
     pressableStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the pressable component wrapper view */
+    pressableWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /** Styles for the wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -84,6 +102,9 @@ type ListItem = {
 
     /** Whether this option is selected */
     isSelected?: boolean;
+
+    /** Whether the option can show both selected and error indicators */
+    canShowSeveralIndicators?: boolean;
 
     /** Whether the checkbox should be disabled */
     isDisabledCheckbox?: boolean;
@@ -164,6 +185,12 @@ type ListItem = {
 
     /** The style to override the cursor appearance */
     cursorStyle?: CursorStyles[keyof CursorStyles];
+
+    /** Determines whether the newly added item should animate in / highlight */
+    shouldAnimateInHighlight?: boolean;
+
+    /** The style to override the default appearance */
+    itemStyle?: StyleProp<ViewStyle>;
 };
 
 type TransactionListItemType = ListItem &
@@ -208,6 +235,9 @@ type TransactionListItemType = ListItem &
 
         /** Key used internally by React */
         keyForList: string;
+
+        /** Attendees in the transaction */
+        attendees?: Attendee[];
     };
 
 type ReportActionListItemType = ListItem &
@@ -233,6 +263,7 @@ type ReportListItemType = ListItem &
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
 
+        /** List of transactions that belong to this report */
         transactions: TransactionListItemType[];
     };
 
@@ -263,6 +294,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show RBR */
     shouldDisplayRBR?: boolean;
+
+    /** Whether we highlight all the selected items */
+    shouldHighlightSelectedItem?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -276,6 +310,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
     shouldSyncFocus?: boolean;
     hoverStyle?: StyleProp<ViewStyle>;
+    /** Errors that this user may contain */
     shouldDisplayRBR?: boolean;
 };
 
@@ -309,7 +344,9 @@ type ValidListItem =
     | typeof InviteMemberListItem
     | typeof TransactionListItem
     | typeof ReportListItem
-    | typeof ChatListItem;
+    | typeof ChatListItem
+    | typeof SearchQueryListItem
+    | typeof SearchRouterItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -406,8 +443,14 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | null;
 
+    /** Whether the text input should be shown after list header */
+    shouldShowTextInputAfterHeader?: boolean;
+
+    /** Whether to include padding bottom */
+    includeSafeAreaPaddingBottom?: boolean;
+
     /** Callback to fire when the list is scrolled */
-    onScroll?: () => void;
+    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Callback to fire when the list is scrolled and the user begins dragging */
     onScrollBeginDrag?: () => void;
@@ -472,8 +515,14 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles to apply to SectionList component */
     sectionListStyle?: StyleProp<ViewStyle>;
 
+    /** Whether to ignore the focus event */
+    shouldIgnoreFocus?: boolean;
+
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
+
+    /** Callback to fire when the text input changes */
+    onArrowFocus?: (focusedItem: TItem) => void;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
@@ -542,11 +591,35 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the empty list content */
     shouldShowListEmptyContent?: boolean;
+
+    /** The style is applied for the wrap component of list item */
+    listItemWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Scroll event throttle for preventing onScroll callbacks to be fired too often */
+    scrollEventThrottle?: number;
+
+    /** Additional styles to apply to scrollable content */
+    contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether we highlight all the selected items */
+    shouldHighlightSelectedItem?: boolean;
+
+    /** Determines if the focused item should remain at the top of the viewable area when navigating with arrow keys */
+    shouldKeepFocusedItemAtTopOfViewableArea?: boolean;
+
+    /** Whether to debounce scrolling on focused index change */
+    shouldDebounceScrolling?: boolean;
+
+    /** Whether to prevent the active cell from being virtualized and losing focus in browsers */
+    shouldPreventActiveCellVirtualization?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;
     clearInputAfterSelect?: () => void;
+    scrollToIndex: (index: number, animated?: boolean) => void;
+    updateAndScrollToFocusedIndex: (newFocusedIndex: number) => void;
+    updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
 };
 
 type ItemLayout = {

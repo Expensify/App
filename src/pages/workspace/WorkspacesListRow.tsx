@@ -113,7 +113,7 @@ function WorkspacesListRow({
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
+    const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID).at(0);
 
     const userFriendlyWorkspaceType = useMemo(() => {
         switch (workspaceType) {
@@ -139,7 +139,7 @@ function WorkspacesListRow({
 
     const ThreeDotMenuOrPendingIcon = (
         <View style={[styles.flexRow, !shouldUseNarrowLayout && styles.workspaceThreeDotMenu]}>
-            {isJoinRequestPending && (
+            {!!isJoinRequestPending && (
                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                     <Badge
                         text={translate('workspace.common.requested')}

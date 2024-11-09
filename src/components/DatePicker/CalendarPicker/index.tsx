@@ -1,6 +1,6 @@
 import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -51,6 +51,7 @@ function CalendarPicker({
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale, translate} = useLocalize();
+    const pressableRef = useRef<View>(null);
 
     const [currentDateView, setCurrentDateView] = useState(getInitialCurrentDateView(value, minDate, maxDate));
 
@@ -148,7 +149,11 @@ function CalendarPicker({
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <PressableWithFeedback
-                    onPress={() => setIsYearPickerVisible(true)}
+                    onPress={() => {
+                        pressableRef?.current?.blur();
+                        setIsYearPickerVisible(true);
+                    }}
+                    ref={pressableRef}
                     style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentStart]}
                     wrapperStyle={[themeStyles.alignItemsCenter]}
                     hoverDimmingValue={1}
@@ -170,7 +175,7 @@ function CalendarPicker({
                         testID="currentMonthText"
                         accessibilityLabel={translate('common.currentMonth')}
                     >
-                        {monthNames[currentMonthView]}
+                        {monthNames.at(currentMonthView)}
                     </Text>
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
@@ -208,7 +213,7 @@ function CalendarPicker({
                     </View>
                 ))}
             </View>
-            {calendarDaysMatrix.map((week) => (
+            {calendarDaysMatrix?.map((week) => (
                 <View
                     key={`week-${week.toString()}`}
                     style={themeStyles.flexRow}

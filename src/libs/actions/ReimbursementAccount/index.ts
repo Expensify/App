@@ -26,6 +26,10 @@ function updateReimbursementAccountDraft(bankAccountData: Partial<ReimbursementA
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {draftStep: undefined});
 }
 
+function clearReimbursementAccountDraft() {
+    Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {});
+}
+
 /**
  * Triggers a modal to open allowing the user to reset their bank account
  */
@@ -40,4 +44,12 @@ function cancelResetFreePlanBankAccount() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {shouldShowResetModal: false});
 }
 
-export {resetFreePlanBankAccount, setBankAccountSubStep, hideBankAccountErrors, updateReimbursementAccountDraft, requestResetFreePlanBankAccount, cancelResetFreePlanBankAccount};
+export {
+    resetFreePlanBankAccount,
+    setBankAccountSubStep,
+    hideBankAccountErrors,
+    updateReimbursementAccountDraft,
+    requestResetFreePlanBankAccount,
+    cancelResetFreePlanBankAccount,
+    clearReimbursementAccountDraft,
+};

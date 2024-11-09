@@ -103,13 +103,13 @@ function NetSuiteImportCustomFieldEdit({
             const key = fieldName as keyof typeof formValues;
             const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths);
             if (!formValues[key]) {
-                ErrorUtils.addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel));
+                ErrorUtils.addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {fieldName: fieldLabel}));
             } else if (
                 policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments?.find(
                     (customSegment) => customSegment?.[fieldName as keyof typeof customSegment]?.toLowerCase() === formValues[key].toLowerCase(),
                 )
             ) {
-                ErrorUtils.addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel));
+                ErrorUtils.addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel}));
             }
 
             return errors;
@@ -119,7 +119,7 @@ function NetSuiteImportCustomFieldEdit({
 
     const renderForm = useMemo(
         () =>
-            customField && (
+            !!customField && (
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM}
                     style={[styles.flexGrow1, styles.ph5]}
@@ -147,7 +147,7 @@ function NetSuiteImportCustomFieldEdit({
 
     const renderSelection = useMemo(
         () =>
-            customField && (
+            !!customField && (
                 <NetSuiteCustomFieldMappingPicker
                     onInputChange={(value) => {
                         updateRecord({

@@ -106,15 +106,17 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         }
 
         return (
-            <ShowContextMenuContext.Provider value={contextMenuValue}>
-                <View>
-                    <MoneyRequestView
-                        report={report}
-                        shouldShowAnimatedBackground
-                    />
-                    {renderThreadDivider}
-                </View>
-            </ShowContextMenuContext.Provider>
+            <OfflineWithFeedback pendingAction={action.pendingAction}>
+                <ShowContextMenuContext.Provider value={contextMenuValue}>
+                    <View>
+                        <MoneyRequestView
+                            report={report}
+                            shouldShowAnimatedBackground
+                        />
+                        {renderThreadDivider}
+                    </View>
+                </ShowContextMenuContext.Provider>
+            </OfflineWithFeedback>
         );
     }
 
@@ -157,6 +159,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             report={report}
                             policy={policy}
                             isCombinedReport
+                            pendingAction={action.pendingAction}
                             shouldShowTotal={transaction ? transactionCurrency !== report.currency : false}
                             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         />
@@ -174,6 +177,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                     <MoneyReportView
                         report={report}
                         policy={policy}
+                        pendingAction={action.pendingAction}
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     />
                 )}

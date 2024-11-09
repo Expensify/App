@@ -29,18 +29,17 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    if (isRequire2FAModalOpen) {
+    if (!is2FAEnabled) {
         return (
             <RequireTwoFactorAuthenticationModal
                 onSubmit={() => {
                     setIsRequire2FAModalOpen(false);
-                    Navigation.dismissModal();
                     Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID)));
                 }}
                 onCancel={() => {
                     setIsRequire2FAModalOpen(false);
                 }}
-                isVisible
+                isVisible={isRequire2FAModalOpen}
                 description={translate('twoFactorAuth.twoFactorAuthIsRequiredDescription')}
             />
         );

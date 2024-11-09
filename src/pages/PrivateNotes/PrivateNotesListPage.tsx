@@ -1,8 +1,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {AttachmentContext} from '@components/AttachmentContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -20,18 +19,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
-type PrivateNotesListPageOnyxProps = {
-    /** All of the personal details for everyone */
-    personalDetailsList: OnyxEntry<PersonalDetailsList>;
+type PrivateNotesListPageProps = WithReportAndPrivateNotesOrNotFoundProps & {
+    /** The report currently being looked at */
+    report: Report;
 };
-
-type PrivateNotesListPageProps = WithReportAndPrivateNotesOrNotFoundProps &
-    PrivateNotesListPageOnyxProps & {
-        /** The report currently being looked at */
-        report: Report;
-    };
 
 type NoteListItem = {
     title: string;
@@ -43,9 +36,10 @@ type NoteListItem = {
     accountID: string;
 };
 
-function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNotesListPageProps) {
+function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNotesListPageProps) {
     const route = useRoute<RouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.LIST>>();
     const backTo = route.params.backTo;
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const getAttachmentValue = useCallback((item: NoteListItem) => ({reportID: item.reportID, accountID: Number(item.accountID), type: CONST.ATTACHMENT_TYPE.NOTE}), []);
@@ -82,14 +76,14 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
             return {
                 reportID: report.reportID,
                 accountID,
-                title: Number(session?.accountID) === Number(accountID) ? translate('privateNotes.myNote') : personalDetailsList?.[accountID]?.login ?? '',
+                title: Number(sessionAccountID) === Number(accountID) ? translate('privateNotes.myNote') : personalDetailsList?.[accountID]?.login ?? '',
                 action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID, backTo)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(Number(accountID)),
                 note: privateNote?.note ?? '',
-                disabled: Number(session?.accountID) !== Number(accountID),
+                disabled: Number(sessionAccountID) !== Number(accountID),
             };
         });
-    }, [report, personalDetailsList, session, translate, backTo]);
+    }, [report, personalDetailsList, sessionAccountID, translate, backTo]);
 
     return (
         <ScreenWrapper
@@ -102,11 +96,11 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
                 onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo))}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
-            <Text style={[styles.mb5, styles.ph5]}>{translate('privateNotes.personalNoteMessage')}</Text>
             <ScrollView
                 contentContainerStyle={styles.flexGrow1}
                 bounces={false}
             >
+                <Text style={[styles.mb5, styles.ph5]}>{translate('privateNotes.personalNoteMessage')}</Text>
                 {privateNotes.map((item) => getMenuItem(item))}
             </ScrollView>
         </ScreenWrapper>
@@ -115,10 +109,4 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
 
 PrivateNotesListPage.displayName = 'PrivateNotesListPage';
 
-export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(
-    withOnyx<PrivateNotesListPageProps, PrivateNotesListPageOnyxProps>({
-        personalDetailsList: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    })(PrivateNotesListPage),
-);
+export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(PrivateNotesListPage);

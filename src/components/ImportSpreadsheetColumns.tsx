@@ -70,9 +70,9 @@ function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles,
                     {spreadsheetColumns.map((column, index) => {
                         return (
                             <ImportColumn
-                                key={columnNames[index]}
+                                key={columnNames.at(index)}
                                 column={column}
-                                columnName={columnNames[index]}
+                                columnName={columnNames.at(index) ?? ''}
                                 columnRoles={columnRoles}
                                 columnIndex={index}
                             />
