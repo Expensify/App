@@ -191,7 +191,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         if (groupPolicies.length === 0) {
             return false;
         }
-        return groupPolicies.every((policy) => !policy?.isPolicyExpenseChatEnabled);
+        return !groupPolicies.some((policy) => policy?.isPolicyExpenseChatEnabled === true);
     }, [allPolicies]);
 
     const quickActionAvatars = useMemo(() => {
@@ -529,6 +529,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                               {
                                   icon: Expensicons.InvoiceGeneric,
                                   text: translate('workspace.invoices.sendInvoice'),
+                                  shouldCallAfterModalHide: shouldRedirectToOD,
                                   onSelected: () =>
                                       interceptAnonymousUser(() => {
                                           if (shouldRedirectToOD) {
