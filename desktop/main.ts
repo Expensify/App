@@ -107,7 +107,7 @@ process.argv.forEach((arg) => {
         return;
     }
 
-    expectedUpdateVersion = arg.substr(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
+    expectedUpdateVersion = arg.slice(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
 });
 
 // Add the listeners and variables required to ensure that auto-updating
@@ -427,7 +427,7 @@ const mainWindow = (): Promise<void> => {
                                 id: 'back',
                                 accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
                                 click: () => {
-                                    browserWindow.webContents.goBack();
+                                    browserWindow.webContents.navigationHistory.goBack();
                                 },
                             },
                             {
@@ -435,14 +435,14 @@ const mainWindow = (): Promise<void> => {
                                 visible: false,
                                 accelerator: process.platform === 'darwin' ? 'Cmd+Left' : 'Shift+Left',
                                 click: () => {
-                                    browserWindow.webContents.goBack();
+                                    browserWindow.webContents.navigationHistory.goBack();
                                 },
                             },
                             {
                                 id: 'forward',
                                 accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
                                 click: () => {
-                                    browserWindow.webContents.goForward();
+                                    browserWindow.webContents.navigationHistory.goForward();
                                 },
                             },
                             {
@@ -450,7 +450,7 @@ const mainWindow = (): Promise<void> => {
                                 visible: false,
                                 accelerator: process.platform === 'darwin' ? 'Cmd+Right' : 'Shift+Right',
                                 click: () => {
-                                    browserWindow.webContents.goForward();
+                                    browserWindow.webContents.navigationHistory.goForward();
                                 },
                             },
                         ],
@@ -507,7 +507,7 @@ const mainWindow = (): Promise<void> => {
                     const denial = {action: 'deny'} as const;
 
                     // Make sure local urls stay in electron perimeter
-                    if (url.substr(0, 'file://'.length).toLowerCase() === 'file://') {
+                    if (url.slice(0, 'file://'.length).toLowerCase() === 'file://') {
                         return denial;
                     }
 
@@ -539,19 +539,19 @@ const mainWindow = (): Promise<void> => {
                 // Initiating a browser-back or browser-forward with mouse buttons should navigate history.
                 browserWindow.on('app-command', (e, cmd) => {
                     if (cmd === 'browser-backward') {
-                        browserWindow.webContents.goBack();
+                        browserWindow.webContents.navigationHistory.goBack();
                     }
                     if (cmd === 'browser-forward') {
-                        browserWindow.webContents.goForward();
+                        browserWindow.webContents.navigationHistory.goForward();
                     }
                 });
 
                 browserWindow.on('swipe', (e, direction) => {
                     if (direction === 'left') {
-                        browserWindow.webContents.goBack();
+                        browserWindow.webContents.navigationHistory.goBack();
                     }
                     if (direction === 'right') {
-                        browserWindow.webContents.goForward();
+                        browserWindow.webContents.navigationHistory.goForward();
                     }
                 });
 
