@@ -4,7 +4,7 @@ import type {PolicyCategories} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 describe('CategoryOptionListUtils', () => {
-    it('getFilteredOptions() for categories', () => {
+    it('getCategoryListSections()', () => {
         const search = 'Food';
         const emptySearch = '';
         const wrongSearch = 'bla bla';
