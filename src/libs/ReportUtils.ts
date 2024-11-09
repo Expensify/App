@@ -520,6 +520,8 @@ type OptionData = {
     isConciergeChat?: boolean;
     isBold?: boolean;
     lastIOUCreationDate?: string;
+    icons?: Icon[];
+    iouReportAmount?: number;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -8243,8 +8245,8 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
  * only use the Concierge chat.
  */
 function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData): boolean {
-    // onboarding can be an array for old accounts and accounts created from olddot
-    if (onboarding && !Array.isArray(onboarding) && onboarding.chatReportID) {
+    // onboarding can be an array or an empty object for old accounts and accounts created from olddot
+    if (onboarding && !Array.isArray(onboarding) && !isEmptyObject(onboarding) && onboarding.chatReportID) {
         return onboarding.chatReportID === optionOrReport?.reportID;
     }
 
@@ -8403,6 +8405,11 @@ function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
 
 function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && report?.hasParentAccess === false;
+}
+
+function hasInvoiceReports() {
+    const allReports = Object.values(ReportConnection.getAllReports() ?? {});
+    return allReports.some((report) => isInvoiceReport(report));
 }
 
 export {
@@ -8730,6 +8737,7 @@ export {
     shouldShowViolations,
     getAllReportErrors,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
+    hasInvoiceReports,
 };
 
 export type {
