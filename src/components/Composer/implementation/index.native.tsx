@@ -84,6 +84,9 @@ function Composer(
 
     const onClear = useCallback(
         ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
+            // Remove the expand button first to ensure the Composer can shrink smoothly.
+            setIsFullComposerAvailable(false);
+
             onClearProp(nativeEvent.text);
         },
         [onClearProp],
