@@ -1,7 +1,7 @@
 // Issue - https://github.com/Expensify/App/issues/26719
 import {Str} from 'expensify-common';
 import type {AppStateStatus} from 'react-native';
-import {AppState} from 'react-native';
+import {AppState, InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -378,7 +378,9 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
                 Navigation.goBack();
             }
             savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail, makeMeAdmin);
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, backTo));
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, backTo));
+            });
         })
         .then(endSignOnTransition);
 }

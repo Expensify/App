@@ -98,7 +98,7 @@ function WorkspaceSwitcherPage({route}: WorkspaceSwitcherPageProps) {
 
             setActiveWorkspaceID(policyID);
             if (isHomeResetRequired) {
-                Navigation.goBack();
+                Navigation.resetToHome();
                 Navigation.navigate(ROUTES.HOME);
             } else {
                 Navigation.goBack();
@@ -178,7 +178,7 @@ function WorkspaceSwitcherPage({route}: WorkspaceSwitcherPageProps) {
                         title={translate('workspace.switcher.headerTitle')}
                         onBackButtonPress={() => {
                             if (isHomeResetRequired) {
-                                Navigation.goBack();
+                                Navigation.resetToHome();
                                 Navigation.navigate(ROUTES.HOME);
                             } else {
                                 Navigation.goBack();
