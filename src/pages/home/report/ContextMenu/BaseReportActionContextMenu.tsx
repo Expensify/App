@@ -76,7 +76,7 @@ type BaseReportActionContextMenuProps = {
     /** Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action */
     isUnreadChat?: boolean;
 
-    /** True if this is the first chat preview of a thread */
+    /** Is the action the first chat of a thread, in other words the parent action of a thread report */
     isThreadFirstChat?: boolean;
 
     /** Content Ref */
