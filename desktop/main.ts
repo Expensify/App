@@ -47,6 +47,7 @@ function pasteAsPlainText(browserWindow: BrowserWindow | BrowserView | WebviewTa
     const text = clipboard.readText();
 
     if ('webContents' in browserWindow) {
+        // eslint-disable-next-line deprecation/deprecation
         browserWindow.webContents.insertText(text);
     }
 }
