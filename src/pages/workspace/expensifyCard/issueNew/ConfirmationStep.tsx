@@ -130,24 +130,26 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     />
                 </View>
             </ScrollView>
-            <ValidateCodeActionModal
-                handleSubmitForm={submit}
-                isLoading={issueNewCard?.isLoading}
-                sendValidateCode={() => User.requestValidateCodeAction()}
-                validateError={validateError}
-                clearError={() => {
-                    Card.clearIssueNewCardError();
-                }}
-                onClose={() => {
-                    if (validateError) {
-                        Card.clearIssueNewCardError();
-                    }
-                    setIsValidateCodeActionModalVisible(false);
-                }}
-                isVisible={isValidateCodeActionModalVisible}
-                title={translate('cardPage.validateCardTitle')}
-                description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
-            />
+            {issueNewCard && (
+                <ValidateCodeActionModal
+                    handleSubmitForm={submit}
+                    isLoading={issueNewCard?.isLoading}
+                    sendValidateCode={() => User.requestValidateCodeAction()}
+                    validateError={validateError}
+                    clearError={() => {
+                        Card.clearIssueNewCardError(issueNewCard);
+                    }}
+                    onClose={() => {
+                        if (validateError) {
+                            Card.clearIssueNewCardError(issueNewCard);
+                        }
+                        setIsValidateCodeActionModalVisible(false);
+                    }}
+                    isVisible={isValidateCodeActionModalVisible}
+                    title={translate('cardPage.validateCardTitle')}
+                    description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+                />
+            )}
         </InteractiveStepWrapper>
     );
 }
