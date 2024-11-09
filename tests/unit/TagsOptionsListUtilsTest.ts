@@ -540,4 +540,33 @@ describe('TagsOptionsListUtils', () => {
         const expectedOrder3 = createTagObjects(expectedOrderNames3);
         expect(TagsOptionsListUtils.sortTags(unorderedTags3)).toStrictEqual(expectedOrder3);
     });
+
+    it('sortTags by object works the same', () => {
+        const tagsObject = {
+            name: 'Tag',
+            orderWeight: 0,
+            required: false,
+            tags: {
+                OfficeSupplies: {
+                    enabled: true,
+                    name: 'OfficeSupplies',
+                },
+                DisabledTag: {
+                    enabled: false,
+                    name: 'DisabledTag',
+                },
+                Car: {
+                    enabled: true,
+                    name: 'Car',
+                },
+            },
+        };
+
+        const sorted = TagsOptionsListUtils.sortTags(tagsObject.tags);
+        expect(Array.isArray(sorted)).toBe(true);
+        // Expect to be sorted alphabetically
+        expect(sorted.at(0)?.name).toBe('Car');
+        expect(sorted.at(1)?.name).toBe('DisabledTag');
+        expect(sorted.at(2)?.name).toBe('OfficeSupplies');
+    });
 });

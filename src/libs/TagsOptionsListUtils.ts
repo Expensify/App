@@ -53,7 +53,7 @@ function getTagListSections({
     maxRecentReportsToShow?: number;
 }) {
     const tagSections = [];
-    const sortedTags = sortTags(tags) as PolicyTag[];
+    const sortedTags = sortTags(tags);
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledTags = sortedTags.filter((tag) => tag.enabled);
@@ -158,10 +158,8 @@ function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists
  * Sorts tags alphabetically by name.
  */
 function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>) {
-    const sortedTags = Array.isArray(tags) ? tags : Object.values(tags);
-
     // Use lodash's sortBy to ensure consistency with oldDot.
-    return lodashSortBy(sortedTags, 'name', localeCompare);
+    return lodashSortBy(tags, 'name', localeCompare) as PolicyTag[];
 }
 
 /**
