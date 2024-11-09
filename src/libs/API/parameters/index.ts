@@ -347,5 +347,7 @@ export type {default as UpdateInvoiceCompanyWebsiteParams} from './UpdateInvoice
 export type {default as UpdateQuickbooksDesktopExpensesExportDestinationTypeParams} from './UpdateQuickbooksDesktopExpensesExportDestinationTypeParams';
 export type {default as ValidateUserAndGetAccessiblePoliciesParams} from './ValidateUserAndGetAccessiblePoliciesParams';
 export type {default as UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams} from './UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams';
+export type {default as TogglePolicyPerDiemParams} from './TogglePolicyPerDiemParams';
+export type {default as OpenPolicyPerDiemRatesPageParams} from './OpenPolicyPerDiemRatesPageParams';
 export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
 export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
