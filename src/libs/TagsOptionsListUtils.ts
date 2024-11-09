@@ -1,10 +1,11 @@
 import lodashSortBy from 'lodash/sortBy';
 import CONST from '@src/CONST';
-import type {PolicyCategories, PolicyCategory, PolicyTag, PolicyTagLists, PolicyTags} from '@src/types/onyx';
+import type {PolicyTag, PolicyTagLists, PolicyTags} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import localeCompare from './LocaleCompare';
 import * as Localize from './Localize';
 import type {Option} from './OptionsListUtils';
+import * as OptionsListUtils from './OptionsListUtils';
 import * as PolicyUtils from './PolicyUtils';
 
 type SelectedTagOption = {
@@ -154,7 +155,7 @@ function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists
         .map(({tags}) => Object.values(tags))
         .flat();
 
-    return hasEnabledOptions(policyTagValueList);
+    return OptionsListUtils.hasEnabledOptions(policyTagValueList);
 }
 
 /**
@@ -165,12 +166,5 @@ function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<Po
     return lodashSortBy(tags, 'name', localeCompare) as PolicyTag[];
 }
 
-/**
- * Verifies that there is at least one enabled option
- */
-function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
-    return Object.values(options).some((option: PolicyTag | PolicyCategory) => option.enabled && option.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-}
-
-export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, hasEnabledOptions};
+export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags};
 export type {SelectedTagOption};
