@@ -24,6 +24,7 @@ import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/Worksp
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceCardCreateAWorkspace from './WorkspaceCardCreateAWorkspace';
@@ -97,9 +98,11 @@ function WorkspaceSwitcherPage({route}: WorkspaceSwitcherPageProps) {
 
             setActiveWorkspaceID(policyID);
             if (isHomeResetRequired) {
-                Navigation.resetToHome();
+                Navigation.goBack();
+                Navigation.navigate(ROUTES.HOME);
+            } else {
+                Navigation.goBack();
             }
-            Navigation.goBack();
             if (policyID !== activeWorkspaceID) {
                 Navigation.navigateWithSwitchPolicyID({policyID});
             }
@@ -175,9 +178,11 @@ function WorkspaceSwitcherPage({route}: WorkspaceSwitcherPageProps) {
                         title={translate('workspace.switcher.headerTitle')}
                         onBackButtonPress={() => {
                             if (isHomeResetRequired) {
-                                Navigation.resetToHome();
+                                Navigation.goBack();
+                                Navigation.navigate(ROUTES.HOME);
+                            } else {
+                                Navigation.goBack();
                             }
-                            Navigation.goBack();
                         }}
                     />
                     <View style={[styles.ph5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
