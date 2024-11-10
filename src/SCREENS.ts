@@ -84,6 +84,7 @@ const SCREENS = {
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
             LEGAL_NAME: 'Settings_LegalName',
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
+            PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
             ADDRESS_COUNTRY: 'Settings_Address_Country',
             ADDRESS_STATE: 'Settings_Address_State',
@@ -531,6 +532,7 @@ const SCREENS = {
         DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: 'Distance_Rate_Tax_Reclaimable_On_Edit',
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
         UPGRADE: 'Workspace_Upgrade',
+        DOWNGRADE: 'Workspace_Downgrade',
         RULES: 'Policy_Rules',
         RULES_CUSTOM_NAME: 'Rules_Custom_Name',
         RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',
@@ -540,6 +542,7 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
+        PER_DIEM: 'Per_Diem',
     },
 
     EDIT_REQUEST: {
