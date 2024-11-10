@@ -134,7 +134,7 @@ function maskCard(lastFour = ''): string {
  * Returns a masked credit card string.
  * Converts given 'X' to '•' for the entire card string.
  *
- * @param [cardName=""] - card name with XXXX in the middle.
+ * @param cardName - card name with XXXX in the middle.
  * @returns - The masked card string.
  */
 function maskCardNumber(cardName: string): string {
