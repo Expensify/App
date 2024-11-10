@@ -104,8 +104,10 @@ const ONYXKEYS = {
     /** Store the information of magic code */
     VALIDATE_ACTION_CODE: 'validate_action_code',
 
+    /** A list of policies that a user can join */
     JOINABLE_POLICIES: 'joinablePolicies',
 
+    /** Flag to indicate if the joinablePolicies are loading */
     JOINABLE_POLICIES_LOADING: 'joinablePoliciesLoading',
 
     /** Information about the current session (authToken, accountID, email, loading, error) */

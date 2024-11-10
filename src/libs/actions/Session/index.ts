@@ -1126,6 +1126,37 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
+/**
+ * Check which policies the user can join
+ */
+function validateUserAndGetAccessiblePolicies(validateCode: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
+            value: true,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
+            value: false,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
+            value: false,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validateCode}, {optimisticData, successData, failureData});
+}
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -1163,4 +1194,5 @@ export {
     hasStashedSession,
     signUpUser,
     signInAfterTransitionFromOldDot,
+    validateUserAndGetAccessiblePolicies,
 };

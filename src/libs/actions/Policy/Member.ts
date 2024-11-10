@@ -738,14 +738,11 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail: string) {
 function addMemberToPrivateDomainWorkspace(policyID: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
 
-    const optimisticMembersState = {policyID};
-    const failureMembersState = {policyID};
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
-            value: optimisticMembersState,
+            value: {policyID},
         },
     ];
 
@@ -753,13 +750,11 @@ function addMemberToPrivateDomainWorkspace(policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
-            value: {...failureMembersState, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd')},
+            value: {policyID, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd')},
         },
     ];
 
-    const params = {policyID};
-
-    API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, {policyID}, {optimisticData, failureData});
 }
 
 /**
