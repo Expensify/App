@@ -6,7 +6,7 @@ import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {GestureRef} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
-import Animated, {cancelAnimation, runOnUI, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
+import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -40,6 +40,9 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** A shared value of type boolean, that indicates disabled the transformation gestures (pinch, pan, double tap) */
     shouldDisableTransformationGestures?: SharedValue<boolean>;
 
+    /** A shared value to enable/disable the pager scroll */
+    isPagerScrollEnabled: SharedValue<boolean>;
+
     /** If there is a pager wrapping the canvas, we need to disable the pan gesture in case the pager is swiping */
     pagerRef?: ForwardedRef<PagerView | GestureType>; // TODO: For TS migration: Exclude<GestureRef, number>
 
@@ -63,6 +66,7 @@ function MultiGestureCanvas({
     children,
     pagerRef,
     shouldDisableTransformationGestures: shouldDisableTransformationGesturesProp,
+    isPagerScrollEnabled,
     onTap,
     onScaleChanged,
     onSwipeDown,
@@ -106,6 +110,13 @@ function MultiGestureCanvas({
     // Total offset of the content including previous translations from panning and pinching gestures
     const offsetX = useSharedValue(0);
     const offsetY = useSharedValue(0);
+
+    useAnimatedReaction(
+        () => isSwipingDownToClose.value,
+        (current) => {
+            isPagerScrollEnabled.value = !current;
+        },
+    );
 
     /**
      * Stops any currently running decay animation from panning
