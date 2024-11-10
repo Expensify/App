@@ -55,6 +55,8 @@ function SecuritySettingsPage() {
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
     const [shouldShowRemoveDelegateModal, setShouldShowRemoveDelegateModal] = useState(false);
     const [selectedDelegate, setSelectedDelegate] = useState<Delegate | undefined>();
+    const [selectedEmail, setSelectedEmail] = useState<string | undefined>();
+
     const errorFields = account?.delegatedAccess?.errorFields ?? {};
 
     const [anchorPosition, setAnchorPosition] = useState<AnchorPosition>({
@@ -88,6 +90,7 @@ function SecuritySettingsPage() {
         setMenuPosition();
         setShouldShowDelegatePopoverMenu(true);
         setSelectedDelegate(delegate);
+        setSelectedEmail(delegate.email);
     };
 
     useLayoutEffect(() => {
@@ -171,11 +174,12 @@ function SecuritySettingsPage() {
                         onPendingActionDismiss: () => clearDelegateErrorsByField(email, 'addDelegate'),
                         error,
                         onPress,
+                        success: selectedEmail === email,
                     };
                 }),
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [delegates, translate, styles, personalDetails, errorFields, windowWidth],
+        [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail],
     );
 
     const delegatorMenuItems: MenuItemProps[] = useMemo(
@@ -209,6 +213,7 @@ function SecuritySettingsPage() {
                 Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
                 setShouldShowDelegatePopoverMenu(false);
                 setSelectedDelegate(undefined);
+                setSelectedEmail(undefined);
             },
         },
         {
@@ -218,6 +223,7 @@ function SecuritySettingsPage() {
                 Modal.close(() => {
                     setShouldShowDelegatePopoverMenu(false);
                     setShouldShowRemoveDelegateModal(true);
+                    setSelectedEmail(undefined);
                 }),
         },
     ];
@@ -310,6 +316,7 @@ function SecuritySettingsPage() {
                                 menuItems={delegatePopoverMenuItems}
                                 onClose={() => {
                                     setShouldShowDelegatePopoverMenu(false);
+                                    setSelectedEmail(undefined);
                                 }}
                             />
                             <ConfirmModal
