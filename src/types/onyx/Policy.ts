@@ -17,22 +17,34 @@ type TaxRateAttributes = {
     taxRateExternalID?: string;
 };
 
-/** Model of policy distance rate */
+/** Model of policy subrate */
+type Subrate = {
+    /** Generated ID to identify the subrate */
+    id: string;
+
+    /** Name of the subrate */
+    name: string;
+
+    /** Amount to be reimbursed per unit */
+    rate: number;
+};
+
+/** Model of policy rate */
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
-        /** Name of the distance rate */
+        /** Name of the rate */
         name?: string;
 
-        /** Amount to be reimbursed per distance unit travelled */
+        /** Amount to be reimbursed per unit */
         rate?: number;
 
-        /** Currency used to pay the distance rate */
+        /** Currency used to pay the rate */
         currency?: string;
 
-        /** Generated ID to identify the distance rate */
+        /** Generated ID to identify the rate */
         customUnitRateID?: string;
 
-        /** Whether this distance rate is currently enabled */
+        /** Whether this rate is currently enabled */
         enabled?: boolean;
 
         /** Error messages to show in UI */
@@ -43,6 +55,9 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Tax rate attributes of the policy */
         attributes?: TaxRateAttributes;
+
+        /** Subrates of the given rate */
+        subRates?: Subrate[];
     },
     keyof TaxRateAttributes
 >;
@@ -66,7 +81,7 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<
         customUnitID: string;
 
         /** Contains custom attributes like unit, for this custom unit */
-        attributes: Attributes;
+        attributes?: Attributes;
 
         /** Distance rates using this custom unit */
         rates: Record<string, Rate>;
@@ -198,6 +213,26 @@ type ConnectionLastSync = {
      * show an error message
      */
     isConnected?: boolean;
+};
+
+/**
+ * Model of QBO credentials data.
+ */
+type QBOCredentials = {
+    /**
+     * The company ID that's connected from QBO.
+     */
+    companyID: string;
+
+    /**
+     * The company name that's connected from QBO.
+     */
+    companyName: string;
+
+    /**
+     * The current scope of QBO connection.
+     */
+    scope: string;
 };
 
 /** Financial account (bank account, debit card, etc) */
@@ -437,6 +472,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;
+
+    /** Credentials of the current QBO connection */
+    credentials: QBOCredentials;
 }>;
 
 /**
@@ -761,7 +799,7 @@ type NetSuiteExportDateOptions = 'SUBMITTED' | 'EXPORTED' | 'LAST_EXPENSE';
 type NetSuiteJournalPostingPreferences = 'JOURNALS_POSTING_TOTAL_LINE' | 'JOURNALS_POSTING_INDIVIDUAL_LINE';
 
 /** NetSuite custom segment/records and custom lists mapping values */
-type NetSuiteCustomFieldMapping = 'TAG' | 'REPORT_FIELD';
+type NetSuiteCustomFieldMapping = 'TAG' | 'REPORT_FIELD' | '';
 
 /** The custom form selection options for transactions (any one will be used at most) */
 type NetSuiteCustomFormIDOptions = {
@@ -1731,6 +1769,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
+
+        /** Whether the Per diem rates feature is enabled */
+        arePerDiemRatesEnabled?: boolean;
 
         /** Whether the Expensify Card feature is enabled */
         areExpensifyCardsEnabled?: boolean;

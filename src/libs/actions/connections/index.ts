@@ -327,6 +327,21 @@ function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: Polic
     return !(policy?.connections?.[connectionName]?.lastSync?.isConnected ?? true);
 }
 
+function setConnectionError(policyID: string, connectionName: PolicyConnectionName, errorMessage?: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        connections: {
+            [connectionName]: {
+                lastSync: {
+                    isSuccessful: false,
+                    isConnected: false,
+                    errorDate: new Date().toISOString(),
+                    errorMessage,
+                },
+            },
+        },
+    });
+}
+
 function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID: string, connectionName: ConnectionName) {
     let stageInProgress;
     switch (connectionName) {
@@ -367,12 +382,15 @@ function isConnectionInProgress(connectionSyncProgress: OnyxEntry<PolicyConnecti
         return false;
     }
 
+    const qboConnection = policy?.connections?.quickbooksOnline;
+
     const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
     return (
-        !!connectionSyncProgress?.stageInProgress &&
-        (connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE || !policy?.connections?.[connectionSyncProgress.connectionName]) &&
-        isValid(lastSyncProgressDate) &&
-        differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES
+        (!!connectionSyncProgress?.stageInProgress &&
+            (connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE || !policy?.connections?.[connectionSyncProgress.connectionName]) &&
+            isValid(lastSyncProgressDate) &&
+            differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES) ||
+        (!!qboConnection && !qboConnection?.data && !!qboConnection?.config?.credentials)
     );
 }
 
@@ -386,4 +404,5 @@ export {
     isConnectionUnverified,
     isConnectionInProgress,
     hasSynchronizationErrorMessage,
+    setConnectionError,
 };

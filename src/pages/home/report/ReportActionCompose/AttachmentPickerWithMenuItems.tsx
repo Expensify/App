@@ -124,7 +124,7 @@ function AttachmentPickerWithMenuItems({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`, {initialValue: {} as OnyxTypes.Policy});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const {canUseCombinedTrackSubmit} = usePermissions();
 
     /**
@@ -230,7 +230,7 @@ function AttachmentPickerWithMenuItems({
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: displayFileInModal,
+                        onPicked: (data) => displayFileInModal(data.at(0) ?? {}),
                         onCanceled: onCanceledAttachmentPicker,
                     });
                 };
