@@ -369,8 +369,7 @@ function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction
  * If not found, return undefined.
  */
 function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID: string; policy: OnyxEntry<Policy>}): MileageRate | undefined {
-    const mileageRates = getMileageRates(policy, true, customUnitRateID);
-    return mileageRates[customUnitRateID];
+    return getMileageRates(policy, true, customUnitRateID)[customUnitRateID];
 }
 
 export default {
