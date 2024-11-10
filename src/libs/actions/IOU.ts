@@ -1,6 +1,5 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
-import lodashSet from 'lodash/set';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
