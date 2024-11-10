@@ -114,6 +114,7 @@ function MultiGestureCanvas({
     useAnimatedReaction(
         () => isSwipingDownToClose.value,
         (current) => {
+            // eslint-disable-next-line no-param-reassign
             isPagerScrollEnabled.value = !current;
         },
     );
