@@ -3236,14 +3236,11 @@ function updateMoneyRequestDistanceRate(
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     if (transaction) {
-        lodashSet(transaction, 'comment.customUnit.customUnitRateID', transactionChanges.customUnitRateID);
-        lodashSet(transaction, 'comment.customUnit.defaultP2PRate', null);
-
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
-        const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction, policy});
+        const newDistanceUnit = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: rateID, policy})?.unit;
 
         // If the distanceUnit is set and the rate is changed to one that has a different unit, mark the merchant as modified to make the distance field pending
-        if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
+        if (existingDistanceUnit && newDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
             transactionChanges.merchant = TransactionUtils.getMerchant(transaction);
         }
     }
