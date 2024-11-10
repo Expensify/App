@@ -2807,6 +2807,7 @@ const CONST = {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
         },
+        CARD_LIST_THRESHOLD: 8,
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
@@ -5840,6 +5841,7 @@ const CONST = {
 
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
+    MIN_TAX_RATE_DECIMAL_PLACES: 2,
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
