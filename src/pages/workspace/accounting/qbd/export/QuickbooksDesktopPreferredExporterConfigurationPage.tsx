@@ -45,7 +45,8 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
                     value: exporter.email,
                     text: exporter.email,
                     keyForList: exporter.email,
-                    isSelected: (currentExporter ?? policy?.owner) === exporter.email,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    isSelected: (currentExporter || policy?.owner) === exporter.email,
                 });
                 return options;
             }, []),

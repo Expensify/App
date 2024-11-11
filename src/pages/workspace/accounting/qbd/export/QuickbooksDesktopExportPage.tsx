@@ -31,7 +31,8 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
         {
             description: translate('workspace.accounting.preferredExporter'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID)),
-            title: qbdConfig?.export?.exporter ?? policyOwner,
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            title: qbdConfig?.export?.exporter || policyOwner,
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER],
         },
         {
