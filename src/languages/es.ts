@@ -462,6 +462,7 @@ const translations = {
         sent: 'Enviado',
         links: 'Enlaces',
         days: 'días',
+        validate: 'Validar',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -1818,6 +1819,13 @@ const translations = {
         helpConfigure: ', pero es posible que necesites que el departamento de informática te ayude a configurar los ajustes de correo electrónico.',
         onceTheAbove: 'Una vez completados los pasos anteriores, ponte en contacto con ',
         toUnblock: ' para desbloquear el inicio de sesión.',
+    },
+    smsDeliveryFailurePage: {
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
+            `Hemos suspendido temporalmente el envío de SMS a ${login} porque no pudimos entregar los mensajes SMS a tu número de teléfono. Para intentarlo de nuevo, por favor haz clic en el botón:`,
+        validateFailed: ({time}: UntilTimeParams) =>
+            `El restablecimiento falló porque no han pasado 24 horas desde nuestro último intento. Por favor espera ${time} antes de intentarlo nuevamente.`,
+        validateSuccess: 'Tu número ha sido restablecido exitosamente y podemos enviarte un nuevo código mágico para iniciar sesión',
     },
     welcomeSignUpForm: {
         join: 'Unirse',

@@ -33,6 +33,7 @@ import type {InputHandle} from './LoginForm/types';
 import SignInPageLayout from './SignInPageLayout';
 import type {SignInPageLayoutRef} from './SignInPageLayout/types';
 import SignUpWelcomeForm from './SignUpWelcomeForm';
+import SMSDeliveryFailurePage from './SMSDeliveryFailurePage';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
@@ -62,6 +63,7 @@ type SignInPageRef = {
 type RenderOption = {
     shouldShowLoginForm: boolean;
     shouldShowEmailDeliveryFailurePage: boolean;
+    shouldShowSMSDeliveryFailurePage: boolean;
     shouldShowUnlinkLoginForm: boolean;
     shouldShowValidateCodeForm: boolean;
     shouldShowChooseSSOOrMagicCode: boolean;
@@ -90,6 +92,7 @@ type GetRenderOptionsParams = {
  * @param isUsingMagicCode
  * @param hasInitiatedSAMLLogin
  * @param hasEmailDeliveryFailure
+ * @param hasSMSDeliveryFailure
  */
 function getRenderOptions({
     hasLogin,
@@ -105,6 +108,7 @@ function getRenderOptions({
     const isSAMLEnabled = !!account?.isSAMLEnabled;
     const isSAMLRequired = !!account?.isSAMLRequired;
     const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
+    const hasSMSDeliveryFailure = !!account?.hasSMSDeliveryFailure;
 
     // True, if the user has SAML required, and we haven't yet initiated SAML for their account
     const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
@@ -121,13 +125,15 @@ function getRenderOptions({
     const shouldShouldSignUpWelcomeForm = !!credentials?.login && !account?.validated && !account?.accountExists && !account?.domainControlled;
     const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
-    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure;
+    const shouldShowSMSDeliveryFailurePage = hasLogin && hasSMSDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
+    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure && !hasSMSDeliveryFailure;
     const shouldShowValidateCodeForm =
         !shouldShouldSignUpWelcomeForm &&
         hasAccount &&
         (hasLogin || hasValidateCode) &&
         !isUnvalidatedSecondaryLogin &&
         !hasEmailDeliveryFailure &&
+        !hasSMSDeliveryFailure &&
         !shouldShowChooseSSOOrMagicCode &&
         !isSAMLRequired;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin || shouldShouldSignUpWelcomeForm;
@@ -137,6 +143,7 @@ function getRenderOptions({
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
+        shouldShowSMSDeliveryFailurePage,
         shouldShowUnlinkLoginForm: !shouldShouldSignUpWelcomeForm && isUnvalidatedSecondaryLogin,
         shouldShowValidateCodeForm,
         shouldShowChooseSSOOrMagicCode,
@@ -200,6 +207,7 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
     const {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
+        shouldShowSMSDeliveryFailurePage,
         shouldShowUnlinkLoginForm,
         shouldShowValidateCodeForm,
         shouldShowChooseSSOOrMagicCode,
@@ -249,11 +257,11 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
                 ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                 : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
         }
-    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
+    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
-        if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
+        if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage) {
             welcomeText = '';
         }
     } else if (shouldShouldSignUpWelcomeForm) {
@@ -273,7 +281,8 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
     const navigateBack = () => {
         if (
             shouldShouldSignUpWelcomeForm ||
-            (!shouldShowAnotherLoginPageOpenedMessage && (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrMagicCode))
+            (!shouldShowAnotherLoginPageOpenedMessage &&
+                (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage))
         ) {
             Session.clearSignInData();
             return;
@@ -332,6 +341,7 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
                         {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
                         {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
                         {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
+                        {shouldShowSMSDeliveryFailurePage && <SMSDeliveryFailurePage />}
                     </>
                 )}
             </SignInPageLayout>

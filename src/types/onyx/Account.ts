@@ -70,6 +70,7 @@ type Account = {
 
     /** Is this account having trouble receiving emails? */
     hasEmailDeliveryFailure?: boolean;
+    hasSMSDeliveryFailure?: boolean;
 
     /** URL to the assigned guide's appointment booking calendar */
     guideCalendarLink?: string;
