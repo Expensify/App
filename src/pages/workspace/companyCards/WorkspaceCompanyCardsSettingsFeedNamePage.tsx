@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -30,9 +30,8 @@ type WorkspaceCompanyCardsSettingsFeedNamePageProps = StackScreenProps<SettingsN
 
 function WorkspaceCompanyCardsSettingsFeedNamePage({
     route: {
-        params: {policyID, currentFeedName},
+        params: {policyID, feedName: selectedFeedName},
     },
-    navigation,
 }: WorkspaceCompanyCardsSettingsFeedNamePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -44,15 +43,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
     const feedName = selectedFeed
         ? cardFeeds?.settings?.companyCardNicknames?.[selectedFeed] ?? translate('workspace.companyCards.feedName', {feedName: CardUtils.getCardFeedName(selectedFeed)})
-        : currentFeedName;
-
-    useEffect(() => {
-        if (!feedName) {
-            return;
-        }
-
-        navigation.setParams({currentFeedName: feedName});
-    }, [feedName, navigation]);
+        : decodeURIComponent(selectedFeedName ?? '');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME>) => {
