@@ -485,6 +485,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
             result.alternateText = ReportActionsUtils.getRemovedConnectionMessage(lastAction);
         } else {
+            console.log("in the last else block of getOptionData's alternateText ", "reportID: ", report.reportID, "lastAction: ", lastAction);
             result.alternateText =
                 lastMessageTextFromReport.length > 0
                     ? ReportUtils.formatReportLastMessageText(Parser.htmlToText(lastMessageText))

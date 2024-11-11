@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -32,6 +32,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySizeType | null | undefined>(onboardingCompanySize);
     const [error, setError] = useState('');
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const companySizeOptions: OnboardingListItem[] = useMemo(() => {
         return Object.values(CONST.ONBOARDING_COMPANY_SIZE).map((companySize): OnboardingListItem => {
@@ -42,6 +43,18 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             };
         });
     }, [translate, selectedCompanySize]);
+
+    const addOptimticQAGuideDetail = () => {
+            const actorAccountID = CONST.ACCOUNT_ID.QA_GUIDE;
+            const optimisticPersonalDetailForQAGuide = {
+                accountID: actorAccountID,
+                avatar: allPersonalDetails?.[actorAccountID]?.avatar,
+                displayName: allPersonalDetails?.[actorAccountID]?.displayName ?? CONST.EMAIL.QA_GUIDES,
+                login: CONST.EMAIL.QA_GUIDES,
+            };
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[actorAccountID]: optimisticPersonalDetailForQAGuide});
+    }
+        
 
     const footerContent = (
         <>
@@ -95,6 +108,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 onSelectRow={(item) => {
                     setSelectedCompanySize(item.keyForList);
                     setError('');
+                    addOptimticQAGuideDetail();
                 }}
                 initiallyFocusedOptionKey={companySizeOptions.find((item) => item.keyForList === selectedCompanySize)?.keyForList}
                 shouldUpdateFocusedIndex

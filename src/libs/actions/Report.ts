@@ -3444,15 +3444,6 @@ function completeOnboarding(
     // const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
     console.log("actorAccountID ", actorAccountID, "currentUserAccountID ", currentUserAccountID, "targetChatReport ", targetChatReport, "targetChatReportID ", targetChatReportID, "targetChatPolicyID ", targetChatPolicyID);
-    if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-    const optimisticPersonalDetailForQAGuide = {
-            accountID: actorAccountID,
-            avatar: allPersonalDetails?.[actorAccountID]?.avatar,
-            displayName: allPersonalDetails?.[actorAccountID]?.displayName ?? CONST.EMAIL.QA_GUIDES,
-            login: CONST.EMAIL.QA_GUIDES,
-        };
-        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[actorAccountID]: optimisticPersonalDetailForQAGuide});
-    };
     // Introductory message
     const introductionComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ONBOARDING_INTRODUCTION, undefined, actorAccountID);
     const introductionCommentAction: OptimisticAddCommentReportAction = introductionComment.reportAction;

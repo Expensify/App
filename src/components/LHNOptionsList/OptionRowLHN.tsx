@@ -163,6 +163,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const firstIcon = optionItem.icons?.at(0);
+    console.log("optionItem ", optionItem);
 
     return (
         <OfflineWithFeedback
