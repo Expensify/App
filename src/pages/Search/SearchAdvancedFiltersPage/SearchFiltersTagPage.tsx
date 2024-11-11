@@ -26,26 +26,24 @@ function SearchFiltersTagPage() {
         return {name: tag, value: tag};
     });
     const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
-    const [allPoliciesTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
+    const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const singlePolicyTagLists = allPolicyTagLists[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
 
     const tagItems = useMemo(() => {
         const items = [{name: translate('search.noTag'), value: CONST.SEARCH.EMPTY_VALUE as string}];
-        if (!singlePolicyTagsList) {
+        if (!singlePolicyTagLists) {
             const uniqueTagNames = new Set<string>();
-            const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
+            const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
             tagListsUnpacked
-                .map((policyTagLists) => {
-                    return getTagNamesFromTagsLists(policyTagLists);
-                })
+                .map(getTagNamesFromTagsLists)
                 .flat()
                 .forEach((tag) => uniqueTagNames.add(tag));
             items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: tagName, value: tagName})));
         } else {
-            items.push(...getTagNamesFromTagsLists(singlePolicyTagsList).map((name) => ({name, value: name})));
+            items.push(...getTagNamesFromTagsLists(singlePolicyTagLists).map((name) => ({name, value: name})));
         }
         return items;
-    }, [allPoliciesTagsLists, singlePolicyTagsList, translate]);
+    }, [allPolicyTagLists, singlePolicyTagLists, translate]);
 
     const updateTagFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({tag: values}), []);
 
