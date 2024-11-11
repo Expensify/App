@@ -102,7 +102,7 @@ function BaseGetPhysicalCard({
     const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
     const cardToBeIssued = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
     const cardID = cardToBeIssued?.cardID.toString() ?? '-1';
-    const [currentCardId, setCurrentCardId] = useState<string | undefined>(cardID);
+    const [currentCardID, setCurrentCardID] = useState<string | undefined>(cardID);
     const errorMessage = ErrorUtils.getLatestErrorMessageField(cardToBeIssued);
 
     useEffect(() => {
@@ -137,16 +137,18 @@ function BaseGetPhysicalCard({
     }, [cardList, currentRoute, domain, domainCards.length, draftValues, loginList, cardToBeIssued, privatePersonalDetails]);
 
     useEffect(() => {
-        if (!isConfirmation || !!cardToBeIssued || !currentCardId) {
+        // If that's not the confirmation route, or if there's a value for cardToBeIssued,
+        // It means the current card is not issued and we still need to stay on this screen.
+        if (!isConfirmation || !!cardToBeIssued || !currentCardID) {
             return;
         }
         // Form draft data needs to be erased when the flow is complete,
         // so that no stale data is left on Onyx
         FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
-        Wallet.clearPhysicalCardError(currentCardId);
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(currentCardId.toString()));
-        setCurrentCardId(undefined);
-    }, [currentCardId, isConfirmation, cardToBeIssued]);
+        Wallet.clearPhysicalCardError(currentCardID);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(currentCardID.toString()));
+        setCurrentCardID(undefined);
+    }, [currentCardID, isConfirmation, cardToBeIssued]);
 
     const onSubmit = useCallback(() => {
         const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
@@ -159,7 +161,7 @@ function BaseGetPhysicalCard({
 
     const handleIssuePhysicalCard = useCallback(
         (validateCode: string) => {
-            setCurrentCardId(cardToBeIssued?.cardID.toString());
+            setCurrentCardID(cardToBeIssued?.cardID.toString());
             const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
             // If the current step of the get physical card flow is the confirmation page
             Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? -1, session?.authToken ?? '', updatedPrivatePersonalDetails, validateCode);
