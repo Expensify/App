@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import type {InternationalBankAccountForm} from '@src/types/form';
 import type {BankAccount, BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
 import type {CorpayFieldsMap} from '@src/types/onyx/CorpayFields';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function getFieldsMap(corpayFields: OnyxEntry<CorpayFields>): Record<ValueOf<typeof CONST.CORPAY_FIELDS.STEPS_NAME>, CorpayFieldsMap> {
     return (corpayFields?.formFields ?? []).reduce((acc, field) => {
@@ -82,7 +83,7 @@ function testValidation(values: InternationalBankAccountForm, fieldsMap: CorpayF
 }
 
 function getInitialSubstep(values: InternationalBankAccountForm, fieldsMap: Record<ValueOf<typeof CONST.CORPAY_FIELDS.STEPS_NAME>, CorpayFieldsMap>) {
-    if (values.bankCountry === '') {
+    if (values.bankCountry === '' || isEmptyObject(fieldsMap)) {
         return CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR;
     }
     if (values.bankCurrency === '' || !testValidation(values, fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS])) {
