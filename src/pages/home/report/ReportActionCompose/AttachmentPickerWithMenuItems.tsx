@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -241,22 +241,27 @@ function AttachmentPickerWithMenuItems({
                 ];
                 return (
                     <>
-                        <View style={[
-                            {flexBasis: styles.composerSizeButton.width + styles.composerSizeButton.marginHorizontal * 2},
-                            styles.flexGrow0,
-                            styles.flexShrink0,
-                        ]}>
-                            <View style={[
-                                styles.dFlex,
-                                styles.flexColumnReverse,
-                                styles.flexWrap,
-                                styles.justifyContentCenter,
-                                styles.pAbsolute,
-                                styles.h100,
-                                styles.w100,
-                                styles.overflowHidden,
-                                {paddingVertical: styles.composerSizeButton.marginHorizontal},
-                            ]}>
+                        {/* 1. Limit the container width to a single column. */}
+                        <View style={[{flexBasis: styles.composerSizeButton.width + styles.composerSizeButton.marginHorizontal * 2}, styles.flexGrow0, styles.flexShrink0]}>
+                            {/*
+                                2. If there isn't enough height for two buttons,
+                                   the Expand/Collapse button wraps to the next column so that it's intentionally hidden,
+                                   and the Create button is centered vertically.
+                            */}
+                            <View
+                                style={[
+                                    styles.dFlex,
+                                    styles.flexColumnReverse,
+                                    styles.flexWrap,
+                                    styles.justifyContentCenter,
+                                    styles.pAbsolute,
+                                    styles.h100,
+                                    styles.w100,
+                                    styles.overflowHidden,
+                                    {paddingVertical: styles.composerSizeButton.marginHorizontal},
+                                ]}
+                            >
+                                {/* 3. If there is enough height for two buttons, the Create button is at the bottom. */}
                                 <View style={[styles.flexGrow0, styles.flexShrink0]}>
                                     <Tooltip text={translate('common.create')}>
                                         <PressableWithFeedback
@@ -284,6 +289,7 @@ function AttachmentPickerWithMenuItems({
                                         </PressableWithFeedback>
                                     </Tooltip>
                                 </View>
+                                {/* 4. And the Expand/Collapse button is at the top. */}
                                 <View style={[styles.flexGrow1, styles.flexShrink0]}>
                                     {isComposerFullSize ? (
                                         <Tooltip text={translate('reportActionCompose.collapse')}>
