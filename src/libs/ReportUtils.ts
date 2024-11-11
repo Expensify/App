@@ -8321,7 +8321,7 @@ function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions) 
     const {lastMessageText = '', lastMessageTranslationKey = ''} = getLastVisibleMessage(reportID, actionsToMerge);
 
     if (lastMessageText || lastMessageTranslationKey) {
-        const report = getReportOrDraftReport(reportID);
+        const report = getReport(reportID);
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction(report), actionsToMerge);
         const lastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;

@@ -640,13 +640,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (
-        (isActionableReportMentionWhisper(reportAction) || isActionableJoinRequestPendingReportAction(reportAction) || isActionableMentionWhisper(reportAction)) &&
-        !canUserPerformWriteAction
-    ) {
-        return false;
-    }
-
     if (isReportActionDeprecated(reportAction, key)) {
         return false;
     }
@@ -672,6 +665,13 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     if (isPendingRemove(reportAction) && !reportAction.childVisibleActionCount) {
+        return false;
+    }
+
+    if (
+        (isActionableReportMentionWhisper(reportAction) || isActionableJoinRequestPendingReportAction(reportAction) || isActionableMentionWhisper(reportAction)) &&
+        !canUserPerformWriteAction
+    ) {
         return false;
     }
 
