@@ -15,7 +15,7 @@ function withAnimation<PlatformSpecificNavigationOptions extends StackNavigation
             return slideFromLeft as PlatformSpecificNavigationOptions;
         case Animations.SLIDE_FROM_RIGHT:
             return slideFromRight as PlatformSpecificNavigationOptions;
-        case 'modal':
+        case Animations.MODAL:
             return slideFromBottom as PlatformSpecificNavigationOptions;
         case Animations.NONE:
             return none as PlatformSpecificNavigationOptions;
