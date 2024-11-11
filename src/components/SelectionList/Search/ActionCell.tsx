@@ -29,9 +29,18 @@ type ActionCellProps = {
     goToItem: () => void;
     isChildListItem?: boolean;
     parentAction?: string;
+    isLoading?: boolean;
 };
 
-function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true, isSelected = false, goToItem, isChildListItem = false, parentAction = ''}: ActionCellProps) {
+function ActionCell({
+    action = CONST.SEARCH.ACTION_TYPES.VIEW,
+    isLargeScreenWidth = true,
+    isSelected = false,
+    goToItem,
+    isChildListItem = false,
+    parentAction = '',
+    isLoading = false,
+}: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -87,6 +96,7 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth
             small
             style={[styles.w100]}
             innerStyles={buttonInnerStyles}
+            isLoading={isLoading}
             success
         />
     );

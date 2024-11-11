@@ -27,6 +27,7 @@ function AddPaymentCard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
 
     const subscriptionPlan = useSubscriptionPlan();
     const subscriptionPrice = useSubscriptionPrice();
@@ -43,18 +44,21 @@ function AddPaymentCard() {
         };
     }, []);
 
-    const addPaymentCard = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
-        const cardData = {
-            cardNumber: CardUtils.getMCardNumberString(values.cardNumber),
-            cardMonth: CardUtils.getMonthFromExpirationDateString(values.expirationDate),
-            cardYear: CardUtils.getYearFromExpirationDateString(values.expirationDate),
-            cardCVV: values.securityCode,
-            addressName: values.nameOnCard,
-            addressZip: values.addressZipCode,
-            currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
-        };
-        PaymentMethods.addSubscriptionPaymentCard(cardData);
-    }, []);
+    const addPaymentCard = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
+            const cardData = {
+                cardNumber: CardUtils.getMCardNumberString(values.cardNumber),
+                cardMonth: CardUtils.getMonthFromExpirationDateString(values.expirationDate),
+                cardYear: CardUtils.getYearFromExpirationDateString(values.expirationDate),
+                cardCVV: values.securityCode,
+                addressName: values.nameOnCard,
+                addressZip: values.addressZipCode,
+                currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
+            };
+            PaymentMethods.addSubscriptionPaymentCard(accountID ?? 0, cardData);
+        },
+        [accountID],
+    );
 
     const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);

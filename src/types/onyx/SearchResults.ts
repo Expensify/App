@@ -146,6 +146,9 @@ type SearchReport = {
     /** Whether the report is archived */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     private_isArchived?: string;
+
+    /** Whether the action is loading */
+    isActionLoading?: boolean;
 };
 
 /** Model of report action search result */
@@ -330,6 +333,9 @@ type SearchTransaction = {
 
     /** Whether the transaction report has only a single transaction */
     isFromOneTransactionReport?: boolean;
+
+    /** Whether the action is loading */
+    isActionLoading?: boolean;
 };
 
 /** Types of searchable transactions */
