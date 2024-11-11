@@ -447,7 +447,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 )}
                 {(hasReceipt || !!errors) && (
                     <OfflineWithFeedback
-                        pendingAction={pendingAction}
+                        pendingAction={isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt')}
                         errors={errors}
                         errorRowStyles={[styles.mh4]}
                         onClose={() => {
