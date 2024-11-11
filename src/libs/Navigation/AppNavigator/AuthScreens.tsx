@@ -21,6 +21,7 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
+import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
 import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
@@ -453,7 +454,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.ATTACHMENTS}
                         options={{
                             headerShown: false,
-                            presentation: 'transparentModal',
+                            presentation: Presentation.TRANSPARENT_MODAL,
                         }}
                         getComponent={loadReportAttachments}
                         listeners={modalScreenListeners}
@@ -462,7 +463,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.PROFILE_AVATAR}
                         options={{
                             headerShown: false,
-                            presentation: 'transparentModal',
+                            presentation: Presentation.TRANSPARENT_MODAL,
                             animation: 'none',
                         }}
                         getComponent={loadProfileAvatar}
@@ -472,7 +473,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.WORKSPACE_AVATAR}
                         options={{
                             headerShown: false,
-                            presentation: 'transparentModal',
+                            presentation: Presentation.TRANSPARENT_MODAL,
                         }}
                         getComponent={loadWorkspaceAvatar}
                         listeners={modalScreenListeners}
@@ -481,7 +482,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.REPORT_AVATAR}
                         options={{
                             headerShown: false,
-                            presentation: 'transparentModal',
+                            presentation: Presentation.TRANSPARENT_MODAL,
                         }}
                         getComponent={loadReportAvatar}
                         listeners={modalScreenListeners}
@@ -546,7 +547,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.WORKSPACE_JOIN_USER}
                         options={{
                             headerShown: false,
-                            presentation: 'transparentModal',
+                            presentation: Presentation.TRANSPARENT_MODAL,
                         }}
                         listeners={modalScreenListeners}
                         getComponent={loadWorkspaceJoinUser}
@@ -555,7 +556,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.TRANSACTION_RECEIPT}
                         options={{
                             headerShown: false,
-                            presentation: 'transparentModal',
+                            presentation: Presentation.TRANSPARENT_MODAL,
                         }}
                         getComponent={loadReceiptView}
                         listeners={modalScreenListeners}

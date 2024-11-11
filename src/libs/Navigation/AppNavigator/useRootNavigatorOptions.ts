@@ -3,6 +3,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
@@ -39,7 +40,7 @@ const useRootNavigatorOptions = () => {
             // We want pop in RHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
             web: {
-                presentation: 'transparentModal',
+                presentation: Presentation.TRANSPARENT_MODAL,
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
                     // This is necessary to cover translated sidebar with overlay.
@@ -52,7 +53,7 @@ const useRootNavigatorOptions = () => {
         },
         onboardingModalNavigator: {
             web: {
-                presentation: 'transparentModal',
+                presentation: Presentation.TRANSPARENT_MODAL,
                 cardOverlayEnabled: false,
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
@@ -73,7 +74,7 @@ const useRootNavigatorOptions = () => {
                 customAnimationOnGesture: true,
             },
             web: {
-                presentation: 'transparentModal',
+                presentation: Presentation.TRANSPARENT_MODAL,
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
                 // We want pop in LHP since there are some flows that would work weird otherwise
                 cardStyle: {
