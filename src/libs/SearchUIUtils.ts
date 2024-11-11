@@ -273,6 +273,10 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
+    if (report.hasError) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
+
     const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
 
     const invoiceReceiverPolicy =

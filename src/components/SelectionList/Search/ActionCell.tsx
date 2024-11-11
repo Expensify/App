@@ -11,6 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import Icon from '@components/Icon';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
@@ -73,17 +74,20 @@ function ActionCell({
         );
     }
 
-    if (action === CONST.SEARCH.ACTION_TYPES.VIEW || shouldUseViewAction) {
+    if (action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.REVIEW || shouldUseViewAction) {
         const buttonInnerStyles = isSelected ? styles.buttonDefaultHovered : {};
         return isLargeScreenWidth ? (
             <Button
-                text={translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW])}
+                text={translate(actionTranslationsMap[action])}
                 onPress={goToItem}
                 small
                 style={[styles.w100]}
                 innerStyles={buttonInnerStyles}
                 link={isChildListItem}
                 shouldUseDefaultHover={!isChildListItem}
+                icon={!isChildListItem && action === CONST.SEARCH.ACTION_TYPES.REVIEW ? Expensicons.DotIndicator : undefined}
+                iconFill={theme.danger}
+                iconHoverFill={theme.dangerHover}
             />
         ) : null;
     }
