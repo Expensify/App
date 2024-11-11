@@ -60,7 +60,7 @@ namespace margelo::nitro {
         case hashString("THUMBNAIL_IMAGE_DATA"): return ContactFields::THUMBNAIL_IMAGE_DATA;
         case hashString("GIVEN_NAME_KEY"): return ContactFields::GIVEN_NAME_KEY;
         default: [[unlikely]]
-          throw std::runtime_error("Cannot convert \"" + unionValue + "\" to enum ContactFields - invalid value!");
+          throw std::invalid_argument("Cannot convert \"" + unionValue + "\" to enum ContactFields - invalid value!");
       }
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, ContactFields arg) {
@@ -74,7 +74,7 @@ namespace margelo::nitro {
         case ContactFields::THUMBNAIL_IMAGE_DATA: return JSIConverter<std::string>::toJSI(runtime, "THUMBNAIL_IMAGE_DATA");
         case ContactFields::GIVEN_NAME_KEY: return JSIConverter<std::string>::toJSI(runtime, "GIVEN_NAME_KEY");
         default: [[unlikely]]
-          throw std::runtime_error("Cannot convert ContactFields to JS - invalid value: "
+          throw std::invalid_argument("Cannot convert ContactFields to JS - invalid value: "
                                     + std::to_string(static_cast<int>(arg)) + "!");
       }
     }

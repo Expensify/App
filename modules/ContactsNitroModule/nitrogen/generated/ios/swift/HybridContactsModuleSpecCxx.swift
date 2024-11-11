@@ -9,6 +9,30 @@ import Foundation
 import NitroModules
 
 /**
+ * Helper class for converting instances of `HybridContactsModuleSpecCxx` from- and to unsafe pointers.
+ * This is useful to pass Swift classes to C++, without having to strongly type the C++ function signature.
+ * The actual Swift type can be included in the .cpp file, without having to forward-declare anything in .hpp.
+ */
+public final class HybridContactsModuleSpecCxxUnsafe {
+  /**
+   * Casts a `HybridContactsModuleSpecCxx` instance to a retained unsafe raw pointer.
+   * This acquires one additional strong reference on the object!
+   */
+  public static func toUnsafe(_ instance: HybridContactsModuleSpecCxx) -> UnsafeMutableRawPointer {
+    return Unmanaged.passRetained(instance).toOpaque()
+  }
+
+  /**
+   * Casts an unsafe pointer to a `HybridContactsModuleSpecCxx`.
+   * The pointer has to be a retained opaque `Unmanaged<HybridContactsModuleSpecCxx>`.
+   * This removes one strong reference from the object!
+   */
+  public static func fromUnsafe(_ pointer: UnsafeMutableRawPointer) -> HybridContactsModuleSpecCxx {
+    return Unmanaged<HybridContactsModuleSpecCxx>.fromOpaque(pointer).takeRetainedValue()
+  }
+}
+
+/**
  * A class implementation that bridges HybridContactsModuleSpec over to C++.
  * In C++, we cannot use Swift protocols - so we need to wrap it in a class to make it strongly defined.
  *
@@ -28,23 +52,23 @@ public class HybridContactsModuleSpecCxx {
   /**
    * Holds an instance of the `HybridContactsModuleSpec` Swift protocol.
    */
-  private var implementation: HybridContactsModuleSpec
-
-  /**
-   * Get the actual `HybridContactsModuleSpec` instance this class wraps.
-   */
-  @inline(__always)
-  public func getHybridContactsModuleSpec() -> HybridContactsModuleSpec {
-    return implementation
-  }
+  private var __implementation: any HybridContactsModuleSpec
 
   /**
    * Create a new `HybridContactsModuleSpecCxx` that wraps the given `HybridContactsModuleSpec`.
    * All properties and methods bridge to C++ types.
    */
-  public init(_ implementation: HybridContactsModuleSpec) {
-    self.implementation = implementation
+  public init(_ implementation: some HybridContactsModuleSpec) {
+    self.__implementation = implementation
     /* no base class */
+  }
+
+  /**
+   * Get the actual `HybridContactsModuleSpec` instance this class wraps.
+   */
+  @inline(__always)
+  public func getHybridContactsModuleSpec() -> any HybridContactsModuleSpec {
+    return __implementation
   }
 
   /**
@@ -53,11 +77,11 @@ public class HybridContactsModuleSpecCxx {
   public var hybridContext: margelo.nitro.HybridContext {
     @inline(__always)
     get {
-      return self.implementation.hybridContext
+      return self.__implementation.hybridContext
     }
     @inline(__always)
     set {
-      self.implementation.hybridContext = newValue
+      self.__implementation.hybridContext = newValue
     }
   }
 
@@ -67,7 +91,7 @@ public class HybridContactsModuleSpecCxx {
    */
   @inline(__always)
   public var memorySize: Int {
-    return self.implementation.memorySize
+    return self.__implementation.memorySize
   }
 
   // Properties
@@ -77,23 +101,23 @@ public class HybridContactsModuleSpecCxx {
   @inline(__always)
   public func getAll(keys: bridge.std__vector_ContactFields_) -> bridge.PromiseHolder_std__vector_Contact__ {
     do {
-      let result = try self.implementation.getAll(keys: keys.map({ val in margelo.nitro.contacts.ContactFields(rawValue: val)! }))
+      let __result = try self.__implementation.getAll(keys: keys.map({ __item in __item }))
       return { () -> bridge.PromiseHolder_std__vector_Contact__ in
-        let promiseHolder = bridge.create_PromiseHolder_std__vector_Contact__()
-        result
-          .then({ __result in promiseHolder.resolve({ () -> bridge.std__vector_Contact_ in
-        var vector = bridge.create_std__vector_Contact_(__result.count)
-        for item in __result {
-          vector.push_back(item)
+        let __promiseHolder = bridge.create_PromiseHolder_std__vector_Contact__()
+        __result
+          .then({ __result in __promiseHolder.resolve({ () -> bridge.std__vector_Contact_ in
+        var __vector = bridge.create_std__vector_Contact_(__result.count)
+        for __item in __result {
+          __vector.push_back(__item)
         }
-        return vector
+        return __vector
       }()) })
-          .catch({ __error in promiseHolder.reject(std.string(String(describing: __error))) })
-        return promiseHolder
+          .catch({ __error in __promiseHolder.reject(std.string(String(describing: __error))) })
+        return __promiseHolder
       }()
     } catch {
-      let message = "\(error.localizedDescription)"
-      fatalError("Swift errors can currently not be propagated to C++! See https://github.com/swiftlang/swift/issues/75290 (Error: \(message))")
+      let __message = "\(error.localizedDescription)"
+      fatalError("Swift errors can currently not be propagated to C++! See https://github.com/swiftlang/swift/issues/75290 (Error: \(__message))")
     }
   }
 }

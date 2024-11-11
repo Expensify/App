@@ -1,7 +1,7 @@
 {
   "cxxNamespace": ["contacts"],
   "ios": {
-    "iosModulename": "ContactsModule"
+    "iosModuleName": "ContactsModule"
   },
   "android": {
     "androidNamespace": ["contacts"],

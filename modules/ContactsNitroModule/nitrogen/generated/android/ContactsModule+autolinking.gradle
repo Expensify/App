@@ -13,6 +13,8 @@
 /// apply from: '../nitrogen/generated/android/ContactsModule+autolinking.gradle'
 /// ```
 
+logger.warn("[NitroModules] 🔥 ContactsModule is boosted by nitro!")
+
 android {
   sourceSets {
     main {

@@ -20,56 +20,56 @@ public extension Contact {
    */
   init(firstName: String?, lastName: String?, middleName: String?, phoneNumbers: [StringHolder]?, emailAddresses: [StringHolder]?, imageData: String?, thumbnailImageData: String?) {
     self.init({ () -> bridge.std__optional_std__string_ in
-      if let actualValue = firstName {
-        return bridge.create_std__optional_std__string_(std.string(actualValue))
+      if let __unwrappedValue = firstName {
+        return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
       } else {
         return .init()
       }
     }(), { () -> bridge.std__optional_std__string_ in
-      if let actualValue = lastName {
-        return bridge.create_std__optional_std__string_(std.string(actualValue))
+      if let __unwrappedValue = lastName {
+        return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
       } else {
         return .init()
       }
     }(), { () -> bridge.std__optional_std__string_ in
-      if let actualValue = middleName {
-        return bridge.create_std__optional_std__string_(std.string(actualValue))
+      if let __unwrappedValue = middleName {
+        return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
       } else {
         return .init()
       }
     }(), { () -> bridge.std__optional_std__vector_StringHolder__ in
-      if let actualValue = phoneNumbers {
+      if let __unwrappedValue = phoneNumbers {
         return bridge.create_std__optional_std__vector_StringHolder__({ () -> bridge.std__vector_StringHolder_ in
-          var vector = bridge.create_std__vector_StringHolder_(actualValue.count)
-          for item in actualValue {
-            vector.push_back(item)
+          var __vector = bridge.create_std__vector_StringHolder_(__unwrappedValue.count)
+          for __item in __unwrappedValue {
+            __vector.push_back(__item)
           }
-          return vector
+          return __vector
         }())
       } else {
         return .init()
       }
     }(), { () -> bridge.std__optional_std__vector_StringHolder__ in
-      if let actualValue = emailAddresses {
+      if let __unwrappedValue = emailAddresses {
         return bridge.create_std__optional_std__vector_StringHolder__({ () -> bridge.std__vector_StringHolder_ in
-          var vector = bridge.create_std__vector_StringHolder_(actualValue.count)
-          for item in actualValue {
-            vector.push_back(item)
+          var __vector = bridge.create_std__vector_StringHolder_(__unwrappedValue.count)
+          for __item in __unwrappedValue {
+            __vector.push_back(__item)
           }
-          return vector
+          return __vector
         }())
       } else {
         return .init()
       }
     }(), { () -> bridge.std__optional_std__string_ in
-      if let actualValue = imageData {
-        return bridge.create_std__optional_std__string_(std.string(actualValue))
+      if let __unwrappedValue = imageData {
+        return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
       } else {
         return .init()
       }
     }(), { () -> bridge.std__optional_std__string_ in
-      if let actualValue = thumbnailImageData {
-        return bridge.create_std__optional_std__string_(std.string(actualValue))
+      if let __unwrappedValue = thumbnailImageData {
+        return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
       } else {
         return .init()
       }
@@ -80,8 +80,8 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> String? in
-        if let actualValue = self.__firstName.value {
-          return String(actualValue)
+        if let __unwrapped = self.__firstName.value {
+          return String(__unwrapped)
         } else {
           return nil
         }
@@ -90,8 +90,8 @@ public extension Contact {
     @inline(__always)
     set {
       self.__firstName = { () -> bridge.std__optional_std__string_ in
-        if let actualValue = newValue {
-          return bridge.create_std__optional_std__string_(std.string(actualValue))
+        if let __unwrappedValue = newValue {
+          return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
         } else {
           return .init()
         }
@@ -103,8 +103,8 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> String? in
-        if let actualValue = self.__lastName.value {
-          return String(actualValue)
+        if let __unwrapped = self.__lastName.value {
+          return String(__unwrapped)
         } else {
           return nil
         }
@@ -113,8 +113,8 @@ public extension Contact {
     @inline(__always)
     set {
       self.__lastName = { () -> bridge.std__optional_std__string_ in
-        if let actualValue = newValue {
-          return bridge.create_std__optional_std__string_(std.string(actualValue))
+        if let __unwrappedValue = newValue {
+          return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
         } else {
           return .init()
         }
@@ -126,8 +126,8 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> String? in
-        if let actualValue = self.__middleName.value {
-          return String(actualValue)
+        if let __unwrapped = self.__middleName.value {
+          return String(__unwrapped)
         } else {
           return nil
         }
@@ -136,8 +136,8 @@ public extension Contact {
     @inline(__always)
     set {
       self.__middleName = { () -> bridge.std__optional_std__string_ in
-        if let actualValue = newValue {
-          return bridge.create_std__optional_std__string_(std.string(actualValue))
+        if let __unwrappedValue = newValue {
+          return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
         } else {
           return .init()
         }
@@ -149,8 +149,8 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> [StringHolder]? in
-        if let actualValue = self.__phoneNumbers.value {
-          return actualValue.map({ val in val })
+        if let __unwrapped = self.__phoneNumbers.value {
+          return __unwrapped.map({ __item in __item })
         } else {
           return nil
         }
@@ -159,13 +159,13 @@ public extension Contact {
     @inline(__always)
     set {
       self.__phoneNumbers = { () -> bridge.std__optional_std__vector_StringHolder__ in
-        if let actualValue = newValue {
+        if let __unwrappedValue = newValue {
           return bridge.create_std__optional_std__vector_StringHolder__({ () -> bridge.std__vector_StringHolder_ in
-            var vector = bridge.create_std__vector_StringHolder_(actualValue.count)
-            for item in actualValue {
-              vector.push_back(item)
+            var __vector = bridge.create_std__vector_StringHolder_(__unwrappedValue.count)
+            for __item in __unwrappedValue {
+              __vector.push_back(__item)
             }
-            return vector
+            return __vector
           }())
         } else {
           return .init()
@@ -178,8 +178,8 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> [StringHolder]? in
-        if let actualValue = self.__emailAddresses.value {
-          return actualValue.map({ val in val })
+        if let __unwrapped = self.__emailAddresses.value {
+          return __unwrapped.map({ __item in __item })
         } else {
           return nil
         }
@@ -188,13 +188,13 @@ public extension Contact {
     @inline(__always)
     set {
       self.__emailAddresses = { () -> bridge.std__optional_std__vector_StringHolder__ in
-        if let actualValue = newValue {
+        if let __unwrappedValue = newValue {
           return bridge.create_std__optional_std__vector_StringHolder__({ () -> bridge.std__vector_StringHolder_ in
-            var vector = bridge.create_std__vector_StringHolder_(actualValue.count)
-            for item in actualValue {
-              vector.push_back(item)
+            var __vector = bridge.create_std__vector_StringHolder_(__unwrappedValue.count)
+            for __item in __unwrappedValue {
+              __vector.push_back(__item)
             }
-            return vector
+            return __vector
           }())
         } else {
           return .init()
@@ -207,8 +207,8 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> String? in
-        if let actualValue = self.__imageData.value {
-          return String(actualValue)
+        if let __unwrapped = self.__imageData.value {
+          return String(__unwrapped)
         } else {
           return nil
         }
@@ -217,8 +217,8 @@ public extension Contact {
     @inline(__always)
     set {
       self.__imageData = { () -> bridge.std__optional_std__string_ in
-        if let actualValue = newValue {
-          return bridge.create_std__optional_std__string_(std.string(actualValue))
+        if let __unwrappedValue = newValue {
+          return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
         } else {
           return .init()
         }
@@ -230,8 +230,8 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> String? in
-        if let actualValue = self.__thumbnailImageData.value {
-          return String(actualValue)
+        if let __unwrapped = self.__thumbnailImageData.value {
+          return String(__unwrapped)
         } else {
           return nil
         }
@@ -240,8 +240,8 @@ public extension Contact {
     @inline(__always)
     set {
       self.__thumbnailImageData = { () -> bridge.std__optional_std__string_ in
-        if let actualValue = newValue {
-          return bridge.create_std__optional_std__string_(std.string(actualValue))
+        if let __unwrappedValue = newValue {
+          return bridge.create_std__optional_std__string_(std.string(__unwrappedValue))
         } else {
           return .init()
         }

@@ -59,7 +59,7 @@
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
-    "nitro-codegen": "0.11.0",
+    "nitro-codegen": "0.15.0",
     "prettier": "^3.3.3",
     "react": "^18.3.1",
     "react-native": "0.75.2",

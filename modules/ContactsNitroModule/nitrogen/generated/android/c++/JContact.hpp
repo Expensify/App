@@ -53,24 +53,24 @@ namespace margelo::nitro::contacts {
         lastName != nullptr ? std::make_optional(lastName->toStdString()) : std::nullopt,
         middleName != nullptr ? std::make_optional(middleName->toStdString()) : std::nullopt,
         phoneNumbers != nullptr ? std::make_optional([&]() {
-          size_t size = phoneNumbers->size();
-          std::vector<StringHolder> vector;
-          vector.reserve(size);
-          for (size_t i = 0; i < size; i++) {
-            auto element = phoneNumbers->getElement(i);
-            vector.push_back(element->toCpp());
+          size_t __size = phoneNumbers->size();
+          std::vector<StringHolder> __vector;
+          __vector.reserve(__size);
+          for (size_t __i = 0; __i < __size; __i++) {
+            auto __element = phoneNumbers->getElement(__i);
+            __vector.push_back(__element->toCpp());
           }
-          return vector;
+          return __vector;
         }()) : std::nullopt,
         emailAddresses != nullptr ? std::make_optional([&]() {
-          size_t size = emailAddresses->size();
-          std::vector<StringHolder> vector;
-          vector.reserve(size);
-          for (size_t i = 0; i < size; i++) {
-            auto element = emailAddresses->getElement(i);
-            vector.push_back(element->toCpp());
+          size_t __size = emailAddresses->size();
+          std::vector<StringHolder> __vector;
+          __vector.reserve(__size);
+          for (size_t __i = 0; __i < __size; __i++) {
+            auto __element = emailAddresses->getElement(__i);
+            __vector.push_back(__element->toCpp());
           }
-          return vector;
+          return __vector;
         }()) : std::nullopt,
         imageData != nullptr ? std::make_optional(imageData->toStdString()) : std::nullopt,
         thumbnailImageData != nullptr ? std::make_optional(thumbnailImageData->toStdString()) : std::nullopt
@@ -88,22 +88,22 @@ namespace margelo::nitro::contacts {
         value.lastName.has_value() ? jni::make_jstring(value.lastName.value()) : nullptr,
         value.middleName.has_value() ? jni::make_jstring(value.middleName.value()) : nullptr,
         value.phoneNumbers.has_value() ? [&]() {
-          size_t size = value.phoneNumbers.value().size();
-          jni::local_ref<jni::JArrayClass<JStringHolder>> array = jni::JArrayClass<JStringHolder>::newArray(size);
-          for (size_t i = 0; i < size; i++) {
-            const auto& element = value.phoneNumbers.value()[i];
-            array->setElement(i, *JStringHolder::fromCpp(element));
+          size_t __size = value.phoneNumbers.value().size();
+          jni::local_ref<jni::JArrayClass<JStringHolder>> __array = jni::JArrayClass<JStringHolder>::newArray(__size);
+          for (size_t __i = 0; __i < __size; __i++) {
+            const auto& __element = value.phoneNumbers.value()[__i];
+            __array->setElement(__i, *JStringHolder::fromCpp(__element));
           }
-          return array;
+          return __array;
         }() : nullptr,
         value.emailAddresses.has_value() ? [&]() {
-          size_t size = value.emailAddresses.value().size();
-          jni::local_ref<jni::JArrayClass<JStringHolder>> array = jni::JArrayClass<JStringHolder>::newArray(size);
-          for (size_t i = 0; i < size; i++) {
-            const auto& element = value.emailAddresses.value()[i];
-            array->setElement(i, *JStringHolder::fromCpp(element));
+          size_t __size = value.emailAddresses.value().size();
+          jni::local_ref<jni::JArrayClass<JStringHolder>> __array = jni::JArrayClass<JStringHolder>::newArray(__size);
+          for (size_t __i = 0; __i < __size; __i++) {
+            const auto& __element = value.emailAddresses.value()[__i];
+            __array->setElement(__i, *JStringHolder::fromCpp(__element));
           }
-          return array;
+          return __array;
         }() : nullptr,
         value.imageData.has_value() ? jni::make_jstring(value.imageData.value()) : nullptr,
         value.thumbnailImageData.has_value() ? jni::make_jstring(value.thumbnailImageData.value()) : nullptr

@@ -68,7 +68,7 @@ namespace margelo::nitro::contacts {
           return clazz->getStaticFieldValue(fieldGIVEN_NAME_KEY);
         default:
           std::string stringValue = std::to_string(static_cast<int>(value));
-          throw std::runtime_error("Invalid enum value (" + stringValue + "!");
+          throw std::invalid_argument("Invalid enum value (" + stringValue + "!");
       }
     }
   };

@@ -12,34 +12,26 @@
 namespace margelo::nitro::contacts { enum class ContactFields; }
 // Forward declaration of `Contact` to properly resolve imports.
 namespace margelo::nitro::contacts { struct Contact; }
+// Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
+namespace margelo::nitro::contacts { class HybridContactsModuleSpec; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::contacts { struct StringHolder; }
 
+// Forward declarations of Swift defined types
+// Forward declaration of `HybridContactsModuleSpecCxx` to properly resolve imports.
+namespace ContactsModule { class HybridContactsModuleSpecCxx; }
+
 // Include C++ defined types
-#if __has_include("Contact.hpp")
- #include "Contact.hpp"
-#endif
-#if __has_include("ContactFields.hpp")
- #include "ContactFields.hpp"
-#endif
-#if __has_include("StringHolder.hpp")
- #include "StringHolder.hpp"
-#endif
-#if __has_include(<NitroModules/PromiseHolder.hpp>)
- #include <NitroModules/PromiseHolder.hpp>
-#endif
-#if __has_include(<future>)
- #include <future>
-#endif
-#if __has_include(<optional>)
- #include <optional>
-#endif
-#if __has_include(<string>)
- #include <string>
-#endif
-#if __has_include(<vector>)
- #include <vector>
-#endif
+#include "Contact.hpp"
+#include "ContactFields.hpp"
+#include "HybridContactsModuleSpec.hpp"
+#include "StringHolder.hpp"
+#include <NitroModules/PromiseHolder.hpp>
+#include <future>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 /**
  * Contains specialized versions of C++ templated types so they can be accessed from Swift,
@@ -47,6 +39,7 @@ namespace margelo::nitro::contacts { struct StringHolder; }
  */
 namespace margelo::nitro::contacts::bridge::swift {
 
+  // pragma MARK: std::optional<std::string>
   /**
    * Specialized version of `std::optional<std::string>`.
    */
@@ -55,6 +48,7 @@ namespace margelo::nitro::contacts::bridge::swift {
     return std::optional<std::string>(value);
   }
   
+  // pragma MARK: std::vector<StringHolder>
   /**
    * Specialized version of `std::vector<StringHolder>`.
    */
@@ -65,6 +59,7 @@ namespace margelo::nitro::contacts::bridge::swift {
     return vector;
   }
   
+  // pragma MARK: std::optional<std::vector<StringHolder>>
   /**
    * Specialized version of `std::optional<std::vector<StringHolder>>`.
    */
@@ -73,6 +68,7 @@ namespace margelo::nitro::contacts::bridge::swift {
     return std::optional<std::vector<StringHolder>>(value);
   }
   
+  // pragma MARK: std::vector<Contact>
   /**
    * Specialized version of `std::vector<Contact>`.
    */
@@ -83,6 +79,7 @@ namespace margelo::nitro::contacts::bridge::swift {
     return vector;
   }
   
+  // pragma MARK: PromiseHolder<std::vector<Contact>>
   /**
    * Specialized version of `PromiseHolder<std::vector<Contact>>`.
    */
@@ -91,6 +88,7 @@ namespace margelo::nitro::contacts::bridge::swift {
     return PromiseHolder<std::vector<Contact>>();
   }
   
+  // pragma MARK: std::vector<ContactFields>
   /**
    * Specialized version of `std::vector<ContactFields>`.
    */
@@ -100,5 +98,13 @@ namespace margelo::nitro::contacts::bridge::swift {
     vector.reserve(size);
     return vector;
   }
+  
+  // pragma MARK: std::shared_ptr<margelo::nitro::contacts::HybridContactsModuleSpec>
+  /**
+   * Specialized version of `std::shared_ptr<margelo::nitro::contacts::HybridContactsModuleSpec>`.
+   */
+  using std__shared_ptr_margelo__nitro__contacts__HybridContactsModuleSpec_ = std::shared_ptr<margelo::nitro::contacts::HybridContactsModuleSpec>;
+  std::shared_ptr<margelo::nitro::contacts::HybridContactsModuleSpec> create_std__shared_ptr_margelo__nitro__contacts__HybridContactsModuleSpec_(void* _Nonnull swiftUnsafePointer);
+  void* _Nonnull get_std__shared_ptr_margelo__nitro__contacts__HybridContactsModuleSpec_(std__shared_ptr_margelo__nitro__contacts__HybridContactsModuleSpec_ cppType);
 
 } // namespace margelo::nitro::contacts::bridge::swift

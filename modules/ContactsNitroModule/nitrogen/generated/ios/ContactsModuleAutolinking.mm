@@ -24,8 +24,8 @@
   HybridObjectRegistry::registerHybridObjectConstructor(
     "ContactsModule",
     []() -> std::shared_ptr<HybridObject> {
-      auto swiftPart = ContactsModule::ContactsModuleAutolinking::createContactsModule();
-      return std::make_shared<HybridContactsModuleSpecSwift>(swiftPart);
+      std::shared_ptr<margelo::nitro::contacts::HybridContactsModuleSpec> hybridObject = ContactsModule::ContactsModuleAutolinking::createContactsModule();
+      return hybridObject;
     }
   );
 }

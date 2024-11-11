@@ -49,35 +49,35 @@ namespace margelo::nitro::contacts {
   // Methods
   std::future<std::vector<Contact>> JHybridContactsModuleSpec::getAll(const std::vector<ContactFields>& keys) {
     static const auto method = _javaPart->getClass()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JArrayClass<JContactFields>> /* keys */)>("getAll");
-    auto result = method(_javaPart, [&]() {
-      size_t size = keys.size();
-      jni::local_ref<jni::JArrayClass<JContactFields>> array = jni::JArrayClass<JContactFields>::newArray(size);
-      for (size_t i = 0; i < size; i++) {
-        const auto& element = keys[i];
-        array->setElement(i, *JContactFields::fromCpp(element));
+    auto __result = method(_javaPart, [&]() {
+      size_t __size = keys.size();
+      jni::local_ref<jni::JArrayClass<JContactFields>> __array = jni::JArrayClass<JContactFields>::newArray(__size);
+      for (size_t __i = 0; __i < __size; __i++) {
+        const auto& __element = keys[__i];
+        __array->setElement(__i, *JContactFields::fromCpp(__element));
       }
-      return array;
+      return __array;
     }());
     return [&]() {
-      auto promise = std::make_shared<std::promise<std::vector<Contact>>>();
-      result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& boxedResult) {
-        auto result = jni::static_ref_cast<jni::JArrayClass<JContact>>(boxedResult);
-        promise->set_value([&]() {
-          size_t size = result->size();
-          std::vector<Contact> vector;
-          vector.reserve(size);
-          for (size_t i = 0; i < size; i++) {
-            auto element = result->getElement(i);
-            vector.push_back(element->toCpp());
+      auto __promise = std::make_shared<std::promise<std::vector<Contact>>>();
+      __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
+        auto __result = jni::static_ref_cast<jni::JArrayClass<JContact>>(__boxedResult);
+        __promise->set_value([&]() {
+          size_t __size = __result->size();
+          std::vector<Contact> __vector;
+          __vector.reserve(__size);
+          for (size_t __i = 0; __i < __size; __i++) {
+            auto __element = __result->getElement(__i);
+            __vector.push_back(__element->toCpp());
           }
-          return vector;
+          return __vector;
         }());
       });
-      result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JString>& message) {
-        std::runtime_error error(message->toStdString());
-        promise->set_exception(std::make_exception_ptr(error));
+      __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JString>& __message) {
+        std::runtime_error __error(__message->toStdString());
+        __promise->set_exception(std::make_exception_ptr(__error));
       });
-      return promise->get_future();
+      return __promise->get_future();
     }();
   }
 

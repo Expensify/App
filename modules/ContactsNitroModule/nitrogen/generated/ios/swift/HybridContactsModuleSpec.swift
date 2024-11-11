@@ -34,15 +34,3 @@ public protocol HybridContactsModuleSpec: AnyObject, HybridObjectSpec {
   // Methods
   func getAll(keys: [ContactFields]) throws -> Promise<[Contact]>
 }
-
-public extension HybridContactsModuleSpec {
-  /**
-   * Create a new instance of HybridContactsModuleSpecCxx for the given HybridContactsModuleSpec.
-   *
-   * Instances of HybridContactsModuleSpecCxx can be accessed from C++, and contain
-   * additional required bridging code for C++ <> Swift interop.
-   */
-  func createCxxBridge() -> HybridContactsModuleSpecCxx {
-    return HybridContactsModuleSpecCxx(self)
-  }
-}
