@@ -15,7 +15,7 @@ async function checkAndroidStatus() {
 
     const androidApi = google.androidpublisher({
         version: 'v3',
-        auth: auth,
+        auth,
     });
 
     try {
@@ -23,16 +23,16 @@ async function checkAndroidStatus() {
         const editResponse = await androidApi.edits.insert({
             packageName: PACKAGE_NAME,
         });
-        const editId = editResponse.data.id;
+        const editId = editResponse.data.id ?? 'undefined';
 
         // Get the production track status
         const trackResponse = await androidApi.edits.tracks.get({
             packageName: PACKAGE_NAME,
-            editId: editId!,
+            editId,
             track: 'production',
         });
 
-        const status = trackResponse.data.releases?.[0]?.status || 'undefined';
+        const status = trackResponse.data.releases?.[0]?.status ?? 'undefined';
         console.log('Track status:', status);
 
         // Check if the status is halted
@@ -65,13 +65,27 @@ function calculateRolloutPercentage(releaseDate: string): number {
     const daysSinceRelease = Math.floor((current.getTime() - release.getTime()) / (1000 * 60 * 60 * 24));
     console.log('Days since release:', daysSinceRelease);
 
-    if (daysSinceRelease <= 0) return 0;
-    if (daysSinceRelease === 1) return 0.01;
-    if (daysSinceRelease === 2) return 0.02;
-    if (daysSinceRelease === 3) return 0.05;
-    if (daysSinceRelease === 4) return 0.1;
-    if (daysSinceRelease === 5) return 0.2;
-    if (daysSinceRelease === 6) return 0.5;
+    if (daysSinceRelease <= 0) {
+        return 0;
+    }
+    if (daysSinceRelease === 1) {
+        return 0.01;
+    }
+    if (daysSinceRelease === 2) {
+        return 0.02;
+    }
+    if (daysSinceRelease === 3) {
+        return 0.05;
+    }
+    if (daysSinceRelease === 4) {
+        return 0.1;
+    }
+    if (daysSinceRelease === 5) {
+        return 0.2;
+    }
+    if (daysSinceRelease === 6) {
+        return 0.5;
+    }
     return 1;
 }
 

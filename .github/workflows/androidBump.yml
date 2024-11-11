@@ -3,6 +3,7 @@ name: Android Rollout Bumper
 on:
 #  schedule:
 #    - cron: '0 0 * * *' # Runs at midnight every day
+  # TODO: Remove when done testing
   push:
     branches:
       - andrew-android-bump
@@ -31,5 +32,6 @@ jobs:
 
       - name: Update Rollout Percentage with Fastlane
         run: |
+          # TODO: Write a fastlane lane to bump given a percentage
           echo "HALTED: ${{ steps.checkAndroidStatus.outputs.HALTED }}"
           echo "ROLLOUT_PERCENTAGE: ${{ steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE }}"
