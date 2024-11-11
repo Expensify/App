@@ -144,7 +144,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowSubmitButton =
         !!moneyRequestReport &&
-        !isArchivedReport &&
         !isArchivedExpenseReport &&
         isDraft &&
         reimbursableSpend !== 0 &&

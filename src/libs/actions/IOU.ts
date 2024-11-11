@@ -7053,8 +7053,6 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, 
     const isOpenExpenseReport = ReportUtils.isOpenExpenseReport(iouReport);
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(iouReport?.reportID);
-    const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);
     const isArchivedExpenseReport = ReportUtils.isArchivedExpenseReport(iouReport);
 
     let isTransactionBeingScanned = false;
@@ -7069,7 +7067,7 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, 
         }
     }
 
-    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !isArchivedExpenseReport && !isTransactionBeingScanned;
+    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isTransactionBeingScanned;
 }
 
 function canIOUBePaid(
