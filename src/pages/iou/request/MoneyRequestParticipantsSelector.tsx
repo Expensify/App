@@ -255,12 +255,15 @@ function MoneyRequestParticipantsSelector({
     ]);
 
     useEffect(() => {
+        if (!didScreenTransitionEnd) {
+            return;
+        }
         contactImport().then(({contactList, isPermissionBlocked}: ContactImportResult) => {
             setContactPermissionBlocked(isPermissionBlocked);
             const usersFromContact = ContactUtils.getContacts(contactList);
             setContacts(usersFromContact);
         });
-    }, []);
+    }, [didScreenTransitionEnd]);
 
     /**
      * Adds a single participant to the expense
