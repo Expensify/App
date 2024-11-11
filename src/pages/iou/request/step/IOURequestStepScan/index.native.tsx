@@ -251,6 +251,7 @@ function IOURequestStepScan({
                     currentUserPersonalDetails.accountID,
                     participant,
                     '',
+                    false,
                     receipt,
                 );
             } else {
@@ -338,6 +339,7 @@ function IOURequestStepScan({
                                     currentUserPersonalDetails.accountID,
                                     participant,
                                     '',
+                                    false,
                                     receipt,
                                     '',
                                     '',
