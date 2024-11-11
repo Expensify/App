@@ -533,7 +533,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     {isOnboardingCompleted === false && (
                         <RootStack.Screen
                             name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                            options={rootNavigatorOptions.onboardingModalNavigator}
+                            options={{...rootNavigatorOptions.onboardingModalNavigator, gestureEnabled: false}}
                             component={OnboardingModalNavigator}
                             listeners={{
                                 focus: () => {
