@@ -547,11 +547,6 @@ type CompanyCardBankName = {
     bankName: string;
 };
 
-type WorkspaceLockedPlanTypeParams = {
-    subscriptionUsersCount: number;
-    annualSubscriptionEndDate: string;
-};
-
 type CurrencyCodeParams = {
     currencyCode: string;
 };
@@ -755,6 +750,5 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
-    WorkspaceLockedPlanTypeParams,
     CurrencyCodeParams,
 };
