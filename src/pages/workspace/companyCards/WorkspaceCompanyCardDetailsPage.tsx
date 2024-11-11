@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import {format} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -54,7 +54,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [allBankCards, allBankCardsMetadata] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [allBankCards, allBankCardsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`);
     const card = allBankCards?.[cardID];
 
     const cardBank = card?.bank ?? '';
@@ -112,7 +112,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                                title={CardUtils.maskCard(card?.lastFourPAN)}
+                                title={CardUtils.maskCardNumber(card?.cardName ?? '')}
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
@@ -159,7 +159,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                                title={card?.scrapeMinDate ? format(card.scrapeMinDate, CONST.DATE.FNS_FORMAT_STRING) : ''}
+                                title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
                                 interactive={false}
                             />
                             <OfflineWithFeedback
