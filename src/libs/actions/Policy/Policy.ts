@@ -2149,7 +2149,6 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName(sessionEmail);
     const employeeAccountID = iouReport.ownerAccountID;
-    const employeeEmail = iouReport.ownerEmail ?? '';
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport.currency);
     const oldPersonalPolicyID = iouReport.policyID;
     const iouReportID = iouReport.reportID;
@@ -2168,6 +2167,8 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     if (!employeeAccountID) {
         return;
     }
+
+    const employeeEmail = allPersonalDetails?.[employeeAccountID]?.login ?? '';
 
     // Create the workspace chat for the employee whose IOU is being paid
     const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: employeeAccountID}, true);
@@ -2203,10 +2204,14 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
                 role: CONST.POLICY.ROLE.ADMIN,
                 errors: {},
             },
-            [employeeEmail]: {
-                role: CONST.POLICY.ROLE.USER,
-                errors: {},
-            },
+            ...(employeeEmail
+                ? {
+                      [employeeEmail]: {
+                          role: CONST.POLICY.ROLE.USER,
+                          errors: {},
+                      },
+                  }
+                : {}),
         },
         pendingFields: {
             autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
