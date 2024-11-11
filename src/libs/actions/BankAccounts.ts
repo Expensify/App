@@ -75,6 +75,7 @@ function setPlaidEvent(eventName: string | null) {
  */
 function openPersonalBankAccountSetupView(exitReportID?: string, isUserValidated = true) {
     clearPlaid().then(() => {
+        Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
         }
