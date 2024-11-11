@@ -2431,7 +2431,7 @@ const translations = {
                         return 'Member';
                 }
             },
-            planType: 'Plan Type',
+            planType: 'Plan type',
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
@@ -4248,7 +4248,6 @@ const translations = {
             },
         },
         planTypePage: {
-            title: 'Plan type',
             planTypes: {
                 team: {
                     label: 'Collect',
@@ -4259,7 +4258,9 @@ const translations = {
                     description: 'For organizations with advanced requirements.',
                 },
             },
-            lockedPlanNote: ({subscriptionUsersCount, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) =>
+            description: "Choose a plan that's right for you. For a detailed list of features and pricing, check out our",
+            subscriptionLink: 'plan types and pricing help page',
+            lockedPlanDescription: ({subscriptionUsersCount, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) =>
                 `You've committed to ${subscriptionUsersCount} active users on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
         },
     },
