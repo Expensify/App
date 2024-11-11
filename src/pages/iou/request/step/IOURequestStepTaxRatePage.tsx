@@ -5,7 +5,7 @@ import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {TaxRatesOption} from '@libs/OptionsListUtils';
+import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getCurrency} from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
