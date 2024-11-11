@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
@@ -46,7 +47,7 @@ type TaxPickerProps = TaxPickerOnyxProps & {
     insets?: EdgeInsets;
 
     /** Callback to fire when a tax is pressed */
-    onSubmit: (tax: OptionsListUtils.TaxRatesOption) => void;
+    onSubmit: (tax: TaxOptionsListUtils.TaxRatesOption) => void;
 
     /** The action to take */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -73,7 +74,7 @@ function TaxPicker({selectedTaxRate = '', policy, transaction, insets, onSubmit,
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const selectedOptions = useMemo(() => {
+    const selectedOptions = useMemo<TaxOptionsListUtils.Tax[]>(() => {
         if (!selectedTaxRate) {
             return [];
         }
@@ -88,7 +89,13 @@ function TaxPicker({selectedTaxRate = '', policy, transaction, insets, onSubmit,
     }, [selectedTaxRate]);
 
     const sections = useMemo(
-        () => OptionsListUtils.getTaxRatesSection(policy, selectedOptions as OptionsListUtils.Tax[], searchValue, currentTransaction),
+        () =>
+            TaxOptionsListUtils.getTaxRatesSection({
+                policy,
+                searchValue,
+                selectedOptions,
+                transaction: currentTransaction,
+            }),
         [searchValue, selectedOptions, policy, currentTransaction],
     );
 
@@ -97,7 +104,7 @@ function TaxPicker({selectedTaxRate = '', policy, transaction, insets, onSubmit,
     const selectedOptionKey = useMemo(() => sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
 
     const handleSelectRow = useCallback(
-        (newSelectedOption: OptionsListUtils.TaxRatesOption) => {
+        (newSelectedOption: TaxOptionsListUtils.TaxRatesOption) => {
             if (selectedOptionKey === newSelectedOption.keyForList) {
                 onDismiss();
                 return;
