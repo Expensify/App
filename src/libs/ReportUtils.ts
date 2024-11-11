@@ -520,6 +520,8 @@ type OptionData = {
     isConciergeChat?: boolean;
     isBold?: boolean;
     lastIOUCreationDate?: string;
+    icons?: Icon[];
+    iouReportAmount?: number;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -7326,8 +7328,7 @@ function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, 
     return requestOptions.includes(iouType);
 }
 
-function getWorkspaceChats(policyID: string, accountIDs: number[]): Array<OnyxEntry<Report>> {
-    const allReports = ReportConnection.getAllReports();
+function getWorkspaceChats(policyID: string, accountIDs: number[], allReports: OnyxCollection<Report> = ReportConnection.getAllReports()): Array<OnyxEntry<Report>> {
     return Object.values(allReports ?? {}).filter((report) => isPolicyExpenseChat(report) && (report?.policyID ?? '-1') === policyID && accountIDs.includes(report?.ownerAccountID ?? -1));
 }
 
@@ -8245,8 +8246,8 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
  * only use the Concierge chat.
  */
 function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData): boolean {
-    // onboarding can be an array for old accounts and accounts created from olddot
-    if (onboarding && !Array.isArray(onboarding) && onboarding.chatReportID) {
+    // onboarding can be an array or an empty object for old accounts and accounts created from olddot
+    if (onboarding && !Array.isArray(onboarding) && !isEmptyObject(onboarding) && onboarding.chatReportID) {
         return onboarding.chatReportID === optionOrReport?.reportID;
     }
 

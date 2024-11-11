@@ -448,7 +448,7 @@ function AttachmentPicker({
                             title={translate(item.textTranslationKey)}
                             onPress={() => selectItem(item)}
                             focused={focusedIndex === menuIndex}
-                            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === menuIndex, theme.activeComponentBG, theme.hoverComponentBG)}
+                            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === menuIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
                         />
                     ))}
                 </View>

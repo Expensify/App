@@ -8,8 +8,9 @@ import * as API from '@libs/API';
 import type {DismissViolationParams, GetRouteParams, MarkAsCashParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import * as NumberUtils from '@libs/NumberUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {buildOptimisticDismissedViolationReportAction, buildOptimisticUnHoldReportAction, isCurrentUserSubmitter} from '@libs/ReportUtils';
+import {buildOptimisticDismissedViolationReportAction} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -352,11 +353,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
     const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID ?? '', transaction.transactionID ?? ''));
-    const isSubmitter = currentTransactions.every((transaction) => isCurrentUserSubmitter(transaction.reportID ?? ''));
     const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() => {
-        if (isSubmitter) {
-            return buildOptimisticUnHoldReportAction();
-        }
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
     });
 
@@ -427,16 +424,17 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: {
-                pendingAction: null,
-            },
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: null,
         },
     }));
-
+    // We are creating duplicate resolved report actions for each duplicate transactions and all the report actions
+    // should be correctly linked with their parent report but the BE is sometimes linking report actions to different
+    // parent reports than the one we set optimistically, resulting in duplicate report actions. Therefore, we send the BE
+    // random report action ids and onSuccessData we reset the report actions we added optimistically to avoid duplicate actions.
     const params: DismissViolationParams = {
         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
         transactionIDList: transactionIDs.join(','),
-        reportActionIDList: optimisticDissmidedViolationReportActions.map((action) => action.reportActionID).join(','),
+        reportActionIDList: optimisticDissmidedViolationReportActions.map(() => NumberUtils.rand64()).join(','),
     };
 
     API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {
