@@ -1311,7 +1311,7 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
         return false;
     }
 
-    const submitsToAccountID = PolicyUtils.getSubmitToAccountID(getPolicy(report.policyID), report.ownerAccountID ?? -1);
+    const submitsToAccountID = PolicyUtils.getSubmitToAccountID(getPolicy(report.policyID), report);
 
     return isProcessingReport(report) && submitsToAccountID === report.managerID;
 }
@@ -3163,7 +3163,7 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
     }
 
     if (policy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport.reportID)) {
-        const isForwarded = PolicyUtils.getSubmitToAccountID(policy, moneyRequestReport.ownerAccountID ?? -1) !== moneyRequestReport.managerID;
+        const isForwarded = PolicyUtils.getSubmitToAccountID(policy, moneyRequestReport) !== moneyRequestReport.managerID;
         return !isForwarded;
     }
 
@@ -4694,7 +4694,7 @@ function buildOptimisticExpenseReport(
     };
 
     // Get the approver/manager for this report to properly display the optimistic data
-    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, payeeAccountID);
+    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, expenseReport);
     if (submitToAccountID) {
         expenseReport.managerID = submitToAccountID;
     }
@@ -7979,7 +7979,7 @@ function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAcco
 
 function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
     const policy = getPolicy(report?.policyID);
-    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, report?.ownerAccountID ?? -1);
+    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, report);
 
     return isAllowedToApproveExpenseReport(report, submitToAccountID);
 }
@@ -8375,15 +8375,16 @@ function isExported(reportActions: OnyxEntry<ReportActions>) {
     return Object.values(reportActions).some((action) => ReportActionsUtils.isExportIntegrationAction(action));
 }
 
-function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, reportTotal: number): string[] {
+function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
     const approvalChain: string[] = [];
+    const reportTotal = expenseReport?.total ?? 0;
 
     // If the policy is not on advanced approval mode, we should not use the approval chain even if it exists.
     if (!PolicyUtils.isControlOnAdvancedApprovalMode(policy)) {
         return approvalChain;
     }
 
-    let nextApproverEmail = PolicyUtils.getSubmitToEmail(policy, employeeAccountID);
+    let nextApproverEmail = PolicyUtils.getSubmitToEmail(policy, expenseReport);
 
     while (nextApproverEmail && !approvalChain.includes(nextApproverEmail)) {
         approvalChain.push(nextApproverEmail);
