@@ -463,9 +463,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 if (parentReportAction) {
                                     const {urlToNavigateBack} = IOU.prepareToCleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
                                     Navigation.goBack(urlToNavigateBack);
-                                    InteractionManager.runAfterInteractions(() => {
-                                        IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
-                                    });
+                                    IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
                                     return;
                                 }
                             }
