@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -12,28 +12,16 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagLists, Transaction} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-type IOURequestStepTaxRatePageOnyxProps = {
-    policy: OnyxEntry<Policy>;
-    policyCategories: OnyxEntry<PolicyCategories>;
-
-    /** Collection of tag list on a policy */
-    policyTags: OnyxEntry<PolicyTagLists>;
-
-    /** The draft transaction that holds data to be persisted on the current transaction */
-    splitDraftTransaction: OnyxEntry<Transaction>;
+type IOURequestStepTaxRatePageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE> & {
+    transaction: OnyxEntry<Transaction>;
 };
-
-type IOURequestStepTaxRatePageProps = IOURequestStepTaxRatePageOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE> & {
-        transaction: OnyxEntry<Transaction>;
-    };
 
 function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, selectedTaxCode: string, amount: number): number | undefined {
     const getTaxValue = (taxCode: string) => TransactionUtils.getTaxValue(policy, transaction, taxCode);
@@ -47,14 +35,15 @@ function IOURequestStepTaxRatePage({
     route: {
         params: {action, backTo, iouType},
     },
-    policy,
     transaction,
     report,
-    policyCategories,
-    policyTags,
-    splitDraftTransaction,
 }: IOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
+
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID ?? '-1'}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID ?? '-1'}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction?.transactionID ?? '-1'}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
@@ -132,26 +121,8 @@ function IOURequestStepTaxRatePage({
 
 IOURequestStepTaxRatePage.displayName = 'IOURequestStepTaxRatePage';
 
-const IOURequestStepTaxRatePageWithOnyx = withOnyx<IOURequestStepTaxRatePageProps, IOURequestStepTaxRatePageOnyxProps>({
-    splitDraftTransaction: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-        },
-    },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
-    },
-    policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
-    },
-    policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
-    },
-})(IOURequestStepTaxRatePage);
-
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePageWithOnyx);
+const IOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePage);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTaxRatePageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTaxRatePageWithWritableReportOrNotFound);
 
