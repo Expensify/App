@@ -11,7 +11,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
-import Icon from '@components/Icon';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
