@@ -1,5 +1,7 @@
 import type {Mock} from 'jest-mock';
+import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
+import * as App from '@libs/actions/App';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -12,6 +14,7 @@ import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import NetworkConnection from '@src/libs/NetworkConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Session as OnyxSession} from '@src/types/onyx';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -50,7 +53,7 @@ afterEach(() => {
 });
 
 describe('NetworkTests', () => {
-    test('failing to reauthenticate while offline should not log out user', () => {
+    test('failing to reauthenticate should not log out user', () => {
         // Given a test user login and account ID
         const TEST_USER_LOGIN = 'test@testguy.com';
         const TEST_USER_ACCOUNT_ID = 1;
@@ -128,6 +131,80 @@ describe('NetworkTests', () => {
                     expect(callsToAuthenticate.length).toBe(1);
                 });
         });
+    });
+
+    test('failing to reauthenticate while offline should not log out user', async () => {
+        const TEST_USER_LOGIN = 'test@testguy.com';
+        const TEST_USER_ACCOUNT_ID = 1;
+
+        let session: OnyxEntry<OnyxSession>;
+        Onyx.connect({
+            key: ONYXKEYS.SESSION,
+            callback: (val) => (session = val),
+        });
+
+        Onyx.connect({
+            key: ONYXKEYS.NETWORK,
+        });
+
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+        await waitForBatchedUpdates();
+
+        expect(session?.authToken).not.toBeUndefined();
+
+        // Turn off the network
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        const mockedXhr = jest.fn();
+        mockedXhr
+            // Call ReconnectApp with an expired token
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                }),
+            )
+            // Call Authenticate
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                    authToken: 'newAuthToken',
+                }),
+            )
+            // Call ReconnectApp again, it should connect with a new token
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                }),
+            );
+
+        HttpUtils.xhr = mockedXhr;
+
+        // Initiate the requests
+        App.confirmReadyToOpenApp();
+        App.reconnectApp();
+        await waitForBatchedUpdates();
+
+        // Turn the network back online
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+
+        // Filter requests results by request name
+        const reconnectResults = (HttpUtils.xhr as Mock).mock.results.filter((_, index) => (HttpUtils.xhr as Mock)?.mock?.calls?.at(index)?.[0] === 'ReconnectApp');
+        const authenticateResults = (HttpUtils.xhr as Mock).mock.results.filter((_, index) => (HttpUtils.xhr as Mock)?.mock?.calls?.at(index)?.[0] === 'Authenticate');
+
+        // Get the response code of Authenticate call
+        const authenticateResponse = await (authenticateResults?.at(0)?.value as Promise<{jsonCode: string}>);
+
+        // Get the response code of the second Reconnect call
+        const reconnectResponse = await (reconnectResults?.at(1)?.value as Promise<{jsonCode: string}>);
+
+        // Authenticate request should return 200
+        expect(authenticateResponse.jsonCode).toBe(CONST.JSON_CODE.SUCCESS);
+
+        // The second ReconnectApp should return 200
+        expect(reconnectResponse.jsonCode).toBe(CONST.JSON_CODE.SUCCESS);
+
+        // check if the user is still logged in
+        expect(session?.authToken).not.toBeUndefined();
     });
 
     test('consecutive API calls eventually succeed when authToken is expired', () => {

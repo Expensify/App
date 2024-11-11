@@ -397,8 +397,8 @@ describe('WorkflowUtils', () => {
             const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', submitsTo: '1@example.com'}),
-                '2@example.com': buildPolicyEmployee(2, {submitsTo: '1@example.com'}),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
+                '2@example.com': buildPolicyEmployee(2, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
             });
         });
 
@@ -412,12 +412,12 @@ describe('WorkflowUtils', () => {
             const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '2@example.com'}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '3@example.com'}),
-                '3@example.com': buildPolicyEmployee(3, {forwardsTo: ''}),
-                '4@example.com': buildPolicyEmployee(4, {submitsTo: '1@example.com'}),
-                '5@example.com': buildPolicyEmployee(5, {submitsTo: '1@example.com'}),
-                '6@example.com': buildPolicyEmployee(6, {submitsTo: '1@example.com'}),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '2@example.com', pendingFields: {forwardsTo: 'add'}}),
+                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '3@example.com', pendingFields: {forwardsTo: 'add'}}),
+                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', pendingFields: {forwardsTo: 'add'}}),
+                '4@example.com': buildPolicyEmployee(4, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
+                '5@example.com': buildPolicyEmployee(5, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
+                '6@example.com': buildPolicyEmployee(6, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
             });
         });
 
@@ -431,12 +431,12 @@ describe('WorkflowUtils', () => {
             const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'remove'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', pendingAction: 'update'}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '', pendingAction: 'update'}),
-                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', pendingAction: 'update'}),
-                '4@example.com': buildPolicyEmployee(4, {submitsTo: '', pendingAction: 'update'}),
-                '5@example.com': buildPolicyEmployee(5, {submitsTo: '', pendingAction: 'update'}),
-                '6@example.com': buildPolicyEmployee(6, {submitsTo: '', pendingAction: 'update'}),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', pendingAction: 'update', pendingFields: {forwardsTo: 'update'}}),
+                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '', pendingAction: 'update', pendingFields: {forwardsTo: 'update'}}),
+                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', pendingAction: 'update', pendingFields: {forwardsTo: 'update'}}),
+                '4@example.com': buildPolicyEmployee(4, {submitsTo: '', pendingAction: 'update', pendingFields: {submitsTo: 'update'}}),
+                '5@example.com': buildPolicyEmployee(5, {submitsTo: '', pendingAction: 'update', pendingFields: {submitsTo: 'update'}}),
+                '6@example.com': buildPolicyEmployee(6, {submitsTo: '', pendingAction: 'update', pendingFields: {submitsTo: 'update'}}),
             });
         });
     });
