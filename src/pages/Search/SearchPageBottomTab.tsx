@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,14 +73,15 @@ function SearchPageBottomTab() {
     });
 
     const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-    const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
-    const searchName = searchParams?.name;
-    const policyIDFromSearchQuery = parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery);
+    const parsedQuery = SearchQueryUtils.buildSearchQueryJSON(searchParams?.q);
+    const isSearchNameModified = searchParams?.name === searchParams?.q;
+    const searchName = isSearchNameModified ? undefined : searchParams?.name;
+    const policyIDFromSearchQuery = parsedQuery && SearchQueryUtils.getPolicyIDFromSearchQuery(parsedQuery);
     const isActiveCentralPaneRoute = activeCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
     const policyID = isActiveCentralPaneRoute ? policyIDFromSearchQuery : undefined;
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
 
     if (!queryJSON) {
         return (
@@ -98,6 +99,8 @@ function SearchPageBottomTab() {
         );
     }
 
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
+
     return (
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
@@ -110,9 +113,8 @@ function SearchPageBottomTab() {
                         <TopBar
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
-                            shouldDisplaySearch={false}
-                            shouldDisplaySearchRouter={shouldUseNarrowLayout}
-                            isCustomSearchQuery={shouldUseNarrowLayout && !SearchUtils.isCannedSearchQuery(queryJSON)}
+                            shouldDisplaySearch={shouldUseNarrowLayout}
+                            shouldDisplayCancelSearch={shouldDisplayCancelSearch}
                         />
                     </View>
                     {shouldUseNarrowLayout ? (
@@ -122,9 +124,7 @@ function SearchPageBottomTab() {
                                 searchName={searchName}
                             />
                             <SearchStatusBar
-                                type={queryJSON.type}
-                                status={queryJSON.status}
-                                policyID={queryJSON.policyID}
+                                queryJSON={queryJSON}
                                 onStatusChange={() => {
                                     topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
                                 }}
@@ -142,6 +142,7 @@ function SearchPageBottomTab() {
             )}
             {shouldUseNarrowLayout && (
                 <Search
+                    isSearchScreenFocused={isActiveCentralPaneRoute}
                     queryJSON={queryJSON}
                     onSearchListScroll={scrollHandler}
                     contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}

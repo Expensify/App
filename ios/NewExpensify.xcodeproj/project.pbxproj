@@ -18,7 +18,6 @@
 		0CDA8E38287DD6A0004ECBEC /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0CDA8E36287DD6A0004ECBEC /* Images.xcassets */; };
 		0DFC45942C884E0A00B56C91 /* RCTShortcutManagerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 0DFC45932C884E0A00B56C91 /* RCTShortcutManagerModule.m */; };
 		0DFC45952C884E0A00B56C91 /* RCTShortcutManagerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 0DFC45932C884E0A00B56C91 /* RCTShortcutManagerModule.m */; };
-		0F5BE0CE252686330097D869 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0F5BE0CD252686320097D869 /* GoogleService-Info.plist */; };
 		0F5E5350263B73FD004CA14F /* EnvironmentChecker.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */; };
 		0F5E5351263B73FD004CA14F /* EnvironmentChecker.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */; };
 		1246A3EF20E54E7A9494C8B9 /* ExpensifyNeue-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F4F8A052A22040339996324B /* ExpensifyNeue-Regular.otf */; };
@@ -34,6 +33,9 @@
 		70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 70CF6E81262E297300711ADC /* BootSplash.storyboard */; };
 		7F5E81F06BCCF61AD02CEA06 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD444BEDDB0AF1745B39049 /* ExpoModulesProvider.swift */; };
 		7F9DD8DA2B2A445B005E3AFA /* ExpError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F9DD8D92B2A445B005E3AFA /* ExpError.swift */; };
+		7FB680AE2CC94EDA006693CF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7FB680AD2CC94EDA006693CF /* GoogleService-Info.plist */; };
+		7FB680AF2CC94EDA006693CF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7FB680AD2CC94EDA006693CF /* GoogleService-Info.plist */; };
+		7FB680B02CC94EDA006693CF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7FB680AD2CC94EDA006693CF /* GoogleService-Info.plist */; };
 		7FD73C9E2B23CE9500420AF3 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FD73C9D2B23CE9500420AF3 /* NotificationService.swift */; };
 		7FD73CA22B23CE9500420AF3 /* NotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7FD73C9B2B23CE9500420AF3 /* NotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8744C5400E24E379441C04A4 /* libPods-NewExpensify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 59A21B2405370FDDD847C813 /* libPods-NewExpensify.a */; };
@@ -94,7 +96,6 @@
 		0D3F9E814828D91464DF9D35 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = NewExpensify/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		0DFC45922C884D7900B56C91 /* RCTShortcutManagerModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTShortcutManagerModule.h; sourceTree = "<group>"; };
 		0DFC45932C884E0A00B56C91 /* RCTShortcutManagerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTShortcutManagerModule.m; sourceTree = "<group>"; };
-		0F5BE0CD252686320097D869 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		0F5E534E263B73D5004CA14F /* EnvironmentChecker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EnvironmentChecker.h; sourceTree = "<group>"; };
 		0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EnvironmentChecker.m; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* New Expensify Dev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "New Expensify Dev.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -133,6 +134,7 @@
 		7F3784A72C75131000063508 /* NewExpensifyReleaseProduction.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = NewExpensifyReleaseProduction.entitlements; path = NewExpensify/NewExpensifyReleaseProduction.entitlements; sourceTree = "<group>"; };
 		7F9C91352CA5EC4900FC4DC1 /* NotificationServiceExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NotificationServiceExtension.entitlements; sourceTree = "<group>"; };
 		7F9DD8D92B2A445B005E3AFA /* ExpError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpError.swift; sourceTree = "<group>"; };
+		7FB680AD2CC94EDA006693CF /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		7FD73C9B2B23CE9500420AF3 /* NotificationServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7FD73C9D2B23CE9500420AF3 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		7FD73C9F2B23CE9500420AF3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -212,13 +214,13 @@
 		13B07FAE1A68108700A75B9A /* NewExpensify */ = {
 			isa = PBXGroup;
 			children = (
+				7FB680AD2CC94EDA006693CF /* GoogleService-Info.plist */,
 				7F3784A72C75131000063508 /* NewExpensifyReleaseProduction.entitlements */,
 				7F3784A62C7512D900063508 /* NewExpensifyReleaseAdHoc.entitlements */,
 				7F3784A52C7512CF00063508 /* NewExpensifyReleaseDevelopment.entitlements */,
 				7F3784A42C7512BF00063508 /* NewExpensifyDebugProduction.entitlements */,
 				7F3784A32C75129D00063508 /* NewExpensifyDebugAdHoc.entitlements */,
 				7F3784A22C75103800063508 /* NewExpensifyDebugDevelopment.entitlements */,
-				0F5BE0CD252686320097D869 /* GoogleService-Info.plist */,
 				E9DF872C2525201700607FDC /* AirshipConfig.plist */,
 				0CDA8E36287DD6A0004ECBEC /* Images.xcassets */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
@@ -500,6 +502,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0CDA8E38287DD6A0004ECBEC /* Images.xcassets in Resources */,
+				7FB680B02CC94EDA006693CF /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -507,7 +510,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0F5BE0CE252686330097D869 /* GoogleService-Info.plist in Resources */,
 				E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */,
 				F0C450EA2705020500FD2970 /* colors.json in Resources */,
 				083353EB2B5AB22A00C603C0 /* attention.mp3 in Resources */,
@@ -519,6 +521,7 @@
 				083353EE2B5AB22A00C603C0 /* success.mp3 in Resources */,
 				0C7C65547D7346EB923BE808 /* ExpensifyMono-Regular.otf in Resources */,
 				2A9F8CDA983746B0B9204209 /* ExpensifyNeue-Bold.otf in Resources */,
+				7FB680AE2CC94EDA006693CF /* GoogleService-Info.plist in Resources */,
 				083353EC2B5AB22A00C603C0 /* done.mp3 in Resources */,
 				083353ED2B5AB22A00C603C0 /* receive.mp3 in Resources */,
 				ED222ED90E074A5481A854FA /* ExpensifyNeue-BoldItalic.otf in Resources */,
@@ -532,6 +535,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7FB680AF2CC94EDA006693CF /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -681,7 +685,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/FullStory/tools/FullStoryCommandLine\" \"${CONFIGURATION_BUILD_DIR}/${WRAPPER_NAME}\"\n";
+			shellScript = "if [ \"$CONFIGURATION\" != \"DebugDevelopment\" ]; then\n  \"${PODS_ROOT}/FullStory/tools/FullStoryCommandLine\" \"${CONFIGURATION_BUILD_DIR}/${WRAPPER_NAME}\"\nelse\n  echo \"Skipping FullStory Asset Uploader phase for DebugDevelopment scheme.\"\nfi\n";
 		};
 		5CF45ABA52C0BB0D7B9D139A /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1848,6 +1852,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				CXX = "";
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;

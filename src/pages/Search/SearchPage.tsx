@@ -12,7 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -31,8 +31,8 @@ function SearchPage({route}: SearchPageProps) {
     selectionModeRef.current = selectionMode;
     clearSelectedTransactionsRef.current = clearSelectedTransactions;
 
-    const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(q), [q]);
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
+    const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(q), [q]);
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
 
     useEffect(() => {
         navigation.addListener('beforeRemove', (e) => {
@@ -68,17 +68,13 @@ function SearchPage({route}: SearchPageProps) {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                {queryJSON && (
+                {!!queryJSON && (
                     <>
                         <SearchPageHeader
                             queryJSON={queryJSON}
                             hash={queryJSON.hash}
                         />
-                        <SearchStatusBar
-                            type={queryJSON.type}
-                            status={queryJSON.status}
-                            policyID={queryJSON.policyID}
-                        />
+                        <SearchStatusBar queryJSON={queryJSON} />
                         <Search queryJSON={queryJSON} />
                     </>
                 )}

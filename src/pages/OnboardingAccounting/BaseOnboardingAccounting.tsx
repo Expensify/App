@@ -10,16 +10,18 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
-import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {OnboardingAccountingType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,11 +37,16 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+
+    // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
+    const {canUseDefaultRooms} = usePermissions();
+    const {activeWorkspaceID} = useActiveWorkspace();
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccountingType | undefined>(undefined);
     const [error, setError] = useState('');
@@ -144,13 +151,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                     Welcome.setOnboardingAdminsChatReportID();
                     Welcome.setOnboardingPolicyID();
 
-                    Navigation.dismissModal();
-
-                    // Only navigate to concierge chat when central pane is visible
-                    // Otherwise stay on the chats screen.
-                    if (!shouldUseNarrowLayout && !route.params?.backTo) {
-                        Report.navigateToConciergeChat();
-                    }
+                    navigateAfterOnboarding(isSmallScreenWidth, shouldUseNarrowLayout, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, route.params?.backTo);
                 }}
                 pressOnEnter
             />
@@ -166,7 +167,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={75}
-                onBackButtonPress={OnboardingFlow.goBack}
+                onBackButtonPress={Navigation.goBack}
             />
             <Text style={[styles.textHeadlineH1, styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 {translate('onboarding.accounting.title')}

@@ -490,14 +490,14 @@ function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle,
     };
 }
 
-function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, hasText?: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
+function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, isButtonIcon: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
     switch (true) {
         case small:
-            return {width: hasText ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: hasText ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
+            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
         case medium:
-            return {width: hasText ? variables.iconSizeSmall : variables.iconSizeNormal, height: hasText ? variables.iconSizeSmall : variables.iconSizeNormal};
+            return {width: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal, height: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal};
         case large:
-            return {width: hasText ? variables.iconSizeNormal : variables.iconSizeLarge, height: hasText ? variables.iconSizeNormal : variables.iconSizeLarge};
+            return {width: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge, height: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge};
         default: {
             return {width, height};
         }
@@ -1119,6 +1119,27 @@ function getAmountWidth(amount: string): number {
     return width;
 }
 
+/**
+ * When the item is selected and disabled, we want selected item styles.
+ * When the item is focused and disabled, we want disabled item styles.
+ * Single true value will give result accordingly.
+ */
+function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, isDisabled: boolean, selectedBG: string, focusedBG: string): ViewStyle {
+    let backgroundColor;
+
+    if (isSelected) {
+        backgroundColor = selectedBG;
+    } else if (isDisabled) {
+        backgroundColor = undefined;
+    } else if (isFocused) {
+        backgroundColor = focusedBG;
+    }
+
+    return {
+        backgroundColor,
+    };
+}
+
 const staticStyleUtils = {
     positioning,
     combineStyles,
@@ -1193,6 +1214,7 @@ const staticStyleUtils = {
     getAmountWidth,
     getBorderRadiusStyle,
     getHighResolutionInfoWrapperStyle,
+    getItemBackgroundColorStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({

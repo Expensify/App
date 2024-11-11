@@ -29,6 +29,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
@@ -39,6 +40,7 @@ import getPlatform from '@libs/getPlatform';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -130,11 +132,21 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** The ref to the next modal will open */
     isNextModalWillOpenRef: MutableRefObject<boolean | null>;
 
+    /** Wheater chat is empty */
+    isEmptyChat?: boolean;
+
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Whether to include chronos */
     includeChronos?: boolean;
+
+    /** The parent report action ID */
+    parentReportActionID?: string;
+
+    /** The parent report ID */
+    // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
+    parentReportID: string | undefined;
 
     /** Whether report is from group policy */
     isGroupPolicyReport: boolean;
@@ -181,6 +193,10 @@ const debouncedBroadcastUserIsTyping = lodashDebounce(
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
+// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
+// prevent auto focus on existing chat for mobile device
+const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
 /**
  * This component holds the value and selection state.
  * If a component really needs access to these state values it should be put here.
@@ -191,8 +207,11 @@ function ComposerWithSuggestions(
     {
         // Props: Report
         reportID,
+        parentReportID,
         includeChronos,
+        isEmptyChat,
         lastReportAction,
+        parentReportActionID,
         isGroupPolicyReport,
         policyID,
 
@@ -246,16 +265,14 @@ function ComposerWithSuggestions(
         }
         return draftComment;
     });
-
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {
-        selector: EmojiUtils.getPreferredSkinToneIndex,
-        initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    });
-
-    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
-
     const commentRef = useRef(value);
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
+    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID || '-1'}`, {canEvict: false, initWithStoredValues: false});
 
     const lastTextRef = useRef(value);
     useEffect(() => {
@@ -265,7 +282,13 @@ function ComposerWithSuggestions(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const shouldAutoFocus = !modal?.isVisible && shouldShowComposeInput && Modal.areAllModalsHidden() && isFocused;
+    const parentReportAction = useMemo(() => parentReportActions?.[parentReportActionID ?? '-1'], [parentReportActionID, parentReportActions]);
+    const shouldAutoFocus =
+        !modal?.isVisible &&
+        Modal.areAllModalsHidden() &&
+        isFocused &&
+        (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction) && !ReportUtils.isTaskReport(report))) &&
+        shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -273,8 +296,6 @@ function ComposerWithSuggestions(
     const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
-
-    const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
 
     const textInputRef = useRef<TextInput | null>(null);
 
@@ -615,6 +636,7 @@ function ComposerWithSuggestions(
 
     const prevIsModalVisible = usePrevious(modal?.isVisible);
     const prevIsFocused = usePrevious(isFocused);
+
     useEffect(() => {
         if (modal?.isVisible && !prevIsModalVisible) {
             // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
@@ -645,6 +667,7 @@ function ComposerWithSuggestions(
         updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
     useImperativeHandle(
         ref,
         () => ({
@@ -763,19 +786,6 @@ function ComposerWithSuggestions(
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={Browser.isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
-                    showSoftInputOnFocus={showSoftInputOnFocus}
-                    onTouchStart={() => {
-                        if (showSoftInputOnFocus) {
-                            return;
-                        }
-                        if (Browser.isMobileSafari()) {
-                            setTimeout(() => {
-                                setShowSoftInputOnFocus(true);
-                            }, CONST.ANIMATED_TRANSITION);
-                            return;
-                        }
-                        setShowSoftInputOnFocus(true);
-                    }}
                 />
             </View>
 
@@ -811,8 +821,6 @@ function ComposerWithSuggestions(
 
 ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
-const ComposerWithSuggestionsWithRef = forwardRef(ComposerWithSuggestions);
-
-export default memo(ComposerWithSuggestionsWithRef);
+export default memo(forwardRef(ComposerWithSuggestions));
 
 export type {ComposerWithSuggestionsProps, ComposerRef};
