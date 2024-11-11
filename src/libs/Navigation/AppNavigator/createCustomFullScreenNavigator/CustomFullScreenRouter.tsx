@@ -1,9 +1,6 @@
 import type {ParamListBase, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
 import {StackRouter} from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {FullScreenNavigatorRouterOptions} from './types';
 
@@ -11,29 +8,12 @@ type StackState = StackNavigationState<ParamListBase> | PartialState<StackNaviga
 
 const isAtLeastOneInState = (state: StackState, screenName: string): boolean => state.routes.some((route) => route.name === screenName);
 
-let isLoadingReportData = true;
-Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    initWithStoredValues: false,
-    callback: (value) => (isLoadingReportData = value ?? false),
-});
-
 function adaptStateIfNecessary(state: StackState) {
     const isNarrowLayout = getIsNarrowLayout();
     const workspaceCentralPane = state.routes.at(-1);
-    const policyID =
-        workspaceCentralPane?.params && 'policyID' in workspaceCentralPane.params && typeof workspaceCentralPane.params.policyID === 'string'
-            ? workspaceCentralPane.params.policyID
-            : undefined;
-    const policy = PolicyUtils.getPolicy(policyID ?? '');
-    const isPolicyAccessible = PolicyUtils.isPolicyAccessible(policy);
 
     // There should always be WORKSPACE.INITIAL screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.
-    // The only exception is when the workspace is invalid or inaccessible.
     if (!isAtLeastOneInState(state, SCREENS.WORKSPACE.INITIAL)) {
-        if (isNarrowLayout && !isLoadingReportData && !isPolicyAccessible) {
-            return;
-        }
         // @ts-expect-error Updating read only property
         // noinspection JSConstantReassignment
         state.stale = true; // eslint-disable-line
