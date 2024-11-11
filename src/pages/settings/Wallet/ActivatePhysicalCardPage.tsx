@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -70,15 +70,19 @@ function ActivatePhysicalCardPage({
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
     }, [cardID, cardList, inactiveCard?.isLoading, inactiveCard?.state]);
 
-    useEffect(
-        () => () => {
+    useLayoutEffect(() => {
+        if (!inactiveCard?.cardID) {
+            return;
+        }
+        CardSettings.clearCardListErrors(inactiveCard?.cardID);
+
+        return () => {
             if (!inactiveCard?.cardID) {
                 return;
             }
             CardSettings.clearCardListErrors(inactiveCard?.cardID);
-        },
-        [inactiveCard?.cardID],
-    );
+        };
+    }, [inactiveCard?.cardID]);
 
     /**
      * Update lastPressedDigit with value that was pressed on BigNumberPad.
