@@ -3943,7 +3943,7 @@ const translations = {
         },
         inviteMessage: {
             inviteMessageTitle: 'Add message',
-            inviteMessagePrompt: 'Make your invitation extra special by adding a message below',
+            inviteMessagePrompt: 'Make your invitation extra special by adding a message below!',
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
             inviteNoMembersError: 'Please select at least one member to invite.',
