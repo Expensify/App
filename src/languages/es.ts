@@ -736,7 +736,7 @@ const translations = {
         listOfChats: 'lista de chats',
         saveTheWorld: 'Salvar el mundo',
         tooltip: '¡Comienza aquí!',
-        redirectToOldDotModal: {
+        redirectToExpensifyClassicModal: {
             title: 'Próximamente',
             description: 'Estamos ajustando algunos detalles de New Expensify para adaptarla a tu configuración específica. Mientras tanto, dirígete a Expensify Classic.',
         },

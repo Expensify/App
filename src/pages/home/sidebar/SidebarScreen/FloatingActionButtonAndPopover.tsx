@@ -185,8 +185,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
-
-    const shouldRedirectToOD = useMemo(() => {
+    /**
+     * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
+     * 1. on at least one group policy
+     * 2. none of the group policies they are a member of have isPolicyExpenseChatEnabled=true
+     */
+    const shouldRedirectToExpensifyClassic = useMemo(() => {
         const groupPolicies = Object.values(allPolicies ?? {}).filter((policy) => ReportUtils.isGroupPolicy(policy?.type ?? ''));
         if (groupPolicies.length === 0) {
             return false;
@@ -368,10 +372,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 {
                     icon: getIconForAction(CONST.IOU.TYPE.CREATE),
                     text: translate('iou.createExpense'),
-                    shouldCallAfterModalHide: shouldRedirectToOD,
+                    shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
                     onSelected: () =>
                         interceptAnonymousUser(() => {
-                            if (shouldRedirectToOD) {
+                            if (shouldRedirectToExpensifyClassic) {
                                 setModalVisible(true);
                                 return;
                             }
@@ -392,9 +396,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                       {
                           icon: getIconForAction(CONST.IOU.TYPE.TRACK),
                           text: translate('iou.trackExpense'),
-                          shouldCallAfterModalHide: shouldRedirectToOD,
+                          shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
                           onSelected: () => {
-                              if (shouldRedirectToOD) {
+                              if (shouldRedirectToExpensifyClassic) {
                                   setModalVisible(true);
                                   return;
                               }
@@ -419,10 +423,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             {
                 icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
                 text: translate('iou.submitExpense'),
-                shouldCallAfterModalHide: shouldRedirectToOD,
+                shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
                 onSelected: () =>
                     interceptAnonymousUser(() => {
-                        if (shouldRedirectToOD) {
+                        if (shouldRedirectToExpensifyClassic) {
                             setModalVisible(true);
                             return;
                         }
@@ -436,7 +440,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     }),
             },
         ];
-    }, [canUseCombinedTrackSubmit, translate, selfDMReportID, hasSeenTrackTraining, isOffline, shouldRedirectToOD]);
+    }, [canUseCombinedTrackSubmit, translate, selfDMReportID, hasSeenTrackTraining, isOffline, shouldRedirectToExpensifyClassic]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -529,10 +533,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                               {
                                   icon: Expensicons.InvoiceGeneric,
                                   text: translate('workspace.invoices.sendInvoice'),
-                                  shouldCallAfterModalHide: shouldRedirectToOD,
+                                  shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
                                   onSelected: () =>
                                       interceptAnonymousUser(() => {
-                                          if (shouldRedirectToOD) {
+                                          if (shouldRedirectToExpensifyClassic) {
                                               setModalVisible(true);
                                               return;
                                           }
@@ -591,14 +595,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 anchorRef={fabRef}
             />
             <ConfirmModal
-                prompt={translate('sidebarScreen.redirectToOldDotModal.description')}
+                prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
                 isVisible={modalVisible}
                 onConfirm={() => {
                     setModalVisible(false);
                     Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                 }}
                 onCancel={() => setModalVisible(false)}
-                title={translate('sidebarScreen.redirectToOldDotModal.title')}
+                title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
                 confirmText={translate('exitSurvey.goToExpensifyClassic')}
                 cancelText={translate('common.cancel')}
             />
