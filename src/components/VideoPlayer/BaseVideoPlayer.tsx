@@ -240,7 +240,7 @@ function BaseVideoPlayer({
             onPlaybackStatusUpdate?.(status);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this when isPlaying changes because isPlaying is only used inside shouldReplayVideo
-        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration],
+        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration, isEnded],
     );
 
     const handleFullscreenUpdate = useCallback(
