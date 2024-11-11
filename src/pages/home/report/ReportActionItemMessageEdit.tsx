@@ -486,7 +486,7 @@ function ReportActionItemMessageEdit(
                         <Tooltip text={translate('common.cancel')}>
                             <PressableWithFeedback
                                 onPress={deleteDraft}
-                                style={styles.composerSizeButton}
+                                style={[styles.composerSizeButton, {marginVertical: styles.composerSizeButton.marginHorizontal}]}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                                 // disable dimming
