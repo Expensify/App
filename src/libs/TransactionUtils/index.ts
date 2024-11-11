@@ -295,7 +295,7 @@ function getUpdatedTransaction({
         updatedTransaction.isLoading = true;
         shouldStopSmartscan = true;
 
-        if (isEmptyObject(transactionChanges.routes?.route0?.geometry)) {
+        if (!transactionChanges.routes?.route0?.geometry?.coordinates) {
             // The waypoints were changed, but there is no route – it is pending from the BE and we should mark the fields as pending
             updatedTransaction.amount = CONST.IOU.DEFAULT_AMOUNT;
             updatedTransaction.modifiedAmount = CONST.IOU.DEFAULT_AMOUNT;
