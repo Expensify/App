@@ -6232,9 +6232,9 @@ const CONST = {
     },
 
     CORPAY_FIELDS: {
-        BANK_ACCOUNT_DETAILS_FIELDS: ['accountNumber', 'localAccountNumber', 'routingCode', 'localRoutingCode', 'swiftBicCode'],
+        BANK_ACCOUNT_DETAILS_FIELDS: ['accountNumber', 'localAccountNumber', 'routingCode', 'localRoutingCode', 'swiftBicCode'] as string[],
         ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
-        BANK_INFORMATION_FIELDS: ['bankName', 'bankRegion', 'bankCity', 'bankAddressLine1', 'bankAddressLine2', 'bankPostal', 'BeneficiaryBankBranchName'],
+        BANK_INFORMATION_FIELDS: ['bankName', 'bankRegion', 'bankCity', 'bankAddressLine1', 'bankAddressLine2', 'bankPostal', 'BeneficiaryBankBranchName'] as string[],
         ACCOUNT_HOLDER_FIELDS: [
             'accountHolderName',
             'accountHolderCountry',
@@ -6250,7 +6250,7 @@ const CONST = {
             'BeneficiaryRUT',
             'BeneficiaryCedulaID',
             'BeneficiaryTaxID',
-        ],
+        ] as string[],
         SPECIAL_LIST_REGION_KEYS: ['bankRegion', 'accountHolderRegion'] as string[],
         SPECIAL_LIST_ADDRESS_KEYS: ['bankAddressLine1', 'accountHolderAddress1'] as string[],
         STEPS_NAME: {

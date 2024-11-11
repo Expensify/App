@@ -15,10 +15,10 @@ function getFieldsMap(corpayFields: OnyxEntry<CorpayFields>): Record<ValueOf<typ
         }
         if (field.id === CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY) {
             acc[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE] = {[field.id]: field};
-        } else if (field.id in CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS) {
+        } else if (CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.includes(field.id)) {
             acc[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION] = acc[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION] ?? {};
             acc[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION][field.id] = field;
-        } else if (field.id in CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS) {
+        } else if (CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.includes(field.id)) {
             acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION] = acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION] ?? {};
             acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION][field.id] = field;
         } else {
