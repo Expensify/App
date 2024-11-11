@@ -36,6 +36,7 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import GoogleTagManager from '@libs/GoogleTagManager';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
@@ -2510,7 +2511,7 @@ function getUpdateMoneyRequestParams(
     const failureData: OnyxUpdate[] = [];
 
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
-    const pendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
+    let pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
     const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]));
 
     const allReports = ReportConnection.getAllReports();
@@ -2522,6 +2523,13 @@ function getUpdateMoneyRequestParams(
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     let updatedTransaction: OnyxEntry<OnyxTypes.Transaction> = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : undefined;
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
+
+    if (updatedTransaction?.pendingFields) {
+        pendingFields = {
+            ...pendingFields,
+            ...updatedTransaction?.pendingFields,
+        };
+    }
 
     if (transactionDetails?.waypoints) {
         // This needs to be a JSON string since we're sending this to the MapBox API
@@ -3419,6 +3427,7 @@ function categorizeTrackedExpense(
     comment: string,
     merchant: string,
     created: string,
+    isDraftPolicy: boolean,
     category?: string,
     tag?: string,
     taxCode = '',
@@ -3475,6 +3484,12 @@ function categorizeTrackedExpense(
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
+
+    // If a draft policy was used, then the CategorizeTrackedExpense command will create a real one
+    // so let's track that conversion here
+    if (isDraftPolicy) {
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, userAccountID);
+    }
 }
 
 function shareTrackedExpense(
@@ -3774,6 +3789,7 @@ function trackExpense(
     payeeAccountID: number,
     participant: Participant,
     comment: string,
+    isDraftPolicy: boolean,
     receipt?: Receipt,
     category?: string,
     tag?: string,
@@ -3869,6 +3885,7 @@ function trackExpense(
                 comment,
                 merchant,
                 created,
+                isDraftPolicy,
                 category,
                 tag,
                 taxCode,
@@ -4986,7 +5003,6 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
     const splitParticipants: Split[] = updatedTransaction?.comment?.splits ?? [];
     const amount = updatedTransaction?.modifiedAmount;
     const currency = updatedTransaction?.modifiedCurrency;
-    console.debug(updatedTransaction);
 
     // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
     const splitAmount = IOUUtils.calculateAmount(splitParticipants.length - 1, amount ?? 0, currency ?? '', false);
@@ -7072,9 +7088,19 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, 
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(iouReport?.reportID);
     const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);
-    const unheldTotalIsZero = iouReport && iouReport.unheldTotal === 0;
+    let isTransactionBeingScanned = false;
+    const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID);
+    for (const transaction of reportTransactions) {
+        const hasReceipt = TransactionUtils.hasReceipt(transaction);
+        const isReceiptBeingScanned = TransactionUtils.isReceiptBeingScanned(transaction);
 
-    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !unheldTotalIsZero;
+        // If transaction has receipt (scan) and its receipt is being scanned, we shouldn't be able to Approve
+        if (hasReceipt && isReceiptBeingScanned) {
+            isTransactionBeingScanned = true;
+        }
+    }
+
+    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !isTransactionBeingScanned;
 }
 
 function canIOUBePaid(
@@ -7338,7 +7364,6 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         optimisticHoldReportID,
         optimisticHoldActionID,
         optimisticHoldReportExpenseActionIDs,
-        v2: PolicyUtils.isControlOnAdvancedApprovalMode(PolicyUtils.getPolicy(expenseReport?.policyID)),
     };
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
