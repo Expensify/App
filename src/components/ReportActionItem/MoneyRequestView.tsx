@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
