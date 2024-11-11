@@ -1,3 +1,4 @@
+import {CardStyleInterpolators} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
@@ -5,8 +6,8 @@ import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/OnboardingModalNavigatorScreenOptions';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import OnboardingAccounting from '@pages/OnboardingAccounting';
@@ -16,6 +17,13 @@ import OnboardingPurpose from '@pages/OnboardingPurpose';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
+
+const defaultScreenOptions: PlatformStackNavigationOptions = {
+    headerShown: false,
+    web: {
+        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+    },
+};
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 
@@ -43,7 +51,7 @@ function OnboardingModalNavigator() {
                         onClick={(e) => e.stopPropagation()}
                         style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)}
                     >
-                        <Stack.Navigator screenOptions={OnboardingModalNavigatorScreenOptions()}>
+                        <Stack.Navigator screenOptions={defaultScreenOptions}>
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PURPOSE}
                                 component={OnboardingPurpose}
