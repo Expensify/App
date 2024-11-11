@@ -11,6 +11,7 @@
 #
 
 require 'ostruct'
+require 'spaceship'
 
 skip_docs
 opt_out_usage
@@ -544,6 +545,16 @@ platform :ios do
       }
     )
   end
+
+  desc "Submit HybridApp to 100% rollout on App Store"
+    lane :complete_hybrid_rollout do
+        api_token = Spaceship::ConnectAPI::Token.from_json_file("./ios/ios-fastlane-json-key.json")
+        Spaceship::ConnectAPI.token = api_token
+
+        app = Spaceship::ConnectAPI::App.find("com.expensify.expensifylite")
+        version = app.get_live_app_store_version(platform: Spaceship::ConnectAPI::Platform::IOS)
+        version.fetch_app_store_version_phased_release.complete
+    end
 
   desc "Submit HybridApp for production App Store slow rollout"
     lane :submit_hybrid_for_rollout do
