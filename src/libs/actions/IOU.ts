@@ -3960,6 +3960,10 @@ function trackExpense(
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
 
     if (action === CONST.IOU.ACTION.SHARE) {
+        if (isSearchTopmostCentralPane() && activeReportID) {
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(activeReportID));
+        }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT)));
     }
 
