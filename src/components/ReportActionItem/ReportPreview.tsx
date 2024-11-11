@@ -147,7 +147,7 @@ function ReportPreview({
     const isApproved = ReportUtils.isReportApproved(iouReport, action);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = allTransactions.length;
-    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
+    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID, true);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => TransactionUtils.isPending(transaction) && TransactionUtils.isCardTransaction(transaction)).length;
 
@@ -160,7 +160,7 @@ function ReportPreview({
         ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations) ||
         (ReportUtils.isReportOwner(iouReport) && ReportUtils.hasReportViolations(iouReportID)) ||
         ReportUtils.hasActionsWithErrors(iouReportID);
-    const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
+    const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(0, 3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage =
         numberOfRequests === 1 &&

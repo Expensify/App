@@ -3345,9 +3345,13 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
 /**
  * Gets all transactions on an IOU report with a receipt
  */
-function getTransactionsWithReceipts(iouReportID: string | undefined): Transaction[] {
+function getTransactionsWithReceipts(iouReportID: string | undefined, sortByCreated: boolean = false): Transaction[] {
     const transactions = reportsTransactions[iouReportID ?? ''] ?? [];
-    return transactions.filter((transaction) => TransactionUtils.hasReceipt(transaction));
+    const filteredTransactions = transactions.filter((transaction) => TransactionUtils.hasReceipt(transaction));
+    if (sortByCreated) {
+        filteredTransactions.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime());
+    }
+    return filteredTransactions;
 }
 
 /**
