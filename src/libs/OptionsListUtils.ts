@@ -1306,7 +1306,10 @@ function getTagListSections(
  * Verifies that there is at least one enabled tag
  */
 function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>) {
-    const policyTagValueList = policyTagList.map(({tags}) => Object.values(tags)).flat();
+    const policyTagValueList = policyTagList
+        .filter((tag) => tag && tag.tags)
+        .map(({tags}) => Object.values(tags))
+        .flat();
 
     return hasEnabledOptions(policyTagValueList);
 }
@@ -1994,7 +1997,7 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
     }
 
-    const optionsToExclude: Option[] = [];
+    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty

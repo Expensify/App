@@ -309,7 +309,7 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - NitroModules (0.11.0):
+  - NitroModules (0.15.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2434,7 +2434,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.179):
+  - RNLiveMarkdown (0.1.180):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2454,9 +2454,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/newarch (= 0.1.179)
+    - RNLiveMarkdown/newarch (= 0.1.180)
     - Yoga
-  - RNLiveMarkdown/newarch (0.1.179):
+  - RNLiveMarkdown/newarch (0.1.180):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2546,7 +2546,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (3.15.1):
+  - RNReanimated (3.15.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2566,10 +2566,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 3.15.1)
-    - RNReanimated/worklets (= 3.15.1)
+    - RNReanimated/reanimated (= 3.15.3)
+    - RNReanimated/worklets (= 3.15.3)
     - Yoga
-  - RNReanimated/reanimated (3.15.1):
+  - RNReanimated/reanimated (3.15.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2590,7 +2590,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated/worklets (3.15.1):
+  - RNReanimated/worklets (3.15.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3181,7 +3181,7 @@ SPEC CHECKSUMS:
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   boost: 26992d1adf73c1c7676360643e687aee6dda994b
-  ContactsModule: 051a8084b2c2b4452369f92ef795a5226787173e
+  ContactsModule: 5fe033a12a3fab1d7f4b6b9f2fc986c564a7bf2d
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXAV: afa491e598334bbbb92a92a2f4dd33d7149ad37f
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
@@ -3221,7 +3221,7 @@ SPEC CHECKSUMS:
   MapboxMaps: e76b14f52c54c40b76ddecd04f40448e6f35a864
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  NitroModules: e8722903c6ca5c7616f62c0d7a926a903ae75bce
+  NitroModules: 0aaa19651e5d01abda4f6f172c071796bcda14ef
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 4ccfdeb10f9ccb4a5799d2555cdbc2a068a42c0d
   Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89
@@ -3257,7 +3257,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 1c08607305558666fd16678b85ef135e455d5c96
   React-microtasksnativemodule: f13f03163b6a5ec66665dfe80a0df4468bb766a6
   react-native-airship: e10f6823d8da49bbcb2db4bdb16ff954188afccc
-  react-native-app-logs: b8a104816aafc78cd0965e923452de88dcf8ec67
+  react-native-app-logs: b8eb3355522b48f703f1c4aaa31d59046d26225c
   react-native-blob-util: 221c61c98ae507b758472ac4d2d489119d1a6c44
   react-native-cameraroll: 478a0c1fcdd39f08f6ac272b7ed06e92b2c7c129
   react-native-config: 742a9e0a378a78d0eaff1fb3477d8c0ae222eb51
@@ -3315,12 +3315,12 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 8781e2529230a1bc3ea8d75e5c3cd071b6c6aed7
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 7acba70803223c6fa369c32cd2673c415ae3b5c4
+  RNLiveMarkdown: fc07b203a3ed832e2e5d3950e69cd4fc3b0568b6
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
   RNPermissions: 9e5c26aaa982fe00743281f6f47fbdc050ebc58f
   RNReactNativeHapticFeedback: 73756a3477a5a622fa16862a3ab0d0fc5e5edff5
-  RNReanimated: 76901886830e1032f16bbf820153f7dc3f02d51d
+  RNReanimated: f46df3b08d5d59cd83c47bb6697ce88e565e0dc7
   RNScreens: de6e57426ba0e6cbc3fb5b4f496e7f08cb2773c2
   RNShare: bd4fe9b95d1ee89a200778cc0753ebe650154bb0
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852

@@ -84,7 +84,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             isWeb: platform === 'web',
             isProduction: file === '.env.production',
             isStaging: file === '.env.staging',
-            useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || (platform === 'web' && file === '.env.production'),
+            useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || (platform === 'web' && ['.env.production', '.env.staging'].includes(file)),
         }),
         new PreloadWebpackPlugin({
             rel: 'preload',
