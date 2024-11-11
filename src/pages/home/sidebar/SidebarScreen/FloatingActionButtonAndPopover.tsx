@@ -191,7 +191,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         if (groupPolicies.length === 0) {
             return false;
         }
-        return !groupPolicies.some((policy) => policy?.isPolicyExpenseChatEnabled === true);
+        return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
     }, [allPolicies]);
 
     const quickActionAvatars = useMemo(() => {
