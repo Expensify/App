@@ -7175,9 +7175,9 @@ function getNextApproverAccountID(report: OnyxEntry<OnyxTypes.Report>, isUnappro
     if (isUnapproved) {
         if (approvalChain.includes(currentUserEmail)) {
             return userAccountID;
-        } else {
-            return report?.managerID;
         }
+
+        return report?.managerID;
     }
 
     if (approvalChain.length === 0) {
