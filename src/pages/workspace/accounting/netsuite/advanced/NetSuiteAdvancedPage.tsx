@@ -77,6 +77,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     `workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths,
                 );
             })(),
+            subscribedSettings: [CONST.NETSUITE_CONFIG.AUTO_SYNC],
         },
         {
             type: 'divider',
@@ -260,7 +261,10 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             return (
                                 <OfflineWithFeedback
                                     key={item.description}
-                                    pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
+                                    pendingAction={settingsPendingAction(
+                                        item.subscribedSettings,
+                                        item.subscribedSettings?.includes(CONST.NETSUITE_CONFIG.AUTO_SYNC) ? autoSyncConfig?.pendingFields : config?.pendingFields,
+                                    )}
                                 >
                                     <MenuItemWithTopDescription
                                         title={item.title}

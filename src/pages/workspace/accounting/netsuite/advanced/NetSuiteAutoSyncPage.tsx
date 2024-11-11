@@ -2,6 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,6 +22,7 @@ import ROUTES from '@src/ROUTES';
 function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
     const policyID = route.params.policyID ?? '-1';
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
@@ -54,16 +56,18 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                     errors={ErrorUtils.getLatestErrorField(autoSyncConfig, CONST.NETSUITE_CONFIG.AUTO_SYNC)}
                 />
                 {!!autoSyncConfig?.autoSync?.enabled && (
-                    <MenuItemWithTopDescription
-                        title={
-                            accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
-                                ? translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
-                                : translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
-                        }
-                        description={translate('workspace.netsuite.advancedConfig.accountingMethods.label')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD.getRoute(policyID))}
-                    />
+                    <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields)}>
+                        <MenuItemWithTopDescription
+                            title={
+                                accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
+                                    ? translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
+                                    : translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
+                            }
+                            description={translate('workspace.netsuite.advancedConfig.accountingMethods.label')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD.getRoute(policyID))}
+                        />
+                    </OfflineWithFeedback>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
