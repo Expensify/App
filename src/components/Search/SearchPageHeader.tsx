@@ -189,10 +189,11 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                         return;
                     }
 
+                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
                         : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                    SearchActions.approveMoneyRequestOnSearch(hash, reportIDList);
+                    SearchActions.approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
                 },
             });
         }
@@ -216,6 +217,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
+                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const paymentData = (
                         selectedReports.length
                             ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[report.policyID]}))
@@ -226,7 +228,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                               }))
                     ) as PaymentData[];
 
-                    SearchActions.payMoneyRequestOnSearch(hash, paymentData);
+                    SearchActions.payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
                 },
             });
         }

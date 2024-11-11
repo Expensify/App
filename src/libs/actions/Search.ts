@@ -37,7 +37,7 @@ Onyx.connect({
 function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
     // The transactionID is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
-    const transactionID = isTransactionListItemType(item) ? item.transactionID : undefined;
+    const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY: {
@@ -193,33 +193,36 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], transactionID?: string) {
+function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], transactionIDList?: string[]) {
     const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                data: transactionID
-                    ? {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {isActionLoading: isLoading}}
+                data: transactionIDList
+                    ? (Object.fromEntries(
+                          transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {isActionLoading: isLoading}]),
+                      ) as Partial<SearchTransaction>)
                     : (Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isActionLoading: isLoading}])) as Partial<SearchReport>),
             },
         },
     ];
-
     const optimisticData: OnyxUpdate[] = createActionLoadingData(true);
     const finallyData: OnyxUpdate[] = createActionLoadingData(false);
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
 }
 
-function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], transactionID?: string) {
+function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], transactionIDList?: string[]) {
     const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                data: transactionID
-                    ? {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {isActionLoading: isLoading}}
+                data: transactionIDList
+                    ? (Object.fromEntries(
+                          transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {isActionLoading: isLoading}]),
+                      ) as Partial<SearchTransaction>)
                     : (Object.fromEntries(paymentData.map((item) => [`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {isActionLoading: isLoading}])) as Partial<SearchReport>),
             },
         },
