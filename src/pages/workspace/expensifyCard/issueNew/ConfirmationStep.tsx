@@ -130,7 +130,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     />
                 </View>
             </ScrollView>
-            {issueNewCard && (
+            {!!issueNewCard && (
                 <ValidateCodeActionModal
                     handleSubmitForm={submit}
                     isLoading={issueNewCard?.isLoading}
