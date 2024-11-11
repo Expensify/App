@@ -96,7 +96,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
-    Beta,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
     PersonalDetailsList,
@@ -278,12 +277,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     waitForCollectionCallback: true,
     callback: (value) => (allReportDraftComments = value),
-});
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
 });
 
 let environmentURL: string;
@@ -3431,7 +3424,7 @@ function completeOnboarding(
     userReportedIntegration?: OnboardingAccountingType,
 ) {
     // If the user has the "combinedTrackSubmit" beta enabled we'll show different tasks for track and submit expense.
-    if (Permissions.canUseCombinedTrackSubmit(allBetas)) {
+    if (Permissions.canUseCombinedTrackSubmit()) {
         if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
             // eslint-disable-next-line no-param-reassign
             data = CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];

@@ -105,7 +105,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
         keyForList: encryptedCardNumber,
         value: encryptedCardNumber,
-        text: cardNumber,
+        text: CardUtils.maskCardNumber(cardNumber),
         isSelected: cardSelected === encryptedCardNumber,
         leftElement: (
             <Icon
