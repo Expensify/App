@@ -4306,9 +4306,6 @@ const translations = {
                 andEnableWorkflows: 'y habilita los flujos de trabajo, luego añade aprobaciones para desbloquear esta función.',
             },
         },
-        planType: {
-            title: 'Tipo de plan',
-        },
     },
     getAssistancePage: {
         title: 'Obtener ayuda',
