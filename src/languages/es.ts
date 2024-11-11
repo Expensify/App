@@ -3991,7 +3991,7 @@ const translations = {
         },
         inviteMessage: {
             inviteMessageTitle: 'Añadir un mensaje',
-            inviteMessagePrompt: 'Añadir un mensaje para hacer tu invitación destacar',
+            inviteMessagePrompt: '¡Añadir un mensaje para hacer tu invitación destacar!',
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar.',
             genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo.',

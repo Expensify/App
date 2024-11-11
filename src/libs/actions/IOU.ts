@@ -36,6 +36,7 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import GoogleTagManager from '@libs/GoogleTagManager';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
@@ -3422,6 +3423,7 @@ function categorizeTrackedExpense(
     comment: string,
     merchant: string,
     created: string,
+    isDraftPolicy: boolean,
     category?: string,
     tag?: string,
     taxCode = '',
@@ -3478,6 +3480,12 @@ function categorizeTrackedExpense(
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
+
+    // If a draft policy was used, then the CategorizeTrackedExpense command will create a real one
+    // so let's track that conversion here
+    if (isDraftPolicy) {
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, userAccountID);
+    }
 }
 
 function shareTrackedExpense(
@@ -3777,6 +3785,7 @@ function trackExpense(
     payeeAccountID: number,
     participant: Participant,
     comment: string,
+    isDraftPolicy: boolean,
     receipt?: Receipt,
     category?: string,
     tag?: string,
@@ -3872,6 +3881,7 @@ function trackExpense(
                 comment,
                 merchant,
                 created,
+                isDraftPolicy,
                 category,
                 tag,
                 taxCode,
@@ -7157,10 +7167,9 @@ function isLastApprover(approvalChain: string[]): boolean {
 }
 
 function getNextApproverAccountID(report: OnyxEntry<OnyxTypes.Report>) {
-    const ownerAccountID = report?.ownerAccountID ?? -1;
     const policy = PolicyUtils.getPolicy(report?.policyID);
-    const approvalChain = ReportUtils.getApprovalChain(policy, ownerAccountID, report?.total ?? 0);
-    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
+    const approvalChain = ReportUtils.getApprovalChain(policy, report);
+    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, report);
 
     if (approvalChain.length === 0) {
         return submitToAccountID;
@@ -7188,7 +7197,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
     }
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport?.currency ?? '', expenseReport?.reportID ?? '-1');
 
-    const approvalChain = ReportUtils.getApprovalChain(PolicyUtils.getPolicy(expenseReport?.policyID), expenseReport?.ownerAccountID ?? -1, expenseReport?.total ?? 0);
+    const approvalChain = ReportUtils.getApprovalChain(PolicyUtils.getPolicy(expenseReport?.policyID), expenseReport);
 
     const predictedNextStatus = isLastApprover(approvalChain) ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
     const predictedNextState = isLastApprover(approvalChain) ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
@@ -7548,7 +7557,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
 
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: PolicyUtils.getSubmitToAccountID(policy, expenseReport.ownerAccountID ?? -1) ?? expenseReport.managerID,
+        managerAccountID: PolicyUtils.getSubmitToAccountID(policy, expenseReport) ?? expenseReport.managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 

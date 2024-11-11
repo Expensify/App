@@ -360,7 +360,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     };
 
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading]);
+    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading, isCreateMenuActive]);
 
     const expenseMenuItems = useMemo((): PopoverMenuItem[] => {
         if (canUseCombinedTrackSubmit) {
