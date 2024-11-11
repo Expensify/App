@@ -326,14 +326,14 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     }, [debouncedInputValue]);
 
     const setInitialFocus = useCallback(() => {
-        const initialFocusIndex = sortedRecentSearches?.slice(0, 5).length + (contextualReportData ? 1 : 0);
+        const initialFocusIndex = (sortedRecentSearches?.slice(0, 5).length ?? 0) + (contextualReportData ? 1 : 0);
         listRef.current?.setFocusedIndex(initialFocusIndex);
         listRef.current?.scrollToIndex(0, false);
     }, [sortedRecentSearches, contextualReportData]);
 
     useEffect(() => {
         setInitialFocus();
-    }, [sortedRecentSearches]);
+    }, [sortedRecentSearches, setInitialFocus]);
 
     const onSearchChange = useCallback(
         (userQuery: string) => {
@@ -354,7 +354,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 setInitialFocus();
             }
         },
-        [autocompleteSubstitutions, autocompleteSuggestions, setTextInputValue, updateAutocomplete],
+        [autocompleteSubstitutions, autocompleteSuggestions, setTextInputValue, updateAutocomplete, setInitialFocus],
     );
 
     const onSearchSubmit = useCallback(
