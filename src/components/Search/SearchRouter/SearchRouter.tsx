@@ -325,6 +325,16 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         Report.searchInServer(debouncedInputValue.trim());
     }, [debouncedInputValue]);
 
+    const setInitialFocus = useCallback(() => {
+        const initialFocusIndex = sortedRecentSearches?.slice(0, 5).length + (contextualReportData ? 1 : 0);
+        listRef.current?.setFocusedIndex(initialFocusIndex);
+        listRef.current?.scrollToIndex(0, false);
+    }, [sortedRecentSearches, contextualReportData]);
+
+    useEffect(() => {
+        setInitialFocus();
+    }, [sortedRecentSearches]);
+
     const onSearchChange = useCallback(
         (userQuery: string) => {
             let newUserQuery = userQuery;
@@ -341,7 +351,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
             if (newUserQuery) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
             } else {
-                listRef.current?.updateAndScrollToFocusedIndex(-1);
+                setInitialFocus();
             }
         },
         [autocompleteSubstitutions, autocompleteSuggestions, setTextInputValue, updateAutocomplete],
