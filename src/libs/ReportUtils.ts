@@ -1705,8 +1705,9 @@ function isOneTransactionThread(reportID: string, parentReportID: string, thread
  */
 function getDisplayedReportID(reportID: string): string {
     const report = getReport(reportID);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-    return (isOneTransactionThread(report?.reportID ?? '', report?.parentReportID ?? '', parentReportAction) ? report?.parentReportID : reportID) ?? '';
+    const parentReportID = report?.parentReportID ?? '';
+    const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, report?.parentReportActionID ?? '');
+    return isOneTransactionThread(reportID, parentReportID, parentReportAction) ? parentReportID : reportID;
 }
 
 /**
