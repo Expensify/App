@@ -544,6 +544,41 @@ function validatePlaidSelection(values: FormOnyxValues<AccountFormValues>): Form
     return errorFields;
 }
 
+function fetchCorpayFields(bankCountry: string, bankCurrency?: string) {
+    API.write(
+        WRITE_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS,
+        {countryISO: bankCountry, currency: bankCurrency},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                    value: {
+                        isLoading: true,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT,
+                    value: {
+                        bankCountry,
+                        bankCurrency: bankCurrency ?? null,
+                    },
+                },
+            ],
+            finallyData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+        },
+    );
+}
+
 export {
     acceptACHContractForBankAccount,
     addBusinessWebsiteForDraft,
@@ -572,6 +607,7 @@ export {
     updateAddPersonalBankAccountDraft,
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
+    fetchCorpayFields,
 };
 
 export type {BusinessAddress, PersonalAddress};
