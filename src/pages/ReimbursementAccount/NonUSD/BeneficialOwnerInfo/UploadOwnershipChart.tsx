@@ -53,6 +53,14 @@ function UploadOwnershipChart({onSubmit}: UploadOwnershipChartProps) {
         setUploadedOwnershipChartStatements(newUploadedOwnershipChartStatements);
     };
 
+    const setUploadError = (error: string) => {
+        if (!error) {
+            FormActions.clearErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+            return;
+        }
+
+        FormActions.setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ENTITY_CHART]: {onUpload: error}});
+    };
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -73,8 +81,7 @@ function UploadOwnershipChart({onSubmit}: UploadOwnershipChartProps) {
                     acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                     value={uploadedOwnershipChartStatements}
                     inputID={ENTITY_CHART}
-                    // TODO fix that
-                    setError={() => {}}
+                    setError={setUploadError}
                 />
                 <Text style={[styles.mutedTextLabel, styles.mt6, styles.mb6]}>{translate('ownershipInfoStep.noteEntity')}</Text>
             </View>

@@ -79,7 +79,7 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit, h
                 >
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
                     <Text style={[styles.p5, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
-                    {owners && (
+                    {owners !== undefined && owners?.length > 0 && (
                         <View>
                             <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
                             {owners}

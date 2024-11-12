@@ -28,7 +28,7 @@ type BeneficialOwnerInfoProps = {
     onSubmit: () => void;
 };
 
-const {OWNS_MORE_THAN_25_PERCENT, ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE, BENEFICIAL_OWNERS, COMPANY_NAME, ENTITY_CHART} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {OWNS_MORE_THAN_25_PERCENT, ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE, BENEFICIAL_OWNERS, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY, PREFIX} =
     CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const SUBSTEP = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
@@ -58,12 +58,11 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_USER_BENEFICIAL_OWNER);
     const [totalOwnedPercentage, setTotalOwnedPercentage] = useState<Record<string, number>>({});
     const companyName = reimbursementAccount?.achData?.additionalData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
-    const entityChart = reimbursementAccount?.achData?.additionalData?.corpay?.[ENTITY_CHART] ?? reimbursementAccountDraft?.[ENTITY_CHART] ?? [];
 
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
-    const shouldAskForEntityChart = currency === CONST.CURRENCY.AUD && entityChart.length === 0;
+    const shouldAskForEntityChart = currency === CONST.CURRENCY.AUD;
 
     const totalOwnedPercentageSum = Object.values(totalOwnedPercentage).reduce((acc, value) => acc + value, 0);
     const canAddMoreOwners = totalOwnedPercentageSum <= 75;
@@ -102,7 +101,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
         if (isEditingCreatedOwner || !canAddMoreOwners) {
             nextSubStep = shouldAskForEntityChart ? SUBSTEP.OWNERSHIP_CHART : SUBSTEP.BENEFICIAL_OWNERS_LIST;
         } else {
-            nextSubStep = SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS;
+            nextSubStep = isUserEnteringHisOwnData ? SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER : SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS;
         }
 
         setCurrentSubStep(nextSubStep);
@@ -134,7 +133,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
     };
 
     const handleOwnershipChartSubmit = () => {
-        // upload chart
+        // TODO upload chart here in https://github.com/Expensify/App/issues/50906
         setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
     };
 
@@ -151,16 +150,28 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
         if (currentSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER) {
             onBackButtonPress();
         } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNERS_LIST && !canAddMoreOwners) {
-            setCurrentSubStep(SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER);
+            if (shouldAskForEntityChart) {
+                setCurrentSubStep(SUBSTEP.OWNERSHIP_CHART);
+                return;
+            }
+            setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM);
         } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNERS_LIST && isAnyoneElseOwner) {
             setCurrentSubStep(SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS);
         } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNERS_LIST && isUserOwner && !isAnyoneElseOwner) {
+            if (shouldAskForEntityChart) {
+                setCurrentSubStep(SUBSTEP.OWNERSHIP_CHART);
+                return;
+            }
             setCurrentSubStep(SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER);
         } else if (currentSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER) {
             setCurrentSubStep(SUBSTEP.IS_USER_BENEFICIAL_OWNER);
         } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM && screenIndex > 0) {
             prevScreen();
         } else if (currentSubStep === SUBSTEP.OWNERSHIP_CHART && canAddMoreOwners) {
+            if (ownerKeys.length === 0) {
+                setCurrentSubStep(SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER);
+                return;
+            }
             setCurrentSubStep(SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS);
         } else if (currentSubStep === SUBSTEP.OWNERSHIP_CHART && !canAddMoreOwners) {
             setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM);
@@ -171,6 +182,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
 
     const handleNextSubStep = (value: boolean) => {
         if (currentSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER) {
+            // User is owner so we gather his data
             if (value) {
                 setIsUserOwner(value);
                 setIsUserEnteringHisOwnData(value);
@@ -194,53 +206,82 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
             setIsAnyoneElseOwner(value);
             setIsUserEnteringHisOwnData(false);
 
-            if (!canAddMoreOwners && value) {
-                setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
-                return;
-            }
-
+            // Someone else is an owner so we gather his data
             if (canAddMoreOwners && value) {
                 prepareOwnerDetailsForm();
                 return;
             }
 
+            // User went back in the flow, but he cannot add more owners, so we send him back to owners list
+            if (!canAddMoreOwners && value) {
+                setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
+                return;
+            }
+
             // User is not an owner and no one else is an owner
             if (!isUserOwner && !value) {
-                if (currency === CONST.CURRENCY.AUD) {
+                // Gather ownership chart if AUD account
+                if (shouldAskForEntityChart) {
                     setCurrentSubStep(SUBSTEP.OWNERSHIP_CHART);
                     return;
                 }
 
+                // Otherwise submit whole form and go to Signer Info
                 submit();
                 return;
             }
 
             // User is an owner and no one else is an owner
             if (isUserOwner && !value) {
-                prepareOwnerDetailsForm();
+                // Gather ownership chart if AUD account
+                if (shouldAskForEntityChart) {
+                    setCurrentSubStep(SUBSTEP.OWNERSHIP_CHART);
+                    return;
+                }
+
+                // Otherwise send to the list of owners
+                setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
                 return;
             }
         }
 
         // Are there more UBOs
         if (currentSubStep === SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS) {
+            setIsUserEnteringHisOwnData(false);
+
+            // User went back in the flow, but he cannot add more owners, so we send him back to owners list
+            if (!canAddMoreOwners && value) {
+                setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
+                return;
+            }
+
+            // Gather data of another owner
             if (value) {
                 setIsAnyoneElseOwner(true);
                 prepareOwnerDetailsForm();
                 return;
             }
 
+            // No more owners but we should gather entity chart
             if (shouldAskForEntityChart) {
                 setCurrentSubStep(SUBSTEP.OWNERSHIP_CHART);
                 return;
             }
 
+            // No more owners and no need to gather entity chart, so we send user to owners list
             setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
             return;
         }
 
         // User reached the limit of UBOs
         if (currentSubStep === SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM && !canAddMoreOwners) {
+            // Gather ownership chart if AUD account
+            if (shouldAskForEntityChart) {
+                setCurrentSubStep(SUBSTEP.OWNERSHIP_CHART);
+                return;
+            }
+
+            // Otherwise go to the list of owners
             setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
         }
     };
