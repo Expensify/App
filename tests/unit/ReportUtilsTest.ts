@@ -975,6 +975,22 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getQuickActionDetails', () => {
+        it('if the report is archived, the quick action will hide the subtitle and avatar', () => {
+            const archivedReport: Report = {
+                reportID: '1',
+                private_isArchived: DateUtils.getDBTime(),
+            };
+            const reportNameValuePairs = {
+                type: 'chat',
+                private_isArchived: true,
+            };
+            const quickActionDetails = ReportUtils.getQuickActionDetails(archivedReport, undefined, undefined, reportNameValuePairs);
+            expect(quickActionDetails.quickActionAvatars.length).toEqual(0);
+            expect(quickActionDetails.hideQABSubtitle).toEqual(true);
+        });
+    });
+
     describe('getChatByParticipants', () => {
         const userAccountID = 1;
         const userAccountID2 = 2;
