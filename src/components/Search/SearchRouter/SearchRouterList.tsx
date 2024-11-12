@@ -20,7 +20,7 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import * as ReportActions from '@userActions/Report';
+import * as ReportUserActions from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,18 +77,23 @@ const setPerformanceTimersEnd = () => {
 };
 
 function getContextualSearchQuery(item: SearchQueryItem) {
-    if (item.roomType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-        return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${item.roomType} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${item.policyID}`;
+    const baseQuery = `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${item.roomType}`;
+    let additionalQuery = '';
+
+    switch (item.roomType) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            additionalQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${item.policyID}`;
+            if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
+                additionalQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+            }
+            break;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+        default:
+            additionalQuery = ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+            break;
     }
-    if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
-        if (item.autocompleteID) {
-            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${item.roomType} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${item.policyID} ${
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.TO
-            }:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
-        }
-        return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${item.roomType} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${item.policyID}`;
-    }
-    return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${CONST.SEARCH.DATA_TYPES.CHAT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+    return baseQuery + additionalQuery;
 }
 
 function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
@@ -173,7 +178,7 @@ function SearchRouterList(
         if (reportForContextualSearch.isInvoiceRoom) {
             roomType = CONST.SEARCH.DATA_TYPES.INVOICE;
             const report = reportForContextualSearch as SearchOption<Report>;
-            if (report.item && report.item?.invoiceReceiver && report.item.invoiceReceiver?.type === 'individual') {
+            if (report.item && report.item?.invoiceReceiver && report.item.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
                 autocompleteID = report.item.invoiceReceiver.accountID.toString();
             } else {
                 autocompleteID = '';
@@ -243,11 +248,11 @@ function SearchRouterList(
                     const searchQuery = getContextualSearchQuery(item);
                     updateSearchValue(`${searchQuery} `);
 
-                    if (item.roomType === 'invoice' && item.autocompleteID) {
+                    if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
                         const autocompleteKey = `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${item.searchQuery}`;
                         onAutocompleteSuggestionClick(autocompleteKey, item.autocompleteID);
                     }
-                    if (item.roomType === 'chat' && item.autocompleteID) {
+                    if (item.roomType === CONST.SEARCH.DATA_TYPES.CHAT && item.autocompleteID) {
                         const autocompleteKey = `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery}`;
                         onAutocompleteSuggestionClick(autocompleteKey, item.autocompleteID);
                     }
@@ -271,7 +276,7 @@ function SearchRouterList(
             if ('reportID' in item && item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
-                ReportActions.navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                ReportUserActions.navigateToAndOpenReport(item.login ? [item.login] : [], false);
             }
         },
         [closeRouter, textInputValue, onSearchSubmit, updateSearchValue, onAutocompleteSuggestionClick],
