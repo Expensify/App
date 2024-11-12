@@ -188,7 +188,7 @@ function WorkspaceSwitcherPage() {
                         ListItem={UserListItem}
                         sections={sections}
                         onSelectRow={selectPolicy}
-                        textInputLabel={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH ? translate('common.search') : undefined}
+                        textInputLabel={usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}
