@@ -127,6 +127,7 @@ function WorkspacesListPage() {
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
         !isEmptyObject(cardsList) ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((PolicyUtils.getPolicy(policyIDToDelete)?.areExpensifyCardsEnabled || PolicyUtils.getPolicy(policyIDToDelete)?.areCompanyCardsEnabled) &&
             PolicyUtils.getPolicy(policyIDToDelete)?.workspaceAccountID);
 
