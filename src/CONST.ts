@@ -1619,7 +1619,7 @@ const CONST = {
         NOTIFICATIONS: 'notifications@expensify.com',
         PAYROLL: 'payroll@expensify.com',
         QA: 'qa@expensify.com',
-        QA_GUIDES: 'qa.guide@team.expensify.com',
+        QA_GUIDE: 'qa.guide@team.expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         RECEIPTS: 'receipts@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',

@@ -50,8 +50,8 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         const optimisticPersonalDetailForQAGuide = {
             accountID: actorAccountID,
             avatar: allPersonalDetails?.[actorAccountID]?.avatar,
-            displayName: allPersonalDetails?.[actorAccountID]?.displayName ?? CONST.EMAIL.QA_GUIDES,
-            login: CONST.EMAIL.QA_GUIDES,
+            displayName: allPersonalDetails?.[actorAccountID]?.displayName ?? CONST.EMAIL.QA_GUIDE,
+            login: CONST.EMAIL.QA_GUIDE,
         };
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[actorAccountID]: optimisticPersonalDetailForQAGuide});
     };
