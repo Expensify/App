@@ -85,7 +85,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                         inputID={field.id}
                         key={field.id}
                         defaultValue={formValues[field.id]}
-                        label={field.label}
+                        label={field.label + (field.isRequired ? ` (${translate('common.optional')})` : '')}
                         items={(field.valueSet ?? []).map(({id, text}) => ({value: id, label: text}))}
                     />
                 ))}

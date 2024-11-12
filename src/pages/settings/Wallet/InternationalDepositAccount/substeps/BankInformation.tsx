@@ -91,7 +91,7 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
                         inputID={field.id}
                         key={field.id}
                         defaultValue={formValues[field.id]}
-                        label={field.label}
+                        label={field.label + (field.isRequired ? ` (${translate('common.optional')})` : '')}
                         items={getItems(field)}
                         renamedInputKeys={{
                             street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankAddressLine1) ? '' : 'bankAddressLine1',

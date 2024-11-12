@@ -36,7 +36,9 @@ function Confirmation({onNext, onMove, isEditing, formValues, fieldsMap}: Custom
     // eslint-disable-next-line guard-for-in
     for (const fieldName in fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS]) {
         summaryItems.push({
-            description: fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS][fieldName].label,
+            description:
+                fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS][fieldName].label +
+                (fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS][fieldName].isRequired ? ` (${translate('common.optional')})` : ''),
             title: formValues[fieldName],
             shouldShowRightIcon: true,
             onPress: () => {
@@ -48,7 +50,9 @@ function Confirmation({onNext, onMove, isEditing, formValues, fieldsMap}: Custom
     // eslint-disable-next-line guard-for-in
     for (const fieldName in fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE]) {
         summaryItems.push({
-            description: fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE][fieldName].label,
+            description:
+                fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE][fieldName].label +
+                (fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE][fieldName].isRequired ? ` (${translate('common.optional')})` : ''),
             title: formValues[fieldName],
             shouldShowRightIcon: true,
             onPress: () => {
@@ -60,7 +64,9 @@ function Confirmation({onNext, onMove, isEditing, formValues, fieldsMap}: Custom
     // eslint-disable-next-line guard-for-in
     for (const fieldName in fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]) {
         summaryItems.push({
-            description: fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION][fieldName].label,
+            description:
+                fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION][fieldName].label +
+                (fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION][fieldName].isRequired ? ` (${translate('common.optional')})` : ''),
             title: formValues[fieldName],
             shouldShowRightIcon: true,
             onPress: () => {
@@ -72,7 +78,9 @@ function Confirmation({onNext, onMove, isEditing, formValues, fieldsMap}: Custom
     // eslint-disable-next-line guard-for-in
     for (const fieldName in fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]) {
         summaryItems.push({
-            description: fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION][fieldName].label,
+            description:
+                fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION][fieldName].label +
+                (fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION][fieldName].isRequired ? ` (${translate('common.optional')})` : ''),
             title: formValues[fieldName],
             shouldShowRightIcon: true,
             onPress: () => {

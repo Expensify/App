@@ -96,7 +96,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                         inputID={field.id}
                         key={field.id}
                         defaultValue={formValues[field.id]}
-                        label={field.label}
+                        label={field.label + (field.isRequired ? ` (${translate('common.optional')})` : '')}
                         items={getItems(field)}
                         renamedInputKeys={{
                             street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',

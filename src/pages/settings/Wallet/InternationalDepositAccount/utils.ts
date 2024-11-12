@@ -67,7 +67,7 @@ function testValidation(values: InternationalBankAccountForm, fieldsMap: CorpayF
             // eslint-disable-next-line no-continue
             continue;
         }
-        if (fieldsMap[fieldName].isRequired && values[fieldName] === '') {
+        if (fieldsMap[fieldName].isRequired && (values[fieldName] ?? '') === '') {
             return false;
         }
         if (!values[fieldName]) {
