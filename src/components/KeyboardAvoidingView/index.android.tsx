@@ -74,6 +74,7 @@ const KeyboardAvoidingView = forwardRef<View, React.PropsWithChildren<KeyboardAv
             const keyboardY = screenHeight - keyboard.heightWhenOpened.value - keyboardVerticalOffset;
 
             return Math.max(frame.value.y + frame.value.height - keyboardY, 0);
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         }, [screenHeight, keyboardVerticalOffset]);
 
         const onLayoutWorklet = useCallback((layout: LayoutRectangle) => {
@@ -83,13 +84,14 @@ const KeyboardAvoidingView = forwardRef<View, React.PropsWithChildren<KeyboardAv
                 // eslint-disable-next-line react-compiler/react-compiler
                 initialFrame.value = layout;
             }
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         }, []);
         const onLayout = useCallback<NonNullable<ViewProps['onLayout']>>(
             (e) => {
                 runOnUI(onLayoutWorklet)(e.nativeEvent.layout);
                 onLayoutProps?.(e);
             },
-            [onLayoutProps],
+            [onLayoutProps, onLayoutWorklet],
         );
 
         const animatedStyle = useAnimatedStyle(() => {
@@ -121,6 +123,7 @@ const KeyboardAvoidingView = forwardRef<View, React.PropsWithChildren<KeyboardAv
                 ref={ref}
                 style={combinedStyles}
                 onLayout={onLayout}
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {children}
