@@ -248,55 +248,8 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTransactionAction {
-    const isTransaction = isTransactionEntry(key);
-    if ((!isTransaction && !isReportEntry(key)) || (isTransaction && !data[key].isFromOneTransactionReport)) {
-        return CONST.SEARCH.ACTION_TYPES.VIEW;
-    }
-
-    const transaction = isTransaction ? data[key] : undefined;
-    const report = isTransaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key];
-
-    // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcircuit the logic for performance reasons
-    if (!ReportUtils.isMoneyRequestReport(report)) {
-        return CONST.SEARCH.ACTION_TYPES.VIEW;
-    }
-
-    const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
-    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`] ?? undefined;
-
-    if (ReportUtils.isSettled(report)) {
-        return CONST.SEARCH.ACTION_TYPES.PAID;
-    }
-
-    if (ReportUtils.isClosedReport(report)) {
-        return CONST.SEARCH.ACTION_TYPES.DONE;
-    }
-
-    const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
-
-    const invoiceReceiverPolicy =
-        ReportUtils.isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
-            ? data[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`]
-            : undefined;
-
-    const allReportTransactions = (
-        isReportEntry(key)
-            ? Object.entries(data)
-                  .filter(([itemKey, value]) => isTransactionEntry(itemKey) && (value as SearchTransaction)?.reportID === report.reportID)
-                  .map((item) => item[1])
-            : []
-    ) as SearchTransaction[];
-
-    if (IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy)) {
-        return CONST.SEARCH.ACTION_TYPES.PAY;
-    }
-
-    if (IOU.canApproveIOU(report, policy)) {
-        return CONST.SEARCH.ACTION_TYPES.APPROVE;
-    }
-
-    return CONST.SEARCH.ACTION_TYPES.VIEW;
+function getAction(data: OnyxTypes.SearchResults['data'], key: typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT): SearchTransactionAction {
+    return data[key]?.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
 }
 
 /**
