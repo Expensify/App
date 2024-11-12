@@ -1,6 +1,7 @@
 import React, {forwardRef} from 'react';
 import BaseValidateCodeForm from './BaseValidateCodeForm';
 import type {ValidateCodeFormHandle, ValidateCodeFormProps} from './BaseValidateCodeForm';
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
 const ValidateCodeForm = forwardRef<ValidateCodeFormHandle, ValidateCodeFormProps>((props, ref) => (
     <BaseValidateCodeForm
@@ -11,4 +12,4 @@ const ValidateCodeForm = forwardRef<ValidateCodeFormHandle, ValidateCodeFormProp
     />
 ));
 
-export default ValidateCodeForm;
+export default gestureHandlerRootHOC(ValidateCodeForm);
