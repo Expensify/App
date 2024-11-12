@@ -150,7 +150,7 @@ type NonUSDReimbursementAccountAdditionalProps = {
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
     /** Country of the account holder */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: Country | '';
-    
+
     /** Bank statement file */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
 

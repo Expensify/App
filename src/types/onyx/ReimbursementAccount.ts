@@ -12,7 +12,7 @@ type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
 /** Substeps to setup a reimbursement bank account */
 type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
-    
+
 /** Modal of Corpay data */
 type Corpay = {
     /** Company name */
