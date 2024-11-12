@@ -1704,7 +1704,7 @@ function getOptions(
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
         const report = option.item;
-        const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+        const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
 
         return ReportUtils.shouldReportBeInOptionList({
             report,

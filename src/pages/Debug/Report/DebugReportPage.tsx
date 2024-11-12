@@ -53,13 +53,15 @@ function DebugReportPage({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? '-1'}`);
+    const parentReportAction = parentReportActions && report?.parentReportID ? parentReportActions[report?.parentReportActionID ?? '-1'] : undefined;
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
             return [];
         }
 
-        const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+        const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
         const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
         const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
@@ -111,7 +113,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, reportActions, reportID, transactionViolations, translate]);
+    }, [parentReportAction, report, reportActions, reportID, transactionViolations, translate]);
 
     if (!report) {
         return <NotFoundPage />;

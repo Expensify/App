@@ -588,7 +588,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false):
         return null;
     }
 
-    const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+    const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
 
     const reason = ReportUtils.reasonForReportToBeInOptionList({
         report,
