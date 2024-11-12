@@ -7833,6 +7833,9 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
         },
         {optimisticData, successData, failureData},
     );
+
+    const currentReportID = ReportUtils.getDisplayedReportID(reportID);
+    Report.notifyNewAction(currentReportID, userAccountID);
 }
 
 /**
@@ -7932,6 +7935,9 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
         },
         {optimisticData, successData, failureData},
     );
+
+    const currentReportID = ReportUtils.getDisplayedReportID(reportID);
+    Report.notifyNewAction(currentReportID, userAccountID);
 }
 // eslint-disable-next-line rulesdir/no-negated-variables
 function navigateToStartStepIfScanFileCannotBeRead(
