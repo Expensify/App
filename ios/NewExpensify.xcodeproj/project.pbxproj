@@ -465,10 +465,14 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
+						DevelopmentTeam = 368M544MTT;
 						LastSwiftMigration = 1230;
+						ProvisioningStyle = Manual;
 					};
 					7FD73C9A2B23CE9500420AF3 = {
 						CreatedOnToolsVersion = 15.0.1;
+						DevelopmentTeam = 368M544MTT;
+						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -1091,11 +1095,11 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 368M544MTT;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 368M544MTT;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/NewExpensify/Info.plist";
@@ -1113,7 +1117,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev;
 				PRODUCT_NAME = "New Expensify Dev";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "(NewApp) Development";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "(NewApp) Development";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1186,7 +1190,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
@@ -1248,11 +1252,11 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/NewExpensifyDebugDevelopment.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 368M544MTT;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 368M544MTT;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/NewExpensify/Info.plist";
@@ -1270,7 +1274,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev;
 				PRODUCT_NAME = "New Expensify Dev";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "(NewApp) Development";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "(NewApp) Development";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1288,11 +1292,11 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/NewExpensifyReleaseDevelopment.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 368M544MTT;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 368M544MTT;
 				INFOPLIST_FILE = NewExpensify/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -1309,7 +1313,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev;
 				PRODUCT_NAME = "New Expensify Dev";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "(NewApp) Development";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "(NewApp) Development";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1351,7 +1355,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
@@ -1438,8 +1442,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -1525,7 +1528,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
@@ -1612,7 +1615,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
@@ -1692,8 +1695,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -1772,7 +1774,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
@@ -2062,11 +2064,10 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/NewExpensifyDebugProduction.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 368M544MTT;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 368M544MTT;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/NewExpensify/Info.plist";
@@ -2084,7 +2085,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat;
 				PRODUCT_NAME = "New Expensify";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "(NewApp) AppStore";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "(NewApp) AppStore";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -2212,11 +2213,10 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/NewExpensifyDebugAdHoc.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 368M544MTT;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 368M544MTT;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/NewExpensify/Info.plist";
@@ -2234,7 +2234,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.adhoc;
 				PRODUCT_NAME = "New Expensify AdHoc";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "(NewApp) AdHoc";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "(NewApp) AdHoc";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -2356,11 +2356,10 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/NewExpensifyReleaseProduction.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 368M544MTT;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 368M544MTT;
 				INFOPLIST_FILE = NewExpensify/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -2377,7 +2376,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat;
 				PRODUCT_NAME = "New Expensify";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "(NewApp) AppStore";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "(NewApp) AppStore";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2496,11 +2495,10 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/NewExpensifyReleaseAdHoc.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 368M544MTT;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 368M544MTT;
 				INFOPLIST_FILE = NewExpensify/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -2517,7 +2515,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.adhoc;
 				PRODUCT_NAME = "New Expensify AdHoc";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "(NewApp) AdHoc";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "(NewApp) AdHoc";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
