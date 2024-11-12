@@ -125,11 +125,11 @@ function getFilters(queryJSON: SearchQueryJSON) {
             return;
         }
 
-        if (typeof node?.left === 'object' && node.left) {
+        if (typeof node.left === 'object' && node.left) {
             traverse(node.left);
         }
 
-        if (typeof node?.right === 'object' && node.right && !Array.isArray(node.right)) {
+        if (typeof node.right === 'object' && node.right && !Array.isArray(node.right)) {
             traverse(node.right);
         }
 
@@ -148,7 +148,7 @@ function getFilters(queryJSON: SearchQueryJSON) {
             node.right.forEach((element) => {
                 filterArray.push({
                     operator: node.operator,
-                    value: element as string | number,
+                    value: element,
                 });
             });
         }
@@ -163,52 +163,66 @@ function getFilters(queryJSON: SearchQueryJSON) {
 }
 
 /**
- * @private
  * Given a filter name and its value, this function returns the corresponding ID found in Onyx data.
+ * Returns a function that can be used as a computeNodeValue callback for traversing the filters tree
  */
-function findIDFromDisplayValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filter: string | string[], cardList: OnyxTypes.CardList, taxRates: Record<string, string[]>) {
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-        if (typeof filter === 'string') {
-            const email = filter;
-            return PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? filter;
+function getFindIDFromDisplayValue(cardList: OnyxTypes.CardList, taxRates: Record<string, string[]>) {
+    return (filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filter: string | string[]) => {
+        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+            if (typeof filter === 'string') {
+                const email = filter;
+                return PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? filter;
+            }
+            const emails = filter;
+            return emails.map((email) => PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
         }
-        const emails = filter;
-        return emails.map((email) => PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-        const names = Array.isArray(filter) ? filter : ([filter] as string[]);
-        return names.map((name) => taxRates[name] ?? name).flat();
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-        if (typeof filter === 'string') {
-            const bank = filter;
-            const ids =
-                Object.values(cardList)
-                    .filter((card) => card.bank === bank)
-                    .map((card) => card.cardID.toString()) ?? filter;
-            return ids.length > 0 ? ids : bank;
+        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+            const names = Array.isArray(filter) ? filter : ([filter] as string[]);
+            return names.map((name) => taxRates[name] ?? name).flat();
         }
-        const banks = filter;
-        return banks
-            .map(
-                (bank) =>
+        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+            if (typeof filter === 'string') {
+                const bank = filter;
+                const ids =
                     Object.values(cardList)
                         .filter((card) => card.bank === bank)
-                        .map((card) => card.cardID.toString()) ?? bank,
-            )
-            .flat();
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-        if (typeof filter === 'string') {
-            const backendAmount = CurrencyUtils.convertToBackendAmount(Number(filter));
-            return Number.isNaN(backendAmount) ? filter : backendAmount.toString();
+                        .map((card) => card.cardID.toString()) ?? filter;
+                return ids.length > 0 ? ids : bank;
+            }
+            const banks = filter;
+            return banks
+                .map(
+                    (bank) =>
+                        Object.values(cardList)
+                            .filter((card) => card.bank === bank)
+                            .map((card) => card.cardID.toString()) ?? bank,
+                )
+                .flat();
         }
-        return filter.map((amount) => {
-            const backendAmount = CurrencyUtils.convertToBackendAmount(Number(amount));
-            return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
-        });
+        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+            return getUpdatedAmountValue(filterName, filter);
+        }
+
+        return filter;
+    };
+}
+
+/**
+ * Returns an updated amount value for query filters, correctly formatted to "backend" amount
+ */
+function getUpdatedAmountValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filter: string | string[]) {
+    if (filterName !== CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+        return filter;
     }
-    return filter;
+
+    if (typeof filter === 'string') {
+        const backendAmount = CurrencyUtils.convertToBackendAmount(Number(filter));
+        return Number.isNaN(backendAmount) ? filter : backendAmount.toString();
+    }
+    return filter.map((amount) => {
+        const backendAmount = CurrencyUtils.convertToBackendAmount(Number(amount));
+        return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
+    });
 }
 
 /**
@@ -219,7 +233,7 @@ function findIDFromDisplayValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_F
 function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSearchHash: number} {
     let orderedQuery = '';
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${query.status}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
 
     query.flatFilters.forEach((filter) => {
         filter.filters.sort((a, b) => localeCompare(a.value.toString(), b.value.toString()));
@@ -281,7 +295,11 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
         const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
 
         if (queryFieldValue) {
-            queryParts.push(`${key}:${queryFieldValue}`);
+            if (Array.isArray(queryFieldValue)) {
+                queryParts.push(`${key}:${queryFieldValue.join(',')}`);
+            } else {
+                queryParts.push(`${key}:${queryFieldValue}`);
+            }
         }
     }
 
@@ -474,8 +492,16 @@ function buildFilterFormValuesFromQuery(
 
     const [typeKey = '', typeValue] = Object.entries(CONST.SEARCH.DATA_TYPES).find(([, value]) => value === queryJSON.type) ?? [];
     filtersForm[FILTER_KEYS.TYPE] = typeValue ? queryJSON.type : CONST.SEARCH.DATA_TYPES.EXPENSE;
-    const [statusKey] = Object.entries(CONST.SEARCH.STATUS).find(([, value]) => Object.values(value).includes(queryJSON.status)) ?? [];
-    filtersForm[FILTER_KEYS.STATUS] = typeKey === statusKey ? queryJSON.status : CONST.SEARCH.STATUS.EXPENSE.ALL;
+    const [statusKey] =
+        Object.entries(CONST.SEARCH.STATUS).find(([, value]) =>
+            Array.isArray(queryJSON.status) ? queryJSON.status.some((status) => Object.values(value).includes(status)) : Object.values(value).includes(queryJSON.status),
+        ) ?? [];
+
+    if (typeKey === statusKey) {
+        filtersForm[FILTER_KEYS.STATUS] = Array.isArray(queryJSON.status) ? queryJSON.status.join(',') : queryJSON.status;
+    } else {
+        filtersForm[FILTER_KEYS.STATUS] = CONST.SEARCH.STATUS.EXPENSE.ALL;
+    }
 
     if (queryJSON.policyID) {
         filtersForm[FILTER_KEYS.POLICY_ID] = queryJSON.policyID;
@@ -543,7 +569,7 @@ function buildUserReadableQueryString(
     const {type, status} = queryJSON;
     const filters = queryJSON.flatFilters ?? {};
 
-    let title = `type:${type} status:${status}`;
+    let title = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
 
     for (const filterObject of filters) {
         const key = filterObject.key;
@@ -561,7 +587,9 @@ function buildUserReadableQueryString(
                 })
                 .flat();
 
-            displayQueryFilters = taxRateNames.map((taxRate) => ({
+            const uniqueTaxRateNames = [...new Set(taxRateNames)];
+
+            displayQueryFilters = uniqueTaxRateNames.map((taxRate) => ({
                 operator: queryFilter.at(0)?.operator ?? CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 value: taxRate,
             }));
@@ -589,7 +617,9 @@ function buildCannedSearchQuery({
     status?: SearchStatus;
     policyID?: string;
 } = {}): SearchQueryString {
-    const queryString = policyID ? `type:${type} status:${status} policyID:${policyID}` : `type:${type} status:${status}`;
+    const queryString = policyID
+        ? `type:${type} status:${Array.isArray(status) ? status.join(',') : status} policyID:${policyID}`
+        : `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
 
     // Parse the query to fill all default query fields with values
     const normalizedQueryJSON = buildSearchQueryJSON(queryString);
@@ -610,23 +640,23 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
 /**
  *  Given a search query, this function will standardize the query by replacing display values with their corresponding IDs.
  */
-function standardizeQueryJSON(queryJSON: SearchQueryJSON, cardList: OnyxTypes.CardList, taxRates: Record<string, string[]>) {
+function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, right: string | string[]) => string | string[]) {
     const standardQuery = cloneDeep(queryJSON);
     const filters = standardQuery.filters;
     const traverse = (node: ASTNode) => {
         if (!node.operator) {
             return;
         }
-        if (typeof node.left === 'object' && node.left) {
+        if (typeof node.left === 'object') {
             traverse(node.left);
         }
-        if (typeof node.right === 'object' && node.right && !Array.isArray(node.right)) {
+        if (typeof node.right === 'object' && !Array.isArray(node.right)) {
             traverse(node.right);
         }
 
-        if (typeof node.left !== 'object') {
+        if (typeof node.left !== 'object' && (Array.isArray(node.right) || typeof node.right === 'string')) {
             // eslint-disable-next-line no-param-reassign
-            node.right = findIDFromDisplayValue(node.left, node.right as string | string[], cardList, taxRates);
+            node.right = computeNodeValue(node.left, node.right);
         }
     };
 
@@ -647,6 +677,8 @@ export {
     getPolicyIDFromSearchQuery,
     buildCannedSearchQuery,
     isCannedSearchQuery,
-    standardizeQueryJSON,
+    traverseAndUpdatedQuery,
+    getFindIDFromDisplayValue,
+    getUpdatedAmountValue,
     sanitizeSearchValue,
 };
