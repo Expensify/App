@@ -3,7 +3,6 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -24,14 +23,13 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const {mappings, pendingFields, errorFields} = policy?.connections?.quickbooksDesktop?.config ?? {};
-    const {canUseNewDotQBD} = usePermissions();
 
     const sections: QBDSectionType[] = [
         {
             description: translate('workspace.accounting.accounts'),
-            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49703
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS.getRoute(policyID)),
             title: translate('workspace.accounting.importAsCategory'),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES],
+            subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES],
         },
         {
             description: translate('workspace.qbd.classes'),
@@ -41,14 +39,14 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.qbd.customers'),
-            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49705
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS.getRoute(policyID)),
             title: translate(`workspace.accounting.importTypes.${mappings?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS],
+            subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS],
         },
         {
             description: translate('workspace.qbd.items'),
-            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49706
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS],
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ITEMS.getRoute(policyID)),
+            subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.IMPORT_ITEMS],
         },
     ];
 
@@ -57,12 +55,11 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
             displayName={QuickbooksDesktopImportPage.displayName}
             headerTitle="workspace.accounting.import"
             title="workspace.qbd.importDescription"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] Will be removed when release
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >

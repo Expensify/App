@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import Text from '@components/Text';
@@ -11,15 +12,16 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {navigateToConciergeChatAndDeleteReport} from '@libs/actions/Report';
 import DebugUtils from '@libs/DebugUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {DebugParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
-import SidebarUtils from '@libs/SidebarUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import Debug from '@userActions/Debug';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,13 +61,14 @@ function DebugReportPage({
             return [];
         }
 
-        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report);
-        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
-        const reportActionRBR = DebugUtils.getRBRReportAction(report, reportActions);
         const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
         const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
-        const hasRBR = SidebarUtils.shouldShowRedBrickRoad(report, reportActions, !!shouldDisplayViolations || shouldDisplayReportViolations, transactionViolations);
+        const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
+        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
+        const {reason: reasonRBR, reportAction: reportActionRBR} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, hasViolations) ?? {};
+        const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
+        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
 
         return [
             {
@@ -94,6 +97,7 @@ function DebugReportPage({
             {
                 title: translate('debug.RBR'),
                 subtitle: translate(`debug.${hasRBR}`),
+                message: hasRBR ? translate(reasonRBR) : undefined,
                 action:
                     hasRBR && reportActionRBR
                         ? {
@@ -110,6 +114,10 @@ function DebugReportPage({
             },
         ];
     }, [parentReportAction, report, reportActions, reportID, transactionViolations, translate]);
+
+    if (!report) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper
@@ -137,6 +145,7 @@ function DebugReportPage({
                                     }}
                                     onDelete={() => {
                                         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+                                        navigateToConciergeChatAndDeleteReport(reportID, true, true);
                                     }}
                                     validate={DebugUtils.validateReportDraftProperty}
                                 >
@@ -147,8 +156,8 @@ function DebugReportPage({
                                                     <Text style={styles.h4}>{title}</Text>
                                                     <Text>{subtitle}</Text>
                                                 </View>
-                                                {message && <Text style={styles.textSupporting}>{message}</Text>}
-                                                {action && (
+                                                {!!message && <Text style={styles.textSupporting}>{message}</Text>}
+                                                {!!action && (
                                                     <Button
                                                         text={action.name}
                                                         onPress={action.callback}
@@ -156,6 +165,13 @@ function DebugReportPage({
                                                 )}
                                             </View>
                                         ))}
+                                        <Button
+                                            text={translate('debug.viewReport')}
+                                            onPress={() => {
+                                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                                            }}
+                                            icon={Expensicons.Eye}
+                                        />
                                     </View>
                                 </DebugDetails>
                             )}

@@ -177,6 +177,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             subtitle={translate('workspace.invoices.bankAccountsSubtitle')}
             isCentralPane
             titleStyles={styles.accountSettingsSectionTitle}
+            subtitleMuted
         >
             <PaymentMethodList
                 shouldShowAddBankAccountButton={!hasBankAccount}

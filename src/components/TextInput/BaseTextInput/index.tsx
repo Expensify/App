@@ -261,6 +261,7 @@ function BaseTextInput(
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
+        isAutoGrowHeightMarkdown && styles.pb2,
     ]);
     const isMultiline = multiline || autoGrowHeight;
 
@@ -333,7 +334,7 @@ function BaseTextInput(
                         ) : null}
 
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
-                            {iconLeft && (
+                            {!!iconLeft && (
                                 <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
                                         src={iconLeft}
@@ -427,7 +428,7 @@ function BaseTextInput(
                                 </View>
                             )}
                             {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
-                            {inputProps.isLoading && (
+                            {!!inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
@@ -467,7 +468,7 @@ function BaseTextInput(
                     />
                 )}
             </View>
-            {contentWidth && (
+            {!!contentWidth && (
                 <View
                     style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
                     onLayout={(e) => {
