@@ -251,7 +251,6 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
              *  */}
             <ReportIDsContextProvider currentReportIDForTests={currentReportID}>
                 <SidebarLinksData
-                    onLinkClick={() => {}}
                     insets={{
                         top: 0,
                         left: 0,
