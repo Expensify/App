@@ -1,16 +1,10 @@
-/*
- * The KeyboardAvoidingView is only used on ios
- */
 import React from 'react';
-import {View} from 'react-native';
+import {KeyboardAvoidingView as KeyboardAvoidingViewComponent} from 'react-native-keyboard-controller';
 import type {KeyboardAvoidingViewProps} from './types';
 
 function KeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
-    const {behavior, contentContainerStyle, enabled, keyboardVerticalOffset, ...rest} = props;
-    return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <View {...rest} />
-    );
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <KeyboardAvoidingViewComponent {...props} />;
 }
 
 KeyboardAvoidingView.displayName = 'KeyboardAvoidingView';
