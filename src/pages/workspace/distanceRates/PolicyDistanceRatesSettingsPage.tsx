@@ -65,10 +65,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             return;
         }
 
-        Category.setPolicyDistanceRatesDefaultCategory(policyID, customUnit, {
-            ...customUnit,
-            defaultCategory: defaultCategory === category.searchText ? '' : category.searchText,
-        });
+        Category.setPolicyCustomUnitDefaultCategory(policyID, customUnitID, customUnit.defaultCategory, defaultCategory === category.searchText ? '' : category.searchText);
     };
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
