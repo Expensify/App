@@ -30,9 +30,13 @@ function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps)
         (index: number) =>
             ({text}: ListItem) => {
                 const newTag = text === selectedTags.at(index) ? undefined : text;
-                setNewTagName(IOUUtils.insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index));
+                const updatedTagName = IOUUtils.insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index);
+                if (policyTagLists.length === 1) {
+                    return onSubmit({text: updatedTagName});
+                }
+                setNewTagName(updatedTagName);
             },
-        [newTagName, selectedTags],
+        [newTagName, onSubmit, policyTagLists.length, selectedTags],
     );
 
     const submitTag = useCallback(() => {
@@ -56,14 +60,16 @@ function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps)
                     </View>
                 ))}
             </View>
-            <View style={styles.ph5}>
-                <Button
-                    success
-                    large
-                    text={translate('common.save')}
-                    onPress={submitTag}
-                />
-            </View>
+            {policyTagLists.length > 1 && (
+                <View style={styles.ph5}>
+                    <Button
+                        success
+                        large
+                        text={translate('common.save')}
+                        onPress={submitTag}
+                    />
+                </View>
+            )}
         </View>
     );
 }

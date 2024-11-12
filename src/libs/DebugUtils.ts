@@ -446,22 +446,68 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         throw SyntaxError('debug.missingValue');
     }
     switch (key) {
-        case 'avatarUrl': {
+        case 'avatarFileName':
+        case 'avatarUrl':
+        case 'lastMessageText':
+        case 'lastVisibleActionCreated':
+        case 'lastReadCreated':
+        case 'lastReadTime':
+        case 'lastMentionedTime':
+        case 'policyAvatar':
+        case 'policyName':
+        case 'oldPolicyName':
+        case 'description':
+        case 'policyID':
+        case 'reportName':
+        case 'reportID':
+        case 'reportActionID':
+        case 'chatReportID':
+        case 'type':
+        case 'cachedTotal':
+        case 'lastMessageTranslationKey':
+        case 'parentReportID':
+        case 'parentReportActionID':
+        case 'lastVisibleActionLastModified':
+        case 'displayName':
+        case 'lastMessageHtml':
+        case 'ownerEmail':
+        case 'currency':
+        case 'iouReportID':
+        case 'preexistingReportID':
+        case 'text':
+        case 'transactionThreadReportID':
+        case 'private_isArchived':
             return validateString(value);
-        }
-        case 'avatarFileName': {
-            return validateString(value);
-        }
-        case 'chatType': {
+        case 'hasOutstandingChildRequest':
+        case 'hasOutstandingChildTask':
+        case 'isOwnPolicyExpenseChat':
+        case 'isPolicyExpenseChat':
+        case 'isPinned':
+        case 'hasParentAccess':
+        case 'isDeletedParentAction':
+        case 'openOnAdminRoom':
+        case 'isOptimisticReport':
+        case 'isWaitingOnBankAccount':
+        case 'isCancelledIOU':
+        case 'isLastMessageDeletedParentAction':
+        case 'isHidden':
+        case 'isChatRoom':
+        case 'isLoadingPrivateNotes':
+        case 'selected':
+            return validateBoolean(value);
+        case 'lastMessageTimestamp':
+        case 'lastReadSequenceNumber':
+        case 'managerID':
+        case 'lastActorAccountID':
+        case 'ownerAccountID':
+        case 'total':
+        case 'unheldTotal':
+        case 'iouReportAmount':
+        case 'nonReimbursableTotal':
+            return validateNumber(value);
+        case 'chatType':
             return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
-        }
-        case 'hasOutstandingChildRequest': {
-            return validateBoolean(value);
-        }
-        case 'hasOutstandingChildTask': {
-            return validateBoolean(value);
-        }
-        case 'icons': {
+        case 'icons':
             return validateArray<ArrayElement<Report, 'icons'>>(value, {
                 type: {
                     [CONST.ICON_TYPE_AVATAR]: CONST.ICON_TYPE_AVATAR,
@@ -473,135 +519,23 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 fallbackIcon: 'string',
                 fill: 'string',
             });
-        }
-        case 'isOwnPolicyExpenseChat': {
-            return validateBoolean(value);
-        }
-        case 'isPolicyExpenseChat': {
-            return validateBoolean(value);
-        }
-        case 'isPinned': {
-            return validateBoolean(value);
-        }
-        case 'lastMessageText': {
-            return validateString(value);
-        }
-        case 'lastMessageTimestamp': {
-            return validateNumber(value);
-        }
-        case 'lastVisibleActionCreated': {
-            return validateString(value);
-        }
-        case 'lastReadCreated': {
-            return validateString(value);
-        }
-        case 'lastReadTime': {
-            return validateString(value);
-        }
-        case 'lastReadSequenceNumber': {
-            return validateNumber(value);
-        }
-        case 'lastMentionedTime': {
-            return validateString(value);
-        }
-        case 'policyAvatar': {
-            return validateString(value);
-        }
-        case 'policyName': {
-            return validateString(value);
-        }
-        case 'oldPolicyName': {
-            return validateString(value);
-        }
-        case 'hasParentAccess': {
-            return validateBoolean(value);
-        }
-        case 'description': {
-            return validateString(value);
-        }
-        case 'isDeletedParentAction': {
-            return validateBoolean(value);
-        }
-        case 'policyID': {
-            return validateString(value);
-        }
-        case 'reportName': {
-            return validateString(value);
-        }
-        case 'reportID': {
-            return validateString(value);
-        }
-        case 'reportActionID': {
-            return validateString(value);
-        }
-        case 'chatReportID': {
-            return validateString(value);
-        }
-        case 'stateNum': {
+        case 'stateNum':
             return validateConstantEnum(value, CONST.REPORT.STATE_NUM);
-        }
-        case 'statusNum': {
+        case 'statusNum':
             return validateConstantEnum(value, CONST.REPORT.STATUS_NUM);
-        }
-        case 'writeCapability': {
+        case 'writeCapability':
             return validateConstantEnum(value, CONST.REPORT.WRITE_CAPABILITIES);
-        }
-        case 'type': {
-            return validateString(value);
-        }
-        case 'openOnAdminRoom': {
-            return validateBoolean(value);
-        }
-        case 'visibility': {
+        case 'visibility':
             return validateConstantEnum(value, CONST.REPORT.VISIBILITY);
-        }
-        case 'cachedTotal': {
-            return validateString(value);
-        }
-        case 'invoiceReceiver': {
+        case 'invoiceReceiver':
             return validateObject<ObjectElement<Report, 'invoiceReceiver'>>(value, {
                 type: 'string',
                 policyID: 'string',
                 accountID: 'string',
             });
-        }
-        case 'lastMessageTranslationKey': {
-            return validateString(value);
-        }
-        case 'parentReportID': {
-            return validateString(value);
-        }
-        case 'parentReportActionID': {
-            return validateString(value);
-        }
-        case 'isOptimisticReport': {
-            return validateBoolean(value);
-        }
-        case 'managerID': {
-            return validateNumber(value);
-        }
-        case 'lastVisibleActionLastModified': {
-            return validateString(value);
-        }
-        case 'displayName': {
-            return validateString(value);
-        }
-        case 'lastMessageHtml': {
-            return validateString(value);
-        }
-        case 'lastActorAccountID': {
-            return validateNumber(value);
-        }
-        case 'lastActionType': {
+        case 'lastActionType':
             return validateConstantEnum(value, CONST.REPORT.ACTIONS.TYPE);
-        }
-        case 'ownerAccountID': {
-            return validateNumber(value);
-        }
-        case 'ownerEmail': {
-            return validateString(value);
-        }
-        case 'participants': {
+        case 'participants':
             return validateObject<ObjectElement<Report, 'participants', number>>(
                 value,
                 {
@@ -613,50 +547,11 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 },
                 'number',
             );
-        }
-        case 'total': {
-            return validateNumber(value);
-        }
-        case 'unheldTotal': {
-            return validateNumber(value);
-        }
-        case 'currency': {
-            return validateString(value);
-        }
-        case 'errors': {
+        case 'errors':
             return validateObject<ObjectElement<Report, 'errors'>>(value, {});
-        }
-        case 'errorFields': {
+        case 'errorFields':
             return validateObject<ObjectElement<Report, 'errorFields', string>>(value, {}, 'string');
-        }
-        case 'isWaitingOnBankAccount': {
-            return validateBoolean(value);
-        }
-        case 'isCancelledIOU': {
-            return validateBoolean(value);
-        }
-        case 'isLastMessageDeletedParentAction': {
-            return validateBoolean(value);
-        }
-        case 'iouReportID': {
-            return validateString(value);
-        }
-        case 'iouReportAmount': {
-            return validateNumber(value);
-        }
-        case 'preexistingReportID': {
-            return validateString(value);
-        }
-        case 'nonReimbursableTotal': {
-            return validateNumber(value);
-        }
-        case 'isHidden': {
-            return validateBoolean(value);
-        }
-        case 'isChatRoom': {
-            return validateBoolean(value);
-        }
-        case 'participantsList': {
+        case 'participantsList':
             return validateArray<ArrayElement<Report, 'participantsList'>>(value, {
                 displayName: 'string',
                 errorFields: 'object',
@@ -679,11 +574,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 isOptimisticPersonalDetail: 'boolean',
                 fallbackIcon: 'string',
             });
-        }
-        case 'text': {
-            return validateString(value);
-        }
-        case 'privateNotes': {
+        case 'privateNotes':
             return validateObject<ObjectElement<Report, 'privateNotes', number>>(
                 value,
                 {
@@ -694,24 +585,13 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 },
                 'number',
             );
-        }
-        case 'isLoadingPrivateNotes': {
-            return validateBoolean(value);
-        }
-        case 'selected': {
-            return validateBoolean(value);
-        }
-        case 'pendingChatMembers': {
+        case 'pendingChatMembers':
             return validateArray<ArrayElement<Report, 'pendingChatMembers'>>(value, {
                 accountID: 'string',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 errors: 'object',
             });
-        }
-        case 'transactionThreadReportID': {
-            return validateString(value);
-        }
-        case 'fieldList': {
+        case 'fieldList':
             return validateObject<ObjectElement<Report, 'fieldList'>>(
                 value,
                 {
@@ -734,30 +614,21 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 },
                 'string',
             );
-        }
-        case 'permissions': {
+        case 'permissions':
             return validateArray<'constantEnum'>(value, CONST.REPORT.PERMISSIONS);
-        }
-        case 'tripData': {
+        case 'tripData':
             return validateObject<ObjectElement<Report, 'tripData'>>(value, {
                 startDate: 'string',
                 endDate: 'string',
                 tripID: 'string',
             });
-        }
-        case 'private_isArchived': {
-            return validateString(value);
-        }
-        case 'participantAccountIDs': {
+        case 'participantAccountIDs':
             return validateArray(value, 'number');
-        }
-        case 'visibleChatMemberAccountIDs': {
+        case 'visibleChatMemberAccountIDs':
             return validateArray(value, 'number');
-        }
-        case 'pendingAction': {
+        case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
-        }
-        case 'pendingFields': {
+        case 'pendingFields':
             return validateObject<ObjectElement<Report, 'pendingFields'>>(value, {
                 errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 text: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -841,7 +712,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preview: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
-        }
     }
 }
 
@@ -856,22 +726,50 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
         throw SyntaxError('debug.missingValue');
     }
     switch (key) {
-        case 'reportID': {
+        case 'reportID':
+        case 'reportActionID':
+        case 'parentReportID':
+        case 'childReportID':
+        case 'childReportName':
+        case 'childType':
+        case 'childOldestFourAccountIDs':
+        case 'childLastVisibleActionCreated':
+        case 'actor':
+        case 'avatar':
+        case 'childLastMoneyRequestComment':
+        case 'reportActionTimestamp':
+        case 'timestamp':
+        case 'error':
             return validateString(value);
-        }
-        case 'reportActionID': {
-            return validateString(value);
-        }
-        case 'parentReportID': {
-            return validateString(value);
-        }
-        case 'errors': {
+        case 'actorAccountID':
+        case 'sequenceNumber':
+        case 'accountID':
+        case 'childCommenterCount':
+        case 'childVisibleActionCount':
+        case 'childManagerAccountID':
+        case 'childOwnerAccountID':
+        case 'childLastActorAccountID':
+        case 'childMoneyRequestCount':
+        case 'adminAccountID':
+        case 'delegateAccountID':
+            return validateNumber(value);
+        case 'isLoading':
+        case 'automatic':
+        case 'shouldShow':
+        case 'isFirstItem':
+        case 'isAttachmentOnly':
+        case 'isAttachmentWithText':
+        case 'isNewestReportAction':
+        case 'isOptimisticAction':
+            return validateBoolean(value);
+        case 'created':
+        case 'lastModified':
+            return validateDate(value);
+        case 'errors':
             return validateObject<ObjectElement<ReportAction, 'errors'>>(value, {});
-        }
-        case 'pendingAction': {
+        case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
-        }
-        case 'pendingFields': {
+        case 'pendingFields':
             return validateObject<ObjectElement<ReportAction, 'pendingFields'>>(value, {
                 reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -919,96 +817,19 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 reportActionTimestamp: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 timestamp: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
-        }
-        case 'sequenceNumber': {
-            return validateNumber(value);
-        }
-        case 'actionName': {
+        case 'actionName':
             return validateConstantEnum(value, CONST.REPORT.ACTIONS.TYPE);
-        }
-        case 'actorAccountID': {
-            return validateNumber(value);
-        }
-        case 'actor': {
-            return validateString(value);
-        }
-        case 'person': {
+        case 'person':
             return validateArray<ArrayElement<ReportAction, 'person'>>(value, {
                 type: 'string',
                 text: 'string',
                 style: 'string',
             });
-        }
-        case 'created': {
-            return validateDate(value);
-        }
-        case 'isLoading': {
-            return validateBoolean(value);
-        }
-        case 'avatar': {
-            return validateString(value);
-        }
-        case 'automatic': {
-            return validateBoolean(value);
-        }
-        case 'shouldShow': {
-            return validateBoolean(value);
-        }
-        case 'childReportID': {
-            return validateString(value);
-        }
-        case 'childReportName': {
-            return validateString(value);
-        }
-        case 'childType': {
-            return validateString(value);
-        }
-        case 'accountID': {
-            return validateNumber(value);
-        }
-        case 'childOldestFourAccountIDs': {
-            return validateString(value);
-        }
-        case 'childCommenterCount': {
-            return validateNumber(value);
-        }
-        case 'childLastVisibleActionCreated': {
-            return validateString(value);
-        }
-        case 'childVisibleActionCount': {
-            return validateNumber(value);
-        }
-        case 'childManagerAccountID': {
-            return validateNumber(value);
-        }
-        case 'childOwnerAccountID': {
-            return validateNumber(value);
-        }
-        case 'childStatusNum': {
+        case 'childStatusNum':
             return validateConstantEnum(value, CONST.REPORT.STATUS_NUM);
-        }
-        case 'childStateNum': {
+        case 'childStateNum':
             return validateConstantEnum(value, CONST.REPORT.STATE_NUM);
-        }
-        case 'childLastMoneyRequestComment': {
-            return validateString(value);
-        }
-        case 'childLastActorAccountID': {
-            return validateNumber(value);
-        }
-        case 'childMoneyRequestCount': {
-            return validateNumber(value);
-        }
-        case 'isFirstItem': {
-            return validateBoolean(value);
-        }
-        case 'isAttachmentOnly': {
-            return validateBoolean(value);
-        }
-        case 'isAttachmentWithText': {
-            return validateBoolean(value);
-        }
-        case 'receipt': {
+        case 'receipt':
             return validateObject<ObjectElement<ReportAction, 'receipt'>>(value, {
                 state: 'string',
                 type: 'string',
@@ -1018,20 +839,9 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 filename: 'string',
                 reservationList: 'string',
             });
-        }
-        case 'lastModified': {
-            return validateDate(value);
-        }
-        case 'delegateAccountID': {
-            return validateNumber(value);
-        }
-        case 'error': {
-            return validateString(value);
-        }
-        case 'childRecentReceiptTransactionIDs': {
+        case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
-        }
-        case 'linkMetadata': {
+        case 'linkMetadata':
             return validateArray<ArrayElement<ReportAction, 'linkMetadata'>>(value, {
                 url: 'string',
                 image: 'object',
@@ -1040,29 +850,11 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 publisher: 'string',
                 logo: 'object',
             });
-        }
-        case 'childReportNotificationPreference': {
+        case 'childReportNotificationPreference':
             return validateConstantEnum(value, CONST.REPORT.NOTIFICATION_PREFERENCE);
-        }
-        case 'isNewestReportAction': {
-            return validateBoolean(value);
-        }
-        case 'isOptimisticAction': {
-            return validateBoolean(value);
-        }
-        case 'adminAccountID': {
-            return validateNumber(value);
-        }
-        case 'whisperedToAccountIDs': {
+        case 'whisperedToAccountIDs':
             return validateArray(value, 'number');
-        }
-        case 'reportActionTimestamp': {
-            return validateString(value);
-        }
-        case 'timestamp': {
-            return validateString(value);
-        }
-        case 'message': {
+        case 'message':
             return unionValidation(
                 () =>
                     validateArray<ArrayElement<ReportAction, 'message'>>(value, {
@@ -1121,11 +913,9 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                         deleted: 'string',
                     }),
             );
-        }
-        case 'originalMessage': {
+        case 'originalMessage':
             return validateObject<ObjectElement<ReportAction, 'originalMessage'>>(value, {});
-        }
-        case 'previousMessage': {
+        case 'previousMessage':
             return unionValidation(
                 () =>
                     validateObject<ObjectElement<ReportAction, 'previousMessage'>>(value, {
@@ -1178,7 +968,6 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                         deleted: 'string',
                     }),
             );
-        }
     }
 }
 
@@ -1193,12 +982,45 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         throw SyntaxError('debug.missingValue');
     }
     switch (key) {
+        case 'reportID':
+        case 'currency':
+        case 'tag':
+        case 'category':
+        case 'merchant':
+        case 'taxCode':
+        case 'filename':
+        case 'modifiedCurrency':
+        case 'modifiedMerchant':
+        case 'transactionID':
+        case 'parentTransactionID':
+        case 'originalCurrency':
+        case 'actionableWhisperReportActionID':
+        case 'linkedTrackedExpenseReportID':
+        case 'bank':
+        case 'cardName':
+        case 'cardNumber':
+            return validateString(value);
+        case 'created':
+        case 'modifiedCreated':
+            return validateDate(value);
+        case 'isLoading':
+        case 'billable':
+        case 'reimbursable':
+        case 'participantsAutoAssigned':
+        case 'isFromGlobalCreate':
+        case 'hasEReceipt':
+        case 'shouldShowOriginalAmount':
+        case 'managedCard':
+            return validateBoolean(value);
+        case 'amount':
+        case 'taxAmount':
+        case 'modifiedAmount':
+        case 'cardID':
+        case 'originalAmount':
+            return validateNumber(value);
         case 'iouRequestType':
             return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
-        case 'reportID': {
-            return validateString(value);
-        }
-        case 'participants': {
+        case 'participants':
             return validateArray<ArrayElement<Transaction, 'participants'>>(value, {
                 accountID: 'number',
                 login: 'string',
@@ -1225,14 +1047,9 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 icons: 'array',
                 item: 'string',
             });
-        }
-        case 'currency': {
-            return validateString(value);
-        }
-        case 'errors': {
+        case 'errors':
             return validateObject<ObjectElement<Transaction, 'errors'>>(value, {});
-        }
-        case 'errorFields': {
+        case 'errorFields':
             return validateObject<ObjectElement<Transaction, 'errorFields'>>(
                 value,
                 {
@@ -1240,11 +1057,9 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 },
                 'string',
             );
-        }
-        case 'pendingAction': {
+        case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
-        }
-        case 'pendingFields': {
+        case 'pendingFields':
             return validateObject<ObjectElement<Transaction, 'pendingFields'>>(
                 value,
                 {
@@ -1313,14 +1128,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 },
                 'string',
             );
-        }
-        case 'created': {
-            return validateDate(value);
-        }
-        case 'isLoading': {
-            return validateBoolean(value);
-        }
-        case 'receipt': {
+        case 'receipt':
             return validateObject<ObjectElement<Transaction, 'receipt'>>(value, {
                 type: 'string',
                 source: 'string',
@@ -1330,48 +1138,15 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 receiptID: 'number',
                 reservationList: 'array',
             });
-        }
-        case 'billable': {
-            return validateBoolean(value);
-        }
-        case 'reimbursable': {
-            return validateBoolean(value);
-        }
-        case 'tag': {
-            return validateString(value);
-        }
-        case 'category': {
-            return validateString(value);
-        }
-        case 'amount': {
-            return validateNumber(value);
-        }
-        case 'merchant': {
-            return validateString(value);
-        }
-        case 'taxRate': {
+        case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
                 keyForList: 'string',
                 text: 'string',
                 data: 'object',
             });
-        }
-        case 'taxAmount': {
-            return validateNumber(value);
-        }
-        case 'modifiedAmount': {
-            return validateNumber(value);
-        }
-        case 'taxCode': {
-            return validateString(value);
-        }
-        case 'status': {
+        case 'status':
             return validateConstantEnum(value, CONST.TRANSACTION.STATUS);
-        }
-        case 'cardID': {
-            return validateNumber(value);
-        }
-        case 'comment': {
+        case 'comment':
             return validateObject<ObjectElement<Transaction, 'comment'>>(value, {
                 comment: 'string',
                 hold: 'string',
@@ -1384,8 +1159,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 splits: 'array',
                 dismissedViolations: 'object',
             });
-        }
-        case 'attendees': {
+        case 'attendees':
             return validateArray<ArrayElement<Transaction, 'attendees'>>(value, {
                 email: 'string',
                 displayName: 'string',
@@ -1398,11 +1172,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 iouType: CONST.IOU.TYPE,
                 reportID: 'string',
             });
-        }
-        case 'filename': {
-            return validateString(value);
-        }
-        case 'modifiedAttendees': {
+        case 'modifiedAttendees':
             return validateArray<ArrayElement<Transaction, 'attendees'>>(value, {
                 email: 'string',
                 displayName: 'string',
@@ -1415,17 +1185,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 iouType: CONST.IOU.TYPE,
                 reportID: 'string',
             });
-        }
-        case 'modifiedCreated': {
-            return validateDate(value);
-        }
-        case 'modifiedCurrency': {
-            return validateString(value);
-        }
-        case 'modifiedMerchant': {
-            return validateString(value);
-        }
-        case 'modifiedWaypoints': {
+        case 'modifiedWaypoints':
             return validateObject<ObjectElement<Transaction, 'modifiedWaypoints'>>(
                 value,
                 {
@@ -1444,11 +1204,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 },
                 'string',
             );
-        }
-        case 'participantsAutoAssigned': {
-            return validateBoolean(value);
-        }
-        case 'routes': {
+        case 'routes':
             return validateObject<ObjectElement<Transaction, 'routes'>>(
                 value,
                 {
@@ -1457,32 +1213,11 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 },
                 'string',
             );
-        }
-        case 'transactionID': {
-            return validateString(value);
-        }
-        case 'isFromGlobalCreate': {
-            return validateBoolean(value);
-        }
-        case 'parentTransactionID': {
-            return validateString(value);
-        }
-        case 'hasEReceipt': {
-            return validateBoolean(value);
-        }
-        case 'mccGroup': {
+        case 'mccGroup':
             return validateConstantEnum(value, CONST.MCC_GROUPS);
-        }
-        case 'modifiedMCCGroup': {
+        case 'modifiedMCCGroup':
             return validateConstantEnum(value, CONST.MCC_GROUPS);
-        }
-        case 'originalAmount': {
-            return validateNumber(value);
-        }
-        case 'originalCurrency': {
-            return validateString(value);
-        }
-        case 'splitShares': {
+        case 'splitShares':
             return validateObject<ObjectElement<Transaction, 'splitShares', number>>(
                 value,
                 {
@@ -1491,17 +1226,9 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 },
                 'number',
             );
-        }
-        case 'splitPayerAccountIDs': {
+        case 'splitPayerAccountIDs':
             return validateArray(value, 'number');
-        }
-        case 'shouldShowOriginalAmount': {
-            return validateBoolean(value);
-        }
-        case 'actionableWhisperReportActionID': {
-            return validateString(value);
-        }
-        case 'linkedTrackedExpenseReportAction': {
+        case 'linkedTrackedExpenseReportAction':
             return validateObject<ReportAction>(value, {
                 accountID: 'number',
                 message: 'string',
@@ -1554,22 +1281,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 originalMessage: 'object',
                 previousMessage: 'object',
             });
-        }
-        case 'linkedTrackedExpenseReportID': {
-            return validateString(value);
-        }
-        case 'bank': {
-            return validateString(value);
-        }
-        case 'cardName': {
-            return validateString(value);
-        }
-        case 'cardNumber': {
-            return validateString(value);
-        }
-        case 'managedCard': {
-            return validateBoolean(value);
-        }
     }
 }
 
