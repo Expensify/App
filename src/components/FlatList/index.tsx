@@ -154,7 +154,6 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
                     }
                     firstVisibleViewRef.current = null;
                 });
-                console.log('mutation added', mutation.addedNodes)
                 mutation.addedNodes.forEach((node) => {
                     if (node.nodeType !== Node.ELEMENT_NODE || !(node as HTMLElement).querySelector('#composer')) {
                         return;
