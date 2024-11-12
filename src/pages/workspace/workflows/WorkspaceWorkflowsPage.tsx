@@ -296,6 +296,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         displayNameForAuthorizedPayer,
         route.params.policyID,
         isDevelopment,
+        isDebugModeEnabled,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
