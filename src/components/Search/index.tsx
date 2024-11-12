@@ -41,6 +41,7 @@ type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: StyleProp<ViewStyle>;
+    isSearchScreenFocused?: boolean;
 };
 
 const transactionItemMobileHeight = 100;
@@ -87,7 +88,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
 }
 
-function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchProps) {
+function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentContainerStyle}: SearchProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -192,7 +193,11 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === type && searchResults?.search?.status === status;
+    const isDataLoaded =
+        searchResults?.data !== undefined && searchResults?.search?.type === type && Array.isArray(status)
+            ? searchResults?.search?.status === status.join(',')
+            : searchResults?.search?.status === status;
+
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const isSearchResultsEmpty = !searchResults?.data || SearchUIUtils.isSearchResultsEmpty(searchResults);
@@ -406,7 +411,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     };
 
     const shouldShowYear = SearchUIUtils.shouldShowYear(searchResults?.data);
-    const shouldShowSorting = sortableSearchStatuses.includes(status);
+    const shouldShowSorting = !Array.isArray(status) && sortableSearchStatuses.includes(status);
 
     return (
         <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
@@ -470,6 +475,8 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
             }
             contentContainerStyle={[contentContainerStyle, styles.pb3]}
             scrollEventThrottle={1}
+            shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
+            isScreenFocused={isSearchScreenFocused}
         />
     );
 }

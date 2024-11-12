@@ -12,7 +12,7 @@ When you upgrade the Expensify Cards to the new program, you'll have access to e
 - Unique naming for each virtual card for simplified expense categorization 
  
 {% include info.html %}
-The Expensify Card upgrade must be completed by November 1, 2024.
+The Expensify Card upgrade must be completed by December 1, 2024.
 {% include end-info.html %}
 
 # Upgrade your company’s Expensify Card program
