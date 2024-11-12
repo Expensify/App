@@ -65,7 +65,7 @@ describe('actions/Policy', () => {
                     },
                 });
             });
-            console.log(activePolicyID, policyID, fakePolicy), "dsaad---------------------";
+
             // check if NVP_ACTIVE_POLICY_ID is updated to created policy id
             expect(activePolicyID).toBe(policyID);
 
