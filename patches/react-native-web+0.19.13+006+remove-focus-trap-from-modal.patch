@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-web/dist/exports/Modal/index.js b/node_modules/react-native-web/dist/exports/Modal/index.js
-index d5df021..e2c46cf 100644
+index a9a7c36..522ef93 100644
 --- a/node_modules/react-native-web/dist/exports/Modal/index.js
 +++ b/node_modules/react-native-web/dist/exports/Modal/index.js
-@@ -86,13 +86,11 @@ var Modal = /*#__PURE__*/React.forwardRef((props, forwardedRef) => {
+@@ -88,13 +88,11 @@ var Modal = /*#__PURE__*/React.forwardRef((props, forwardedRef) => {
      onDismiss: onDismissCallback,
      onShow: onShowCallback,
      visible: visible
