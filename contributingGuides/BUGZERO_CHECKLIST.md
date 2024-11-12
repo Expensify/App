@@ -15,6 +15,7 @@ Source of bug:
 Where bug was reported:
   - [ ] 2a. Reported on production
   - [ ] 2b. Reported on staging (deploy blocker)
+  - [ ] 2d. Reported on both staging and production
   - [ ] 2c. Reported on a PR
   - [ ] 2z. Other:
 
