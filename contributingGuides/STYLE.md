@@ -533,12 +533,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
 > error TS2538: Type 'undefined' cannot be used as an index type.
 
-This error is inside a component, so we can't simply use early return conditions here. Instead, we can use `String(report?.parentReportActionID)` to try to convert the value to `string`. If the value is `undefined`, the result string will be `'undefined'`, which will be used to find a record inside `parentReportActions` and, just like `-1`, would find nothing.
+This error is inside a component, so we can't simply use early return conditions here. Instead, we can check if `report?.parentReportActionID` is defined, if it is we can safely use it to find the record inside `parentReportActions`. If it's not defined, we just return `undefined`.
 
 ```diff
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
 -    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
-+    const parentReportAction = parentReportActions?.[String(report?.parentReportActionID)];
++    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
 ```
 
 ### Extract complex types
