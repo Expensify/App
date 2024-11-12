@@ -201,12 +201,12 @@ function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, per
     });
 }
 
-function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: string): string {
+function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: string, cardName = ''): string {
     if (!lastFourPAN) {
         return '';
     }
 
-    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? maskCard(lastFourPAN);
+    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? cardName;
 }
 
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK): IconAsset {

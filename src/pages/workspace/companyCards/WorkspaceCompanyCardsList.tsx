@@ -36,7 +36,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<Card>) => {
             const cardID = Object.keys(cardsList ?? {}).find((id) => cardsList?.[id].cardID === item.cardID);
-            const cardName = CardUtils.getCompanyCardNumber(cardsList?.cardList ?? {}, item.lastFourPAN);
+            const cardName = CardUtils.getCompanyCardNumber(cardsList?.cardList ?? {}, item.lastFourPAN, item.cardName);
             return (
                 <OfflineWithFeedback
                     key={`${item.nameValuePairs?.cardTitle}_${index}`}
