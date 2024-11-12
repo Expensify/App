@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/core';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
@@ -494,12 +495,44 @@ function IOURequestStepScan({
 
         setDidCapturePhoto(true);
 
+        console.debug('[dev] Taking photo');
+        console.debug('[dev] ReactNativeBlobUtil.fs.dirs.DocumentDir', ReactNativeBlobUtil.fs.dirs.DocumentDir);
+
+        const path = `${ReactNativeBlobUtil.fs.dirs.DocumentDir}/Receipts-Pending-Upload`;
+
+        console.debug('ReactNativeBlobUtil.fs.isDir(path)', ReactNativeBlobUtil.fs.isDir(path));
+
+        ReactNativeBlobUtil.fs
+            .isDir(path)
+            .then((isDir) => {
+                console.debug('[dev] ReactNativeBlobUtil.fs.isDir:', isDir);
+                if (isDir) {
+                    return;
+                }
+
+                ReactNativeBlobUtil.fs
+                    .mkdir(path)
+                    .then(() => {
+                        console.debug('[dev] Directory created successfully');
+                    })
+                    .catch((error) => {
+                        console.error('[dev] Error creating directory:', error);
+                    });
+            })
+            .catch((error) => {
+                console.error('[dev] Error checking if directory exists:', error);
+            });
+
         camera?.current
             ?.takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
                 enableShutterSound: !isPlatformMuted,
+                path,
             })
             .then((photo: PhotoFile) => {
+                console.debug('[dev] photo', photo);
+                return;
+
                 // Store the receipt on the transaction object in Onyx
                 const source = getPhotoSource(photo.path);
                 IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
@@ -529,14 +562,14 @@ function IOURequestStepScan({
                     () => {
                         setDidCapturePhoto(false);
                         showCameraAlert();
-                        Log.warn('Error reading photo');
+                        Log.warn('[dev] Error reading photo');
                     },
                 );
             })
             .catch((error: string) => {
                 setDidCapturePhoto(false);
                 showCameraAlert();
-                Log.warn('Error taking photo', error);
+                Log.warn('[dev] Error taking photo', error);
             });
     }, [
         cameraPermissionStatus,
