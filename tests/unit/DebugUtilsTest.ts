@@ -693,6 +693,46 @@ describe('DebugUtils', () => {
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
+        it('returns correct reason when report has IOU violations', async () => {
+            const threadReport = {
+                ...baseReport,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                parentReportID: '0',
+                parentReportActionID: '0',
+            };
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {
+                    accountID: 1234,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}0` as const]: {
+                    reportID: '0',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: 1234,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}0` as const]: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '0': {
+                        reportActionID: '0',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        message: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: '0',
+                            IOUReportID: '0',
+                        },
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: threadReport,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}0` as const]: [
+                    {
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                    },
+                ],
+            });
+            const reason = DebugUtils.getReasonForShowingRowInLHN(threadReport);
+            expect(reason).toBe('debug.reasonVisibleInLHN.hasIOUViolations');
+        });
         it('returns correct reason when report has add workspace room errors', () => {
             const reason = DebugUtils.getReasonForShowingRowInLHN({
                 ...baseReport,
@@ -1490,13 +1530,28 @@ describe('DebugUtils', () => {
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasViolations');
             });
-            it('returns correct reason when there are reports on the workspace chat with violations', async () => {
+            it('returns correct reason when there are transaction thread violations', async () => {
                 const report: Report = {
                     reportID: '0',
-                    type: CONST.REPORT.TYPE.CHAT,
+                    type: CONST.REPORT.TYPE.EXPENSE,
                     ownerAccountID: 1234,
-                    policyID: '1',
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                };
+                const reportActions: ReportActions = {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '0': {
+                        reportActionID: '0',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        message: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: '0',
+                            IOUReportID: '0',
+                            amount: 10,
+                            currency: CONST.CURRENCY.USD,
+                            text: '',
+                        },
+                        created: '2024-07-13 06:02:11.111',
+                        childReportID: '1',
+                    },
                 };
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: {
@@ -1507,23 +1562,17 @@ describe('DebugUtils', () => {
                         reportID: '1',
                         parentReportActionID: '0',
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                        ownerAccountID: 1234,
-                        policyID: '1',
+                        statusNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     },
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                        transactionID: '1',
-                        amount: 10,
-                        modifiedAmount: 10,
-                        reportID: '0',
-                    },
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1` as const]: [
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}0` as const]: reportActions,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}0` as const]: [
                         {
                             type: CONST.VIOLATION_TYPES.VIOLATION,
-                            name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                            name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
                         },
                     ],
                 });
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, {}, false) ?? {};
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, false) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
             });
         });
