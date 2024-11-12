@@ -4750,7 +4750,10 @@ function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.AC
 }
 
 function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
-    return Localize.translateLocal('workspace.inviteMessage.joinRequest', {user: ReportActionsUtils.getOriginalMessage(reportAction)?.email ?? ''});
+    const policy = getPolicy(ReportActionsUtils.getOriginalMessage(reportAction)?.policyID);
+    const userDetail = PersonalDetailsUtils.getPersonalDetailByEmail(ReportActionsUtils.getOriginalMessage(reportAction)?.email ?? '');
+    const userName = userDetail?.firstName ? `${userDetail?.displayName} (${userDetail?.login})` : userDetail?.login ?? '';
+    return Localize.translateLocal('workspace.inviteMessage.joinRequest', {user: userName, workspaceName: policy?.name ?? ''});
 }
 
 /**
