@@ -126,7 +126,7 @@ function UploadFile({
             {uploadedFiles.map((file) => (
                 <View
                     style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3]}
-                    key={file.uri}
+                    key={file.name}
                 >
                     <Icon
                         src={Expensicons.Paperclip}

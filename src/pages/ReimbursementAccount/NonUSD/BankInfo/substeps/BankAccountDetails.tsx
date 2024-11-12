@@ -16,17 +16,13 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const bankAccountDetailsFields = useMemo(() => {
-        return corpayFields.filter((field) => !field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
-    }, [corpayFields]);
-
-    const fieldIds = bankAccountDetailsFields.map((field) => field.id);
+    const fieldIds = corpayFields.map((field) => field.id);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
-            bankAccountDetailsFields.forEach((field) => {
+            corpayFields.forEach((field) => {
                 const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
 
                 if (field.isRequired && !values[fieldID]) {
@@ -48,7 +44,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
 
             return errors;
         },
-        [bankAccountDetailsFields, translate],
+        [corpayFields, translate],
     );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -58,7 +54,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
     });
 
     const inputs = useMemo(() => {
-        return bankAccountDetailsFields.map((field) => {
+        return corpayFields.map((field) => {
             return (
                 <View
                     style={[styles.flex2, styles.mb6]}
@@ -75,7 +71,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                 </View>
             );
         });
-    }, [bankAccountDetailsFields, styles.flex2, styles.mb6, isEditing]);
+    }, [corpayFields, styles.flex2, styles.mb6, isEditing]);
 
     return (
         <FormProvider

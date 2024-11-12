@@ -40,11 +40,6 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
                             title={values[field.id] ? String(values[field.id]) : ''}
                             shouldShowRightIcon
                             onPress={() => {
-                                if (field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX)) {
-                                    onMove(1);
-                                    return;
-                                }
-
                                 onMove(0);
                             }}
                             key={field.id}
@@ -56,7 +51,7 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
                         description={translate('bankInfoStep.bankStatement')}
                         title={reimbursementAccountDraft[INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT].map((file) => file.name).join(', ')}
                         shouldShowRightIcon
-                        onPress={() => onMove(2)}
+                        onPress={() => onMove(1)}
                     />
                 )}
             </>
