@@ -1949,7 +1949,7 @@ const translations = {
             lastName: 'Please enter a valid last name.',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit account or debit card.',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
-            ownershipPercentage: 'Please enter a valid percentage number that is greater than 25',
+            ownershipPercentage: 'Please enter a valid percentage number.',
         },
     },
     addPersonalBankAccountPage: {
