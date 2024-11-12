@@ -477,13 +477,15 @@ if (ref.current && 'getBoundingClientRect' in ref.current) {
 
 ### Default value for inexistent IDs
 
-Use `CONST.DEFAULT_NUMBER_ID` when there is a possibility that the number ID property of an Onyx value could be `null` or `undefined`. **Do not default string IDs to any value unless absolutely necessary**, in case it's necessary use `CONST.DEFAULT_STRING_ID` instead.
+Use `CONST.DEFAULT_NUMBER_ID` when there is a possibility that the number ID property of an Onyx value could be `null` or `undefined`. **Do not default string IDs to any value!**
 
 > Why? The default number ID (currently set to `0`, which matches the backend’s default) is a falsy value. This makes it compatible with conditions that check if an ID is set, such as `if (!ownerAccountID) {`. Since it’s stored as a constant, it can easily be changed across the codebase if needed.
-> 
+>
 > However, defaulting string IDs to `'0'` breaks such conditions because `'0'` is a truthy value in JavaScript. Defaulting to `''` avoids this issue, but it can cause crashes or bugs if the ID is passed to Onyx. This is because `''` could accidentally subscribe to an entire Onyx collection instead of a single record.
-> 
+>
 > To address both problems, string IDs **should not have a default value**. This approach allows conditions like `if (!policyID) {` to work correctly, as `undefined` is a falsy value. At the same time, it prevents Onyx bugs: if `policyID` is used to subscribe to a specific Onyx record, a `policy_undefined` key will be used, and Onyx won’t return any records.
+>
+> In case you are confused or find a situation where you can't apply the rules mentioned above, please raise your question in the [`#expensify-open-source`](https://expensify.slack.com/archives/C01GTK53T8Q) Slack channel.
 
 ``` ts
 // BAD
