@@ -1238,8 +1238,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/settings` as const,
     },
     WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME: {
-        route: 'settings/workspaces/:policyID/company-cards/settings/feed-name/:feedName',
-        getRoute: (policyID: string, feedName: string) => `settings/workspaces/${policyID}/company-cards/settings/feed-name/${encodeURIComponent(feedName)}` as const,
+        route: 'settings/workspaces/:policyID/company-cards/settings/feed-name',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/settings/feed-name` as const,
     },
     WORKSPACE_RULES: {
         route: 'settings/workspaces/:policyID/rules',

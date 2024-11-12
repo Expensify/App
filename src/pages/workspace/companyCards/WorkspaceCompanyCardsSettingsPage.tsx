@@ -45,7 +45,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
 
     const navigateToChangeFeedName = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID, feedName));
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));
     };
 
     const deleteCompanyCardFeed = () => {
