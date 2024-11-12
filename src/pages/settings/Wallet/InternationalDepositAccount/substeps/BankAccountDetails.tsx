@@ -75,19 +75,25 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
         >
             <View style={styles.ph5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('privatePersonalDetails.enterLegalName')}</Text>
-                <CurrencyPicker
-                    value={formValues.bankCurrency}
-                    onInputChange={onCurrencySelected}
-                />
-                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS]).map((field) => (
-                    <InputWrapper
-                        InputComponent={(field.valueSet ?? []).length > 0 ? ValuePicker : TextInput}
-                        inputID={field.id}
-                        key={field.id}
-                        defaultValue={formValues[field.id]}
-                        label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
-                        items={(field.valueSet ?? []).map(({id, text}) => ({value: id, label: text}))}
+                <View style={[styles.mhn5]}>
+                    <CurrencyPicker
+                        value={formValues.bankCurrency}
+                        onInputChange={onCurrencySelected}
                     />
+                </View>
+                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}).map((field) => (
+                    <View
+                        style={(field.valueSet ?? []).length > 0 ? [styles.mhn5, styles.pt2] : [styles.pt5]}
+                        key={field.id}
+                    >
+                        <InputWrapper
+                            InputComponent={(field.valueSet ?? []).length > 0 ? ValuePicker : TextInput}
+                            inputID={field.id}
+                            defaultValue={formValues[field.id]}
+                            label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
+                            items={(field.valueSet ?? []).map(({id, text}) => ({value: id, label: text}))}
+                        />
+                    </View>
                 ))}
             </View>
         </FormProvider>

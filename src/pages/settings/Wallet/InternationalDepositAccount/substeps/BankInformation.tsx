@@ -73,6 +73,22 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
         [fieldsMap, translate],
     );
 
+    const getStyle = useCallback(
+        (field: CorpayFormField) => {
+            if ((field.valueSet ?? []).length > 0) {
+                return [styles.mhn5, styles.pt2];
+            }
+            if (CONST.CORPAY_FIELDS.SPECIAL_LIST_REGION_KEYS.includes(field.id)) {
+                return [styles.mhn5, styles.pt2];
+            }
+            if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
+                return [styles.mt5];
+            }
+            return [styles.mt5];
+        },
+        [styles.mhn5, styles.mt5, styles.pt2],
+    );
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
@@ -86,24 +102,28 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
             <View style={styles.ph5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('privatePersonalDetails.enterLegalName')}</Text>
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]).map((field) => (
-                    <InputWrapper
-                        InputComponent={getInputComponent(field)}
-                        inputID={field.id}
+                    <View
+                        style={getStyle(field)}
                         key={field.id}
-                        defaultValue={formValues[field.id]}
-                        label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
-                        items={getItems(field)}
-                        renamedInputKeys={{
-                            street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankAddressLine1) ? '' : 'bankAddressLine1',
-                            street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankAddressLine2) ? '' : 'bankAddressLine2',
-                            city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankCity) ? '' : 'bankCity',
-                            state: '',
-                            zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankPostal) ? '' : 'bankPostal',
-                            country: '',
-                            lat: '',
-                            lng: '',
-                        }}
-                    />
+                    >
+                        <InputWrapper
+                            InputComponent={getInputComponent(field)}
+                            inputID={field.id}
+                            defaultValue={formValues[field.id]}
+                            label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
+                            items={getItems(field)}
+                            renamedInputKeys={{
+                                street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankAddressLine1) ? '' : 'bankAddressLine1',
+                                street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankAddressLine2) ? '' : 'bankAddressLine2',
+                                city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankCity) ? '' : 'bankCity',
+                                state: '',
+                                zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankPostal) ? '' : 'bankPostal',
+                                country: '',
+                                lat: '',
+                                lng: '',
+                            }}
+                        />
+                    </View>
                 ))}
             </View>
         </FormProvider>
