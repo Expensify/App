@@ -65,18 +65,18 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={workspacePlanTypes.find((mode) => mode.isSelected)?.keyForList}
                 />
+                <FixedFooter>
+                    <Button
+                        success
+                        large
+                        text={translate('common.save')}
+                        style={styles.mt6}
+                        onPress={() => {
+                            Navigation.goBack();
+                        }}
+                    />
+                </FixedFooter>
             </ScreenWrapper>
-            <FixedFooter>
-                <Button
-                    success
-                    large
-                    text={translate('common.save')}
-                    style={styles.mt6}
-                    onPress={() => {
-                        Navigation.goBack();
-                    }}
-                />
-            </FixedFooter>
         </AccessOrNotFoundWrapper>
     );
 }
