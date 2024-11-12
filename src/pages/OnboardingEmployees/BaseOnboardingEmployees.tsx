@@ -53,6 +53,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             displayName: allPersonalDetails?.[actorAccountID]?.displayName ?? CONST.EMAIL.QA_GUIDE,
             login: CONST.EMAIL.QA_GUIDE,
         };
+        // eslint-disable-next-line rulesdir/prefer-actions-set-data
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[actorAccountID]: optimisticPersonalDetailForQAGuide});
     };
 
