@@ -122,9 +122,9 @@ function setWorkspaceCompanyCardFeedName(policyID: string, workspaceAccountID: n
     API.write(WRITE_COMMANDS.SET_COMPANY_CARD_FEED_NAME, parameters, onyxData);
 }
 
-function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number, policyID: string, bankName: string, liabilityType: string) {
+function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number, policyID: string, bankName: CompanyCardFeed, liabilityType: string) {
     const authToken = NetworkStore.getAuthToken();
-    const isCustomFeed = CardUtils.isCustomFeed(bankName as CompanyCardFeed);
+    const isCustomFeed = CardUtils.isCustomFeed(bankName);
     const feedUpdates = {
         [bankName]: {liabilityType},
     };
@@ -151,9 +151,9 @@ function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number,
     API.write(WRITE_COMMANDS.SET_COMPANY_CARD_TRANSACTION_LIABILITY, parameters, onyxData);
 }
 
-function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: number, bankName: string) {
+function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: number, bankName: CompanyCardFeed) {
     const authToken = NetworkStore.getAuthToken();
-    const isCustomFeed = CardUtils.isCustomFeed(bankName as CompanyCardFeed);
+    const isCustomFeed = CardUtils.isCustomFeed(bankName);
     const feedUpdates = isCustomFeed ? {companyCards: {[bankName]: null}} : {oAuthAccountDetails: {[bankName]: null}};
 
     const onyxData: OnyxData = {
@@ -290,9 +290,9 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
     API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, onyxData);
 }
 
-function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: string) {
+function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: CompanyCardFeed) {
     const authToken = NetworkStore.getAuthToken();
-    const isCustomFeed = CardUtils.isCustomFeed(bankName as CompanyCardFeed);
+    const isCustomFeed = CardUtils.isCustomFeed(bankName);
 
     const optimisticData: OnyxUpdate[] = [
         {

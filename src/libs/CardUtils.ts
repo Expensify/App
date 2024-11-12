@@ -9,7 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
@@ -246,18 +246,18 @@ function isCustomFeed(feed: CompanyCardFeed): boolean {
     return CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD === feed || CONST.COMPANY_CARD.FEED_BANK_NAME.VISA === feed || CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX === feed;
 }
 
-function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): Partial<Record<CompanyCardFeed, CardFeedData>> {
+function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
     return {...cardFeeds?.settings?.companyCards, ...cardFeeds?.settings?.oAuthAccountDetails};
 }
 
-function removeExpensifyCardFromCompanyCards(cardFeeds: OnyxEntry<CardFeeds>): Partial<Record<CompanyCardFeed, CardFeedData>> {
+function removeExpensifyCardFromCompanyCards(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
     if (!cardFeeds) {
         return {};
     }
 
     const companyCards = getCompanyFeeds(cardFeeds);
 
-    return Object.fromEntries(Object.entries(companyCards).filter(([key]) => key !== CONST.EXPENSIFY_CARD.BANK)) as Partial<Record<CompanyCardFeed, CardFeedData>>;
+    return Object.fromEntries(Object.entries(companyCards).filter(([key]) => key !== CONST.EXPENSIFY_CARD.BANK)) as CompanyFeeds;
 }
 
 function getCardFeedName(feedType: CompanyCardFeed): string {

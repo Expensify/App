@@ -63,18 +63,21 @@ type DirectCardFeedData = {
 /** Card feed data */
 type CardFeedData = CustomCardFeedData | DirectCardFeedData;
 
+/** Both custom and direct company feeds */
+type CompanyFeeds = Partial<Record<CompanyCardFeed, CardFeedData>>;
+
 /** Card feeds model */
 type CardFeeds = {
     /** Feed settings */
     settings: {
         /** User-friendly feed nicknames */
-        companyCardNicknames: Record<string, string>;
+        companyCardNicknames: Record<CompanyCardFeed, string>;
 
         /** Company cards feeds */
-        companyCards: Record<string, CustomCardFeedData>;
+        companyCards: Record<CompanyCardFeed, CustomCardFeedData>;
 
         /** Account details */
-        oAuthAccountDetails: Record<ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>, DirectCardFeedData>;
+        oAuthAccountDetails: Record<CompanyCardFeed, DirectCardFeedData>;
     };
 
     /** Whether we are loading the data via the API */
@@ -118,4 +121,4 @@ type AddNewCompanyCardFeed = {
 };
 
 export default CardFeeds;
-export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData, CustomCardFeedData, CompanyCardFeed, DirectCardFeedData, CardFeedProvider};
+export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData, CustomCardFeedData, CompanyCardFeed, DirectCardFeedData, CardFeedProvider, CompanyFeeds};
