@@ -1,7 +1,6 @@
 {
-  "name": "react-native-nitro-template",
+  "name": "contacts-nitro-module",
   "version": "0.0.1",
-  "description": "A template for Nitro Modules.",
   "main": "lib/index",
   "module": "lib/index",
   "types": "lib/index.d.ts",
