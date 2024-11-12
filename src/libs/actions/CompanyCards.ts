@@ -244,14 +244,20 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
                 value: {
-                    [cardID]: null,
+                    [cardID]: {
+                        ...card,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
                 },
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.CARD_LIST,
                 value: {
-                    [cardID]: null,
+                    [cardID]: {
+                        ...card,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
                 },
             },
         ],
@@ -263,6 +269,7 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                 value: {
                     [cardID]: {
                         ...card,
+                        pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
@@ -273,6 +280,7 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                 value: {
                     [cardID]: {
                         ...card,
+                        pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },

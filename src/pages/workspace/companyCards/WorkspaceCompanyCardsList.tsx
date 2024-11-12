@@ -42,6 +42,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     key={`${item.nameValuePairs?.cardTitle}_${index}`}
                     errorRowStyles={styles.ph5}
                     errors={item.errors}
+                    pendingAction={item.pendingAction}
                 >
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
