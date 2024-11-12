@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useEffect, useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -9,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Button from '@components/Button';
 
 function SMSDeliveryFailurePage() {
     const styles = useThemeStyles();
@@ -35,7 +35,7 @@ function SMSDeliveryFailurePage() {
         Keyboard.dismiss();
     }, [isKeyboardShown]);
 
-    if(isResetPhoneNumberFailureSuccess){
+    if (isResetPhoneNumberFailureSuccess) {
         return (
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
@@ -54,10 +54,10 @@ function SMSDeliveryFailurePage() {
                     />
                 </View>
             </>
-        )
+        );
     }
 
-    if(isResetPhoneNumberFailureSuccess !== undefined && !isResetPhoneNumberFailureSuccess){
+    if (isResetPhoneNumberFailureSuccess !== undefined && !isResetPhoneNumberFailureSuccess) {
         return (
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
@@ -75,7 +75,7 @@ function SMSDeliveryFailurePage() {
                     />
                 </View>
             </>
-        )
+        );
     }
 
     return (
