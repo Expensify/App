@@ -37,6 +37,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
         ({item, index}: ListRenderItemInfo<Card>) => {
             const cardID = Object.keys(cardsList ?? {}).find((id) => cardsList?.[id].cardID === item.cardID);
             const cardName = CardUtils.getCompanyCardNumber(cardsList?.cardList ?? {}, item.lastFourPAN);
+            const isCardDeleted = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             return (
                 <OfflineWithFeedback
                     key={`${item.nameValuePairs?.cardTitle}_${index}`}
@@ -49,8 +50,9 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                         style={[styles.mh5, styles.br3, styles.mb3, styles.highlightBG]}
                         accessibilityLabel="row"
                         hoverStyle={styles.hoveredComponentBG}
+                        disabled={isCardDeleted}
                         onPress={() => {
-                            if (!cardID || !item?.accountID) {
+                            if (!cardID || !item?.accountID || isCardDeleted) {
                                 return;
                             }
                             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, item.bank));
