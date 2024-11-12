@@ -5862,6 +5862,9 @@ const CONST = {
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
             DONE: 'done',
             PAID: 'paid',
         },
@@ -6218,6 +6221,14 @@ const CONST = {
         HAS_ERRORS: 'hasErrors',
         HAS_VIOLATIONS: 'hasViolations',
         HAS_TRANSACTION_THREAD_VIOLATIONS: 'hasTransactionThreadViolations',
+    },
+
+    ANALYTICS: {
+        EVENT: {
+            SIGN_UP: 'sign_up',
+            WORKSPACE_CREATED: 'workspace_created',
+            PAID_ADOPTION: 'paid_adoption',
+        },
     },
 } as const;
 
