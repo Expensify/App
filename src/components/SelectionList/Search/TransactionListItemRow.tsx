@@ -59,6 +59,7 @@ type TransactionListItemRowProps = {
     isButtonSelected?: boolean;
     parentAction?: string;
     shouldShowTransactionCheckbox?: boolean;
+    isLoading?: boolean;
 };
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -257,6 +258,7 @@ function TransactionListItemRow({
     isButtonSelected = false,
     parentAction = '',
     shouldShowTransactionCheckbox,
+    isLoading = false,
 }: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -280,11 +282,12 @@ function TransactionListItemRow({
                         isDisabled={item.isDisabled}
                         isDisabledCheckbox={item.isDisabledCheckbox}
                         handleCheckboxPress={onCheckboxPress}
+                        isLoading={isLoading}
                     />
                 )}
 
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
-                    {canSelectMultiple && shouldShowTransactionCheckbox && (
+                    {canSelectMultiple && !!shouldShowTransactionCheckbox && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
@@ -293,7 +296,7 @@ function TransactionListItemRow({
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
                         >
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!isDisabled)]}>
-                                {item.isSelected && (
+                                {!!item.isSelected && (
                                     <Icon
                                         src={Expensicons.Checkmark}
                                         fill={theme.textLight}
@@ -445,6 +448,7 @@ function TransactionListItemRow({
                         isChildListItem={isChildListItem}
                         parentAction={parentAction}
                         goToItem={onButtonPress}
+                        isLoading={isLoading}
                     />
                 </View>
             </View>
