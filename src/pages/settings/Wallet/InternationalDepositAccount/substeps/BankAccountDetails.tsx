@@ -21,7 +21,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
     const styles = useThemeStyles();
 
     const handleSubmit = useInternationalBankAccountFormSubmit({
-        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS]),
+        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}),
         onNext,
         shouldSaveDraft: true,
     });
