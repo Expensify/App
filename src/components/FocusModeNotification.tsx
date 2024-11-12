@@ -24,6 +24,8 @@ function FocusModeNotification() {
             confirmText={translate('common.buttonConfirm')}
             onConfirm={User.clearFocusModeNotification}
             shouldShowCancelButton={false}
+            onBackdropPress={User.clearFocusModeNotification}
+            onCancel={User.clearFocusModeNotification}
             prompt={
                 <Text>
                     {translate('focusModeUpdateModal.prompt')}

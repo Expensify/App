@@ -131,6 +131,21 @@ function maskCard(lastFour = ''): string {
 }
 
 /**
+ * Returns a masked credit card string.
+ * Converts given 'X' to '•' for the entire card string.
+ *
+ * @param cardName - card name with XXXX in the middle.
+ * @returns - The masked card string.
+ */
+function maskCardNumber(cardName: string): string {
+    if (!cardName || cardName === '') {
+        return '';
+    }
+    const maskedString = cardName.replace(/X/g, '•');
+    return maskedString.replace(/(.{4})/g, '$1 ').trim();
+}
+
+/**
  * Finds physical card in a list of cards
  *
  * @returns a physical card object (or undefined if none is found)
@@ -190,7 +205,7 @@ function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: st
         return '';
     }
 
-    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? '';
+    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? maskCard(lastFourPAN);
 }
 
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK): IconAsset {
@@ -313,6 +328,7 @@ export {
     getMonthFromExpirationDateString,
     getYearFromExpirationDateString,
     maskCard,
+    maskCardNumber,
     getCardDescription,
     findPhysicalCard,
     hasDetectedFraud,

@@ -96,7 +96,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
-    Beta,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
     PersonalDetailsList,
@@ -182,6 +181,11 @@ Onyx.connect({
         currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
     },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.CONCIERGE_REPORT_ID,
+    callback: (value) => (conciergeChatReportID = value),
 });
 
 let preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE;
@@ -273,12 +277,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     waitForCollectionCallback: true,
     callback: (value) => (allReportDraftComments = value),
-});
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
 });
 
 let environmentURL: string;
@@ -3426,7 +3424,7 @@ function completeOnboarding(
     userReportedIntegration?: OnboardingAccountingType,
 ) {
     // If the user has the "combinedTrackSubmit" beta enabled we'll show different tasks for track and submit expense.
-    if (Permissions.canUseCombinedTrackSubmit(allBetas)) {
+    if (Permissions.canUseCombinedTrackSubmit()) {
         if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
             // eslint-disable-next-line no-param-reassign
             data = CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
@@ -3676,6 +3674,9 @@ function completeOnboarding(
     }, []);
 
     const optimisticData: OnyxUpdate[] = [...tasksForOptimisticData];
+    const lastVisibleActionCreated =
+        tasksData.at(-1)?.completedTaskReportAction?.created ?? tasksData.at(-1)?.taskReportAction.reportAction.created ?? videoCommentAction?.created ?? textCommentAction.created;
+
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3683,6 +3684,7 @@ function completeOnboarding(
             value: {
                 lastMentionedTime: DateUtils.getDBTime(),
                 hasOutstandingChildTask,
+                lastVisibleActionCreated,
             },
         },
         {
@@ -3724,12 +3726,12 @@ function completeOnboarding(
     const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(targetChatReportID);
     if (lastMessageText || lastMessageTranslationKey) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(targetChatReportID);
-        const lastVisibleActionCreated = lastVisibleAction?.created;
+        const prevLastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
             lastMessageTranslationKey,
             lastMessageText,
-            lastVisibleActionCreated,
+            lastVisibleActionCreated: prevLastVisibleActionCreated,
             lastActorAccountID,
         };
     }

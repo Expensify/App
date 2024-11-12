@@ -1,18 +1,21 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
+import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {LastPaymentMethod} from '@src/types/onyx';
+import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
 
 let currentUserEmail: string;
@@ -22,6 +25,32 @@ Onyx.connect({
         currentUserEmail = val?.email ?? '';
     },
 });
+
+let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+    callback: (val) => {
+        lastPaymentMethod = val;
+    },
+});
+
+function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
+    // The transactionID is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
+    // We need the transactionID to display the loading indicator for that list item's action.
+    const transactionID = isTransactionListItemType(item) ? item.transactionID : undefined;
+
+    switch (item.action) {
+        case CONST.SEARCH.ACTION_TYPES.PAY: {
+            const lastPolicyPaymentMethod = item.policyID ? (lastPaymentMethod?.[item.policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) : null;
+            const amount = isReportListItemType(item) ? item.total ?? 0 : item.formattedTotal;
+            return lastPolicyPaymentMethod ? payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID) : goToItem();
+        }
+        case CONST.SEARCH.ACTION_TYPES.APPROVE:
+            return approveMoneyRequestOnSearch(hash, [item.reportID], transactionID);
+        default:
+            return goToItem();
+    }
+}
 
 function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
@@ -164,20 +193,42 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-// this function will be used once https://github.com/Expensify/App/pull/51445 is merged
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function approveMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], transactionID?: string) {
+    const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: transactionID
+                    ? {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {isActionLoading: isLoading}}
+                    : (Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isActionLoading: isLoading}])) as Partial<SearchReport>),
+            },
+        },
+    ];
+
+    const optimisticData: OnyxUpdate[] = createActionLoadingData(true);
+    const finallyData: OnyxUpdate[] = createActionLoadingData(false);
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
 }
 
-// this function will be used once https://github.com/Expensify/App/pull/51445 is merged
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function payMoneyRequestOnSearch(hash: number, paymentType: string, reportsAndAmounts: string) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], transactionID?: string) {
+    const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: transactionID
+                    ? {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {isActionLoading: isLoading}}
+                    : (Object.fromEntries(paymentData.map((item) => [`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {isActionLoading: isLoading}])) as Partial<SearchReport>),
+            },
+        },
+    ];
 
-    API.write(WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, paymentType, reportsAndAmounts}, {optimisticData, finallyData});
+    const optimisticData: OnyxUpdate[] = createActionLoadingData(true);
+    const finallyData: OnyxUpdate[] = createActionLoadingData(false);
+
+    API.write(WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, paymentData: JSON.stringify(paymentData)}, {optimisticData, finallyData});
 }
 
 function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
@@ -261,4 +312,7 @@ export {
     deleteSavedSearch,
     dismissSavedSearchRenameTooltip,
     showSavedSearchRenameTooltip,
+    payMoneyRequestOnSearch,
+    approveMoneyRequestOnSearch,
+    handleActionButtonPress,
 };

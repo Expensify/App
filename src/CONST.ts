@@ -20,6 +20,7 @@ const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
+const EXPENSIFY_URL = 'https://www.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
@@ -296,6 +297,7 @@ const CONST = {
     DEFAULT_TABLE_NAME: 'keyvaluepairs',
     DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
+    DEFAULT_IMAGE_FILE_NAME: 'image',
     DISABLED_MAX_EXPENSE_VALUE: 10000000000,
     POLICY_BILLABLE_MODES: {
         BILLABLE: 'billable',
@@ -832,6 +834,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     USE_EXPENSIFY_URL,
+    EXPENSIFY_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
     IMAGE_BASE64_MATCH: 'base64',
@@ -844,13 +847,14 @@ const CONST = {
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
     DEEP_DIVE_ERECEIPTS: 'https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts/',
+    DEEP_DIVE_PER_DIEM: 'https://community.expensify.com/discussion/4772/how-to-add-a-single-rate-per-diem',
     GITHUB_URL: 'https://github.com/Expensify/App',
-    TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
-    PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
+    TERMS_URL: `${EXPENSIFY_URL}/terms`,
+    PRIVACY_URL: `${EXPENSIFY_URL}/privacy`,
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
-    ACH_TERMS_URL: `${USE_EXPENSIFY_URL}/achterms`,
-    WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/walletagreement`,
-    BANCORP_WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
+    ACH_TERMS_URL: `${EXPENSIFY_URL}/achterms`,
+    WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/expensify-payments-wallet-terms-of-service`,
+    BANCORP_WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
     HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
@@ -863,7 +867,6 @@ const CONST = {
     NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
-    EXPENSIFY_URL: 'https://www.expensify.com',
     BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL:
         'https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account',
     PERSONAL_DATA_PROTECTION_INFO_URL: 'https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information',
@@ -871,7 +874,7 @@ const CONST = {
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
-    TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
+    TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
@@ -1251,17 +1254,13 @@ const CONST = {
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        SEARCH_ROUTER_RENDER: 'search_router_render',
-        CHAT_RENDER: 'chat_render',
+        OPEN_SEARCH: 'open_search',
         OPEN_REPORT: 'open_report',
-        HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
-        REPORT_INITIAL_RENDER: 'report_initial_render',
-        SWITCH_REPORT: 'switch_report',
         OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
         OPEN_REPORT_THREAD: 'open_report_thread',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
-        MESSAGE_SENT: 'message_sent',
+        SEND_MESSAGE: 'send_message',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -1275,6 +1274,7 @@ const CONST = {
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
+        LIST_SCROLLING_DEBOUNCE_TIME: 200,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1855,7 +1855,6 @@ const CONST = {
                 JOBS: 'jobs',
             },
         },
-        NETSUITE_CUSTOM_LIST_LIMIT: 8,
         NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES: ['1', '2,', '3', '4'],
         NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
     },
@@ -2465,6 +2464,7 @@ const CONST = {
             ARE_INVOICES_ENABLED: 'areInvoicesEnabled',
             ARE_TAXES_ENABLED: 'tax',
             ARE_RULES_ENABLED: 'areRulesEnabled',
+            ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
         },
         DEFAULT_CATEGORIES: [
             'Advertising',
@@ -2631,6 +2631,7 @@ const CONST = {
 
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
+        NAME_PER_DIEM_INTERNATIONAL: 'Per Diem International',
         DISTANCE_UNIT_MILES: 'mi',
         DISTANCE_UNIT_KILOMETERS: 'km',
         MILEAGE_IRS_RATE: 0.67,
@@ -2695,6 +2696,7 @@ const CONST = {
         STEP: {
             ASSIGNEE: 'Assignee',
             CARD: 'Card',
+            CARD_NAME: 'CardName',
             TRANSACTION_START_DATE: 'TransactionStartDate',
             CONFIRMATION: 'Confirmation',
         },
@@ -2800,6 +2802,7 @@ const CONST = {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
         },
+        CARD_LIST_THRESHOLD: 8,
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
@@ -3063,6 +3066,7 @@ const CONST = {
     // Character Limits
     FORM_CHARACTER_LIMIT: 50,
     STANDARD_LENGTH_LIMIT: 100,
+    STANDARD_LIST_ITEM_LIMIT: 8,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
@@ -3136,8 +3140,8 @@ const CONST = {
         EXPENSIFY_APPROVED_URL: `${USE_EXPENSIFY_URL}/accountants`,
         PRESS_KIT_URL: 'https://we.are.expensify.com/press-kit',
         SUPPORT_URL: `${USE_EXPENSIFY_URL}/support`,
-        COMMUNITY_URL: 'https://community.expensify.com/',
-        PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
+        TERMS_URL: `${EXPENSIFY_URL}/terms`,
+        PRIVACY_URL: `${EXPENSIFY_URL}/privacy`,
         ABOUT_URL: 'https://we.are.expensify.com/how-we-got-here',
         BLOG_URL: 'https://blog.expensify.com/',
         JOBS_URL: 'https://we.are.expensify.com/apply',
@@ -4539,9 +4543,6 @@ const CONST = {
     },
     INDENTS: '    ',
     PARENT_CHILD_SEPARATOR: ': ',
-    CATEGORY_LIST_THRESHOLD: 8,
-    TAG_LIST_THRESHOLD: 8,
-    TAX_RATES_LIST_THRESHOLD: 8,
     COLON: ':',
     MAPBOX: {
         PADDING: 32,
@@ -4624,11 +4625,6 @@ const CONST = {
      * When paginate, it multiplies by page number.
      */
     MAX_SELECTION_LIST_PAGE_LENGTH: 500,
-
-    /**
-     *  We only include the members search bar when we have 8 or more members
-     */
-    SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT: 8,
 
     /**
      * Bank account names
@@ -4803,7 +4799,6 @@ const CONST = {
     WORKSPACE_SWITCHER: {
         NAME: 'Expensify',
         SUBSCRIPT_ICON_SIZE: 8,
-        MINIMUM_WORKSPACES_TO_SHOW_SEARCH: 8,
     },
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
@@ -5853,6 +5848,9 @@ const CONST = {
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
             DONE: 'done',
             PAID: 'paid',
         },
@@ -6092,6 +6090,14 @@ const CONST = {
                 description: 'workspace.upgrade.rules.description' as const,
                 icon: 'Rules',
             },
+            perDiem: {
+                id: 'perDiem' as const,
+                alias: 'per-diem',
+                name: 'Per diem',
+                title: 'workspace.upgrade.perDiem.title' as const,
+                description: 'workspace.upgrade.perDiem.description' as const,
+                icon: 'PerDiem',
+            },
         };
     },
     REPORT_FIELD_TYPES: {
@@ -6201,6 +6207,14 @@ const CONST = {
         HAS_ERRORS: 'hasErrors',
         HAS_VIOLATIONS: 'hasViolations',
         HAS_TRANSACTION_THREAD_VIOLATIONS: 'hasTransactionThreadViolations',
+    },
+
+    ANALYTICS: {
+        EVENT: {
+            SIGN_UP: 'sign_up',
+            WORKSPACE_CREATED: 'workspace_created',
+            PAID_ADOPTION: 'paid_adoption',
+        },
     },
 } as const;
 

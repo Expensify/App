@@ -44,7 +44,6 @@ const INPUT_IDS = {
     TOTAL: 'total',
     TYPE: 'type',
     UNHELD_TOTAL: 'unheldTotal',
-    VISIBLE_CHAT_MEMBER_ACCOUNT_IDS: 'visibleChatMemberAccountIDs',
     WELCOME_MESSAGE: 'welcomeMessage',
     WRITE_CAPABILITY: 'writeCapability',
 } as const;
@@ -94,7 +93,6 @@ type DebugReportForm = Form<
         [INPUT_IDS.TOTAL]: string;
         [INPUT_IDS.TYPE]: ValueOf<typeof CONST.REPORT.TYPE>;
         [INPUT_IDS.UNHELD_TOTAL]: string;
-        [INPUT_IDS.VISIBLE_CHAT_MEMBER_ACCOUNT_IDS]: string;
         [INPUT_IDS.WELCOME_MESSAGE]: string;
         [INPUT_IDS.WRITE_CAPABILITY]: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
     }
