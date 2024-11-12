@@ -151,7 +151,8 @@ function UploadFile({
             ))}
             {errorText !== '' && (
                 <DotIndicatorMessage
-                    textStyles={[styles.formError]}
+                    style={styles.mt3}
+                    textStyles={[styles.formError, styles.mb0]}
                     type="error"
                     messages={{errorText}}
                 />
