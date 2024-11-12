@@ -6,6 +6,7 @@ import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
+import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -33,6 +34,9 @@ describe('actions/Policy', () => {
         it('creates a new workspace', async () => {
             (fetch as MockFetch)?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Onyx.set(`${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`, fakePolicy.id);
             await waitForBatchedUpdates();
 
             let adminReportID;
@@ -51,6 +55,19 @@ describe('actions/Policy', () => {
                     },
                 });
             });
+
+            const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`,
+                    callback: (id) => {
+                        Onyx.disconnect(connection);
+                        resolve(id);
+                    },
+                });
+            });
+            console.log(activePolicyID, policyID, fakePolicy), "dsaad---------------------";
+            // check if NVP_ACTIVE_POLICY_ID is updated to created policy id
+            expect(activePolicyID).toBe(policyID);
 
             // check if policy was created with correct values
             expect(policy?.id).toBe(policyID);
