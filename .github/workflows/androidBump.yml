@@ -1,12 +1,9 @@
 name: Android Rollout Bumper
 
 on:
-#  schedule:
-#    - cron: '0 0 * * *' # Runs at midnight every day
-  # TODO: Remove when done testing
-  push:
-    branches:
-      - andrew-android-bump
+  schedule:
+    # Runs at midnight every day
+    - cron: '0 0 * * *'
 
 jobs:
   android_bump:
@@ -17,6 +14,11 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
 
       - name: Decrypt json Google Play credentials
         run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
