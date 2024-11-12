@@ -41,6 +41,7 @@ import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as App from '@userActions/App';
 import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
+import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
 import {setLoggedOutFromOldDot, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setUseNewDotSignInPage} from '@userActions/HybridApp';
 import * as PriorityMode from '@userActions/PriorityMode';
@@ -482,14 +483,14 @@ function signUpUser() {
 
 function signInAfterTransitionFromOldDot(transitionURL: string) {
     const [route, queryParams] = transitionURL.split('?');
-    const {useNewDotSignInPage, isSingleNewDotEntry, loggedOutFromOldDot} = queryParams
+    const {useNewDotSignInPage, isSingleNewDotEntry, loggedOutFromOldDot, shouldRemoveDelegatedAccess} = queryParams
         ? Object.fromEntries(
               queryParams.split('&').map((param) => {
                   const [key, value] = param.split('=');
                   return [key, value];
               }),
           )
-        : {useNewDotSignInPage: undefined, isSingleNewDotEntry: undefined, loggedOutFromOldDot: undefined};
+        : {useNewDotSignInPage: undefined, isSingleNewDotEntry: undefined, loggedOutFromOldDot: undefined, shouldRemoveDelegatedAccess: undefined};
 
     const clearOnyxBeforeSignIn = () => {
         if (useNewDotSignInPage !== 'true') {
@@ -498,7 +499,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
             return Promise.resolve();
         }
 
-        return Onyx.clear();
+        return Onyx.clear(KEYS_TO_PRESERVE);
     };
 
     const initAppAfterTransition = () => {
@@ -511,6 +512,12 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
 
     return new Promise<Route>((resolve) => {
         clearOnyxBeforeSignIn()
+            .then(() => {
+                if (!shouldRemoveDelegatedAccess) {
+                    return;
+                }
+                return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
+            })
             .then(() => {
                 setUseNewDotSignInPage(useNewDotSignInPage === 'true');
                 setLoggedOutFromOldDot(loggedOutFromOldDot === 'true');

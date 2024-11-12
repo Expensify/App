@@ -76,6 +76,10 @@
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
         }
 
+        .toc-link::before {
+            display: none;
+        }
+
         .toc-sidebar ul {
             list-style: none;
             padding-left: 0;
@@ -214,7 +218,7 @@
         .footer-column {
             flex: 1;
             max-width: 300px; /* Set a max-width for each column */
-            padding: 0 20px;  /* Add padding for some space between the columns */                  
+            padding: 0 20px;  /* Add padding for some space between the columns */
         }
     </style>
 </head>
@@ -273,8 +277,8 @@
                     <li><a href="https://use.expensify.com/press-kit">Press Kit</a></li>
                     <li><a href="https://use.expensify.com/support">Support</a></li>
                     <li><a href="https://help.expensify.com/">ExpensifyHelp</a></li>
-                    <li><a href="https://community.expensify.com/">Community</a></li>
-                    <li><a href="https://use.expensify.com/privacy">Privacy</a></li>
+                    <li><a href="https://www.expensify.com/terms">Terms of Service</a></li>
+                    <li><a href="https://www.expensify.com/privacy">Privacy</a></li>
                     <li><a href="https://use.expensify.com/download">Expensify App</a></li>
                 </ul>
             </div>
@@ -325,7 +329,7 @@
             </div>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.27.4/tocbot.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.32.1/tocbot.min.js"></script>
     <script>
         function updateURLHashOnScroll() {
             const activeLink = document.querySelector('.toc-sidebar .is-active-link');
@@ -360,6 +364,8 @@
           enableUrlHashUpdateOnScroll: false,
           headingsOffset: 80,
           scrollSmoothOffset: -80,
+          tocScrollingWrapper: document.querySelector('.toc-sidebar'),
+          tocScrollOffset: 80,
           headingObjectCallback: function(obj, element) {
             const tocTitle = element.getAttribute('data-toc-title');
             if (tocTitle) {

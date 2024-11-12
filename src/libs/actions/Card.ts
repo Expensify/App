@@ -37,7 +37,7 @@ type IssueNewCardFlowData = {
     data?: Partial<IssueNewCardData>;
 };
 
-function reportVirtualExpensifyCardFraud(card?: Card) {
+function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
     const cardID = card?.cardID ?? -1;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -45,6 +45,7 @@ function reportVirtualExpensifyCardFraud(card?: Card) {
             key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
             value: {
                 isLoading: true,
+                errors: null,
             },
         },
         {
@@ -105,6 +106,7 @@ function reportVirtualExpensifyCardFraud(card?: Card) {
 
     const parameters: ReportVirtualExpensifyCardFraudParams = {
         cardID,
+        validateCode,
     };
 
     API.write(WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD, parameters, {
@@ -119,7 +121,7 @@ function reportVirtualExpensifyCardFraud(card?: Card) {
  * @param cardID - id of the card that is going to be replaced
  * @param reason - reason for replacement
  */
-function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReason) {
+function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReason, validateCode: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -154,6 +156,7 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
     const parameters: RequestReplacementExpensifyCardParams = {
         cardID,
         reason,
+        validateCode,
     };
 
     API.write(WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD, parameters, {

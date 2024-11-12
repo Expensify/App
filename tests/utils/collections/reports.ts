@@ -13,7 +13,6 @@ export default function createRandomReport(index: number): Report {
         isOptimisticReport: randBoolean(),
         isOwnPolicyExpenseChat: randBoolean(),
         isWaitingOnBankAccount: randBoolean(),
-        isLastMessageDeletedParentAction: randBoolean(),
         policyID: index.toString(),
         reportName: randWord(),
     };
