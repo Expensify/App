@@ -357,6 +357,10 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             } else if (isAuditor) {
                 roleBadge = <Badge text={translate('common.auditor')} />;
             }
+            const shouldPreventDisableCheckboxIfDisabled = !(
+                isPolicyAdmin &&
+                (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors))
+            );
 
             result.push({
                 keyForList: String(accountID),
@@ -366,10 +370,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 isDisabled:
                     !!details.isOptimisticPersonalDetail ||
                     (isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors))),
-                shouldPreventDisableCheckboxIfDisabled: !(
-                    isPolicyAdmin &&
-                    (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors))
-                ),
+                shouldPreventDisableCheckboxIfDisabled,
                 cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),

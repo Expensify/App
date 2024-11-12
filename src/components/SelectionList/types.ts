@@ -192,7 +192,7 @@ type ListItem = {
     /** The style to override the default appearance */
     itemStyle?: StyleProp<ViewStyle>;
 
-    /** Whether to prevent list items from being disabled */
+    /** Whether to prevent checkbox from being disabled */
     shouldPreventDisableCheckboxIfDisabled?: boolean;
 };
 
