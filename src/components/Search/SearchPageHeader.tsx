@@ -58,7 +58,7 @@ function HeaderWrapper({icon, children, text, value, isCannedQuery, onSubmit, se
         >
             {isCannedQuery ? (
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
-                    {icon && (
+                    {!!icon && (
                         <Icon
                             src={icon}
                             width={variables.iconHeader}
@@ -73,9 +73,8 @@ function HeaderWrapper({icon, children, text, value, isCannedQuery, onSubmit, se
                 <View style={styles.pr5}>
                     <SearchRouterInput
                         value={value}
-                        setValue={setValue}
                         onSubmit={onSubmit}
-                        updateSearch={() => {}}
+                        updateSearch={setValue}
                         autoFocus={false}
                         isFullWidth
                         wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
@@ -183,7 +182,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                     return;
                 }
 
-                const reportIDList = (selectedReports?.filter((report) => !!report) as string[]) ?? [];
+                const reportIDList = selectedReports?.filter((report) => !!report) ?? [];
                 SearchActions.exportSearchItemsToCSV(
                     {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
                     () => {
@@ -341,7 +340,10 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         }
         const inputQueryJSON = SearchQueryUtils.buildSearchQueryJSON(inputValue);
         if (inputQueryJSON) {
-            const standardizedQuery = SearchQueryUtils.standardizeQueryJSON(inputQueryJSON, cardList, taxRates);
+            // Todo traverse the tree to update all the display values into id values; this is only temporary until autocomplete code from SearchRouter is implement here
+            // After https://github.com/Expensify/App/pull/51633 is merged, autocomplete functionality will be included into this component, and `getFindIDFromDisplayValue` can be removed
+            const computeNodeValueFn = SearchQueryUtils.getFindIDFromDisplayValue(cardList, taxRates);
+            const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(inputQueryJSON, computeNodeValueFn);
             const query = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
             SearchActions.clearAllFilters();
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
