@@ -288,7 +288,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
             : []
     ) as SearchTransaction[];
 
-    if (IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy)) {
+    if (IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, false, true, chatReportRNVP, invoiceReceiverPolicy)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 
