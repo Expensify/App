@@ -92,6 +92,7 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
 
         // Clicking back on the success screen should dismiss the modal
         if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS) {
+            FormActions.clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
             Navigation.goBack();
             return;
         }
