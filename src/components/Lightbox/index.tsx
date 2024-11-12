@@ -218,6 +218,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                 contentSize={contentSize}
                                 zoomRange={zoomRange}
                                 pagerRef={pagerRef}
+                                isUsedInCarousel={isUsedInCarousel}
                                 shouldDisableTransformationGestures={isPagerScrolling}
                                 isPagerScrollEnabled={isScrollEnabled}
                                 onTap={onTap}

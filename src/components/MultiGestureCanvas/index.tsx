@@ -46,6 +46,9 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** If there is a pager wrapping the canvas, we need to disable the pan gesture in case the pager is swiping */
     pagerRef?: ForwardedRef<PagerView | GestureType>; // TODO: For TS migration: Exclude<GestureRef, number>
 
+    /** Whether the component is being used inside a carousel */
+    isUsedInCarousel: boolean;
+
     /** Handles scale changed event */
     onScaleChanged?: OnScaleChangedCallback;
 
@@ -65,6 +68,7 @@ function MultiGestureCanvas({
     isActive = true,
     children,
     pagerRef,
+    isUsedInCarousel,
     shouldDisableTransformationGestures: shouldDisableTransformationGesturesProp,
     isPagerScrollEnabled,
     onTap,
@@ -114,6 +118,9 @@ function MultiGestureCanvas({
     useAnimatedReaction(
         () => isSwipingDownToClose.value,
         (current) => {
+            if (!isUsedInCarousel) {
+                return;
+            }
             // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
             isPagerScrollEnabled.value = !current;
         },
