@@ -4,6 +4,7 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,6 +46,7 @@ function ActionCell({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isOffline} = useNetwork();
 
     const text = translate(actionTranslationsMap[action]);
 
@@ -98,6 +100,7 @@ function ActionCell({
             innerStyles={buttonInnerStyles}
             isLoading={isLoading}
             success
+            isDisabled={isOffline}
         />
     );
 }
