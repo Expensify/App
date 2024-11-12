@@ -17,9 +17,20 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-type TopBarProps = {breadcrumbLabel: string; activeWorkspaceID?: string; shouldDisplaySearch?: boolean; shouldDisplayCancelSearch?: boolean};
+type TopBarProps = {
+    breadcrumbLabel: string;
+    activeWorkspaceID?: string;
+    shouldDisplaySearch?: boolean;
+    shouldDisplayCancelSearch?: boolean;
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayCancelSearch = false}: TopBarProps) {
+    /**
+     * Callback used to keep track of the workspace switching process in the BaseSidebarScreen.
+     * Passed to the WorkspaceSwitcherButton component.
+     */
+    onSwitchWorkspace?: () => void;
+};
+
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayCancelSearch = false, onSwitchWorkspace}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(activeWorkspaceID);
@@ -42,7 +53,10 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                 dataSet={{dragArea: true}}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.ml2]}>
-                    <WorkspaceSwitcherButton policy={policy} />
+                    <WorkspaceSwitcherButton
+                        policy={policy}
+                        onSwitchWorkspace={onSwitchWorkspace}
+                    />
 
                     <View style={[styles.ml3, styles.flex1]}>
                         <Breadcrumbs

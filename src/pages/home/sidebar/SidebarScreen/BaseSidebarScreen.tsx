@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -36,11 +36,25 @@ function BaseSidebarScreen() {
         Timing.start(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
 
+    const isSwitchingWorkspace = useRef(false);
     useEffect(() => {
-        if (!!activeWorkspace || activeWorkspaceID === undefined) {
+        // Whether the active workspace or the "Everything" page is loaded
+        const isWorkspaceOrEverythingLoaded = !!activeWorkspace || activeWorkspaceID === undefined;
+
+        // If we are currently switching workspaces, we don't want to do anything until the target workspace is loaded
+        if (isSwitchingWorkspace.current) {
+            if (isWorkspaceOrEverythingLoaded) {
+                isSwitchingWorkspace.current = false;
+            }
             return;
         }
 
+        // Otherwise, if the workspace is already loaded, we don't need to do anything
+        if (isWorkspaceOrEverythingLoaded) {
+            return;
+        }
+
+        isSwitchingWorkspace.current = true;
         Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         updateLastAccessedWorkspace(undefined);
     }, [activeWorkspace, activeWorkspaceID]);
@@ -61,6 +75,7 @@ function BaseSidebarScreen() {
                         breadcrumbLabel={translate('common.inbox')}
                         activeWorkspaceID={activeWorkspaceID}
                         shouldDisplaySearch={shouldDisplaySearch}
+                        onSwitchWorkspace={() => (isSwitchingWorkspace.current = true)}
                     />
                     <View style={[styles.flex1]}>
                         <SidebarLinksData
