@@ -183,7 +183,7 @@ function WorkspaceSwitcherPage() {
                         pressableStyle={styles.flexRow}
                         shouldSyncFocus={false}
                     />
-                    <WorkspacesSectionHeader />
+                    <WorkspacesSectionHeader shouldShowCreateWorkspaceIcon={!shouldShowCreateWorkspace} />
                     <SelectionList<WorkspaceListItem>
                         ListItem={UserListItem}
                         sections={sections}

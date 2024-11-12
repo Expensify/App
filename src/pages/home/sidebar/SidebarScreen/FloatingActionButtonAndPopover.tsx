@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
+import ConfirmModal from '@components/ConfirmModal';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -168,6 +169,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const [hasSeenTrackTraining] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -183,6 +185,18 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
+    /**
+     * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
+     * 1. on at least one group policy
+     * 2. none of the group policies they are a member of have isPolicyExpenseChatEnabled=true
+     */
+    const shouldRedirectToExpensifyClassic = useMemo(() => {
+        const groupPolicies = Object.values(allPolicies ?? {}).filter((policy) => ReportUtils.isGroupPolicy(policy?.type ?? ''));
+        if (groupPolicies.length === 0) {
+            return false;
+        }
+        return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+    }, [allPolicies]);
 
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
@@ -247,37 +261,27 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
 
         switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), true);
-                return;
             case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), true);
-                return;
             case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, undefined, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), true);
-                return;
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, false), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, false), true);
                 return;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), false);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, undefined, true), false);
                 return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
                 selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? quickActionReportID : '', quickAction.targetAccountID ?? -1), false);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), false);
-                break;
             case CONST.QUICK_ACTIONS.TRACK_SCAN:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), false);
-                break;
             case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), false);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, undefined, true), false);
                 break;
             default:
         }
@@ -358,15 +362,20 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 {
                     icon: getIconForAction(CONST.IOU.TYPE.CREATE),
                     text: translate('iou.createExpense'),
+                    shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
                     onSelected: () =>
-                        interceptAnonymousUser(() =>
+                        interceptAnonymousUser(() => {
+                            if (shouldRedirectToExpensifyClassic) {
+                                setModalVisible(true);
+                                return;
+                            }
                             IOU.startMoneyRequest(
                                 CONST.IOU.TYPE.CREATE,
                                 // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                 // for all of the routes in the creation flow.
                                 ReportUtils.generateReportID(),
-                            ),
-                        ),
+                            );
+                        }),
                 },
             ];
         }
@@ -377,16 +386,21 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                       {
                           icon: getIconForAction(CONST.IOU.TYPE.TRACK),
                           text: translate('iou.trackExpense'),
+                          shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
                           onSelected: () => {
-                              interceptAnonymousUser(() =>
+                              if (shouldRedirectToExpensifyClassic) {
+                                  setModalVisible(true);
+                                  return;
+                              }
+                              interceptAnonymousUser(() => {
                                   IOU.startMoneyRequest(
                                       CONST.IOU.TYPE.TRACK,
                                       // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
                                       // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
                                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                       ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
-                                  ),
-                              );
+                                  );
+                              });
                               if (!hasSeenTrackTraining && !isOffline) {
                                   setTimeout(() => {
                                       Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
@@ -399,18 +413,24 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             {
                 icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
                 text: translate('iou.submitExpense'),
+                shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
                 onSelected: () =>
-                    interceptAnonymousUser(() =>
+                    interceptAnonymousUser(() => {
+                        if (shouldRedirectToExpensifyClassic) {
+                            setModalVisible(true);
+                            return;
+                        }
+
                         IOU.startMoneyRequest(
                             CONST.IOU.TYPE.SUBMIT,
                             // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                             // for all of the routes in the creation flow.
                             ReportUtils.generateReportID(),
-                        ),
-                    ),
+                        );
+                    }),
             },
         ];
-    }, [canUseCombinedTrackSubmit, translate, selfDMReportID, hasSeenTrackTraining, isOffline]);
+    }, [canUseCombinedTrackSubmit, translate, selfDMReportID, hasSeenTrackTraining, isOffline, shouldRedirectToExpensifyClassic]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -503,15 +523,21 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                               {
                                   icon: Expensicons.InvoiceGeneric,
                                   text: translate('workspace.invoices.sendInvoice'),
+                                  shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
                                   onSelected: () =>
-                                      interceptAnonymousUser(() =>
+                                      interceptAnonymousUser(() => {
+                                          if (shouldRedirectToExpensifyClassic) {
+                                              setModalVisible(true);
+                                              return;
+                                          }
+
                                           IOU.startMoneyRequest(
                                               CONST.IOU.TYPE.INVOICE,
                                               // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                               // for all of the routes in the creation flow.
                                               ReportUtils.generateReportID(),
-                                          ),
-                                      ),
+                                          );
+                                      }),
                               },
                           ]
                         : []),
@@ -557,6 +583,18 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 ]}
                 withoutOverlay
                 anchorRef={fabRef}
+            />
+            <ConfirmModal
+                prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
+                isVisible={modalVisible}
+                onConfirm={() => {
+                    setModalVisible(false);
+                    Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                }}
+                onCancel={() => setModalVisible(false)}
+                title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
+                confirmText={translate('exitSurvey.goToExpensifyClassic')}
+                cancelText={translate('common.cancel')}
             />
             <FloatingActionButton
                 accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
