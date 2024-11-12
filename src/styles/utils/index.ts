@@ -1119,13 +1119,18 @@ function getAmountWidth(amount: string): number {
     return width;
 }
 
+/**
+ * When the item is selected and disabled, we want selected item styles.
+ * When the item is focused and disabled, we want disabled item styles.
+ * Single true value will give result accordingly.
+ */
 function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, isDisabled: boolean, selectedBG: string, focusedBG: string): ViewStyle {
     let backgroundColor;
 
-    if (isDisabled) {
-        backgroundColor = undefined;
-    } else if (isSelected) {
+    if (isSelected) {
         backgroundColor = selectedBG;
+    } else if (isDisabled) {
+        backgroundColor = undefined;
     } else if (isFocused) {
         backgroundColor = focusedBG;
     }
