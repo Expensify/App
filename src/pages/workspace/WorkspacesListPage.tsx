@@ -271,7 +271,7 @@ function WorkspacesListPage() {
         }
 
         return Object.values(reports).reduce<ChatPolicyType>((result, report) => {
-            if (!report?.reportID || !report.policyID) {
+            if (!report?.reportID || !report.policyID || report.parentReportID) {
                 return result;
             }
 
