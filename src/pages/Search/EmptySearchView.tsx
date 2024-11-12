@@ -135,8 +135,8 @@ function EmptySearchView({type, hasNoExpensesCreatedYet = false}: EmptySearchVie
                         headerContentStyles: styles.emptyStateFolderWebStyles,
                     };
                 }
-            // We want to display the default nothing to show message if the user has expenses created
-            // but the current search filter result is empty.
+            // We want to display the default nothing to show message if the current expense type search
+            // result is empty but the user already has some expenses created.
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.CHAT:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
