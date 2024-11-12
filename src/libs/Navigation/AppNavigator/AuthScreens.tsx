@@ -5,6 +5,7 @@ import Onyx, {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ComposeProviders from '@components/ComposeProviders';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
@@ -54,6 +55,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import beforeRemoveReportOpenedFromSearchRHP from './beforeRemoveReportOpenedFromSearchRHP';
 import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
@@ -68,8 +70,6 @@ import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -603,35 +603,24 @@ AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 
-export default function AuthScreensWithOnyx() {
-        const [session, sessionStatus] = useOnyx(ONYXKEYS.SESSION);
-        const [lastOpenedPublicRoomID, lastOpenedPublicRoomIDStatus] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
-        const [initialLastUpdateIDAppliedToClient, initialLastUpdateIDAppliedToClientStatus] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
-    
-        if (isLoadingOnyxValue(sessionStatus, lastOpenedPublicRoomIDStatus, initialLastUpdateIDAppliedToClientStatus)) {
-            return <FullScreenLoadingIndicator />;
-        }
-    
-        return (
-            <AuthScreensMemoized
-                session={session}
-                lastOpenedPublicRoomID={lastOpenedPublicRoomID}
-                initialLastUpdateIDAppliedToClient={initialLastUpdateIDAppliedToClient}
-            />
-        );
-    }
 // Migration to useOnyx cause re-login if logout from deeplinked report in desktop app
 // Further analysis required and more details can be seen here:
 // https://github.com/Expensify/App/issues/50560
-// eslint-disable-next-line
-// export default withOnyx<AuthScreensProps, AuthScreensProps>({
-//     session: {
-//         key: ONYXKEYS.SESSION,
-//     },
-//     lastOpenedPublicRoomID: {
-//         key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
-//     },
-//     initialLastUpdateIDAppliedToClient: {
-//         key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-//     },
-// })(AuthScreensMemoized);
+export default function AuthScreensWithOnyx() {
+    const [session, sessionStatus] = useOnyx(ONYXKEYS.SESSION);
+    const [lastOpenedPublicRoomID, lastOpenedPublicRoomIDStatus] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
+    const [initialLastUpdateIDAppliedToClient, initialLastUpdateIDAppliedToClientStatus] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+
+    if (isLoadingOnyxValue(sessionStatus, lastOpenedPublicRoomIDStatus, initialLastUpdateIDAppliedToClientStatus)) {
+        return <FullScreenLoadingIndicator />;
+    }
+
+    return (
+        <AuthScreensMemoized
+            session={session}
+            lastOpenedPublicRoomID={lastOpenedPublicRoomID}
+            initialLastUpdateIDAppliedToClient={initialLastUpdateIDAppliedToClient}
+        />
+    );
+}
+
