@@ -70,6 +70,8 @@ type Account = {
 
     /** Is this account having trouble receiving emails? */
     hasEmailDeliveryFailure?: boolean;
+
+    /** Is this account having trouble receiving SMS? */
     hasSMSDeliveryFailure?: boolean;
 
     /** URL to the assigned guide's appointment booking calendar */
@@ -146,6 +148,12 @@ type Account = {
 
     /** The users you can access as delegate and the users who can access your account as a delegate */
     delegatedAccess?: DelegatedAccess;
+
+    /** Indicates whether the phone number reset attempt was successful */
+    isResetPhoneNumberFailureSuccess?: boolean;
+
+    /** The message associated with the phone number reset attempt */
+    resetPhoneNumberFailureMessage?: string;
 };
 
 export default Account;

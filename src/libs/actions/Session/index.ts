@@ -16,6 +16,7 @@ import type {
     RequestAccountValidationLinkParams,
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
+    ResetPhoneNumberFailureParams,
     SignInUserWithLinkParams,
     SignUpUserParams,
     UnlinkLoginParams,
@@ -376,6 +377,9 @@ function signInAttemptState(): OnyxData {
                     isLoading: true,
                     message: null,
                     loadingForm: CONST.FORMS.LOGIN_FORM,
+                    hasSMSDeliveryFailure: null,
+                    isResetPhoneNumberFailureSuccess: null,
+                    resetPhoneNumberFailureMessage: null,
                 },
             },
         ],
@@ -1126,6 +1130,15 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
+/**
+ * To reset SMS delivery failure
+ */
+function resetPhoneNumberFailure(email: string) {
+    const params: ResetPhoneNumberFailureParams = {email};
+
+    API.write(WRITE_COMMANDS.RESET_PHONE_NUMBER_FAILURE, params);
+}
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -1163,4 +1176,5 @@ export {
     hasStashedSession,
     signUpUser,
     signInAfterTransitionFromOldDot,
+    resetPhoneNumberFailure,
 };

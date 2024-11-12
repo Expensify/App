@@ -257,11 +257,11 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
                 ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                 : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
         }
-    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage) {
+    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
-        if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage) {
+        if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
             welcomeText = '';
         }
     } else if (shouldShouldSignUpWelcomeForm) {

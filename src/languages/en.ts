@@ -1820,8 +1820,6 @@ const translations = {
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
             `We have temporarily suspended sending SMS to ${login} because we were unable to deliver SMS messages to your phone number. To try again, please click the button:`,
-        validateFailed: ({time}: UntilTimeParams) => `Reset failed because it hasn’t been 24 hours since our last attempt. Please wait ${time} before trying again.`,
-        validateSuccess: 'Your number has been cleared successfully and we can send you a new magic code to sign in',
     },
     welcomeSignUpForm: {
         join: 'Join',

@@ -349,3 +349,4 @@ export type {default as UpdateQuickbooksDesktopCompanyCardExpenseAccountTypePara
 export type {default as TogglePolicyPerDiemParams} from './TogglePolicyPerDiemParams';
 export type {default as OpenPolicyPerDiemRatesPageParams} from './OpenPolicyPerDiemRatesPageParams';
 export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
+export type {default as ResetPhoneNumberFailureParams} from './ResetPhoneNumberFailureParams';

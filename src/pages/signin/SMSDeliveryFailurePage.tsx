@@ -1,41 +1,83 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import {useOnyx} from 'react-native-onyx';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Credentials} from '@src/types/onyx';
+import Button from '@components/Button';
 
-type SMSDeliveryFailurePageOnyxProps = {
-    /** The credentials of the logged in person */
-    credentials: OnyxEntry<Credentials>;
-};
-type SMSDeliveryFailurePageProps = SMSDeliveryFailurePageOnyxProps;
-function SMSDeliveryFailurePage({credentials}: SMSDeliveryFailurePageProps) {
+function SMSDeliveryFailurePage() {
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+
     const login = useMemo(() => {
         if (!credentials?.login) {
             return '';
         }
         return Str.isSMSLogin(credentials.login) ? Str.removeSMSDomain(credentials.login) : credentials.login;
     }, [credentials?.login]);
-    // This view doesn't have a field for user input, so dismiss the device keyboard if shown
+
+    const isResetPhoneNumberFailureSuccess = account?.isResetPhoneNumberFailureSuccess;
+    const resetPhoneNumberFailureMessage = account?.resetPhoneNumberFailureMessage;
+
     useEffect(() => {
         if (!isKeyboardShown) {
             return;
         }
         Keyboard.dismiss();
     }, [isKeyboardShown]);
+
+    if(isResetPhoneNumberFailureSuccess){
+        return (
+            <>
+                <View style={[styles.mv3, styles.flexRow]}>
+                    <View style={[styles.flex1]}>
+                        <Text>{resetPhoneNumberFailureMessage}</Text>
+                    </View>
+                </View>
+                <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
+                    <Button
+                        success
+                        medium
+                        text={translate('common.send')}
+                        onPress={() => Session.beginSignIn(login)}
+                        pressOnEnter
+                        style={styles.w100}
+                    />
+                </View>
+            </>
+        )
+    }
+
+    if(isResetPhoneNumberFailureSuccess !== undefined && !isResetPhoneNumberFailureSuccess){
+        return (
+            <>
+                <View style={[styles.mv3, styles.flexRow]}>
+                    <View style={[styles.flex1]}>
+                        <Text>{resetPhoneNumberFailureMessage}</Text>
+                    </View>
+                </View>
+                <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
+                    <Button
+                        success
+                        medium
+                        text={translate('common.back')}
+                        onPress={() => Session.clearSignInData()}
+                        pressOnEnter
+                    />
+                </View>
+            </>
+        )
+    }
+
     return (
         <>
             <View style={[styles.mv3, styles.flexRow]}>
@@ -43,25 +85,24 @@ function SMSDeliveryFailurePage({credentials}: SMSDeliveryFailurePageProps) {
                     <Text>{translate('smsDeliveryFailurePage.smsDeliveryFailureMessage', {login})}</Text>
                 </View>
             </View>
-            <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
-                <FormAlertWithSubmitButton
-                    buttonText={translate('common.validate')}
-                    isLoading={false}
-                    onSubmit={() => {}}
-                    message={''}
-                    isAlertVisible={false}
-                    buttonStyles={styles.mt3}
-                    containerStyles={[styles.mh0]}
-                />
-            </View>
             <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
+                <Button
+                    success
+                    medium
+                    text={translate('common.validate')}
+                    onPress={() => {
+                        console.log("Press")
+                    }}
+                    pressOnEnter
+                />
+
                 <PressableWithFeedback
                     onPress={() => Session.clearSignInData()}
                     role="button"
                     accessibilityLabel={translate('common.back')}
-                    // disable hover dim for switch
                     hoverDimmingValue={1}
                     pressDimmingValue={0.2}
+                    style={[styles.mb2]}
                 >
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>
@@ -69,7 +110,7 @@ function SMSDeliveryFailurePage({credentials}: SMSDeliveryFailurePageProps) {
         </>
     );
 }
+
 SMSDeliveryFailurePage.displayName = 'SMSDeliveryFailurePage';
-export default withOnyx<SMSDeliveryFailurePageProps, SMSDeliveryFailurePageOnyxProps>({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-})(SMSDeliveryFailurePage);
+
+export default SMSDeliveryFailurePage;
