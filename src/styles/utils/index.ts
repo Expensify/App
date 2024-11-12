@@ -1134,7 +1134,7 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
     }
 
     if (isFocused) {
-        return {backgroundColor: focusedBG}
+        return {backgroundColor: focusedBG};
     }
 
     return {};
