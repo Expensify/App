@@ -364,6 +364,14 @@ function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction
     return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false}).unit;
 }
 
+/**
+ * Get the mileage rate by its ID in the form it's configured for the policy.
+ * If not found, return undefined.
+ */
+function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID: string; policy: OnyxEntry<Policy>}): MileageRate | undefined {
+    return getMileageRates(policy, true, customUnitRateID)[customUnitRateID];
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -378,6 +386,7 @@ export default {
     getDistanceUnit,
     getUpdatedDistanceUnit,
     getRate,
+    getRateByCustomUnitRateID,
 };
 
 export type {MileageRate};
