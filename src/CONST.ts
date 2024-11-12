@@ -5074,7 +5074,7 @@ const CONST = {
             ],
         },
         [onboardingChoices.ADMIN]: {
-            message: "Hey 👋\nAs an admin, learn how to manage your team's workspace and submit expenses yourself.",
+            message: "As an admin, learn how to manage your team's workspace and submit expenses yourself.",
             video: {
                 url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
