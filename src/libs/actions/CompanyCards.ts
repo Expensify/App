@@ -245,7 +245,6 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                 key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
                 value: {
                     [cardID]: {
-                        ...card,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     },
                 },
@@ -255,7 +254,6 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                 key: ONYXKEYS.CARD_LIST,
                 value: {
                     [cardID]: {
-                        ...card,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     },
                 },
@@ -268,7 +266,6 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                 key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
                 value: {
                     [cardID]: {
-                        ...card,
                         pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
@@ -279,7 +276,6 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                 key: ONYXKEYS.CARD_LIST,
                 value: {
                     [cardID]: {
-                        ...card,
                         pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
