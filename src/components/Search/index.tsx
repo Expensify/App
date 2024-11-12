@@ -309,13 +309,14 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     });
 
     const shouldShowEmptyState = !isDataLoaded || data.length === 0;
+    const hasNoExpensesCreatedYet = shouldShowEmptyState && isEmptyObject(queryJSON.filters) && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.policyID;
 
     if (shouldShowEmptyState) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
                     type={type}
-                    hasNoExpensesCreatedYet={isEmptyObject(transactions)}
+                    hasNoExpensesCreatedYet={hasNoExpensesCreatedYet}
                 />
             </View>
         );
