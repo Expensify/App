@@ -1126,7 +1126,7 @@ function getCategoryListSections(
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
-    if (numberOfEnabledCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+    if (numberOfEnabledCategories < CONST.STANDARD_LIST_ITEM_LIMIT) {
         const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
         categorySections.push({
             // "All" section when items amount less than the threshold
@@ -1249,7 +1249,7 @@ function getTagListSections(
         return tagSections;
     }
 
-    if (numberOfTags < CONST.TAG_LIST_THRESHOLD) {
+    if (numberOfTags < CONST.STANDARD_LIST_ITEM_LIMIT) {
         tagSections.push({
             // "All" section when items amount less than the threshold
             title: '',
@@ -1301,7 +1301,10 @@ function getTagListSections(
  * Verifies that there is at least one enabled tag
  */
 function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>) {
-    const policyTagValueList = policyTagList.map(({tags}) => Object.values(tags)).flat();
+    const policyTagValueList = policyTagList
+        .filter((tag) => tag && tag.tags)
+        .map(({tags}) => Object.values(tags))
+        .flat();
 
     return hasEnabledOptions(policyTagValueList);
 }
@@ -1456,7 +1459,7 @@ function getTaxRatesSection(policy: OnyxEntry<Policy> | undefined, selectedOptio
         return policyRatesSections;
     }
 
-    if (numberOfTaxRates < CONST.TAX_RATES_LIST_THRESHOLD) {
+    if (numberOfTaxRates < CONST.STANDARD_LIST_ITEM_LIMIT) {
         policyRatesSections.push({
             // "All" section when items amount less than the threshold
             title: '',
@@ -1893,7 +1896,7 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
     }
 
-    const optionsToExclude: Option[] = [];
+    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty

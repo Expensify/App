@@ -310,13 +310,22 @@ const ROUTES = {
     },
     ATTACHMENTS: {
         route: 'attachment',
-        getRoute: (reportID: string, type: ValueOf<typeof CONST.ATTACHMENT_TYPE>, url: string, accountID?: number, isAuthTokenRequired?: boolean, attachmentLink?: string) => {
+        getRoute: (
+            reportID: string,
+            type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
+            url: string,
+            accountID?: number,
+            isAuthTokenRequired?: boolean,
+            fileName?: string,
+            attachmentLink?: string,
+        ) => {
             const reportParam = reportID ? `&reportID=${reportID}` : '';
             const accountParam = accountID ? `&accountID=${accountID}` : '';
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
+            const fileNameParam = fileName ? `&fileName=${fileName}` : '';
             const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
 
-            return `attachment?source=${encodeURIComponent(url)}&type=${type}${reportParam}${accountParam}${authTokenParam}${attachmentLinkParam}` as const;
+            return `attachment?source=${encodeURIComponent(url)}&type=${type}${reportParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {
@@ -1274,6 +1283,10 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT: {
         route: 'settings/workspaces/:policyID/distance-rates/:rateID/tax-rate/edit',
         getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/tax-rate/edit` as const,
+    },
+    WORKSPACE_PER_DIEM: {
+        route: 'settings/workspaces/:policyID/per-diem',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem` as const,
     },
     RULES_CUSTOM_NAME: {
         route: 'settings/workspaces/:policyID/rules/name',
