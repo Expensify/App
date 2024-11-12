@@ -123,7 +123,7 @@ const getContacts = (deviceContacts: DeviceContact[] | []): Array<OptionsListUti
                 },
             );
         })
-        .filter((contact) => contact !== null);
+        .filter((contact): contact is OptionsListUtils.SearchOption<PersonalDetails> => contact !== null);
 };
 
 export {processContact, getContacts};
