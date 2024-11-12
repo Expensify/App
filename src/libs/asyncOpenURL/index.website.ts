@@ -15,7 +15,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic, s
 
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-    if (!isSafari || shouldSkipCustomSafariLogic || shouldOpenInSameTab) {
+    if (!isSafari || !!shouldSkipCustomSafariLogic || !!shouldOpenInSameTab) {
         promise
             .then((params) => {
                 (Linking.openURL as LinkingWeb['openURL'])(typeof url === 'string' ? url : url(params), shouldOpenInSameTab && canOpenURLInSameTab ? '_self' : undefined);
