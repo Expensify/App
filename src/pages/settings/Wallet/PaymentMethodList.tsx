@@ -9,8 +9,6 @@ import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
 import Button from '@components/Button';
 import FormAlertWrapper from '@components/FormAlertWrapper';
-import getBankIcon from '@components/Icon/BankIcons';
-import type {BankName} from '@components/Icon/BankIconsUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -30,7 +28,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData} from '@src/types/onyx';
+import type {AccountData, CompanyCardFeed} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -223,12 +221,12 @@ function PaymentMethodList({
 
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             assignedCardsSorted.forEach((card) => {
-                const icon = getBankIcon({bankName: card.bank as BankName, isCard: true, styles});
+                const icon = CardUtils.getCardFeedIcon(card.bank as CompanyCardFeed);
 
                 if (!CardUtils.isExpensifyCard(card.cardID)) {
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        title: card.bank,
+                        title: card.cardName,
                         description: getDescriptionForPolicyDomainCard(card.domainName),
                         shouldShowRightIcon: false,
                         interactive: false,
@@ -238,7 +236,9 @@ function PaymentMethodList({
                             card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
                                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                 : undefined,
-                        ...icon,
+                        icon,
+                        iconStyles: [styles.assignedCardsIconContainer],
+                        iconSize: variables.iconSizeExtraLarge,
                     });
                     return;
                 }
@@ -275,7 +275,10 @@ function PaymentMethodList({
                         card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                             : undefined,
-                    ...icon,
+                    icon,
+                    iconStyles: [styles.assignedCardsIconContainer],
+                    iconWidth: variables.bankCardWidth,
+                    iconHeight: variables.bankCardHeight,
                 });
             });
             return assignedCardsGrouped;
