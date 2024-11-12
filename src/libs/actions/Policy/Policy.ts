@@ -62,6 +62,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import GoogleTagManager from '@libs/GoogleTagManager';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -1508,7 +1509,7 @@ function generateCustomUnitID(): string {
     return NumberUtils.generateHexadecimalValue(13);
 }
 
-function buildOptimisticCustomUnits(reportCurrency?: string): OptimisticCustomUnits {
+function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): OptimisticCustomUnits {
     const currency = reportCurrency ?? allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
     const customUnitID = generateCustomUnitID();
     const customUnitRateID = generateCustomUnitID();
@@ -1550,7 +1551,7 @@ function buildOptimisticCustomUnits(reportCurrency?: string): OptimisticCustomUn
  */
 function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false, currency = '', file?: File) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-    const {customUnits, outputCurrency} = buildOptimisticCustomUnits(currency);
+    const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1615,8 +1616,7 @@ function buildPolicyData(
     file?: File,
 ) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-
-    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits(currency);
+    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
 
     const {
         adminsChatReportID,
@@ -1859,6 +1859,11 @@ function createWorkspace(
     const {optimisticData, failureData, successData, params} = buildPolicyData(policyOwnerEmail, makeMeAdmin, policyName, policyID, undefined, engagementChoice, currency, file);
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
+    // Publish a workspace created event if this is their first policy
+    if (getAdminPolicies().length === 0) {
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, sessionAccountID);
+    }
+
     return params;
 }
 
@@ -1873,7 +1878,7 @@ function createWorkspace(
 function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): CreateWorkspaceParams {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
-    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
+    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits();
 
     const {expenseChatData, adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID} = ReportUtils.buildOptimisticWorkspaceChats(
         policyID,
@@ -2164,8 +2169,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName(sessionEmail);
     const employeeAccountID = iouReport.ownerAccountID;
-    const employeeEmail = iouReport.ownerEmail ?? '';
-    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits(iouReport.currency);
+    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport.currency);
     const oldPersonalPolicyID = iouReport.policyID;
     const iouReportID = iouReport.reportID;
 
@@ -2183,6 +2187,8 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     if (!employeeAccountID) {
         return;
     }
+
+    const employeeEmail = allPersonalDetails?.[employeeAccountID]?.login ?? '';
 
     // Create the workspace chat for the employee whose IOU is being paid
     const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: employeeAccountID}, true);
@@ -2218,10 +2224,14 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
                 role: CONST.POLICY.ROLE.ADMIN,
                 errors: {},
             },
-            [employeeEmail]: {
-                role: CONST.POLICY.ROLE.USER,
-                errors: {},
-            },
+            ...(employeeEmail
+                ? {
+                      [employeeEmail]: {
+                          role: CONST.POLICY.ROLE.USER,
+                          errors: {},
+                      },
+                  }
+                : {}),
         },
         pendingFields: {
             autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -3762,6 +3772,10 @@ function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
     };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED, parameters, onyxData);
+}
+
+function getAdminPolicies(): Policy[] {
+    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && policy.type !== CONST.POLICY.TYPE.PERSONAL);
 }
 
 function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
