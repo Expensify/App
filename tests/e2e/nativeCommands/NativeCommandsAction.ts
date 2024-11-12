@@ -4,6 +4,7 @@ const NativeCommandsAction = {
     scroll: 'scroll',
     type: 'type',
     backspace: 'backspace',
+    enter: 'enter',
 } as const;
 
 const makeTypeTextCommand = (text: string): NativeCommand => ({
@@ -17,4 +18,8 @@ const makeBackspaceCommand = (): NativeCommand => ({
     actionName: NativeCommandsAction.backspace,
 });
 
-export {NativeCommandsAction, makeTypeTextCommand, makeBackspaceCommand};
+const makeEnterCommand = (): NativeCommand => ({
+    actionName: NativeCommandsAction.enter,
+});
+
+export {NativeCommandsAction, makeTypeTextCommand, makeBackspaceCommand, makeEnterCommand};

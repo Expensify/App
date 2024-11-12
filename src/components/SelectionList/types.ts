@@ -312,6 +312,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     hoverStyle?: StyleProp<ViewStyle>;
     /** Errors that this user may contain */
     shouldDisplayRBR?: boolean;
+    /** Native ID of the component */
+    nativeID?: string;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {

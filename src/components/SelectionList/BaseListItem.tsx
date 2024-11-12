@@ -36,6 +36,7 @@ function BaseListItem<TItem extends ListItem>({
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
+    nativeID,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -106,6 +107,7 @@ function BaseListItem<TItem extends ListItem>({
                 onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
+                nativeID={nativeID}
             >
                 <View
                     style={[

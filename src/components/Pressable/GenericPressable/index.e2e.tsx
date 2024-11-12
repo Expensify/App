@@ -1,4 +1,5 @@
 import React, {forwardRef, useEffect} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 import GenericPressable from './implementation';
 import type {PressableRef} from './types';
 import type PressableProps from './types';
@@ -17,6 +18,8 @@ function E2EGenericPressableWrapper(props: PressableProps, ref: PressableRef) {
         }
         console.debug(`[E2E] E2EGenericPressableWrapper: Registering pressable with nativeID: ${nativeId}`);
         pressableRegistry.set(nativeId, props);
+
+        DeviceEventEmitter.emit('onBecameVisible', nativeId);
     }, [props]);
 
     return (

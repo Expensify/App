@@ -23,6 +23,7 @@ import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Performance from '@libs/Performance';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -148,6 +149,9 @@ function IOURequestStepConfirmation({
 
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
+    useEffect(() => {
+        Performance.markEnd(CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE);
+    }, []);
     useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
