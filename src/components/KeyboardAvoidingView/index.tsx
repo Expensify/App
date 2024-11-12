@@ -1,10 +1,16 @@
+/*
+ * The KeyboardAvoidingView stub implementation for web and other platforms where the keyboard handling is handled automatically.
+ */
 import React from 'react';
-import {KeyboardAvoidingView as KeyboardAvoidingViewComponent} from 'react-native-keyboard-controller';
+import {View} from 'react-native';
 import type {KeyboardAvoidingViewProps} from './types';
 
 function KeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return <KeyboardAvoidingViewComponent {...props} />;
+    const {behavior, contentContainerStyle, enabled, keyboardVerticalOffset, ...rest} = props;
+    return (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <View {...rest} />
+    );
 }
 
 KeyboardAvoidingView.displayName = 'KeyboardAvoidingView';
