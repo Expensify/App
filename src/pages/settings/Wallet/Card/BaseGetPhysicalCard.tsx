@@ -164,7 +164,6 @@ function BaseGetPhysicalCard({
         (validateCode: string) => {
             setCurrentCardID(cardToBeIssued?.cardID.toString());
             const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
-            // If the current step of the get physical card flow is the confirmation page
             Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? -1, session?.authToken ?? '', updatedPrivatePersonalDetails, validateCode);
         },
         [cardToBeIssued?.cardID, draftValues, session?.authToken, privatePersonalDetails],
