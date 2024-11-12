@@ -76,6 +76,10 @@
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
         }
 
+        .toc-link::before {
+            display: none;
+        }
+
         .toc-sidebar ul {
             list-style: none;
             padding-left: 0;
@@ -325,7 +329,7 @@
             </div>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.27.4/tocbot.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.32.1/tocbot.min.js"></script>
     <script>
         function updateURLHashOnScroll() {
             const activeLink = document.querySelector('.toc-sidebar .is-active-link');
@@ -360,6 +364,8 @@
           enableUrlHashUpdateOnScroll: false,
           headingsOffset: 80,
           scrollSmoothOffset: -80,
+          tocScrollingWrapper: document.querySelector('.toc-sidebar'),
+          tocScrollOffset: 80,
           headingObjectCallback: function(obj, element) {
             const tocTitle = element.getAttribute('data-toc-title');
             if (tocTitle) {

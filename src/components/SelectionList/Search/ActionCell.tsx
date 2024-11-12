@@ -15,6 +15,9 @@ import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
     review: 'common.review',
+    submit: 'common.submit',
+    approve: 'iou.approve',
+    pay: 'iou.pay',
     done: 'common.done',
     paid: 'iou.settledExpensify',
 };
@@ -26,9 +29,18 @@ type ActionCellProps = {
     goToItem: () => void;
     isChildListItem?: boolean;
     parentAction?: string;
+    isLoading?: boolean;
 };
 
-function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true, isSelected = false, goToItem, isChildListItem = false, parentAction = ''}: ActionCellProps) {
+function ActionCell({
+    action = CONST.SEARCH.ACTION_TYPES.VIEW,
+    isLargeScreenWidth = true,
+    isSelected = false,
+    goToItem,
+    isChildListItem = false,
+    parentAction = '',
+    isLoading = false,
+}: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -61,9 +73,8 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth
         );
     }
 
-    const buttonInnerStyles = isSelected ? styles.buttonDefaultHovered : {};
-
     if (action === CONST.SEARCH.ACTION_TYPES.VIEW || shouldUseViewAction) {
+        const buttonInnerStyles = isSelected ? styles.buttonDefaultHovered : {};
         return isLargeScreenWidth ? (
             <Button
                 text={translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW])}
@@ -77,17 +88,18 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth
         ) : null;
     }
 
-    if (action === CONST.SEARCH.ACTION_TYPES.REVIEW) {
-        return (
-            <Button
-                text={text}
-                onPress={goToItem}
-                small
-                style={[styles.w100]}
-                innerStyles={buttonInnerStyles}
-            />
-        );
-    }
+    const buttonInnerStyles = isSelected ? styles.buttonSuccessHovered : {};
+    return (
+        <Button
+            text={text}
+            onPress={goToItem}
+            small
+            style={[styles.w100]}
+            innerStyles={buttonInnerStyles}
+            isLoading={isLoading}
+            success
+        />
+    );
 }
 
 ActionCell.displayName = 'ActionCell';

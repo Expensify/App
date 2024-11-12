@@ -44,14 +44,12 @@ type PropertyTypes = Array<'string' | 'number' | 'object' | 'boolean' | 'undefin
 const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
 
 const REPORT_NUMBER_PROPERTIES: Array<keyof Report> = [
-    'lastMessageTimestamp',
     'lastReadSequenceNumber',
     'managerID',
     'lastActorAccountID',
     'ownerAccountID',
     'total',
     'unheldTotal',
-    'iouReportAmount',
     'nonReimbursableTotal',
 ] satisfies Array<keyof Report>;
 
@@ -63,18 +61,14 @@ const REPORT_BOOLEAN_PROPERTIES: Array<keyof Report> = [
     'isPinned',
     'hasParentAccess',
     'isDeletedParentAction',
-    'openOnAdminRoom',
     'isOptimisticReport',
     'isWaitingOnBankAccount',
     'isCancelledIOU',
-    'isLastMessageDeletedParentAction',
     'isHidden',
     'isLoadingPrivateNotes',
 ] satisfies Array<keyof Report>;
 
-const REPORT_DATE_PROPERTIES: Array<keyof Report> = ['lastVisibleActionCreated', 'lastReadCreated', 'lastReadTime', 'lastMentionedTime', 'lastVisibleActionLastModified'] satisfies Array<
-    keyof Report
->;
+const REPORT_DATE_PROPERTIES: Array<keyof Report> = ['lastVisibleActionCreated', 'lastReadTime', 'lastMentionedTime', 'lastVisibleActionLastModified'] satisfies Array<keyof Report>;
 
 const REPORT_REQUIRED_PROPERTIES: Array<keyof Report> = ['reportID'] satisfies Array<keyof Report>;
 
@@ -499,9 +493,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
     }
     if (key === 'pendingFields') {
         return validateObject(value, {});
-    }
-    if (key === 'visibleChatMemberAccountIDs') {
-        return validateArray(value, 'number');
     }
 
     validateString(value);
