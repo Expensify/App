@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import Animated, {cancelAnimation, Easing, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+import Animated, {cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -12,16 +12,15 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
     const left = useSharedValue(0);
     const width = useSharedValue(0);
     const opacity = useSharedValue(0);
-    const isVisible = useSharedValue(false);
     const styles = useThemeStyles();
 
     useEffect(() => {
         if (shouldShow) {
             // eslint-disable-next-line react-compiler/react-compiler
-            isVisible.value = true;
             left.value = 0;
             width.value = 0;
             opacity.value = withTiming(1, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION});
+
             left.value = withDelay(
                 CONST.ANIMATED_PROGRESS_BAR_DELAY,
                 withRepeat(
@@ -47,35 +46,28 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
                     false,
                 ),
             );
-        } else if (isVisible.value) {
+        } else {
             opacity.value = withTiming(0, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}, () => {
-                runOnJS(() => {
-                    isVisible.value = false;
-                    cancelAnimation(left);
-                    cancelAnimation(width);
-                });
+                cancelAnimation(left);
+                cancelAnimation(width);
             });
         }
         // we want to update only when shouldShow changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShow]);
 
-    const animatedIndicatorStyle = useAnimatedStyle(() => {
-        return {
-            left: `${left.value}%`,
-            width: `${width.value}%`,
-        };
-    });
+    const animatedIndicatorStyle = useAnimatedStyle(() => ({
+        left: `${left.value}%`,
+        width: `${width.value}%`,
+    }));
 
-    const animatedContainerStyle = useAnimatedStyle(() => {
-        return {
-            opacity: opacity.value,
-        };
-    });
+    const animatedContainerStyle = useAnimatedStyle(() => ({
+        opacity: opacity.value,
+    }));
 
     return (
         <Animated.View style={[styles.progressBarWrapper, animatedContainerStyle]}>
-            {isVisible.value ? <Animated.View style={[styles.progressBar, animatedIndicatorStyle]} /> : null}
+            {opacity.value > 0 ? <Animated.View style={[styles.progressBar, animatedIndicatorStyle]} /> : null}
         </Animated.View>
     );
 }
