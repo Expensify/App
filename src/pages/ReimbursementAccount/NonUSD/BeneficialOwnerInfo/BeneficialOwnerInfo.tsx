@@ -28,7 +28,7 @@ type BeneficialOwnerInfoProps = {
     onSubmit: () => void;
 };
 
-const {OWNS_MORE_THAN_25_PERCENT, ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE, BENEFICIAL_OWNERS, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {OWNS_MORE_THAN_25_PERCENT, ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE, BENEFICIAL_OWNERS, COMPANY_NAME, ENTITY_CHART} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY, PREFIX} =
     CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const SUBSTEP = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
@@ -50,7 +50,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const [ownerKeys, setOwnerKeys] = useState<string[]>([]);
-    const [ownerBeingModifiedID, setOwnerBeingModifiedID] = useState('currentUser');
+    const [ownerBeingModifiedID, setOwnerBeingModifiedID] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.CURRENT_USER_KEY);
     const [isEditingCreatedOwner, setIsEditingCreatedOwner] = useState(false);
     const [isUserEnteringHisOwnData, setIsUserEnteringHisOwnData] = useState(false);
     const [isUserOwner, setIsUserOwner] = useState(false);
@@ -58,6 +58,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_USER_BENEFICIAL_OWNER);
     const [totalOwnedPercentage, setTotalOwnedPercentage] = useState<Record<string, number>>({});
     const companyName = reimbursementAccount?.achData?.additionalData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
+    const entityChart = reimbursementAccount?.achData?.additionalData?.corpay?.[ENTITY_CHART] ?? reimbursementAccountDraft?.[ENTITY_CHART] ?? [];
 
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -99,7 +100,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
 
         let nextSubStep;
         if (isEditingCreatedOwner || !canAddMoreOwners) {
-            nextSubStep = shouldAskForEntityChart ? SUBSTEP.OWNERSHIP_CHART : SUBSTEP.BENEFICIAL_OWNERS_LIST;
+            nextSubStep = shouldAskForEntityChart && entityChart.length === 0 ? SUBSTEP.OWNERSHIP_CHART : SUBSTEP.BENEFICIAL_OWNERS_LIST;
         } else {
             nextSubStep = isUserEnteringHisOwnData ? SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER : SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS;
         }
@@ -192,6 +193,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
 
             setIsUserOwner(value);
             setIsUserEnteringHisOwnData(value);
+            setOwnerKeys((currentOwnersKeys) => currentOwnersKeys.filter((key) => key !== CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.CURRENT_USER_KEY));
 
             // User is an owner but there are 4 other owners already added, so we remove last one
             if (value && ownerKeys.length === 4) {
@@ -220,6 +222,8 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
 
             // User is not an owner and no one else is an owner
             if (!isUserOwner && !value) {
+                setOwnerKeys([]);
+
                 // Gather ownership chart if AUD account
                 if (shouldAskForEntityChart) {
                     setCurrentSubStep(SUBSTEP.OWNERSHIP_CHART);
@@ -233,6 +237,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
 
             // User is an owner and no one else is an owner
             if (isUserOwner && !value) {
+                setOwnerKeys([CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.CURRENT_USER_KEY]);
                 // Gather ownership chart if AUD account
                 if (shouldAskForEntityChart) {
                     setCurrentSubStep(SUBSTEP.OWNERSHIP_CHART);

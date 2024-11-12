@@ -633,6 +633,7 @@ const CONST = {
                 ZIP_CODE: 'zipCode',
                 COUNTRY: 'country',
             },
+            CURRENT_USER_KEY: 'currentUser',
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEP_HEADER_HEIGHT: 40,
