@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
@@ -51,23 +51,29 @@ function WorkspaceConfirmationPage() {
     );
 
     const currentUrl = getCurrentUrl();
-    const policyID = Policy.generatePolicyID();
+    const policyID = useMemo(() => Policy.generatePolicyID(), []);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const url = new URL(currentUrl);
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links
     const policyOwnerEmail = url.searchParams.get('ownerEmail') ?? '';
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
     const defaultWorkspaceName = Policy.generateDefaultWorkspaceName(policyOwnerEmail);
+    const [workspaceName, setWorkspaceName] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = allPersonalDetails?.[session?.accountID ?? 0]?.localCurrencyCode ?? CONST.CURRENCY.USD;
     const [currencyCode, setCurrencyCode] = useState(userCurrency);
 
     const currency = getCurrency(currencyCode);
-    const [workspaceAvatar, setWorkspaceAvatar] = useState({avatarUri: null, avatarFileName: null, avatarFileType: null});
+    const [workspaceAvatar, setWorkspaceAvatar] = useState<{avatarUri: string | null; avatarFileName?: string | null; avatarFileType?: string | null}>({
+        avatarUri: null,
+        avatarFileName: null,
+        avatarFileType: null,
+    });
     const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
 
-    const stashedLocalAvatarImage = workspaceAvatar?.avatarUri;
+    const stashedLocalAvatarImage = workspaceAvatar?.avatarUri ?? undefined;
 
     const DefaultAvatar = useCallback(
         () => (
@@ -75,15 +81,15 @@ function WorkspaceConfirmationPage() {
                 containerStyles={styles.avatarXLarge}
                 imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-                source={workspaceAvatar?.avatarUri || ReportUtils.getDefaultWorkspaceAvatar(defaultWorkspaceName)}
+                source={workspaceAvatar?.avatarUri || ReportUtils.getDefaultWorkspaceAvatar(workspaceName)}
                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                 size={CONST.AVATAR_SIZE.XLARGE}
-                name={defaultWorkspaceName}
+                name={workspaceName}
                 avatarID={policyID}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
-        [workspaceAvatar?.avatarUri, defaultWorkspaceName, styles.alignSelfCenter, styles.avatarXLarge, policyID],
+        [workspaceAvatar?.avatarUri, workspaceName, styles.alignSelfCenter, styles.avatarXLarge, policyID],
     );
 
     return (
@@ -106,11 +112,11 @@ function WorkspaceConfirmationPage() {
                 source={stashedLocalAvatarImage}
                 onImageSelected={(image) => {
                     setAvatarFile(image);
-                    // setWorkspaceAvatar({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
+                    setWorkspaceAvatar({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
                 }}
                 onImageRemoved={() => {
                     setAvatarFile(undefined);
-                    // setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
+                    setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
                 }}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
@@ -144,6 +150,7 @@ function WorkspaceConfirmationPage() {
                         spellCheck={false}
                         autoFocus
                         defaultValue={defaultWorkspaceName}
+                        onChangeText={(str) => setWorkspaceName(str)}
                     />
 
                     <View style={[styles.mhn5, styles.mt4]}>

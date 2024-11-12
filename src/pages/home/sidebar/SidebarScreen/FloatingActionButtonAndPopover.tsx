@@ -32,7 +32,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {getNavatticURL} from '@libs/TourUtils';
 import variables from '@styles/variables';
-import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
 import * as Policy from '@userActions/Policy/Policy';

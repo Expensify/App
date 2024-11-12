@@ -1612,7 +1612,7 @@ function buildPolicyData(
     policyID = generatePolicyID(),
     expenseReportId?: string,
     engagementChoice?: string,
-    currency?: '',
+    currency = '',
     file?: File,
 ) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
