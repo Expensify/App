@@ -95,6 +95,7 @@ function BaseGetPhysicalCard({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isActionCodeModalVisible, setActionCodeModalVisible] = useState(false);
@@ -183,6 +184,7 @@ function BaseGetPhysicalCard({
             {renderContent({onSubmit, submitButtonText, children, onValidate})}
             <ValidateCodeActionModal
                 isLoading={formData?.isLoading}
+                hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
                 isVisible={isActionCodeModalVisible}
                 sendValidateCode={() => User.requestValidateCodeAction()}
                 clearError={() => Wallet.clearPhysicalCardError(cardID)}
