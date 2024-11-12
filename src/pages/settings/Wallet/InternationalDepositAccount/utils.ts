@@ -61,6 +61,24 @@ function getSubstepValues(
     } as unknown as InternationalBankAccountForm;
 }
 
+function getInitialPersonalDetailsValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): InternationalBankAccountForm {
+    const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
+    const {street} = address ?? {};
+    const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
+    const firstName = privatePersonalDetails?.legalFirstName ?? '';
+    const lastName = privatePersonalDetails?.legalLastName ?? '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    return {
+        accountHolderName: fullName,
+        accountHolderAddress1: street1 ?? '',
+        accountHolderAddress2: street2 ?? '',
+        accountHolderCity: address?.city ?? '',
+        accountHolderCountry: address?.country ?? '',
+        accountHolderPostal: address?.zip ?? '',
+        accountHolderPhoneNumber: privatePersonalDetails?.phoneNumber ?? '',
+    } as InternationalBankAccountForm;
+}
+
 function testValidation(values: InternationalBankAccountForm, fieldsMap: CorpayFieldsMap = {}) {
     for (const fieldName in fieldsMap) {
         if (!fieldName) {
@@ -101,4 +119,4 @@ function getInitialSubstep(values: InternationalBankAccountForm, fieldsMap: Reco
     return CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION;
 }
 
-export {getFieldsMap, getSubstepValues, getInitialSubstep, testValidation};
+export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation};

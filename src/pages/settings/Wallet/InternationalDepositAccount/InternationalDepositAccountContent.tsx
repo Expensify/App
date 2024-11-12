@@ -19,7 +19,7 @@ import Confirmation from './substeps/Confirmation';
 import CountrySelection from './substeps/CountrySelection';
 import Success from './substeps/Success';
 import type {CustomSubStepProps} from './types';
-import {getFieldsMap, getInitialSubstep, getSubstepValues, testValidation} from './utils';
+import {getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, testValidation} from './utils';
 
 type InternationalDepositAccountContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
@@ -50,13 +50,15 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         [privatePersonalDetails, corpayFields, bankAccountList, draftValues, country],
     );
 
+    const initialAccountHolderDetailsValues = useMemo(() => getInitialPersonalDetailsValues(privatePersonalDetails), [privatePersonalDetails]);
+
     const fieldsMap = useMemo(() => getFieldsMap(corpayFields), [corpayFields]);
 
     const startFrom = useMemo(() => getInitialSubstep(values, fieldsMap), [fieldsMap, values]);
 
     const skipAccountTypeStep = isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE]);
 
-    const skipAccountHolderInformationStep = testValidation(values, fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]);
+    const skipAccountHolderInformationStep = testValidation(initialAccountHolderDetailsValues, fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]);
 
     const skippedSteps = getSkippedSteps(skipAccountTypeStep, skipAccountHolderInformationStep);
 
