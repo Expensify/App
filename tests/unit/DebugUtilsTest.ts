@@ -900,15 +900,7 @@ describe('DebugUtils', () => {
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
         it('returns correct reason when report has errors', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN(
-                {
-                    ...baseReport,
-                    errors: {
-                        error: 'Something went wrong',
-                    },
-                },
-                true,
-            );
+            const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport, true);
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
     });
