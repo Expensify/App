@@ -50,7 +50,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
      * we need to create a shared value that can be used in the render function.
      */
     const isPagerScrollingFallback = useSharedValue(false);
-    const isScrollingEnabledFallback = useSharedValue(true);
+    const isScrollingEnabledFallback = useSharedValue(false);
     const {isOffline} = useNetwork();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
