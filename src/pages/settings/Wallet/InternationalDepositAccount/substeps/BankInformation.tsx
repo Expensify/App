@@ -59,14 +59,12 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
                 if (fields[fieldName].isRequired && values[fieldName] === '') {
                     ErrorUtils.addErrorMessage(errors, fieldName, translate('common.error.fieldRequired'));
                 }
-                if (!values[fieldName]) {
-                    fields[fieldName].validationRules.forEach((rule) => {
-                        const regExpCheck = new RegExp(rule.regEx);
-                        if (!regExpCheck.test(values[fieldName])) {
-                            ErrorUtils.addErrorMessage(errors, fieldName, rule.errorMessage);
-                        }
-                    });
-                }
+                fields[fieldName].validationRules.forEach((rule) => {
+                    const regExpCheck = new RegExp(rule.regEx);
+                    if (!regExpCheck.test(values[fieldName])) {
+                        ErrorUtils.addErrorMessage(errors, fieldName, rule.errorMessage);
+                    }
+                });
             }
             return errors;
         },
