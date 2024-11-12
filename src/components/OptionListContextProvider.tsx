@@ -1,6 +1,5 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
@@ -17,14 +16,11 @@ type OptionsListContextProps = {
     initializeOptions: () => void;
     /** Flag to check if the options are initialized */
     areOptionsInitialized: boolean;
+    /** Function to reset the options */
+    resetOptions: () => void;
 };
 
-type OptionsListProviderOnyxProps = {
-    /** Collection of reports */
-    reports: OnyxCollection<Report>;
-};
-
-type OptionsListProviderProps = OptionsListProviderOnyxProps & {
+type OptionsListProviderProps = {
     /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
@@ -36,6 +32,7 @@ const OptionsListContext = createContext<OptionsListContextProps>({
     },
     initializeOptions: () => {},
     areOptionsInitialized: false,
+    resetOptions: () => {},
 });
 
 const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails | null, personalDetail: PersonalDetails | null) =>
@@ -44,12 +41,13 @@ const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails | null, perso
     prevPersonalDetail?.login === personalDetail?.login &&
     prevPersonalDetail?.displayName === personalDetail?.displayName;
 
-function OptionsListContextProvider({reports, children}: OptionsListProviderProps) {
+function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const areOptionsInitialized = useRef(false);
     const [options, setOptions] = useState<OptionList>({
         reports: [],
         personalDetails: [],
     });
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const prevPersonalDetails = usePrevious(personalDetails);
@@ -144,9 +142,22 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         areOptionsInitialized.current = true;
     }, [loadOptions]);
 
+    const resetOptions = useCallback(() => {
+        if (!areOptionsInitialized.current) {
+            return;
+        }
+
+        areOptionsInitialized.current = false;
+        setOptions({
+            reports: [],
+            personalDetails: [],
+        });
+    }, []);
+
     return (
-        // eslint-disable-next-line react-compiler/react-compiler
-        <OptionsListContext.Provider value={useMemo(() => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized.current}), [options, initializeOptions])}>
+        <OptionsListContext.Provider // eslint-disable-next-line react-compiler/react-compiler
+            value={useMemo(() => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized.current, resetOptions}), [options, initializeOptions, resetOptions])}
+        >
             {children}
         </OptionsListContext.Provider>
     );
@@ -157,7 +168,7 @@ const useOptionsListContext = () => useContext(OptionsListContext);
 // Hook to use the OptionsListContext with an initializer to load the options
 const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
-    const {initializeOptions, options: optionsList, areOptionsInitialized} = useOptionsListContext();
+    const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
 
     useEffect(() => {
         if (!shouldInitialize || areOptionsInitialized) {
@@ -171,13 +182,10 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
         initializeOptions,
         options: optionsList,
         areOptionsInitialized,
+        resetOptions,
     };
 };
 
-export default withOnyx<OptionsListProviderProps, OptionsListProviderOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(OptionsListContextProvider);
+export default OptionsListContextProvider;
 
 export {useOptionsListContext, useOptionsList, OptionsListContext};

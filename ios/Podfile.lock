@@ -2391,7 +2391,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.179):
+  - RNLiveMarkdown (0.1.183):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2411,9 +2411,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/newarch (= 0.1.179)
+    - RNLiveMarkdown/newarch (= 0.1.183)
     - Yoga
-  - RNLiveMarkdown/newarch (0.1.179):
+  - RNLiveMarkdown/newarch (0.1.183):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2503,7 +2503,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (3.15.1):
+  - RNReanimated (3.15.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2523,10 +2523,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 3.15.1)
-    - RNReanimated/worklets (= 3.15.1)
+    - RNReanimated/reanimated (= 3.15.3)
+    - RNReanimated/worklets (= 3.15.3)
     - Yoga
-  - RNReanimated/reanimated (3.15.1):
+  - RNReanimated/reanimated (3.15.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2547,7 +2547,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated/worklets (3.15.1):
+  - RNReanimated/worklets (3.15.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3264,12 +3264,12 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 8781e2529230a1bc3ea8d75e5c3cd071b6c6aed7
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 7acba70803223c6fa369c32cd2673c415ae3b5c4
+  RNLiveMarkdown: fa9c6451960d09209bb5698745a0a66330ec53cc
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
   RNReactNativeHapticFeedback: 73756a3477a5a622fa16862a3ab0d0fc5e5edff5
-  RNReanimated: 76901886830e1032f16bbf820153f7dc3f02d51d
+  RNReanimated: f46df3b08d5d59cd83c47bb6697ce88e565e0dc7
   RNScreens: de6e57426ba0e6cbc3fb5b4f496e7f08cb2773c2
   RNShare: bd4fe9b95d1ee89a200778cc0753ebe650154bb0
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
