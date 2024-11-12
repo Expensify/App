@@ -10,6 +10,9 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +36,18 @@ function ValidateCodeModal({code, accountID, session = {}}: ValidateCodeModalPro
     const signInHere = useCallback(() => Session.signInWithValidateCode(accountID, code), [accountID, code]);
     const {translate} = useLocalize();
 
+    const isInvalidValidateCode = !ValidationUtils.isValidValidateCode(code);
+
+    if (isInvalidValidateCode) {
+        return (
+            <NotFoundPage
+                shouldShow
+                onLinkPress={() => {
+                    Navigation.goBack();
+                }}
+            />
+        );
+    }
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
