@@ -32,7 +32,6 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySizeType | null | undefined>(onboardingCompanySize);
     const [error, setError] = useState('');
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const companySizeOptions: OnboardingListItem[] = useMemo(() => {
         return Object.values(CONST.ONBOARDING_COMPANY_SIZE).map((companySize): OnboardingListItem => {
@@ -44,17 +43,18 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         });
     }, [translate, selectedCompanySize]);
 
-    const addOptimticQAGuideDetail = () => {
-            const actorAccountID = CONST.ACCOUNT_ID.QA_GUIDE;
-            const optimisticPersonalDetailForQAGuide = {
-                accountID: actorAccountID,
-                avatar: allPersonalDetails?.[actorAccountID]?.avatar,
-                displayName: allPersonalDetails?.[actorAccountID]?.displayName ?? CONST.EMAIL.QA_GUIDES,
-                login: CONST.EMAIL.QA_GUIDES,
-            };
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[actorAccountID]: optimisticPersonalDetailForQAGuide});
-    }
-        
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
+    const addOptimticQAGuidePersonalDetail = () => {
+        const actorAccountID = CONST.ACCOUNT_ID.QA_GUIDE;
+        const optimisticPersonalDetailForQAGuide = {
+            accountID: actorAccountID,
+            avatar: allPersonalDetails?.[actorAccountID]?.avatar,
+            displayName: allPersonalDetails?.[actorAccountID]?.displayName ?? CONST.EMAIL.QA_GUIDES,
+            login: CONST.EMAIL.QA_GUIDES,
+        };
+        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[actorAccountID]: optimisticPersonalDetailForQAGuide});
+    };
 
     const footerContent = (
         <>
@@ -80,6 +80,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
                         Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
                         Welcome.setOnboardingPolicyID(policyID);
+                        addOptimticQAGuidePersonalDetail();
                     }
 
                     Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
@@ -108,7 +109,6 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 onSelectRow={(item) => {
                     setSelectedCompanySize(item.keyForList);
                     setError('');
-                    addOptimticQAGuideDetail();
                 }}
                 initiallyFocusedOptionKey={companySizeOptions.find((item) => item.keyForList === selectedCompanySize)?.keyForList}
                 shouldUpdateFocusedIndex

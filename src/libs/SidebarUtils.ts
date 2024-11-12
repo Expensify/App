@@ -404,12 +404,10 @@ function getOptionData({
         undefined,
         ReportUtils.isSelfDM(report),
     );
-
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
     let lastActorDetails: Partial<PersonalDetails> | null = report.lastActorAccountID && personalDetails?.[report.lastActorAccountID] ? personalDetails[report.lastActorAccountID] : null;
-
     if (!lastActorDetails && visibleReportActionItems[report.reportID]) {
         const lastActorDisplayName = visibleReportActionItems[report.reportID]?.person?.[0]?.text;
         lastActorDetails = lastActorDisplayName
@@ -485,7 +483,6 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
             result.alternateText = ReportActionsUtils.getRemovedConnectionMessage(lastAction);
         } else {
-            console.log("in the last else block of getOptionData's alternateText ", "reportID: ", report.reportID, "lastAction: ", lastAction);
             result.alternateText =
                 lastMessageTextFromReport.length > 0
                     ? ReportUtils.formatReportLastMessageText(Parser.htmlToText(lastMessageText))

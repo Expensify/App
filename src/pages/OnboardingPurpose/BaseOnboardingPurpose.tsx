@@ -84,6 +84,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
+
                     return;
                 }
                 Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));

@@ -13,6 +13,7 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
@@ -55,7 +56,6 @@ import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
-import { usePersonalDetails } from '@components/OnyxProvider';
 
 type ReportScreenNavigationProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT>;
 
@@ -99,7 +99,6 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 
 function ReportScreen({route, currentReportID = '', navigation}: ReportScreenProps) {
     const personalDetails = usePersonalDetails();
-    console.log('personalDetails', personalDetails);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reportIDFromRoute = getReportID(route);

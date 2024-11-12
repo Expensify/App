@@ -3438,12 +3438,9 @@ function completeOnboarding(
 
     const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
     const actorAccountID = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? CONST.ACCOUNT_ID.QA_GUIDE : CONST.ACCOUNT_ID.CONCIERGE;
-    // const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
     const adminsChatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? adminsChatReport : ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
-    // const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
-    console.log("actorAccountID ", actorAccountID, "currentUserAccountID ", currentUserAccountID, "targetChatReport ", targetChatReport, "targetChatReportID ", targetChatReportID, "targetChatPolicyID ", targetChatPolicyID);
     // Introductory message
     const introductionComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ONBOARDING_INTRODUCTION, undefined, actorAccountID);
     const introductionCommentAction: OptimisticAddCommentReportAction = introductionComment.reportAction;
@@ -3689,6 +3686,7 @@ function completeOnboarding(
                 lastMentionedTime: DateUtils.getDBTime(),
                 hasOutstandingChildTask,
                 lastVisibleActionCreated,
+                lastActorAccountID: actorAccountID,
             },
         },
         {
