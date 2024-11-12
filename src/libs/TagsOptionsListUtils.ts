@@ -98,7 +98,7 @@ function getTagListSections({
         return tagSections;
     }
 
-    if (numberOfTags < CONST.TAG_LIST_THRESHOLD) {
+    if (numberOfTags < CONST.STANDARD_LIST_ITEM_LIMIT) {
         tagSections.push({
             // "All" section when items amount less than the threshold
             title: '',
