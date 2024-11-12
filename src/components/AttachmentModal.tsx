@@ -188,7 +188,7 @@ function AttachmentModal({
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
     const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    const [currentAttachmentLink, setCurrentAttachmentLink] = useState('');
+    const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -487,22 +487,6 @@ function AttachmentModal({
 
     const submitRef = useRef<View | HTMLElement>(null);
 
-    const getSubTitleLink = useMemo(() => {
-        if (shouldShowNotFoundPage) {
-            return '';
-        }
-
-        if (!isEmptyObject(report) && !isReceiptAttachment) {
-            return currentAttachmentLink;
-        }
-
-        if (!isAuthTokenRequired && attachmentLink) {
-            return attachmentLink;
-        }
-
-        return '';
-    }, [shouldShowNotFoundPage, report, isReceiptAttachment, currentAttachmentLink, isAuthTokenRequired, attachmentLink]);
-
     return (
         <>
             <Modal
@@ -548,7 +532,7 @@ function AttachmentModal({
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                         threeDotsMenuItems={threeDotsMenuItems}
                         shouldOverlayDots
-                        subTitleLink={getSubTitleLink}
+                        subTitleLink={currentAttachmentLink ?? ''}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
                         {isLoading && <FullScreenLoadingIndicator />}
@@ -574,6 +558,7 @@ function AttachmentModal({
                                     onClose={closeModal}
                                     source={source}
                                     setDownloadButtonVisibility={setDownloadButtonVisibility}
+                                    attachmentLink={currentAttachmentLink}
                                 />
                             ) : (
                                 !!sourceForAttachmentView &&

@@ -28,7 +28,15 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
-            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute(reportID, type, String(attachment.source), Number(accountID), attachment.isAuthTokenRequired, '', attachment.attachmentLink);
+            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute(
+                reportID,
+                type,
+                String(attachment.source),
+                Number(accountID),
+                attachment?.isAuthTokenRequired,
+                attachment?.file?.name,
+                attachment?.attachmentLink,
+            );
             Navigation.navigate(routeToNavigate);
         },
         [reportID, type, accountID],

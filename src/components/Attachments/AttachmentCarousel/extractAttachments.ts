@@ -26,7 +26,7 @@ function extractAttachments(
 
     // We handle duplicate image sources by considering the first instance as original. Selecting any duplicate
     // and navigating back (<) shows the image preceding the first instance, not the selected duplicate's position.
-    const uniqueSources = new Set();
+    const uniqueSourcesAndLinks = new Set();
 
     let currentLink = '';
 
@@ -37,11 +37,11 @@ function extractAttachments(
             }
             if (name === 'video') {
                 const source = tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
-                if (uniqueSources.has(source)) {
+                if (uniqueSourcesAndLinks.has(source)) {
                     return;
                 }
 
-                uniqueSources.add(source);
+                uniqueSourcesAndLinks.add(source);
                 const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
                 attachments.unshift({
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
@@ -58,11 +58,14 @@ function extractAttachments(
                 const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
                 const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
                 const previewSource = tryResolveUrlFromApiRoot(attribs.src);
-                if (uniqueSources.has(source)) {
+                const sourceLinkKey = `${source}|${currentLink}`;
+
+                if (uniqueSourcesAndLinks.has(sourceLinkKey)) {
                     return;
                 }
 
-                uniqueSources.add(source);
+                uniqueSourcesAndLinks.add(sourceLinkKey);
+
                 let fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
 
                 const width = (attribs['data-expensify-width'] && parseInt(attribs['data-expensify-width'], 10)) || undefined;
