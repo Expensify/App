@@ -407,7 +407,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     };
 
     const shouldShowYear = SearchUIUtils.shouldShowYear(searchResults?.data);
-    const shouldShowSorting = Array.isArray(status) ? status.some((s) => sortableSearchStatuses.includes(s)) : sortableSearchStatuses.includes(status);
+    const shouldShowSorting = !Array.isArray(status) && sortableSearchStatuses.includes(status);
 
     return (
         <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>

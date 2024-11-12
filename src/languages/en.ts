@@ -742,6 +742,10 @@ const translations = {
         listOfChats: 'List of chats',
         saveTheWorld: 'Save the world',
         tooltip: 'Get started here!',
+        redirectToExpensifyClassicModal: {
+            title: 'Coming soon',
+            description: "We're fine-tuning a few more bits and pieces of New Expensify to accommodate your specific setup. In the meantime, head over to Expensify Classic.",
+        },
     },
     allSettingsScreen: {
         subscription: 'Subscription',
@@ -3454,7 +3458,7 @@ const translations = {
             },
             rules: {
                 title: 'Rules',
-                subtitle: 'Configure when receipts are required, flag high spend, and more.',
+                subtitle: 'Require receipts, flag high spend, and more.',
             },
         },
         reportFields: {
@@ -3943,7 +3947,7 @@ const translations = {
         },
         inviteMessage: {
             inviteMessageTitle: 'Add message',
-            inviteMessagePrompt: 'Make your invitation extra special by adding a message below',
+            inviteMessagePrompt: 'Make your invitation extra special by adding a message below!',
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
             inviteNoMembersError: 'Please select at least one member to invite.',
