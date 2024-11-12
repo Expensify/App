@@ -15,25 +15,25 @@ type CardFeedProvider =
 /** Custom card feed data */
 type CustomCardFeedData = {
     /** Whether any actions are pending */
-    pending: boolean;
+    pending?: boolean;
 
     /** Determines if Automated Statement Reconciliation (ASR) is enabled for the cards */
-    asrEnabled: boolean;
+    asrEnabled?: boolean;
 
     /** Specifies if the expenses on this card should be force reimbursable */
-    forceReimbursable: string;
+    forceReimbursable?: string;
 
     /** Defines the type of liability for the card */
     liabilityType?: string;
 
     /** Preferred policy */
-    preferredPolicy: string;
+    preferredPolicy?: string;
 
     /** Specifies the format for the report title related to this card */
-    reportTitleFormat: string;
+    reportTitleFormat?: string;
 
     /** Indicates the day when the statement period for this card ends */
-    statementPeriodEndDay: string;
+    statementPeriodEndDay?: string;
 
     /** Broken connection errors */
     errors?: OnyxCommon.Errors;
@@ -71,13 +71,13 @@ type CardFeeds = {
     /** Feed settings */
     settings: {
         /** User-friendly feed nicknames */
-        companyCardNicknames: Record<CompanyCardFeed, string>;
+        companyCardNicknames?: Partial<Record<CompanyCardFeed, string>>;
 
         /** Company cards feeds */
-        companyCards: Record<CompanyCardFeed, CustomCardFeedData>;
+        companyCards?: Partial<Record<CompanyCardFeed, CustomCardFeedData>>;
 
         /** Account details */
-        oAuthAccountDetails: Record<CompanyCardFeed, DirectCardFeedData>;
+        oAuthAccountDetails?: Partial<Record<CompanyCardFeed, DirectCardFeedData>>;
     };
 
     /** Whether we are loading the data via the API */
