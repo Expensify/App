@@ -35,11 +35,11 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, shouldGatherBothEmails ? [SIGNER_EMAIL, SECOND_SIGNER_EMAIL] : [SIGNER_EMAIL]);
             if (values[SIGNER_EMAIL] && !Str.isValidEmail(values[SIGNER_EMAIL])) {
-                errors[SIGNER_EMAIL] = translate('bankAccount.error.firstName');
+                errors[SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
 
             if (shouldGatherBothEmails && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(values[SECOND_SIGNER_EMAIL])) {
-                errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.lastName');
+                errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
 
             return errors;

@@ -1928,6 +1928,7 @@ const translations = {
             website: 'Please enter a valid website.',
             zipCode: `Please enter a valid ZIP code using the format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
             phoneNumber: 'Please enter a valid phone number.',
+            email: 'Please enter a valid email address.',
             companyName: 'Please enter a valid business name.',
             addressCity: 'Please enter a valid city.',
             addressStreet: 'Please enter a valid street address.',

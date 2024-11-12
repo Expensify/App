@@ -1947,6 +1947,7 @@ const translations = {
             website: 'Por favor, introduce un sitio web válido.',
             zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
             phoneNumber: 'Por favor, introduce un teléfono válido.',
+            email: 'Por favor, introduce una dirección de correo electrónico válida.',
             companyName: 'Por favor, introduce un nombre comercial legal válido.',
             addressCity: 'Por favor, introduce una ciudad válida.',
             addressStreet: 'Por favor, introduce una dirección válida que no sea un apartado postal.',
