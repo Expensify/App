@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
+import type {Screen} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import originalCloseRHPFlow from './closeRHPFlow';
@@ -466,6 +467,20 @@ const dismissModalWithReport = (report: OnyxEntry<Report>) => {
     isNavigationReady().then(() => navigateToReportWithPolicyCheck({report}));
 };
 
+function removeScreenFromNavigationState(screen: Screen) {
+    isNavigationReady().then(() => {
+        navigationRef.dispatch((state) => {
+            const routes = state.routes?.filter((item) => item.name !== screen);
+
+            return CommonActions.reset({
+                ...state,
+                routes,
+                index: routes.length < state.routes.length ? state.index - 1 : state.index,
+            });
+        });
+    });
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -490,6 +505,7 @@ export default {
     setNavigationActionToMicrotaskQueue,
     navigateToReportWithPolicyCheck,
     goUp,
+    removeScreenFromNavigationState,
 };
 
 export {navigationRef};

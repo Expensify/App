@@ -246,8 +246,7 @@ function getDatePassedError(inputDate: string): string {
  * http/https/ftp URL scheme required.
  */
 function isValidWebsite(url: string): boolean {
-    const isLowerCase = url === url.toLowerCase();
-    return new RegExp(`^${Url.URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
+    return new RegExp(`^${Url.URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
 }
 
 /** Checks if the domain is public */
@@ -503,6 +502,33 @@ function isValidSubscriptionSize(subscriptionSize: string): boolean {
     return !Number.isNaN(parsedSubscriptionSize) && parsedSubscriptionSize > 0 && parsedSubscriptionSize <= CONST.SUBSCRIPTION_SIZE_LIMIT && Number.isInteger(parsedSubscriptionSize);
 }
 
+/**
+ * Validates the given value if it is correct email address.
+ * @param email
+ */
+function isValidEmail(email: string): boolean {
+    return Str.isValidEmail(email);
+}
+
+/**
+ * Validates the given value if it is correct phone number in E164 format (international standard).
+ * @param phoneNumber
+ */
+function isValidPhoneInternational(phoneNumber: string): boolean {
+    const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(phoneNumber);
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
+
+    return parsedPhoneNumber.possible && Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');
+}
+
+/**
+ * Validates the given value if it is correct zip code for international addresses.
+ * @param zipCode
+ */
+function isValidZipCodeInternational(zipCode: string): boolean {
+    return /^[a-z0-9][a-z0-9\- ]{0,10}[a-z0-9]$/.test(zipCode);
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -547,4 +573,7 @@ export {
     isValidSubscriptionSize,
     isExistingTaxCode,
     isPublicDomain,
+    isValidEmail,
+    isValidPhoneInternational,
+    isValidZipCodeInternational,
 };
