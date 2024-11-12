@@ -40,9 +40,10 @@ function WorkspaceCompanyCardsSettingsPage({
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const feedName = cardFeeds?.settings?.companyCardNicknames?.[selectedFeed] ?? translate('workspace.companyCards.feedName', {feedName: CardUtils.getCardFeedName(selectedFeed)});
+    const feedName =
+        selectedFeed && (cardFeeds?.settings?.companyCardNicknames?.[selectedFeed] ?? translate('workspace.companyCards.feedName', {feedName: CardUtils.getCardFeedName(selectedFeed)}));
     const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
-    const liabilityType = companyFeeds[selectedFeed]?.liabilityType;
+    const liabilityType = selectedFeed && companyFeeds[selectedFeed]?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
 
     const navigateToChangeFeedName = () => {
@@ -50,12 +51,18 @@ function WorkspaceCompanyCardsSettingsPage({
     };
 
     const deleteCompanyCardFeed = () => {
+        if (!selectedFeed) {
+            return;
+        }
         CompanyCards.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, selectedFeed);
         setDeleteCompanyCardConfirmModalVisible(false);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
     const onToggleLiability = (isOn: boolean) => {
+        if (!selectedFeed) {
+            return;
+        }
         CompanyCards.setWorkspaceCompanyCardTransactionLiability(
             workspaceAccountID,
             policyID,
@@ -103,7 +110,7 @@ function WorkspaceCompanyCardsSettingsPage({
                         isVisible={deleteCompanyCardConfirmModalVisible}
                         onConfirm={deleteCompanyCardFeed}
                         onCancel={() => setDeleteCompanyCardConfirmModalVisible(false)}
-                        title={translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', {feedName})}
+                        title={feedName && translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', {feedName})}
                         prompt={translate('workspace.moreFeatures.companyCards.removeCardFeedDescription')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}

@@ -326,8 +326,8 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
     return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
 };
 
-function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed {
-    const defaultFeed = Object.keys(removeExpensifyCardFromCompanyCards(cardFeeds)).at(0) as CompanyCardFeed;
+function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed | undefined {
+    const defaultFeed = Object.keys(removeExpensifyCardFromCompanyCards(cardFeeds)).at(0) as CompanyCardFeed | undefined;
     return lastSelectedFeed ?? defaultFeed;
 }
 

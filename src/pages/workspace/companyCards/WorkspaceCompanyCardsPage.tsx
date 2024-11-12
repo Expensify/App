@@ -37,7 +37,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
 
     const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
     const isLoading = !cardFeeds || !!(cardFeeds.isLoading && !companyCards);
-    const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? null;
+    const selectedCompanyCard = selectedFeed && companyCards[selectedFeed];
     const isNoFeed = isEmptyObject(companyCards) && !selectedCompanyCard;
     const isPending = !!selectedCompanyCard?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
@@ -79,10 +79,10 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     includeSafeAreaPaddingBottom
                     showLoadingAsFirstRender={false}
                 >
-                    {(isFeedAdded || isPending) && (
+                    {(isFeedAdded || isPending) && !!selectedFeed && (
                         <WorkspaceCompanyCardsListHeaderButtons
                             policyID={policyID}
-                            selectedFeed={selectedFeed ?? ''}
+                            selectedFeed={selectedFeed}
                         />
                     )}
                     {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}
