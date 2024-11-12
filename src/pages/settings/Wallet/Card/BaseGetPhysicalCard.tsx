@@ -138,8 +138,8 @@ function BaseGetPhysicalCard({
     }, [cardList, currentRoute, domain, domainCards.length, draftValues, loginList, cardToBeIssued, privatePersonalDetails]);
 
     useEffect(() => {
-        // If that's not the confirmation route, or if there's a value for cardToBeIssued,
-        // It means the current card is not issued and we still need to stay on this screen.
+        // Current step of the get physical card flow should be the confirmation page; and
+        // Card has NOT_ACTIVATED state when successfully being issued so cardToBeIssued should be undefined
         if (!isConfirmation || !!cardToBeIssued || !currentCardID) {
             return;
         }
