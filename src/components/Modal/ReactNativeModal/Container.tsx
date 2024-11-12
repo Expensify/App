@@ -20,38 +20,35 @@ function Container({isVisible, isContainerOpen, isTransitioning, isHeightCalcula
     const animatedRef = useAnimatedRef();
     const [measuredHeight, setMH] = useState<number>(0);
 
-    const translateY = useSharedValue(500);
+    const translateY = useSharedValue(1000);
 
     useEffect(() => {
         if (!isTransitioning) {
             return;
         }
-        // console.log(testName, ' Container: isVisible & translateY', isVisible, isVisible ? 0 : 500);
+        console.log(testName, ' Container: isVisible & translateY & opacity', isVisible, isVisible ? 0 : 500, !isHeightCalculated || (isVisible !== isContainerOpen && !isTransitioning));
+
         // eslint-disable-next-line react-compiler/react-compiler
-        translateY.value = withDelay(0, withTiming(isVisible ? 0 : 500, {duration: 300, easing: Easing.inOut(Easing.ease)}));
-        setMH(0);
+        translateY.value = withDelay(0, withTiming(isVisible ? 0 : 450, {duration: 300, easing: Easing.inOut(Easing.ease)}));
+        setMH(500);
     }, [isVisible, isTransitioning, translateY]);
 
     const animatedStyles = useAnimatedStyle(() => {
         return {
             transform: [{translateY: translateY.value}],
-            opacity: !isHeightCalculated || (isVisible !== isContainerOpen && !isTransitioning) ? 0 : 1,
         };
     });
     return (
         <Animated.View
             ref={animatedRef}
-            style={[style, animatedStyles]}
+            style={[style, animatedStyles, {flex: 1, height: '100%', flexDirection: 'row'}]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             <Animated.View
-                // TODO: check this 100%
-                style={{width: '100%'}}
+                style={{width: '100%', flex: 1, alignSelf: 'flex-end'}}
                 onLayout={(event) => {
                     const {height} = event.nativeEvent.layout;
-
-                    // Early return if conditions are not met
                     if (measuredHeight || !height || measuredHeight === height) {
                         return;
                     }
