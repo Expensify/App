@@ -6865,7 +6865,6 @@ function isLastApprover(approvalChain: string[]): boolean {
 }
 
 function getNextApproverAccountID(report: OnyxEntry<OnyxTypes.Report>, isUnapproved = false) {
-    const ownerAccountID = report?.ownerAccountID ?? -1;
     const policy = PolicyUtils.getPolicy(report?.policyID);
     const approvalChain = ReportUtils.getApprovalChain(policy, report);
     const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, report);
