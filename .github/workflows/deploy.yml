@@ -263,9 +263,14 @@ jobs:
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
-      - name: Submit Android build for review
+      - name: Submit production build for Google Play review and a slow rollout
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android upload_google_play_production_hybrid_rollout
+        run: |
+          # Complete the previous version rollout
+          bundle exec fastlane android complete_hybrid_rollout
+          
+          # Submit the new version for review and slow rollout when it's approved
+          bundle exec fastlane android upload_google_play_production_hybrid_rollout
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
@@ -600,7 +605,7 @@ jobs:
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
           # Complete the previous version rollout
-          complete_hybrid_rollout
+          bundle exec fastlane ios complete_hybrid_rollout
           
           # Submit the new version for review and phased rollout when it's approved 
           bundle exec fastlane ios submit_hybrid_for_rollout

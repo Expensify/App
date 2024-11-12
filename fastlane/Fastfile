@@ -262,6 +262,42 @@ platform :android do
         skip_upload_screenshots: true
       )
     end
+
+    desc "Submit HybridApp to 100% rollout on Google Play"
+    lane :complete_hybrid_rollout do
+        productionVersionCode = google_play_track_version_codes(track: 'production')
+        upload_to_play_store(
+            package_name: "org.me.mobiexpensifyg",
+            json_key: './android/app/android-fastlane-json-key.json',
+            version_code: productionVersionCode,
+            track: 'production',
+            rollout: '1',
+            skip_upload_apk: true,
+            skip_upload_aab: true,
+            skip_upload_metadata: true,
+            skip_upload_changelogs: true,
+            skip_upload_images: true,
+            skip_upload_screenshots: true
+        )
+    end
+
+    desc "Update HybridApp rollout percentage on Google Play"
+    lane :update_hybrid_rollout do |options|
+        productionVersionCode = google_play_track_version_codes(track: 'production')
+        upload_to_play_store(
+            package_name: "org.me.mobiexpensifyg",
+            json_key: './android/app/android-fastlane-json-key.json',
+            version_code: productionVersionCode,
+            track: 'production',
+            rollout: options[:rollout],
+            skip_upload_apk: true,
+            skip_upload_aab: true,
+            skip_upload_metadata: true,
+            skip_upload_changelogs: true,
+            skip_upload_images: true,
+            skip_upload_screenshots: true
+        )
+    end
 end
 
 def setupIOSSigningCertificate()

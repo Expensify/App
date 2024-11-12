@@ -31,7 +31,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Rollout Percentage with Fastlane
+        if: ${{ steps.checkAndroidStatus.outputs.HALTED == 'false' }}
         run: |
-          # TODO: Write a fastlane lane to bump given a percentage
           echo "HALTED: ${{ steps.checkAndroidStatus.outputs.HALTED }}"
           echo "ROLLOUT_PERCENTAGE: ${{ steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE }}"
+          bundle exec fastlane android update_hybrid_rollout rollout:${{ steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE }}
