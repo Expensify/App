@@ -98,7 +98,6 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 }
 
 function ReportScreen({route, currentReportID = '', navigation}: ReportScreenProps) {
-    const personalDetails = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reportIDFromRoute = getReportID(route);
