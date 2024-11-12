@@ -14,8 +14,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 type EnterEmailProps = {
+    /** Callback when the form is submitted */
     onSubmit: () => void;
 
+    /** Whether the user is a director */
     isUserDirector: boolean;
 };
 
