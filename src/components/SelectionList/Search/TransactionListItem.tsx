@@ -1,12 +1,10 @@
 import React from 'react';
-import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {handleActionButtonPress} from '@libs/actions/Search';
 import variables from '@styles/variables';
 import TransactionListItemRow from './TransactionListItemRow';
 
@@ -28,7 +26,6 @@ function TransactionListItem<TItem extends ListItem>({
     const theme = useTheme();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {currentSearchHash} = useSearchContext();
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
@@ -78,14 +75,13 @@ function TransactionListItem<TItem extends ListItem>({
                 item={transactionItem}
                 showTooltip={showTooltip}
                 onButtonPress={() => {
-                    handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
+                    onSelectRow(item);
                 }}
                 onCheckboxPress={() => onCheckboxPress?.(item)}
                 isDisabled={!!isDisabled}
                 canSelectMultiple={!!canSelectMultiple}
                 isButtonSelected={item.isSelected}
                 shouldShowTransactionCheckbox={false}
-                isLoading={transactionItem.isActionLoading}
             />
         </BaseListItem>
     );
