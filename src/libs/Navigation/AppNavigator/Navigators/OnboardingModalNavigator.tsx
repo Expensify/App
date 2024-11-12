@@ -1,11 +1,13 @@
 import {CardStyleInterpolators} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import GoogleTagManager from '@libs/GoogleTagManager';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
@@ -15,6 +17,7 @@ import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -31,6 +34,17 @@ function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
+
+    // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
+    // as well as Google and Apple SSO.
+    useEffect(() => {
+        if (!accountID) {
+            return;
+        }
+
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.SIGN_UP, accountID);
+    }, [accountID]);
 
     const handleOuterClick = useCallback(() => {
         OnboardingRefManager.handleOuterClick();

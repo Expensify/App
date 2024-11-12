@@ -91,7 +91,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     });
 
     // Include the search bar when there are 8 or more active members in the selection list
-    const shouldShowTextInput = activeParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+    const shouldShowTextInput = activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     useEffect(() => {
         if (!isFocused) {

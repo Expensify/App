@@ -63,7 +63,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             if (!exportMenuItem?.exportType) {
                 return;
             }
-            CompanyCards.setCompanyCardExportAccount(workspaceAccountID, cardID, exportMenuItem.exportType, value, bank);
+            CompanyCards.setCompanyCardExportAccount(policyID, workspaceAccountID, cardID, exportMenuItem.exportType, value, bank);
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank));
         },
