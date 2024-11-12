@@ -90,9 +90,7 @@ function SMSDeliveryFailurePage() {
                     success
                     medium
                     text={translate('common.validate')}
-                    onPress={() => {
-                        console.log("Press")
-                    }}
+                    onPress={() => Session.resetPhoneNumberFailure(login)}
                     pressOnEnter
                 />
 
