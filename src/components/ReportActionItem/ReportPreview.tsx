@@ -239,6 +239,8 @@ function ReportPreview({
             return '';
         }
 
+        // nonHeldAmount amount can be negative if we hold a transaction
+        // We shouldn't display the nonHeldAmount as the default option since we cannot pay partially in this case
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement && !isNonHeldAmountNegative) {
             return nonHeldAmount;
         }
@@ -593,6 +595,7 @@ function ReportPreview({
 
             {isHoldMenuVisible && !!iouReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
+                    // nonHeldAmount amount can be negative if we hold a transaction, we cannot pay partially in this case
                     nonHeldAmount={!hasOnlyHeldExpenses && !isNonHeldAmountNegative ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
