@@ -179,9 +179,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** When was the last visible action last modified */
         lastVisibleActionLastModified?: string;
 
-        /** Display name of the report, shown in options and mentions */
-        displayName?: string;
-
         /** HTML content of the last message in the report */
         lastMessageHtml?: string;
 

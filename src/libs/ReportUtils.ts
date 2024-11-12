@@ -523,6 +523,7 @@ type OptionData = {
     lastIOUCreationDate?: string;
     icons?: Icon[];
     iouReportAmount?: number;
+    displayName?: string;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
