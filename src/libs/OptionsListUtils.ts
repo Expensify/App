@@ -1131,7 +1131,7 @@ function getCategoryListSections(
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
-    if (numberOfEnabledCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+    if (numberOfEnabledCategories < CONST.STANDARD_LIST_ITEM_LIMIT) {
         const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
         categorySections.push({
             // "All" section when items amount less than the threshold
@@ -1254,7 +1254,7 @@ function getTagListSections(
         return tagSections;
     }
 
-    if (numberOfTags < CONST.TAG_LIST_THRESHOLD) {
+    if (numberOfTags < CONST.STANDARD_LIST_ITEM_LIMIT) {
         tagSections.push({
             // "All" section when items amount less than the threshold
             title: '',
@@ -1464,7 +1464,7 @@ function getTaxRatesSection(policy: OnyxEntry<Policy> | undefined, selectedOptio
         return policyRatesSections;
     }
 
-    if (numberOfTaxRates < CONST.TAX_RATES_LIST_THRESHOLD) {
+    if (numberOfTaxRates < CONST.STANDARD_LIST_ITEM_LIMIT) {
         policyRatesSections.push({
             // "All" section when items amount less than the threshold
             title: '',

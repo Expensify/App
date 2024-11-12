@@ -2434,7 +2434,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.180):
+  - RNLiveMarkdown (0.1.183):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2454,9 +2454,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/newarch (= 0.1.180)
+    - RNLiveMarkdown/newarch (= 0.1.183)
     - Yoga
-  - RNLiveMarkdown/newarch (0.1.180):
+  - RNLiveMarkdown/newarch (0.1.183):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3181,7 +3181,7 @@ SPEC CHECKSUMS:
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   boost: 26992d1adf73c1c7676360643e687aee6dda994b
-  ContactsModule: 5fe033a12a3fab1d7f4b6b9f2fc986c564a7bf2d
+  ContactsModule: 21671b28654413dc28795d1afc3b12eaffa28ed1
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXAV: afa491e598334bbbb92a92a2f4dd33d7149ad37f
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
@@ -3315,7 +3315,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 8781e2529230a1bc3ea8d75e5c3cd071b6c6aed7
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: fc07b203a3ed832e2e5d3950e69cd4fc3b0568b6
+  RNLiveMarkdown: fa9c6451960d09209bb5698745a0a66330ec53cc
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
   RNPermissions: 9e5c26aaa982fe00743281f6f47fbdc050ebc58f

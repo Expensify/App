@@ -5,6 +5,7 @@
   "module": "lib/index",
   "types": "lib/index.d.ts",
   "react-native": "src/index",
+  "description": "React Native Contacts Module with Nitro optimization",
   "source": "src/index",
   "files": [
     "src",
