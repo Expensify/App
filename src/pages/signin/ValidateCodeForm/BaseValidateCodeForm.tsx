@@ -360,7 +360,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             Onyx.merge(ONYXKEYS.SESSION, {
                 authToken: null,
             }).then(() => {
-                console.log('[HybridApp] authToken cleared');
                 setIsSigningIn(false);
                 setOldDotSignInError(null);
                 setOldDotSignInState(CONST.OLD_DOT_SIGN_IN_STATE.NOT_STARTED);
