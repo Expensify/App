@@ -21,7 +21,7 @@ describe('WorkspacesSettingsUtils', () => {
     });
     describe('getBrickRoadForPolicy', () => {
         it('Should return "error"', async () => {
-            // Given mock data for reports, transaction violations, sessions, and report actions
+            // Given mock data for reports, transaction violations, sessions, and report actions.
             const report = Object.values(mockData.reports)?.at(0);
             const transactionViolations = mockData.transactionViolations;
             const reports = mockData.reports;
@@ -40,12 +40,12 @@ describe('WorkspacesSettingsUtils', () => {
             // When calling getBrickRoadForPolicy with a report and report actions
             const result = getBrickRoadForPolicy(report as Report, reportActions as OnyxCollection<ReportActions>);
 
-            // Then the result should be 'error'
+            // The result should be 'error' because there is at least one IOU action associated with a transaction that has a violation.
             expect(result).toBe('error');
         });
 
         it('Should return "undefined"', async () => {
-            // Given mock data for reports, transaction violations, sessions, and report actions
+            // Given mock data for reports, sessions, and report actions. Note: Transaction data is intentionally excluded.
             const report = Object.values(mockData.reports)?.at(0);
             const reports = mockData.reports;
             const session = mockData.session;
@@ -62,7 +62,7 @@ describe('WorkspacesSettingsUtils', () => {
             // When calling getBrickRoadForPolicy with a report and report actions
             const result = getBrickRoadForPolicy(report as Report, reportActions as OnyxCollection<ReportActions>);
 
-            // Then the result should be 'undefined'
+            // Then the result should be 'undefined' since no IOU action is linked to a transaction with a violation.
             expect(result).toBe(undefined);
         });
     });
