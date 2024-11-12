@@ -41,8 +41,8 @@ describe('TagsOptionsListUtils', () => {
         };
         const smallResultList: OptionsListUtils.CategorySection[] = [
             {
-                title: 'All',
-                shouldShow: true,
+                title: '',
+                shouldShow: false,
                 // data sorted alphabetically by name
                 data: [
                     {
