@@ -244,6 +244,27 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
                 value: {
+                    [cardID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {
+                    [cardID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        ],
+
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+                value: {
                     [cardID]: null,
                 },
             },
@@ -262,7 +283,7 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                 key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
                 value: {
                     [cardID]: {
-                        ...card,
+                        pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
@@ -272,7 +293,7 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                 key: ONYXKEYS.CARD_LIST,
                 value: {
                     [cardID]: {
-                        ...card,
+                        pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
@@ -493,25 +514,23 @@ function updateCompanyCardName(workspaceAccountID: number, cardID: string, newCa
     API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME, parameters, {optimisticData, finallyData, failureData});
 }
 
-function setCompanyCardExportAccount(workspaceAccountID: number, cardID: string, accountKey: string, newAccount: string, bankName: string) {
+function setCompanyCardExportAccount(policyID: string, workspaceAccountID: number, cardID: string, accountKey: string, newAccount: string, bank: string) {
     const authToken = NetworkStore.getAuthToken();
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`,
             value: {
                 [cardID]: {
                     nameValuePairs: {
                         pendingFields: {
-                            exportAccountDetails: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            [accountKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                         errorFields: {
-                            exportAccountDetails: null,
+                            [accountKey]: null,
                         },
-                        exportAccountDetails: {
-                            [accountKey]: newAccount,
-                        },
+                        [accountKey]: newAccount,
                     },
                 },
             },
@@ -521,12 +540,12 @@ function setCompanyCardExportAccount(workspaceAccountID: number, cardID: string,
     const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`,
             value: {
                 [cardID]: {
                     nameValuePairs: {
                         pendingFields: {
-                            exportAccountDetails: null,
+                            [accountKey]: null,
                         },
                     },
                 },
@@ -536,15 +555,15 @@ function setCompanyCardExportAccount(workspaceAccountID: number, cardID: string,
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`,
             value: {
                 [cardID]: {
                     nameValuePairs: {
                         pendingFields: {
-                            exportAccountDetails: null,
+                            [accountKey]: newAccount,
                         },
                         errorFields: {
-                            exportAccountDetails: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            [accountKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                         },
                     },
                 },
@@ -555,7 +574,7 @@ function setCompanyCardExportAccount(workspaceAccountID: number, cardID: string,
     const parameters: SetCompanyCardExportAccountParams = {
         authToken,
         cardID: Number(cardID),
-        exportAccountDetails: {[accountKey]: newAccount},
+        exportAccountDetails: JSON.stringify({[accountKey]: newAccount, [`${accountKey}_policy_id`]: policyID}),
     };
 
     API.write(WRITE_COMMANDS.SET_CARD_EXPORT_ACCOUNT, parameters, {optimisticData, finallyData, failureData});
@@ -574,6 +593,15 @@ function clearCompanyCardErrorField(workspaceAccountID: number, cardID: string, 
         [cardID]: {
             nameValuePairs: {
                 errorFields: {[fieldName]: null},
+            },
+        },
+    });
+    Onyx.merge(ONYXKEYS.CARD_LIST, {
+        [cardID]: {
+            nameValuePairs: {
+                errorFields: {
+                    [fieldName]: null,
+                },
             },
         },
     });
