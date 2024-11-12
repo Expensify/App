@@ -219,7 +219,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         return <NotFoundPage />;
     }
 
-    const shouldShowCardsSection = (!!policy?.areExpensifyCardsEnabled && !!paymentAccountID) ?? (!!policy?.areCompanyCardsEnabled && hasMultipleFeeds);
+    const shouldShowCardsSection = (!!policy?.areExpensifyCardsEnabled && !!paymentAccountID) || (!!policy?.areCompanyCardsEnabled && hasMultipleFeeds);
 
     return (
         <AccessOrNotFoundWrapper
