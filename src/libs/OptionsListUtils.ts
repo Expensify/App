@@ -171,9 +171,6 @@ type GetOptionsConfig = {
     taxRates?: TaxRatesWithDefault;
     policy?: OnyxEntry<Policy>;
     transaction?: OnyxEntry<Transaction>;
-    includePolicyReportFieldOptions?: boolean;
-    policyReportFieldOptions?: string[];
-    recentlyUsedPolicyReportFieldOptions?: string[];
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
@@ -217,7 +214,6 @@ type Options = {
     categoryOptions: CategoryTreeSection[];
     tagOptions: CategorySection[];
     taxRatesOptions: CategorySection[];
-    policyReportFieldOptions?: CategorySection[] | null;
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
@@ -1126,7 +1122,7 @@ function getCategoryListSections(
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
-    if (numberOfEnabledCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+    if (numberOfEnabledCategories < CONST.STANDARD_LIST_ITEM_LIMIT) {
         const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
         categorySections.push({
             // "All" section when items amount less than the threshold
@@ -1249,7 +1245,7 @@ function getTagListSections(
         return tagSections;
     }
 
-    if (numberOfTags < CONST.TAG_LIST_THRESHOLD) {
+    if (numberOfTags < CONST.STANDARD_LIST_ITEM_LIMIT) {
         tagSections.push({
             // "All" section when items amount less than the threshold
             title: '',
@@ -1301,84 +1297,12 @@ function getTagListSections(
  * Verifies that there is at least one enabled tag
  */
 function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>) {
-    const policyTagValueList = policyTagList.map(({tags}) => Object.values(tags)).flat();
+    const policyTagValueList = policyTagList
+        .filter((tag) => tag && tag.tags)
+        .map(({tags}) => Object.values(tags))
+        .flat();
 
     return hasEnabledOptions(policyTagValueList);
-}
-
-/**
- * Transforms the provided report field options into option objects.
- *
- * @param reportFieldOptions - an initial report field options array
- */
-function getReportFieldOptions(reportFieldOptions: string[]): Option[] {
-    return reportFieldOptions.map((name) => ({
-        text: name,
-        keyForList: name,
-        searchText: name,
-        tooltipText: name,
-        isDisabled: false,
-    }));
-}
-
-/**
- * Build the section list for report field options
- */
-function getReportFieldOptionsSection(options: string[], recentlyUsedOptions: string[], selectedOptions: Array<Partial<ReportUtils.OptionData>>, searchInputValue: string) {
-    const reportFieldOptionsSections = [];
-    const selectedOptionKeys = selectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o);
-    let indexOffset = 0;
-
-    if (searchInputValue) {
-        const searchOptions = options.filter((option) => option.toLowerCase().includes(searchInputValue.toLowerCase()));
-
-        reportFieldOptionsSections.push({
-            // "Search" section
-            title: '',
-            shouldShow: true,
-            indexOffset,
-            data: getReportFieldOptions(searchOptions),
-        });
-
-        return reportFieldOptionsSections;
-    }
-
-    const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((recentlyUsedOption) => !selectedOptionKeys.includes(recentlyUsedOption));
-    const filteredOptions = options.filter((option) => !selectedOptionKeys.includes(option));
-
-    if (selectedOptionKeys.length) {
-        reportFieldOptionsSections.push({
-            // "Selected" section
-            title: '',
-            shouldShow: true,
-            indexOffset,
-            data: getReportFieldOptions(selectedOptionKeys),
-        });
-
-        indexOffset += selectedOptionKeys.length;
-    }
-
-    if (filteredRecentlyUsedOptions.length > 0) {
-        reportFieldOptionsSections.push({
-            // "Recent" section
-            title: Localize.translateLocal('common.recent'),
-            shouldShow: true,
-            indexOffset,
-            data: getReportFieldOptions(filteredRecentlyUsedOptions),
-        });
-
-        indexOffset += filteredRecentlyUsedOptions.length;
-    }
-
-    reportFieldOptionsSections.push({
-        // "All" section when items amount more than the threshold
-        title: Localize.translateLocal('common.all'),
-        shouldShow: true,
-        indexOffset,
-        data: getReportFieldOptions(filteredOptions),
-    });
-
-    return reportFieldOptionsSections;
 }
 
 /**
@@ -1456,7 +1380,7 @@ function getTaxRatesSection(policy: OnyxEntry<Policy> | undefined, selectedOptio
         return policyRatesSections;
     }
 
-    if (numberOfTaxRates < CONST.TAX_RATES_LIST_THRESHOLD) {
+    if (numberOfTaxRates < CONST.STANDARD_LIST_ITEM_LIMIT) {
         policyRatesSections.push({
             // "All" section when items amount less than the threshold
             title: '',
@@ -1724,9 +1648,6 @@ function getOptions(
         policy,
         transaction,
         includeSelfDM = false,
-        includePolicyReportFieldOptions = false,
-        policyReportFieldOptions = [],
-        recentlyUsedPolicyReportFieldOptions = [],
         includeInvoiceRooms = false,
         includeDomainEmail = false,
         action,
@@ -1773,20 +1694,6 @@ function getOptions(
             categoryOptions: [],
             tagOptions: [],
             taxRatesOptions,
-        };
-    }
-
-    if (includePolicyReportFieldOptions) {
-        const transformedPolicyReportFieldOptions = getReportFieldOptionsSection(policyReportFieldOptions, recentlyUsedPolicyReportFieldOptions, selectedOptions, searchInputValue);
-        return {
-            recentReports: [],
-            personalDetails: [],
-            userToInvite: null,
-            currentUserOption: null,
-            categoryOptions: [],
-            tagOptions: [],
-            taxRatesOptions: [],
-            policyReportFieldOptions: transformedPolicyReportFieldOptions,
         };
     }
 
@@ -2142,9 +2049,6 @@ type FilteredOptionsParams = {
     taxRates?: TaxRatesWithDefault;
     maxRecentReportsToShow?: number;
     includeSelfDM?: boolean;
-    includePolicyReportFieldOptions?: boolean;
-    policyReportFieldOptions?: string[];
-    recentlyUsedPolicyReportFieldOptions?: string[];
     includeInvoiceRooms?: boolean;
     action?: IOUAction;
     sortByReportTypeInSearch?: boolean;
@@ -2183,9 +2087,6 @@ function getFilteredOptions(params: FilteredOptionsParamsWithDefaultSearchValue 
         maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         taxRates = {} as TaxRatesWithDefault,
         includeSelfDM = false,
-        includePolicyReportFieldOptions = false,
-        policyReportFieldOptions = [],
-        recentlyUsedPolicyReportFieldOptions = [],
         includeInvoiceRooms = false,
         action,
         sortByReportTypeInSearch = false,
@@ -2212,9 +2113,6 @@ function getFilteredOptions(params: FilteredOptionsParamsWithDefaultSearchValue 
             includeTaxRates,
             taxRates,
             includeSelfDM,
-            includePolicyReportFieldOptions,
-            policyReportFieldOptions,
-            recentlyUsedPolicyReportFieldOptions,
             includeInvoiceRooms,
             action,
             sortByReportTypeInSearch,
@@ -2257,9 +2155,6 @@ function getAttendeeOptions(
             maxRecentReportsToShow: 0,
             taxRates: {} as TaxRatesWithDefault,
             includeSelfDM: false,
-            includePolicyReportFieldOptions: false,
-            policyReportFieldOptions: [],
-            recentlyUsedPolicyReportFieldOptions: [],
             includeInvoiceRooms,
             action,
             sortByReportTypeInSearch,

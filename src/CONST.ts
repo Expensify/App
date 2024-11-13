@@ -297,6 +297,7 @@ const CONST = {
     DEFAULT_TABLE_NAME: 'keyvaluepairs',
     DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
+    DEFAULT_IMAGE_FILE_NAME: 'image',
     DISABLED_MAX_EXPENSE_VALUE: 10000000000,
     POLICY_BILLABLE_MODES: {
         BILLABLE: 'billable',
@@ -1253,17 +1254,13 @@ const CONST = {
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        SEARCH_ROUTER_RENDER: 'search_router_render',
-        CHAT_RENDER: 'chat_render',
+        OPEN_SEARCH: 'open_search',
         OPEN_REPORT: 'open_report',
-        HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
-        REPORT_INITIAL_RENDER: 'report_initial_render',
-        SWITCH_REPORT: 'switch_report',
         OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
         OPEN_REPORT_THREAD: 'open_report_thread',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
-        MESSAGE_SENT: 'message_sent',
+        SEND_MESSAGE: 'send_message',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -1858,7 +1855,6 @@ const CONST = {
                 JOBS: 'jobs',
             },
         },
-        NETSUITE_CUSTOM_LIST_LIMIT: 8,
         NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES: ['1', '2,', '3', '4'],
         NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
     },
@@ -2806,6 +2802,7 @@ const CONST = {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
         },
+        CARD_LIST_THRESHOLD: 8,
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
@@ -4546,9 +4543,6 @@ const CONST = {
     },
     INDENTS: '    ',
     PARENT_CHILD_SEPARATOR: ': ',
-    CATEGORY_LIST_THRESHOLD: 8,
-    TAG_LIST_THRESHOLD: 8,
-    TAX_RATES_LIST_THRESHOLD: 8,
     COLON: ':',
     MAPBOX: {
         PADDING: 32,
@@ -4631,11 +4625,6 @@ const CONST = {
      * When paginate, it multiplies by page number.
      */
     MAX_SELECTION_LIST_PAGE_LENGTH: 500,
-
-    /**
-     *  We only include the members search bar when we have 8 or more members
-     */
-    SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT: 8,
 
     /**
      * Bank account names
@@ -4810,7 +4799,6 @@ const CONST = {
     WORKSPACE_SWITCHER: {
         NAME: 'Expensify',
         SUBSCRIPT_ICON_SIZE: 8,
-        MINIMUM_WORKSPACES_TO_SHOW_SEARCH: 8,
     },
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
@@ -6216,6 +6204,14 @@ const CONST = {
         HAS_ERRORS: 'hasErrors',
         HAS_VIOLATIONS: 'hasViolations',
         HAS_TRANSACTION_THREAD_VIOLATIONS: 'hasTransactionThreadViolations',
+    },
+
+    ANALYTICS: {
+        EVENT: {
+            SIGN_UP: 'sign_up',
+            WORKSPACE_CREATED: 'workspace_created',
+            PAID_ADOPTION: 'paid_adoption',
+        },
     },
 } as const;
 

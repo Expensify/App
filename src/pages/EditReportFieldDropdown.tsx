@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import localeCompare from '@libs/LocaleCompare';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportFieldOptionsListUtils from '@libs/ReportFieldOptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type EditReportFieldDropdownPageComponentProps = {
@@ -58,7 +59,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
     const [sections, headerMessage] = useMemo(() => {
         const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
-        const {policyReportFieldOptions} = OptionsListUtils.getFilteredOptions({
+        const policyReportFieldOptions = ReportFieldOptionsListUtils.getReportFieldOptionsSection({
             searchValue: debouncedSearchValue,
             selectedOptions: [
                 {
@@ -67,21 +68,17 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
                     text: fieldValue,
                 },
             ],
-
-            includeP2P: false,
-            canInviteUser: false,
-            includePolicyReportFieldOptions: true,
-            policyReportFieldOptions: validFieldOptions,
-            recentlyUsedPolicyReportFieldOptions: recentlyUsedOptions,
+            options: validFieldOptions,
+            recentlyUsedOptions,
         });
 
-        const policyReportFieldData = policyReportFieldOptions?.[0]?.data ?? [];
+        const policyReportFieldData = policyReportFieldOptions.at(0)?.data ?? [];
         const header = OptionsListUtils.getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue);
 
         return [policyReportFieldOptions, header];
     }, [recentlyUsedOptions, debouncedSearchValue, fieldValue, fieldOptions]);
 
-    const selectedOptionKey = useMemo(() => (sections?.[0]?.data ?? []).filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList, [sections, fieldValue]);
+    const selectedOptionKey = useMemo(() => (sections.at(0)?.data ?? []).filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList, [sections, fieldValue]);
     return (
         <SelectionList
             textInputValue={searchValue}
