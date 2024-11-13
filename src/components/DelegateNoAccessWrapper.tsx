@@ -1,14 +1,15 @@
 import React from 'react';
-import {type OnyxEntry, useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import AccountUtils from '@libs/AccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {type Account} from '@src/types/onyx';
+import type {Account} from '@src/types/onyx';
 import callOrReturn from '@src/types/utils/callOrReturn';
-import {type FullPageNotFoundViewProps} from './BlockingViews/FullPageNotFoundView';
+import type {FullPageNotFoundViewProps} from './BlockingViews/FullPageNotFoundView';
 
 const DENIED_ACCESS_VARIANTS = {
     [CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]: (account: OnyxEntry<Account>) => isDelegate(account),
