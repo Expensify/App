@@ -52,11 +52,19 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                     shouldPlaceSubtitleBelowSwitch
                     onCloseError={() => Policy.clearNetSuiteAutoSyncErrorField(policyID)}
                     onToggle={(isEnabled) => Connections.updateNetSuiteAutoSync(policyID, isEnabled)}
-                    pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields)}
+                    pendingAction={
+                        settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields) ??
+                        settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields)
+                    }
                     errors={ErrorUtils.getLatestErrorField(autoSyncConfig, CONST.NETSUITE_CONFIG.AUTO_SYNC)}
                 />
                 {!!autoSyncConfig?.autoSync?.enabled && (
-                    <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields)}>
+                    <OfflineWithFeedback
+                        pendingAction={
+                            settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields) ??
+                            settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields)
+                        }
+                    >
                         <MenuItemWithTopDescription
                             title={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
