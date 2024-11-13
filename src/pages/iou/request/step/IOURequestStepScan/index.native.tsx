@@ -32,6 +32,7 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
+import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -496,16 +497,16 @@ function IOURequestStepScan({
         setDidCapturePhoto(true);
 
         console.debug('[dev] Taking photo');
-        console.debug('[dev] ReactNativeBlobUtil.fs.dirs.DocumentDir', ReactNativeBlobUtil.fs.dirs.DocumentDir);
 
-        const path = `${ReactNativeBlobUtil.fs.dirs.DocumentDir}/Receipts-Pending-Upload`;
+        const path = getReceiptsUploadFolderPath();
 
-        console.debug('ReactNativeBlobUtil.fs.isDir(path)', ReactNativeBlobUtil.fs.isDir(path));
+        console.debug('[dev] path', path);
 
         ReactNativeBlobUtil.fs
             .isDir(path)
             .then((isDir) => {
-                console.debug('[dev] ReactNativeBlobUtil.fs.isDir:', isDir);
+                console.debug('[dev] Checking if directory exists', isDir);
+
                 if (isDir) {
                     return;
                 }
@@ -521,55 +522,55 @@ function IOURequestStepScan({
             })
             .catch((error) => {
                 console.error('[dev] Error checking if directory exists:', error);
-            });
-
-        camera?.current
-            ?.takePhoto({
-                flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !isPlatformMuted,
-                path,
             })
-            .then((photo: PhotoFile) => {
-                console.debug('[dev] photo', photo);
-                return;
+            .then(() => {
+                camera?.current
+                    ?.takePhoto({
+                        flash: flash && hasFlash ? 'on' : 'off',
+                        enableShutterSound: !isPlatformMuted,
+                        path,
+                    })
+                    .then((photo: PhotoFile) => {
+                        console.debug('[dev] photo', photo);
 
-                // Store the receipt on the transaction object in Onyx
-                const source = getPhotoSource(photo.path);
-                IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
+                        // Store the receipt on the transaction object in Onyx
+                        const source = getPhotoSource(photo.path);
+                        IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
 
-                FileUtils.readFileAsync(
-                    source,
-                    photo.path,
-                    (file) => {
-                        if (isEditing) {
-                            updateScanAndNavigate(file, source);
-                            return;
-                        }
-                        if (shouldSkipConfirmation) {
-                            setFileResize(file);
-                            setFileSource(source);
-                            const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
-                            if (gpsRequired) {
-                                const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
-                                if (shouldStartLocationPermissionFlow) {
-                                    setStartLocationPermissionFlow(true);
+                        FileUtils.readFileAsync(
+                            source,
+                            photo.path,
+                            (file) => {
+                                if (isEditing) {
+                                    updateScanAndNavigate(file, source);
                                     return;
                                 }
-                            }
-                        }
-                        navigateToConfirmationStep(file, source, false);
-                    },
-                    () => {
+                                if (shouldSkipConfirmation) {
+                                    setFileResize(file);
+                                    setFileSource(source);
+                                    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
+                                    if (gpsRequired) {
+                                        const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
+                                        if (shouldStartLocationPermissionFlow) {
+                                            setStartLocationPermissionFlow(true);
+                                            return;
+                                        }
+                                    }
+                                }
+                                navigateToConfirmationStep(file, source, false);
+                            },
+                            () => {
+                                setDidCapturePhoto(false);
+                                showCameraAlert();
+                                Log.warn('[dev] Error reading photo');
+                            },
+                        );
+                    })
+                    .catch((error: string) => {
                         setDidCapturePhoto(false);
                         showCameraAlert();
-                        Log.warn('[dev] Error reading photo');
-                    },
-                );
-            })
-            .catch((error: string) => {
-                setDidCapturePhoto(false);
-                showCameraAlert();
-                Log.warn('[dev] Error taking photo', error);
+                        Log.warn('[dev] Error taking photo', error);
+                    });
             });
     }, [
         cameraPermissionStatus,
