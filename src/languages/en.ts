@@ -707,7 +707,7 @@ const translations = {
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
-        multipleUsers: 'Multiple users',
+        multipleMembers: 'Multiple members',
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
@@ -742,6 +742,10 @@ const translations = {
         listOfChats: 'List of chats',
         saveTheWorld: 'Save the world',
         tooltip: 'Get started here!',
+        redirectToExpensifyClassicModal: {
+            title: 'Coming soon',
+            description: "We're fine-tuning a few more bits and pieces of New Expensify to accommodate your specific setup. In the meantime, head over to Expensify Classic.",
+        },
     },
     allSettingsScreen: {
         subscription: 'Subscription',
@@ -1210,7 +1214,7 @@ const translations = {
             deviceCredentials: 'Device credentials',
             invalidate: 'Invalidate',
             destroy: 'Destroy',
-            maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
+            maskExportOnyxStateData: 'Mask fragile member data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
             importOnyxState: 'Import Onyx state',
             testCrash: 'Test crash',
@@ -1462,7 +1466,7 @@ const translations = {
         submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
         addApprovalButton: 'Add approval workflow',
-        addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists',
+        addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
@@ -1643,7 +1647,7 @@ const translations = {
     },
     groupChat: {
         lastMemberTitle: 'Heads up!',
-        lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all users. Are you sure you want to leave?",
+        lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all members. Are you sure you want to leave?",
         defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `${displayName}'s group chat`,
     },
     languagePage: {
@@ -3199,7 +3203,6 @@ const translations = {
             confirmationDescription: 'We’ll begin importing transactions immediately.',
             cardholder: 'Cardholder',
             card: 'Card',
-            startTransactionDate: 'Start transaction date',
             cardName: 'Card name',
             brokenConnectionErrorFirstPart: `Card feed connection is broken. Please `,
             brokenConnectionErrorLink: 'log into your bank ',
@@ -3455,7 +3458,7 @@ const translations = {
             },
             rules: {
                 title: 'Rules',
-                subtitle: 'Configure when receipts are required, flag high spend, and more.',
+                subtitle: 'Require receipts, flag high spend, and more.',
             },
         },
         reportFields: {
@@ -3596,7 +3599,7 @@ const translations = {
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
         },
         people: {
-            genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
+            genericFailureMessage: 'An error occurred removing a member from the workspace, please try again.',
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Are you sure you want to remove ${memberName}?`,
                 other: 'Are you sure you want to remove these members?',
@@ -3944,7 +3947,7 @@ const translations = {
         },
         inviteMessage: {
             inviteMessageTitle: 'Add message',
-            inviteMessagePrompt: 'Make your invitation extra special by adding a message below',
+            inviteMessagePrompt: 'Make your invitation extra special by adding a message below!',
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
             inviteNoMembersError: 'Please select at least one member to invite.',
@@ -4564,11 +4567,11 @@ const translations = {
                 selectedForRandomAudit: `randomly selected for review`,
                 selectedForRandomAuditMarkdown: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
                 share: ({to}: ShareParams) => `invited member ${to}`,
-                unshare: ({to}: UnshareParams) => `removed user ${to}`,
+                unshare: ({to}: UnshareParams) => `removed member ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
-                addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
+                addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'member' || role === 'user' ? 'member' : 'admin'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -4618,7 +4621,7 @@ const translations = {
         chatMessage: 'Chat message',
         lastChatMessagePreview: 'Last chat message preview',
         workspaceName: 'Workspace name',
-        chatUserDisplayNames: 'Chat user display names',
+        chatUserDisplayNames: 'Chat member display names',
         scrollToNewestMessages: 'Scroll to newest messages',
         prestyledText: 'Prestyled text',
         viewAttachment: 'View attachment',
@@ -5217,7 +5220,7 @@ const translations = {
             hasDraftComment: 'Has draft comment',
             hasGBR: 'Has GBR',
             hasRBR: 'Has RBR',
-            pinnedByUser: 'Pinned by user',
+            pinnedByUser: 'Pinned by member',
             hasIOUViolations: 'Has IOU violations',
             hasAddWorkspaceRoomErrors: 'Has add workspace room errors',
             isUnread: 'Is unread (focus mode)',
