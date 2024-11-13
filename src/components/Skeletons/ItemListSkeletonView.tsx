@@ -70,6 +70,7 @@ function ItemListSkeletonView({
                     animate={shouldAnimate}
                     height={itemViewHeight}
                     backgroundColor={theme.skeletonLHNIn}
+                    foregroundColor={theme.skeletonLHNOut}
                     style={[themeStyles.mr5, itemViewStyle, {opacity}] as StyleProp<ViewStyle> & CSSProperties}
                 >
                     {renderSkeletonItem({itemIndex: i})}
