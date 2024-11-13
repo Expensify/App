@@ -1,7 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -16,23 +15,18 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Session as SessionType} from '@src/types/onyx';
 
-type ValidateCodeModalOnyxProps = {
-    /** Session of currently logged in user */
-    session: OnyxEntry<SessionType>;
-};
-
-type ValidateCodeModalProps = ValidateCodeModalOnyxProps & {
+type ValidateCodeModalProps = {
     /** Code to display. */
     code: string;
     /** The ID of the account to which the code belongs. */
     accountID: number;
 };
 
-function ValidateCodeModal({code, accountID, session = {}}: ValidateCodeModalProps) {
+function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const signInHere = useCallback(() => Session.signInWithValidateCode(accountID, code), [accountID, code]);
     const {translate} = useLocalize();
 
@@ -88,6 +82,4 @@ function ValidateCodeModal({code, accountID, session = {}}: ValidateCodeModalPro
 
 ValidateCodeModal.displayName = 'ValidateCodeModal';
 
-export default withOnyx<ValidateCodeModalProps, ValidateCodeModalOnyxProps>({
-    session: {key: ONYXKEYS.SESSION},
-})(ValidateCodeModal);
+export default ValidateCodeModal;
