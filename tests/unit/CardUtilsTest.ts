@@ -40,10 +40,14 @@ const directFeeds = {
     },
 };
 const allFeeds: CompanyFeeds = {...customFeeds, ...directFeeds};
+const customFeedName = 'Custom feed name';
 
 const cardFeedsCollection: OnyxCollection<OnyxTypes.CardFeeds> = {
     FAKE_ID_1: {
         settings: {
+            companyCardNicknames: {
+                [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: customFeedName,
+            },
             companyCards: customFeeds,
             oAuthAccountDetails: directFeeds,
         },
@@ -174,6 +178,29 @@ describe('CardUtils', () => {
             const cardFeeds = undefined;
             const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
             expect(selectedFeed).toBe(undefined);
+        });
+    });
+
+    describe('getCustomOrFormattedFeedName', () => {
+        it('Should return custom name if exists', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const companyCardNicknames = cardFeedsCollection.FAKE_ID_1?.settings?.companyCardNicknames;
+            const feedName = CardUtils.getCustomOrFormattedFeedName(feed, companyCardNicknames);
+            expect(feedName).toBe(customFeedName);
+        });
+
+        it('Should return formatted name if there is no custom name', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const companyCardNicknames = cardFeedsCollection.FAKE_ID_3?.settings?.companyCardNicknames;
+            const feedName = CardUtils.getCustomOrFormattedFeedName(feed, companyCardNicknames);
+            expect(feedName).toBe('Visa cards');
+        });
+
+        it('Should return undefined if no feed provided', () => {
+            const feed = undefined;
+            const companyCardNicknames = cardFeedsCollection.FAKE_ID_1?.settings?.companyCardNicknames;
+            const feedName = CardUtils.getCustomOrFormattedFeedName(feed, companyCardNicknames);
+            expect(feedName).toBe(undefined);
         });
     });
 });
