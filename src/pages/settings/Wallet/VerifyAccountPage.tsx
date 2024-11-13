@@ -21,7 +21,6 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const loginData = loginList?.[contactMethod];
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
 
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
@@ -31,9 +30,9 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            User.validateLogin(accountID ?? 0, validateCode);
+            User.validateSecondaryLogin(loginList, contactMethod, validateCode);
         },
-        [accountID],
+        [loginList, contactMethod],
     );
 
     const clearError = useCallback(() => {
