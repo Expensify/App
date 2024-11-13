@@ -182,7 +182,6 @@ function ReportPreview({
     const shouldShowSubmitButton =
         isOpenExpenseReport &&
         !isArchivedExpenseReport &&
-        !isArchivedReport &&
         reimbursableSpend !== 0 &&
         !showRTERViolationMessage &&
         !shouldShowBrokenConnectionViolation &&
