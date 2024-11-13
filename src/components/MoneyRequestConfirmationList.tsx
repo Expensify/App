@@ -1,5 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -7,7 +7,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
@@ -46,6 +45,7 @@ import type {SectionListDataType} from './SelectionList/types';
 import UserListItem from './SelectionList/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
+import {KeyboardStateContext} from './withKeyboardState';
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
@@ -194,8 +194,7 @@ function MoneyRequestConfirmationList({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {canUseP2PDistanceRequests} = usePermissions(iouType);
-
+    const {isKeyboardShown, isWindowHeightReducedByKeyboard} = useContext(KeyboardStateContext);
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
@@ -213,9 +212,9 @@ function MoneyRequestConfirmationList({
 
         const defaultRate = defaultMileageRate?.customUnitRateID ?? '';
         const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
-        const rateID = canUseP2PDistanceRequests ? lastSelectedRate : defaultRate;
+        const rateID = lastSelectedRate;
         IOU.setCustomUnitRateID(transactionID, rateID);
-    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID, isDistanceRequest]);
+    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, transactionID, isDistanceRequest]);
 
     const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
     const rate = mileageRate.rate;
@@ -683,9 +682,12 @@ function MoneyRequestConfirmationList({
     useEffect(() => {
         let updatedTagsString = TransactionUtils.getTag(transaction);
         policyTagLists.forEach((tagList, index) => {
-            const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
             const isTagListRequired = tagList.required ?? false;
-            if (!isTagListRequired || enabledTags.length !== 1 || TransactionUtils.getTag(transaction, index)) {
+            if (!isTagListRequired) {
+                return;
+            }
+            const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
+            if (enabledTags.length !== 1 || TransactionUtils.getTag(transaction, index)) {
                 return;
             }
             updatedTagsString = IOUUtils.insertTagIntoTransactionTagsString(updatedTagsString, enabledTags.at(0)?.name ?? '', index);
@@ -822,7 +824,7 @@ function MoneyRequestConfirmationList({
     }, [routeError, isTypeSplit, shouldShowReadOnlySplits, debouncedFormError, formError, translate]);
 
     const footerContent = useMemo(() => {
-        if (isReadOnly) {
+        if (isReadOnly || isKeyboardShown || isWindowHeightReducedByKeyboard) {
             return;
         }
 
@@ -874,12 +876,24 @@ function MoneyRequestConfirmationList({
                 {button}
             </>
         );
-    }, [isReadOnly, iouType, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, styles.ph1, styles.mb2, errorMessage]);
+    }, [
+        isReadOnly,
+        iouType,
+        confirm,
+        bankAccountRoute,
+        iouCurrencyCode,
+        policyID,
+        splitOrRequestOptions,
+        styles.ph1,
+        styles.mb2,
+        errorMessage,
+        isKeyboardShown,
+        isWindowHeightReducedByKeyboard,
+    ]);
 
     const listFooterContent = (
         <MoneyRequestConfirmationListFooter
             action={action}
-            canUseP2PDistanceRequests={canUseP2PDistanceRequests}
             currency={currency}
             didConfirm={!!didConfirm}
             distance={distance}
@@ -900,7 +914,6 @@ function MoneyRequestConfirmationList({
             isEditingSplitBill={isEditingSplitBill}
             isMerchantEmpty={isMerchantEmpty}
             isMerchantRequired={isMerchantRequired}
-            isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
             isPolicyExpenseChat={isPolicyExpenseChat}
             isReadOnly={isReadOnly}
             isTypeInvoice={isTypeInvoice}

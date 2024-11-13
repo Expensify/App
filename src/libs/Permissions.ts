@@ -1,7 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
+import * as SessionUtils from './SessionUtils';
+
+const isAccountIDEven = (accountID: number) => accountID % 2 === 0;
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
@@ -13,11 +15,6 @@ function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
 
 function canUseDupeDetection(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DUPE_DETECTION) || canUseAllBetas(betas);
-}
-
-function canUseP2PDistanceRequests(betas: OnyxEntry<Beta[]>, iouType: IOUType | undefined): boolean {
-    // Allow using P2P distance request for TrackExpense outside of the beta, because that project doesn't want to be limited by the more cautious P2P distance beta
-    return !!betas?.includes(CONST.BETAS.P2P_DISTANCE_REQUESTS) || canUseAllBetas(betas) || iouType === CONST.IOU.TYPE.TRACK;
 }
 
 function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
@@ -32,9 +29,10 @@ function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
 }
 
-function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
+function canUseCombinedTrackSubmit(): boolean {
     // We don't need to show this to all betas since this will be used for developing a feature for A/B testing.
-    return !!betas?.includes(CONST.BETAS.COMBINED_TRACK_SUBMIT);
+    const session = SessionUtils.getSession();
+    return isAccountIDEven(session?.accountID ?? -1);
 }
 
 function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
@@ -52,7 +50,6 @@ export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
     canUseDupeDetection,
-    canUseP2PDistanceRequests,
     canUseSpotnanaTravel,
     canUseNetSuiteUSATax,
     canUseCombinedTrackSubmit,
