@@ -23,7 +23,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
@@ -61,8 +60,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}});
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const theme = useTheme();
