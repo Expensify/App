@@ -3896,6 +3896,7 @@ function completeOnboarding(
     paymentSelected?: string,
     companySize?: OnboardingCompanySize,
     userReportedIntegration?: OnboardingAccounting,
+    wasInvited?: boolean,
 ) {
     const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(
         engagementChoice,
@@ -3903,6 +3904,7 @@ function completeOnboarding(
         adminsChatReportID,
         onboardingPolicyID,
         userReportedIntegration,
+        wasInvited,
     );
 
     const parameters: CompleteGuidedSetupParams = {
