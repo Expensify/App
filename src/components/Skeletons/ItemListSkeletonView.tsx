@@ -1,6 +1,4 @@
 import React, {useCallback, useMemo, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {CSSProperties} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
@@ -71,7 +69,7 @@ function ItemListSkeletonView({
                     height={itemViewHeight}
                     backgroundColor={theme.skeletonLHNIn}
                     foregroundColor={theme.skeletonLHNOut}
-                    style={[themeStyles.mr5, itemViewStyle, {opacity}] as StyleProp<ViewStyle> & CSSProperties}
+                    style={[themeStyles.mr5, itemViewStyle, {opacity}]}
                 >
                     {renderSkeletonItem({itemIndex: i})}
                 </SkeletonViewContentLoader>,
