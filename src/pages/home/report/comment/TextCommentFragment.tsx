@@ -14,6 +14,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
+import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
@@ -52,7 +53,8 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
-        Performance.markEnd(CONST.TIMING.MESSAGE_SENT, {message: text});
+        Performance.markEnd(CONST.TIMING.SEND_MESSAGE, {message: text});
+        Timing.end(CONST.TIMING.SEND_MESSAGE);
     }, [text]);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
