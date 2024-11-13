@@ -134,7 +134,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
-    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, policy), [moneyRequestReport, policy]);
+    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions, [moneyRequestReport, policy, hasOnlyPendingTransactions]);
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
@@ -177,7 +177,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
-    const shouldDisplaySearchRouter = !isReportInRHP;
+    const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
 
     const confirmPayment = useCallback(
         (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
