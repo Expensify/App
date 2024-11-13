@@ -22,7 +22,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import * as UserUtils from '@libs/UserUtils';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,8 +42,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
     const validateLoginError = ErrorUtils.getLatestErrorField(loginData, 'addedLogin');
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
 
@@ -111,7 +108,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     }, [navigateBackTo]);
 
     return (
-        // <AccessOrNotFoundWrapper shouldBeBlocked={isActingAsDelegate}>
         <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
             <ScreenWrapper
                 onEntryTransitionEnd={() => loginInputRef.current?.focus()}
@@ -177,7 +173,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                 />
             </ScreenWrapper>
         </DelegateNoAccessWrapper>
-        // </AccessOrNotFoundWrapper>
     );
 }
 
