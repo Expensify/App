@@ -4440,7 +4440,7 @@ const translations = {
                 subtitle: 'Usa el botón verde de abajo para crear un gasto o haz un tour por Expensify para aprender más.',
             },
             emptyInvoiceResults: {
-                title: 'Aún no has creado ninguna factura',
+                title: 'Aún no has creado \nninguna factura',
                 subtitle: 'Usa el botón verde de abajo para crear una factura o haz un tour por Expensify para aprender más.',
             },
             emptyTripResults: {
