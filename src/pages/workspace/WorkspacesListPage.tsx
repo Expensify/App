@@ -124,12 +124,12 @@ function WorkspacesListPage() {
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyIDToDelete ?? '-1');
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const policyToDelete = PolicyUtils.getPolicy(policyIDToDelete);
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
         !isEmptyObject(cardsList) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        ((PolicyUtils.getPolicy(policyIDToDelete)?.areExpensifyCardsEnabled || PolicyUtils.getPolicy(policyIDToDelete)?.areCompanyCardsEnabled) &&
-            PolicyUtils.getPolicy(policyIDToDelete)?.workspaceAccountID);
+        ((policyToDelete?.areExpensifyCardsEnabled || policyToDelete?.areCompanyCardsEnabled) && policyToDelete?.workspaceAccountID);
 
     const confirmDeleteAndHideModal = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
