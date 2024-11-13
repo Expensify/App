@@ -8,8 +8,11 @@ type ValidateCodeActionModalProps = {
     /** Title of the modal */
     title: string;
 
-    /** Description of the modal */
-    description: string;
+    /** Primary description of the modal */
+    descriptionPrimary: string;
+
+    /** Secondary description of the modal */
+    descriptionSecondary?: string | null;
 
     /** Function to call when the user closes the modal */
     onClose: () => void;
