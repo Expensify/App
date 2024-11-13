@@ -59,54 +59,40 @@ expect(onyxData).toBe(expectedOnyxData);
 
 ## Documenting Tests
 
-Tests aren't always clear about what exactly is being tested.  To make this a bit easier we recommend adopting the following format for code comments:
+Comments are just as criticle in tests as the tests themselves. They provide context behind why the test was written and what the expected behavior is supposed to be which will benefit the future generations of engineers looking at them. Think about it. When was the last time you saw a unit test and wondered why it was written that way and then you didn't want to touch it because you didn't know if changing the behavior of the test was appropriate or not? It was probably pretty recent :D
+
+In order to give future engineers the best context for a unit test, follow this guide:
+
+1. DO add three sections to every test:
+  - "Given" - This introduces the initial condition of the test
+  - "When" - Describes what action is being done and the thing that is being tested
+  - "Then" - Describes what is expected to happen
+
+2. DO explain **WHY** the test is doing what it is doing in every comment.
+3. DO NOT explain **WHAT** the code is doing in comments. This information should be self-evident.
+
+The format looks like this:
 
 ```
-// Given <initial_condition>
-...  code that sets initial condition
+// BAD
+// Given an account
+{* code that sets initial condition *}
 
-// When <something_happens>
-... code that does something
+// When it is closed
+{* code that does something *}
 
-// Then <expectation>
-... code that performs the assertion
-```
+// Then the user is logged out
+{* code that performs the assertion *}
 
-## Example Test
+// GOOD
+// Given an account of a brand new user
+{* code that sets initial condition *}
 
-```javascript
-HttpUtils.xhr = jest.fn();
+// When the account is closed by clicking on the close account button
+{* code that does something *}
 
-describe('actions/Report', () => {
-    it('adds an optimistic comment', () => {
-        // Given an Onyx subscription to a report's `reportActions`
-        const ACTION_ID = 1;
-        const REPORT_ID = 1;
-        let reportActions;
-        Onyx.connect({
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: val => reportActions = val,
-        });
-
-        // Mock Report_AddComment command so it can succeed
-        HttpUtils.xhr.mockImplementation(() => Promise.resolve({
-            jsonCode: 200,
-        }));
-
-        // When we add a new action to that report
-        Report.addComment(REPORT_ID, 'Hello!');
-        return waitForBatchedUpdates()
-            .then(() => {
-                const action = reportActions[ACTION_ID];
-
-                // Then the action set in the Onyx callback should match
-                // the comment we left and it will be in a loading state because
-                // it's an "optimistic comment"
-                expect(action.message[0].text).toBe('Hello!');
-                expect(action.isPending).toBe(true);
-            });
-    });
-});
+// Then the user should be logged out because their account is no longer active
+{* code that performs the assertion *}
 ```
 
 ## When to Write a Test
