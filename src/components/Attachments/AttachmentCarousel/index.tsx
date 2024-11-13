@@ -262,7 +262,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                 })
                 // eslint-disable-next-line react-compiler/react-compiler
                 .withRef(pagerRef as MutableRefObject<GestureType | undefined>),
-        [attachments.length, canUseTouchScreen, cellWidth, page, isScrollEnabled, scrollRef],
+        [attachments.length, canUseTouchScreen, cellWidth, page, isScrollEnabled, scrollRef, isPagerScrolling],
     );
 
     return (
