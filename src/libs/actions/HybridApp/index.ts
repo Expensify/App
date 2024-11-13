@@ -1,5 +1,10 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type HybridAppSettings from './types';
+
+function parseHybridAppSettings(hybridAppSettings: string): HybridAppSettings {
+    return JSON.parse(hybridAppSettings) as HybridAppSettings;
+}
 
 function setIsSigningIn(isSigningIn: boolean) {
     Onyx.merge(ONYXKEYS.HYBRID_APP, {isSigningIn});
@@ -29,4 +34,13 @@ function setLoggedOutFromOldDot(loggedOutFromOldDot: boolean) {
     Onyx.merge(ONYXKEYS.HYBRID_APP, {loggedOutFromOldDot});
 }
 
-export {setOldDotSignInError, setIsSigningIn, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setShouldResetSigningInLogic, setUseNewDotSignInPage, setLoggedOutFromOldDot};
+export {
+    parseHybridAppSettings,
+    setOldDotSignInError,
+    setIsSigningIn,
+    setReadyToShowAuthScreens,
+    setReadyToSwitchToClassicExperience,
+    setShouldResetSigningInLogic,
+    setUseNewDotSignInPage,
+    setLoggedOutFromOldDot,
+};
