@@ -12,11 +12,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionModalProps} from './type';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
+import useLocalize from '@hooks/useLocalize';
 
 function ValidateCodeActionModal({
     isVisible,
     title,
-    description,
+    descriptionPrimary,
+    descriptionSecondary,
     onClose,
     onModalHide,
     validatePendingAction,
@@ -29,6 +31,7 @@ function ValidateCodeActionModal({
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const safePaddingBottomStyle = useSafePaddingBottomStyle();
+    const {translate} = useLocalize();
     const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
 
@@ -70,7 +73,8 @@ function ValidateCodeActionModal({
                 />
 
                 <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7, themeStyles.flex1]}>
-                    <Text style={[themeStyles.mb3]}>{description}</Text>
+                    <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
+                    {!!descriptionSecondary && (<Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>)}
                     <ValidateCodeForm
                         validateCodeAction={validateCodeAction}
                         validatePendingAction={validatePendingAction}
