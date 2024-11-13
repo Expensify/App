@@ -64,7 +64,15 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                         </Text>
                     </View>
                 )}
-                <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
+                <View
+                    style={[
+                        styles.flexRow,
+                        styles.gap2,
+                        shouldUseNarrowLayout ? styles.flex2 : styles.flex1,
+                        styles.alignItemsCenter,
+                        shouldUseNarrowLayout ? styles.justifyContentCenter : styles.justifyContentStart,
+                    ]}
+                >
                     <Text
                         numberOfLines={1}
                         style={[styles.textLabelSupporting, styles.lh16]}

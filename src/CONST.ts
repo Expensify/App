@@ -2732,7 +2732,7 @@ const CONST = {
             MONTHLY: 'monthly',
             FIXED: 'fixed',
         },
-        LIMIT_VALUE: 21474836,
+        LIMIT_VALUE: 10000000,
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEP: {
             ASSIGNEE: 'Assignee',
