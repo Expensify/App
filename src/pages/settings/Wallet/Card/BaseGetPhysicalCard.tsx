@@ -143,6 +143,7 @@ function BaseGetPhysicalCard({
         if (!isConfirmation || !!cardToBeIssued || !currentCardID) {
             return;
         }
+
         // Form draft data needs to be erased when the flow is complete,
         // so that no stale data is left on Onyx
         FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);

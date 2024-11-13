@@ -66,7 +66,7 @@ type ValidateCodeFormProps = {
     /** Function is called when validate code modal is mounted and on magic code resend */
     sendValidateCode: () => void;
 
-    /** Wheather the form is loading or not */
+    /** Whether the form is loading or not */
     isLoading?: boolean;
 };
 

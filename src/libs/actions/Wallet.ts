@@ -352,12 +352,12 @@ function resetWalletAdditionalDetailsDraft() {
 
 /**
  * Clear the error of specific card
- * @param cardId The card id of the card that you want to clear the errors.
+ * @param cardID The card id of the card that you want to clear the errors.
  */
-function clearPhysicalCardError(cardId: string) {
+function clearPhysicalCardError(cardID: string) {
     FormActions.clearErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
     Onyx.merge(ONYXKEYS.CARD_LIST, {
-        [cardId]: {
+        [cardID]: {
             errors: null,
         },
     });
