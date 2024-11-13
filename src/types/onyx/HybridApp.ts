@@ -1,3 +1,6 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+
 /**  */
 type HybridApp = {
     /** Stores the information if HybridApp uses NewDot's sign in flow */
@@ -26,6 +29,12 @@ type HybridApp = {
 
     /** */
     shouldRemoveDelegatedAccess?: boolean;
+
+    /** */
+    newDotSignInState?: ValueOf<typeof CONST.HYBRID_APP_SIGN_IN_STATE>;
+
+    /** */
+    oldDotSignInState?: ValueOf<typeof CONST.HYBRID_APP_SIGN_IN_STATE>;
 };
 
 export default HybridApp;

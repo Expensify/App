@@ -43,7 +43,15 @@ import * as App from '@userActions/App';
 import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
-import {parseHybridAppSettings, setLoggedOutFromOldDot, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setUseNewDotSignInPage} from '@userActions/HybridApp';
+import {
+    parseHybridAppSettings,
+    setLoggedOutFromOldDot,
+    setNewDotSignInState,
+    setOldDotSignInState,
+    setReadyToShowAuthScreens,
+    setReadyToSwitchToClassicExperience,
+    setUseNewDotSignInPage,
+} from '@userActions/HybridApp';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
@@ -498,6 +506,8 @@ function signInAfterTransitionFromOldDot(route: Route, hybridAppSettings: string
 
     const initAppAfterTransition = () => {
         if (hybridApp.useNewDotSignInPage) {
+            setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
+            setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
             return Promise.resolve();
         }
 

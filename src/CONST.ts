@@ -6135,14 +6135,7 @@ const CONST = {
         HIDDEN: `hidden`,
     },
 
-    OLD_DOT_SIGN_IN_STATE: {
-        NOT_STARTED: 'notStarted',
-        STARTED: 'started',
-        FINISHED: 'finished',
-        WAITING_FOR_SIGN_OUT: 'waitingForSignOut',
-    },
-
-    NEW_DOT_SIGN_IN_STATE: {
+    HYBRID_APP_SIGN_IN_STATE: {
         NOT_STARTED: 'notStarted',
         STARTED: 'started',
         FINISHED: 'finished',

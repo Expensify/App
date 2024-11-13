@@ -3,7 +3,6 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 import type {ForwardedRef} from 'react';
 import {NativeModules, View} from 'react-native';
 import Onyx, {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -27,7 +26,9 @@ import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
 import {
     setIsSigningIn,
+    setNewDotSignInState,
     setOldDotSignInError,
+    setOldDotSignInState,
     setReadyToShowAuthScreens,
     setReadyToSwitchToClassicExperience,
     setShouldResetSigningInLogic,
@@ -66,7 +67,9 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {
+        initialValue: {oldDotSignInState: CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED, newDotSignInState: CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED},
+    });
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -78,8 +81,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [recoveryCode, setRecoveryCode] = useState('');
     const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
-    const [oldDotSignInState, setOldDotSignInState] = useState<ValueOf<typeof CONST.OLD_DOT_SIGN_IN_STATE>>(CONST.OLD_DOT_SIGN_IN_STATE.NOT_STARTED);
-    const [newDotSignInState, setNewDotSignInState] = useState<ValueOf<typeof CONST.NEW_DOT_SIGN_IN_STATE>>(CONST.NEW_DOT_SIGN_IN_STATE.NOT_STARTED);
 
     const prevRequiresTwoFactorAuth = usePrevious(account?.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(credentials?.validateCode);
@@ -107,8 +108,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         setUseNewDotSignInPage(true);
         setOldDotSignInError(null);
 
-        setOldDotSignInState(CONST.OLD_DOT_SIGN_IN_STATE.NOT_STARTED);
-        setNewDotSignInState(CONST.NEW_DOT_SIGN_IN_STATE.NOT_STARTED);
+        setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
+        setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
         setShouldResetSigningInLogic(false);
     }, [hybridApp?.shouldResetSigningInLogic]);
 
@@ -120,11 +121,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             return;
         }
 
-        if (newDotSignInState === CONST.NEW_DOT_SIGN_IN_STATE.STARTED && !isValidateCodeFormSubmitting && !!session?.authToken) {
+        if (hybridApp?.newDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.STARTED && !isValidateCodeFormSubmitting && !!session?.authToken) {
             console.log('[HybridApp] session auth token', session?.authToken);
-            setNewDotSignInState(CONST.NEW_DOT_SIGN_IN_STATE.FINISHED);
+            setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.FINISHED);
         }
-    }, [newDotSignInState, isValidateCodeFormSubmitting, session?.authToken, hybridApp?.useNewDotSignInPage]);
+    }, [isValidateCodeFormSubmitting, session?.authToken, hybridApp?.useNewDotSignInPage, hybridApp?.newDotSignInState]);
 
     /**
      * ustawianie stanu logowania OD na finished, jak używamy strony logowania
@@ -134,10 +135,10 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             return;
         }
 
-        if (oldDotSignInState === CONST.OLD_DOT_SIGN_IN_STATE.STARTED && !hybridApp?.isSigningIn) {
-            setOldDotSignInState(CONST.OLD_DOT_SIGN_IN_STATE.FINISHED);
+        if (hybridApp?.oldDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.STARTED && !hybridApp?.isSigningIn) {
+            setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.FINISHED);
         }
-    }, [hybridApp?.isSigningIn, oldDotSignInState, hybridApp?.useNewDotSignInPage]);
+    }, [hybridApp?.isSigningIn, hybridApp?.useNewDotSignInPage, hybridApp?.oldDotSignInState]);
 
     /**
      * główny efekt obsługujacy kilka rzeczy
@@ -150,11 +151,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             return;
         }
 
-        console.log('[HybridApp] newDotSignInState', newDotSignInState);
-        console.log('[HybridApp] oldDotSignInState', oldDotSignInState);
+        console.log('[HybridApp] newDotSignInState', hybridApp?.newDotSignInState);
+        console.log('[HybridApp] oldDotSignInState', hybridApp?.oldDotSignInState);
         if (
-            newDotSignInState === CONST.NEW_DOT_SIGN_IN_STATE.FINISHED &&
-            oldDotSignInState === CONST.OLD_DOT_SIGN_IN_STATE.NOT_STARTED &&
+            hybridApp?.newDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.FINISHED &&
+            hybridApp?.oldDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED &&
             credentials?.autoGeneratedLogin &&
             credentials?.autoGeneratedPassword
         ) {
@@ -165,12 +166,12 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             }
 
             console.log('[HybridApp] signInToOldDot');
-            setOldDotSignInState(CONST.OLD_DOT_SIGN_IN_STATE.STARTED);
+            setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
             NativeModules.HybridAppModule.signInToOldDot(credentials.autoGeneratedLogin, credentials.autoGeneratedPassword);
         }
 
         console.log('[Hybridapp] should use old app', shouldUseOldApp(tryNewDot));
-        if (oldDotSignInState === CONST.OLD_DOT_SIGN_IN_STATE.FINISHED && shouldUseOldApp(tryNewDot)) {
+        if (hybridApp?.oldDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.FINISHED && shouldUseOldApp(tryNewDot)) {
             if (hybridApp?.oldDotSignInError) {
                 return;
             }
@@ -180,11 +181,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         account?.isLoading,
         credentials?.autoGeneratedLogin,
         credentials?.autoGeneratedPassword,
-        newDotSignInState,
-        oldDotSignInState,
         tryNewDot,
         hybridApp?.useNewDotSignInPage,
         hybridApp?.oldDotSignInError,
+        hybridApp?.newDotSignInState,
+        hybridApp?.oldDotSignInState,
     ]);
 
     useEffect(() => {
@@ -266,8 +267,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        setOldDotSignInState(CONST.OLD_DOT_SIGN_IN_STATE.NOT_STARTED);
-        setNewDotSignInState(CONST.NEW_DOT_SIGN_IN_STATE.NOT_STARTED);
+        setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
+        setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
         setOldDotSignInError(null);
         User.resendValidateCode(credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
@@ -354,16 +355,16 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      */
     const validateAndSubmitForm = useCallback(() => {
         if (session?.authToken) {
-            setOldDotSignInState(CONST.OLD_DOT_SIGN_IN_STATE.WAITING_FOR_SIGN_OUT);
-            setNewDotSignInState(CONST.NEW_DOT_SIGN_IN_STATE.WAITING_FOR_SIGN_OUT);
+            setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.WAITING_FOR_SIGN_OUT);
+            setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.WAITING_FOR_SIGN_OUT);
             signOut();
             Onyx.merge(ONYXKEYS.SESSION, {
                 authToken: null,
             }).then(() => {
                 setIsSigningIn(false);
                 setOldDotSignInError(null);
-                setOldDotSignInState(CONST.OLD_DOT_SIGN_IN_STATE.NOT_STARTED);
-                setNewDotSignInState(CONST.NEW_DOT_SIGN_IN_STATE.STARTED);
+                setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
+                setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
             });
         }
 
@@ -417,7 +418,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const recoveryCodeOr2faCode = isUsingRecoveryCode ? recoveryCode : twoFactorAuthCode;
 
-        setNewDotSignInState(CONST.NEW_DOT_SIGN_IN_STATE.STARTED);
+        setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
         const accountID = credentials?.accountID;
         if (accountID) {
             SessionActions.signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);

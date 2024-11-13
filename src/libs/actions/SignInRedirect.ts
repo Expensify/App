@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {setUseNewDotSignInPage} from './HybridApp';
 import * as Policy from './Policy/Policy';
 
 let currentIsOffline: boolean | undefined;
@@ -22,7 +23,6 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
     keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     keysToPreserve.push(ONYXKEYS.DEVICE_ID);
-    keysToPreserve.push(ONYXKEYS.HYBRID_APP);
 
     // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
     // If we are forcing offline, ignore it while signed out, otherwise it would require a refresh because there's no way to toggle the switch to go back online while signed out.
@@ -38,6 +38,7 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
 
         // `Onyx.clear` reinitializes the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
         Onyx.merge(ONYXKEYS.SESSION, {errors: ErrorUtils.getMicroSecondOnyxErrorWithMessage(errorMessage)});
+        setUseNewDotSignInPage(true);
     });
 }
 
