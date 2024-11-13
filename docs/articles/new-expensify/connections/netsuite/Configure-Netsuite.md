@@ -24,7 +24,7 @@ The following steps help you determine how data will be imported from NetSuite t
 1. From the Accounting tab of your workspace settings, click on **Import**.
 2. In the right-hand menu, review each of the following import settings:
     - _Categories_: Your NetSuite Expense Categories are automatically imported into Expensify as categories. This is enabled by default and cannot be disabled.
-    -_Department, Classes, and Locations_: The NetSuite connection allows you to import each independently and utilize tags, report fields, or employee defaults as the coding method.
+    - _Department, Classes, and Locations_: The NetSuite connection allows you to import each independently and utilize tags, report fields, or employee defaults as the coding method.
         - Tags are applied at the expense level and apply to single expense.
         - Report Fields are applied at the report header level and apply to all expenses on the report.
         - The employee default is applied when the expense is exported to NetSuite and comes from the default on the submitter’s employee record in NetSuite.
@@ -48,17 +48,17 @@ The following steps help you determine how data will be exported from Expensify 
 
 1. From the Accounting tab of your workspace settings, click on **Export**.
 2. In the right-hand menu, review each of the following export settings:
-    -_Preferred exporter_: Any workspace admin can export reports to NetSuite. For automatic export, Concierge will export on behalf of the preferred exporter. The preferred exporter will also be notified of any expense reports that fail to export to NetSuite due to an error.
-    -_Export date_: You can choose which date to use for the records created in NetSuite. There are three date options:
-        -_Date of last expense_: This will use the date of the most recent expense on the report.
-        -_Submitted date_: The date the employee submitted the report.
-        -_Exported date_: The date you export the report to NetSuite.
-    -_Export out-of-pocket expenses as_:
-        -_Expense Reports_: Out-of-pocket expenses will be exported as expense reports, which will be posted to the payables account designated in NetSuite.
-        -_Vendor Bills_: Out-of-pocket expenses will be exported to NetSuite as vendor bills. Each report will be posted as payable to the vendor associated with the employee who submitted the report. You can also set an approval level in NetSuite for vendor bills.
-        -_Journal Entries_: Out-of-pocket expenses will be exported to NetSuite as journal entries. All the transactions will be posted to the payable account specified in the workspace. You can also set an approval level in NetSuite for the journal entries.
-            By default, journal entry forms do not contain a customer column, so it is not possible to export customers or projects with this export option. Also, the credit line and header-level classifications are pulled from the employee record.
-    -_Export company card expenses as_:
+    - _Preferred exporter_: Any workspace admin can export reports to NetSuite. For automatic export, Concierge will export on behalf of the preferred exporter. The preferred exporter will also be notified of any expense reports that fail to export to NetSuite due to an error.
+    - _Export date_: You can choose which date to use for the records created in NetSuite. There are three date options:
+        - _Date of last expense_: This will use the date of the most recent expense on the report.
+        - _Submitted date_: The date the employee submitted the report.
+        - _Exported date_: The date you export the report to NetSuite.
+    - _Export out-of-pocket expenses as_:
+        - _Expense Reports_: Out-of-pocket expenses will be exported as expense reports, which will be posted to the payables account designated in NetSuite.
+        - _Vendor Bills_: Out-of-pocket expenses will be exported to NetSuite as vendor bills. Each report will be posted as payable to the vendor associated with the employee who submitted the report. You can also set an approval level in NetSuite for vendor bills.
+        - _Journal Entries_: Out-of-pocket expenses will be exported to NetSuite as journal entries. All the transactions will be posted to the payable account specified in the workspace. You can also set an approval level in NetSuite for the journal entries.
+            - By default, journal entry forms do not contain a customer column, so it is not possible to export customers or projects with this export option. Also, the credit line and header-level classifications are pulled from the employee record.
+    - _Export company card expenses as_:
         - _Expense Reports_:To export company card expenses as expense reports, you will need to configure your default corporate cards in NetSuite. 
         - _Vendor Bills_: Company card expenses will be posted as a vendor bill payable to the default vendor specified in your workspace Accounting settings. You can also set an approval level in NetSuite for the bills.
         - _Journal Entries_: Company Card expenses will be posted to the Journal Entries posting account selected in your workspace Accounting settings.
@@ -66,10 +66,10 @@ The following steps help you determine how data will be exported from Expensify 
             - Expensify Card expenses will always export as Journal Entries, even if you have Expense Reports or Vendor Bills configured for non-reimbursable expenses on the Export tab
             - Journal entry forms do not contain a customer column, so it is not possible to export customers or projects with this export option
             - The credit line and header level classifications are pulled from the employee record
-    -_Export invoices to_: Select the Accounts Receivable account where you want your Invoice reports to export. In NetSuite, the invoices are linked to the customer, corresponding to the email address where the invoice was sent.
-    -_Invoice item_: Choose whether Expensify creates an "Expensify invoice line item" for you upon export (if one doesn’t exist already) or select an existing invoice item. 
-    -_Export foreign currency amount_: Enabling this feature allows you to send the original amount of the expense rather than the converted total when exporting to NetSuite. This option is only available when exporting out-of-pocket expenses as Expense Reports.
-    -_Export to next open period_: When this feature is enabled and you try exporting an expense report to a closed NetSuite period, we will automatically export to the next open period instead of returning an error.
+    - _Export invoices to_: Select the Accounts Receivable account where you want your Invoice reports to export. In NetSuite, the invoices are linked to the customer, corresponding to the email address where the invoice was sent.
+    - _Invoice item_: Choose whether Expensify creates an "Expensify invoice line item" for you upon export (if one doesn’t exist already) or select an existing invoice item. 
+    - _Export foreign currency amount_: Enabling this feature allows you to send the original amount of the expense rather than the converted total when exporting to NetSuite. This option is only available when exporting out-of-pocket expenses as Expense Reports.
+    - _Export to next open period_: When this feature is enabled and you try exporting an expense report to a closed NetSuite period, we will automatically export to the next open period instead of returning an error.
 3. Sync the connection by closing the right-hand menu and clicking the three-dot icon > Sync Now option.
 
 # Step 3: Configure Advanced Settings
@@ -78,21 +78,21 @@ The following steps help you determine the advanced settings for your NetSuite c
 
 1. From the Accounting tab of your workspace settings, click on **Advanced**.
 2. In the right-hand menu, review each of the following advanced settings:
-    -_Auto-sync_: When enabled, the connection will sync daily to ensure that the data shared between the two systems is up-to-date. We strongly recommend keeping auto-sync enabled. The following will occur when auto-sync is enabled:
+    - _Auto-sync_: When enabled, the connection will sync daily to ensure that the data shared between the two systems is up-to-date. We strongly recommend keeping auto-sync enabled. The following will occur when auto-sync is enabled:
         - When an expense report reaches its final state in Expensify, it will be automatically exported to NetSuite. The final state will either be reimbursement (if you reimburse members through Expensify) or final approval (if you reimburse members outside of Expensify).
         - If Sync Reimbursed Reports is enabled, then we will sync the reimbursement status of reports between Expensify and NetSuite.
-    -_Sync reimbursed reports_: Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the NetSuite.
-        -_Reimbursments account_: Select the account that matches the default account for Bill Payments in your NetSuite account.
-        -_Collections account_:  When exporting invoices, once marked as Paid, the payment is marked against the account selected.
-    -_Invite employees and set approvals_: Enabling this feature will invite all employees from the connected NetSuite subsidiary to your Expensify workspace. Once imported, Expensify will send them an email letting them know they’ve been added to a workspace.
+    - _Sync reimbursed reports_: Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the NetSuite.
+        - _Reimbursments account_: Select the account that matches the default account for Bill Payments in your NetSuite account.
+        - _Collections account_:  When exporting invoices, once marked as Paid, the payment is marked against the account selected.
+    - _Invite employees and set approvals_: Enabling this feature will invite all employees from the connected NetSuite subsidiary to your Expensify workspace. Once imported, Expensify will send them an email letting them know they’ve been added to a workspace.
         - In addition to inviting employees, this feature enables a custom set of approval workflow options, which you can manage in Expensify Classic. (Click Switch to Expensify Classic from the Settings menu.)
-    -_Auto create employees/vendors_: With this feature enabled, Expensify will automatically create a new employee or vendor in NetSuite (if one doesn’t already exist) using the name and email of the report submitter.
-    -_Enable newly imported categories_: Toggle to enable this feature and anytime a new Expense Category is created in NetSuite, it will be imported into Expensify as an enabled category. Otherwise, it will import disabled and employees will be unable to see it as an option to code to an expense.
-    -_Setting approval levels_: You can set the NetSuite approval level for each different export type; Expense report, Vendor bill, and Journal entry.
+    - _Auto create employees/vendors_: With this feature enabled, Expensify will automatically create a new employee or vendor in NetSuite (if one doesn’t already exist) using the name and email of the report submitter.
+    - _Enable newly imported categories_: Toggle to enable this feature and anytime a new Expense Category is created in NetSuite, it will be imported into Expensify as an enabled category. Otherwise, it will import disabled and employees will be unable to see it as an option to code to an expense.
+    - _Setting approval levels_: You can set the NetSuite approval level for each different export type; Expense report, Vendor bill, and Journal entry.
         - Note: If you have Approval Routing selected in your accounting preference, this will override the selections in Expensify. If you do not wish to use Approval Routing in NetSuite, go to **Setup > Accounting > Accounting Preferences > Approval Routing** and ensure Vendor Bills and Journal Entries are not selected.
-    -_Custom form ID_: By default, Expensify creates entries using the preferred transaction form set in NetSuite. Enabling this setting allows you to designate a specific transaction form.
-        -_Out-of-pocket expense_: 
-        -_Company card expense_:
+    - _Custom form ID_: By default, Expensify creates entries using the preferred transaction form set in NetSuite. Enabling this setting allows you to designate a specific transaction form.
+        - _Out-of-pocket expense_: 
+        - _Company card expense_:
 3. Sync the connection by closing the right-hand menu and clicking the three-dot icon > Sync Now option.
 
 {% include faq-begin.md %}
