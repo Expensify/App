@@ -74,7 +74,7 @@ function HeaderWrapper({icon, children, text, value, isCannedQuery, onSubmit, se
                     <SearchRouterInput
                         value={value}
                         onSubmit={onSubmit}
-                        updateSearch={setValue}
+                        onSearchQueryChange={setValue}
                         autoFocus={false}
                         isFullWidth
                         wrapperStyle={[styles.searchRouterInputResults, styles.br2]}

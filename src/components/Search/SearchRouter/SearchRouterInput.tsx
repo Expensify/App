@@ -17,7 +17,7 @@ type SearchRouterInputProps = {
     value: string;
 
     /** Callback to update search in SearchRouter */
-    updateSearch: (searchTerm: string) => void;
+    onSearchQueryChange: (searchTerm: string) => void;
 
     /** Callback invoked when the user submits the input */
     onSubmit?: () => void;
@@ -52,7 +52,7 @@ type SearchRouterInputProps = {
 
 function SearchRouterInput({
     value,
-    updateSearch,
+    onSearchQueryChange,
     onSubmit = () => {},
     routerListRef,
     isFullWidth,
@@ -81,7 +81,7 @@ function SearchRouterInput({
                     <TextInput
                         testID="search-router-text-input"
                         value={value}
-                        onChangeText={updateSearch}
+                        onChangeText={onSearchQueryChange}
                         autoFocus={autoFocus}
                         shouldDelayFocus={shouldDelayFocus}
                         caretHidden={caretHidden}
