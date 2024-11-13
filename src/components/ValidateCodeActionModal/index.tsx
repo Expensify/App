@@ -31,7 +31,6 @@ function ValidateCodeActionModal({
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const safePaddingBottomStyle = useSafePaddingBottomStyle();
-    const {translate} = useLocalize();
     const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
 
