@@ -40,7 +40,7 @@ Who reported the bug:
 
 <details>
 <summary>Regression Test Proposal Template</summary>
-<!-- AFTER FILLING THIS OUT, be sure to remove the <details> tags!!!!! -->
+<!-- AFTER FILLING THIS OUT, be sure to remove the <details> and <summary> tags from this part of the checklist!!!!! -->
 
 - [ ] **[BugZero Assignee]** Create a GH issue for creating/updating the regression test once above steps have been agreed upon.
 
