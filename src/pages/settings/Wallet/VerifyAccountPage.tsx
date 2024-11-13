@@ -12,7 +12,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as User from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type VerifyAccountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
@@ -30,6 +29,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
 
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
+
     const navigateBackTo = route?.params?.backTo;
 
     useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
@@ -64,10 +64,10 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             return;
         }
 
-        if (!isUserValidated && navigateBackTo) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET);
-        } else if (!navigateBackTo) {
+        if (!isUserValidated) {
             Navigation.goBack();
+        } else if (navigateBackTo) {
+            Navigation.navigate(navigateBackTo);
         }
     }, [isValidateCodeActionModalVisible, isUserValidated, navigateBackTo]);
 
