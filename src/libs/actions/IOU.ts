@@ -8,6 +8,7 @@ import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
+    CategorizeTrackedExpenseParams,
     CompleteSplitBillParams,
     CreateDistanceRequestParams,
     CreateWorkspaceParams,
@@ -22,6 +23,7 @@ import type {
     SendInvoiceParams,
     SendMoneyParams,
     SetNameValuePairParams,
+    ShareTrackedExpenseParams,
     SplitBillParams,
     StartSplitBillParams,
     SubmitReportParams,
@@ -3429,6 +3431,8 @@ function categorizeTrackedExpense(
     taxAmount = 0,
     billable?: boolean,
     receipt?: Receipt,
+    waypoints?: string,
+    customUnitRateID?: string,
     createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
@@ -3452,7 +3456,7 @@ function categorizeTrackedExpense(
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
 
-    const parameters = {
+    const parameters: CategorizeTrackedExpenseParams = {
         policyID,
         transactionID,
         moneyRequestPreviewReportActionID,
@@ -3472,6 +3476,8 @@ function categorizeTrackedExpense(
         billable,
         created,
         receipt,
+        waypoints,
+        customUnitRateID,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
@@ -3504,6 +3510,8 @@ function shareTrackedExpense(
     taxAmount = 0,
     billable?: boolean,
     receipt?: Receipt,
+    waypoints?: string,
+    customUnitRateID?: string,
     createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
@@ -3527,7 +3535,7 @@ function shareTrackedExpense(
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
 
-    const parameters = {
+    const parameters: ShareTrackedExpenseParams = {
         policyID,
         transactionID,
         moneyRequestPreviewReportActionID,
@@ -3547,6 +3555,8 @@ function shareTrackedExpense(
         taxAmount,
         billable,
         receipt,
+        waypoints,
+        customUnitRateID,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
@@ -3802,6 +3812,7 @@ function trackExpense(
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;
+    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
 
     const {
         createdWorkspaceParams,
@@ -3879,6 +3890,8 @@ function trackExpense(
                 taxAmount,
                 billable,
                 trackedReceipt,
+                sanitizedWaypoints,
+                customUnitRateID,
                 createdWorkspaceParams,
             );
             break;
@@ -3910,6 +3923,8 @@ function trackExpense(
                 taxAmount,
                 billable,
                 trackedReceipt,
+                sanitizedWaypoints,
+                customUnitRateID,
                 createdWorkspaceParams,
             );
             break;
@@ -3939,7 +3954,7 @@ function trackExpense(
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 createdReportActionIDForThread: createdReportActionIDForThread ?? '-1',
-                waypoints: validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined,
+                waypoints: sanitizedWaypoints,
                 customUnitRateID,
             };
             if (actionableWhisperReportActionIDParam) {
