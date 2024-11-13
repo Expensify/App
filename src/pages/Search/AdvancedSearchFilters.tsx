@@ -18,7 +18,7 @@ import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {getAllTaxRates} from '@libs/PolicyUtils';
+import {getAllTaxRates, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
@@ -27,7 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/types/onyx';
 
 const baseFilterConfig = {
     date: {
@@ -242,7 +242,7 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
         : undefined;
 }
 
-function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
+function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
     return filters.in
         ? filters.in
               .map((id) => ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]))
@@ -250,6 +250,7 @@ function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, tr
               .join(', ')
         : undefined;
 }
+
 function AdvancedSearchFilters() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -258,9 +259,33 @@ function AdvancedSearchFilters() {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const policyID = searchAdvancedFilters.policyID ?? '-1';
+
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
+
+    const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicyCategories = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const singlePolicyCategories = allPolicyCategories[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
+    const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const singlePolicyTagLists = allPolicyTagLists[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
+    const tagListsUnpacked = Object.values(allPolicyTagLists ?? {})
+        .filter((item): item is NonNullable<PolicyTagLists> => !!item)
+        .map(getTagNamesFromTagsLists)
+        .flat();
+
+    // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
+    const nonPersonalPolicyCategoryIds = Object.values(policies)
+        .filter((policy): policy is NonNullable<Policy> => !!(policy && policy.type !== CONST.POLICY.TYPE.PERSONAL))
+        .map((policy) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
+    const nonPersonalPolicyCategoryCount = Object.keys(allPolicyCategories).filter((policyCategoryId) => nonPersonalPolicyCategoryIds.includes(policyCategoryId)).length;
+
+    const shouldDisplayCategoryFilter = nonPersonalPolicyCategoryCount !== 0 || !!singlePolicyCategories;
+    const shouldDisplayTagFilter = tagListsUnpacked.length !== 0 || !!singlePolicyTagLists;
+    const shouldDisplayCardFilter = Object.keys(cardList).length !== 0;
+    const shouldDisplayTaxFilter = Object.keys(taxRates).length !== 0;
+
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     if (!Object.keys(typeFiltersKeys).includes(currentType)) {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -307,20 +332,31 @@ function AdvancedSearchFilters() {
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
             ) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
+                if (!shouldDisplayCategoryFilter) {
+                    return;
+                }
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
+                if (!shouldDisplayTagFilter) {
+                    return;
+                }
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-                if (Object.keys(cardList).length === 0) {
-                    return undefined;
+                if (!shouldDisplayCardFilter) {
+                    return;
                 }
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+                if (!shouldDisplayTaxFilter) {
+                    return;
+                }
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
