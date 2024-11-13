@@ -138,8 +138,8 @@ function flush() {
         return;
     }
 
-    if (PersistedRequests.getAll().length === 0 && QueuedOnyxUpdates.isEmpty()) {
-        Log.info('[SequentialQueue] Unable to flush. No requests or queued Onyx updates to process.');
+    if (PersistedRequests.getAll().length === 0) {
+        Log.info('[SequentialQueue] Unable to flush. No requests to process.');
         return;
     }
 

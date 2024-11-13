@@ -559,16 +559,6 @@ function validateLogin(accountID: number, validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const finallyData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
                 isLoading: false,
             },
         },
@@ -576,7 +566,7 @@ function validateLogin(accountID: number, validateCode: string) {
 
     const parameters: ValidateLoginParams = {accountID, validateCode};
 
-    API.write(WRITE_COMMANDS.VALIDATE_LOGIN, parameters, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.VALIDATE_LOGIN, parameters, {optimisticData});
     Navigation.navigate(ROUTES.HOME);
 }
 
