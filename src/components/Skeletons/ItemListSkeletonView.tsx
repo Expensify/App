@@ -70,7 +70,7 @@ function ItemListSkeletonView({
                     animate={shouldAnimate}
                     height={itemViewHeight}
                     backgroundColor={theme.skeletonLHNIn}
-                    style={StyleSheet.flatten([themeStyles.mr5, itemViewStyle, {opacity}]) as ViewStyle & CSSProperties} // using StyleSheet.flatten() because SkeletonViewContentLoader is not able to handle array style notation(eg. style={[style1, style2]}) of style prop
+                    style={[themeStyles.mr5, itemViewStyle, {opacity}] as StyleProp<ViewStyle> & CSSProperties}
                 >
                     {renderSkeletonItem({itemIndex: i})}
                 </SkeletonViewContentLoader>,
