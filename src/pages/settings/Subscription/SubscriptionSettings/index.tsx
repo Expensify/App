@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useState} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -26,10 +27,16 @@ function SubscriptionSettings() {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const preferredCurrency = usePreferredCurrency();
     const possibleCostSavings = useSubscriptionPossibleCostSavings();
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.delegatedAccess?.delegate});
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate);
 
     const handleAutoRenewToggle = () => {
+        if (isActingAsDelegate) {
+            setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
         if (!privateSubscription?.autoRenew) {
             Subscription.updateSubscriptionAutoRenew(true);
             return;
@@ -38,6 +45,10 @@ function SubscriptionSettings() {
     };
 
     const handleAutoIncreaseToggle = () => {
+        if (isActingAsDelegate) {
+            setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
         Subscription.updateSubscriptionAddNewUsersAutomatically(!privateSubscription?.addNewUsersAutomatically);
     };
 
@@ -85,6 +96,10 @@ function SubscriptionSettings() {
                     <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
                 </View>
             </OfflineWithFeedback>
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
         </Section>
     );
 }
