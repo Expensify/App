@@ -158,7 +158,6 @@ export type {default as StartSplitBillParams} from './StartSplitBillParams';
 export type {default as SendMoneyParams} from './SendMoneyParams';
 export type {default as ApproveMoneyRequestParams} from './ApproveMoneyRequestParams';
 export type {default as UnapproveExpenseReportParams} from './UnapproveExpenseReportParams';
-export type {default as EditMoneyRequestParams} from './EditMoneyRequestParams';
 export type {default as ReplaceReceiptParams} from './ReplaceReceiptParams';
 export type {default as SubmitReportParams} from './SubmitReportParams';
 export type {default as DetachReceiptParams} from './DetachReceiptParams';
