@@ -19,7 +19,7 @@ async function checkAndroidStatus() {
     });
 
     try {
-        // Insert an edit to get an edit ID
+        // The Google Play API requires an edit ID to make changes to the app
         const editResponse = await androidApi.edits.insert({
             packageName: PACKAGE_NAME,
         });
@@ -65,9 +65,6 @@ function calculateRolloutPercentage(releaseDate: string): number {
     const daysSinceRelease = Math.floor((current.getTime() - release.getTime()) / (1000 * 60 * 60 * 24));
     console.log('Days since release:', daysSinceRelease);
 
-    if (daysSinceRelease <= 0) {
-        return 0;
-    }
     if (daysSinceRelease === 1) {
         return 0.01;
     }
@@ -86,7 +83,11 @@ function calculateRolloutPercentage(releaseDate: string): number {
     if (daysSinceRelease === 6) {
         return 0.5;
     }
-    return 1;
+    if (daysSinceRelease === 7) {
+        return 1;
+    }
+    // If we did not get a valid number of days since release (1-7), return -1
+    return -1;
 }
 
 checkAndroidStatus()
