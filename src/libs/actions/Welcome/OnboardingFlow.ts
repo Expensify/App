@@ -57,7 +57,8 @@ function getOnboardingInitialPath(isPrivateDomain?: boolean): string {
 
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
+        Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, CONST.ONBOARDING_COMPANY_SIZE.MICRO);
+        return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
     }
 
     if (isPrivateDomain) {
