@@ -97,6 +97,8 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
         } else if (currentSubStep === SUBSTEP.SIGNER_DETAILS_FORM && screenIndex > 0) {
             prevScreen();
+        } else if (currentSubStep === SUBSTEP.SIGNER_DETAILS_FORM && screenIndex === 0) {
+            setCurrentSubStep(SUBSTEP.IS_DIRECTOR);
         } else if (currentSubStep === SUBSTEP.HANG_TIGHT) {
             Navigation.goBack();
         } else {
