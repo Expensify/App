@@ -20,7 +20,7 @@ Expense rules allow you to automatically categorize, tag, and report expenses ba
 - **Billable**: Determines whether the expense is billable
 - **Add to a report named:** Adds the expense to a report with the name you type into the field. If no report with that name exists, a new report will be created if the "Create report if necessary" checkbox is selected. 
 
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/ExpensifyHelp_ExpenseRules_01.png){:width="100%"}
+![Fields to create a new expense rule, including the characters a merchant's name should contain for the rule to apply, as well as what changes should be applied to the expense including the merchant name, category, tag, description, reimbursability, whether it is billable, and what report it will be added to.](https://help.expensify.com/assets/images/ExpensifyHelp_ExpenseRules_01.png){:width="100%"}
   
 {:start="6"}
 6. (Optional) To apply the rule to previously entered expenses, select the **Apply to existing matching expenses** checkbox. You can also click **Preview Matching Expenses** to see if your rule matches the intended expenses.
@@ -38,7 +38,7 @@ In general, your expense rules will be applied in order, from **top to bottom**,
 
 If you open an expense and change it, you can then create an expense rule based on those changes by selecting the “Create a rule based on your changes" checkbox. *Note: The expense must be saved, reopened, and edited for this option to appear.*
 
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/ExpensifyHelp_ExpenseRules_02.png){:width="100%"}
+![The "Create a rule based on your changes" checkbox is located in the bottom right corner of the popup window, to the left of the Save button.](https://help.expensify.com/assets/images/ExpensifyHelp_ExpenseRules_02.png){:width="100%"}
 
 # Delete an expense rule
 
@@ -48,7 +48,7 @@ To delete an expense rule,
 2. Click **Expense Rules**.
 3. Scroll down to the rule you’d like to remove and click the trash can icon.
 
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/ExpensifyHelp_ExpenseRules_03.png){:width="100%"}
+![The Trash icon to delete an expense rule is located at the top right of the box containing the expense rule, to the left of the Edit icon.](https://help.expensify.com/assets/images/ExpensifyHelp_ExpenseRules_03.png){:width="100%"}
 
 {% include faq-begin.md %} 
 
