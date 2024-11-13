@@ -3,7 +3,7 @@ import type {MapState} from '@rnmapbox/maps';
 import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useTheme from '@hooks/useTheme';
@@ -18,14 +18,14 @@ import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Direction from './Direction';
-import type {MapViewHandle} from './MapViewTypes';
+import type {MapViewHandle, MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
-import type {ComponentProps, MapViewOnyxProps} from './types';
 import utils from './utils';
 
-const MapView = forwardRef<MapViewHandle, ComponentProps>(
-    ({accessToken, style, mapPadding, userLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
+const MapView = forwardRef<MapViewHandle, MapViewProps>(
+    ({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
+        const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
         const navigation = useNavigation();
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
@@ -275,7 +275,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         );
                     })}
 
-                    {directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                    {!!directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Mapbox.MapView>
                 {interactive && (
                     <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
@@ -298,8 +298,4 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
     },
 );
 
-export default withOnyx<ComponentProps, MapViewOnyxProps>({
-    userLocation: {
-        key: ONYXKEYS.USER_LOCATION,
-    },
-})(memo(MapView));
+export default memo(MapView);

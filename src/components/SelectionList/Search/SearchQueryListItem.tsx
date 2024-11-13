@@ -12,7 +12,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
-    query?: string;
+    searchQuery?: string;
+    autocompleteID?: string;
     searchItemType?: ValueOf<typeof CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE>;
 };
 
@@ -32,7 +33,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
     return (
         <BaseListItem
             item={item}
-            pressableStyle={[[styles.searchQueryListItemStyle, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive, item.cursorStyle]]}
+            pressableStyle={[[styles.searchQueryListItemStyle, item.isSelected && styles.activeComponentBG, item.cursorStyle]]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
             isFocused={isFocused}
             onSelectRow={onSelectRow}
@@ -43,7 +44,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             showTooltip={showTooltip}
         >
             <>
-                {item.singleIcon && (
+                {!!item.singleIcon && (
                     <Icon
                         src={item.singleIcon}
                         fill={theme.icon}
@@ -64,7 +65,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                             styles.justifyContentCenter,
                         ]}
                     />
-                    {item.alternateText && (
+                    {!!item.alternateText && (
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip ?? false}
                             text={item.alternateText}

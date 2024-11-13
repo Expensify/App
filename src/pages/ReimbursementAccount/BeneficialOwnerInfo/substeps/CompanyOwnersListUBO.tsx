@@ -132,7 +132,7 @@ function CompanyOwnersListUBO({
                     </View>
 
                     <View style={[styles.ph5, styles.mtAuto]}>
-                        {error && error.length > 0 && (
+                        {!!error && error.length > 0 && (
                             <DotIndicatorMessage
                                 textStyles={[styles.formError]}
                                 type="error"
