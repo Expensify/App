@@ -10,6 +10,7 @@ let ongoingRequest: Request | null = null;
 Onyx.connect({
     key: ONYXKEYS.PERSISTED_REQUESTS,
     callback: (val) => {
+        Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null});
         persistedRequests = val ?? [];
 
         if (ongoingRequest && persistedRequests.length > 0) {
@@ -53,7 +54,7 @@ function save(requestToPersist: Request) {
     });
 }
 
-function remove(requestToRemove: Request) {
+function endRequestAndRemoveFromQueue(requestToRemove: Request) {
     ongoingRequest = null;
     /**
      * We only remove the first matching request because the order of requests matters.
@@ -76,14 +77,30 @@ function remove(requestToRemove: Request) {
     });
 }
 
+function deleteRequestsByIndices(indices: number[]) {
+    // Create a Set from the indices array for efficient lookup
+    const indicesSet = new Set(indices);
+
+    // Create a new array excluding elements at the specified indices
+    persistedRequests = persistedRequests.filter((_, index) => !indicesSet.has(index));
+
+    // Update the persisted requests in storage or state as necessary
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests).then(() => {
+        Log.info(`Multiple (${indices.length}) requests removed from the queue. Queue length is ${persistedRequests.length}`);
+    });
+}
+
 function update(oldRequestIndex: number, newRequest: Request) {
     const requests = [...persistedRequests];
+    const oldRequest = requests.at(oldRequestIndex);
+    Log.info('[PersistedRequests] Updating a request', false, {oldRequest, newRequest, oldRequestIndex});
     requests.splice(oldRequestIndex, 1, newRequest);
     persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function updateOngoingRequest(newRequest: Request) {
+    Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
     ongoingRequest = newRequest;
 
     if (newRequest.persistWhenOngoing) {
@@ -117,7 +134,7 @@ function rollbackOngoingRequest() {
     }
 
     // Prepend ongoingRequest to persistedRequests
-    persistedRequests.unshift(ongoingRequest);
+    persistedRequests.unshift({...ongoingRequest, isRollbacked: true});
 
     // Clear the ongoingRequest
     ongoingRequest = null;
@@ -131,4 +148,4 @@ function getOngoingRequest(): Request | null {
     return ongoingRequest;
 }
 
-export {clear, save, getAll, remove, update, getLength, getOngoingRequest, processNextRequest, updateOngoingRequest, rollbackOngoingRequest};
+export {clear, save, getAll, endRequestAndRemoveFromQueue, update, getLength, getOngoingRequest, processNextRequest, updateOngoingRequest, rollbackOngoingRequest, deleteRequestsByIndices};

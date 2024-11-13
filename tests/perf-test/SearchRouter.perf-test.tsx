@@ -5,9 +5,9 @@ import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OptionListContextProvider, {OptionsListContext} from '@components/OptionListContextProvider';
+import {OptionsListContext} from '@components/OptionListContextProvider';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
-import {KeyboardStateProvider} from '@components/withKeyboardState';
+import SearchRouterInput from '@components/Search/SearchRouter/SearchRouterInput';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ComposeProviders from '@src/components/ComposeProviders';
@@ -127,12 +127,15 @@ afterEach(() => {
 
 const mockOnClose = jest.fn();
 
-function SearchRouterWrapper() {
+function SearchRouterInputWrapper() {
+    const [value, setValue] = React.useState('');
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, KeyboardStateProvider]}>
-            <OptionListContextProvider>
-                <SearchRouter onRouterClose={mockOnClose} />
-            </OptionListContextProvider>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+            <SearchRouterInput
+                value={value}
+                updateSearch={(searchTerm) => setValue(searchTerm)}
+                isFullWidth={false}
+            />
         </ComposeProviders>
     );
 }
@@ -140,14 +143,14 @@ function SearchRouterWrapper() {
 function SearchRouterWrapperWithCachedOptions() {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
-            <OptionsListContext.Provider value={useMemo(() => ({options: mockedOptions, initializeOptions: () => {}, areOptionsInitialized: true}), [])}>
+            <OptionsListContext.Provider value={useMemo(() => ({options: mockedOptions, initializeOptions: () => {}, resetOptions: () => {}, areOptionsInitialized: true}), [])}>
                 <SearchRouter onRouterClose={mockOnClose} />
             </OptionsListContext.Provider>
         </ComposeProviders>
     );
 }
 
-test('[SearchRouter] should render chat list with cached options', async () => {
+test('[SearchRouter] should render list with cached options', async () => {
     const scenario = async () => {
         await screen.findByTestId('SearchRouter');
     };
@@ -166,9 +169,7 @@ test('[SearchRouter] should render chat list with cached options', async () => {
 
 test('[SearchRouter] should react to text input changes', async () => {
     const scenario = async () => {
-        await screen.findByTestId('SearchRouter');
-
-        const input = screen.getByTestId('search-router-text-input');
+        const input = await screen.findByTestId('search-router-text-input');
         fireEvent.changeText(input, 'Email Four');
         fireEvent.changeText(input, 'Report');
         fireEvent.changeText(input, 'Email Five');
@@ -183,5 +184,5 @@ test('[SearchRouter] should react to text input changes', async () => {
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
-        .then(() => measureRenders(<SearchRouterWrapper />, {scenario}));
+        .then(() => measureRenders(<SearchRouterInputWrapper />, {scenario}));
 });

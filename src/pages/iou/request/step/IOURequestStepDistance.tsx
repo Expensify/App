@@ -20,12 +20,16 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Report from '@libs/actions/Report';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
@@ -36,6 +40,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -75,7 +80,18 @@ function IOURequestStepDistance({
             },
         [optimisticWaypoints, transaction],
     );
-    const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(transaction, waypoints, action);
+
+    const backupWaypoints = transactionBackup?.pendingFields?.waypoints ? transactionBackup?.comment?.waypoints : undefined;
+    // When online, fetch the backup route to ensure the map is populated even if the user does not save the transaction.
+    // Fetch the backup route first to ensure the backup transaction map is updated before the main transaction map.
+    // This prevents a scenario where the main map loads, the user dismisses the map editor, and the backup map has not yet loaded due to delay.
+    useFetchRoute(transactionBackup, backupWaypoints, action, CONST.TRANSACTION.STATE.BACKUP);
+    const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(
+        transaction,
+        waypoints,
+        action,
+        IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT,
+    );
     const waypointsList = Object.keys(waypoints);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
@@ -83,6 +99,7 @@ function IOURequestStepDistance({
     const scrollViewRef = useRef<RNScrollView>(null);
     const isLoadingRoute = transaction?.comment?.isLoading ?? false;
     const isLoading = transaction?.isLoading ?? false;
+    const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const hasRouteError = !!transaction?.errorFields?.route;
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
     const isWaypointEmpty = (waypoint?: Waypoint) => {
@@ -104,7 +121,39 @@ function IOURequestStepDistance({
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
-    const customUnitRateID = TransactionUtils.getRateID(transaction);
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
+
+    // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
+    const setDistanceRequestData = useCallback(
+        (participants: Participant[]) => {
+            // Get policy report based on transaction participants
+            const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
+            const selectedReportID = participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID;
+            const policyReport = participants.at(0) ? ReportUtils.getReport(selectedReportID) : report;
+
+            const IOUpolicyID = IOU.getIOURequestPolicyID(transaction, policyReport);
+            const IOUpolicy = PolicyUtils.getPolicy(report?.policyID ?? IOUpolicyID);
+            const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+
+            const mileageRates = DistanceRequestUtils.getMileageRates(IOUpolicy);
+            const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
+            const mileageRate: MileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
+                ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
+                : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
+
+            const {unit, rate} = mileageRate ?? {};
+            const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
+            const currency = mileageRate?.currency ?? policyCurrency;
+            const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
+            IOU.setMoneyRequestAmount(transactionID, amount, currency);
+
+            const participantAccountIDs: number[] | undefined = participants?.map((participant) => Number(participant.accountID ?? -1));
+            if (isSplitRequest && amount && currency && !isPolicyExpenseChat) {
+                IOU.setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? []);
+            }
+        },
+        [report, transaction, transactionID, isSplitRequest, policy?.outputCurrency, reportID, customUnitRateID],
+    );
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -114,9 +163,11 @@ function IOURequestStepDistance({
         }
 
         return (
-            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
+            iouType !== CONST.IOU.TYPE.SPLIT &&
+            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) &&
+            !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
         );
-    }, [report, skipConfirmation, policy, reportNameValuePairs]);
+    }, [report, skipConfirmation, policy, reportNameValuePairs, iouType]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -177,6 +228,12 @@ function IOURequestStepDistance({
                 return;
             }
             TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '-1', IOUUtils.shouldUseTransactionDraft(action));
+
+            // If the user opens IOURequestStepDistance in offline mode and then goes online, re-open the report to fill in missing fields from the transaction backup
+            if (!transaction?.reportID) {
+                return;
+            }
+            Report.openReport(transaction?.reportID);
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -245,29 +302,13 @@ function IOURequestStepDistance({
                 const participantAccountID = participant?.accountID ?? -1;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
+            setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
-                if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    IOU.splitBill({
-                        participants,
-                        currentUserLogin: currentUserPersonalDetails.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        amount: 0,
-                        comment: '',
-                        currency: transaction?.currency ?? 'USD',
-                        merchant: translate('iou.fieldPending'),
-                        created: transaction?.created ?? '',
-                        category: '',
-                        tag: '',
-                        billable: false,
-                        iouRequestType,
-                        existingSplitChatReportID: report?.reportID,
-                    });
-                    return;
-                }
                 IOU.setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
                 IOU.setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
                 const participant = participants.at(0);
                 if (iouType === CONST.IOU.TYPE.TRACK && participant) {
+                    playSound(SOUNDS.DONE);
                     IOU.trackExpense(
                         report,
                         0,
@@ -278,6 +319,7 @@ function IOURequestStepDistance({
                         currentUserPersonalDetails.accountID,
                         participant,
                         '',
+                        false,
                         {},
                         '',
                         '',
@@ -298,6 +340,7 @@ function IOURequestStepDistance({
                     return;
                 }
 
+                playSound(SOUNDS.DONE);
                 IOU.createDistanceRequest(
                     report,
                     participants,
@@ -346,9 +389,9 @@ function IOURequestStepDistance({
         navigateToParticipantPage,
         navigateToConfirmationPage,
         policy,
-        iouRequestType,
         reportNameValuePairs,
         customUnitRateID,
+        setDistanceRequestData,
     ]);
 
     const getError = () => {

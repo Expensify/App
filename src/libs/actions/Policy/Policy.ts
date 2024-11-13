@@ -9,7 +9,6 @@ import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
     AddPaymentCardParams,
-    AssignCompanyCardParams,
     CreateWorkspaceFromIOUPaymentParams,
     CreateWorkspaceParams,
     DeleteWorkspaceAvatarParams,
@@ -27,7 +26,6 @@ import type {
     EnablePolicyWorkflowsParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
-    OpenPolicyCompanyCardsFeedParams,
     OpenPolicyEditCardLimitTypePageParams,
     OpenPolicyExpensifyCardsPageParams,
     OpenPolicyInitialPageParams,
@@ -38,8 +36,6 @@ import type {
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceParams,
     RequestExpensifyCardLimitIncreaseParams,
-    RequestFeedSetupParams,
-    SetCompanyCardExportAccountParams,
     SetPolicyAutomaticApprovalLimitParams,
     SetPolicyAutomaticApprovalRateParams,
     SetPolicyAutoReimbursementLimitParams,
@@ -53,7 +49,8 @@ import type {
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
-    UpdateCompanyCardNameParams,
+    UpdateInvoiceCompanyNameParams,
+    UpdateInvoiceCompanyWebsiteParams,
     UpdatePolicyAddressParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceDescriptionParams,
@@ -65,6 +62,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import GoogleTagManager from '@libs/GoogleTagManager';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -82,7 +80,6 @@ import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    CompanyCardFeed,
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
     Policy,
@@ -94,7 +91,6 @@ import type {
     TaxRatesWithDefault,
     Transaction,
 } from '@src/types/onyx';
-import type {AssignCardData} from '@src/types/onyx/AssignCard';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, Rate, TaxRate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -203,6 +199,12 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedCurrencies = val ?? []),
 });
 
+let activePolicyID: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (value) => (activePolicyID = value),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
@@ -228,15 +230,6 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
     return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }
 
-/**
- * Returns a primary policy for the user
- */
-function getPrimaryPolicy(activePolicyID: OnyxEntry<string>, currentUserLogin: string | undefined): Policy | undefined {
-    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
-    const primaryPolicy: Policy | null | undefined = activeAdminWorkspaces.find((policy) => policy.id === activePolicyID);
-    return primaryPolicy ?? activeAdminWorkspaces.at(0);
-}
-
 /** Check if the policy has invoicing company details */
 function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.invoice?.companyName && !!policy?.invoice?.companyWebsite;
@@ -245,8 +238,8 @@ function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
 /**
  * Returns a primary invoice workspace for the user
  */
-function getInvoicePrimaryWorkspace(activePolicyID: OnyxEntry<string>, currentUserLogin: string | undefined): Policy | undefined {
-    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID)) {
+function getInvoicePrimaryWorkspace(currentUserLogin: string | undefined): Policy | undefined {
+    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID ?? '-1')) {
         return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
     }
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
@@ -1018,6 +1011,16 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                 isLoadingInitialReportActions: false,
             },
         });
+
+        workspaceMembersChats.onyxFailureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
+            value: {
+                errorFields: {
+                    createChat: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+                },
+            },
+        });
     });
     return workspaceMembersChats;
 }
@@ -1146,7 +1149,7 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
         return;
     }
 
-    const distanceUnit = PolicyUtils.getCustomUnit(policy);
+    const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID;
     const currency = currencyValue ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -1503,7 +1506,7 @@ function generateCustomUnitID(): string {
     return NumberUtils.generateHexadecimalValue(13);
 }
 
-function buildOptimisticCustomUnits(reportCurrency?: string): OptimisticCustomUnits {
+function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): OptimisticCustomUnits {
     const currency = reportCurrency ?? allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
     const customUnitID = generateCustomUnitID();
     const customUnitRateID = generateCustomUnitID();
@@ -1545,7 +1548,7 @@ function buildOptimisticCustomUnits(reportCurrency?: string): OptimisticCustomUn
  */
 function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-    const {customUnits, outputCurrency} = buildOptimisticCustomUnits();
+    const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1600,7 +1603,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
 function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID(), expenseReportId?: string, engagementChoice?: string) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
-    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
+    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits();
 
     const {
         adminsChatReportID,
@@ -1614,6 +1617,8 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName, expenseReportId);
 
     const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, CONST.POLICY.DEFAULT_CATEGORIES);
+
+    const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1700,7 +1705,20 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${expenseChatReportID}`,
             value: null,
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${adminsChatReportID}`,
+            value: null,
+        },
     ];
+
+    if (shouldSetCreatedWorkspaceAsActivePolicy) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: policyID,
+        });
+    }
 
     const successData: OnyxUpdate[] = [
         {
@@ -1790,6 +1808,14 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         },
     ];
 
+    if (shouldSetCreatedWorkspaceAsActivePolicy) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: activePolicyID ?? '',
+        });
+    }
+
     if (optimisticCategoriesData.optimisticData) {
         optimisticData.push(...optimisticCategoriesData.optimisticData);
     }
@@ -1833,6 +1859,11 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
     const {optimisticData, failureData, successData, params} = buildPolicyData(policyOwnerEmail, makeMeAdmin, policyName, policyID, undefined, engagementChoice);
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
+    // Publish a workspace created event if this is their first policy
+    if (getAdminPolicies().length === 0) {
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, sessionAccountID);
+    }
+
     return params;
 }
 
@@ -1847,7 +1878,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
 function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): CreateWorkspaceParams {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
-    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
+    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits();
 
     const {expenseChatData, adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID} = ReportUtils.buildOptimisticWorkspaceChats(
         policyID,
@@ -2004,56 +2035,6 @@ function openPolicyTaxesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_TAXES_PAGE, params);
 }
 
-function openPolicyCompanyCardsFeed(policyID: string, feed: CompanyCardFeed) {
-    const parameters: OpenPolicyCompanyCardsFeedParams = {
-        policyID,
-        feed,
-    };
-
-    API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters);
-}
-
-function openPolicyCompanyCardsPage(policyID: string, workspaceAccountID: number) {
-    const authToken = NetworkStore.getAuthToken();
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const params: OpenPolicyExpensifyCardsPageParams = {
-        policyID,
-        authToken,
-    };
-
-    API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE, params, {optimisticData, successData, failureData});
-}
-
 function openPolicyExpensifyCardsPage(policyID: string, workspaceAccountID: number) {
     const authToken = NetworkStore.getAuthToken();
 
@@ -2188,8 +2169,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName(sessionEmail);
     const employeeAccountID = iouReport.ownerAccountID;
-    const employeeEmail = iouReport.ownerEmail ?? '';
-    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits(iouReport.currency);
+    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport.currency);
     const oldPersonalPolicyID = iouReport.policyID;
     const iouReportID = iouReport.reportID;
 
@@ -2207,6 +2187,8 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     if (!employeeAccountID) {
         return;
     }
+
+    const employeeEmail = allPersonalDetails?.[employeeAccountID]?.login ?? '';
 
     // Create the workspace chat for the employee whose IOU is being paid
     const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: employeeAccountID}, true);
@@ -2242,10 +2224,14 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
                 role: CONST.POLICY.ROLE.ADMIN,
                 errors: {},
             },
-            [employeeEmail]: {
-                role: CONST.POLICY.ROLE.USER,
-                errors: {},
-            },
+            ...(employeeEmail
+                ? {
+                      [employeeEmail]: {
+                          role: CONST.POLICY.ROLE.USER,
+                          errors: {},
+                      },
+                  }
+                : {}),
         },
         pendingFields: {
             autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -2685,7 +2671,7 @@ function enableExpensifyCard(policyID: string, enabled: boolean) {
     }
 }
 
-function enableCompanyCards(policyID: string, enabled: boolean) {
+function enableCompanyCards(policyID: string, enabled: boolean, disableRedirect = false) {
     const authToken = NetworkStore.getAuthToken();
 
     const onyxData: OnyxData = {
@@ -2730,7 +2716,7 @@ function enableCompanyCards(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
+    if (enabled && getIsNarrowLayout() && !disableRedirect) {
         navigateWhenEnableFeature(policyID);
     }
 }
@@ -3788,6 +3774,10 @@ function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
     API.write(WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED, parameters, onyxData);
 }
 
+function getAdminPolicies(): Policy[] {
+    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && policy.type !== CONST.POLICY.TYPE.PERSONAL);
+}
+
 function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
     return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
 }
@@ -4435,255 +4425,45 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
     });
 }
 
-function addNewCompanyCardsFeed(policyID: string, feedType: string, feedDetails: string) {
+function clearAllPolicies() {
+    if (!allPolicies) {
+        return;
+    }
+    Object.keys(allPolicies).forEach((key) => delete allPolicies[key]);
+}
+
+function updateInvoiceCompanyName(policyID: string, companyName: string) {
     const authToken = NetworkStore.getAuthToken();
 
     if (!authToken) {
         return;
     }
 
-    const parameters: RequestFeedSetupParams = {
-        policyID,
-        authToken,
-        feedType,
-        feedDetails,
-    };
-
-    API.write(WRITE_COMMANDS.REQUEST_FEED_SETUP, parameters);
-}
-
-function setWorkspaceCompanyCardFeedName(policyID: string, workspaceAccountID: number, bankName: string, userDefinedName: string) {
-    const authToken = NetworkStore.getAuthToken();
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-                value: {
-                    settings: {
-                        companyCardNicknames: {
-                            [bankName]: userDefinedName,
-                        },
-                    },
-                },
-            },
-        ],
-    };
-
-    const parameters = {
-        authToken,
-        policyID,
-        bankName,
-        userDefinedName,
-    };
-
-    API.write(WRITE_COMMANDS.SET_COMPANY_CARD_FEED_NAME, parameters, onyxData);
-}
-
-function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number, policyID: string, bankName: string, liabilityType: string) {
-    const authToken = NetworkStore.getAuthToken();
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-                value: {
-                    settings: {
-                        companyCards: {
-                            [bankName]: {liabilityType},
-                        },
-                    },
-                },
-            },
-        ],
-    };
-
-    const parameters = {
-        authToken,
-        policyID,
-        bankName,
-        liabilityType,
-    };
-
-    API.write(WRITE_COMMANDS.SET_COMPANY_CARD_TRANSACTION_LIABILITY, parameters, onyxData);
-}
-
-function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: number, bankName: string) {
-    const authToken = NetworkStore.getAuthToken();
-
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-                value: {
-                    settings: {
-                        companyCards: {
-                            [bankName]: null,
-                        },
-                        companyCardNicknames: {
-                            [bankName]: null,
-                        },
-                    },
-                },
-            },
-        ],
-    };
-
-    const parameters = {
-        authToken,
-        policyID,
-        bankName,
-    };
-
-    API.write(WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED, parameters, onyxData);
-}
-
-function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardData>) {
-    if (!data) {
-        return;
-    }
-    const {bankName = '', email = '', encryptedCardNumber = '', startDate = ''} = data;
-    const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-    const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? -1);
-
-    const parameters: AssignCompanyCardParams = {
-        policyID,
-        bankName,
-        encryptedCardNumber,
-        email,
-        startDate,
-        reportActionID: optimisticCardAssignedReportAction.reportActionID,
-    };
     const policy = getPolicy(policyID);
-    const policyExpenseChat = ReportUtils.getPolicyExpenseChat(policy?.ownerAccountID ?? -1, policyID);
 
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat?.reportID}`,
-                value: {
-                    [optimisticCardAssignedReportAction.reportActionID]: optimisticCardAssignedReportAction,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat?.reportID}`,
-                value: {[optimisticCardAssignedReportAction.reportActionID]: {pendingAction: null}},
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat?.reportID}`,
-                value: {
-                    [optimisticCardAssignedReportAction.reportActionID]: {
-                        pendingAction: null,
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                    },
-                },
-            },
-        ],
-    };
-
-    API.write(WRITE_COMMANDS.ASSIGN_COMPANY_CARD, parameters, onyxData);
-}
-
-function unassignWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: string) {
-    const authToken = NetworkStore.getAuthToken();
-
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
-                value: {
-                    [cardID]: null,
-                },
-            },
-        ],
-    };
-
-    const parameters = {
-        authToken,
-        cardID,
-    };
-
-    API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, onyxData);
-}
-
-function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: string) {
-    const authToken = NetworkStore.getAuthToken();
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                [cardID]: {
-                    isLoadingLastUpdated: true,
+                invoice: {
+                    companyName,
                     pendingFields: {
-                        lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
-                    errorFields: {
-                        lastScrape: null,
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    isLoadingLastUpdated: true,
-                    pendingFields: {
-                        lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
-                    errorFields: {
-                        lastScrape: null,
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-            value: {
-                settings: {
-                    companyCards: {
-                        [bankName]: {
-                            errors: null,
-                        },
+                        companyName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                [cardID]: {
-                    isLoadingLastUpdated: false,
+                invoice: {
                     pendingFields: {
-                        lastScrape: null,
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    isLoadingLastUpdated: false,
-                    pendingFields: {
-                        lastScrape: null,
+                        companyName: null,
                     },
                 },
             },
@@ -4693,224 +4473,87 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                [cardID]: {
-                    isLoadingLastUpdated: false,
+                invoice: {
+                    companyName: policy?.invoice?.companyName,
                     pendingFields: {
-                        lastScrape: null,
-                    },
-                    errorFields: {
-                        lastScrape: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    isLoadingLastUpdated: false,
-                    pendingFields: {
-                        lastScrape: null,
-                    },
-                    errorFields: {
-                        lastScrape: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-            value: {
-                settings: {
-                    companyCards: {
-                        [bankName]: {
-                            errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR},
-                        },
+                        companyName: null,
                     },
                 },
             },
         },
     ];
 
-    const parameters = {
+    const parameters: UpdateInvoiceCompanyNameParams = {
         authToken,
-        cardID,
+        policyID,
+        companyName,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD, parameters, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_NAME, parameters, {optimisticData, successData, failureData});
 }
 
-function updateCompanyCardName(workspaceAccountID: number, cardID: string, newCardTitle: string, bankName: string, oldCardTitle?: string) {
+function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string) {
     const authToken = NetworkStore.getAuthToken();
 
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
-            value: {
-                [cardID]: {
-                    nameValuePairs: {
-                        cardTitle: newCardTitle,
-                        pendingFields: {
-                            cardTitle: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                        errorFields: {
-                            cardTitle: null,
-                        },
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
-            value: {[cardID]: newCardTitle},
-        },
-    ];
-
-    const finallyData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
-            value: {
-                [cardID]: {
-                    nameValuePairs: {
-                        pendingFields: {
-                            cardTitle: null,
-                        },
-                    },
-                },
-            },
-        },
-    ];
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
-            value: {
-                [cardID]: {
-                    nameValuePairs: {
-                        pendingFields: {
-                            cardTitle: null,
-                        },
-                        errorFields: {
-                            cardTitle: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                        },
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
-            value: {[cardID]: oldCardTitle},
-        },
-    ];
-
-    const parameters: UpdateCompanyCardNameParams = {
-        authToken,
-        cardID: Number(cardID),
-        cardName: newCardTitle,
-    };
-
-    API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME, parameters, {optimisticData, finallyData, failureData});
-}
-
-function setCompanyCardExportAccount(workspaceAccountID: number, cardID: string, accountKey: string, newAccount: string, bankName: string) {
-    const authToken = NetworkStore.getAuthToken();
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
-            value: {
-                [cardID]: {
-                    nameValuePairs: {
-                        pendingFields: {
-                            exportAccountDetails: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                        errorFields: {
-                            exportAccountDetails: null,
-                        },
-                        exportAccountDetails: {
-                            [accountKey]: newAccount,
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const finallyData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
-            value: {
-                [cardID]: {
-                    nameValuePairs: {
-                        pendingFields: {
-                            exportAccountDetails: null,
-                        },
-                    },
-                },
-            },
-        },
-    ];
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
-            value: {
-                [cardID]: {
-                    nameValuePairs: {
-                        pendingFields: {
-                            exportAccountDetails: null,
-                        },
-                        errorFields: {
-                            exportAccountDetails: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const parameters: SetCompanyCardExportAccountParams = {
-        authToken,
-        cardID: Number(cardID),
-        exportAccountDetails: {[accountKey]: newAccount},
-    };
-
-    API.write(WRITE_COMMANDS.SET_CARD_EXPORT_ACCOUNT, parameters, {optimisticData, finallyData, failureData});
-}
-
-function clearCompanyCardErrorField(workspaceAccountID: number, cardID: string, bankName: string, fieldName: string, isRootLevel?: boolean) {
-    if (isRootLevel) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`, {
-            [cardID]: {
-                errorFields: {[fieldName]: null},
-            },
-        });
+    if (!authToken) {
         return;
     }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`, {
-        [cardID]: {
-            nameValuePairs: {
-                errorFields: {[fieldName]: null},
+
+    const policy = getPolicy(policyID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    companyWebsite,
+                    pendingFields: {
+                        companyWebsite: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
             },
         },
-    });
-}
+    ];
 
-function clearAllPolicies() {
-    if (!allPolicies) {
-        return;
-    }
-    Object.keys(allPolicies).forEach((key) => delete allPolicies[key]);
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    pendingFields: {
+                        companyWebsite: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    companyWebsite: policy?.invoice?.companyWebsite,
+                    pendingFields: {
+                        companyWebsite: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateInvoiceCompanyWebsiteParams = {
+        authToken,
+        policyID,
+        companyWebsite,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_WEBSITE, parameters, {optimisticData, successData, failureData});
 }
 
 export {
@@ -4974,7 +4617,6 @@ export {
     setPolicyCustomTaxName,
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
-    getPrimaryPolicy,
     getInvoicePrimaryWorkspace,
     createDraftWorkspace,
     savePreferredExportMethod,
@@ -5006,19 +4648,9 @@ export {
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,
-    setWorkspaceCompanyCardFeedName,
-    deleteWorkspaceCompanyCardFeed,
-    setWorkspaceCompanyCardTransactionLiability,
-    openPolicyCompanyCardsPage,
-    openPolicyCompanyCardsFeed,
-    addNewCompanyCardsFeed,
-    assignWorkspaceCompanyCard,
-    unassignWorkspaceCompanyCard,
-    updateWorkspaceCompanyCard,
-    updateCompanyCardName,
-    setCompanyCardExportAccount,
-    clearCompanyCardErrorField,
     verifySetupIntentAndRequestPolicyOwnerChange,
+    updateInvoiceCompanyName,
+    updateInvoiceCompanyWebsite,
 };
 
 export type {NewCustomUnit};

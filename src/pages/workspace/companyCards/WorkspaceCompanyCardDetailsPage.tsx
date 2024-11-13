@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import {format} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -14,10 +14,10 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@libs/actions/Policy/Policy';
 import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -25,12 +25,16 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CompanyCardFeed} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getExportMenuItem} from './utils';
 
 type WorkspaceCompanyCardDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
@@ -45,26 +49,32 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {isOffline} = useNetwork();
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [allBankCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [allBankCards, allBankCardsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`);
     const card = allBankCards?.[cardID];
 
+    const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? -1];
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
-        Policy.unassignWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
+        CompanyCards.unassignWorkspaceCompanyCard(workspaceAccountID, bank, card);
         Navigation.goBack();
     };
 
     const updateCard = () => {
-        Policy.updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
+        CompanyCards.updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
     };
+
+    if (!card && !isLoadingOnyxValue(allBankCardsMetadata)) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -85,7 +95,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             <View style={[styles.walletCard, styles.mb3]}>
                                 <ImageSVG
                                     contentFit="contain"
-                                    src={CardUtils.getCardDetailsImage(card?.bank ?? '')}
+                                    src={CardUtils.getCardFeedIcon(cardBank as CompanyCardFeed)}
                                     pointerEvents="none"
                                     height={variables.cardPreviewHeight}
                                     width={variables.cardPreviewWidth}
@@ -102,7 +112,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                                title={CardUtils.maskCard(card?.lastFourPAN)}
+                                title={CardUtils.maskCardNumber(card?.cardName ?? '')}
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
@@ -110,7 +120,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
                                 errorRowStyles={[styles.ph5, styles.mb3]}
                                 errors={ErrorUtils.getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
-                                onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'cardTitle')}
+                                onClose={() => CompanyCards.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'cardTitle')}
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.moreFeatures.companyCards.cardName')}
@@ -120,12 +130,17 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, bank))}
                                 />
                             </OfflineWithFeedback>
-                            {exportMenuItem && (
+                            {exportMenuItem?.shouldShowMenuItem ? (
                                 <OfflineWithFeedback
-                                    pendingAction={card?.nameValuePairs?.pendingFields?.exportAccountDetails}
+                                    pendingAction={exportMenuItem?.exportType ? card?.nameValuePairs?.pendingFields?.[exportMenuItem.exportType] : undefined}
                                     errorRowStyles={[styles.ph5, styles.mb3]}
-                                    errors={ErrorUtils.getLatestErrorField(card?.nameValuePairs ?? {}, 'exportAccountDetails')}
-                                    onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'exportAccountDetails')}
+                                    errors={exportMenuItem.exportType ? ErrorUtils.getLatestErrorField(card?.nameValuePairs ?? {}, exportMenuItem.exportType) : undefined}
+                                    onClose={() => {
+                                        if (!exportMenuItem.exportType) {
+                                            return;
+                                        }
+                                        CompanyCards.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, exportMenuItem.exportType);
+                                    }}
                                 >
                                     <MenuItemWithTopDescription
                                         description={exportMenuItem.description}
@@ -134,7 +149,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, bank))}
                                     />
                                 </OfflineWithFeedback>
-                            )}
+                            ) : null}
                             <MenuItemWithTopDescription
                                 shouldShowRightComponent={card?.isLoadingLastUpdated}
                                 rightComponent={
@@ -149,17 +164,18 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                                title={card?.scrapeMinDate ? format(card.scrapeMinDate, CONST.DATE.FNS_FORMAT_STRING) : ''}
+                                title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
                                 interactive={false}
                             />
                             <OfflineWithFeedback
                                 pendingAction={card?.pendingFields?.lastScrape}
                                 errorRowStyles={[styles.ph5, styles.mb3]}
                                 errors={ErrorUtils.getLatestErrorField(card ?? {}, 'lastScrape')}
-                                onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'lastScrape', true)}
+                                onClose={() => CompanyCards.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'lastScrape', true)}
                             >
                                 <MenuItem
                                     icon={Expensicons.Sync}
+                                    disabled={isOffline || card?.isLoadingLastUpdated}
                                     iconFill={theme.success}
                                     title={translate('workspace.moreFeatures.companyCards.updateCard')}
                                     style={styles.mv1}

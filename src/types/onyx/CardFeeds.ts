@@ -2,8 +2,15 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Card feed provider */
+/** Card feed */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
+
+/** Card feed provider */
+type CardFeedProvider =
+    | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD
+    | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.VISA
+    | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX
+    | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
 
 /** Card feed data */
 type CardFeedData = {
@@ -41,6 +48,27 @@ type CardFeeds = {
 
         /** Company cards feeds */
         companyCards: Record<string, CardFeedData>;
+
+        /** Account details */
+        oAuthAccountDetails: Record<
+            ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>,
+            {
+                /** List of accounts */
+                accountList: string[];
+
+                /** Credentials info */
+                credentials: string;
+
+                /** Expiration number */
+                expiration: number;
+
+                /** Whether any actions are pending */
+                pending?: boolean;
+
+                /** Broken connection errors */
+                errors?: OnyxCommon.Errors;
+            }
+        >;
     };
 
     /** Whether we are loading the data via the API */
@@ -50,7 +78,7 @@ type CardFeeds = {
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
     /** Card feed provider */
-    feedType: CompanyCardFeed;
+    feedType: CardFeedProvider;
 
     /** Name of the card */
     cardTitle: string;
@@ -84,4 +112,4 @@ type AddNewCompanyCardFeed = {
 };
 
 export default CardFeeds;
-export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData, CompanyCardFeed};
+export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData, CompanyCardFeed, CardFeedProvider};

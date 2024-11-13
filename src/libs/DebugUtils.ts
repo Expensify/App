@@ -7,6 +7,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
 import * as ReportUtils from './ReportUtils';
+import SidebarUtils from './SidebarUtils';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -43,14 +44,12 @@ type PropertyTypes = Array<'string' | 'number' | 'object' | 'boolean' | 'undefin
 const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
 
 const REPORT_NUMBER_PROPERTIES: Array<keyof Report> = [
-    'lastMessageTimestamp',
     'lastReadSequenceNumber',
     'managerID',
     'lastActorAccountID',
     'ownerAccountID',
     'total',
     'unheldTotal',
-    'iouReportAmount',
     'nonReimbursableTotal',
 ] satisfies Array<keyof Report>;
 
@@ -62,20 +61,16 @@ const REPORT_BOOLEAN_PROPERTIES: Array<keyof Report> = [
     'isPinned',
     'hasParentAccess',
     'isDeletedParentAction',
-    'openOnAdminRoom',
     'isOptimisticReport',
     'isWaitingOnBankAccount',
     'isCancelledIOU',
-    'isLastMessageDeletedParentAction',
     'isHidden',
     'isChatRoom',
     'isLoadingPrivateNotes',
     'selected',
 ] satisfies Array<keyof Report>;
 
-const REPORT_DATE_PROPERTIES: Array<keyof Report> = ['lastVisibleActionCreated', 'lastReadCreated', 'lastReadTime', 'lastMentionedTime', 'lastVisibleActionLastModified'] satisfies Array<
-    keyof Report
->;
+const REPORT_DATE_PROPERTIES: Array<keyof Report> = ['lastVisibleActionCreated', 'lastReadTime', 'lastMentionedTime', 'lastVisibleActionLastModified'] satisfies Array<keyof Report>;
 
 const REPORT_REQUIRED_PROPERTIES: Array<keyof Report> = ['reportID'] satisfies Array<keyof Report>;
 
@@ -501,9 +496,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
     if (key === 'pendingFields') {
         return validateObject(value, {});
     }
-    if (key === 'visibleChatMemberAccountIDs') {
-        return validateArray(value, 'number');
-    }
     if (key === 'participantAccountIDs') {
         return validateArray(value, 'number');
     }
@@ -645,13 +637,22 @@ function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>): GBRR
     return null;
 }
 
+type RBRReasonAndReportAction = {
+    reason: TranslationPaths;
+    reportAction: OnyxEntry<ReportAction>;
+};
+
 /**
  * Gets the report action that is causing the RBR to show up in LHN
  */
-function getRBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
-    const {reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean): RBRReasonAndReportAction | null {
+    const {reason, reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations) ?? {};
 
-    return reportAction;
+    if (reason) {
+        return {reason: `debug.reasonRBR.${reason}`, reportAction};
+    }
+
+    return null;
 }
 
 const DebugUtils = {
@@ -673,7 +674,7 @@ const DebugUtils = {
     validateReportActionJSON,
     getReasonForShowingRowInLHN,
     getReasonAndReportActionForGBRInLHNRow,
-    getRBRReportAction,
+    getReasonAndReportActionForRBRInLHNRow,
     REPORT_ACTION_REQUIRED_PROPERTIES,
     REPORT_REQUIRED_PROPERTIES,
 };

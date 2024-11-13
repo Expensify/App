@@ -11,6 +11,7 @@ You can create as many accounts as needed in order to test your changes directly
 
 1. When testing chat functionality in the app please do this between accounts you or your fellow contributors own - **do not test chatting with Concierge**, as this diverts to our customer support team. Thank you.
 2. A member of our customer onboarding team gets auto-assigned to every new policy created by a non-paying account to help them set up. Please **do not interact with these teams, ask for calls, or support on your issues.** If you do need to test functionality inside the defaultRooms (#admins & #announce) for any issues you’re working on, please let them know that you are a contributor and don’t need assistance. They will proceed to ignore the chat.
+3. Please **do not post in any Expensify owned public room for testing** (e.g #exfy-roadmap, #new-expensify-feedback). These rooms include real customers and investors. You can create your own public rooms, or [use this test public room](https://staging.new.expensify.com/r/2091104345528462) on either staging or production. Thanks!
 
 #### Generating Multiple Test Accounts
 You can generate multiple test accounts by using a `+` postfix, for example if your email is test@test.com, you can create multiple New Expensify accounts connected to the same email address by using test+123@test.com, test+456@test.com, etc.
@@ -32,9 +33,9 @@ This project and everyone participating in it is governed by the Expensify [Code
 At this time, we are not hiring contractors in Crimea, North Korea, Russia, Iran, Cuba, or Syria.
 
 ## Slack channels
-All contributors should be a member of a shared Slack channel called [#expensify-open-source](https://expensify.slack.com/archives/C01GTK53T8Q) -- this channel is used to ask **general questions**, facilitate **discussions**, and make **feature requests**.
+We have a shared Slack channel called #expensify-open-source — this channel is used to ask general questions, facilitate discussions, and make feature requests.
 
-Before requesting an invite to Slack, please ensure your Upwork account is active, since we only pay via Upwork (see [below](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#payment-for-contributions)). To request an invite to Slack, email contributors@expensify.com with the subject `Slack Channel Invites`. We'll send you an invite! 
+That said, we have a small issue with adding users at the moment and we’re working with Slack to try and get this resolved. If you would like to join, [fill out this form](https://forms.gle/Q7hnhUJPnQCK7Fe56) with your email and Upwork profile link. Once resolved, we’ll add you.
 
 Note: Do not send direct messages to the Expensify team in Slack or Expensify Chat, they will not be able to respond. 
 

@@ -12,6 +12,7 @@ import type {
     RequestContactMethodValidateCodeParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
+    TogglePlatformMuteParams,
     UpdateChatPriorityModeParams,
     UpdateNewsletterSubscriptionParams,
     UpdatePreferredEmojiSkinToneParams,
@@ -23,6 +24,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
@@ -315,11 +317,7 @@ function resetContactMethodValidateCodeSentState(contactMethod: string) {
  * Clears unvalidated new contact method action
  */
 function clearUnvalidatedNewContactMethodAction() {
-    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
-        validateCodeSent: null,
-        pendingFields: null,
-        errorFields: null,
-    });
+    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, null);
 }
 
 /**
@@ -414,7 +412,6 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
                 [contactMethod]: {
                     partnerUserID: contactMethod,
                     validatedDate: '',
-                    validateCodeSent: true,
                     errorFields: {
                         addedLogin: null,
                     },
@@ -447,6 +444,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
                 validateCodeSent: null,
+                actionVerified: true,
                 errorFields: {
                     actionVerified: null,
                 },
@@ -561,6 +559,16 @@ function validateLogin(accountID: number, validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
                 isLoading: false,
             },
         },
@@ -568,7 +576,7 @@ function validateLogin(accountID: number, validateCode: string) {
 
     const parameters: ValidateLoginParams = {accountID, validateCode};
 
-    API.write(WRITE_COMMANDS.VALIDATE_LOGIN, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.VALIDATE_LOGIN, parameters, {optimisticData, finallyData});
     Navigation.navigate(ROUTES.HOME);
 }
 
@@ -982,8 +990,32 @@ function clearUserErrorMessage() {
     Onyx.merge(ONYXKEYS.USER, {error: ''});
 }
 
-function setMuteAllSounds(isMutedAllSounds: boolean) {
-    Onyx.merge(ONYXKEYS.USER, {isMutedAllSounds});
+function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<Platform, true>>) {
+    const newMutedPlatforms = mutedPlatforms?.[platform]
+        ? {...mutedPlatforms, [platform]: undefined} // Remove platform if it's muted
+        : {...mutedPlatforms, [platform]: true}; // Add platform if it's not muted
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_MUTED_PLATFORMS,
+            value: newMutedPlatforms,
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_MUTED_PLATFORMS,
+            value: mutedPlatforms,
+        },
+    ];
+
+    const parameters: TogglePlatformMuteParams = {platformToMute: platform};
+
+    API.write(WRITE_COMMANDS.TOGGLE_PLATFORM_MUTE, parameters, {
+        optimisticData,
+        failureData,
+    });
 }
 
 /**
@@ -1358,7 +1390,7 @@ export {
     subscribeToUserEvents,
     updatePreferredSkinTone,
     setShouldUseStagingServer,
-    setMuteAllSounds,
+    togglePlatformMute,
     clearUserErrorMessage,
     joinScreenShare,
     clearScreenShareRequest,
