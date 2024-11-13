@@ -21,7 +21,6 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,8 +66,6 @@ function SecuritySettingsPage() {
 
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
-    // const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    // const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const setMenuPosition = useCallback(() => {
         if (!delegateButtonRef.current) {
             return;
@@ -137,7 +134,7 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles]);
+    }, [translate, waitForNavigate, styles, isActingAsDelegate]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
@@ -302,8 +299,12 @@ function SecuritySettingsPage() {
                                         title={translate('delegate.changeAccessLevel')}
                                         icon={Expensicons.Pencil}
                                         onPress={() => {
-                                            Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
                                             setShouldShowDelegatePopoverMenu(false);
+                                            if (isActingAsDelegate) {
+                                                setIsNoDelegateAccessMenuVisible(true);
+                                                return;
+                                            }
+                                            Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
                                             setSelectedDelegate(undefined);
                                         }}
                                         wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
@@ -314,6 +315,10 @@ function SecuritySettingsPage() {
                                         onPress={() =>
                                             Modal.close(() => {
                                                 setShouldShowDelegatePopoverMenu(false);
+                                                if (isActingAsDelegate) {
+                                                    setIsNoDelegateAccessMenuVisible(true);
+                                                    return;
+                                                }
                                                 setShouldShowRemoveDelegateModal(true);
                                             })
                                         }
