@@ -1,4 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {CSSProperties} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
@@ -63,19 +65,15 @@ function ItemListSkeletonView({
         for (let i = 0; i < numItems; i++) {
             const opacity = gradientOpacityEnabled ? 1 - i / (numItems - 1) : 1;
             items.push(
-                <View
+                <SkeletonViewContentLoader
                     key={`skeletonContainer${i}`}
-                    style={[themeStyles.mr5, itemViewStyle, {opacity}]}
+                    animate={shouldAnimate}
+                    height={itemViewHeight}
+                    backgroundColor={theme.skeletonLHNIn}
+                    style={StyleSheet.flatten([themeStyles.mr5, itemViewStyle, {opacity}]) as ViewStyle & CSSProperties} // using StyleSheet.flatten() because SkeletonViewContentLoader is not able to handle array style notation(eg. style={[style1, style2]}) of style prop
                 >
-                    <SkeletonViewContentLoader
-                        animate={shouldAnimate}
-                        height={itemViewHeight}
-                        backgroundColor={theme.skeletonLHNIn}
-                        foregroundColor={theme.skeletonLHNOut}
-                    >
-                        {renderSkeletonItem({itemIndex: i})}
-                    </SkeletonViewContentLoader>
-                </View>,
+                    {renderSkeletonItem({itemIndex: i})}
+                </SkeletonViewContentLoader>,
             );
         }
         return items;
