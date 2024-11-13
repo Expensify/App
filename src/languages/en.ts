@@ -4393,7 +4393,7 @@ const translations = {
                 subtitle: 'Use the green button below to create an expense or take a tour of Expensify to learn more.',
             },
             emptyInvoiceResults: {
-                title: "You haven't created any invoices yet",
+                title: "You haven't created any \ninvoices yet",
                 subtitle: 'Use the green button below to send an invoice or take a tour of Expensify to learn more.',
             },
             emptyTripResults: {
