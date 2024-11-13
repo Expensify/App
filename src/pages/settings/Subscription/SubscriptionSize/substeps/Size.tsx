@@ -40,7 +40,7 @@ function Size({onNext}: SizeProps) {
         }
         updateValuesAndNavigateToNextStep(values);
     };
-    
+
     // For delegates, modifying subscription size is a restricted action.
     // So, on pressing submit, skip validation and show delegateNoAccessModal
     const skipValidation = isActingAsDelegate;
