@@ -1,10 +1,11 @@
 type PayMoneyRequestOnSearchParams = {
     hash: number;
+    paymentType: string;
     /**
      * Stringified JSON object with type of following structure:
-     * Array<{reportID: string, amount: number, paymentType: string}>
+     * Array<{reportID: string, amount: number}>
      */
-    paymentData: string;
+    reportsAndAmounts: string;
 };
 
 export default PayMoneyRequestOnSearchParams;

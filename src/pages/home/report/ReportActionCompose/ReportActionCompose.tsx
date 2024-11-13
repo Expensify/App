@@ -43,6 +43,7 @@ import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import variables from '@styles/variables';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -273,7 +274,8 @@ function ReportActionCompose({
                 Report.addAttachment(reportID, attachmentFileRef.current, newCommentTrimmed);
                 attachmentFileRef.current = null;
             } else {
-                Performance.markStart(CONST.TIMING.MESSAGE_SENT, {message: newCommentTrimmed});
+                Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
+                Timing.start(CONST.TIMING.SEND_MESSAGE);
                 onSubmit(newCommentTrimmed);
             }
         },
