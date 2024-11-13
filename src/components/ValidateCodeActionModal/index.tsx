@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -12,7 +13,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionModalProps} from './type';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
-import useLocalize from '@hooks/useLocalize';
 
 function ValidateCodeActionModal({
     isVisible,
@@ -74,7 +74,7 @@ function ValidateCodeActionModal({
 
                 <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7, themeStyles.flex1]}>
                     <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
-                    {!!descriptionSecondary && (<Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>)}
+                    {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
                     <ValidateCodeForm
                         validateCodeAction={validateCodeAction}
                         validatePendingAction={validatePendingAction}
