@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {type OnyxEntry, useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AddressForm from '@components/AddressForm';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -38,15 +39,21 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
     const [city, setCity] = useState(address?.city);
     const [zipcode, setZipcode] = useState(address?.zip);
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    // const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    // const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     // For delegates, modifying legal address is a restricted action.
     // So, on pressing submit, skip validation and show delegateNoAccessModal
     const skipValidation = isActingAsDelegate;
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
-        isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : updateAddress(values);
+        if (!!isActingAsDelegate) {
+            console.log('inside' + isActingAsDelegate);
+            setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
+        updateAddress(values);
     };
 
     useEffect(() => {
