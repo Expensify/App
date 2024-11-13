@@ -701,7 +701,7 @@ const translations = {
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',
-        multipleUsers: 'Varios miembros',
+        multipleMembers: 'Varios miembros',
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Esta sala de chat ha sido eliminada.',
@@ -736,6 +736,10 @@ const translations = {
         listOfChats: 'lista de chats',
         saveTheWorld: 'Salvar el mundo',
         tooltip: '¡Comienza aquí!',
+        redirectToExpensifyClassicModal: {
+            title: 'Próximamente',
+            description: 'Estamos ajustando algunos detalles de New Expensify para adaptarla a tu configuración específica. Mientras tanto, dirígete a Expensify Classic.',
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -1109,7 +1113,7 @@ const translations = {
         helpTextAfterEmail: ' desde varias direcciones de correo electrónico.',
         pleaseVerify: 'Por favor, verifica este método de contacto',
         getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod}`,
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod}. Debería llegar en un par de minutos.`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
             'Este es tu método de contacto predeterminado. Antes de poder eliminarlo, tendrás que elegir otro método de contacto y haz clic en "Establecer como predeterminado".',
@@ -1208,7 +1212,7 @@ const translations = {
             deviceCredentials: 'Credenciales del dispositivo',
             invalidate: 'Invalidar',
             destroy: 'Destruir',
-            maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
+            maskExportOnyxStateData: 'Enmascare los datos frágiles del miembro mientras exporta el estado Onyx',
             exportOnyxState: 'Exportar estado Onyx',
             importOnyxState: 'Importar estado Onyx',
             testCrash: 'Prueba de fallo',
@@ -1450,7 +1454,8 @@ const translations = {
         },
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
         validateCardTitle: 'Asegurémonos de que eres tú',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta`,
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
+            `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta. Debería llegar en un par de minutos.`,
     },
     workflowsPage: {
         workflowTitle: 'Gasto',
@@ -1461,7 +1466,7 @@ const translations = {
         submissionFrequencyDateOfMonth: 'Fecha del mes',
         addApprovalsTitle: 'Aprobaciones',
         addApprovalButton: 'Añadir flujo de aprobación',
-        addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico',
+        addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
         connectBankAccount: 'Conectar cuenta bancaria',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
@@ -1986,6 +1991,7 @@ const translations = {
             afterLinkText: 'para verlo.',
             formLabel: 'Ver PDF',
         },
+        attachmentNotFound: 'Archivo adjunto no encontrado',
     },
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
@@ -3497,7 +3503,7 @@ const translations = {
             },
             rules: {
                 title: 'Reglas',
-                subtitle: 'Configura cuándo se exigen los recibos, marca los gastos elevados y mucho más.',
+                subtitle: 'Solicita recibos, resalta gastos de alto importe y mucho más.',
             },
         },
         reportFields: {
@@ -3987,7 +3993,7 @@ const translations = {
         },
         inviteMessage: {
             inviteMessageTitle: 'Añadir un mensaje',
-            inviteMessagePrompt: 'Añadir un mensaje para hacer tu invitación destacar',
+            inviteMessagePrompt: '¡Añadir un mensaje para hacer tu invitación destacar!',
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar.',
             genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo.',
@@ -4611,14 +4617,16 @@ const translations = {
                 selectedForRandomAudit: `seleccionado al azar para revisión`,
                 selectedForRandomAuditMarkdown: `[seleccionado al azar](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) para revisión`,
                 share: ({to}: ShareParams) => `miembro invitado ${to}`,
-                unshare: ({to}: UnshareParams) => `usuario eliminado ${to}`,
+                unshare: ({to}: UnshareParams) => `miembro eliminado ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
-                addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role === 'user' ? 'miembro' : 'administrador'}`,
+                addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role === 'miembro' || role === 'user' ? 'miembro' : 'administrador'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
-                    `actualicé el rol ${email} de ${currentRole === 'user' ? 'miembro' : 'administrador'} a ${newRole === 'user' ? 'miembro' : 'administrador'}`,
-                removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role === 'user' ? 'miembro' : 'administrador'} ${email}`,
+                    `actualicé el rol ${email} de ${currentRole === 'miembro' || currentRole === 'user' ? 'miembro' : 'administrador'} a ${
+                        newRole === 'miembro' || newRole === 'user' ? 'miembro' : 'administrador'
+                    }`,
+                removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role === 'miembro' || role === 'user' ? 'miembro' : 'administrador'} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
@@ -5126,7 +5134,7 @@ const translations = {
         chatMessage: 'mensaje de chat',
         lastChatMessagePreview: 'Vista previa del último mensaje del chat',
         workspaceName: 'Nombre del espacio de trabajo',
-        chatUserDisplayNames: 'Nombres de los usuarios del chat',
+        chatUserDisplayNames: 'Nombres de los miembros del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
         prestyledText: 'texto preestilizado',
         viewAttachment: 'Ver archivo adjunto',
@@ -5689,7 +5697,8 @@ const translations = {
         removeCopilotConfirmation: '¿Estás seguro de que quieres eliminar este copiloto?',
         changeAccessLevel: 'Cambiar nivel de acceso',
         makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto.`,
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
+            `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto. Debería llegar en un par de minutos.`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) =>
             `Por favor, introduce el código mágico enviado a ${contactMethod} para actualizar el nivel de acceso de tu copiloto.`,
         notAllowed: 'No tan rápido...',
@@ -5731,7 +5740,7 @@ const translations = {
             hasDraftComment: 'Tiene comentario en borrador',
             hasGBR: 'Tiene GBR',
             hasRBR: 'Tiene RBR',
-            pinnedByUser: 'Fijado por el usuario',
+            pinnedByUser: 'Fijado por el miembro',
             hasIOUViolations: 'Tiene violaciones de IOU',
             hasAddWorkspaceRoomErrors: 'Tiene errores al agregar sala de espacio de trabajo',
             isUnread: 'No leído (modo de enfoque)',

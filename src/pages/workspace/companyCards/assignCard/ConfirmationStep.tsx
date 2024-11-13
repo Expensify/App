@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import * as CompanyCards from '@userActions/CompanyCards';
@@ -75,7 +76,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={data?.cardNumber}
+                    title={CardUtils.maskCardNumber(data?.cardNumber ?? '')}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD)}
                 />
