@@ -483,7 +483,7 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
 function getAllTaxRatesNamesAndKeys(): Record<string, string[]> {
     const allTaxRates: Record<string, string[]> = {};
     Object.values(allPolicies ?? {})?.forEach((policy) => {
-        if (!policy?.taxRates?.taxes || !policy?.tax?.trackingEnabled) {
+        if (!policy?.taxRates?.taxes) {
             return;
         }
         Object.entries(policy?.taxRates?.taxes).forEach(([taxRateKey, taxRate]) => {
