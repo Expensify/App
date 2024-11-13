@@ -257,7 +257,7 @@ function removeExpensifyCardFromCompanyCards(cardFeeds: OnyxEntry<CardFeeds>): C
 
     const companyCards = getCompanyFeeds(cardFeeds);
 
-    return Object.fromEntries(Object.entries(companyCards).filter(([key]) => key !== CONST.EXPENSIFY_CARD.BANK)) as CompanyFeeds;
+    return Object.fromEntries(Object.entries(companyCards).filter(([key]) => key !== CONST.EXPENSIFY_CARD.BANK));
 }
 
 function getCardFeedName(feedType: CompanyCardFeed): string {
