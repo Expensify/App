@@ -17,7 +17,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS, {DateOfBirthForm} from '@src/types/form/DateOfBirthForm';
+import INPUT_IDS, {type DateOfBirthForm} from '@src/types/form/DateOfBirthForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 type DateOfBirthPageOnyxProps = {
@@ -31,8 +31,10 @@ type DateOfBirthPageProps = DateOfBirthPageOnyxProps;
 function DateOfBirthPage({privatePersonalDetails, isLoadingApp = true}: DateOfBirthPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    // const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    // const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     /**
@@ -52,12 +54,16 @@ function DateOfBirthPage({privatePersonalDetails, isLoadingApp = true}: DateOfBi
 
         return errors;
     }, []);
+
     // For delegates, modifying legal DOB is a restricted action.
     // So, on pressing submit, skip validation and show delegateNoAccessModal
-
     const skipValidation = isActingAsDelegate;
     const handleSubmit = (DOB: DateOfBirthForm) => {
-        isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : PersonalDetails.updateDateOfBirth(DOB);
+        if (isActingAsDelegate) {
+            setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
+        PersonalDetails.updateDateOfBirth(DOB);
     };
 
     return (
@@ -90,6 +96,10 @@ function DateOfBirthPage({privatePersonalDetails, isLoadingApp = true}: DateOfBi
                     />
                 </FormProvider>
             )}
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
         </ScreenWrapper>
     );
 }
