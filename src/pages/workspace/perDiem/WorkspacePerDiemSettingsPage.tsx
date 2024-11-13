@@ -42,11 +42,11 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
     const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
 
     const setNewCategory = (category: ListItem) => {
-        if (!category.searchText || !customUnit) {
+        if (!category.searchText || !customUnit || defaultCategory === category.searchText) {
             return;
         }
 
-        Category.setPolicyCustomUnitDefaultCategory(policyID, customUnitID, customUnit.defaultCategory, defaultCategory === category.searchText ? '' : category.searchText);
+        Category.setPolicyCustomUnitDefaultCategory(policyID, customUnitID, customUnit.defaultCategory, category.searchText);
     };
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
