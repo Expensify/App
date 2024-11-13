@@ -994,7 +994,10 @@ function openReport(
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig, {
             checkAndFixConflictingRequest: (persistedRequests) =>
-                resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID),
+                resolveDuplicationConflictAction(
+                    persistedRequests,
+                    (request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID && request.data?.emailList === parameters.emailList,
+                ),
         });
     }
 }
