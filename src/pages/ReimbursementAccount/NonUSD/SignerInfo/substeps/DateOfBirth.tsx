@@ -39,7 +39,7 @@ function DateOfBirth({onNext, onMove, isEditing, isSecondSigner}: DateOfBirthPro
             stepFields={[inputID]}
             dobInputID={inputID}
             dobDefaultValue={defaultValue}
-            footerComponent={<WhyLink containerStyles={[styles.mt6, styles.mh5]} />}
+            footerComponent={<WhyLink containerStyles={[styles.mt6]} />}
         />
     );
 }
