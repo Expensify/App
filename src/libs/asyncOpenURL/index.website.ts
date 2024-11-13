@@ -1,7 +1,8 @@
 import {Linking} from 'react-native';
 import type {Linking as LinkingWeb} from 'react-native-web';
-import canOpenURLInSameTab from '@libs/canOpenURLInSameTab';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import type AsyncOpenURL from './types';
 
 /**
@@ -14,6 +15,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic, s
     }
 
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const canOpenURLInSameTab = getPlatform() === CONST.PLATFORM.WEB;
 
     if (!isSafari || !!shouldSkipCustomSafariLogic || !!shouldOpenInSameTab) {
         promise
