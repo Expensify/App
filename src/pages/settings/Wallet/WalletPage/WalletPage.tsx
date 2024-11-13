@@ -566,6 +566,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         icon={Expensicons.Mail}
                                         onPress={() => {
                                             if (isActingAsDelegate) {
+                                                hideDefaultDeleteMenu();
                                                 setIsNoDelegateAccessMenuVisible(true);
                                                 return;
                                             }
@@ -580,6 +581,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     icon={Expensicons.Trashcan}
                                     onPress={() => {
                                         if (isActingAsDelegate) {
+                                            hideDefaultDeleteMenu();
                                             setIsNoDelegateAccessMenuVisible(true);
                                             return;
                                         }
