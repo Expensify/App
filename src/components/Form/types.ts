@@ -33,6 +33,7 @@ import type NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/
 import type NetSuiteMenuWithTopDescriptionForm from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteMenuWithTopDescriptionForm';
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
+import type {Form} from '@src/types/form';
 import type {BaseForm} from '@src/types/form/Form';
 
 /**
@@ -164,6 +165,7 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;
     resetErrors: () => void;
+    resetFormFieldError: (fieldID: keyof Form) => void;
 };
 
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;

@@ -255,15 +255,11 @@ function ComposerWithSuggestions(
         return draftComment;
     });
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {
-        selector: EmojiUtils.getPreferredSkinToneIndex,
-        initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    });
-
-    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
-
     const commentRef = useRef(value);
+
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
+    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
 
     const lastTextRef = useRef(value);
     useEffect(() => {
@@ -621,6 +617,7 @@ function ComposerWithSuggestions(
 
     const prevIsModalVisible = usePrevious(modal?.isVisible);
     const prevIsFocused = usePrevious(isFocused);
+
     useEffect(() => {
         if (modal?.isVisible && !prevIsModalVisible) {
             // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
@@ -651,6 +648,7 @@ function ComposerWithSuggestions(
         updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
     useImperativeHandle(
         ref,
         () => ({
@@ -817,8 +815,6 @@ function ComposerWithSuggestions(
 
 ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
-const ComposerWithSuggestionsWithRef = forwardRef(ComposerWithSuggestions);
-
-export default memo(ComposerWithSuggestionsWithRef);
+export default memo(forwardRef(ComposerWithSuggestions));
 
 export type {ComposerWithSuggestionsProps, ComposerRef};

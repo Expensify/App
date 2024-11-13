@@ -63,6 +63,7 @@ function IOURequestStepConfirmation({
 
     const report = reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
+    const isDraftPolicy = policy === policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
     const styles = useThemeStyles();
@@ -145,7 +146,7 @@ function IOURequestStepConfirmation({
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
 
-    useFetchRoute(transaction, transaction?.comment?.waypoints, action);
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
@@ -287,6 +288,7 @@ function IOURequestStepConfirmation({
                 currentUserPersonalDetails.accountID,
                 participant,
                 trimmedComment,
+                isDraftPolicy,
                 receiptObj,
                 transaction.category,
                 transaction.tag,
@@ -317,6 +319,7 @@ function IOURequestStepConfirmation({
             policyCategories,
             action,
             customUnitRateID,
+            isDraftPolicy,
         ],
     );
 

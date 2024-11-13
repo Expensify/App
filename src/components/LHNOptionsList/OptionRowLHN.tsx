@@ -28,8 +28,9 @@ import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import FreeTrialBadge from '@pages/settings/Subscription/FreeTrialBadge';
+import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
+import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -193,6 +194,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                 ref={popoverAnchor}
                                 onPress={(event) => {
                                     Performance.markStart(CONST.TIMING.OPEN_REPORT);
+                                    Timing.start(CONST.TIMING.OPEN_REPORT);
 
                                     event?.preventDefault();
                                     // Enable Composer to focus on clicking the same chat after opening the context menu.
@@ -277,7 +279,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                         ReportUtils.isSystemChat(report)
                                                     }
                                                 />
-                                                {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrialBadge badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
+                                                {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
                                                 {isStatusVisible && (
                                                     <Tooltip
                                                         text={statusContent}

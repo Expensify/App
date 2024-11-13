@@ -97,6 +97,7 @@ function process(): Promise<void> {
                 pause();
             }
 
+            Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
             PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
             RequestThrottle.clear();
             return process();
@@ -105,6 +106,7 @@ function process(): Promise<void> {
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
+                Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
                 PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
                 RequestThrottle.clear();
                 return process();
@@ -114,6 +116,7 @@ function process(): Promise<void> {
                 .then(process)
                 .catch(() => {
                     Onyx.update(requestToProcess.failureData ?? []);
+                    Log.info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error, request: requestToProcess});
                     PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
                     RequestThrottle.clear();
                     return process();
@@ -135,8 +138,8 @@ function flush() {
         return;
     }
 
-    if (PersistedRequests.getAll().length === 0) {
-        Log.info('[SequentialQueue] Unable to flush. No requests to process.');
+    if (PersistedRequests.getAll().length === 0 && QueuedOnyxUpdates.isEmpty()) {
+        Log.info('[SequentialQueue] Unable to flush. No requests or queued Onyx updates to process.');
         return;
     }
 

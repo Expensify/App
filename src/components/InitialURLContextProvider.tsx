@@ -26,14 +26,15 @@ type InitialURLContextProviderProps = {
 };
 
 function InitialURLContextProvider({children, url}: InitialURLContextProviderProps) {
-    const [initialURL, setInitialURL] = useState<Route | undefined>(url);
+    const [initialURL, setInitialURL] = useState<Route | undefined>();
     const {setSplashScreenState} = useSplashScreenStateContext();
 
     useEffect(() => {
         if (url) {
-            const route = signInAfterTransitionFromOldDot(url);
-            setInitialURL(route);
-            setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+            signInAfterTransitionFromOldDot(url).then((route) => {
+                setInitialURL(route);
+                setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+            });
             return;
         }
         Linking.getInitialURL().then((initURL) => {
