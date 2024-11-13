@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {ForwardedRef, RefAttributes} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import type {ForwardedRef} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
@@ -24,7 +24,7 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Account, Credentials, Locale} from '@src/types/onyx';
+import type {Account, Credentials} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
@@ -37,21 +37,7 @@ import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
 
-type SignInPageInnerOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
-
-    /** The credentials of the person signing in */
-    credentials: OnyxEntry<Credentials>;
-
-    /** Active Clients connected to ONYX Database */
-    activeClients: OnyxEntry<string[]>;
-
-    /** The user's preferred locale */
-    preferredLocale: OnyxEntry<Locale>;
-};
-
-type SignInPageInnerProps = SignInPageInnerOnyxProps & {
+type SignInPageInnerProps = {
     shouldEnableMaxHeight?: boolean;
 };
 
@@ -146,8 +132,18 @@ function getRenderOptions({
         shouldShouldSignUpWelcomeForm,
     };
 }
-
-function SignInPage({credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: ForwardedRef<SignInPageRef>) {
+function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: ForwardedRef<SignInPageRef>) {
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    /**
+      This variable is only added to make sure the component is re-rendered
+      whenever the activeClients change, so that we call the
+      ActiveClientManager.isClientTheLeader function
+      everytime the leader client changes.
+      We use that function to prevent repeating code that checks which client is the leader.
+    */
+    const [activeClients] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -339,7 +335,6 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
 }
 
 type SignInPageProps = SignInPageInnerProps;
-type SignInPageOnyxProps = SignInPageInnerOnyxProps;
 const SignInPageWithRef = forwardRef(SignInPage);
 
 function SignInPageThemeWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
@@ -361,20 +356,6 @@ function SignInPageThemeWrapper(props: SignInPageProps, ref: ForwardedRef<SignIn
 
 SignInPageThemeWrapper.displayName = 'SignInPage';
 
-export default withOnyx<SignInPageProps & RefAttributes<SignInPageRef>, SignInPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    /**
-      This variable is only added to make sure the component is re-rendered
-      whenever the activeClients change, so that we call the
-      ActiveClientManager.isClientTheLeader function
-      everytime the leader client changes.
-      We use that function to prevent repeating code that checks which client is the leader.
-    */
-    activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS},
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-})(forwardRef(SignInPageThemeWrapper));
+export default forwardRef(SignInPageThemeWrapper);
 
 export type {SignInPageRef};
