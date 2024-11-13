@@ -941,7 +941,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 <DelegateNoAccessModal
                     isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                     onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                    delegatorEmail={delegatorEmail ?? ''}
                 />
                 <ConfirmModal
                     title={translate('iou.unapproveReport')}
