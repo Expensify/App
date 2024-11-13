@@ -22,8 +22,8 @@ Expense rules allow you to automatically categorize, tag, and report expenses ba
 
 ![Insert alt text for accessibility here](https://help.expensify.com/assets/images/ExpensifyHelp_ExpenseRules_01.png){:width="100%"}
   
-{:start="7"}
-7. (Optional) To apply the rule to previously entered expenses, select the **Apply to existing matching expenses** checkbox. You can also click **Preview Matching Expenses** to see if your rule matches the intended expenses.
+{:start="6"}
+6. (Optional) To apply the rule to previously entered expenses, select the **Apply to existing matching expenses** checkbox. You can also click **Preview Matching Expenses** to see if your rule matches the intended expenses.
 
 # How rules are applied
 
