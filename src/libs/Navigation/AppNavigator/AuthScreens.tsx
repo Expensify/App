@@ -623,4 +623,3 @@ export default function AuthScreensWithOnyx() {
         />
     );
 }
-
