@@ -60,8 +60,8 @@ You can retract a submitted report to edit the reported expenses and re-submit t
 4. Tap **Retract** at the top of the report.
 {% include end-option.html %}
 
-**Note:** Workspaces with Instant Submit set as the Scheduled Submit frequency won’t have the option to Retract entire reports, only individual expenses.
-
 {% include end-selector.html %}
+
+**Note:** Workspaces with Instant Submit set as the Scheduled Submit frequency won’t have the option to Retract entire reports, only individual expenses.
 
 </div>
