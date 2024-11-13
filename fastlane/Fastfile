@@ -598,7 +598,7 @@ platform :ios do
         app_identifier: "com.expensify.expensifylite",
         api_key_path: "./ios/ios-fastlane-json-key.json",
 
-        # Skip HTMl report verification
+        # Skip HTML report verification
         force: true,
 
         # VERSION will be set to the full build_number e.g. '1.0.92.0'
@@ -640,7 +640,7 @@ platform :ios do
           # We do not need any additional compliance
           export_compliance_compliance_required: false,
 
-          # We do not use any encrpytion
+          # We do not use any encryption
           export_compliance_encryption_updated: false,
           export_compliance_app_type: nil,
           export_compliance_uses_encryption: false,
