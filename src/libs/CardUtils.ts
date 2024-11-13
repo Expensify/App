@@ -243,7 +243,7 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
 }
 
 function isCustomFeed(feed: CompanyCardFeed): boolean {
-    return CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD === feed || CONST.COMPANY_CARD.FEED_BANK_NAME.VISA === feed || CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX === feed;
+    return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => value === feed);
 }
 
 function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
