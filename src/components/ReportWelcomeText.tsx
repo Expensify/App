@@ -45,6 +45,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
+    const canEdit = ReportUtils.canEditReportDescription(report, policy);
     const filteredOptions = moneyRequestOptions.filter(
         (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
             item !== CONST.IOU.TYPE.INVOICE,
@@ -123,12 +124,13 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                     (welcomeMessage?.messageHtml ? (
                         <PressableWithoutFeedback
                             onPress={() => {
-                                if (!canEditPolicyDescription) {
+                                if (!canEdit) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '-1'));
+                                const activeRoute = Navigation.getReportRHPActiveRoute();
+                                Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1', activeRoute));
                             }}
-                            style={[styles.renderHTML, canEditPolicyDescription ? styles.cursorPointer : styles.cursorText]}
+                            style={[styles.renderHTML, canEdit ? styles.cursorPointer : styles.cursorText]}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                         >
                             <RenderHTML html={welcomeMessage.messageHtml} />
