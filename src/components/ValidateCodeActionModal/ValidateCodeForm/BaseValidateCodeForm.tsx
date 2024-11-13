@@ -64,6 +64,7 @@ type ValidateCodeFormProps = {
     /** Function to clear error of the form */
     clearError: () => void;
 
+    /** Function is called when validate code modal is mounted and on magic code resend */
     sendValidateCode: () => void;
 };
 
@@ -91,6 +92,9 @@ function BaseValidateCodeForm({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
+
+    const timerRef = useRef<NodeJS.Timeout>();
 
     useImperativeHandle(innerRef, () => ({
         focus() {
@@ -143,12 +147,24 @@ function BaseValidateCodeForm({
         inputValidateCodeRef.current?.clear();
     }, [hasMagicCodeBeenSent]);
 
+    useEffect(() => {
+        if (timeRemaining > 0) {
+            timerRef.current = setTimeout(() => {
+                setTimeRemaining(timeRemaining - 1);
+            }, 1000);
+        }
+        return () => {
+            clearTimeout(timerRef.current);
+        };
+    }, [timeRemaining]);
+
     /**
      * Request a validate code / magic code be sent to verify this contact method
      */
     const resendValidateCode = () => {
         sendValidateCode();
         inputValidateCodeRef.current?.clear();
+        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
     };
 
     /**
@@ -185,6 +201,7 @@ function BaseValidateCodeForm({
         handleSubmitForm(validateCode);
     }, [validateCode, handleSubmitForm]);
 
+    const shouldShowTimer = timeRemaining > 0 && !isOffline;
     return (
         <>
             <MagicCodeInput
@@ -198,36 +215,45 @@ function BaseValidateCodeForm({
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
             />
+            {shouldShowTimer && (
+                <Text style={[styles.mt5]}>
+                    {translate('validateCodeForm.requestNewCode')}
+                    <Text style={[styles.textBlue]}>00:{String(timeRemaining).padStart(2, '0')}</Text>
+                </Text>
+            )}
             <OfflineWithFeedback
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
                 errors={ErrorUtils.getLatestErrorField(validateCodeAction, 'actionVerified')}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearValidateCodeActionError('actionVerified')}
             >
-                <View style={[styles.mt5, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
-                    <PressableWithFeedback
-                        disabled={shouldDisableResendValidateCode}
-                        style={[styles.mr1]}
-                        onPress={resendValidateCode}
-                        underlayColor={theme.componentBG}
-                        hoverDimmingValue={1}
-                        pressDimmingValue={0.2}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
-                    >
-                        <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
-                    </PressableWithFeedback>
-                    {hasMagicCodeBeenSent && (
-                        <DotIndicatorMessage
-                            type="success"
-                            style={[styles.mt6, styles.flex0]}
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
-                        />
-                    )}
-                </View>
+                {!shouldShowTimer && (
+                    <View style={[styles.mt5, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
+                        <PressableWithFeedback
+                            disabled={shouldDisableResendValidateCode}
+                            style={[styles.mr1]}
+                            onPress={resendValidateCode}
+                            underlayColor={theme.componentBG}
+                            hoverDimmingValue={1}
+                            pressDimmingValue={0.2}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                        >
+                            <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                        </PressableWithFeedback>
+                    </View>
+                )}
             </OfflineWithFeedback>
+            {!!hasMagicCodeBeenSent && (
+                <DotIndicatorMessage
+                    type="success"
+                    style={[styles.mt6, styles.flex0]}
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
+                />
+            )}
             <OfflineWithFeedback
+                shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
                 errors={validateError}
                 errorRowStyles={[styles.mt2]}

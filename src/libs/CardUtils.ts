@@ -9,6 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
@@ -130,6 +131,21 @@ function maskCard(lastFour = ''): string {
 }
 
 /**
+ * Returns a masked credit card string.
+ * Converts given 'X' to '•' for the entire card string.
+ *
+ * @param cardName - card name with XXXX in the middle.
+ * @returns - The masked card string.
+ */
+function maskCardNumber(cardName: string): string {
+    if (!cardName || cardName === '') {
+        return '';
+    }
+    const maskedString = cardName.replace(/X/g, '•');
+    return maskedString.replace(/(.{4})/g, '$1 ').trim();
+}
+
+/**
  * Finds physical card in a list of cards
  *
  * @returns a physical card object (or undefined if none is found)
@@ -189,7 +205,7 @@ function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: st
         return '';
     }
 
-    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? '';
+    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? maskCard(lastFourPAN);
 }
 
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK): IconAsset {
@@ -224,6 +240,13 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
     }
 
     return Illustrations.AmexCompanyCards;
+}
+
+function removeExpensifyCardFromCompanyCards(companyCards?: Record<string, CardFeedData>) {
+    if (!companyCards) {
+        return {};
+    }
+    return Object.fromEntries(Object.entries(companyCards).filter(([key]) => key !== CONST.EXPENSIFY_CARD.BANK));
 }
 
 function getCardFeedName(feedType: CompanyCardFeed): string {
@@ -293,7 +316,7 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
 };
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed {
-    const defaultFeed = Object.keys(cardFeeds?.settings?.companyCards ?? {}).at(0) as CompanyCardFeed;
+    const defaultFeed = Object.keys(removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards)).at(0) as CompanyCardFeed;
     return lastSelectedFeed ?? defaultFeed;
 }
 
@@ -305,6 +328,7 @@ export {
     getMonthFromExpirationDateString,
     getYearFromExpirationDateString,
     maskCard,
+    maskCardNumber,
     getCardDescription,
     findPhysicalCard,
     hasDetectedFraud,
@@ -318,4 +342,5 @@ export {
     getBankCardDetailsImage,
     getSelectedFeed,
     getCorrectStepForSelectedBank,
+    removeExpensifyCardFromCompanyCards,
 };
