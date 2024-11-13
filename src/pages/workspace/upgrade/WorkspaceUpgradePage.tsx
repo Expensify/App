@@ -81,7 +81,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 Policy.enableCompanyCards(policyID, true, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
-                PerDiem.enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID);
+                PerDiem.enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, true);
                 break;
             default:
         }

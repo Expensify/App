@@ -69,8 +69,8 @@ type SearchRouterListProps = {
 };
 
 const setPerformanceTimersEnd = () => {
-    Timing.end(CONST.TIMING.SEARCH_ROUTER_RENDER);
-    Performance.markEnd(CONST.TIMING.SEARCH_ROUTER_RENDER);
+    Timing.end(CONST.TIMING.OPEN_SEARCH);
+    Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
 };
 
 function getContextualSearchQuery(reportName: string) {
