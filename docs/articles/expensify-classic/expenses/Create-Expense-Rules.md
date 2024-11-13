@@ -1,8 +1,8 @@
 ---
 title: Create Expense Rules
 description: Automatically categorize, tag, and report expenses based on the merchant's name
-
 ---
+
 Expense rules allow you to automatically categorize, tag, and report expenses based on the merchant’s name.
 
 # Create expense rules 
