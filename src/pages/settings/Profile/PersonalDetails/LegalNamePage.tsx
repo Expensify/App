@@ -87,6 +87,7 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
 
     // For delegates, modifying legal Name is a restricted action.
     // So, on pressing submit, skip validation and show delegateNoAccessModal
+
     const skipValidation = isActingAsDelegate;
     const handleSubmit = (values: PrivatePersonalDetails) => {
         if (isActingAsDelegate) {

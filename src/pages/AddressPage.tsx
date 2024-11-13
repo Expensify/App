@@ -39,8 +39,6 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
     const [city, setCity] = useState(address?.city);
     const [zipcode, setZipcode] = useState(address?.zip);
 
-    // const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    // const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 

@@ -31,8 +31,6 @@ type DateOfBirthPageProps = DateOfBirthPageOnyxProps;
 function DateOfBirthPage({privatePersonalDetails, isLoadingApp = true}: DateOfBirthPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    // const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    // const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
 
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);

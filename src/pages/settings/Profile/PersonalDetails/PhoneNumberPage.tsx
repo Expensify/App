@@ -33,8 +33,6 @@ function PhoneNumberPage() {
     const validateLoginError = ErrorUtils.getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
-    // const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    // const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
@@ -72,6 +70,7 @@ function PhoneNumberPage() {
         },
         [translate, validateLoginError],
     );
+
     // For delegates, modifying Phone Number is a restricted action.
     // So, on pressing submit, skip validation and show delegateNoAccessModal
     const skipValidation = isActingAsDelegate;
