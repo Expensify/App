@@ -1,4 +1,4 @@
-import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import type {ValueOf} from 'type-fest';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
@@ -24,13 +24,20 @@ type SelectedTransactionInfo = {
 /** Model of selected results */
 type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
+/** Model of payment data used by Search bulk actions */
+type PaymentData = {
+    reportID: string;
+    amount: number;
+    paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+};
+
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
 type ChatSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.CHAT>;
-type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus;
+type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus | Array<ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus>;
 
 type SearchContext = {
     currentSearchHash: number;
@@ -56,10 +63,14 @@ type QueryFilter = {
     value: string | number;
 };
 
-type AdvancedFiltersKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
+type SearchFilterKey =
+    | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID;
 
 type QueryFilters = Array<{
-    key: AdvancedFiltersKeys;
+    key: SearchFilterKey;
     filters: QueryFilter[];
 }>;
 
@@ -82,16 +93,16 @@ type SearchQueryJSON = {
     flatFilters: QueryFilters;
 } & SearchQueryAST;
 
-type AutocompleteRange = {
-    key: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS & typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+type SearchAutocompleteResult = {
+    autocomplete: SearchAutocompleteQueryRange | null;
+    ranges: SearchAutocompleteQueryRange[];
+};
+
+type SearchAutocompleteQueryRange = {
+    key: SearchFilterKey;
     length: number;
     start: number;
     value: string;
-};
-
-type SearchAutocompleteResult = {
-    autocomplete: AutocompleteRange | null;
-    ranges: AutocompleteRange[];
 };
 
 export type {
@@ -107,11 +118,12 @@ export type {
     ASTNode,
     QueryFilter,
     QueryFilters,
-    AdvancedFiltersKeys,
+    SearchFilterKey,
     ExpenseSearchStatus,
     InvoiceSearchStatus,
     TripSearchStatus,
     ChatSearchStatus,
     SearchAutocompleteResult,
-    AutocompleteRange,
+    PaymentData,
+    SearchAutocompleteQueryRange,
 };

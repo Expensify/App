@@ -41,8 +41,9 @@ import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as App from '@userActions/App';
 import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
+import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
-import {setLoggedOutFromOldDot, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setUseNewDotSignInPage} from '@userActions/HybridApp';
+import {parseHybridAppSettings, setLoggedOutFromOldDot, setReadyToShowAuthScreens, setReadyToSwitchToClassicExperience, setUseNewDotSignInPage} from '@userActions/HybridApp';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
@@ -480,19 +481,13 @@ function signUpUser() {
     API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
 }
 
-function signInAfterTransitionFromOldDot(transitionURL: string) {
-    const [route, queryParams] = transitionURL.split('?');
-    const {useNewDotSignInPage, isSingleNewDotEntry, loggedOutFromOldDot} = queryParams
-        ? Object.fromEntries(
-              queryParams.split('&').map((param) => {
-                  const [key, value] = param.split('=');
-                  return [key, value];
-              }),
-          )
-        : {useNewDotSignInPage: undefined, isSingleNewDotEntry: undefined, loggedOutFromOldDot: undefined};
+function signInAfterTransitionFromOldDot(route: Route, hybridAppSettings: string) {
+    const parsedHybridAppSettings = parseHybridAppSettings(hybridAppSettings);
+    const {initialOnyxValues} = parsedHybridAppSettings;
+    const {hybridApp, ...newDotOnyxValues} = initialOnyxValues;
 
     const clearOnyxBeforeSignIn = () => {
-        if (useNewDotSignInPage !== 'true') {
+        if (!hybridApp.useNewDotSignInPage) {
             setReadyToShowAuthScreens(true);
             setReadyToSwitchToClassicExperience(true);
             return Promise.resolve();
@@ -502,7 +497,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
     };
 
     const initAppAfterTransition = () => {
-        if (useNewDotSignInPage === 'true') {
+        if (hybridApp.useNewDotSignInPage) {
             return Promise.resolve();
         }
 
@@ -511,13 +506,22 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
 
     return new Promise<Route>((resolve) => {
         clearOnyxBeforeSignIn()
+            .then(() => Onyx.merge(ONYXKEYS.HYBRID_APP, hybridApp))
+            .then(() => Onyx.multiSet(newDotOnyxValues))
             .then(() => {
-                setUseNewDotSignInPage(useNewDotSignInPage === 'true');
-                setLoggedOutFromOldDot(loggedOutFromOldDot === 'true');
+                if (!hybridApp.shouldRemoveDelegatedAccess) {
+                    return;
+                }
+                return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
+            })
+            .then(() => {
+                // This data is mocked and should be returned by BeginSignUp/SignInUser API commands
+                setUseNewDotSignInPage(!!hybridApp.useNewDotSignInPage);
+                setLoggedOutFromOldDot(!!hybridApp.loggedOutFromOldDot);
                 const useOldDot = 'true';
-                const dismissed = useNewDotSignInPage === 'true' ? useOldDot : 'false';
-                Onyx.multiSet({
-                    [ONYXKEYS.NVP_TRYNEWDOT]: {classicRedirect: {dismissed}}, // This data is mocked and should be returned by BeginSignUp/SignInUser API commands
+                const dismissed = hybridApp.useNewDotSignInPage ? useOldDot : 'false';
+                return Onyx.multiSet({
+                    [ONYXKEYS.NVP_TRYNEWDOT]: {classicRedirect: {dismissed}},
                 });
             })
             .then(initAppAfterTransition)
@@ -525,7 +529,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
             })
             .finally(() => {
-                resolve(`${route}?singleNewDotEntry=${isSingleNewDotEntry}` as Route);
+                resolve(`${route}?singleNewDotEntry=${hybridApp.isSingleNewDotEntry}` as Route);
             });
     });
 }

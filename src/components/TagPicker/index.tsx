@@ -52,7 +52,7 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = PolicyUtils.getTagList(policyTags, tagListIndex);
     const policyTagsCount = PolicyUtils.getCountOfEnabledTagsOfList(policyTagList.tags);
-    const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
+    const isTagsCountBelowThreshold = policyTagsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const shouldShowTextInput = !isTagsCountBelowThreshold;
 

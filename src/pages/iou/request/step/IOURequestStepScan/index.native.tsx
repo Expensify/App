@@ -30,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import getPlatform from '@libs/getPlatform';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -75,7 +76,9 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const platform = getPlatform(true);
+    const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
+    const isPlatformMuted = mutedPlatforms[platform];
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
@@ -248,6 +251,7 @@ function IOURequestStepScan({
                     currentUserPersonalDetails.accountID,
                     participant,
                     '',
+                    false,
                     receipt,
                 );
             } else {
@@ -332,6 +336,7 @@ function IOURequestStepScan({
                                     currentUserPersonalDetails.accountID,
                                     participant,
                                     '',
+                                    false,
                                     receipt,
                                     '',
                                     '',
@@ -494,7 +499,7 @@ function IOURequestStepScan({
         camera?.current
             ?.takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !user?.isMutedAllSounds,
+                enableShutterSound: !isPlatformMuted,
             })
             .then((photo: PhotoFile) => {
                 // Store the receipt on the transaction object in Onyx
@@ -540,7 +545,7 @@ function IOURequestStepScan({
         didCapturePhoto,
         flash,
         hasFlash,
-        user?.isMutedAllSounds,
+        isPlatformMuted,
         translate,
         transactionID,
         isEditing,

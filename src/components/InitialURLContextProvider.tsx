@@ -18,20 +18,21 @@ const InitialURLContext = createContext<InitialUrlContextType>({
 });
 
 type InitialURLContextProviderProps = {
-    /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
     url?: Route;
+
+    hybridAppSettings?: string;
 
     /** Children passed to the context provider */
     children: ReactNode;
 };
 
-function InitialURLContextProvider({children, url}: InitialURLContextProviderProps) {
-    const [initialURL, setInitialURL] = useState<Route | undefined>();
+function InitialURLContextProvider({children, url, hybridAppSettings}: InitialURLContextProviderProps) {
+    const [initialURL, setInitialURL] = useState<Route | undefined>(url);
     const {setSplashScreenState} = useSplashScreenStateContext();
 
     useEffect(() => {
-        if (url) {
-            signInAfterTransitionFromOldDot(url).then((route) => {
+        if (url && hybridAppSettings) {
+            signInAfterTransitionFromOldDot(url, hybridAppSettings).then((route) => {
                 setInitialURL(route);
                 setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
             });
@@ -40,7 +41,7 @@ function InitialURLContextProvider({children, url}: InitialURLContextProviderPro
         Linking.getInitialURL().then((initURL) => {
             setInitialURL(initURL as Route);
         });
-    }, [setSplashScreenState, url]);
+    }, [hybridAppSettings, setSplashScreenState, url]);
 
     const initialUrlContext = useMemo(
         () => ({
