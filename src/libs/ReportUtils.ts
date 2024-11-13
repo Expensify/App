@@ -555,6 +555,16 @@ type ParsingDetails = {
     policyID?: string;
 };
 
+type NonHeldAndFullAmount = {
+    nonHeldAmount: string;
+    fullAmount: string;
+    /**
+     * nonHeldAmount is valid if not negative;
+     * It can be negative if the unheld transaction comes from the current user
+     */
+    hasValidNonHeldAmount: boolean;
+};
+
 type Thread = {
     parentReportID: string;
     parentReportActionID: string;
@@ -7762,7 +7772,7 @@ function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEn
 /**
  * Return held and full amount formatted with used currency
  */
-function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): string[] {
+function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): NonHeldAndFullAmount {
     const reportTransactions = reportsTransactions[iouReport?.reportID ?? ''] ?? [];
     const hasPendingTransaction = reportTransactions.some((transaction) => !!transaction.pendingAction);
 
@@ -7772,16 +7782,18 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry
     if (hasUpdatedTotal(iouReport, policy) && hasPendingTransaction) {
         const unheldTotal = reportTransactions.reduce((currentVal, transaction) => currentVal + (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
 
-        return [
-            CurrencyUtils.convertToDisplayString(unheldTotal * coefficient, iouReport?.currency),
-            CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency),
-        ];
+        return {
+            nonHeldAmount: CurrencyUtils.convertToDisplayString(unheldTotal * coefficient, iouReport?.currency),
+            fullAmount: CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency),
+            hasValidNonHeldAmount: unheldTotal * coefficient >= 0,
+        };
     }
 
-    return [
-        CurrencyUtils.convertToDisplayString((iouReport?.unheldTotal ?? 0) * coefficient, iouReport?.currency),
-        CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency),
-    ];
+    return {
+        nonHeldAmount: CurrencyUtils.convertToDisplayString((iouReport?.unheldTotal ?? 0) * coefficient, iouReport?.currency),
+        fullAmount: CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency),
+        hasValidNonHeldAmount: (iouReport?.unheldTotal ?? 0) * coefficient >= 0,
+    };
 }
 
 /**
