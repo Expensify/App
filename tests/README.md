@@ -97,10 +97,11 @@ The format looks like this:
 
 ## When to Write a Test
 
-Many of the UI features of our application should go through rigorous testing by you, your PR reviewer, and finally QA before deployment. It's also difficult to maintain UI tests when the UI changes often. Therefore, it's not valuable for us to place every single part of the application UI under test at this time. The manual testing steps should catch most major UI bugs. Therefore, if we are writing any test there should be a **good reason**.
+Many of the UI features of our application should go through rigorous testing by you, your PR reviewer, and finally QA before deployment. However, the code is mature enough now that protecting code against regressions is the top priority.
 
 **What's a "good reason" to write a test?**
 
+- Any PR that fixes a bug
 - Anything that is difficult or impossible to run a manual tests on
 	- e.g. a test to verify an outcome after an authentication token expires (which normally takes two hours)
 - Areas of the code that are changing often, breaking often, and would benefit from the resiliency an automated test would provide
