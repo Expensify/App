@@ -1014,7 +1014,7 @@ function enablePolicyCategories(policyID: string, enabled: boolean) {
     }
 }
 
-function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: string, oldCatrgory: string | undefined, category: string) {
+function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: string, oldCategory: string | undefined, category: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1051,7 +1051,7 @@ function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: stri
             value: {
                 customUnits: {
                     [customUnitID]: {
-                        defaultCategory: oldCatrgory,
+                        defaultCategory: oldCategory,
                         errorFields: {defaultCategory: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         pendingFields: {defaultCategory: null},
                     },
