@@ -16,6 +16,7 @@ import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
 import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
@@ -37,7 +38,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const isLoading = !cardFeeds || !!(cardFeeds.isLoading && !cardFeeds.settings);
     const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards);
     const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? null;
-    const isNoFeed = !selectedCompanyCard;
+    const isNoFeed = isEmptyObject(companyCards) && !selectedCompanyCard;
     const isPending = !!selectedCompanyCard?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
 

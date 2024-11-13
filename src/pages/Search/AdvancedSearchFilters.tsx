@@ -9,7 +9,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
-import type {AdvancedFiltersKeys} from '@components/Search/types';
+import type {SearchFilterKey} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -150,8 +150,8 @@ const sortOptionsWithEmptyValue = (a: string, b: string) => {
     return localeCompare(a, b);
 };
 
-function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
+function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filterKey: SearchFilterKey, translate: LocaleContextProps['translate']) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
         // the value of date filter is a combination of dateBefore + dateAfter values
         const {dateAfter, dateBefore} = filters;
         let dateValue = '';
@@ -168,7 +168,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return dateValue;
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const {lessThan, greaterThan} = filters;
         if (lessThan && greaterThan) {
             return translate('search.filters.amount.between', {
@@ -186,32 +186,32 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return;
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && filters[fieldName]) {
-        const filterArray = filters[fieldName] ?? [];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && filters[filterKey]) {
+        const filterArray = filters[filterKey] ?? [];
         return filterArray.sort(localeCompare).join(', ');
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[fieldName]) {
-        const filterArray = filters[fieldName] ?? [];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[filterKey]) {
+        const filterArray = filters[filterKey] ?? [];
         return filterArray
             .sort(sortOptionsWithEmptyValue)
             .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noCategory') : value))
             .join(', ');
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters[fieldName]) {
-        const filterArray = filters[fieldName] ?? [];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters[filterKey]) {
+        const filterArray = filters[filterKey] ?? [];
         return filterArray
             .sort(sortOptionsWithEmptyValue)
             .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noTag') : value))
             .join(', ');
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
-        return filters[fieldName];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
+        return filters[filterKey];
     }
 
-    const filterValue = filters[fieldName];
+    const filterValue = filters[filterKey];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
 

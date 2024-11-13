@@ -393,6 +393,16 @@ function ReportActionCompose({
         ],
     );
 
+    const onValueChange = useCallback(
+        (value: string) => {
+            if (value.length === 0 && isComposerFullSize) {
+                Report.setIsComposerFullSize(reportID, false);
+            }
+            validateCommentMaxLength(value, {reportID});
+        },
+        [isComposerFullSize, reportID, validateCommentMaxLength],
+    );
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -490,12 +500,7 @@ function ReportActionCompose({
                                             onFocus={onFocus}
                                             onBlur={onBlur}
                                             measureParentContainer={measureContainer}
-                                            onValueChange={(value) => {
-                                                if (value.length === 0 && isComposerFullSize) {
-                                                    Report.setIsComposerFullSize(reportID, false);
-                                                }
-                                                validateCommentMaxLength(value, {reportID});
-                                            }}
+                                            onValueChange={onValueChange}
                                         />
                                         <ReportDropUI
                                             onDrop={(event: DragEvent) => {
