@@ -84,8 +84,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const network = useNetwork();
@@ -279,7 +279,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, signOut, setInitialURL]);
+    }, [styles.pt4, signOut, setInitialURL, isActingAsDelegate]);
 
     /**
      * Retuns JSX.Element with menu items
