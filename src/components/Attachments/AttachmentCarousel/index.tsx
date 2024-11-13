@@ -46,7 +46,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     const styles = useThemeStyles();
     const {isFullScreenRef} = useFullScreenContext();
     const scrollRef = useAnimatedRef<Animated.FlatList<ListRenderItemInfo<Attachment>>>();
-    const nope = useSharedValue(false);
+    const isPagerScrolling = useSharedValue(false);
     const pagerRef = useRef<GestureType>(null);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
@@ -200,13 +200,13 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             pagerItems: [{source, index: 0, isActive: true}],
             activePage: 0,
             pagerRef,
-            isPagerScrolling: nope,
+            isPagerScrolling,
             isScrollEnabled,
             onTap: handleTap,
             onScaleChanged: handleScaleChange,
             onSwipeDown: onClose,
         }),
-        [source, nope, isScrollEnabled, handleTap, handleScaleChange, onClose],
+        [source, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange, onClose],
     );
 
     /** Defines how a single attachment should be rendered */
@@ -233,6 +233,10 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                         return;
                     }
 
+                    if (translationX !== 0) {
+                        isPagerScrolling.value = true;
+                    }
+
                     scrollTo(scrollRef, page * cellWidth - translationX, 0, false);
                 })
                 .onEnd(({translationX, velocityX}) => {
@@ -253,6 +257,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                         newIndex = Math.min(attachments.length - 1, Math.max(0, page + delta));
                     }
 
+                    isPagerScrolling.value = false;
                     scrollTo(scrollRef, newIndex * cellWidth, 0, true);
                 })
                 // eslint-disable-next-line react-compiler/react-compiler
