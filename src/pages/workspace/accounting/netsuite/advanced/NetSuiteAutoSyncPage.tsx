@@ -26,6 +26,8 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const autoSyncConfig = policy?.connections?.netsuite?.config;
     const policyID = route.params.policyID ?? '-1';
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
+    const pendingAction =
+        settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields) ?? settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
     return (
         <AccessOrNotFoundWrapper
@@ -52,19 +54,11 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                     shouldPlaceSubtitleBelowSwitch
                     onCloseError={() => Policy.clearNetSuiteAutoSyncErrorField(policyID)}
                     onToggle={(isEnabled) => Connections.updateNetSuiteAutoSync(policyID, isEnabled)}
-                    pendingAction={
-                        settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields) ??
-                        settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields)
-                    }
+                    pendingAction={pendingAction}
                     errors={ErrorUtils.getLatestErrorField(autoSyncConfig, CONST.NETSUITE_CONFIG.AUTO_SYNC)}
                 />
                 {!!autoSyncConfig?.autoSync?.enabled && (
-                    <OfflineWithFeedback
-                        pendingAction={
-                            settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields) ??
-                            settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields)
-                        }
-                    >
+                    <OfflineWithFeedback pendingAction={pendingAction}>
                         <MenuItemWithTopDescription
                             title={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL

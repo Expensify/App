@@ -37,6 +37,9 @@ function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
         isSelected: accountingMethod === accountingMethodType,
     }));
 
+    const pendingAction =
+        settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields) ?? settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
+
     const headerContent = useMemo(
         () => (
             <View>
@@ -70,10 +73,7 @@ function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            pendingAction={
-                settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields) ??
-                settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields)
-            }
+            pendingAction={pendingAction}
         />
     );
 }
