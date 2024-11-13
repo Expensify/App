@@ -558,7 +558,8 @@ type ParsingDetails = {
 type NonHeldAndFullAmount = {
     nonHeldAmount: string;
     fullAmount: string;
-    /** nonHeldAmount is valid if not negative;
+    /**
+     * nonHeldAmount is valid if not negative;
      * It can be negative if the unheld transaction comes from the current user
      */
     hasValidNonHeldAmount: boolean;
@@ -7813,14 +7814,14 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry
         return {
             nonHeldAmount: CurrencyUtils.convertToDisplayString(unheldTotal * coefficient, iouReport?.currency),
             fullAmount: CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency),
-            hasValidNonHeldAmount: unheldTotal * coefficient < 0,
+            hasValidNonHeldAmount: unheldTotal * coefficient >= 0,
         };
     }
 
     return {
         nonHeldAmount: CurrencyUtils.convertToDisplayString((iouReport?.unheldTotal ?? 0) * coefficient, iouReport?.currency),
         fullAmount: CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency),
-        hasValidNonHeldAmount: (iouReport?.unheldTotal ?? 0) * coefficient < 0,
+        hasValidNonHeldAmount: (iouReport?.unheldTotal ?? 0) * coefficient >= 0,
     };
 }
 

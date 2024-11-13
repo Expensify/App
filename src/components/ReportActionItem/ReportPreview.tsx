@@ -241,7 +241,7 @@ function ReportPreview({
         }
 
         // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
-        if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement && !hasValidNonHeldAmount) {
+        if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement && hasValidNonHeldAmount) {
             return nonHeldAmount;
         }
 
@@ -596,8 +596,7 @@ function ReportPreview({
 
             {isHoldMenuVisible && !!iouReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
-                    // We cannot pay partially if nonHeldAmount is negative
-                    nonHeldAmount={!hasOnlyHeldExpenses && !hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
                     onClose={() => setIsHoldMenuVisible(false)}
