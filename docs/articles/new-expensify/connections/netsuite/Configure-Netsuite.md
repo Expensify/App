@@ -57,7 +57,7 @@ The following steps help you determine how data will be exported from Expensify 
         -_Expense Reports_: Out-of-pocket expenses will be exported as expense reports, which will be posted to the payables account designated in NetSuite.
         -_Vendor Bills_: Out-of-pocket expenses will be exported to NetSuite as vendor bills. Each report will be posted as payable to the vendor associated with the employee who submitted the report. You can also set an approval level in NetSuite for vendor bills.
         -_Journal Entries_: Out-of-pocket expenses will be exported to NetSuite as journal entries. All the transactions will be posted to the payable account specified in the workspace. You can also set an approval level in NetSuite for the journal entries.
-            - By default, journal entry forms do not contain a customer column, so it is not possible to export customers or projects with this export option. Also, The credit line and header level classifications are pulled from the employee record.
+            By default, journal entry forms do not contain a customer column, so it is not possible to export customers or projects with this export option. Also, the credit line and header-level classifications are pulled from the employee record.
     -_Export company card expenses as_:
         - _Expense Reports_:To export company card expenses as expense reports, you will need to configure your default corporate cards in NetSuite. 
         - _Vendor Bills_: Company card expenses will be posted as a vendor bill payable to the default vendor specified in your workspace Accounting settings. You can also set an approval level in NetSuite for the bills.
