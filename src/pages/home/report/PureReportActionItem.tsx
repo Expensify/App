@@ -3,7 +3,6 @@ import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useSta
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
@@ -82,65 +81,67 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import type { PureReportActionItemProps } from './PureReportActionItem';
-// type ReportActionItemProps = {
-//     /** Report for this action */
-//     report: OnyxEntry<OnyxTypes.Report>;
 
-//     /** The transaction thread report associated with the report for this action, if any */
-//     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
+type PureReportActionItemProps = {
+    /** Report for this action */
+    report: OnyxEntry<OnyxTypes.Report>;
 
-//     /** Array of report actions for the report for this action */
-//     // eslint-disable-next-line react/no-unused-prop-types
-//     reportActions: OnyxTypes.ReportAction[];
+    /** The transaction thread report associated with the report for this action, if any */
+    transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
-//     /** Report action belonging to the report's parent */
-//     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    /** Array of report actions for the report for this action */
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportActions: OnyxTypes.ReportAction[];
 
-//     /** The transaction thread report's parentReportAction */
-//     /** It's used by withOnyx HOC */
-//     // eslint-disable-next-line react/no-unused-prop-types
-//     parentReportActionForTransactionThread?: OnyxEntry<OnyxTypes.ReportAction>;
+    /** Report action belonging to the report's parent */
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
-//     /** All the data of the action item */
-//     action: OnyxTypes.ReportAction;
+    /** The transaction thread report's parentReportAction */
+    /** It's used by withOnyx HOC */
+    // eslint-disable-next-line react/no-unused-prop-types
+    parentReportActionForTransactionThread?: OnyxEntry<OnyxTypes.ReportAction>;
 
-//     /** Should the comment have the appearance of being grouped with the previous comment? */
-//     displayAsGroup: boolean;
+    /** All the data of the action item */
+    action: OnyxTypes.ReportAction;
 
-//     /** Is this the most recent IOU Action? */
-//     isMostRecentIOUReportAction: boolean;
+    /** Should the comment have the appearance of being grouped with the previous comment? */
+    displayAsGroup: boolean;
 
-//     /** Should we display the new marker on top of the comment? */
-//     shouldDisplayNewMarker: boolean;
+    /** Is this the most recent IOU Action? */
+    isMostRecentIOUReportAction: boolean;
 
-//     /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
-//     shouldShowSubscriptAvatar?: boolean;
+    /** Should we display the new marker on top of the comment? */
+    shouldDisplayNewMarker: boolean;
 
-//     /** Position index of the report action in the overall report FlatList view */
-//     index: number;
+    /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
+    shouldShowSubscriptAvatar?: boolean;
 
-//     /** Flag to show, hide the thread divider line */
-//     shouldHideThreadDividerLine?: boolean;
+    /** Position index of the report action in the overall report FlatList view */
+    index: number;
 
-//     linkedReportActionID?: string;
+    /** Flag to show, hide the thread divider line */
+    shouldHideThreadDividerLine?: boolean;
 
-//     /** Callback to be called on onPress */
-//     onPress?: () => void;
+    linkedReportActionID?: string;
 
-//     /** If this is the first visible report action */
-//     isFirstVisibleReportAction: boolean;
+    /** Callback to be called on onPress */
+    onPress?: () => void;
 
-//     /** IF the thread divider line will be used */
-//     shouldUseThreadDividerLine?: boolean;
+    /** If this is the first visible report action */
+    isFirstVisibleReportAction: boolean;
 
-//     hideThreadReplies?: boolean;
+    /** IF the thread divider line will be used */
+    shouldUseThreadDividerLine?: boolean;
 
-//     /** Whether context menu should be displayed */
-//     shouldDisplayContextMenu?: boolean;
-// };
+    hideThreadReplies?: boolean;
 
-function ReportActionItem({
+    /** Whether context menu should be displayed */
+    shouldDisplayContextMenu?: boolean;
+
+    draftMessage? : OnyxEntry<OnyxTypes.ReportActionsDrafts>
+};
+
+function PureReportActionItem({
     action,
     report,
     transactionThreadReport,
@@ -1036,6 +1037,7 @@ function ReportActionItem({
     );
 }
 
+export type { PureReportActionItemProps };
 export default memo(ReportActionItem, (prevProps, nextProps) => {
     const prevParentReportAction = prevProps.parentReportAction;
     const nextParentReportAction = nextProps.parentReportAction;
