@@ -377,7 +377,7 @@ function PaymentMethodList({
                 />
             ),
 
-        [shouldShowAddBankAccountButton, onPressItem, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle, isUserValidated],
+        [shouldShowAddBankAccountButton, onPressItem, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle],
     );
 
     /**

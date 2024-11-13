@@ -1,8 +1,12 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -14,6 +18,7 @@ import type SCREENS from '@src/SCREENS';
 type VerifyAccountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
+    const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const contactMethod = account?.primaryLogin ?? '';
@@ -23,7 +28,6 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
-
     const navigateBackTo = route?.params?.backTo;
 
     useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
@@ -49,7 +53,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         if (!navigateBackTo) {
             return;
         }
-
+        Navigation.goBack();
         Navigation.navigate(navigateBackTo);
     }, [isUserValidated, navigateBackTo]);
 
@@ -64,6 +68,23 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             Navigation.goBack();
         }
     }, [isValidateCodeActionModalVisible, isUserValidated, navigateBackTo]);
+
+    // Once user is validated or the modal is dismissed, we don't want to show empty content.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (isUserValidated || !isValidateCodeActionModalVisible) {
+        return (
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={VerifyAccountPage.displayName}
+            >
+                <HeaderWithBackButton
+                    title={translate('contacts.validateAccount')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            </ScreenWrapper>
+        );
+    }
 
     return (
         <ValidateCodeActionModal
