@@ -2915,6 +2915,15 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        expenseMenuItem: {
+            borderRadius: 8,
+            paddingLeft: 16,
+            paddingRight: 0,
+            paddingVertical: 12,
+            marginTop: 16,
+            alignItems: 'center',
+        },
+
         sectionSelectCircle: {
             backgroundColor: theme.cardBG,
         },

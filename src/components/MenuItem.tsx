@@ -224,6 +224,9 @@ type MenuItemBaseProps = {
     /** Whether the secondary right avatar should show as a subscript */
     shouldShowSubscriptRightAvatar?: boolean;
 
+    /** Whether the secondary avatar should show as a subscript */
+    shouldShowSubscriptAvatar?: boolean;
+
     /** Affects avatar size  */
     viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -407,6 +410,7 @@ function MenuItem(
         floatRightAvatars = [],
         floatRightAvatarSize,
         shouldShowSubscriptRightAvatar = false,
+        shouldShowSubscriptAvatar: shouldShowSubscriptAvatarProp = false,
         avatarSize = CONST.AVATAR_SIZE.DEFAULT,
         isSmallAvatarSubscriptMenu = false,
         brickRoadIndicator,
@@ -457,7 +461,7 @@ function MenuItem(
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
-    const firstIcon = floatRightAvatars.at(0);
+    const firstRightIcon = floatRightAvatars.at(0);
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,
@@ -472,6 +476,8 @@ function MenuItem(
         ],
         titleStyle ?? {},
     );
+    const firstIcon = Array.isArray(icon) && !!icon.length ? icon.at(0) : undefined;
+    const shouldShowSubscriptAvatar = shouldShowSubscriptAvatarProp && !!firstIcon;
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
         icon && !Array.isArray(icon) ? styles.ml3 : {},
@@ -621,7 +627,7 @@ function MenuItem(
                                                     </View>
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
-                                                    {!!icon && Array.isArray(icon) && (
+                                                    {!!icon && Array.isArray(icon) && !shouldShowSubscriptAvatar && (
                                                         <MultipleAvatars
                                                             isHovered={isHovered}
                                                             isPressed={pressed}
@@ -632,6 +638,13 @@ function MenuItem(
                                                                 pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
                                                                 isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
                                                             ]}
+                                                        />
+                                                    )}
+                                                    {!!icon && Array.isArray(icon) && shouldShowSubscriptAvatar && (
+                                                        <SubscriptAvatar
+                                                            mainAvatar={firstIcon as IconType}
+                                                            secondaryAvatar={(icon as IconType[]).at(1)}
+                                                            size={avatarSize}
                                                         />
                                                     )}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (
@@ -802,12 +815,12 @@ function MenuItem(
                                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                                     </View>
                                                 )}
-                                                {floatRightAvatars?.length > 0 && !!firstIcon && (
+                                                {floatRightAvatars?.length > 0 && !!firstRightIcon && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
                                                         {shouldShowSubscriptRightAvatar ? (
                                                             <SubscriptAvatar
                                                                 backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
-                                                                mainAvatar={firstIcon}
+                                                                mainAvatar={firstRightIcon}
                                                                 secondaryAvatar={floatRightAvatars.at(1)}
                                                                 size={floatRightAvatarSize ?? fallbackAvatarSize}
                                                             />
