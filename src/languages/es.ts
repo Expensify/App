@@ -736,6 +736,10 @@ const translations = {
         listOfChats: 'lista de chats',
         saveTheWorld: 'Salvar el mundo',
         tooltip: '¡Comienza aquí!',
+        redirectToExpensifyClassicModal: {
+            title: 'Próximamente',
+            description: 'Estamos ajustando algunos detalles de New Expensify para adaptarla a tu configuración específica. Mientras tanto, dirígete a Expensify Classic.',
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -1986,6 +1990,7 @@ const translations = {
             afterLinkText: 'para verlo.',
             formLabel: 'Ver PDF',
         },
+        attachmentNotFound: 'Archivo adjunto no encontrado',
     },
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
@@ -3497,7 +3502,7 @@ const translations = {
             },
             rules: {
                 title: 'Reglas',
-                subtitle: 'Configura cuándo se exigen los recibos, marca los gastos elevados y mucho más.',
+                subtitle: 'Solicita recibos, resalta gastos de alto importe y mucho más.',
             },
         },
         reportFields: {
@@ -3987,7 +3992,7 @@ const translations = {
         },
         inviteMessage: {
             inviteMessageTitle: 'Añadir un mensaje',
-            inviteMessagePrompt: 'Añadir un mensaje para hacer tu invitación destacar',
+            inviteMessagePrompt: '¡Añadir un mensaje para hacer tu invitación destacar!',
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar.',
             genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo.',
