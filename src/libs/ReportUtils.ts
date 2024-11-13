@@ -520,6 +520,8 @@ type OptionData = {
     isConciergeChat?: boolean;
     isBold?: boolean;
     lastIOUCreationDate?: string;
+    isChatRoom?: boolean;
+    participantsList?: PersonalDetails[];
     icons?: Icon[];
     iouReportAmount?: number;
 } & Report;
