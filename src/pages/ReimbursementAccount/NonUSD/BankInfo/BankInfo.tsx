@@ -73,13 +73,18 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
     };
 
     const handleNextScreen = useCallback(() => {
+        if (screenIndex === 2) {
+            nextScreen();
+            return;
+        }
+
         if (currency !== CONST.CURRENCY.AUD) {
             goToTheLastStep();
             return;
         }
 
         nextScreen();
-    }, [currency, goToTheLastStep, nextScreen]);
+    }, [currency, goToTheLastStep, nextScreen, screenIndex]);
 
     return (
         <InteractiveStepWrapper
