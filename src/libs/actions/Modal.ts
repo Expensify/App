@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import * as TooltipManager from '@components/Tooltip/EducationalTooltip/TooltipManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const closeModals: Array<(isNavigating?: boolean) => void> = [];
@@ -86,6 +87,9 @@ function setDisableDismissOnEscape(disableDismissOnEscape: boolean) {
  * isPopover indicates that the next open modal is popover or bottom docked
  */
 function willAlertModalBecomeVisible(isVisible: boolean, isPopover = false) {
+    if (isVisible) {
+        TooltipManager.cancelPendingAndActiveTooltips();
+    }
     Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible, isPopover});
 }
 
