@@ -1,10 +1,13 @@
-import React, {useEffect, useState} from 'react';
+import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import searchOptions from '@libs/searchOptions';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
 type PushRowModalProps = {
@@ -40,43 +43,27 @@ type ListItemType = {
 function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optionsList, headerTitle, searchInputTitle}: PushRowModalProps) {
     const {translate} = useLocalize();
 
-    const allOptions = Object.entries(optionsList).map(([key, value]) => ({
-        value: key,
-        text: value,
-        keyForList: key,
-        isSelected: key === selectedOption,
-    }));
-    const [searchbarInputText, setSearchbarInputText] = useState('');
-    const [optionListItems, setOptionListItems] = useState(allOptions);
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    useEffect(() => {
-        setOptionListItems((prevOptionListItems) =>
-            prevOptionListItems.map((option) => ({
-                ...option,
-                isSelected: option.value === selectedOption,
+    const options = useMemo(
+        () =>
+            Object.entries(optionsList).map(([key, value]) => ({
+                value: key,
+                text: value,
+                keyForList: key,
+                isSelected: key === selectedOption,
+                searchValue: StringUtils.sanitizeString(value),
             })),
-        );
-    }, [selectedOption]);
-
-    const filterShownOptions = (searchText: string) => {
-        setSearchbarInputText(searchText);
-        const searchWords = searchText.toLowerCase().match(/[a-z0-9]+/g) ?? [];
-        setOptionListItems(
-            allOptions.filter((option) =>
-                searchWords.every((word) =>
-                    option.text
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]/g, ' ')
-                        .includes(word),
-                ),
-            ),
-        );
-    };
+        [optionsList, selectedOption],
+    );
 
     const handleSelectRow = (option: ListItemType) => {
         onOptionChange(option.value);
         onClose();
     };
+
+    const searchResults = searchOptions(debouncedSearchValue, options);
+    const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (
         <Modal
@@ -97,13 +84,13 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    headerMessage={searchbarInputText.trim().length && !optionListItems.length ? translate('common.noResultsFound') : ''}
+                    headerMessage={headerMessage}
                     textInputLabel={searchInputTitle}
-                    textInputValue={searchbarInputText}
-                    onChangeText={filterShownOptions}
+                    textInputValue={searchValue}
+                    onChangeText={setSearchValue}
                     onSelectRow={handleSelectRow}
-                    sections={[{data: optionListItems}]}
-                    initiallyFocusedOptionKey={optionListItems.find((option) => option.value === selectedOption)?.keyForList}
+                    sections={[{data: searchResults}]}
+                    initiallyFocusedOptionKey={selectedOption}
                     showScrollIndicator
                     shouldShowTooltips={false}
                     ListItem={RadioListItem}

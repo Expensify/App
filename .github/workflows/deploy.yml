@@ -825,7 +825,7 @@ jobs:
             "./ios-build-artifact/New Expensify.ipa#ios.ipa"
             "./ios-hybrid-build-artifact/Expensify.ipa#ios-hybrid.ipa"
             "./ios-hybrid-sourcemap-artifact/main.jsbundle.map#ios-hybrid-sourcemap.js.map"
-            "./web-staging-sourcemaps-artifact/web-staging-sourcemap.js.map#web-staging-sourcemap.js.map"
+            "./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap.js.map"
             "./web-staging-build-tar-gz-artifact/webBuild.tar.gz#web-staging.tar.gz"
             "./web-staging-build-zip-artifact/webBuild.zip#web-staging.zip"
           )

@@ -1,3 +1,4 @@
+import {format, subDays} from 'date-fns';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -10,7 +11,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DateUtils from '@libs/DateUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -29,7 +29,7 @@ function TransactionStartDateStep() {
 
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING);
     const [isModalOpened, setIsModalOpened] = useState(false);
-    const [startDate, setStartDate] = useState(DateUtils.extractDate(new Date().toString()));
+    const [startDate, setStartDate] = useState(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -49,17 +49,18 @@ function TransactionStartDateStep() {
     const handleSelectDateOption = (dateOption: string) => {
         setDateOptionSelected(dateOption);
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
-            const newStartDate = new Date();
-            setStartDate(DateUtils.extractDate(newStartDate.toString()));
+            setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
         }
     };
 
     const submit = () => {
+        const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
+
         CompanyCards.setAssignCardStepAndData({
             currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
             data: {
                 dateOption: dateOptionSelected,
-                startDate,
+                startDate: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate,
             },
             isEditing: false,
         });
