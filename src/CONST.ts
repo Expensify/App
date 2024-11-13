@@ -6139,12 +6139,14 @@ const CONST = {
         NOT_STARTED: 'notStarted',
         STARTED: 'started',
         FINISHED: 'finished',
+        WAITING_FOR_SIGN_OUT: 'waitingForSignOut',
     },
 
     NEW_DOT_SIGN_IN_STATE: {
         NOT_STARTED: 'notStarted',
         STARTED: 'started',
         FINISHED: 'finished',
+        WAITING_FOR_SIGN_OUT: 'waitingForSignOut',
     },
 
     CSV_IMPORT_COLUMNS: {

@@ -16,7 +16,10 @@ const init: Init = () => {
 
         setIsSigningIn(false);
         setOldDotSignInError(eventData.errorMessage);
-        setReadyToSwitchToClassicExperience(true);
+
+        if (eventData.errorMessage === null) {
+            setReadyToSwitchToClassicExperience(true);
+        }
     });
 };
 
