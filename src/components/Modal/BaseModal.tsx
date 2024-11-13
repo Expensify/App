@@ -43,6 +43,7 @@ function BaseModal(
         animationInTiming,
         animationOutTiming,
         statusBarTranslucent = true,
+        navigationBarTranslucent = true,
         onLayout,
         avoidKeyboard = false,
         children,
@@ -256,6 +257,7 @@ function BaseModal(
                     animationInTiming={animationInTiming}
                     animationOutTiming={animationOutTiming}
                     statusBarTranslucent={statusBarTranslucent}
+                    navigationBarTranslucent={navigationBarTranslucent}
                     onLayout={onLayout}
                     avoidKeyboard={avoidKeyboard}
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
