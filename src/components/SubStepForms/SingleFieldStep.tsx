@@ -89,6 +89,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         defaultValue={defaultValue}
                         maxLength={maxLength}
                         shouldSaveDraft={!isEditing}
+                        autoFocus
                     />
                 </View>
                 {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}
