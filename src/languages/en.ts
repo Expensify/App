@@ -1132,7 +1132,8 @@ const translations = {
             passwordRequired: 'password required.',
             contactMethodRequired: 'Contact method is required.',
             invalidContactMethod: 'Invalid contact method',
-z        newContactMethod: 'New contact method',
+        },
+        newContactMethod: 'New contact method',
         goBackContactMethods: 'Go back to contact methods',
     },
     pronouns: {
