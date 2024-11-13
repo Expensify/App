@@ -1,5 +1,5 @@
 const pendingTooltip: NodeJS.Timeout[] = [];
-const tooltipCloseCallback: (() => void)[] = [];
+const tooltipCloseCallback: Array<() => void> = [];
 
 function addPendingTooltip(timeout: NodeJS.Timeout) {
     pendingTooltip.push(timeout);
