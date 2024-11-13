@@ -33,8 +33,9 @@ function PhoneNumberPage() {
     const validateLoginError = ErrorUtils.getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    // const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    // const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const updatePhoneNumber = (values: PrivatePersonalDetails) => {
@@ -75,7 +76,11 @@ function PhoneNumberPage() {
     // So, on pressing submit, skip validation and show delegateNoAccessModal
     const skipValidation = isActingAsDelegate;
     const handleSubmit = (values: PrivatePersonalDetails) => {
-        isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : updatePhoneNumber(values);
+        if (isActingAsDelegate) {
+            setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
+        updatePhoneNumber(values);
     };
 
     return (
