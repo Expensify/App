@@ -126,12 +126,7 @@ function ReportActionItemEmojiReactions({
         ['oldestTimestamp'],
     );
 
-    const totalReactionCount = formattedReactions.reduce((prev, curr) => {
-        if (curr === null) {
-            return prev + 0;
-        }
-        return prev + curr.reactionCount;
-    }, 0);
+    const totalReactionCount = formattedReactions.reduce((prev, curr) => (curr === null ? prev : prev + curr.reactionCount), 0);
 
     return (
         totalReactionCount > 0 && (
