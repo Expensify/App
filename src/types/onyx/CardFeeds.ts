@@ -66,12 +66,15 @@ type CardFeedData = CustomCardFeedData | DirectCardFeedData;
 /** Both custom and direct company feeds */
 type CompanyFeeds = Partial<Record<CompanyCardFeed, CardFeedData>>;
 
+/** Custom feed names */
+type CompanyCardNicknames = Partial<Record<CompanyCardFeed, string>>;
+
 /** Card feeds model */
 type CardFeeds = {
     /** Feed settings */
     settings: {
         /** User-friendly feed nicknames */
-        companyCardNicknames?: Partial<Record<CompanyCardFeed, string>>;
+        companyCardNicknames?: CompanyCardNicknames;
 
         /** Company cards feeds */
         companyCards?: Partial<Record<CompanyCardFeed, CustomCardFeedData>>;
@@ -121,4 +124,15 @@ type AddNewCompanyCardFeed = {
 };
 
 export default CardFeeds;
-export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData, CustomCardFeedData, CompanyCardFeed, DirectCardFeedData, CardFeedProvider, CompanyFeeds};
+export type {
+    AddNewCardFeedStep,
+    AddNewCompanyCardFeed,
+    AddNewCardFeedData,
+    CardFeedData,
+    CustomCardFeedData,
+    CompanyCardFeed,
+    DirectCardFeedData,
+    CardFeedProvider,
+    CompanyFeeds,
+    CompanyCardNicknames,
+};

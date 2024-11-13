@@ -9,7 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
-import type {CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardNicknames, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
@@ -293,6 +293,17 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
     return iconMap[bank];
 };
 
+function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknames?: CompanyCardNicknames): string | undefined {
+    if (!feed) {
+        return;
+    }
+
+    const customFeedName = companyCardNicknames?.[feed];
+    const formattedFeedName = Localize.translateLocal('workspace.companyCards.feedName', {feedName: getCardFeedName(feed)});
+
+    return customFeedName ?? formattedFeedName;
+}
+
 // We will simplify the logic below once we have #50450 #50451 implemented
 const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) => {
     const banksWithFeedType = [
@@ -355,5 +366,6 @@ export {
     getBankCardDetailsImage,
     getSelectedFeed,
     getCorrectStepForSelectedBank,
+    getCustomOrFormattedFeedName,
     removeExpensifyCardFromCompanyCards,
 };

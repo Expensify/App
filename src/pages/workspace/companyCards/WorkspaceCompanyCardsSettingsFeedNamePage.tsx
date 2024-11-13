@@ -41,8 +41,8 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const feedName =
-        selectedFeed && (cardFeeds?.settings?.companyCardNicknames?.[selectedFeed] ?? translate('workspace.companyCards.feedName', {feedName: CardUtils.getCardFeedName(selectedFeed)}));
+    const feedName = CardUtils.getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
+
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME> = {};
