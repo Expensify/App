@@ -505,6 +505,8 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
 
                                                     return (
                                                         <MenuItem
+                                                            title={translate('walletPage.enableWallet')}
+                                                            icon={Expensicons.Wallet}
                                                             ref={buttonRef as ForwardedRef<View>}
                                                             onPress={() => {
                                                                 if (isActingAsDelegate) {
@@ -519,8 +521,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                                 Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
                                                             }}
                                                             disabled={network.isOffline}
-                                                            title={translate('walletPage.enableWallet')}
-                                                            icon={Expensicons.Wallet}
                                                             wrapperStyle={[
                                                                 styles.transferBalance,
                                                                 shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
@@ -565,6 +565,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         title={translate('walletPage.setDefaultConfirmation')}
                                         icon={Expensicons.Mail}
                                         onPress={() => {
+                                            if (isActingAsDelegate) {
+                                                setIsNoDelegateAccessMenuVisible(true);
+                                                return;
+                                            }
                                             makeDefaultPaymentMethod();
                                             setShouldShowDefaultDeleteMenu(false);
                                         }}
@@ -574,7 +578,13 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 <MenuItem
                                     title={translate('common.delete')}
                                     icon={Expensicons.Trashcan}
-                                    onPress={() => Modal.close(() => setShowConfirmDeleteModal(true))}
+                                    onPress={() => {
+                                        if (isActingAsDelegate) {
+                                            setIsNoDelegateAccessMenuVisible(true);
+                                            return;
+                                        }
+                                        Modal.close(() => setShowConfirmDeleteModal(true));
+                                    }}
                                     wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                                 />
                             </View>
