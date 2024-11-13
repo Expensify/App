@@ -11,11 +11,11 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
  */
 function hasCompletedGuidedSetupFlowSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
     // Onboarding is an array or an empty object for old accounts and accounts created from OldDot
-    if (Array.isArray(onboarding) || isEmptyObject(onboarding)) {
+    if (Array.isArray(onboarding) || (!isEmptyObject(onboarding) && onboarding?.hasCompletedGuidedSetupFlow === undefined)) {
         return true;
     }
 
-    return onboarding?.hasCompletedGuidedSetupFlow ?? true;
+    return onboarding?.hasCompletedGuidedSetupFlow;
 }
 
 /**
