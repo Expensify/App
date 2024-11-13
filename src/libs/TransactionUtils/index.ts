@@ -1,3 +1,4 @@
+import lodashDeepClone from 'lodash/cloneDeep';
 import lodashHas from 'lodash/has';
 import lodashIsEqual from 'lodash/isEqual';
 import lodashSet from 'lodash/set';
@@ -247,9 +248,21 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
 /**
  * Given the edit made to the expense, return an updated transaction object.
  */
-function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean, shouldUpdateReceiptState = true): Transaction {
+function getUpdatedTransaction({
+    transaction,
+    transactionChanges,
+    isFromExpenseReport,
+    shouldUpdateReceiptState = true,
+    policy = undefined,
+}: {
+    transaction: Transaction;
+    transactionChanges: TransactionChanges;
+    isFromExpenseReport: boolean;
+    shouldUpdateReceiptState?: boolean;
+    policy?: OnyxEntry<Policy>;
+}): Transaction {
     // Only changing the first level fields so no need for deep clone now
-    const updatedTransaction = {...transaction};
+    const updatedTransaction = lodashDeepClone(transaction);
     let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart
@@ -279,7 +292,29 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
 
     if (Object.hasOwn(transactionChanges, 'waypoints')) {
         updatedTransaction.modifiedWaypoints = transactionChanges.waypoints;
+        updatedTransaction.isLoading = true;
         shouldStopSmartscan = true;
+
+        if (!transactionChanges.routes?.route0?.geometry?.coordinates) {
+            // The waypoints were changed, but there is no route – it is pending from the BE and we should mark the fields as pending
+            updatedTransaction.amount = CONST.IOU.DEFAULT_AMOUNT;
+            updatedTransaction.modifiedAmount = CONST.IOU.DEFAULT_AMOUNT;
+            updatedTransaction.modifiedMerchant = Localize.translateLocal('iou.fieldPending');
+        } else {
+            const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy});
+            const {unit, rate} = mileageRate;
+
+            const distanceInMeters = getDistanceInMeters(transaction, unit);
+            const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+            const updatedAmount = isFromExpenseReport ? -amount : amount;
+            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, Localize.translateLocal, (digit) =>
+                toLocaleDigit(preferredLocale, digit),
+            );
+
+            updatedTransaction.amount = updatedAmount;
+            updatedTransaction.modifiedAmount = updatedAmount;
+            updatedTransaction.modifiedMerchant = updatedMerchant;
+        }
     }
 
     if (Object.hasOwn(transactionChanges, 'customUnitRateID')) {
@@ -288,20 +323,38 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         shouldStopSmartscan = true;
 
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
-        const allReports = ReportConnection.getAllReports();
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? null;
-        const policyID = report?.policyID ?? '';
-        const policy = PolicyUtils.getPolicy(policyID);
 
         // Get the new distance unit from the rate's unit
         const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
+        lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', newDistanceUnit);
 
         // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit
         if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
             const distance = NumberUtils.roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
-            lodashSet(updatedTransaction, 'pendingFields.waypoints', CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        }
+
+        if (!isFetchingWaypointsFromServer(transaction)) {
+            // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
+            // Otherwise, recalculate the fields based on the new rate.
+
+            const oldMileageRate = DistanceRequestUtils.getRate({transaction, policy});
+            const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+            const {unit, rate} = updatedMileageRate;
+
+            const distanceInMeters = getDistanceInMeters(transaction, oldMileageRate?.unit);
+            const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+            const updatedAmount = isFromExpenseReport ? -amount : amount;
+            const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
+            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, Localize.translateLocal, (digit) =>
+                toLocaleDigit(preferredLocale, digit),
+            );
+
+            updatedTransaction.amount = updatedAmount;
+            updatedTransaction.modifiedAmount = updatedAmount;
+            updatedTransaction.modifiedMerchant = updatedMerchant;
+            updatedTransaction.modifiedCurrency = updatedCurrency;
         }
     }
 
@@ -341,6 +394,7 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
     }
 
     updatedTransaction.pendingFields = {
+        ...(updatedTransaction?.pendingFields ?? {}),
         ...(Object.hasOwn(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -859,49 +913,6 @@ function calculateTaxAmount(percentage: string, amount: number, currency: string
 }
 
 /**
- * Calculates updated amount, currency, and merchant for a distance request with modified waypoints or customUnitRateID
- */
-function calculateAmountForUpdatedWaypointOrRate(
-    transaction: OnyxInputOrEntry<Transaction>,
-    transactionChanges: TransactionChanges,
-    policy: OnyxInputOrEntry<Policy>,
-    isFromExpenseReport: boolean,
-) {
-    const hasModifiedRouteWithPendingWaypoints = !isEmptyObject(transactionChanges.waypoints) && isEmptyObject(transactionChanges?.routes?.route0?.geometry);
-    const hasModifiedRateWithPendingWaypoints = !!transactionChanges?.customUnitRateID && isFetchingWaypointsFromServer(transaction);
-    if (hasModifiedRouteWithPendingWaypoints || hasModifiedRateWithPendingWaypoints) {
-        return {
-            amount: CONST.IOU.DEFAULT_AMOUNT,
-            modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
-            modifiedMerchant: Localize.translateLocal('iou.fieldPending'),
-        };
-    }
-
-    const customUnitRateID = transactionChanges.customUnitRateID ?? getRateID(transaction) ?? '';
-    const mileageRates = DistanceRequestUtils.getMileageRates(policy, true);
-    const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
-    const mileageRate = isCustomUnitRateIDForP2P(transaction)
-        ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction ?? undefined)
-        : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
-    const {unit, rate, currency} = mileageRate;
-
-    const distanceInMeters = getDistanceInMeters(transaction, unit);
-    const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
-    const updatedAmount = isFromExpenseReport ? -amount : amount;
-    const updatedCurrency = currency ?? CONST.CURRENCY.USD;
-    const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, Localize.translateLocal, (digit) =>
-        toLocaleDigit(preferredLocale, digit),
-    );
-
-    return {
-        amount: updatedAmount,
-        modifiedAmount: updatedAmount,
-        modifiedMerchant: updatedMerchant,
-        modifiedCurrency: updatedCurrency,
-    };
-}
-
-/**
  * Calculates count of all tax enabled options
  */
 function getEnabledTaxRateCount(options: TaxRates) {
@@ -1213,7 +1224,6 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
-    calculateAmountForUpdatedWaypointOrRate,
     getWorkspaceTaxesSettingsName,
     getDefaultTaxCode,
     transformedTaxRates,
