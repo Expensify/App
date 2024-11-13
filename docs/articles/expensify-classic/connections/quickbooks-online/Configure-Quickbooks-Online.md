@@ -40,6 +40,7 @@ The following steps help you determine how data will be exported from Expensify 
         - Journal Entries - This is a single itemized journal entry for each Expensify report.
     - _Non-reimbursable expenses_: Non-reimbursable expenses export to QuickBooks Online as:
         - Credit Card expenses - Each expense will be exported as a bank transaction with its transaction date.
+            - Note: The Expensify Card transactions will always export as Credit Card charges, even if the non-reimbursable setting is configured differently (such as a Vendor Bill.)
         - Debit Card Expenses - Each expense will be exported as a bank transaction with its transaction date.
         - Vendor Bills - A single detailed vendor bill is generated for each Expensify report. 
             - If the accounting period is closed, the vendor bill will be posted on the first day of the next open period. If you choose to export non-reimbursable expenses as Vendor Bills, you can assign a default vendor to the bill.

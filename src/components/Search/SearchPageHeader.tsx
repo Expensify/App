@@ -182,7 +182,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                     return;
                 }
 
-                const reportIDList = selectedReports?.filter((report) => !!report) ?? [];
+                const reportIDList = (selectedReports?.filter((report) => !!report) as string[]) ?? [];
                 SearchActions.exportSearchItemsToCSV(
                     {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
                     () => {

@@ -27,6 +27,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import HapticFeedback from '@libs/HapticFeedback';
 import Navigation from '@libs/Navigation/Navigation';
+import Performance from '@libs/Performance';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -456,6 +457,7 @@ function ReportPreview({
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
                     onPress={() => {
+                        Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
                         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
                     }}
