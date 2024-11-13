@@ -44,7 +44,7 @@ function SubscriptionDetails() {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.delegatedAccess?.delegate});
+    const isActingAsDelegate = account?.delegatedAccess?.delegate;
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const onOptionSelected = (option: SubscriptionType) => {

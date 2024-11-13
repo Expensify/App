@@ -17,7 +17,8 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS, {type DateOfBirthForm} from '@src/types/form/DateOfBirthForm';
+import INPUT_IDS from '@src/types/form/DateOfBirthForm';
+import type {DateOfBirthForm} from '@src/types/form/DateOfBirthForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 type DateOfBirthPageOnyxProps = {

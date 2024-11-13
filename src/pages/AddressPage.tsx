@@ -46,8 +46,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
     // So, on pressing submit, skip validation and show delegateNoAccessModal
     const skipValidation = isActingAsDelegate;
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
-        if (!!isActingAsDelegate) {
-            console.log('inside' + isActingAsDelegate);
+        if (isActingAsDelegate) {
             setIsNoDelegateAccessMenuVisible(true);
             return;
         }
