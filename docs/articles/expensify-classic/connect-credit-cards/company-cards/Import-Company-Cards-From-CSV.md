@@ -44,7 +44,7 @@ If you're assigning cards via CSV upload for the first time,
 ![Click the dropdown located right below the Imported Cards title near the top of the page. Then select a card from the list.](https://help.expensify.com/assets/images/csv-03.png){:width="100%"}
 {:start="5"}
 5. Click **Assign New Cards**.
-6. Enter or select the employee's email address.
+6. Enter or select the employee's email address. *Note: Employees must have an email address under this domain in order to assign a card to them.*
 7. Select the last four digits of the card number.
 8. (Optional) Select the transaction start date, if desired. 
 9. Click **Assign**.
