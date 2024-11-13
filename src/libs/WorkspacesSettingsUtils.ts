@@ -78,13 +78,7 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     if (oneTransactionThreadReportID && !doesReportContainErrors) {
         const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
 
-        if (
-            ReportUtils.shouldDisplayTransactionThreadViolations(
-                oneTransactionThreadReport,
-                allTransactionViolations,
-                reportActions[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
-            )
-        ) {
+        if (ReportUtils.shouldDisplayViolationsRBRInLHN(oneTransactionThreadReport, allTransactionViolations)) {
             doesReportContainErrors = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
     }
