@@ -39,8 +39,7 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
     const {translate} = useLocalize();
     const legalFirstName = privatePersonalDetails?.legalFirstName ?? '';
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const validate = useCallback(
@@ -88,10 +87,13 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
 
     // For delegates, modifying legal Name is a restricted action.
     // So, on pressing submit, skip validation and show delegateNoAccessModal
-
     const skipValidation = isActingAsDelegate;
     const handleSubmit = (values: PrivatePersonalDetails) => {
-        isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : updateLegalName(values);
+        if (isActingAsDelegate) {
+            setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
+        updateLegalName(values);
     };
 
     return (
