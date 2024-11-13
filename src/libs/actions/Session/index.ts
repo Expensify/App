@@ -499,7 +499,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
             return Promise.resolve();
         }
 
-        return Onyx.clear(KEYS_TO_PRESERVE);
+        return Onyx.clear();
     };
 
     const initAppAfterTransition = () => {
