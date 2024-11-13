@@ -297,6 +297,7 @@ const CONST = {
     DEFAULT_TABLE_NAME: 'keyvaluepairs',
     DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
+    DEFAULT_IMAGE_FILE_NAME: 'image',
     DISABLED_MAX_EXPENSE_VALUE: 10000000000,
     POLICY_BILLABLE_MODES: {
         BILLABLE: 'billable',
@@ -1278,17 +1279,13 @@ const CONST = {
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        SEARCH_ROUTER_RENDER: 'search_router_render',
-        CHAT_RENDER: 'chat_render',
+        OPEN_SEARCH: 'open_search',
         OPEN_REPORT: 'open_report',
-        HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
-        REPORT_INITIAL_RENDER: 'report_initial_render',
-        SWITCH_REPORT: 'switch_report',
         OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
         OPEN_REPORT_THREAD: 'open_report_thread',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
-        MESSAGE_SENT: 'message_sent',
+        SEND_MESSAGE: 'send_message',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -5855,7 +5852,6 @@ const CONST = {
 
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
-    MIN_TAX_RATE_DECIMAL_PLACES: 2,
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
@@ -5877,9 +5873,6 @@ const CONST = {
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
-            SUBMIT: 'submit',
-            APPROVE: 'approve',
-            PAY: 'pay',
             DONE: 'done',
             PAID: 'paid',
         },
