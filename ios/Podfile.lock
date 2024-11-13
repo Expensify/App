@@ -35,13 +35,13 @@ PODS:
   - EXImageLoader (5.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (52.0.0-preview.23):
+  - Expo (52.0.4):
     - ExpoModulesCore
-  - ExpoAsset (11.0.0):
+  - ExpoAsset (11.0.1):
     - ExpoModulesCore
   - ExpoFont (13.0.1):
     - ExpoModulesCore
-  - ExpoImage (2.0.0-preview.1):
+  - ExpoImage (2.0.0):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.19.1)
@@ -51,7 +51,7 @@ PODS:
     - EXImageLoader
     - ExpoModulesCore
     - SDWebImageWebPCoder
-  - ExpoModulesCore (2.0.0-preview.10):
+  - ExpoModulesCore (2.0.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3176,12 +3176,12 @@ SPEC CHECKSUMS:
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXAV: 8996468e7e113e59d13c6530a0f5f54ee542439e
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
-  Expo: 22775a567db450535b91cace34cbb2f4fb54cf81
-  ExpoAsset: 9de2f325e8c97a4c6c2bc85e507ae7f0809c91aa
+  Expo: 250b6bc7a5c85c4b15babff1b1b2ca2c9f7dd549
+  ExpoAsset: 8138f2a9ec55ae1ad7c3871448379f7d97692d15
   ExpoFont: 7522d869d84ee2ee8093ee997fef5b86f85d856b
-  ExpoImage: 477328a1973421192cd4efda1fe7ccb8f944a10e
+  ExpoImage: c3ecb28a611556fbdc1022b298ca1c09ffb4e1f3
   ExpoImageManipulator: e88e86d4ff8548ef1b54054cdfb7c7b3bc5a6ee5
-  ExpoModulesCore: f085fa8306860953744e07577f5817dd22f94445
+  ExpoModulesCore: d5aa26f2ecb59e22c6c12e6053cd8468205b7983
   FBLazyVector: 7075bb12898bc3998fd60f4b7ca422496cc2cdf7
   Firebase: 629510f1a9ddb235f3a7c5c8ceb23ba887f0f814
   FirebaseABTesting: 10cbce8db9985ae2e3847ea44e9947dd18f94e10
