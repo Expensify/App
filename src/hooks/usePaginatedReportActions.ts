@@ -12,7 +12,7 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
     // Use `||` instead of `??` to handle empty string.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportIDWithDefault = reportID || '-1';
-    const report = ReportUtils.getReport(reportIDWithDefault);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDWithDefault}`, {
