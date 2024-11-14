@@ -277,14 +277,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         wasReportAccessibleRef.current = true;
     }, [shouldHideReport, report]);
 
-    const onBackButtonPress = useCallback(() => {
-        if (isInNarrowPaneModal) {
-            Navigation.dismissModal();
-            return;
-        }
-        // @TODO: Check if this method works the same as on the main branch
-        Navigation.goBack(undefined, true);
-    }, [isInNarrowPaneModal]);
+    const onBackButtonPress = () => Navigation.goBack(undefined, true);
 
     let headerView = (
         <HeaderView
