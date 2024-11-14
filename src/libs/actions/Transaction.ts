@@ -323,6 +323,9 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
     return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints,
+            customUnit: {
+                quantity: null,
+            },
         },
         // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
