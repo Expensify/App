@@ -69,7 +69,7 @@ function ItemListSkeletonView({
                     height={itemViewHeight}
                     backgroundColor={theme.skeletonLHNIn}
                     foregroundColor={theme.skeletonLHNOut}
-                    style={[themeStyles.mr5, itemViewStyle, {opacity}]}
+                    style={[themeStyles.mr5, itemViewStyle, {opacity}, {minHeight: itemViewHeight}]}
                 >
                     {renderSkeletonItem({itemIndex: i})}
                 </SkeletonViewContentLoader>,
@@ -80,7 +80,7 @@ function ItemListSkeletonView({
 
     return (
         <View
-            style={[themeStyles.flex1, themeStyles.overflowHidden]}
+            style={[themeStyles.flex1]}
             onLayout={handleLayout}
         >
             {skeletonViewItems}
