@@ -341,7 +341,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
         setInitialFocus();
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedRecentSearches]);
+    }, [sortedRecentSearches, contextualReportData]);
 
     const onSearchChange = useCallback(
         (userQuery: string) => {
