@@ -2,7 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getBrickRoadForPolicy} from '@libs/WorkspacesSettingsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions, TransactionViolations} from '@src/types/onyx';
+import type {Report, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -27,11 +27,13 @@ describe('WorkspacesSettingsUtils', () => {
             const reports = mockData.reports;
             const session = mockData.session;
             const reportActions = mockData.reportActions;
+            const transactions = mockData.transactions;
 
             await Onyx.multiSet({
                 ...(reports as ReportCollectionDataSet),
                 ...(reportActions as OnyxCollection<ReportActions>),
                 ...(transactionViolations as OnyxCollection<TransactionViolations>),
+                ...(transactions as OnyxCollection<Transaction>),
                 session,
             });
 
