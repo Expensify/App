@@ -76,7 +76,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={CardUtils.maskCardNumber(data?.cardNumber ?? '')}
+                    title={CardUtils.maskCardNumber(data?.cardNumber ?? '', data?.bankName ?? '')}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD)}
                 />
