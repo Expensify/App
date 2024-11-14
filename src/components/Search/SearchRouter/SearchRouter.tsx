@@ -339,7 +339,9 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
             return;
         }
         setInitialFocus();
-    }, [sortedRecentSearches, setInitialFocus, isWeb, isDesktop]);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sortedRecentSearches]);
 
     const onSearchChange = useCallback(
         (userQuery: string) => {
