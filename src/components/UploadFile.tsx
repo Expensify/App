@@ -122,7 +122,7 @@ function UploadFile({
             </AttachmentPicker>
             {uploadedFiles.map((file) => (
                 <View
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3, styles.w100]}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3]}
                     key={file.uri}
                 >
                     <Icon
@@ -131,7 +131,7 @@ function UploadFile({
                         medium
                     />
                     <Text
-                        style={[styles.ml2, styles.mr2, styles.textBold, styles.breakWord, styles.widthAuto, styles.w90]}
+                        style={[styles.ml2, styles.mr2, styles.textBold, styles.breakWord, styles.w100, styles.flexShrink1]}
                         numberOfLines={2}
                     >
                         {file.name}
@@ -151,8 +151,7 @@ function UploadFile({
             ))}
             {errorText !== '' && (
                 <DotIndicatorMessage
-                    style={styles.mt3}
-                    textStyles={[styles.formError, styles.mb0]}
+                    style={[styles.formError, styles.mt3]}
                     type="error"
                     messages={{errorText}}
                 />
