@@ -158,7 +158,8 @@ function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], item: P
     if (defaultPaymentMethods.length > 1) {
         if (item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
             return item.accountData?.bankAccountID === walletLinkedAccountID;
-        } else if (item.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+        }
+        if (item.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             return item.accountData?.fundID === walletLinkedAccountID;
         }
     }
