@@ -78,6 +78,6 @@ function ExitSurveyBookCallPage() {
     );
 }
 
-ExitSurveyBookCallPage.displayName = 'ExitSurveyConfirmPage';
+ExitSurveyBookCallPage.displayName = 'ExitSurveyBookCallPage';
 
 export default ExitSurveyBookCallPage;
