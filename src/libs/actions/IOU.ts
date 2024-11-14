@@ -6324,7 +6324,7 @@ function getReportFromHoldRequestsOnyxData(
     const coefficient = ReportUtils.isExpenseReport(iouReport) ? -1 : 1;
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const holdAmount = ((iouReport?.total ?? 0) - (iouReport?.unheldTotal ?? 0)) * coefficient;
-    const holdNonReimbursableAmount = ((iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0)) * coefficient,;
+    const holdNonReimbursableAmount = ((iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0)) * coefficient;
     const optimisticExpenseReport = isPolicyExpenseChat
         ? ReportUtils.buildOptimisticExpenseReport(
               chatReport.reportID,
