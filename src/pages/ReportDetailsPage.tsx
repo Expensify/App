@@ -225,7 +225,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const canUnapproveRequest =
         ReportUtils.isExpenseReport(report) && (ReportUtils.isReportManager(report) || isPolicyAdmin) && ReportUtils.isReportApproved(report) && !PolicyUtils.isSubmitAndClose(policy);
 
-
     useEffect(() => {
         return () => {
             if (!isTransactionDeleted.current) {
@@ -235,7 +234,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             deleteTransaction();
         };
     }, []);
-
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -811,14 +809,13 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     // Where to go back after deleting the transaction and its report. It's empty if the transaction report isn't deleted.
     const navigateBackToAfterDelete = useRef<Route>();
 
-
     // Where to go back after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
         setIsDeleteModalVisible(false);
         isTransactionDeleted.current = true;
-    
+
         let urlToNavigateBack: string | undefined;
-    
+
         if (caseID === CASES.DEFAULT) {
             urlToNavigateBack = Task.getNavigationUrlAfterTaskDelete(report);
             Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, urlToNavigateBack);
@@ -829,11 +826,11 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             }
             return;
         }
-    
+
         if (!requestParentReportAction) {
             return;
         }
-    
+
         const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
         if (isTrackExpense) {
             urlToNavigateBack = IOU.getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
@@ -841,13 +838,12 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             urlToNavigateBack = IOU.getNavigationUrlAfterMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
         }
         Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, urlToNavigateBack);
-    
+
         if (!urlToNavigateBack) {
             Navigation.dismissModal();
         } else {
             ReportUtils.navigateBackAfterDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    
     }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView, setIsDeleteModalVisible, isTransactionDeleted]);
 
     const deleteTransaction = useCallback(() => {

@@ -5510,17 +5510,8 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
  * @param isSingleTransactionView - Whether we're in single transaction view
  * @returns The URL to navigate to
  */
-function getNavigationUrlAfterMoneyRequestDelete(
-    transactionID: string, 
-    reportAction: OnyxTypes.ReportAction, 
-    isSingleTransactionView = false
-): string | undefined {
-    const {
-        shouldDeleteTransactionThread,
-        shouldDeleteIOUReport,
-        iouReport,
-    } = prepareToCleanUpMoneyRequest(transactionID, reportAction, isSingleTransactionView);
-    
+function getNavigationUrlAfterMoneyRequestDelete(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): string | undefined {
+    const {shouldDeleteTransactionThread, shouldDeleteIOUReport, iouReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction, isSingleTransactionView);
 
     // Determine which report to navigate back to
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
@@ -5542,23 +5533,16 @@ function getNavigationUrlAfterMoneyRequestDelete(
  * @param isSingleTransactionView - Whether we're in single transaction view
  * @returns The URL to navigate to
  */
-function getNavigationUrlAfterTrackExpenseDelete(
-    chatReportID: string,
-    transactionID: string,
-    reportAction: OnyxTypes.ReportAction,
-    isSingleTransactionView = false
-): string | undefined {
+function getNavigationUrlAfterTrackExpenseDelete(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): string | undefined {
     const chatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
-    
+
     // If not a self DM, handle it as a regular money request
     if (!ReportUtils.isSelfDM(chatReport)) {
         return getNavigationUrlAfterMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
     }
 
     const transactionThreadID = reportAction.childReportID;
-    const shouldDeleteTransactionThread = transactionThreadID 
-        ? (reportAction?.childVisibleActionCount ?? 0) === 0 
-        : false;
+    const shouldDeleteTransactionThread = transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false;
 
     // Only navigate if in single transaction view and the thread will be deleted
     if (isSingleTransactionView && shouldDeleteTransactionThread && chatReport?.reportID) {
@@ -5589,7 +5573,6 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         reportPreviewAction,
     } = prepareToCleanUpMoneyRequest(transactionID, reportAction, isSingleTransactionView);
 
-        
     const urlToNavigateBack = getNavigationUrlAfterMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
     // build Onyx data
 
@@ -5965,13 +5948,8 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 }
 
 function deleteTrackExpense(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
-    const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
-        chatReportID,
-        transactionID,
-        reportAction,
-        isSingleTransactionView
-    );
-    
+    const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(chatReportID, transactionID, reportAction, isSingleTransactionView);
+
     // STEP 1: Get all collections we're updating
     const chatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     if (!ReportUtils.isSelfDM(chatReport)) {
