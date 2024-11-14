@@ -1,5 +1,5 @@
 /*
- * The KeyboardAvoidingView stub implementation for web and other platforms where the keyboard handling is handled automatically.
+ * The KeyboardAvoidingView stub implementation for web and other platforms where the keyboard is handled automatically.
  */
 import React from 'react';
 import {View} from 'react-native';
