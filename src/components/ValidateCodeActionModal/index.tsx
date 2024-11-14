@@ -28,6 +28,7 @@ function ValidateCodeActionModal({
     sendValidateCode,
     hasMagicCodeBeenSent,
     isLoading,
+    isAddingNewContact,
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const safePaddingBottomStyle = useSafePaddingBottomStyle();
@@ -42,7 +43,7 @@ function ValidateCodeActionModal({
     }, [onClose, clearError]);
 
     useEffect(() => {
-        if (!firstRenderRef.current || !isVisible || hasMagicCodeBeenSent) {
+        if (!firstRenderRef.current || !isVisible || hasMagicCodeBeenSent || isAddingNewContact) {
             return;
         }
         firstRenderRef.current = false;

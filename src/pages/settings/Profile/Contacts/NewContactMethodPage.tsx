@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -64,14 +64,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         },
         [pendingContactAction?.contactMethod],
     );
-
-    useEffect(() => {
-        if (!pendingContactAction?.actionVerified) {
-            return;
-        }
-
-        User.clearUnvalidatedNewContactMethodAction();
-    }, [pendingContactAction?.actionVerified]);
 
     const validate = React.useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {

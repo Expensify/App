@@ -43,6 +43,9 @@ type ValidateCodeActionModalProps = {
 
     /** Wheather the form is loading or not */
     isLoading?: boolean;
+
+    /** Whether adding new contact action is in progress */
+    isAddingNewContact?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export

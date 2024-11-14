@@ -39,6 +39,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
+    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
     const [isLoadingReportData, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
@@ -77,6 +78,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+    const isAddingNewContact = pendingContactAction?.contactMethod === contactMethod;
 
     /**
      * Attempt to set this contact method as user's "Default contact method"
@@ -140,6 +142,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (prevValidatedDate || !loginData?.validatedDate || !loginData) {
             return;
+        }
+
+        if (pendingContactAction?.actionVerified) {
+            User.clearUnvalidatedNewContactMethodAction();
         }
 
         // Navigate to methods page on successful magic code verification
@@ -270,6 +276,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
                         setIsValidateCodeActionModalVisible(false);
                     }}
+                    isAddingNewContact={isAddingNewContact}
                     sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
                     descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}
                 />
