@@ -82,7 +82,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const companyCardFeeds: CardFeedListItem[] = (Object.keys(availableCompanyCards) as CompanyCardFeed[]).map((key) => ({
         value: key,
-        text: cardFeeds?.settings?.companyCardNicknames?.[key] ?? CardUtils.getCardFeedName(key),
+        text: cardFeeds?.settings?.companyCardNicknames?.[key] ?? CardUtils.getCustomOrFormattedFeedName(key),
         keyForList: key,
         isSelected: selectedFeed === key,
         leftElement: (
