@@ -105,83 +105,86 @@ describe('SidebarLinksData', () => {
 
     describe('Report that should be included in the LHN', () => {
         it('should display the current active report', async () => {
+            // When the SidebarLinks are rendered without a specified report ID.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             const report = createReport();
-
+            // And the Onyx state is initialized with a report.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
-            // check if no other reports are displayed
+            // Then no other reports should be displayed in the sidebar.
             expect(getOptionRows()).toHaveLength(0);
-
+            // When the SidebarLinks are rendered again with the current active report ID.
             LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
-
-            // check if active report is displayed
+            // Then the active report should be displayed as part of LHN,
             expect(getOptionRows()).toHaveLength(1);
-            // TODO The report is highlighted as the active report.
+            // And the active report should be highlighted.
+            // TODO add the proper assertion for the highlighted report.
         });
 
         it('should display draft report', async () => {
+            // When SidebarLinks are rendered initially.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const draftReport = {
                 ...createReport(false, [1, 2], 0),
                 writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ALL,
             };
-
+            // And Onyx state is initialized with a draft report.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport,
             });
 
             await waitForBatchedUpdatesWithAct();
+            // And a draft message is added to the report.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${draftReport.reportID}`, 'draft report message');
-
-            // check if draft report is displayed
+            // Then the sidebar should display the draft report.
             expect(getDisplayNames()).toHaveLength(1);
-            // check if draft icon is displayed
+            // And the draft icon should be shown, indicating there is unsent content.
             expect(screen.getByTestId('Pencil Icon')).toBeOnTheScreen();
         });
 
         it('should display pinned report', async () => {
+            // When the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = createReport(false);
+            // And the report is initialized in Onyx.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
-
-            // report is not pinned
+            // Then the report should not appear in the sidebar as it is not pinned.
             expect(getOptionRows()).toHaveLength(0);
+
             await waitForBatchedUpdatesWithAct();
-
-            // pin the report
+            // When the report is marked as pinned.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: true});
-
-            // report is pinned
+            // Then the report should appear in the sidebar because it’s pinned.
             expect(getOptionRows()).toHaveLength(1);
-
-            // TODO The report is indicated as pinned.
+            // TODO add the proper assertion for the pinned report.
         });
     });
 
     describe('Report that should NOT be included in the LHN', () => {
         it('should not display report with no participants', async () => {
+            // When the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = LHNTestUtils.getFakeReport([]);
-
+            // And a report with no participants is initialized in Onyx.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
-
+            // Then the report should not appear in the sidebar.
             expect(getOptionRows()).toHaveLength(0);
         });
 
         it('should not display empty chat', async () => {
+            // When the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = LHNTestUtils.getFakeReport([1, 2], 0);
-
+            // And a report with no messages is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
+            // Then the empty report should not appear in the sidebar.
             expect(getOptionRows()).toHaveLength(0);
         });
     });
