@@ -535,11 +535,9 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
             return validateObject<ObjectElement<Report, 'participants', number>>(
                 value,
                 {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
                     role: CONST.REPORT.ROLE,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     pendingFields: 'object',
-                    hidden: 'boolean',
                 },
                 'number',
             );
