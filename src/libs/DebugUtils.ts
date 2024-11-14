@@ -474,7 +474,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'currency':
         case 'iouReportID':
         case 'preexistingReportID':
-        case 'text':
         case 'transactionThreadReportID':
         case 'private_isArchived':
             return validateString(value);
@@ -491,9 +490,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'isCancelledIOU':
         case 'isLastMessageDeletedParentAction':
         case 'isHidden':
-        case 'isChatRoom':
         case 'isLoadingPrivateNotes':
-        case 'selected':
             return validateBoolean(value);
         case 'lastMessageTimestamp':
         case 'lastReadSequenceNumber':
@@ -551,29 +548,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
             return validateObject<ObjectElement<Report, 'errors'>>(value, {});
         case 'errorFields':
             return validateObject<ObjectElement<Report, 'errorFields', string>>(value, {}, 'string');
-        case 'participantsList':
-            return validateArray<ArrayElement<Report, 'participantsList'>>(value, {
-                displayName: 'string',
-                errorFields: 'object',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                firstName: 'string',
-                lastName: 'string',
-                avatar: 'string',
-                status: 'object',
-                pendingFields: 'object',
-                accountID: 'number',
-                validated: 'boolean',
-                phoneNumber: 'string',
-                avatarThumbnail: 'string',
-                originalFileName: 'string',
-                avatarUploading: 'boolean',
-                login: 'string',
-                pronouns: 'string',
-                localCurrencyCode: 'string',
-                timezone: 'object',
-                isOptimisticPersonalDetail: 'boolean',
-                fallbackIcon: 'string',
-            });
         case 'privateNotes':
             return validateObject<ObjectElement<Report, 'privateNotes', number>>(
                 value,
@@ -631,7 +605,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'pendingFields':
             return validateObject<ObjectElement<Report, 'pendingFields'>>(value, {
                 errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                text: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 description: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 privateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -692,10 +665,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isHidden: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                isChatRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                participantsList: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isLoadingPrivateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                selected: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 pendingChatMembers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1377,7 +1347,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false):
         return null;
     }
 
-    const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
+    const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
 
     const reason = ReportUtils.reasonForReportToBeInOptionList({
         report,

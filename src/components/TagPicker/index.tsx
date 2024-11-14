@@ -7,18 +7,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type * as ReportUtils from '@libs/ReportUtils';
+import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
+import * as TagOptionListUtils from '@libs/TagsOptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-
-type SelectedTagOption = {
-    name: string;
-    enabled: boolean;
-    isSelected?: boolean;
-    accountID: number | undefined;
-    pendingAction?: PendingAction;
-};
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -82,22 +75,18 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
     const sections = useMemo(() => {
-        const options = OptionsListUtils.getFilteredOptions({
+        const tagSections = TagOptionListUtils.getTagListSections({
             searchValue,
             selectedOptions,
-            includeP2P: false,
-            includeTags: true,
             tags: enabledTags,
             recentlyUsedTags: policyRecentlyUsedTagsList,
-            canInviteUser: false,
-        }).tagOptions;
-
+        });
         return shouldOrderListByTagName
-            ? options.map((option) => ({
+            ? tagSections.map((option) => ({
                   ...option,
                   data: option.data.sort((a, b) => a.text?.localeCompare(b.text ?? '') ?? 0),
               }))
-            : options;
+            : tagSections;
     }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, shouldOrderListByTagName]);
 
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);

@@ -15,8 +15,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ObjectType, OnyxDataType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
 import Debug from '@userActions/Debug';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -66,7 +66,7 @@ function DebugDetails({formType, data, children, onSave, onDelete, validate}: De
             Object.entries(data ?? {})
                 .filter((entry): entry is [string, string] => {
                     // Tag picker needs to be hidden when the policy has no tags available to pick
-                    if (entry[0] === TRANSACTION_FORM_INPUT_IDS.TAG && !OptionsListUtils.hasEnabledTags(policyTagLists)) {
+                    if (entry[0] === TRANSACTION_FORM_INPUT_IDS.TAG && !TagsOptionsListUtils.hasEnabledTags(policyTagLists)) {
                         return false;
                     }
                     return DETAILS_CONSTANT_FIELDS[formType].some(({fieldName}) => fieldName === entry[0]);
