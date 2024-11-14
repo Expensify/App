@@ -192,7 +192,7 @@ function BaseGetPhysicalCard({
                 handleSubmitForm={handleIssuePhysicalCard}
                 title={translate('cardPage.validateCardTitle')}
                 onClose={() => setActionCodeModalVisible(false)}
-                description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+                descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
             />
         </ScreenWrapper>
     );
