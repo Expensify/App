@@ -3,8 +3,9 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type BankAccountJSON from '@src/types/onyx/BankAccount';
+import BankAccountState from './BankAccountState';
 
-type State = ValueOf<typeof BankAccount.STATE>;
+type State = ValueOf<typeof BankAccountState>;
 
 type ACHData = {
     routingNumber: string;
@@ -20,14 +21,7 @@ type ACHData = {
 class BankAccount {
     json: BankAccountJSON;
 
-    static STATE = {
-        PENDING: 'PENDING',
-        OPEN: 'OPEN',
-        DELETED: 'DELETED',
-        LOCKED: 'LOCKED',
-        SETUP: 'SETUP',
-        VERIFYING: 'VERIFYING',
-    };
+    static STATE = BankAccountState;
 
     constructor(accountJSON: BankAccountJSON) {
         this.json = accountJSON;

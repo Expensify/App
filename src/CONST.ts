@@ -6,7 +6,7 @@ import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
 import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
-import BankAccount from './libs/models/BankAccount';
+import BankAccountState from './libs/models/BankAccountState';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
@@ -5147,7 +5147,7 @@ const CONST = {
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
-                state: BankAccount.STATE.SETUP,
+                state: BankAccountState.SETUP,
             },
             isLoading: false,
             errorFields: {},

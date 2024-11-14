@@ -56,7 +56,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
                 if (!ValidationUtils.isValidWebsite(companyWebsite)) {
                     errors.companyWebsite = translate('bankAccount.error.website');
                 } else {
-                    const domain = Url.extractUrlDomain(companyWebsite);
+                    const domain = Url.extractUrlDomain(companyWebsite, CONST.REGEX.DOMAIN_BASE);
 
                     if (!domain || !Str.isValidDomainName(domain)) {
                         errors.companyWebsite = translate('iou.invalidDomainError');
