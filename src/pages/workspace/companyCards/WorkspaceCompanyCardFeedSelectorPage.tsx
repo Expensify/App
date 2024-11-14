@@ -46,7 +46,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const feeds: CardFeedListItem[] = (Object.keys(availableCards) as CompanyCardFeed[]).map((feed) => ({
         value: feed,
-        text: cardFeeds?.settings?.companyCardNicknames?.[feed] ?? CardUtils.getCustomOrFormattedFeedName(feed),
+        text: CardUtils.getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
         keyForList: feed,
         isSelected: feed === selectedFeed,
         brickRoadIndicator: companyFeeds[feed]?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
