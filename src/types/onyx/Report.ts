@@ -208,9 +208,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Account ID of the report owner */
         ownerAccountID?: number;
 
-        /** E-mail of the report owner */
-        ownerEmail?: string;
-
         /** Collection of report participants, indexed by their accountID */
         participants?: Participants;
 
