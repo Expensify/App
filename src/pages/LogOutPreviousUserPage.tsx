@@ -61,9 +61,8 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
         // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
         const shouldForceLogin = route.params.shouldForceLogin === 'true';
         if (shouldForceLogin) {
-            const email = route.params.email ?? '';
             const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
-            SessionActions.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
+            SessionActions.signInWithShortLivedAuthToken(shortLivedAuthToken);
         }
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps

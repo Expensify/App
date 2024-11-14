@@ -568,7 +568,7 @@ function beginGoogleSignIn(token: string | null) {
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  */
-function signInWithShortLivedAuthToken(email: string, authToken: string) {
+function signInWithShortLivedAuthToken(authToken: string) {
     const {optimisticData, finallyData} = getShortLivedLoginParams();
     API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true}, {optimisticData, finallyData});
 }

@@ -34,7 +34,7 @@ function SAMLSignInPage({credentials, account}: SAMLSignInPageProps) {
             const shortLivedAuthToken = searchParams.get('shortLivedAuthToken');
             if (!account?.isLoading && credentials?.login && !!shortLivedAuthToken) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-                Session.signInWithShortLivedAuthToken(credentials.login, shortLivedAuthToken);
+                Session.signInWithShortLivedAuthToken(shortLivedAuthToken);
             }
 
             // If the login attempt is unsuccessful, set the error message for the account and redirect to sign in page
