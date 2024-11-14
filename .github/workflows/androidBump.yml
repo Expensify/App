@@ -34,7 +34,7 @@ jobs:
 
       - name: Update Rollout Percentage with Fastlane
         # We should not rollout if the release is halted or the rollout percentage is completed
-        if: ${{ steps.checkAndroidStatus.outputs.HALTED != 'true' || steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE != '-1' }}
+        if: ${{ steps.checkAndroidStatus.outputs.HALTED == 'false' && steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE != '-1' }}
         run: |
           echo "HALTED: ${{ steps.checkAndroidStatus.outputs.HALTED }}"
           echo "ROLLOUT_PERCENTAGE: ${{ steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE }}"
