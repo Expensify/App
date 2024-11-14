@@ -5848,6 +5848,12 @@ const CONST = {
             DONT_UNDERSTAND: 'dontUnderstand',
             PREFER_CLASSIC: 'preferClassic',
         },
+        BENEFIT: {
+            CHATTING_DIRECTLY: 'chattingDirectly',
+            EVERYTHING_MOBILE: 'everythingMobile',
+            TRAVEL_EXPENSE: 'travelExpense',
+        },
+        BOOK_MEETING_LINK: 'https://calendly.com/d/cqsm-2gm-fxr/expensify-product-team',
     },
 
     SESSION_STORAGE_KEYS: {

@@ -257,6 +257,7 @@ const ROUTES = {
     },
 
     SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
+    SETTINGS_EXIT_SURVERY_BOOK_CALL: 'settings/exit-survey/book-call',
     SETTINGS_EXIT_SURVEY_RESPONSE: {
         route: 'settings/exit-survey/response',
         getRoute: (reason?: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>, backTo?: string) =>

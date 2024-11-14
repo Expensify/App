@@ -878,6 +878,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
                         },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.BOOK_CALL]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL,
+                        },
                         [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
                         },
