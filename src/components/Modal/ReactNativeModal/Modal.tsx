@@ -47,9 +47,14 @@ function ReactNativeModal(incomingProps: ModalProps) {
     const [deviceHeight, setDeviceHeight] = useState(Dimensions.get('window').height);
     const [pan, setPan] = useState<Animated.ValueXY>(new Animated.ValueXY());
     const [panResponder, setPanResponder] = useState<PanResponderInstance | null>(null);
-    const [currentSwipingDirection, setCurrentSwipingDirection] = useState<Direction | null>(null);
     const [inSwipeClosingState, setInSwipeClosingState] = useState(false);
     const isSwipeable = !!props.swipeDirection;
+
+    const currentSwipingDirectionRef = useRef<Direction | null>(null);
+
+    const setCurrentSwipingDirection = (direction: Direction | null) => {
+        currentSwipingDirectionRef.current = direction;
+    };
 
     const animEvt = useRef<AnimationEvent | null>(null);
 
@@ -67,8 +72,8 @@ function ReactNativeModal(incomingProps: ModalProps) {
             PanResponder.create({
                 onMoveShouldSetPanResponder: onMoveShouldSetPanResponder(props, setAnimEvt, setCurrentSwipingDirection, pan),
                 onStartShouldSetPanResponder: (a, b) => onStartShouldSetPanResponder(props, setCurrentSwipingDirection)(a as EnhancedGestureEvent, b),
-                onPanResponderMove: onPanResponderMove(props, currentSwipingDirection, setCurrentSwipingDirection, setAnimEvt, animEvt, pan, deviceHeight, deviceWidth),
-                onPanResponderRelease: onPanResponderRelease(props, currentSwipingDirection, setInSwipeClosingState, pan),
+                onPanResponderMove: onPanResponderMove(props, currentSwipingDirectionRef, setCurrentSwipingDirection, setAnimEvt, animEvt, pan, deviceHeight, deviceWidth),
+                onPanResponderRelease: onPanResponderRelease(props, currentSwipingDirectionRef, setInSwipeClosingState, pan),
             }),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps

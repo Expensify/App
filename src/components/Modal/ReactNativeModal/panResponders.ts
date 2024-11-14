@@ -75,7 +75,7 @@ const onStartShouldSetPanResponder = (props: RemainingModalProps, setCurrentSwip
 
 const onPanResponderMove = (
     props: RemainingModalProps,
-    currentSwipingDirection: Direction | null,
+    currentSwipingDirectionRef: MutableRefObject<Direction | null>,
     setCurrentSwipingDirection: (direction: Direction | null) => void,
     setCurrentAnimEvt: (currentAnim: AnimationEvent | null) => void,
     animEvt: MutableRefObject<AnimationEvent | null>,
@@ -84,15 +84,14 @@ const onPanResponderMove = (
     deviceWidth: number,
 ) => {
     return (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
+        const currentSwipingDirection = currentSwipingDirectionRef.current;
         if (!currentSwipingDirection) {
             if (gestureState.dx === 0 && gestureState.dy === 0) {
                 return;
             }
-
             setCurrentSwipingDirection(getSwipingDirection(gestureState));
             setCurrentAnimEvt(createAnimationEventForSwipe(currentSwipingDirection, pan));
         }
-
         if (isSwipeDirectionAllowed(gestureState, currentSwipingDirection)) {
             const newOpacityFactor = 1 - calcDistancePercentage(gestureState, currentSwipingDirection, props.deviceHeight ?? deviceHeight, props.deviceWidth ?? deviceWidth);
 
@@ -123,8 +122,15 @@ const onPanResponderMove = (
         }
     };
 };
-const onPanResponderRelease = (props: RemainingModalProps, currentSwipingDirection: Direction | null, setInSwipeClosingState: (val: boolean) => void, pan: Animated.ValueXY) => {
+
+const onPanResponderRelease = (
+    props: RemainingModalProps,
+    currentSwipingDirectionRef: MutableRefObject<Direction | null>,
+    setInSwipeClosingState: (val: boolean) => void,
+    pan: Animated.ValueXY,
+) => {
     return (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
+        const currentSwipingDirection = currentSwipingDirectionRef.current;
         const accDistance = getAccDistancePerDirection(gestureState, currentSwipingDirection);
         if (accDistance > props.swipeThreshold && isSwipeDirectionAllowed(gestureState, currentSwipingDirection, props.swipeDirection)) {
             if (props.onSwipeComplete) {
