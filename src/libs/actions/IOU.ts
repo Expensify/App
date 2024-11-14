@@ -5487,20 +5487,6 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
         updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
     }
 
-    // STEP 5: Calculate the url that the user will be navigated back to
-    // This depends on which page they are on and which resources were deleted
-    // let reportIDToNavigateBack: string | undefined;
-    // if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
-    //     reportIDToNavigateBack = iouReport.reportID;
-    // }
-
-    // if (iouReport?.chatReportID && shouldDeleteIOUReport) {
-    //     reportIDToNavigateBack = iouReport.chatReportID;
-    // }
-
-    // const urlToNavigateBack = reportIDToNavigateBack ? ROUTES.REPORT_WITH_ID.getRoute(reportIDToNavigateBack) : undefined;
-    // const urlToNavigateBack = undefined;
-
     return {
         shouldDeleteTransactionThread,
         shouldDeleteIOUReport,
@@ -5514,7 +5500,6 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
         transactionViolations,
         reportPreviewAction,
         iouReport,
-        // urlToNavigateBack,
     };
 }
 
