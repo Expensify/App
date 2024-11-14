@@ -139,10 +139,7 @@ function ShareDetailsPage({
                                 <Text style={[styles.textLabelSupporting]}>{translate('common.attachment')}</Text>
                             </View>
                             <View style={{flex: 25, width: '100%', alignSelf: 'center', flexDirection: 'column', marginTop: 10, backgroundColor: 'yellow'}}>
-                                <AttachmentPreview
-                                    source={currentAttachment?.content}
-                                    // aspectRatio={currentAttachment?.aspectRatio}
-                                />
+                                <AttachmentPreview source={currentAttachment?.content} />
                             </View>
                         </>
                     )}
