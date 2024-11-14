@@ -16,6 +16,7 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import UserListItem from '@src/components/SelectionList/UserListItem';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,15 +33,28 @@ function ShareDetailsPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
     const newChatReport = Report.getOptimisticChatReport(reportID);
     const newReport = report ?? newChatReport;
     const reportDisplay = OptionsListUtils.getReportDisplayOption(newReport);
-    // Problem here: if report is set without participants (probably created and set through Search),
-    // we don't have an easy way to get displayName and email (well theoretically we can get displayName through icons?.at(0)?.name)
-    if (!report || newReport.ownerAccountID === 0) {
-        reportDisplay.text = reportDisplay.participantsList?.at(0)?.displayName;
+    if (!report) {
+        reportDisplay.text = reportDisplay.participantsList?.filter((u) => u.accountID !== Report.getCurrentUserAccountID()).at(0)?.displayName;
         reportDisplay.alternateText = reportDisplay.participantsList?.at(0)?.login;
+    }
+    if (report?.ownerAccountID === 0) {
+        const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
+            OptionsListUtils.getPersonalDetailsForAccountIDs(
+                Object.keys(report?.participants ?? {})
+                    .filter((u) => parseInt(u, 10) !== Report.getCurrentUserAccountID())
+                    .map((p) => parseInt(p ?? '', 10)),
+                personalDetails,
+            ),
+            false,
+        );
+        reportDisplay.text = displayNamesWithTooltips.filter((u) => u.accountID !== Report.getCurrentUserAccountID()).at(0)?.displayName;
+        reportDisplay.alternateText = displayNamesWithTooltips.filter((u) => u.accountID !== Report.getCurrentUserAccountID()).at(0)?.login;
     }
 
     const [tempShareFiles] = useOnyx(`${ONYXKEYS.COLLECTION.TEMP_SHARE_FILES}`);
@@ -75,11 +89,6 @@ function ShareDetailsPage({
             },
             () => {},
         );
-    };
-
-    const handleChange = (value: string) => {
-        alert(value);
-        setMessage(value);
     };
 
     return (
@@ -117,7 +126,7 @@ function ShareDetailsPage({
                             <TextInput
                                 value={message}
                                 multiline
-                                onChangeText={handleChange}
+                                onChangeText={setMessage}
                                 accessibilityLabel={translate('share.messageInputLabel')}
                                 label={translate('share.messageInputLabel')}
                                 style={{top: 100, position: 'absolute', backgroundColor: 'blue'}}
