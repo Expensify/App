@@ -25,6 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import type {ExitSurveyReasonForm} from '@src/types/form/ExitSurveyReasonForm';
 import EXIT_SURVEY_REASON_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import ExitSurveyOffline from './ExitSurveyOffline';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 
 type ExitSurveyConfirmPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM>;
 
@@ -34,7 +35,7 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
     const styles = useThemeStyles();
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const [exitReason] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null});
-    const shouldShowQuickTips = !tryNewDot || tryNewDot?.classicRedirect?.dismissed === true;
+    const shouldShowQuickTips = isEmptyObject(tryNewDot) || tryNewDot?.classicRedirect?.dismissed === true;
 
     const getBackToParam = useCallback(() => {
         if (isOffline) {
@@ -82,7 +83,7 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
                 <Button
                     success
                     large
-                    text={translate('exitSurvey.goToExpensifyClassic')}
+                    text={translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}
                     pressOnEnter
                     onPress={() => {
                         ExitSurvey.switchToOldDot();
