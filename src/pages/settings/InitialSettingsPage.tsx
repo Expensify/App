@@ -38,7 +38,7 @@ import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import * as App from '@userActions/App';
-import {setIsSigningIn, setNewDotSignInState, setOldDotSignInError, setOldDotSignInState, setShouldResetSigningInLogic} from '@userActions/HybridApp';
+import {setIsSigningIn, setOldDotSignInError, setOldDotSignInState, setShouldResetSigningInLogic} from '@userActions/HybridApp';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Session from '@userActions/Session';

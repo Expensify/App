@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
