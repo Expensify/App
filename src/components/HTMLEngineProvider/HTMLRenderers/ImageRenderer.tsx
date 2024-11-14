@@ -1,4 +1,4 @@
-import React, {memo, useState} from 'react';
+import React, {memo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
@@ -67,7 +67,6 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
     const fileType = FileUtils.getFileType(attachmentSourceAttribute);
     const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
-    const [hasLoadFailed, setHasLoadFailed] = useState(true);
     const theme = useTheme();
 
     let fileName = htmlAttribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src}`);
@@ -86,8 +85,6 @@ function ImageRenderer({tnode}: ImageRendererProps) {
             imageHeight={imageHeight}
             isDeleted={isDeleted}
             altText={alt}
-            onLoadFailure={() => setHasLoadFailed(true)}
-            onMeasure={() => setHasLoadFailed(false)}
             fallbackIconBackground={theme.highlightBG}
             fallbackIconColor={theme.border}
         />
@@ -119,7 +116,6 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                             shouldUseHapticsOnLongPress
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                            disabled={hasLoadFailed}
                         >
                             {thumbnailImageComponent}
                         </PressableWithoutFocus>
