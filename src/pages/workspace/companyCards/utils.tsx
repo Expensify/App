@@ -45,26 +45,26 @@ function getExportMenuItem(
             let isDefaultTitle = false;
             let exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | undefined;
             switch (nonReimbursableExpensesExportDestination) {
-                case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
+                case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD: {
                     data = creditCards ?? [];
-                    isDefaultTitle = !!(
-                        (defaultAccount && companyCard?.nameValuePairs?.quickbooks_online_export_account === defaultAccount) ||
-                        (!companyCard?.nameValuePairs?.quickbooks_online_export_account && defaultAccount)
-                    );
+                    const isDefaultSelected = defaultAccount && companyCard?.nameValuePairs?.quickbooks_online_export_account === defaultAccount;
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    isDefaultTitle = !!(isDefaultSelected || (!companyCard?.nameValuePairs?.quickbooks_online_export_account && defaultAccount));
                     title = isDefaultTitle ? CONST.COMPANY_CARDS.EXPORT_DEFAULT_CARD : companyCard?.nameValuePairs?.quickbooks_online_export_account;
                     selectedAccount = companyCard?.nameValuePairs?.quickbooks_online_export_account ?? defaultAccount;
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT;
                     break;
-                case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD:
+                }
+                case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD: {
                     data = quickbooksOnlineBankAccounts ?? [];
-                    isDefaultTitle = !!(
-                        (defaultAccount && companyCard?.nameValuePairs?.quickbooks_online_export_account_debit === defaultAccount) ||
-                        (!companyCard?.nameValuePairs?.quickbooks_online_export_account_debit && defaultAccount)
-                    );
+                    const isDefaultSelected = defaultAccount && companyCard?.nameValuePairs?.quickbooks_online_export_account_debit === defaultAccount;
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    isDefaultTitle = !!(isDefaultSelected || (!companyCard?.nameValuePairs?.quickbooks_online_export_account_debit && defaultAccount));
                     title = isDefaultTitle ? CONST.COMPANY_CARDS.EXPORT_DEFAULT_CARD : companyCard?.nameValuePairs?.quickbooks_online_export_account_debit;
                     selectedAccount = companyCard?.nameValuePairs?.quickbooks_online_export_account_debit ?? defaultAccount;
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_DEBIT;
                     break;
+                }
                 default:
                     shouldShowMenuItem = false;
                     data = [];
@@ -92,10 +92,9 @@ function getExportMenuItem(
             const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', {integration: currentConnectionName, type}) : undefined;
             const exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_XERO_EXPORT_BANK_ACCOUNT;
             const defaultAccount = exportConfiguration?.nonReimbursableAccount;
-            const isDefaultTitle = !!(
-                (defaultAccount && companyCard?.nameValuePairs?.xero_export_bank_account === defaultAccount) ||
-                (!companyCard?.nameValuePairs?.xero_export_bank_account && defaultAccount)
-            );
+            const isDefaultSelected = defaultAccount && companyCard?.nameValuePairs?.xero_export_bank_account === defaultAccount;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const isDefaultTitle = !!(isDefaultSelected || (!companyCard?.nameValuePairs?.xero_export_bank_account && defaultAccount));
             const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === (companyCard?.nameValuePairs?.xero_export_bank_account ?? defaultAccount));
             return {
                 description,
@@ -127,12 +126,11 @@ function getExportMenuItem(
             let isDefaultTitle = false;
 
             switch (config?.nonreimbursableExpensesExportDestination) {
-                case CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL:
+                case CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL: {
                     defaultAccount = config?.defaultVendor;
-                    isDefaultTitle = !!(
-                        (defaultAccount && companyCard?.nameValuePairs?.netsuite_export_vendor === defaultAccount) ||
-                        (!companyCard?.nameValuePairs?.netsuite_export_vendor && defaultAccount)
-                    );
+                    const isDefaultSelected = defaultAccount && companyCard?.nameValuePairs?.netsuite_export_vendor === defaultAccount;
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    isDefaultTitle = !!(isDefaultSelected || (!companyCard?.nameValuePairs?.netsuite_export_vendor && defaultAccount));
                     const vendors = policy?.connections?.netsuite.options.data.vendors;
                     const selectedVendor = PolicyUtils.findSelectedVendorWithDefaultSelect(vendors, companyCard?.nameValuePairs?.netsuite_export_vendor ?? defaultAccount);
                     title = isDefaultTitle ? CONST.COMPANY_CARDS.EXPORT_DEFAULT_CARD : selectedVendor?.name;
@@ -147,12 +145,12 @@ function getExportMenuItem(
                     });
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_VENDOR;
                     break;
-                case CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY:
+                }
+                case CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY: {
                     defaultAccount = config?.payableAcct;
-                    isDefaultTitle = !!(
-                        (defaultAccount && companyCard?.nameValuePairs?.netsuite_export_payable_account === defaultAccount) ||
-                        (!companyCard?.nameValuePairs?.netsuite_export_payable_account && defaultAccount)
-                    );
+                    const isDefaultSelected = defaultAccount && companyCard?.nameValuePairs?.netsuite_export_payable_account === defaultAccount;
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    isDefaultTitle = !!(isDefaultSelected || (!companyCard?.nameValuePairs?.netsuite_export_payable_account && defaultAccount));
                     const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
                     const selectedPayableAccount = PolicyUtils.findSelectedBankAccountWithDefaultSelect(
                         payableAccounts,
@@ -171,6 +169,7 @@ function getExportMenuItem(
                     title = companyCard?.nameValuePairs?.netsuite_export_payable_account ?? data.find((exportPayable) => exportPayable.isSelected)?.text;
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT;
                     break;
+                }
                 default:
                     shouldShowMenuItem = false;
                     data = [];
@@ -197,10 +196,9 @@ function getExportMenuItem(
             switch (exportConfig?.nonReimbursable) {
                 case CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL: {
                     const defaultAccount = PolicyUtils.getSageIntacctNonReimbursableActiveDefaultVendor(policy);
-                    isDefaultTitle = !!(
-                        (defaultAccount && companyCard?.nameValuePairs?.netsuite_export_payable_account === defaultAccount) ||
-                        (!companyCard?.nameValuePairs?.netsuite_export_payable_account && defaultAccount)
-                    );
+                    const isDefaultSelected = defaultAccount && companyCard?.nameValuePairs?.netsuite_export_payable_account === defaultAccount;
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    isDefaultTitle = !!(isDefaultSelected || (!companyCard?.nameValuePairs?.netsuite_export_payable_account && defaultAccount));
                     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
                     const selectedVendor = PolicyUtils.findSelectedSageVendorWithDefaultSelect(vendors, companyCard?.nameValuePairs?.netsuite_export_payable_account ?? defaultAccount);
                     title = isDefaultTitle ? CONST.COMPANY_CARDS.EXPORT_DEFAULT_CARD : selectedVendor?.name;
@@ -219,16 +217,14 @@ function getExportMenuItem(
                 }
                 case CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE: {
                     const defaultAccount = exportConfig?.nonReimbursableAccount;
-
-                    isDefaultTitle = !!(
-                        (defaultAccount && companyCard?.nameValuePairs?.intacct_export_charge_card === defaultAccount) ||
-                        (!companyCard?.nameValuePairs?.intacct_export_charge_card && defaultAccount)
-                    );
-                    const creditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
-                    const selectedCard = PolicyUtils.findSelectedSageVendorWithDefaultSelect(creditCards, companyCard?.nameValuePairs?.intacct_export_charge_card ?? defaultAccount);
+                    const isDefaultSelected = defaultAccount && companyCard?.nameValuePairs?.intacct_export_charge_card === defaultAccount;
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    isDefaultTitle = !!(isDefaultSelected || (!companyCard?.nameValuePairs?.intacct_export_charge_card && defaultAccount));
+                    const intacctCreditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
+                    const selectedCard = PolicyUtils.findSelectedSageVendorWithDefaultSelect(intacctCreditCards, companyCard?.nameValuePairs?.intacct_export_charge_card ?? defaultAccount);
                     title = isDefaultTitle ? CONST.COMPANY_CARDS.EXPORT_DEFAULT_CARD : selectedCard?.name;
 
-                    data = (creditCards ?? []).map(({id, name}) => {
+                    data = (intacctCreditCards ?? []).map(({id, name}) => {
                         const isDefault = id === defaultAccount;
                         return {
                             value: id,
