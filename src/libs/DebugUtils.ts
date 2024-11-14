@@ -450,7 +450,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'avatarUrl':
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
-        case 'lastReadCreated':
         case 'lastReadTime':
         case 'lastMentionedTime':
         case 'policyAvatar':
@@ -483,38 +482,22 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'isPinned':
         case 'hasParentAccess':
         case 'isDeletedParentAction':
-        case 'openOnAdminRoom':
         case 'isOptimisticReport':
         case 'isWaitingOnBankAccount':
         case 'isCancelledIOU':
-        case 'isLastMessageDeletedParentAction':
         case 'isHidden':
         case 'isLoadingPrivateNotes':
             return validateBoolean(value);
-        case 'lastMessageTimestamp':
         case 'lastReadSequenceNumber':
         case 'managerID':
         case 'lastActorAccountID':
         case 'ownerAccountID':
         case 'total':
         case 'unheldTotal':
-        case 'iouReportAmount':
         case 'nonReimbursableTotal':
             return validateNumber(value);
         case 'chatType':
             return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
-        case 'icons':
-            return validateArray<ArrayElement<Report, 'icons'>>(value, {
-                type: {
-                    [CONST.ICON_TYPE_AVATAR]: CONST.ICON_TYPE_AVATAR,
-                    [CONST.ICON_TYPE_WORKSPACE]: CONST.ICON_TYPE_WORKSPACE,
-                },
-                name: 'string',
-                source: 'string',
-                id: ['number', 'string'],
-                fallbackIcon: 'string',
-                fill: 'string',
-            });
         case 'stateNum':
             return validateConstantEnum(value, CONST.REPORT.STATE_NUM);
         case 'statusNum':
@@ -593,10 +576,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 endDate: 'string',
                 tripID: 'string',
             });
-        case 'participantAccountIDs':
-            return validateArray(value, 'number');
-        case 'visibleChatMemberAccountIDs':
-            return validateArray(value, 'number');
         case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
@@ -614,14 +593,11 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildTask: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                icons: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isOwnPolicyExpenseChat: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isPolicyExpenseChat: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isPinned: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastMessageText: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                lastMessageTimestamp: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastVisibleActionCreated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                lastReadCreated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastReadTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastReadSequenceNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastMentionedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -636,7 +612,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 stateNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 statusNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 writeCapability: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                openOnAdminRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 visibility: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 cachedTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 invoiceReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -655,9 +630,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 unheldTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                isLastMessageDeletedParentAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                iouReportAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isHidden: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -669,8 +642,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 tripData: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                participantAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                visibleChatMemberAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION,

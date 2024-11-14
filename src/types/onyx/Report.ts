@@ -79,9 +79,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report has a child task that is awaiting action from the current user */
         hasOutstandingChildTask?: boolean;
 
-        /** List of icons for report participants */
-        icons?: OnyxCommon.Icon[];
-
         /** Whether the user is not an admin of policyExpenseChat chat */
         isOwnPolicyExpenseChat?: boolean;
 
@@ -94,14 +91,8 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The text of the last message on the report */
         lastMessageText?: string;
 
-        /** The timestamp of the last message on the report */
-        lastMessageTimestamp?: number;
-
         /** The time of the last message on the report */
         lastVisibleActionCreated?: string;
-
-        /** The time of the last read of the report */
-        lastReadCreated?: string;
 
         /** The time when user read the last message */
         lastReadTime?: string;
@@ -156,9 +147,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The report type */
         type?: string;
-
-        /** If the admin room should be opened */
-        openOnAdminRoom?: boolean;
 
         /** The report visibility */
         visibility?: RoomVisibility;
@@ -226,14 +214,8 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is cancelled */
         isCancelledIOU?: boolean;
 
-        /** Whether the last message was deleted */
-        isLastMessageDeletedParentAction?: boolean;
-
         /** The ID of the IOU report */
         iouReportID?: string;
-
-        /** Total amount of money owed for IOU report */
-        iouReportAmount?: number;
 
         /** The ID of the preexisting report (it is possible that we optimistically created a Report for which a report already exists) */
         preexistingReportID?: string;
@@ -277,12 +259,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is archived */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived?: string;
-
-        /** Participant account id's */
-        participantAccountIDs?: number[];
-
-        /** Visible chat member account id's */
-        visibleChatMemberAccountIDs?: number[];
     },
     'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview'
 >;
