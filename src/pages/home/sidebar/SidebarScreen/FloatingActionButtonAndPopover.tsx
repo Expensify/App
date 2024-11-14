@@ -35,7 +35,6 @@ import variables from '@styles/variables';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
-import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import * as Welcome from '@userActions/Welcome';
@@ -198,6 +197,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         }
         return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
     }, [allPolicies]);
+
+    const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every(
+        (policy) => !PolicyUtils.shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email),
+    );
 
     const quickActionAvatars = useMemo(() => {
         if (isValidReport) {
@@ -564,7 +567,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                               },
                           ]
                         : []),
-                    ...(!isLoading && !Policy.hasActiveChatEnabledPolicies(allPolicies)
+                    ...(!isLoading && shouldShowNewWorkspaceButton
                         ? [
                               {
                                   displayInDefaultIconColor: true,
