@@ -16,7 +16,8 @@ import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeFo
 function ValidateCodeActionModal({
     isVisible,
     title,
-    description,
+    descriptionPrimary,
+    descriptionSecondary,
     onClose,
     onModalHide,
     validatePendingAction,
@@ -26,6 +27,7 @@ function ValidateCodeActionModal({
     footer,
     sendValidateCode,
     hasMagicCodeBeenSent,
+    isLoading,
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const safePaddingBottomStyle = useSafePaddingBottomStyle();
@@ -70,7 +72,8 @@ function ValidateCodeActionModal({
                 />
 
                 <View style={[themeStyles.flex1, themeStyles.mt3, themeStyles.pb5]}>
-                    <Text style={[themeStyles.ph5, themeStyles.mb3]}>{description}</Text>
+                    <Text style={[themeStyles.ph5, themeStyles.mb3]}>{descriptionPrimary}</Text>
+                    {!!descriptionSecondary && <Text style={[themeStyles.ph5, themeStyles.mb3]}>{descriptionSecondary}</Text>}
                     <ValidateCodeForm
                         validateCodeAction={validateCodeAction}
                         validatePendingAction={validatePendingAction}
@@ -82,6 +85,7 @@ function ValidateCodeActionModal({
                         ref={validateCodeFormRef}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         menuItems={footer}
+                        isLoading={isLoading}
                     />
                 </View>
             </ScreenWrapper>

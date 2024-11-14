@@ -1113,7 +1113,7 @@ const translations = {
         helpTextAfterEmail: ' desde varias direcciones de correo electrónico.',
         pleaseVerify: 'Por favor, verifica este método de contacto',
         getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod}`,
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod}. Debería llegar en un par de minutos.`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
             'Este es tu método de contacto predeterminado. Antes de poder eliminarlo, tendrás que elegir otro método de contacto y haz clic en "Establecer como predeterminado".',
@@ -1454,7 +1454,8 @@ const translations = {
         },
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
         validateCardTitle: 'Asegurémonos de que eres tú',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta`,
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
+            `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta. Debería llegar en un par de minutos.`,
     },
     workflowsPage: {
         workflowTitle: 'Gasto',
@@ -1990,6 +1991,7 @@ const translations = {
             afterLinkText: 'para verlo.',
             formLabel: 'Ver PDF',
         },
+        attachmentNotFound: 'Archivo adjunto no encontrado',
     },
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
@@ -5695,7 +5697,8 @@ const translations = {
         removeCopilotConfirmation: '¿Estás seguro de que quieres eliminar este copiloto?',
         changeAccessLevel: 'Cambiar nivel de acceso',
         makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto.`,
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
+            `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto. Debería llegar en un par de minutos.`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) =>
             `Por favor, introduce el código mágico enviado a ${contactMethod} para actualizar el nivel de acceso de tu copiloto.`,
         notAllowed: 'No tan rápido...',
