@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState} from 'react';
-import {Keyboard} from 'react-native';
+import {KeyboardEvents} from 'react-native-keyboard-controller';
 import useStyledSafeAreaInsets from './useStyledSafeAreaInsets';
 import useThemeStyles from './useThemeStyles';
 
@@ -10,10 +10,10 @@ const useSafePaddingBottomStyle = () => {
     const styles = useThemeStyles();
     const [willKeyboardShow, setWillKeyboardShow] = useState<boolean>(false);
     useEffect(() => {
-        const keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', () => {
+        const keyboardWillShowListener = KeyboardEvents.addListener('keyboardWillShow', () => {
             setWillKeyboardShow(true);
         });
-        const keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', () => {
+        const keyboardWillHideListener = KeyboardEvents.addListener('keyboardWillHide', () => {
             setWillKeyboardShow(false);
         });
         return () => {
