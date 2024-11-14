@@ -7,10 +7,11 @@ import {shallowCompare} from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import getStateFromPath from '@navigation/getStateFromPath';
 import linkingConfig from '@navigation/linkingConfig';
-import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootStackParamList, StackNavigationAction} from '@navigation/types';
+import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootStackParamList, SearchReportParamList, StackNavigationAction} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getMinimalAction from './getMinimalAction';
 
@@ -60,6 +61,31 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     return currentParams.reportID === newParams.reportID;
 }
 
+// Determine if we should convert the report route from fullscreen to rhp version or the other way around.
+// It's necessary to stay in RHP if we are in RHP report or in fullscreen if we are in fullscreen report.
+// eslint-disable-next-line rulesdir/no-inline-named-export
+export function shouldConvertReportPath(currentFocusedRoute: NavigationPartialRoute, focusedRouteFromPath: NavigationPartialRoute) {
+    // @TODO: Navigating from search central pane could be handled with explicit convert: false option. We would need to add it as option to linkTo.
+    if (focusedRouteFromPath.name === SCREENS.REPORT && (currentFocusedRoute.name === SCREENS.SEARCH.REPORT_RHP || currentFocusedRoute.name === SCREENS.SEARCH.CENTRAL_PANE)) {
+        return true;
+    }
+
+    if (focusedRouteFromPath.name === SCREENS.SEARCH.REPORT_RHP && currentFocusedRoute.name === SCREENS.REPORT) {
+        return true;
+    }
+    return false;
+}
+
+// eslint-disable-next-line rulesdir/no-inline-named-export
+export function convertReportPath(focusedRouteFromPath: NavigationPartialRoute) {
+    const params = focusedRouteFromPath.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] | SearchReportParamList[typeof SCREENS.SEARCH.REPORT_RHP];
+    if (focusedRouteFromPath.name === SCREENS.REPORT) {
+        return ROUTES.SEARCH_REPORT.getRoute({reportID: params.reportID, reportActionID: params.reportActionID});
+    }
+
+    return ROUTES.REPORT_WITH_ID.getRoute(params.reportID, params.reportActionID);
+}
+
 export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
@@ -80,6 +106,13 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     // For type safety. It shouldn't ever happen.
     if (!focusedRouteFromPath || !currentFocusedRoute) {
+        return;
+    }
+
+    // Check if this is a report route and it should be converted to the other form (fullscreen or rhp).
+    if (shouldConvertReportPath(currentFocusedRoute, focusedRouteFromPath)) {
+        // Convert path to the opposite form and call linkTo again.
+        linkTo(navigation, convertReportPath(focusedRouteFromPath), type);
         return;
     }
 

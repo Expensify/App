@@ -1,4 +1,4 @@
-import {getActionFromState} from '@react-navigation/core';
+import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
@@ -29,7 +29,7 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import isReportOpenInRHP from './isReportOpenInRHP';
 import linkingConfig from './linkingConfig';
 import createSplitNavigator from './linkingConfig/createSplitNavigator';
-import linkTo from './linkTo';
+import linkTo, {convertReportPath, shouldConvertReportPath} from './linkTo';
 import getMinimalAction from './linkTo/getMinimalAction';
 import navigationRef from './navigationRef';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
@@ -221,6 +221,15 @@ function goUp(fallbackRoute: Route, options?: GoUpOptions) {
 
     const rootState = navigationRef.current.getRootState();
     const stateFromPath = getStateFromPath(fallbackRoute);
+
+    const currentFocusedRoute = findFocusedRoute(rootState);
+    const focusedRouteFromPath = findFocusedRoute(stateFromPath);
+
+    if (currentFocusedRoute && focusedRouteFromPath && shouldConvertReportPath(currentFocusedRoute, focusedRouteFromPath)) {
+        goUp(convertReportPath(focusedRouteFromPath));
+        return;
+    }
+
     const action = getActionFromState(stateFromPath, linkingConfig.config);
 
     if (!action) {
