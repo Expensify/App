@@ -54,7 +54,7 @@
     - [ ] I verified that all the inputs inside a form are aligned with each other.
     - [ ] I added `Design` label and/or tagged `@Expensify/design` so the design team can review the changes.
 - [ ] If a new page is added, I verified it's using the `ScrollView` component to make it scrollable when more elements are added to the page.
-- [ ] For any bug fix or new feature in this PR, I verified that sufficient unit tests are included to prevent regressions in this flow.
+- [ ] For any bug fix or new feature in this PR, I verified that sufficient [unit tests](https://github.com/Expensify/App/blob/main/tests/README.md) are included to prevent regressions in this flow.
 - [ ] If the `main` branch was merged into this PR after a review, I tested again and verified the outcome was still expected according to the `Test` steps.
 - [ ] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.
 

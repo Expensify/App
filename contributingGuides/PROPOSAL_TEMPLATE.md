@@ -8,7 +8,7 @@
 <!-- DO NOT POST CODE DIFFS -->
 
 ### What specific scenarios should we cover in unit tests to prevent reintroducing this issue in the future?
-<!-- Clearly describe the different test cases you recommend adding or updating the existing to ensure the problem is fully covered and that any future changes do not cause a regression. Consider edge cases, input variations, and typical user interactions that could trigger this issue. To get guidance on how to write unit tests, refer to the README.md in tests folder. -->
+<!-- Clearly describe the different test cases you recommend adding or updating. Explain how they will ensure the problem is fully covered and that any future changes do not cause a regression. Consider edge cases, input variations, and typical user interactions that could trigger this issue. To get guidance on how to write unit tests, refer to the README.md in the tests folder. -->
 
 ### What alternative solutions did you explore? (Optional)
 

@@ -109,7 +109,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] I verified that all the inputs inside a form are aligned with each other.
     - [ ] I added `Design` label and/or tagged `@Expensify/design` so the design team can review the changes.
 - [ ] If a new page is added, I verified it's using the `ScrollView` component to make it scrollable when more elements are added to the page.
-- [ ] I added unit tests for any new feature or bug fix in this PR to help automatically prevent regressions in this user flow.
+- [ ] I added [unit tests](https://github.com/Expensify/App/blob/main/tests/README.md) for any new feature or bug fix in this PR to help automatically prevent regressions in this user flow.
 - [ ] If the `main` branch was merged into this PR after a review, I tested again and verified the outcome was still expected according to the `Test` steps.
 
 ### Screenshots/Videos
