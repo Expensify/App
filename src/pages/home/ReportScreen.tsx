@@ -206,7 +206,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 isOptimisticReport: reportOnyx.isOptimisticReport,
                 lastMentionedTime: reportOnyx.lastMentionedTime,
                 avatarUrl: reportOnyx.avatarUrl,
-                avatarFileName: reportOnyx.avatarFileName,
                 permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
