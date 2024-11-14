@@ -156,8 +156,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     }, [shouldUseNarrowLayout]);
 
     useEffect(() => {
-        // Since NAVIGATORS.REPORTS_SPLIT_NAVIGATOR is public,
-        // we should leave only one ReportsSplitNavigator in the navigation stack after logout.
+        // Since the NAVIGATORS.REPORTS_SPLIT_NAVIGATOR url is "/" and it has to be used as an URL for SignInPage,
+        // this navigator should be the only one in the navigation state after logout.
         const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
         if (!hasUserLoggedOut) {
             return;
