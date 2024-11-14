@@ -39,6 +39,9 @@ type PendingChatMember = {
 type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** What is the role of the participant in the report */
     role?: ValueOf<typeof CONST.REPORT.ROLE>;
+
+    /** Whether the participant is visible in the report */
+    notificationPreference: NotificationPreference;
 }>;
 
 /** Types of invoice receivers in a report */

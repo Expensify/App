@@ -521,6 +521,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                     role: CONST.REPORT.ROLE,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     pendingFields: 'object',
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
                 },
                 'number',
             );
