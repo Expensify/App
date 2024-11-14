@@ -17,6 +17,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -25,7 +26,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -42,9 +43,6 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
     action: IOUAction;
 
-    /** Flag indicating if P2P distance requests can be used */
-    canUseP2PDistanceRequests: boolean | undefined;
-
     /** The currency of the transaction */
     currency: string;
 
@@ -57,6 +55,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The formatted amount of the transaction */
     formattedAmount: string;
 
+    /** The formatted amount of the transaction per 1 attendee */
+    formattedAmountPerAttendee: string;
+
     /** The error message for the form */
     formError: string;
 
@@ -65,6 +66,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The category of the IOU */
     iouCategory: string;
+
+    /** The list of attendees */
+    iouAttendees: Attendee[] | undefined;
 
     /** The comment of the IOU */
     iouComment: string | undefined;
@@ -98,9 +102,6 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if the merchant is required */
     isMerchantRequired: boolean | undefined;
-
-    /** Flag indicating if the transaction is moved from track expense */
-    isMovingTransactionFromTrackExpense: boolean;
 
     /** Flag indicating if it is a policy expense chat */
     isPolicyExpenseChat: boolean;
@@ -171,13 +172,14 @@ type MoneyRequestConfirmationListFooterProps = {
 
 function MoneyRequestConfirmationListFooter({
     action,
-    canUseP2PDistanceRequests,
     currency,
     didConfirm,
     distance,
     formattedAmount,
+    formattedAmountPerAttendee,
     formError,
     hasRoute,
+    iouAttendees,
     iouCategory,
     iouComment,
     iouCreated,
@@ -190,7 +192,6 @@ function MoneyRequestConfirmationListFooter({
     isEditingSplitBill,
     isMerchantEmpty,
     isMerchantRequired,
-    isMovingTransactionFromTrackExpense,
     isPolicyExpenseChat,
     isReadOnly,
     isTypeInvoice,
@@ -224,8 +225,9 @@ function MoneyRequestConfirmationListFooter({
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
-    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && TagsOptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
     const isMultilevelTags = useMemo(() => PolicyUtils.isMultiLevelTags(policyTags), [policyTags]);
+    const shouldShowAttendees = useMemo(() => TransactionUtils.shouldShowAttendees(iouType, policy), [iouType, policy]);
 
     const senderWorkspace = useMemo(() => {
         const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
@@ -344,24 +346,6 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly && !isMovingTransactionFromTrackExpense}
-                    title={isMerchantEmpty ? '' : iouMerchant}
-                    description={translate('common.distance')}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
-                    disabled={didConfirm}
-                    // todo: handle edit for transaction while moving from track expense
-                    interactive={!isReadOnly && !isMovingTransactionFromTrackExpense}
-                />
-            ),
-            shouldShow: isDistanceRequest && !canUseP2PDistanceRequests,
-            isSupplementary: false,
-        },
-        {
-            item: (
-                <MenuItemWithTopDescription
-                    key={translate('common.distance')}
                     shouldShowRightIcon={!isReadOnly}
                     title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate)}
                     description={translate('common.distance')}
@@ -372,7 +356,7 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!isReadOnly}
                 />
             ),
-            shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
+            shouldShow: isDistanceRequest,
             isSupplementary: false,
         },
         {
@@ -389,7 +373,7 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!!rate && !isReadOnly && isPolicyExpenseChat}
                 />
             ),
-            shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
+            shouldShow: isDistanceRequest,
             isSupplementary: false,
         },
         {
@@ -512,6 +496,25 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowTax,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key="attendees"
+                    shouldShowRightIcon
+                    title={iouAttendees?.map((item) => item?.displayName ?? item?.login).join(', ')}
+                    description={`${translate('iou.attendees')} ${
+                        iouAttendees?.length && iouAttendees.length > 1 ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
+                    }`}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    interactive
+                    shouldRenderAsHTML
+                />
+            ),
+            shouldShow: shouldShowAttendees,
             isSupplementary: true,
         },
         {
@@ -664,7 +667,6 @@ export default memo(
     MoneyRequestConfirmationListFooter,
     (prevProps, nextProps) =>
         lodashIsEqual(prevProps.action, nextProps.action) &&
-        prevProps.canUseP2PDistanceRequests === nextProps.canUseP2PDistanceRequests &&
         prevProps.currency === nextProps.currency &&
         prevProps.didConfirm === nextProps.didConfirm &&
         prevProps.distance === nextProps.distance &&
@@ -683,7 +685,6 @@ export default memo(
         prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
         prevProps.isMerchantEmpty === nextProps.isMerchantEmpty &&
         prevProps.isMerchantRequired === nextProps.isMerchantRequired &&
-        prevProps.isMovingTransactionFromTrackExpense === nextProps.isMovingTransactionFromTrackExpense &&
         prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
         prevProps.isReadOnly === nextProps.isReadOnly &&
         prevProps.isTypeInvoice === nextProps.isTypeInvoice &&

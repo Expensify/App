@@ -1,6 +1,6 @@
 import type GetOpacity from './types';
 
-const getOpacity: GetOpacity = ({routesLength, tabIndex, active, affectedTabs, position, isActive}) => {
+const getOpacity: GetOpacity = ({routesLength, tabIndex, active, affectedTabs, position}) => {
     const activeValue = active ? 1 : 0;
     const inactiveValue = active ? 0 : 1;
 
@@ -9,7 +9,7 @@ const getOpacity: GetOpacity = ({routesLength, tabIndex, active, affectedTabs, p
 
         return position?.interpolate({
             inputRange,
-            outputRange: inputRange.map((i) => (affectedTabs.includes(tabIndex) && i === tabIndex && isActive ? activeValue : inactiveValue)),
+            outputRange: inputRange.map((i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? activeValue : inactiveValue)),
         });
     }
     return activeValue;

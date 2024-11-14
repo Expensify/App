@@ -19,6 +19,14 @@
     <% if (htmlWebpackPlugin.options.isStaging) { %>
         <meta name="robots" content="noindex, nofollow">
     <% } %>
+    
+    <% if (htmlWebpackPlugin.options.isWeb && (htmlWebpackPlugin.options.isStaging || htmlWebpackPlugin.options.isProduction)) { %>
+        <!-- begin Convert Experiences code-->
+        <script type=“text/javascript” src="//cdn-4.convertexperiments.com/v1/js/10042537-100413459.js">
+        </script>
+        <!-- end Convert Experiences code -->
+    <% } %>
+    
     <style>
         .signin-button {
             width: 100% !important;
@@ -57,6 +65,20 @@
         :focus-visible {
             outline: 0;
             box-shadow: inset 0px 0px 0px 1px #5AB0FF;
+        }
+        :focus-visible[data-inner-box-shadow-element]{
+            overflow: hidden;
+        }
+        :focus-visible[data-inner-box-shadow-element]::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            box-shadow: inset 0px 0px 0px 1px #5AB0FF;
+            pointer-events: none;
+            z-index: 1000;
         }
         :focus[data-focusvisible-polyfill] {
             outline: 0;
@@ -109,7 +131,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
-    <% if (htmlWebpackPlugin.options.isWeb && htmlWebpackPlugin.options.isProduction) { %>
+    <% if (htmlWebpackPlugin.options.useThirdPartyScripts) { %>
         <!-- Third party scripts -->
         <script async="" src="thirdPartyScripts.js"></script>
         <!-- End Third party scripts -->
@@ -117,7 +139,7 @@
     <link rel="manifest" href="/manifest.json" />
 </head>
 <body>
-    <% if (htmlWebpackPlugin.options.isWeb && htmlWebpackPlugin.options.isProduction) { %>
+    <% if (htmlWebpackPlugin.options.useThirdPartyScripts) { %>
         <!-- Google Tag Manager (noscript) -->
         <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N4M3FLJZ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- End Google Tag Manager (noscript) -->

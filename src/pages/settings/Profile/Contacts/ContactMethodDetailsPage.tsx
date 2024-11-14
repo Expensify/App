@@ -135,14 +135,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         User.deleteContactMethod(contactMethod, loginList ?? {}, backTo);
     }, [contactMethod, loginList, toggleDeleteModal, backTo]);
 
-    const sendValidateCode = () => {
-        if (loginData?.validateCodeSent) {
-            return;
-        }
-
-        User.requestContactMethodValidateCode(contactMethod);
-    };
-
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -276,9 +268,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
                         setIsValidateCodeActionModalVisible(false);
                     }}
-                    sendValidateCode={sendValidateCode}
-                    description={translate('contacts.enterMagicCode', {contactMethod})}
-                    footer={() => getMenuItems()}
+                    sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
+                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}
                 />
 
                 {!isValidateCodeActionModalVisible && getMenuItems()}
