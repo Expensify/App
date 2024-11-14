@@ -104,6 +104,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const freeTrialText = SubscriptionUtils.getFreeTrialText(policies);
     const shouldOpenBookACall = tryNewDot?.classicRedirect?.dismissed === false;
 
+
     useEffect(() => {
         Wallet.openInitialSettingsPage();
         App.confirmReadyToOpenApp();
@@ -245,7 +246,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                         : {
                               action() {
                                   resetExitSurveyForm(() => {
-                                      if (shouldOpenBookACall) {
+                                      if (true) {
                                           Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL);
                                           return;
                                       }
