@@ -57,6 +57,7 @@ type SuggestionPersonalDetailsList = Record<
     | null
 >;
 
+// IT IS HEAVY
 function getDisplayName(details: PersonalDetails) {
     const displayNameFromAccountID = ReportUtils.getDisplayNameForParticipant(details.accountID);
     if (!displayNameFromAccountID) {
@@ -73,7 +74,13 @@ function compareUserInList(first: PersonalDetails & {weight: number}, second: Pe
         return first.weight - second.weight;
     }
 
-    const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
+    const firstDisplayName = getDisplayName(first);
+    const secondDisplayName = getDisplayName(second);
+
+    // console.log('firstDisplayName: ', firstDisplayName);
+    // console.log('secondDisplayName: ', secondDisplayName);
+    // This is heavy
+    const displayNameLoginOrder = localeCompare(firstDisplayName, secondDisplayName);
     if (displayNameLoginOrder !== 0) {
         return displayNameLoginOrder;
     }
@@ -289,6 +296,7 @@ function SuggestionMention(
                 if (CONST.RESTRICTED_EMAILS.includes(detail.login) || CONST.RESTRICTED_ACCOUNT_IDS.includes(detail.accountID)) {
                     return false;
                 }
+                // IT IS HEAVY
                 const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail);
                 const displayText = displayName === formatPhoneNumber(detail.login) ? displayName : `${displayName} ${detail.login}`;
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
@@ -483,6 +491,9 @@ function SuggestionMention(
 
 SuggestionMention.displayName = 'SuggestionMention';
 
+// const SuggestionMentionComponent = forwardRef(SuggestionMention);
+// export default React.memo(SuggestionMentionComponent);
+// Try with memo
 export default forwardRef(SuggestionMention);
 
 export {compareUserInList};

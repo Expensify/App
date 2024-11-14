@@ -761,6 +761,17 @@ function ComposerWithSuggestions(
         [measureParentContainer, cursorPositionValue, selection],
     );
 
+    // todo move to utils
+    const isMentionCode = (str: string): boolean => CONST.REGEX.HAS_AT_MOST_TWO_AT_SIGNS.test(str);
+
+    const isEmojiCode = (str: string, pos: number): boolean => {
+        const leftWords = str.slice(0, pos).split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
+        const leftWord = leftWords.at(-1) ?? '';
+        return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
+    };
+
+    const shouldRenderSuggestion = isMentionCode(value) || isEmojiCode(value);
+
     return (
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
@@ -804,19 +815,22 @@ function ComposerWithSuggestions(
                 />
             </View>
 
-            <Suggestions
-                ref={suggestionsRef}
-                isComposerFocused={textInputRef.current?.isFocused()}
-                updateComment={updateComment}
-                measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
-                isGroupPolicyReport={isGroupPolicyReport}
-                policyID={policyID}
-                // Input
-                value={value}
-                selection={selection}
-                setSelection={setSelection}
-                resetKeyboardInput={resetKeyboardInput}
-            />
+            {/* {isMentionCodeBool && ( */}
+            {shouldRenderSuggestion && (
+                <Suggestions
+                    ref={suggestionsRef}
+                    isComposerFocused={textInputRef.current?.isFocused()}
+                    updateComment={updateComment}
+                    measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+                    isGroupPolicyReport={isGroupPolicyReport}
+                    policyID={policyID}
+                    // Input
+                    value={value}
+                    selection={selection}
+                    setSelection={setSelection}
+                    resetKeyboardInput={resetKeyboardInput}
+                />
+            )}
 
             {ReportUtils.isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater
