@@ -21,8 +21,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const loginData = loginList?.[contactMethod];
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
-
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
+    const [isValidateModalVisible, setIsValidateModalVisible] = useState(true);
 
     const navigateBackTo = route?.params?.backTo;
 
@@ -44,7 +43,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             return;
         }
 
-        setIsValidateCodeActionModalVisible(false);
+        setIsValidateModalVisible(false);
 
         if (!navigateBackTo) {
             return;
@@ -54,7 +53,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     }, [isUserValidated, navigateBackTo]);
 
     useEffect(() => {
-        if (isValidateCodeActionModalVisible) {
+        if (isValidateModalVisible) {
             return;
         }
 
@@ -63,7 +62,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         } else if (!navigateBackTo) {
             Navigation.goBack();
         }
-    }, [isValidateCodeActionModalVisible, isUserValidated, navigateBackTo]);
+    }, [isValidateModalVisible, isUserValidated, navigateBackTo]);
 
     return (
         <ValidateCodeActionModal
@@ -71,11 +70,11 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             handleSubmitForm={handleSubmitForm}
             validateError={validateLoginError}
             hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
-            isVisible={isValidateCodeActionModalVisible}
+            isVisible={isValidateModalVisible}
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
             descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
-            onClose={() => setIsValidateCodeActionModalVisible(false)}
+            onClose={() => setIsValidateModalVisible(false)}
             clearError={clearError}
         />
     );
