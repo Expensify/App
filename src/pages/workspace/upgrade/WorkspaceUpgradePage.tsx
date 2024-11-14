@@ -50,8 +50,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const {isOffline} = useNetwork();
 
     const canPerformUpgrade = !!feature && !!policy && PolicyUtils.isPolicyAdmin(policy);
-    // const isUpgraded = React.useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
-    const [isUpgraded, setIsUpgraded] = useState(false);
+    const isUpgraded = React.useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
     const perDiemCustomUnit = PolicyUtils.getPerDiemCustomUnit(policy);
 
@@ -95,8 +94,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
 
-        // Policy.upgradeToCorporate(policy.id, feature?.name);
-        setIsUpgraded(true);
+        Policy.upgradeToCorporate(policy.id, feature?.name);
     };
 
     const confirmUpgrade = useCallback(() => {
