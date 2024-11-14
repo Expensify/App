@@ -12,7 +12,7 @@ The submitter must also connect a [personal bank account](https://help.expensify
 To pay an expense,
 {% include selector.html values="desktop, mobile" %}
 {% include option.html value="desktop" %}
-1. You will receive an email and in-app notification prompting you to review and **Pay** the expense. If your primary login is a phone number, you'll receive a text.
+1. You will receive an email and in-app notification prompting you to review and **Pay** the expense. If your default contact method is a phone number, you'll receive a text.
 2. Click the **Pay** button on the notification to be directed to New Expensify.
 3. Select a payment option.
 - **Pay with Expensify** to pay the total expense within Expensify. Follow the prompt to pay with a [business bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account).
@@ -20,7 +20,7 @@ To pay an expense,
 {% include end-option.html %}
 
 {% include option.html value="mobile" %}
-1. When an employee sends you an expense, you will receive an email and in-app notification prompting you to review and **Pay** the expense. If your primary login is a phone number, you'll receive a text.
+1. When an employee sends you an expense, you will receive an email and in-app notification prompting you to review and **Pay** the expense. If your default contact method is a phone number, you'll receive a text.
 2. Tap the **Pay** button on the notification to be directed to New Expensify.
 3. Select a payment option.
 - **Pay with Expensify** to pay the total expense within Expensify. Follow the prompt to pay with a [business bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account).
@@ -36,7 +36,7 @@ To pay an expense,
 
 {% include selector.html values="desktop, mobile" %}
 {% include option.html value="desktop" %}
-1. You will receive an email or in-app notification when an individual sends you an expense. If your primary login is a phone number, you'll receive a text.
+1. You will receive an email or in-app notification when an individual sends you an expense. If your default contact method is a phone number, you'll receive a text.
 2. Click the **Pay** button to be directed to New Expensify.
 3. Review the expense details and click **Pay**.
 4. Select a payment option.
@@ -45,9 +45,9 @@ To pay an expense,
 {% include end-option.html %}
 
 {% include option.html value="mobile" %}
-1. You will receive an email or in-app notification when an individual sends you an expense. If your primary login is a phone number, you'll receive a text.
+1. You will receive an email or in-app notification when an individual sends you an expense. If your default contact method is a phone number, you'll receive a text.
 2. Tap the **Pay** button to be directed to New Expensify.
-3. Review the expense details and click **Pay**.
+3. Review the expense details and tap **Pay**.
 4. Select a payment option.
 - **Pay with Expensify** to pay the expense with your connected Wallet. 
 - **Pay Elsewhere** to pay outside Expensify.
