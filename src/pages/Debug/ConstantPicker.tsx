@@ -9,8 +9,15 @@ import {DETAILS_CONSTANT_FIELDS} from './const';
 
 type ConstantPickerProps = {
     formType: string;
+    /** The form to object the constant list of options */
+
+    /** Constant name to get list of options */
     fieldName: string;
+
+    /** Current selected constant */
     fieldValue?: string;
+
+    /** Callback to submit the selected constant */
     onSubmit: (item: ListItem) => void;
 };
 

@@ -13,8 +13,13 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type DebugTagPickerProps = {
+    /** The policyID we are getting tags for */
     policyID: string;
+
+    /** Current tag name */
     tagName?: string;
+
+    /** Callback to submit the selected tag */
     onSubmit: (item: ListItem) => void;
 };
 

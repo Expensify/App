@@ -14,6 +14,7 @@ import ROUTES from '@src/ROUTES';
 import type {TransactionViolation} from '@src/types/onyx';
 
 type DebugTransactionViolationsProps = {
+    /** The transactionID we are gettings the transaction violations for */
     transactionID: string;
 };
 

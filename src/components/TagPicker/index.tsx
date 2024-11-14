@@ -31,6 +31,7 @@ type TagPickerProps = {
     /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
 
+    /** Whether the list should be sorted by tag name. default is false */
     shouldOrderListByTagName?: boolean;
 
     /** Indicates which tag list index was selected */
