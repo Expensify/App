@@ -79,8 +79,10 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
     const enabledReportFields = sortedPolicyReportFields.filter((reportField) => !ReportUtils.isReportFieldDisabled(report, reportField, policy));
     const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && ReportUtils.isReportFieldOfTypeTitle(enabledReportFields.at(0));
-    const shouldShowReportField =
-        !ReportUtils.isClosedExpenseReportWithNoExpenses(report) && ReportUtils.isPaidGroupPolicyExpenseReport(report) && (!isCombinedReport || !isOnlyTitleFieldEnabled);
+    const isClosedExpenseReportWithNoExpenses = ReportUtils.isClosedExpenseReportWithNoExpenses(report);
+    const isPaidGroupPolicyExpenseReport = ReportUtils.isPaidGroupPolicyExpenseReport(report);
+    const isInvoiceReport = ReportUtils.isInvoiceReport(report);
+    const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && (isPaidGroupPolicyExpenseReport || isInvoiceReport) && (!isCombinedReport || !isOnlyTitleFieldEnabled);
 
     const renderThreadDivider = useMemo(
         () =>
@@ -102,9 +104,9 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
         <>
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
-                {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (
+                {!isClosedExpenseReportWithNoExpenses && (
                     <>
-                        {ReportUtils.isPaidGroupPolicyExpenseReport(report) &&
+                        {(isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
                             policy?.areReportFieldsEnabled &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
