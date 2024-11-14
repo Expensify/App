@@ -20,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
+import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -699,6 +700,11 @@ function ReportActionsList({
     }, [isLoadingNewerReportActions, canShowHeader, hasLoadingNewerReportActionsError, retryLoadNewerChatsError]);
 
     const onStartReached = useCallback(() => {
+        if (!isSearchTopmostCentralPane()) {
+            loadNewerChats(false);
+            return;
+        }
+
         InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
     }, [loadNewerChats]);
 
