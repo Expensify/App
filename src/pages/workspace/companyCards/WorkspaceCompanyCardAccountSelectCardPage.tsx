@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -31,12 +31,18 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const {policyID, cardID, bank} = route.params;
     const policy = usePolicy(policyID);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const [searchText, setSearchText] = useState('');
 
     const [allBankCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`);
     const card = allBankCards?.[cardID];
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy) ?? CONST.POLICY.CONNECTIONS.NAME.QBO;
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
+    const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    const searchedListOptions = useMemo(() => {
+        return exportMenuItem?.data.filter((option) => option.value.toLowerCase().includes(searchText));
+    }, [exportMenuItem?.data, searchText]);
 
     const listEmptyContent = useMemo(
         () => (
@@ -57,7 +63,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             if (!exportMenuItem?.exportType) {
                 return;
             }
-            CompanyCards.setCompanyCardExportAccount(workspaceAccountID, cardID, exportMenuItem.exportType, value, bank);
+            CompanyCards.setCompanyCardExportAccount(policyID, workspaceAccountID, cardID, exportMenuItem.exportType, value, bank);
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank));
         },
@@ -69,10 +75,10 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             policyID={policyID}
             headerContent={
                 <View style={[styles.mh5, styles.mb3]}>
-                    {exportMenuItem?.description && (
+                    {!!exportMenuItem?.description && (
                         <Text style={[styles.textNormal]}>
                             {translate('workspace.moreFeatures.companyCards.integrationExportTitleFirstPart', {integration: exportMenuItem.description})}{' '}
-                            {exportMenuItem && (
+                            {!!exportMenuItem && (
                                 <TextLink
                                     style={styles.link}
                                     onPress={exportMenuItem.onExportPagePress}
@@ -87,14 +93,18 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             }
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
             displayName={WorkspaceCompanyCardAccountSelectCardPage.displayName}
-            sections={[{data: exportMenuItem?.data ?? []}]}
+            sections={[{data: searchedListOptions ?? []}]}
             listItem={RadioListItem}
+            textInputLabel={translate('common.search')}
+            textInputValue={searchText}
+            onChangeText={setSearchText}
             onSelectRow={updateExportAccount}
             initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank))}
             headerTitleAlreadyTranslated={exportMenuItem?.description}
             listEmptyContent={listEmptyContent}
             connectionName={connectedIntegration}
+            shouldShowTextInput={shouldShowTextInput}
         />
     );
 }

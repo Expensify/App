@@ -109,14 +109,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
     }, [navigateBackTo]);
 
-    const sendValidateCode = () => {
-        if (loginData?.validateCodeSent) {
-            return;
-        }
-
-        User.requestValidateCodeAction();
-    };
-
     return (
         <AccessOrNotFoundWrapper shouldBeBlocked={isActingAsDelegate}>
             <ScreenWrapper
@@ -176,9 +168,10 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                         setIsValidateCodeActionModalVisible(false);
                     }}
                     isVisible={isValidateCodeActionModalVisible}
-                    title={contactMethod}
-                    sendValidateCode={sendValidateCode}
-                    description={translate('contacts.enterMagicCode', {contactMethod})}
+                    hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
+                    title={translate('delegate.makeSureItIsYou')}
+                    sendValidateCode={() => User.requestValidateCodeAction()}
+                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
