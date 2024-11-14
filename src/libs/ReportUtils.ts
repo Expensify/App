@@ -8436,7 +8436,7 @@ function shouldUnmaskChat(participantsContext: OnyxEntry<PersonalDetailsList>, r
             if (contextAccountData) {
                 const login = contextAccountData.login ?? '';
 
-                if (login.endsWith(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN) ?? login.endsWith(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN)) {
+                if (login.endsWith(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN) || login.endsWith(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN)) {
                     teamInChat = true;
                 } else {
                     userInChat = true;
