@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {PolicySelector, ReportActionsSelector} from '@hooks/useReportIDs';
+import type {PolicySelector} from '@hooks/useReportIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, TransactionViolation} from '@src/types/onyx';
@@ -79,6 +79,10 @@ type MiniReport = {
     lastVisibleActionCreated?: string;
 };
 
+function ensureSingleSpacing(text: string) {
+    return text.replace(CONST.REGEX.WHITESPACE, ' ').trim();
+}
+
 /**
  * @returns An array of reportIDs sorted in the proper order
  */
@@ -88,7 +92,6 @@ function getOrderedReportIDs(
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PolicySelector>,
     priorityMode: OnyxEntry<PriorityMode>,
-    allReportActions: OnyxCollection<ReportActionsSelector>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
@@ -107,7 +110,7 @@ function getOrderedReportIDs(
             return;
         }
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-        const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
+        const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
         const isHidden = ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const hasErrorsOtherThanFailedReceipt = ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations);
@@ -236,22 +239,11 @@ function getReasonAndReportActionThatHasRedBrickRoad(
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     const {errors, reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
-    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, ReportActionsUtils.getAllReportActions(report.reportID));
 
-    if (oneTransactionThreadReportID) {
-        const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
-
-        if (
-            ReportUtils.shouldDisplayTransactionThreadViolations(
-                oneTransactionThreadReport,
-                transactionViolations,
-                ReportActionsUtils.getAllReportActions(report.reportID)[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
-            )
-        ) {
-            return {
-                reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
-            };
-        }
+    if (ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
+        return {
+            reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
+        };
     }
 
     if (hasErrors) {
@@ -549,9 +541,11 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
             welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne');
             welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo');
             welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree');
-            welcomeMessage.messageText = `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${ReportUtils.getPolicyName(
-                report,
-            )} ${welcomeMessage.phrase3}`;
+            welcomeMessage.messageText = ensureSingleSpacing(
+                `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${ReportUtils.getPolicyName(report)} ${
+                    welcomeMessage.phrase3
+                }`,
+            );
         }
         return welcomeMessage;
     }
@@ -593,7 +587,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
         })
         .join(' ');
 
-    welcomeMessage.messageText = displayNamesWithTooltips.length ? `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}` : '';
+    welcomeMessage.messageText = displayNamesWithTooltips.length ? ensureSingleSpacing(`${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`) : '';
     return welcomeMessage;
 }
 
@@ -641,7 +635,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
     }
-    welcomeMessage.messageText = `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`;
+    welcomeMessage.messageText = ensureSingleSpacing(`${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`);
 
     return welcomeMessage;
 }

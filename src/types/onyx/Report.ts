@@ -3,7 +3,6 @@ import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type * as OnyxCommon from './OnyxCommon';
-import type PersonalDetails from './PersonalDetails';
 import type {PolicyReportField} from './Policy';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
@@ -83,9 +82,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report has a child task that is awaiting action from the current user */
         hasOutstandingChildTask?: boolean;
 
-        /** List of icons for report participants */
-        icons?: OnyxCommon.Icon[];
-
         /** Whether the user is not an admin of policyExpenseChat chat */
         isOwnPolicyExpenseChat?: boolean;
 
@@ -98,14 +94,8 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The text of the last message on the report */
         lastMessageText?: string;
 
-        /** The timestamp of the last message on the report */
-        lastMessageTimestamp?: number;
-
         /** The time of the last message on the report */
         lastVisibleActionCreated?: string;
-
-        /** The time of the last read of the report */
-        lastReadCreated?: string;
 
         /** The time when user read the last message */
         lastReadTime?: string;
@@ -160,9 +150,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The report type */
         type?: string;
-
-        /** If the admin room should be opened */
-        openOnAdminRoom?: boolean;
 
         /** The report visibility */
         visibility?: RoomVisibility;
@@ -236,14 +223,8 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is cancelled */
         isCancelledIOU?: boolean;
 
-        /** Whether the last message was deleted */
-        isLastMessageDeletedParentAction?: boolean;
-
         /** The ID of the IOU report */
         iouReportID?: string;
-
-        /** Total amount of money owed for IOU report */
-        iouReportAmount?: number;
 
         /** The ID of the preexisting report (it is possible that we optimistically created a Report for which a report already exists) */
         preexistingReportID?: string;
@@ -254,23 +235,11 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is hidden from options list */
         isHidden?: boolean;
 
-        /** Whether the report is a chat room */
-        isChatRoom?: boolean;
-
-        /** Collection of participants personal details */
-        participantsList?: PersonalDetails[];
-
-        /** Text to be displayed in options list, which matches reportName by default */
-        text?: string;
-
         /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;
 
         /** Whether participants private notes are being currently loaded */
         isLoadingPrivateNotes?: boolean;
-
-        /** Whether the report is currently selected in the options list */
-        selected?: boolean;
 
         /** Pending members of the report */
         pendingChatMembers?: PendingChatMember[];
@@ -299,12 +268,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is archived */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived?: string;
-
-        /** Participant account id's */
-        participantAccountIDs?: number[];
-
-        /** Visible chat member account id's */
-        visibleChatMemberAccountIDs?: number[];
     },
     PolicyReportField['fieldID']
 >;

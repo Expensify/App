@@ -248,6 +248,9 @@ type SettingsNavigatorParamList = {
         featureName: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.DOWNGRADE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
         backTo?: Routes;
@@ -1391,6 +1394,9 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.PER_DIEM]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
     };
@@ -1546,6 +1552,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
             type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
             accountID: string;
             isAuthTokenRequired?: string;
+            fileName?: string;
         };
         [SCREENS.PROFILE_AVATAR]: {
             accountID: string;
