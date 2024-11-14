@@ -419,7 +419,6 @@ type OptimisticTaskReport = Pick<
     | 'hasParentAccess'
 >;
 
-
 type TransactionDetails = {
     created: string;
     amount: number;
