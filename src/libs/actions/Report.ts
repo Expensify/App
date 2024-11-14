@@ -716,7 +716,6 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 avatarUrl: file ? file?.uri ?? '' : null,
-                avatarFileName: file ? file?.name ?? '' : null,
                 pendingFields: {
                     avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -725,19 +724,33 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
+                avatarFileName: file ? file?.name ?? '' : null,
+            },
+        },
     ];
 
     const fetchedReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const fetchedReportMetadata = ReportUtils.getAllReportsMetadata()?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 avatarUrl: fetchedReport?.avatarUrl ?? null,
-                avatarFileName: fetchedReport?.avatarFileName ?? null,
                 pendingFields: {
                     avatar: null,
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
+                avatarFileName: fetchedReportMetadata?.avatarFileName ?? null,
             },
         },
     ];

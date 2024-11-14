@@ -327,11 +327,11 @@ type OptimisticChatReport = Pick<
     | 'description'
     | 'writeCapability'
     | 'avatarUrl'
-    | 'avatarFileName'
     | 'invoiceReceiver'
     | 'isHidden'
 > & {
     isOptimisticReport: true;
+    avatarFileName?: string;
 };
 
 type OptimisticExportIntegrationAction = OriginalMessageExportedToIntegration &
@@ -8408,6 +8408,10 @@ function hasInvoiceReports() {
     return allReports.some((report) => isInvoiceReport(report));
 }
 
+function getAllReportsMetadata() {
+    return allReportMetadata;
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -8734,6 +8738,7 @@ export {
     getAllReportErrors,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
+    getAllReportsMetadata,
 };
 
 export type {
