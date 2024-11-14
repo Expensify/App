@@ -233,7 +233,7 @@ function getUpdatedAmountValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
 function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSearchHash: number} {
     let orderedQuery = '';
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${query.status}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
 
     query.flatFilters.forEach((filter) => {
         filter.filters.sort((a, b) => localeCompare(a.value.toString(), b.value.toString()));
@@ -295,7 +295,11 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
         const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
 
         if (queryFieldValue) {
-            queryParts.push(`${key}:${queryFieldValue}`);
+            if (Array.isArray(queryFieldValue)) {
+                queryParts.push(`${key}:${queryFieldValue.join(',')}`);
+            } else {
+                queryParts.push(`${key}:${queryFieldValue}`);
+            }
         }
     }
 
@@ -488,8 +492,16 @@ function buildFilterFormValuesFromQuery(
 
     const [typeKey = '', typeValue] = Object.entries(CONST.SEARCH.DATA_TYPES).find(([, value]) => value === queryJSON.type) ?? [];
     filtersForm[FILTER_KEYS.TYPE] = typeValue ? queryJSON.type : CONST.SEARCH.DATA_TYPES.EXPENSE;
-    const [statusKey] = Object.entries(CONST.SEARCH.STATUS).find(([, value]) => Object.values(value).includes(queryJSON.status)) ?? [];
-    filtersForm[FILTER_KEYS.STATUS] = typeKey === statusKey ? queryJSON.status : CONST.SEARCH.STATUS.EXPENSE.ALL;
+    const [statusKey] =
+        Object.entries(CONST.SEARCH.STATUS).find(([, value]) =>
+            Array.isArray(queryJSON.status) ? queryJSON.status.some((status) => Object.values(value).includes(status)) : Object.values(value).includes(queryJSON.status),
+        ) ?? [];
+
+    if (typeKey === statusKey) {
+        filtersForm[FILTER_KEYS.STATUS] = Array.isArray(queryJSON.status) ? queryJSON.status.join(',') : queryJSON.status;
+    } else {
+        filtersForm[FILTER_KEYS.STATUS] = CONST.SEARCH.STATUS.EXPENSE.ALL;
+    }
 
     if (queryJSON.policyID) {
         filtersForm[FILTER_KEYS.POLICY_ID] = queryJSON.policyID;
@@ -557,7 +569,7 @@ function buildUserReadableQueryString(
     const {type, status} = queryJSON;
     const filters = queryJSON.flatFilters ?? {};
 
-    let title = `type:${type} status:${status}`;
+    let title = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
 
     for (const filterObject of filters) {
         const key = filterObject.key;
@@ -605,7 +617,9 @@ function buildCannedSearchQuery({
     status?: SearchStatus;
     policyID?: string;
 } = {}): SearchQueryString {
-    const queryString = policyID ? `type:${type} status:${status} policyID:${policyID}` : `type:${type} status:${status}`;
+    const queryString = policyID
+        ? `type:${type} status:${Array.isArray(status) ? status.join(',') : status} policyID:${policyID}`
+        : `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
 
     // Parse the query to fill all default query fields with values
     const normalizedQueryJSON = buildSearchQueryJSON(queryString);

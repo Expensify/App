@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,7 +16,8 @@ import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeFo
 function ValidateCodeActionModal({
     isVisible,
     title,
-    description,
+    descriptionPrimary,
+    descriptionSecondary,
     onClose,
     onModalHide,
     validatePendingAction,
@@ -25,8 +27,10 @@ function ValidateCodeActionModal({
     footer,
     sendValidateCode,
     hasMagicCodeBeenSent,
+    isLoading,
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
     const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
 
@@ -67,8 +71,9 @@ function ValidateCodeActionModal({
                     onBackButtonPress={hide}
                 />
 
-                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
-                    <Text style={[themeStyles.mb3]}>{description}</Text>
+                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7, themeStyles.flex1]}>
+                    <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
+                    {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
                     <ValidateCodeForm
                         validateCodeAction={validateCodeAction}
                         validatePendingAction={validatePendingAction}
@@ -76,8 +81,10 @@ function ValidateCodeActionModal({
                         handleSubmitForm={handleSubmitForm}
                         sendValidateCode={sendValidateCode}
                         clearError={clearError}
+                        buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1, safePaddingBottomStyle]}
                         ref={validateCodeFormRef}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        isLoading={isLoading}
                     />
                 </View>
                 {footer?.()}

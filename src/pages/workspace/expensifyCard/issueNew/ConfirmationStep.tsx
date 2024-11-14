@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -6,6 +6,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +16,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,11 +35,14 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
-
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const validateError = ErrorUtils.getLatestErrorMessageField(issueNewCard);
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
+    const validateCodeSent = validateCodeAction?.validateCodeSent;
 
     const submitButton = useRef<View>(null);
 
@@ -53,8 +58,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         Card.clearIssueNewCardFlow();
     }, [backTo, policyID, isSuccessful]);
 
-    const submit = () => {
-        Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);
+    const submit = (validateCode: string) => {
+        Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, validateCode, data);
     };
 
     const errorMessage = ErrorUtils.getLatestErrorMessage(issueNewCard);
@@ -122,11 +127,32 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                         isAlertVisible={!!errorMessage}
                         isDisabled={isOffline}
                         isLoading={issueNewCard?.isLoading}
-                        onSubmit={submit}
+                        onSubmit={() => setIsValidateCodeActionModalVisible(true)}
                         buttonText={translate('workspace.card.issueCard')}
                     />
                 </View>
             </ScrollView>
+            {!!issueNewCard && (
+                <ValidateCodeActionModal
+                    handleSubmitForm={submit}
+                    isLoading={issueNewCard?.isLoading}
+                    sendValidateCode={() => User.requestValidateCodeAction()}
+                    validateError={validateError}
+                    hasMagicCodeBeenSent={validateCodeSent}
+                    clearError={() => {
+                        Card.clearIssueNewCardError(issueNewCard);
+                    }}
+                    onClose={() => {
+                        if (validateError) {
+                            Card.clearIssueNewCardError(issueNewCard);
+                        }
+                        setIsValidateCodeActionModalVisible(false);
+                    }}
+                    isVisible={isValidateCodeActionModalVisible}
+                    title={translate('cardPage.validateCardTitle')}
+                    descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+                />
+            )}
         </InteractiveStepWrapper>
     );
 }
