@@ -50,7 +50,7 @@ If Auto Renew is disabled then the last bill at the annual rate will be issued o
 # How to downgrade to a free account from an Individual Plan
 ## Web
 1. Log in to your account through a web browser.
-1. Go to **Settings > Policies > Individual > Subscription**.
+1. Go to **Settings > Workspaces > Individual > Subscription**.
 1. Click "Cancel Subscription" to end your Monthly Subscription.
 
 Note: Your subscription is a pre-purchase for 30 days of unlimited SmartScanning. This means that when you cancel, you do not get a refund and instead get to use the remainder of the month of unlimited SmartScanning you purchased.
