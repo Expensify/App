@@ -128,26 +128,13 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     }, [isValidateCodeFormSubmitting, session?.authToken, hybridApp?.useNewDotSignInPage, hybridApp?.newDotSignInState]);
 
     /**
-     * ustawianie stanu logowania OD na finished, jak używamy strony logowania
-     */
-    useEffect(() => {
-        if (!NativeModules.HybridAppModule || !hybridApp?.useNewDotSignInPage) {
-            return;
-        }
-
-        if (hybridApp?.oldDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.STARTED && !hybridApp?.isSigningIn) {
-            setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.FINISHED);
-        }
-    }, [hybridApp?.isSigningIn, hybridApp?.useNewDotSignInPage, hybridApp?.oldDotSignInState]);
-
-    /**
      * główny efekt obsługujacy kilka rzeczy
      * - odpalanie OD sign in po skończeniu logowania do ND
      * - jak chcemy używać ND to w tym momencie jesteśmy gotowi i pokazujemy auth screens
      * - jeśli skońćzyło się logowanie do OD i chcemy używać starej apki to zamykamy RN
      */
     useEffect(() => {
-        if (!NativeModules.HybridAppModule || !hybridApp?.useNewDotSignInPage) {
+        if (!NativeModules.HybridAppModule || !hybridApp?.useNewDotSignInPage || hybridApp?.oldDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.BLOCKED) {
             return;
         }
 
@@ -175,6 +162,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             if (hybridApp?.oldDotSignInError) {
                 return;
             }
+            console.log('closing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
             NativeModules.HybridAppModule.closeReactNativeApp(false, false);
         }
     }, [
