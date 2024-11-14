@@ -267,6 +267,7 @@ function ReportActionItemSingle({
                         />
                         <Text
                             numberOfLines={1}
+                            ellipsizeMode="tail"
                             style={[styles.chatItemMessageHeaderSender, styles.pre, styles.flexShrink0]}
                         >
                             {` & `}
