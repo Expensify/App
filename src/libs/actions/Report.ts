@@ -872,8 +872,8 @@ function openReport(
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
 
-    // Add guided setup data only when nvp_introSelected is set and guided setup is not completed
-    // OldDot users will never have introSelected set, so they will not see guided setup
+    // Prepare guided setup data only when nvp_introSelected is set and onboarding is not completed
+    // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages
     if (introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete) {
         const {choice, inviteType} = introSelected;
         const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
