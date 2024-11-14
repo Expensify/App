@@ -70,6 +70,7 @@ const selectableOnboardingChoices = {
 } as const;
 
 const backendOnboardingChoices = {
+    ADMIN: 'newDotAdmin',
     SUBMIT: 'newDotSubmit',
 } as const;
 
@@ -90,14 +91,14 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-const selfGuidedTourTask: OnboardingTaskType = {
+const selfGuidedTourTask: OnboardingTask = {
     type: 'viewTour',
     autoCompleted: false,
     title: 'Take a 2-minute tour',
     description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
 };
 
-const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
+const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     video: {
         url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back-v2.mp4`,
@@ -142,7 +143,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
     ],
 };
 
-const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessageType = {
+const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
     ...onboardingEmployerOrSubmitMessage,
     tasks: [
         {
@@ -180,7 +181,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessageTyp
     ],
 };
 
-const onboardingPersonalSpendMessage: OnboardingMessageType = {
+const onboardingPersonalSpendMessage: OnboardingMessage = {
     message: 'Here’s how to track your spend in a few clicks.',
     video: {
         url: `${CLOUDFRONT_URL}/videos/guided-setup-track-personal-v2.mp4`,
@@ -208,7 +209,7 @@ const onboardingPersonalSpendMessage: OnboardingMessageType = {
         },
     ],
 };
-const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessageType = {
+const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
     ...onboardingPersonalSpendMessage,
     tasks: [
         {
@@ -231,11 +232,11 @@ const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessageType =
     ],
 };
 
-type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
+type OnboardingPurpose = ValueOf<typeof onboardingChoices>;
 
-type OnboardingCompanySizeType = ValueOf<typeof onboardingCompanySize>;
+type OnboardingCompanySize = ValueOf<typeof onboardingCompanySize>;
 
-type OnboardingAccountingType = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
+type OnboardingAccounting = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -251,9 +252,9 @@ const onboardingCompanySize = {
     LARGE: '1001+',
 } as const;
 
-type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
+type OnboardingInvite = ValueOf<typeof onboardingInviteTypes>;
 
-type OnboardingTaskType = {
+type OnboardingTask = {
     type: string;
     autoCompleted: boolean;
     title:
@@ -278,10 +279,17 @@ type OnboardingTaskType = {
           ) => string);
 };
 
-type OnboardingMessageType = {
+type OnboardingMessage = {
+    /** Text message that will be displayed first */
     message: string;
+
+    /** Video object to be displayed after initial description message */
     video?: Video;
-    tasks: OnboardingTaskType[];
+
+    /** List of tasks connected with the message, they will have a checkbox and a separate report for more information */
+    tasks: OnboardingTask[];
+
+    /** Type of task described in a string format */
     type?: string;
 };
 
@@ -5055,18 +5063,67 @@ const CONST = {
                 },
             ],
         },
+        [onboardingChoices.ADMIN]: {
+            message: "As an admin, learn how to manage your team's workspace and submit expenses yourself.",
+            video: {
+                url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
+                duration: 55,
+                width: 1280,
+                height: 960,
+            },
+            tasks: [
+                {
+                    type: 'meetSetupSpecialist',
+                    autoCompleted: false,
+                    title: 'Meet your setup specialist',
+                    description:
+                        '*Meet your setup specialist* who can answer any questions as you get started with Expensify. Yes, a real human!' +
+                        '\n' +
+                        'Chat with them in your #admins room or schedule a call today.',
+                },
+                {
+                    type: 'reviewWorkspaceSettings',
+                    autoCompleted: false,
+                    title: 'Review your workspace settings',
+                    description:
+                        "Here's how to review and update your workspace settings:" +
+                        '\n' +
+                        '1. Click your profile picture.' +
+                        '2. Click *Workspaces* > [Your workspace].' +
+                        '\n' +
+                        "Make any changes there and we'll track them in the #admins room.",
+                },
+                {
+                    type: 'submitExpense',
+                    autoCompleted: false,
+                    title: 'Submit an expense',
+                    description:
+                        '*Submit an expense* by entering an amount or scanning a receipt.\n' +
+                        '\n' +
+                        'Here’s how to submit an expense:\n' +
+                        '\n' +
+                        '1. Click the green *+* button.\n' +
+                        '2. Choose *Submit expense*.\n' +
+                        '3. Enter an amount or scan a receipt.\n' +
+                        '4. Add your reimburser to the request.\n' +
+                        '\n' +
+                        'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
+                },
+            ],
+        },
         [onboardingChoices.LOOKING_AROUND]: {
             message:
                 "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
             tasks: [],
         },
-    } satisfies Record<OnboardingPurposeType, OnboardingMessageType>,
+    } satisfies Record<OnboardingPurpose, OnboardingMessage>,
 
     COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES: {
         [combinedTrackSubmitOnboardingChoices.PERSONAL_SPEND]: combinedTrackSubmitOnboardingPersonalSpendMessage,
         [combinedTrackSubmitOnboardingChoices.EMPLOYER]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
         [combinedTrackSubmitOnboardingChoices.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
-    } satisfies Record<ValueOf<typeof combinedTrackSubmitOnboardingChoices>, OnboardingMessageType>,
+    } satisfies Record<ValueOf<typeof combinedTrackSubmitOnboardingChoices>, OnboardingMessage>,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
@@ -5848,9 +5905,6 @@ const CONST = {
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
-            SUBMIT: 'submit',
-            APPROVE: 'approve',
-            PAY: 'pay',
             DONE: 'done',
             PAID: 'paid',
         },
@@ -6232,14 +6286,14 @@ export type {
     Country,
     IOUAction,
     IOUType,
-    OnboardingPurposeType,
-    OnboardingCompanySizeType,
+    OnboardingPurpose,
+    OnboardingCompanySize,
     IOURequestType,
     SubscriptionType,
     FeedbackSurveyOptionID,
     CancellationType,
-    OnboardingInviteType,
-    OnboardingAccountingType,
+    OnboardingInvite,
+    OnboardingAccounting,
 };
 
 export default CONST;

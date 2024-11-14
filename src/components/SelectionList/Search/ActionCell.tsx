@@ -4,7 +4,6 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,9 +15,6 @@ import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
     review: 'common.review',
-    submit: 'common.submit',
-    approve: 'iou.approve',
-    pay: 'iou.pay',
     done: 'common.done',
     paid: 'iou.settledExpensify',
 };
@@ -30,23 +26,13 @@ type ActionCellProps = {
     goToItem: () => void;
     isChildListItem?: boolean;
     parentAction?: string;
-    isLoading?: boolean;
 };
 
-function ActionCell({
-    action = CONST.SEARCH.ACTION_TYPES.VIEW,
-    isLargeScreenWidth = true,
-    isSelected = false,
-    goToItem,
-    isChildListItem = false,
-    parentAction = '',
-    isLoading = false,
-}: ActionCellProps) {
+function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true, isSelected = false, goToItem, isChildListItem = false, parentAction = ''}: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isOffline} = useNetwork();
 
     const text = translate(actionTranslationsMap[action]);
 
@@ -75,8 +61,9 @@ function ActionCell({
         );
     }
 
+    const buttonInnerStyles = isSelected ? styles.buttonDefaultHovered : {};
+
     if (action === CONST.SEARCH.ACTION_TYPES.VIEW || shouldUseViewAction) {
-        const buttonInnerStyles = isSelected ? styles.buttonDefaultHovered : {};
         return isLargeScreenWidth ? (
             <Button
                 text={translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW])}
@@ -90,19 +77,17 @@ function ActionCell({
         ) : null;
     }
 
-    const buttonInnerStyles = isSelected ? styles.buttonSuccessHovered : {};
-    return (
-        <Button
-            text={text}
-            onPress={goToItem}
-            small
-            style={[styles.w100]}
-            innerStyles={buttonInnerStyles}
-            isLoading={isLoading}
-            success
-            isDisabled={isOffline}
-        />
-    );
+    if (action === CONST.SEARCH.ACTION_TYPES.REVIEW) {
+        return (
+            <Button
+                text={text}
+                onPress={goToItem}
+                small
+                style={[styles.w100]}
+                innerStyles={buttonInnerStyles}
+            />
+        );
+    }
 }
 
 ActionCell.displayName = 'ActionCell';
