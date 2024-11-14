@@ -99,6 +99,7 @@ import type {
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
+    Onboarding,
     OnboardingPurpose,
     PersonalDetailsList,
     PolicyReportField,
@@ -108,7 +109,6 @@ import type {
     ReportActionReactions,
     ReportUserIsTyping,
 } from '@src/types/onyx';
-import Onboarding from '@src/types/onyx/Onboarding';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
