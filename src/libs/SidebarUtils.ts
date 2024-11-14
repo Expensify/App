@@ -127,8 +127,13 @@ function getOrderedReportIDs(
         }
         const isSystemChat = ReportUtils.isSystemChat(report);
         const shouldOverrideHidden =
+            hasValidDraftComment(report.reportID) ||
+            hasErrorsOtherThanFailedReceipt ||
+            isFocused ||
+            isSystemChat ||
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
+            report.isPinned ||
+            ReportUtils.requiresAttentionFromCurrentUser(report, parentReportAction);
         if (isHidden && !shouldOverrideHidden) {
             return;
         }
