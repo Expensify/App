@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import getReportIDFromUrl from './getReportIDFromUrl';
+import {getReportIDFromUrl} from './getReportIDFromUrl';
 
 export default function processReportIDDeeplink(url: string): string {
     const prevUrl = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL);
