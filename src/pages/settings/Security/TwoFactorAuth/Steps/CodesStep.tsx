@@ -1,3 +1,5 @@
+import type {RouteProp} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -15,10 +17,11 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {READ_COMMANDS} from '@libs/API/types';
 import Clipboard from '@libs/Clipboard';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
-import type {BackToParams} from '@libs/Navigation/types';
+import type {BackToParams, SettingsNavigatorParamList} from '@libs/Navigation/types';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import * as Session from '@userActions/Session';
@@ -26,6 +29,7 @@ import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type CodesStepProps = BackToParams;
@@ -46,6 +50,7 @@ function CodesStep({backTo}: CodesStepProps) {
 
     const isUserValidated = user?.validated;
     const contactMethod = account?.primaryLogin ?? '';
+    const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
 
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
@@ -71,7 +76,9 @@ function CodesStep({backTo}: CodesStepProps) {
                 text: translate('twoFactorAuth.stepCodes'),
                 total: 3,
             }}
-            onBackButtonPress={() => TwoFactorAuthActions.quitAndNavigateBack(backTo)}
+            // When the 2FA code step is open from Xero flow, we don't need to pass backTo because we build the necessary root route
+            // from the backTo param in the route (in getMatchingRootRouteForRHPRoute) and goBack will not need a fallbackRoute.
+            onBackButtonPress={() => TwoFactorAuthActions.quitAndNavigateBack(route?.params?.forwardTo?.includes(READ_COMMANDS.CONNECT_POLICY_TO_XERO) ? '' : backTo)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUserValidated && (
@@ -164,7 +171,8 @@ function CodesStep({backTo}: CodesStepProps) {
                 </FixedFooter>
                 <ValidateCodeActionModal
                     title={translate('contacts.validateAccount')}
-                    description={translate('contacts.featureRequiresValidate')}
+                    descriptionPrimary={translate('contacts.featureRequiresValidate')}
+                    descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
                     isVisible={!isUserValidated}
                     hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                     validatePendingAction={loginData?.pendingFields?.validateCodeSent}

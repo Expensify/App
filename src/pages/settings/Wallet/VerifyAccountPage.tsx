@@ -26,8 +26,6 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
-
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
     const navigateBackTo = route?.params?.backTo;
@@ -36,9 +34,9 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            User.validateLogin(accountID ?? 0, validateCode);
+            User.validateSecondaryLogin(loginList, contactMethod, validateCode);
         },
-        [accountID],
+        [loginList, contactMethod],
     );
 
     const clearError = useCallback(() => {
@@ -96,7 +94,8 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('contacts.validateAccount')}
-            description={translate('contacts.featureRequiresValidate')}
+            descriptionPrimary={translate('contacts.featureRequiresValidate')}
+            descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
             onClose={() => setIsValidateCodeActionModalVisible(false)}
             clearError={clearError}
         />
