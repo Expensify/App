@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
@@ -25,21 +24,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Card} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ActivatePhysicalCardPageOnyxProps = {
-    /** Card list propTypes */
-    cardList: OnyxEntry<Record<string, Card>>;
-};
-
-type ActivatePhysicalCardPageProps = ActivatePhysicalCardPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_ACTIVATE>;
+type ActivatePhysicalCardPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_ACTIVATE>;
 
 const LAST_FOUR_DIGITS_LENGTH = 4;
 const MAGIC_INPUT_MIN_HEIGHT = 86;
 
 function ActivatePhysicalCardPage({
-    cardList,
     route: {
         params: {cardID = ''},
     },
@@ -49,10 +41,12 @@ function ActivatePhysicalCardPage({
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const [formError, setFormError] = useState('');
     const [lastFourDigits, setLastFourDigits] = useState('');
     const [lastPressedDigit, setLastPressedDigit] = useState('');
+    const [shouldShowError, setShouldShowError] = useState<boolean>(false);
 
     const inactiveCard = cardList?.[cardID];
     const cardError = ErrorUtils.getLatestErrorMessage(inactiveCard ?? {});
@@ -70,7 +64,7 @@ function ActivatePhysicalCardPage({
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
     }, [cardID, cardList, inactiveCard?.isLoading, inactiveCard?.state]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         if (!inactiveCard?.cardID) {
             return;
         }
@@ -106,6 +100,7 @@ function ActivatePhysicalCardPage({
     };
 
     const submitAndNavigateToNextPage = useCallback(() => {
+        setShouldShowError(true);
         activateCardCodeInputRef.current?.blur();
 
         if (lastFourDigits.replace(CONST.MAGIC_CODE_EMPTY_CHAR, '').length !== LAST_FOUR_DIGITS_LENGTH) {
@@ -144,7 +139,7 @@ function ActivatePhysicalCardPage({
                     lastPressedDigit={lastPressedDigit}
                     onChangeText={onCodeInput}
                     onFulfill={submitAndNavigateToNextPage}
-                    errorText={formError || cardError}
+                    errorText={shouldShowError ? formError || cardError : ''}
                     ref={activateCardCodeInputRef}
                 />
             </View>
@@ -168,8 +163,4 @@ function ActivatePhysicalCardPage({
 
 ActivatePhysicalCardPage.displayName = 'ActivatePhysicalCardPage';
 
-export default withOnyx<ActivatePhysicalCardPageProps, ActivatePhysicalCardPageOnyxProps>({
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-})(ActivatePhysicalCardPage);
+export default ActivatePhysicalCardPage;
