@@ -1,10 +1,11 @@
 import debounce from 'lodash/debounce';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
-import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+const ReportConnection = () => import('@libs/ReportConnection');
 
 /**
  * This actions file is used to automatically switch a user into #focus mode when they exceed a certain number of reports. We do this primarily for performance reasons.
@@ -77,11 +78,13 @@ function resetHasReadRequiredDataFromStorage() {
 }
 
 function checkRequiredData() {
-    if (ReportConnection.getAllReports() === undefined || hasTriedFocusMode === undefined || isInFocusMode === undefined || isLoadingReportData) {
-        return;
-    }
+    ReportConnection().then((module) => {
+        if (module.getAllReports() === undefined || hasTriedFocusMode === undefined || isInFocusMode === undefined || isLoadingReportData) {
+            return;
+        }
 
-    resolveIsReadyPromise();
+        resolveIsReadyPromise();
+    });
 }
 
 function tryFocusModeUpdate() {
@@ -98,33 +101,36 @@ function tryFocusModeUpdate() {
         }
 
         const validReports = [];
-        const allReports = ReportConnection.getAllReports();
-        Object.keys(allReports ?? {}).forEach((key) => {
-            const report = allReports?.[key];
-            if (!report) {
+
+        ReportConnection().then((module) => {
+            const allReports = module.getAllReports();
+            Object.keys(allReports ?? {}).forEach((key) => {
+                const report = allReports?.[key];
+                if (!report) {
+                    return;
+                }
+
+                if (!ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID ?? -1, report)) {
+                    return;
+                }
+
+                validReports.push(report);
+            });
+
+            const reportCount = validReports.length;
+            if (reportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_UPDATE) {
+                Log.info('Not switching user to optimized focus mode as they do not have enough reports', false, {reportCount});
                 return;
             }
 
-            if (!ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID ?? -1, report)) {
-                return;
-            }
+            Log.info('Switching user to optimized focus mode', false, {reportCount, hasTriedFocusMode, isInFocusMode});
 
-            validReports.push(report);
+            // Record that we automatically switched them so we don't ask again.
+            hasTriedFocusMode = true;
+
+            // Setting this triggers a modal to open and notify the user.
+            Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, true);
         });
-
-        const reportCount = validReports.length;
-        if (reportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_UPDATE) {
-            Log.info('Not switching user to optimized focus mode as they do not have enough reports', false, {reportCount});
-            return;
-        }
-
-        Log.info('Switching user to optimized focus mode', false, {reportCount, hasTriedFocusMode, isInFocusMode});
-
-        // Record that we automatically switched them so we don't ask again.
-        hasTriedFocusMode = true;
-
-        // Setting this triggers a modal to open and notify the user.
-        Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, true);
     });
 }
 
