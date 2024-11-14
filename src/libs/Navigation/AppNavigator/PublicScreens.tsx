@@ -20,9 +20,9 @@ const RootStack = createStackNavigator<PublicScreensParamList>();
 function PublicScreens() {
     return (
         <RootStack.Navigator>
-            {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is BOTTOM_TAB_NAVIGATOR. */}
+            {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is REPORTS_SPLIT_NAVIGATOR. */}
             <RootStack.Screen
-                name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
+                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 options={defaultScreenOptions}
                 component={NativeModules.HybridAppModule ? SessionExpiredPage : SignInPage}
             />

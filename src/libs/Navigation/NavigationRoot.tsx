@@ -5,6 +5,7 @@ import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import Firebase from '@libs/Firebase';
@@ -92,6 +93,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         selector: hasCompletedGuidedSetupFlowSelector,
     });
 
+    const previousAuthenticated = usePrevious(authenticated);
+
     const initialState = useMemo(() => {
         if (!user || user.isFromPublicDomain) {
             return;
@@ -151,6 +154,22 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
 
         Navigation.setShouldPopAllStateOnUP(!shouldUseNarrowLayout);
     }, [shouldUseNarrowLayout]);
+
+    useEffect(() => {
+        // Since NAVIGATORS.REPORTS_SPLIT_NAVIGATOR is public,
+        // we should leave only one ReportsSplitNavigator in the navigation stack after logout.
+        const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
+        if (!hasUserLoggedOut) {
+            return;
+        }
+
+        const rootState = navigationRef.getRootState();
+        const lastRoute = rootState.routes.at(-1);
+        if (!lastRoute) {
+            return;
+        }
+        navigationRef.reset({...rootState, index: 0, routes: [{...lastRoute, params: {}}]});
+    }, [authenticated, previousAuthenticated]);
 
     const handleStateChange = (state: NavigationState | undefined) => {
         if (!state) {
