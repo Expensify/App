@@ -33,6 +33,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import NetworkConnection from '@libs/NetworkConnection';
+import {parseReportRouteParams} from '@libs/processReportIDDeeplink/getReportIDFromUrl';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
@@ -1127,7 +1128,7 @@ const canAnonymousUserAccessRoute = (route: string) => {
     if (reportID) {
         return true;
     }
-    const parsedReportRouteParams = ReportUtils.parseReportRouteParams(route);
+    const parsedReportRouteParams = parseReportRouteParams(route);
     let routeRemovedReportId = route;
     if ((parsedReportRouteParams as {reportID: string})?.reportID) {
         routeRemovedReportId = route.replace((parsedReportRouteParams as {reportID: string})?.reportID, ':reportID');

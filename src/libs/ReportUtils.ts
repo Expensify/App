@@ -81,11 +81,11 @@ import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
 import * as PolicyUtils from './PolicyUtils';
+import {parseReportRouteParams} from './processReportIDDeeplink/getReportIDFromUrl';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
 import * as TransactionUtils from './TransactionUtils';
-import * as Url from './Url';
 import type {AvatarSource} from './UserUtils';
 import * as UserUtils from './UserUtils';
 
@@ -185,11 +185,6 @@ type OptimisticIOUReportAction = Pick<
 >;
 
 type PartialReportAction = OnyxInputOrEntry<ReportAction> | Partial<ReportAction> | OptimisticIOUReportAction | OptimisticApprovedReportAction | OptimisticSubmittedReportAction | undefined;
-
-type ReportRouteParams = {
-    reportID: string;
-    isSubReportPageRoute: boolean;
-};
 
 type ReportOfflinePendingActionAndErrors = {
     reportPendingAction: PendingAction | undefined;
@@ -6872,33 +6867,6 @@ function getRouteFromLink(url: string | null): string {
     return route;
 }
 
-function parseReportRouteParams(route: string): ReportRouteParams {
-    let parsingRoute = route;
-    if (parsingRoute.at(0) === '/') {
-        // remove the first slash
-        parsingRoute = parsingRoute.slice(1);
-    }
-
-    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash(ROUTES.REPORT))) {
-        return {reportID: '', isSubReportPageRoute: false};
-    }
-
-    const pathSegments = parsingRoute.split('/');
-
-    const reportIDSegment = pathSegments.at(1);
-    const hasRouteReportActionID = !Number.isNaN(Number(reportIDSegment));
-
-    // Check for "undefined" or any other unwanted string values
-    if (!reportIDSegment || reportIDSegment === 'undefined') {
-        return {reportID: '', isSubReportPageRoute: false};
-    }
-
-    return {
-        reportID: reportIDSegment,
-        isSubReportPageRoute: pathSegments.length > 2 && !hasRouteReportActionID,
-    };
-}
-
 function getReportIDFromLink(url: string | null): string {
     const route = getRouteFromLink(url);
     const {reportID, isSubReportPageRoute} = parseReportRouteParams(route);
@@ -8689,7 +8657,6 @@ export {
     navigateToDetailsPage,
     navigateToPrivateNotes,
     navigateBackAfterDeleteTransaction,
-    parseReportRouteParams,
     parseReportActionHtmlToText,
     requiresAttentionFromCurrentUser,
     shouldAutoFocusOnKeyPress,
@@ -8765,4 +8732,5 @@ export type {
     TransactionDetails,
     PartialReportAction,
     ParsingDetails,
+    OutstandingChildRequest,
 };
