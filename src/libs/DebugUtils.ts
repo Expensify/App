@@ -470,7 +470,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'lastVisibleActionLastModified':
         case 'displayName':
         case 'lastMessageHtml':
-        case 'ownerEmail':
         case 'currency':
         case 'iouReportID':
         case 'preexistingReportID':
@@ -653,7 +652,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 lastActorAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastActionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 ownerAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                ownerEmail: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 total: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
