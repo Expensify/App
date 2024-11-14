@@ -61,6 +61,7 @@ const INPUT_IDS = {
         ACCOUNT_HOLDER_COUNTRY: 'accountHolderCountry',
         COUNTRY: 'country',
         CORPAY: {
+            ACCOUNT_HOLDER_COUNTRY: 'accountHolderCountry',
             SWIFT_CODE: 'swiftCode',
             BANK_NAME: 'bankName',
             BANK_CITY: 'bankCity',
@@ -195,6 +196,8 @@ type ReimbursementAccountProps = {
 type NonUSDReimbursementAccountAdditionalProps = {
     /** Country of the reimbursement account */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
+    /** Country of the account holder */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: Country | '';
 
     /** SWIFT code */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_CODE]: string;
@@ -208,8 +211,8 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Bank address line 1 */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_ADDRESS_LINE_1]: string;
 
-    /** Bank statement */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: string;
+    /** Bank statement file */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
 
     /** Company name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;

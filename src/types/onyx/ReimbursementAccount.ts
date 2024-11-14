@@ -23,8 +23,6 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_CITY]: string;
     /** Bank address - street and zip code */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_ADDRESS_LINE_1]: string;
-    /** URL to uploaded bank statement */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: string;
     /** Company name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
     /** Company address - street */
@@ -129,6 +127,8 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.CONSENT_TO_PRIVACY_NOTICE]: boolean;
     /** Checkbox - authorized to bind to client to agreement */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT]: boolean;
+    /** Bank statement */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
 };
 
 /** Model of Additional data */
