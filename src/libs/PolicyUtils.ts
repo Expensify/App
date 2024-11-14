@@ -12,23 +12,24 @@ import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, Pol
 import type {CardFeedData} from '@src/types/onyx/CardFeeds';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
-  ConnectionLastSync,
-  ConnectionName,
-  Connections,
-  CustomUnit,
-  InvoiceItem,
-  NetSuiteAccount,
-  NetSuiteConnection,
-  NetSuiteCustomList,
-  NetSuiteCustomSegment,
-  NetSuiteTaxAccount,
-  NetSuiteVendor,
-  PolicyConnectionSyncProgress,
-  PolicyFeatureName,
-  Rate, SageIntacctDataElement,
-  SageIntacctDataElementWithValue,
-  Tenant
-} from "@src/types/onyx/Policy";
+    ConnectionLastSync,
+    ConnectionName,
+    Connections,
+    CustomUnit,
+    InvoiceItem,
+    NetSuiteAccount,
+    NetSuiteConnection,
+    NetSuiteCustomList,
+    NetSuiteCustomSegment,
+    NetSuiteTaxAccount,
+    NetSuiteVendor,
+    PolicyConnectionSyncProgress,
+    PolicyFeatureName,
+    Rate,
+    SageIntacctDataElement,
+    SageIntacctDataElementWithValue,
+    Tenant,
+} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
