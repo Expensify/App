@@ -3,7 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -224,16 +224,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
     const canUnapproveRequest =
         ReportUtils.isExpenseReport(report) && (ReportUtils.isReportManager(report) || isPolicyAdmin) && ReportUtils.isReportApproved(report) && !PolicyUtils.isSubmitAndClose(policy);
-
-    useEffect(() => {
-        return () => {
-            if (!isTransactionDeleted.current) {
-                return;
-            }
-
-            deleteTransaction();
-        };
-    }, []);
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -804,48 +794,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         </OfflineWithFeedback>
     );
 
-    // A flag to indicate whether the user choose to delete the transaction or not
-    const isTransactionDeleted = useRef<boolean>(false);
-    // Where to go back after deleting the transaction and its report. It's empty if the transaction report isn't deleted.
-    const navigateBackToAfterDelete = useRef<Route>();
-
-    // Where to go back after deleting the transaction and its report.
-    const navigateToTargetUrl = useCallback(() => {
-        setIsDeleteModalVisible(false);
-        isTransactionDeleted.current = true;
-
-        let urlToNavigateBack: string | undefined;
-
-        if (caseID === CASES.DEFAULT) {
-            urlToNavigateBack = Task.getNavigationUrlAfterTaskDelete(report);
-            Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, urlToNavigateBack);
-            if (urlToNavigateBack) {
-                Navigation.goBack(urlToNavigateBack as Route);
-            } else {
-                Navigation.dismissModal();
-            }
-            return;
-        }
-
-        if (!requestParentReportAction) {
-            return;
-        }
-
-        const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
-        if (isTrackExpense) {
-            urlToNavigateBack = IOU.getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
-        } else {
-            urlToNavigateBack = IOU.getNavigationUrlAfterMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
-        }
-        Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, urlToNavigateBack);
-
-        if (!urlToNavigateBack) {
-            Navigation.dismissModal();
-        } else {
-            ReportUtils.navigateBackAfterDeleteTransaction(urlToNavigateBack as Route, true);
-        }
-    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView, setIsDeleteModalVisible, isTransactionDeleted]);
-
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
             Task.deleteTask(report);
@@ -864,6 +812,57 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
         }
     }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, report, requestParentReportAction]);
+
+    // A flag to indicate whether the user choose to delete the transaction or not
+    const isTransactionDeleted = useRef<boolean>(false);
+
+    useEffect(() => {
+        return () => {
+            // Perform the actual deletion after the details page is unmounted. This prevents the [Deleted ...] text from briefly appearing when dismissing the modal.
+            if (!isTransactionDeleted.current) {
+                return;
+            }
+
+            deleteTransaction();
+        };
+    }, [deleteTransaction]);
+
+    // Where to go back after deleting the transaction and its report.
+    const navigateToTargetUrl = useCallback(() => {
+        setIsDeleteModalVisible(false);
+        isTransactionDeleted.current = true;
+
+        let urlToNavigateBack: string | undefined;
+
+        if (caseID === CASES.DEFAULT) {
+            urlToNavigateBack = Task.getNavigationUrlAfterTaskDelete(report);
+            if (urlToNavigateBack) {
+                Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
+                Navigation.goBack(urlToNavigateBack as Route);
+            } else {
+                Navigation.dismissModal();
+            }
+            return;
+        }
+
+        if (!requestParentReportAction) {
+            return;
+        }
+
+        const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
+        if (isTrackExpense) {
+            urlToNavigateBack = IOU.getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
+        } else {
+            urlToNavigateBack = IOU.getNavigationUrlAfterMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+        }
+
+        if (!urlToNavigateBack) {
+            Navigation.dismissModal();
+        } else {
+            Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
+            ReportUtils.navigateBackAfterDeleteTransaction(urlToNavigateBack as Route, true);
+        }
+    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView, setIsDeleteModalVisible, isTransactionDeleted]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
