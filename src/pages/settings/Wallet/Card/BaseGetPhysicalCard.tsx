@@ -140,7 +140,8 @@ function BaseGetPhysicalCard({
     useEffect(() => {
         // Current step of the get physical card flow should be the confirmation page; and
         // Card has NOT_ACTIVATED state when successfully being issued so cardToBeIssued should be undefined
-        if (!isConfirmation || !!cardToBeIssued || !currentCardID) {
+        // -1 is not a valid cardID, we don't need to clean up the form value in that case.
+        if (!isConfirmation || !!cardToBeIssued || !currentCardID || currentCardID === '-1') {
             return;
         }
 
