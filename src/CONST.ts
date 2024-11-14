@@ -2811,6 +2811,7 @@ const CONST = {
             ALLOW: 'personal',
         },
         CARD_LIST_THRESHOLD: 8,
+        EXPORT_DEFAULT_CARD: 'Default Card',
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
