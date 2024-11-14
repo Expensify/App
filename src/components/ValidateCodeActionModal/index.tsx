@@ -43,13 +43,14 @@ function ValidateCodeActionModal({
     }, [onClose, clearError]);
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!firstRenderRef.current || !isVisible || hasMagicCodeBeenSent || isAddingNewContact) {
             return;
         }
         firstRenderRef.current = false;
 
         sendValidateCode();
-    }, [isVisible, sendValidateCode, hasMagicCodeBeenSent]);
+    }, [isVisible, sendValidateCode, hasMagicCodeBeenSent, isAddingNewContact]);
 
     return (
         <Modal
