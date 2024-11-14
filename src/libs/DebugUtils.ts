@@ -1259,13 +1259,13 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
         throw SyntaxError('debug.missingValue');
     }
     switch (key) {
-        case 'type': {
+        case 'type':
             return validateConstantEnum(value, CONST.VIOLATION_TYPES);
-        }
-        case 'name': {
+
+        case 'name':
             return validateConstantEnum(value, CONST.VIOLATIONS);
-        }
-        case 'data': {
+
+        case 'data':
             return validateObject<ObjectElement<TransactionViolation, 'data'>>(value, {
                 rejectedBy: 'string',
                 rejectReason: 'string',
@@ -1291,7 +1291,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 rterType: CONST.RTER_VIOLATION_TYPES,
                 tooltip: 'string',
             });
-        }
+        case 'showInReview':
+            return validateBoolean(value);
     }
 }
 
