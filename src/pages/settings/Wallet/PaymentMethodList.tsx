@@ -154,7 +154,7 @@ function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], item: P
     // Find all payment methods that are marked as default
     const defaultPaymentMethods = filteredPaymentMethods.filter((method: PaymentMethod) => !!method.isDefault);
 
-    // If there are two or more default payment methods, show the default badge only for the most recently added default account.
+    // If there is more than one payment method, show the default badge only for the most recently added default account.
     if (defaultPaymentMethods.length > 1) {
         if (item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
             return item.accountData?.bankAccountID === walletLinkedAccountID;
