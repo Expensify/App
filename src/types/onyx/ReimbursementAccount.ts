@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
@@ -55,6 +56,9 @@ type Corpay = {
 
     /** Company annual volume */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME]: string;
+
+    /** Bank statement */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
 };
 
 /** Additional data where details of the non-USD reimbursements account are stored */
