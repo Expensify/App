@@ -45,8 +45,8 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                 />
             </View>
 
-            <View style={[styles.flexRow, styles.mh5, styles.gap5, styles.p4]}>
-                <View style={[styles.flexRow, styles.flex5, styles.gap2, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, styles.mh5, styles.gap2, styles.p4]}>
+                <View style={[styles.flexRow, styles.flex4, styles.gap2, styles.alignItemsCenter]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.textLabelSupporting, styles.lh16]}

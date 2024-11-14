@@ -3650,7 +3650,7 @@ const translations = {
                 fixedAmount: 'Fixed amount',
                 fixedAmountDescription: 'Spend up to a certain amount once',
                 setLimit: 'Set a limit',
-                cardLimitError: 'Please enter an amount less than $10,000,000',
+                cardLimitError: 'Please enter an amount less than $21,474,836',
                 giveItName: 'Give it a name',
                 giveItNameInstruction: 'Make it unique enough to tell apart from other cards. Specific use cases are even better!',
                 cardName: 'Card name',
