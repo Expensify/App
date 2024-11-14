@@ -7963,7 +7963,7 @@ function getQuickActionDetails(
     }
     return {
         quickActionAvatars,
-        hideQABSubtitle, 
+        hideQABSubtitle,
     };
 }
 
