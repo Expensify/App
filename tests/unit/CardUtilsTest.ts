@@ -161,16 +161,28 @@ describe('CardUtils', () => {
     });
 
     describe('getSelectedFeed', () => {
-        it('Should return last selected feed', () => {
-            const lastSelectedFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
-            const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeedsCollection.FAKE_ID_1);
-            expect(selectedFeed).toBe(lastSelectedFeed);
+        it('Should return last selected custom feed', () => {
+            const lastSelectedCustomFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const selectedFeed = CardUtils.getSelectedFeed(lastSelectedCustomFeed, cardFeedsCollection.FAKE_ID_1);
+            expect(selectedFeed).toBe(lastSelectedCustomFeed);
         });
 
-        it('Should return the first available feed if lastSelectedFeed is undefined', () => {
+        it('Should return last selected direct feed', () => {
+            const lastSelectedDirectFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            const selectedFeed = CardUtils.getSelectedFeed(lastSelectedDirectFeed, cardFeedsCollection.FAKE_ID_1);
+            expect(selectedFeed).toBe(lastSelectedDirectFeed);
+        });
+
+        it('Should return the first available custom feed if lastSelectedFeed is undefined', () => {
             const lastSelectedFeed = undefined;
-            const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeedsCollection.FAKE_ID_1);
+            const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeedsCollection.FAKE_ID_3);
             expect(selectedFeed).toBe(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD);
+        });
+
+        it('Should return the first available direct feed if lastSelectedFeed is undefined', () => {
+            const lastSelectedFeed = undefined;
+            const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeedsCollection.FAKE_ID_2);
+            expect(selectedFeed).toBe(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE);
         });
 
         it('Should return undefined if lastSelectedFeed is undefined and there is no card feeds', () => {
