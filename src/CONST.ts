@@ -1298,6 +1298,10 @@ const CONST = {
         LIGHT_CONTENT: 'light-content',
         DARK_CONTENT: 'dark-content',
     },
+    NAVIGATION_BAR_BUTTONS_STYLE: {
+        LIGHT: 'light',
+        DARK: 'dark',
+    },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Expense',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
