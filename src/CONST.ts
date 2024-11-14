@@ -6062,6 +6062,17 @@ const CONST = {
         ILLUSTRATION: 'illustration',
         VIDEO: 'video',
     },
+    REPORT_FIELDS_FEATURE: {
+        qbo: {
+            classes: 'report-fields-qbo-classes',
+            customers: 'report-fields-qbo-customers',
+            locations: 'report-fields-qbo-locations',
+        },
+        xero: {
+            costCentres: 'report-fields-xero-costCentres',
+            region: 'report-fields-xero-region',
+        },
+    },
     get UPGRADE_FEATURE_INTRO_MAPPING() {
         return {
             reportFields: {
