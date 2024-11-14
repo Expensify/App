@@ -225,7 +225,7 @@ function BaseVideoPlayer({
             const currentDuration = status.durationMillis || videoDuration * 1000;
             const currentPositon = status.positionMillis || 0;
 
-            if (shouldReplayVideo(status, isVideoPlaying, currentDuration, currentPositon)) {
+            if (shouldReplayVideo(status, isVideoPlaying, currentDuration, currentPositon) && !isEnded) {
                 videoPlayerRef.current?.setStatusAsync({positionMillis: 0, shouldPlay: true});
             }
 
