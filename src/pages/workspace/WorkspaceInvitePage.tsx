@@ -73,6 +73,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
             FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
         });
+
         return unsubscribe;
     }, [navigation, route.params.policyID]);
 
