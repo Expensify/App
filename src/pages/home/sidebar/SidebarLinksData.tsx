@@ -1,11 +1,8 @@
 import {useIsFocused} from '@react-navigation/native';
-import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
-import type {ValueOf} from 'type-fest';
 import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
 import useLocalize from '@hooks/useLocalize';
 import {useReportIDs} from '@hooks/useReportIDs';
