@@ -6353,8 +6353,8 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     const allReports = Object.values(ReportConnection.getAllReports() ?? {});
     const potentialReports = allReports.filter((r) => r?.ownerAccountID === currentUserAccountID && (r?.stateNum ?? 0) <= 1 && r?.policyID === report.policyID);
     return potentialReports.some(
-        (potentialReport) => 
-            potentialReport?.reportID && hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
+        (potentialReport) =>
+            (potentialReport?.reportID && hasViolations(potentialReport.reportID, transactionViolations)) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
     );
 }
 
