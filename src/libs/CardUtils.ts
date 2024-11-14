@@ -131,6 +131,22 @@ function maskCard(lastFour = ''): string {
 }
 
 /**
+ * Returns a masked credit card string.
+ * Converts given 'X' to '•' for the entire card string.
+ *
+ * @param cardName - card name with XXXX in the middle.
+ * @returns - The masked card string.
+ */
+function maskCardNumber(cardName: string): string {
+    if (!cardName || cardName === '') {
+        return '';
+    }
+    const hasSpace = /\s/.test(cardName);
+    const maskedString = cardName.replace(/X/g, '•');
+    return hasSpace ? cardName : maskedString.replace(/(.{4})/g, '$1 ').trim();
+}
+
+/**
  * Finds physical card in a list of cards
  *
  * @returns a physical card object (or undefined if none is found)
@@ -185,27 +201,27 @@ function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, per
     });
 }
 
-function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: string): string {
+function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: string, cardName = ''): string {
     if (!lastFourPAN) {
         return '';
     }
 
-    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? maskCard(lastFourPAN);
+    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? cardName;
 }
 
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK): IconAsset {
     const feedIcons = {
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: Illustrations.VisaCompanyCardDetail,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: Illustrations.AmexCardCompanyCardDetail,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: Illustrations.MasterCardCompanyCardDetail,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: Illustrations.AmexCardCompanyCardDetail,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: Illustrations.BankOfAmericaCompanyCardDetail,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: Illustrations.CapitalOneCompanyCardDetail,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: Illustrations.ChaseCompanyCardDetail,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: Illustrations.CitibankCompanyCardDetail,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: Illustrations.WellsFargoCompanyCardDetail,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: Illustrations.BrexCompanyCardDetail,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: Illustrations.StripeCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: Illustrations.VisaCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: Illustrations.AmexCardCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: Illustrations.MasterCardCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: Illustrations.AmexCardCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: Illustrations.BankOfAmericaCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: Illustrations.CapitalOneCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: Illustrations.ChaseCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: Illustrations.CitibankCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: Illustrations.WellsFargoCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: Illustrations.BrexCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: Illustrations.StripeCompanyCardDetailLarge,
         [CONST.EXPENSIFY_CARD.BANK]: ExpensifyCardImage,
     };
 
@@ -313,6 +329,7 @@ export {
     getMonthFromExpirationDateString,
     getYearFromExpirationDateString,
     maskCard,
+    maskCardNumber,
     getCardDescription,
     findPhysicalCard,
     hasDetectedFraud,

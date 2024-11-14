@@ -28,7 +28,6 @@ const INPUT_IDS = {
     NOTIFICATION_PREFERENCE: 'notificationPreference',
     OLD_POLICY_NAME: 'oldPolicyName',
     OWNER_ACCOUNT_ID: 'ownerAccountID',
-    PARTICIPANT_ACCOUNT_IDS: 'participantAccountIDs',
     PARTICIPANTS: 'participants',
     PERMISSIONS: 'permissions',
     POLICY_AVATAR: 'policyAvatar',
@@ -44,7 +43,6 @@ const INPUT_IDS = {
     TOTAL: 'total',
     TYPE: 'type',
     UNHELD_TOTAL: 'unheldTotal',
-    VISIBLE_CHAT_MEMBER_ACCOUNT_IDS: 'visibleChatMemberAccountIDs',
     WELCOME_MESSAGE: 'welcomeMessage',
     WRITE_CAPABILITY: 'writeCapability',
 } as const;
@@ -79,7 +77,6 @@ type DebugReportForm = Form<
         [INPUT_IDS.NOTIFICATION_PREFERENCE]: ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
         [INPUT_IDS.OLD_POLICY_NAME]: string;
         [INPUT_IDS.OWNER_ACCOUNT_ID]: string;
-        [INPUT_IDS.PARTICIPANT_ACCOUNT_IDS]: string;
         [INPUT_IDS.PARTICIPANTS]: string;
         [INPUT_IDS.PERMISSIONS]: string;
         [INPUT_IDS.POLICY_AVATAR]: string;
@@ -94,7 +91,6 @@ type DebugReportForm = Form<
         [INPUT_IDS.TOTAL]: string;
         [INPUT_IDS.TYPE]: ValueOf<typeof CONST.REPORT.TYPE>;
         [INPUT_IDS.UNHELD_TOTAL]: string;
-        [INPUT_IDS.VISIBLE_CHAT_MEMBER_ACCOUNT_IDS]: string;
         [INPUT_IDS.WELCOME_MESSAGE]: string;
         [INPUT_IDS.WRITE_CAPABILITY]: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
     }

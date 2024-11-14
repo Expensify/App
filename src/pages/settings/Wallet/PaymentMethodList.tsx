@@ -226,7 +226,7 @@ function PaymentMethodList({
                 if (!CardUtils.isExpensifyCard(card.cardID)) {
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        title: card.cardName,
+                        title: CardUtils.maskCardNumber(card.cardName ?? ''),
                         description: getDescriptionForPolicyDomainCard(card.domainName),
                         shouldShowRightIcon: false,
                         interactive: false,
