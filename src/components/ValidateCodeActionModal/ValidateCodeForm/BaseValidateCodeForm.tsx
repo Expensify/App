@@ -16,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as User from '@userActions/User';
@@ -124,9 +125,16 @@ function BaseValidateCodeForm({
             if (focusTimeoutRef.current) {
                 clearTimeout(focusTimeoutRef.current);
             }
-            focusTimeoutRef.current = setTimeout(() => {
+
+            // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
+            if (!Browser.isMobileSafari()) {
+                focusTimeoutRef.current = setTimeout(() => {
+                    inputValidateCodeRef.current?.focusLastSelected();
+                }, CONST.ANIMATED_TRANSITION);
+            } else {
                 inputValidateCodeRef.current?.focusLastSelected();
-            }, CONST.ANIMATED_TRANSITION);
+            }
+
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
@@ -209,7 +217,7 @@ function BaseValidateCodeForm({
                 errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
                 hasError={!isEmptyObject(validateError)}
                 onFulfill={validateAndSubmitForm}
-                autoFocus
+                autoFocus={false}
             />
             {shouldShowTimer && (
                 <Text style={[styles.mt5]}>
