@@ -82,6 +82,7 @@ import type {
     InvalidPropertyParams,
     InvalidValueParams,
     IssueVirtualCardParams,
+    LastFourDigitsParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
     LocalTimeParams,
@@ -1114,7 +1115,7 @@ const translations = {
         helpTextAfterEmail: ' desde varias direcciones de correo electrónico.',
         pleaseVerify: 'Por favor, verifica este método de contacto',
         getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod}`,
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod}. Debería llegar en un par de minutos.`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
             'Este es tu método de contacto predeterminado. Antes de poder eliminarlo, tendrás que elegir otro método de contacto y haz clic en "Establecer como predeterminado".',
@@ -1455,7 +1456,8 @@ const translations = {
         },
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
         validateCardTitle: 'Asegurémonos de que eres tú',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta`,
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
+            `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta. Debería llegar en un par de minutos.`,
     },
     workflowsPage: {
         workflowTitle: 'Gasto',
@@ -2350,6 +2352,16 @@ const translations = {
         youCanChange: 'Puede cambiar la moneda de su espacio de trabajo en su',
         findCountry: 'Encontrar país',
         selectCountry: 'Seleccione su país',
+    },
+    bankInfoStep: {
+        whatAreYour: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',
+        letsDoubleCheck: 'Verifiquemos que todo esté bien.',
+        thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo.',
+        accountNumber: 'Número de cuenta',
+        bankStatement: 'Extracto bancario',
+        chooseFile: 'Elegir archivo',
+        uploadYourLatest: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',
+        pleaseUpload: ({lastFourDigits}: LastFourDigitsParams) => `Por favor suba el estado de cuenta mensual más reciente de tu cuenta bancaria comercial que termina en ${lastFourDigits}.`,
     },
     signerInfoStep: {
         signerInfo: 'Información del firmante',
@@ -5735,7 +5747,8 @@ const translations = {
         removeCopilotConfirmation: '¿Estás seguro de que quieres eliminar este copiloto?',
         changeAccessLevel: 'Cambiar nivel de acceso',
         makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto.`,
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
+            `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto. Debería llegar en un par de minutos.`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) =>
             `Por favor, introduce el código mágico enviado a ${contactMethod} para actualizar el nivel de acceso de tu copiloto.`,
         notAllowed: 'No tan rápido...',
