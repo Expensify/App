@@ -61,6 +61,7 @@ import * as IOU from './actions/IOU';
 import * as PolicyActions from './actions/Policy/Policy';
 import * as store from './actions/ReimbursementAccount/store';
 import * as SessionUtils from './actions/Session';
+import {getCategoryApproverRule} from './CategoryUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
@@ -6351,7 +6352,7 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     // - Belong to the same workspace
     // And if any have a violation, then it should have a RBR
     const allReports = Object.values(ReportConnection.getAllReports() ?? {}) as Report[];
-    const potentialReports = allReports.filter((r) => r.ownerAccountID === currentUserAccountID && (r.stateNum ?? 0) <= 1 && r.policyID === report.policyID);
+    const potentialReports = allReports.filter((r) => r?.ownerAccountID === currentUserAccountID && (r.stateNum ?? 0) <= 1 && r.policyID === report.policyID);
     return potentialReports.some(
         (potentialReport) => hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
     );
@@ -8368,9 +8369,47 @@ function isExported(reportActions: OnyxEntry<ReportActions>) {
     return Object.values(reportActions).some((action) => ReportActionsUtils.isExportIntegrationAction(action));
 }
 
+function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>) {
+    const categoryAppovers: string[] = [];
+    const tagApprovers: string[] = [];
+    const allReportTransactions = TransactionUtils.getAllReportTransactions(expenseReport?.reportID).sort((transA, transB) => (transA.created < transB.created ? -1 : 1));
+
+    // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
+    // Category approvers are prioritized, then tag approvers.
+    for (let i = 0; i < allReportTransactions.length; i++) {
+        const transaction = allReportTransactions.at(i);
+        const tag = TransactionUtils.getTag(transaction);
+        const category = TransactionUtils.getCategory(transaction);
+        const categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
+        const tagApprover = PolicyUtils.getTagApproverRule(policy?.id ?? '-1', tag)?.approver;
+        if (categoryAppover) {
+            categoryAppovers.push(categoryAppover);
+        }
+
+        if (tagApprover) {
+            tagApprovers.push(tagApprover);
+        }
+    }
+
+    return [...categoryAppovers, ...tagApprovers];
+}
+
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
     const approvalChain: string[] = [];
     const reportTotal = expenseReport?.total ?? 0;
+    const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([expenseReport?.ownerAccountID ?? -1]).at(0) ?? '';
+
+    // Get category/tag approver list
+    const ruleApprovers = getRuleApprovers(policy, expenseReport);
+
+    // Push rule approvers to approvalChain list before submitsTo/forwardsTo approvers
+    ruleApprovers.forEach((ruleApprover) => {
+        // Don't push submiiter to approve as a rule approver
+        if (approvalChain.includes(ruleApprover) || ruleApprover === submitterEmail) {
+            return;
+        }
+        approvalChain.push(ruleApprover);
+    });
 
     // If the policy is not on advanced approval mode, we should not use the approval chain even if it exists.
     if (!PolicyUtils.isControlOnAdvancedApprovalMode(policy)) {
