@@ -247,9 +247,6 @@ const ONYXKEYS = {
     /** User's Expensify Wallet */
     USER_WALLET: 'userWallet',
 
-    /** The method ID of the latest added payment method */
-    LATEST_ADDED_BANK_ACCOUNT_PLAID_ID: 'latestAddedBankAccountPlaidID',
-
     /** User's metadata that will be used to segmentation */
     USER_METADATA: 'userMetadata',
 
@@ -953,7 +950,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: number;
     [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: OnyxTypes.BillingStatus;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
-    [ONYXKEYS.LATEST_ADDED_BANK_ACCOUNT_PLAID_ID]: string;
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;

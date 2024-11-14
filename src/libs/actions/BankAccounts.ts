@@ -237,11 +237,6 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
                     currentStep: CONST.WALLET.STEP.ADDITIONAL_DETAILS,
                 },
             },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.LATEST_ADDED_BANK_ACCOUNT_PLAID_ID,
-                value: account.plaidAccountID,
-            },
         ],
         failureData: [
             {
