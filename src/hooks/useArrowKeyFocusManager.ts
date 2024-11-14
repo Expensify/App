@@ -5,7 +5,7 @@ import usePrevious from './usePrevious';
 
 type Config = {
     maxIndex: number;
-    onFocusedIndexChange?: (index: number) => void;
+    onFocusedIndexChange?: (index: number, shouldScrollToIndex?: boolean) => void;
     initialFocusedIndex?: number;
     disabledIndexes?: readonly number[];
     shouldExcludeTextAreaNodes?: boolean;
@@ -17,7 +17,7 @@ type Config = {
     isFocused?: boolean;
 };
 
-type UseArrowKeyFocusManager = [number, (index: number) => void];
+type UseArrowKeyFocusManager = [number, (index: number, shouldScrollToIndex?: boolean) => void];
 
 /**
  * A hook that makes it easy to use the arrow keys to manage focus of items in a list
@@ -51,8 +51,15 @@ export default function useArrowKeyFocusManager({
     allowNegativeIndexes = false,
     isFocused = true,
 }: Config): UseArrowKeyFocusManager {
-    const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
+    const [focusedIndex, setFocusedIndexState] = useState(initialFocusedIndex);
+    const [shouldScrollToIndex, setShouldScrollToIndex] = useState(true);
     const prevIsFocusedIndex = usePrevious(focusedIndex);
+
+    const setFocusedIndex = useCallback((index: number, shouldScroll = true) => {
+        setFocusedIndexState(index);
+        setShouldScrollToIndex(shouldScroll);
+    }, []);
+
     const arrowConfig = useMemo(
         () => ({
             excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
@@ -73,7 +80,7 @@ export default function useArrowKeyFocusManager({
         if (prevIsFocusedIndex === focusedIndex) {
             return;
         }
-        onFocusedIndexChange(focusedIndex);
+        onFocusedIndexChange(focusedIndex, shouldScrollToIndex);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [focusedIndex, prevIsFocusedIndex]);
 
@@ -83,7 +90,8 @@ export default function useArrowKeyFocusManager({
         }
         const nextIndex = disableCyclicTraversal ? -1 : maxIndex;
 
-        setFocusedIndex((actualIndex) => {
+        setShouldScrollToIndex(true);
+        setFocusedIndexState((actualIndex) => {
             const currentFocusedIndex = actualIndex > 0 ? actualIndex - (itemsPerRow ?? 1) : nextIndex;
             let newFocusedIndex = currentFocusedIndex;
 
@@ -116,7 +124,8 @@ export default function useArrowKeyFocusManager({
 
         const nextIndex = disableCyclicTraversal ? maxIndex : 0;
 
-        setFocusedIndex((actualIndex) => {
+        setShouldScrollToIndex(true);
+        setFocusedIndexState((actualIndex) => {
             let currentFocusedIndex = -1;
 
             if (actualIndex === -1) {
@@ -161,7 +170,8 @@ export default function useArrowKeyFocusManager({
 
         const nextIndex = disableCyclicTraversal ? -1 : maxIndex;
 
-        setFocusedIndex((actualIndex) => {
+        setShouldScrollToIndex(true);
+        setFocusedIndexState((actualIndex) => {
             const currentFocusedIndex = actualIndex > 0 ? actualIndex - 1 : nextIndex;
 
             let newFocusedIndex = currentFocusedIndex;
@@ -187,7 +197,8 @@ export default function useArrowKeyFocusManager({
 
         const nextIndex = disableCyclicTraversal ? maxIndex : 0;
 
-        setFocusedIndex((actualIndex) => {
+        setShouldScrollToIndex(true);
+        setFocusedIndexState((actualIndex) => {
             const currentFocusedIndex = actualIndex < maxIndex ? actualIndex + 1 : nextIndex;
 
             let newFocusedIndex = currentFocusedIndex;
