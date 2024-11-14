@@ -23,16 +23,17 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
-    const validateLoginError = ErrorUtils.getLatestErrorField(currentDelegate, 'addDelegate');
+    const addDelegateErrors = account?.delegatedAccess?.errorFields?.addDelegate?.[login];
+    const validateLoginError = ErrorUtils.getLatestError(addDelegateErrors);
 
     useEffect(() => {
-        if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!currentDelegate.errorFields?.addDelegate) {
+        if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!addDelegateErrors) {
             return;
         }
 
         // Dismiss modal on successful magic code verification
         Navigation.navigate(ROUTES.SETTINGS_SECURITY);
-    }, [login, currentDelegate, role]);
+    }, [login, currentDelegate, role, addDelegateErrors]);
 
     const onBackButtonPress = () => {
         onClose?.();
@@ -42,7 +43,7 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
         if (!validateLoginError) {
             return;
         }
-        Delegate.clearAddDelegateErrors(currentDelegate?.email ?? '', 'addDelegate');
+        Delegate.clearDelegateErrorsByField(currentDelegate?.email ?? '', 'addDelegate');
     };
 
     return (
@@ -55,7 +56,7 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
             sendValidateCode={() => User.requestValidateCodeAction()}
             hasMagicCodeBeenSent={!!currentDelegate?.validateCodeSent}
             handleSubmitForm={(validateCode) => Delegate.addDelegate(login, role, validateCode)}
-            description={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+            descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
         />
     );
 }
