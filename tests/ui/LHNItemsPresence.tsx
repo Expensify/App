@@ -108,16 +108,21 @@ describe('SidebarLinksData', () => {
             // When the SidebarLinks are rendered without a specified report ID.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = createReport();
+
             // And the Onyx state is initialized with a report.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
+
             // Then no other reports should be displayed in the sidebar.
             expect(getOptionRows()).toHaveLength(0);
+
             // When the SidebarLinks are rendered again with the current active report ID.
             LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
+
             // Then the active report should be displayed as part of LHN,
             expect(getOptionRows()).toHaveLength(1);
+
             // And the active report should be highlighted.
             // TODO add the proper assertion for the highlighted report.
         });
@@ -129,16 +134,20 @@ describe('SidebarLinksData', () => {
                 ...createReport(false, [1, 2], 0),
                 writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ALL,
             };
+
             // And Onyx state is initialized with a draft report.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport,
             });
 
             await waitForBatchedUpdatesWithAct();
+
             // And a draft message is added to the report.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${draftReport.reportID}`, 'draft report message');
+
             // Then the sidebar should display the draft report.
             expect(getDisplayNames()).toHaveLength(1);
+
             // And the draft icon should be shown, indicating there is unsent content.
             expect(screen.getByTestId('Pencil Icon')).toBeOnTheScreen();
         });
@@ -147,18 +156,22 @@ describe('SidebarLinksData', () => {
             // When the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = createReport(false);
+
             // And the report is initialized in Onyx.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
+
             // Then the report should not appear in the sidebar as it is not pinned.
             expect(getOptionRows()).toHaveLength(0);
-
             await waitForBatchedUpdatesWithAct();
+
             // When the report is marked as pinned.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: true});
+
             // Then the report should appear in the sidebar because it’s pinned.
             expect(getOptionRows()).toHaveLength(1);
+
             // TODO add the proper assertion for the pinned report.
         });
     });
@@ -168,10 +181,12 @@ describe('SidebarLinksData', () => {
             // When the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = LHNTestUtils.getFakeReport([]);
+
             // And a report with no participants is initialized in Onyx.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
+
             // Then the report should not appear in the sidebar.
             expect(getOptionRows()).toHaveLength(0);
         });
@@ -180,10 +195,12 @@ describe('SidebarLinksData', () => {
             // When the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = LHNTestUtils.getFakeReport([1, 2], 0);
+
             // And a report with no messages is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
+
             // Then the empty report should not appear in the sidebar.
             expect(getOptionRows()).toHaveLength(0);
         });
