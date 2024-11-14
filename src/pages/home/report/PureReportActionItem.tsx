@@ -81,6 +81,7 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -138,7 +139,23 @@ type PureReportActionItemProps = {
     /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
 
-    draftMessage? : OnyxEntry<OnyxTypes.ReportActionsDrafts>
+
+
+    draftMessage? : string
+
+    iouReport?: OnyxTypes.Report;
+
+    emojiReactions?: OnyxTypes.ReportActionReactions;
+
+    userWallet?: OnyxTypes.UserWallet;
+
+    linkedTransactionRouteError?: Errors;
+
+    reportNameValuePairs?: OnyxTypes.ReportNameValuePairs;
+
+    isUserValidated?: boolean;
+
+    parentReport?: OnyxTypes.Report;
 };
 
 function PureReportActionItem({
@@ -159,6 +176,15 @@ function PureReportActionItem({
     hideThreadReplies = false,
     shouldDisplayContextMenu = true,
     parentReportActionForTransactionThread,
+
+    draftMessage,
+    iouReport,
+    emojiReactions,
+    userWallet,
+    linkedTransactionRouteError,
+    reportNameValuePairs,
+    isUserValidated,
+    parentReport,
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -166,23 +192,23 @@ function PureReportActionItem({
     const reportID = report?.reportID ?? '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, action) || '-1', [reportID, action]);
-    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
-        selector: (draftMessagesForReport) => {
-            const matchingDraftMessage = draftMessagesForReport?.[action.reportActionID];
-            return typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
-        },
-    });
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${ReportActionsUtils.getIOUReportIDFromReportActionPreview(action) ?? -1}`);
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`);
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const [linkedTransactionRouteError] = useOnyx(
-        `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? -1 : -1}`,
-        {selector: (transaction) => transaction?.errorFields?.route ?? null},
-    );
+    // const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
+    //     selector: (draftMessagesForReport) => {
+    //         const matchingDraftMessage = draftMessagesForReport?.[action.reportActionID];
+    //         return typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
+    //     },
+    // });
+    // const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${ReportActionsUtils.getIOUReportIDFromReportActionPreview(action) ?? -1}`);
+    // const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`);
+    // const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    // const [linkedTransactionRouteError] = useOnyx(
+    //     `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? -1 : -1}`,
+    //     {selector: (transaction) => transaction?.errorFields?.route ?? null},
+    // );
     const theme = useTheme();
     const styles = useThemeStyles();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is needed to prevent the app from crashing when the app is using imported state.
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || '-1'}`);
+    // const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || '-1'}`);
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
@@ -197,10 +223,10 @@ function PureReportActionItem({
     const popoverAnchorRef = useRef<Exclude<ReportActionContextMenu.ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+    // const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || -1}`);
+    // const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || -1}`);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const reportScrollManager = useReportScrollManager();
     const isActionableWhisper =
@@ -1038,7 +1064,8 @@ function PureReportActionItem({
 }
 
 export type { PureReportActionItemProps };
-export default memo(ReportActionItem, (prevProps, nextProps) => {
+// export default PureReportActionItem;
+export default memo(PureReportActionItem, (prevProps, nextProps) => {
     const prevParentReportAction = prevProps.parentReportAction;
     const nextParentReportAction = nextProps.parentReportAction;
     return (
@@ -1068,6 +1095,15 @@ export default memo(ReportActionItem, (prevProps, nextProps) => {
         lodashIsEqual(prevProps.report?.fieldList, nextProps.report?.fieldList) &&
         lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
         lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
-        lodashIsEqual(prevParentReportAction, nextParentReportAction)
+        lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
+
+        prevProps.draftMessage === nextProps.draftMessage &&
+        prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&
+        prevProps.emojiReactions === nextProps.emojiReactions &&
+        prevProps.userWallet === nextProps.userWallet &&
+        prevProps.linkedTransactionRouteError === nextProps.linkedTransactionRouteError &&
+        prevProps.isUserValidated === nextProps.isUserValidated &&
+        prevProps.parentReport?.reportID === nextProps.parentReport?.reportID 
+
     );
 });
