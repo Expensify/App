@@ -102,6 +102,7 @@ Many of the UI features of our application should go through rigorous testing by
 **What's a "good reason" to write a test?**
 
 - Any PR that fixes a bug
+- When introducing a new feature, cover as much logic as possible by unit tests
 - Anything that is difficult or impossible to run a manual tests on
 	- e.g. a test to verify an outcome after an authentication token expires (which normally takes two hours)
 - Areas of the code that are changing often, breaking often, and would benefit from the resiliency an automated test would provide
