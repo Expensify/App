@@ -335,13 +335,11 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     }, [sortedRecentSearches, contextualReportData]);
 
     useEffect(() => {
-        if (!isWeb && !isDesktop) {
+        if ((!isWeb && !isDesktop) || textInputValue) {
             return;
         }
         setInitialFocus();
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedRecentSearches, contextualReportData]);
+    }, [setInitialFocus, textInputValue, isWeb, isDesktop]);
 
     const onSearchChange = useCallback(
         (userQuery: string) => {
