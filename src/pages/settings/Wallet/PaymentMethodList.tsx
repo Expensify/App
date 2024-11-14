@@ -226,12 +226,13 @@ function PaymentMethodList({
                 if (!CardUtils.isExpensifyCard(card.cardID)) {
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        title: card.cardName,
+                        title: CardUtils.maskCardNumber(card.cardName ?? ''),
                         description: getDescriptionForPolicyDomainCard(card.domainName),
                         shouldShowRightIcon: false,
                         interactive: false,
                         canDismissError: false,
                         errors: card.errors,
+                        pendingAction: card.pendingAction,
                         brickRoadIndicator:
                             card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
                                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
@@ -271,6 +272,7 @@ function PaymentMethodList({
                     interactive: true,
                     canDismissError: true,
                     errors: card.errors,
+                    pendingAction: card.pendingAction,
                     brickRoadIndicator:
                         card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
