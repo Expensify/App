@@ -4,7 +4,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
-import {InteractionManager, View} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Banner from '@components/Banner';
@@ -29,11 +29,9 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import Timing from '@libs/actions/Timing';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
-import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -104,6 +102,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
+    const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
     const {canUseDefaultRooms} = usePermissions();
     const reactionListRef = useRef<ReactionListRef>(null);
@@ -229,11 +228,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
     const wasReportAccessibleRef = useRef(false);
-    // eslint-disable-next-line react-compiler/react-compiler
-    if (firstRenderRef.current) {
-        Timing.start(CONST.TIMING.CHAT_RENDER);
-        Performance.markStart(CONST.TIMING.CHAT_RENDER);
-    }
+
     const [isComposerFocus, setIsComposerFocus] = useState(false);
     const shouldAdjustScrollView = useMemo(() => isComposerFocus && !modal?.willAlertModalBecomeVisible, [isComposerFocus, modal]);
     const viewportOffsetTop = useViewportOffsetTop(shouldAdjustScrollView);
@@ -419,6 +414,19 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Report.updateLastVisitTime(reportID);
     }, [reportID, isFocused]);
 
+    useEffect(() => {
+        const skipOpenReportListener = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID}: {preexistingReportID: string}) => {
+            if (!preexistingReportID) {
+                return;
+            }
+            isSkippingOpenReport.current = true;
+        });
+
+        return () => {
+            skipOpenReportListener.remove();
+        };
+    }, [reportID]);
+
     const fetchReportIfNeeded = useCallback(() => {
         // Report ID will be empty when the reports collection is empty.
         // This could happen when we are loading the collection for the first time after logging in.
@@ -439,6 +447,12 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         }
 
         if (!shouldFetchReport(report) && (isInitialPageReady || isLinkedMessagePageReady)) {
+            return;
+        }
+        // When creating an optimistic report that already exists, we need to skip openReport
+        // when replacing the optimistic report with the real one received from the server.
+        if (isSkippingOpenReport.current) {
+            isSkippingOpenReport.current = false;
             return;
         }
 
@@ -467,9 +481,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     useAppFocusEvent(clearNotifications);
 
     useEffect(() => {
-        Timing.end(CONST.TIMING.CHAT_RENDER);
-        Performance.markEnd(CONST.TIMING.CHAT_RENDER);
-
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             ComposerActions.setShouldShowComposeInput(true);
         });
@@ -700,6 +711,9 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const lastRoute = usePrevious(route);
     const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
 
+    const onComposerFocus = useCallback(() => setIsComposerFocus(true), []);
+    const onComposerBlur = useCallback(() => setIsComposerFocus(false), []);
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
@@ -802,8 +816,8 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
                                 {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
-                                        onComposerFocus={() => setIsComposerFocus(true)}
-                                        onComposerBlur={() => setIsComposerFocus(false)}
+                                        onComposerFocus={onComposerFocus}
+                                        onComposerBlur={onComposerBlur}
                                         report={report}
                                         reportMetadata={reportMetadata}
                                         policy={policy}

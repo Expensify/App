@@ -16,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as User from '@userActions/User';
@@ -65,6 +66,9 @@ type ValidateCodeFormProps = {
 
     /** Function is called when validate code modal is mounted and on magic code resend */
     sendValidateCode: () => void;
+
+    /** Wheather the form is loading or not */
+    isLoading?: boolean;
 };
 
 function BaseValidateCodeForm({
@@ -78,6 +82,7 @@ function BaseValidateCodeForm({
     clearError,
     sendValidateCode,
     buttonStyles,
+    isLoading,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -92,7 +97,6 @@ function BaseValidateCodeForm({
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
-    const [isResent, setIsResent] = useState(false);
 
     const timerRef = useRef<NodeJS.Timeout>();
 
@@ -121,9 +125,16 @@ function BaseValidateCodeForm({
             if (focusTimeoutRef.current) {
                 clearTimeout(focusTimeoutRef.current);
             }
-            focusTimeoutRef.current = setTimeout(() => {
+
+            // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
+            if (!Browser.isMobileSafari()) {
+                focusTimeoutRef.current = setTimeout(() => {
+                    inputValidateCodeRef.current?.focusLastSelected();
+                }, CONST.ANIMATED_TRANSITION);
+            } else {
                 inputValidateCodeRef.current?.focusLastSelected();
-            }, CONST.ANIMATED_TRANSITION);
+            }
+
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
@@ -155,10 +166,6 @@ function BaseValidateCodeForm({
      * Request a validate code / magic code be sent to verify this contact method
      */
     const resendValidateCode = () => {
-        if (hasMagicCodeBeenSent && !isResent) {
-            return;
-        }
-
         sendValidateCode();
         inputValidateCodeRef.current?.clear();
         setTimeRemaining(CONST.REQUEST_CODE_DELAY);
@@ -210,7 +217,7 @@ function BaseValidateCodeForm({
                 errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
                 hasError={!isEmptyObject(validateError)}
                 onFulfill={validateAndSubmitForm}
-                autoFocus
+                autoFocus={false}
             />
             {shouldShowTimer && (
                 <Text style={[styles.mt5]}>
@@ -229,10 +236,7 @@ function BaseValidateCodeForm({
                         <PressableWithFeedback
                             disabled={shouldDisableResendValidateCode}
                             style={[styles.mr1]}
-                            onPress={() => {
-                                resendValidateCode();
-                                setIsResent(true);
-                            }}
+                            onPress={resendValidateCode}
                             underlayColor={theme.componentBG}
                             hoverDimmingValue={1}
                             pressDimmingValue={0.2}
@@ -253,6 +257,7 @@ function BaseValidateCodeForm({
                 />
             )}
             <OfflineWithFeedback
+                shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
                 errors={validateError}
                 errorRowStyles={[styles.mt2]}
@@ -266,7 +271,8 @@ function BaseValidateCodeForm({
                     style={[styles.mt4]}
                     success
                     large
-                    isLoading={account?.isLoading}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    isLoading={account?.isLoading || isLoading}
                 />
             </OfflineWithFeedback>
         </>
