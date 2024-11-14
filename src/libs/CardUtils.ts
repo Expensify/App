@@ -256,7 +256,6 @@ function removeExpensifyCardFromCompanyCards(cardFeeds: OnyxEntry<CardFeeds>): C
     }
 
     const companyCards = getCompanyFeeds(cardFeeds);
-
     return Object.fromEntries(Object.entries(companyCards).filter(([key]) => key !== CONST.EXPENSIFY_CARD.BANK));
 }
 
@@ -300,7 +299,6 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
 
     const customFeedName = companyCardNicknames?.[feed];
     const formattedFeedName = Localize.translateLocal('workspace.companyCards.feedName', {feedName: getCardFeedName(feed)});
-
     return customFeedName ?? formattedFeedName;
 }
 

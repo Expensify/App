@@ -37,9 +37,9 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
 
     const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
     const isLoading = !cardFeeds || !!(cardFeeds.isLoading && !companyCards);
-    const selectedCompanyCard = selectedFeed && companyCards[selectedFeed];
-    const isNoFeed = isEmptyObject(companyCards) && !selectedCompanyCard;
-    const isPending = !!selectedCompanyCard?.pending;
+    const selectedFeedData = selectedFeed && companyCards[selectedFeed];
+    const isNoFeed = isEmptyObject(companyCards) && !selectedFeedData;
+    const isPending = !!selectedFeedData?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
 
     const fetchCompanyCards = useCallback(() => {
