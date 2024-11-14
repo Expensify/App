@@ -11,7 +11,6 @@ import type {SplashScreenHiderProps, SplashScreenHiderReturnType} from './types'
 function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashScreenHiderReturnType {
     const styles = useThemeStyles();
     const logoSizeRatio = BootSplash.logoSizeRatio || 1;
-    const navigationBarHeight = BootSplash.navigationBarHeight || 0;
 
     const opacity = useSharedValue(1);
     const scale = useSharedValue(1);
@@ -58,10 +57,6 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashS
                 StyleSheet.absoluteFill,
                 styles.splashScreenHider,
                 opacityStyle,
-                {
-                    // Apply negative margins to center the logo on window (instead of screen)
-                    marginBottom: -navigationBarHeight,
-                },
             ]}
         >
             <Reanimated.View style={scaleStyle}>
