@@ -60,7 +60,6 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
             descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
             clearError={clearError}
-            onClose={() => {}}
         />
     );
 }
