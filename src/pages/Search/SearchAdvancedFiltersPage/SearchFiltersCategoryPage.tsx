@@ -25,20 +25,20 @@ function SearchFiltersCategoryPage() {
         return {name: category, value: category};
     });
     const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
-    const [allPolicyIDCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const singlePolicyCategories = allPolicyIDCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const singlePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
 
     const categoryItems = useMemo(() => {
         const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.EMPTY_VALUE as string}];
         if (!singlePolicyCategories) {
             const uniqueCategoryNames = new Set<string>();
-            Object.values(allPolicyIDCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
+            Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
             items.push(...Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName})));
         } else {
             items.push(...Object.values(singlePolicyCategories ?? {}).map((category) => ({name: category.name, value: category.name})));
         }
         return items;
-    }, [allPolicyIDCategories, singlePolicyCategories, translate]);
+    }, [allPolicyCategories, singlePolicyCategories, translate]);
 
     const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({category: values}), []);
     const safePaddingBottomStyle = useSafePaddingBottomStyle();
