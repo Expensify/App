@@ -24,8 +24,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ExitSurveyReasonForm} from '@src/types/form/ExitSurveyReasonForm';
 import EXIT_SURVEY_REASON_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ExitSurveyOffline from './ExitSurveyOffline';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
 
 type ExitSurveyConfirmPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM>;
 
