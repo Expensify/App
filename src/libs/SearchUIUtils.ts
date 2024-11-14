@@ -292,7 +292,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 
-    if (IOU.canApproveIOU(report, policy)) {
+    if (IOU.canApproveIOU(report, policy) && ReportUtils.isAllowedToApproveExpenseReport(report, undefined, policy)) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 

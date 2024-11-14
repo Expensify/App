@@ -222,6 +222,9 @@ type SearchPolicy = {
         /** The auto reimbursement limit */
         limit: number;
     };
+
+    /** Whether the self approval or submitting is enabled */
+    preventSelfApproval?: boolean;
 };
 
 /** Model of transaction search result */
