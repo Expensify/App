@@ -49,9 +49,8 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
     const transactionID = isTransactionListItemType(item) ? item.transactionID : undefined;
 
     switch (item.action) {
-        case CONST.SEARCH.ACTION_TYPES.PAY: {
+        case CONST.SEARCH.ACTION_TYPES.PAY:
             return getPayActionCallback(hash, item, goToItem);
-        }
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             return approveMoneyRequestOnSearch(hash, [item.reportID], transactionID);
         default:
