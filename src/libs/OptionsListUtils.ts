@@ -427,25 +427,29 @@ function getParticipantsOption(participant: ReportUtils.OptionData | Participant
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, LocalePhoneNumber.formatPhoneNumber(login) || participant.text);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const displayName = participant?.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(detail, LocalePhoneNumber.formatPhoneNumber(login) || participant.text);
 
     return {
         keyForList: String(detail?.accountID),
         login,
         accountID: detail?.accountID ?? -1,
         text: displayName,
-        firstName: detail?.firstName ?? '',
-        lastName: detail?.lastName ?? '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        firstName: (detail?.firstName || ('firstName' in participant ? participant.firstName : '')) ?? '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        lastName: (detail?.lastName || ('lastName' in participant ? participant.lastName : '')) ?? '',
         alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
         icons: [
             {
-                source: detail?.avatar ?? FallbackAvatar,
+                source: ('avatar' in participant ? participant.avatar : detail?.avatar) ?? FallbackAvatar,
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
                 id: detail?.accountID,
             },
         ],
-        phoneNumber: detail?.phoneNumber ?? '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        phoneNumber: (detail?.phoneNumber || participant?.phoneNumber) ?? '',
         selected: participant.selected,
         isSelected: participant.selected,
         searchText: participant.searchText ?? undefined,
