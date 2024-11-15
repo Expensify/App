@@ -5,8 +5,6 @@ import lodashSet from 'lodash/set';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {getPolicyCategoriesData} from '@libs/actions/Policy/Category';
-import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {TransactionMergeParams} from '@libs/API/parameters';
 import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -31,6 +29,10 @@ import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, 
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
+
+// Dynamic Imports to avoid circular dependencies
+const CategoryActions = () => import('@libs/actions/Policy/Category');
+const TagActions = () => import('@libs/actions/Policy/Tag');
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -1136,37 +1138,41 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
                 }
             } else if (fieldName === 'category') {
                 const differentValues = getDifferentValues(transactions, keys);
-                const policyCategories = getPolicyCategoriesData(report?.policyID ?? '-1');
-                const availableCategories = Object.values(policyCategories)
-                    .filter((category) => differentValues.includes(category.name) && category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-                    .map((e) => e.name);
-
-                if (!areAllFieldsEqualForKey && policy?.areCategoriesEnabled && (availableCategories.length > 1 || (availableCategories.length === 1 && differentValues.includes('')))) {
-                    change[fieldName] = [...availableCategories, ...(differentValues.includes('') ? [''] : [])];
-                } else if (areAllFieldsEqualForKey) {
-                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
-                }
-            } else if (fieldName === 'tag') {
-                const policyTags = getPolicyTagsData(report?.policyID ?? '-1');
-                const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
-                if (isMultiLevelTags) {
-                    if (areAllFieldsEqualForKey || !policy?.areTagsEnabled) {
-                        keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
-                    } else {
-                        processChanges(fieldName, transactions, keys);
-                    }
-                } else {
-                    const differentValues = getDifferentValues(transactions, keys);
-                    const policyTagsObj = Object.values(Object.values(policyTags).at(0)?.tags ?? {});
-                    const availableTags = policyTagsObj
-                        .filter((tag) => differentValues.includes(tag.name) && tag.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                CategoryActions().then((actions) => {
+                    const policyCategories = actions.getPolicyCategoriesData(report?.policyID ?? '-1');
+                    const availableCategories = Object.values(policyCategories)
+                        .filter((category) => differentValues.includes(category.name) && category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
                         .map((e) => e.name);
-                    if (!areAllFieldsEqualForKey && policy?.areTagsEnabled && (availableTags.length > 1 || (availableTags.length === 1 && differentValues.includes('')))) {
-                        change[fieldName] = [...availableTags, ...(differentValues.includes('') ? [''] : [])];
+
+                    if (!areAllFieldsEqualForKey && policy?.areCategoriesEnabled && (availableCategories.length > 1 || (availableCategories.length === 1 && differentValues.includes('')))) {
+                        change[fieldName] = [...availableCategories, ...(differentValues.includes('') ? [''] : [])];
                     } else if (areAllFieldsEqualForKey) {
                         keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                     }
-                }
+                });
+            } else if (fieldName === 'tag') {
+                TagActions().then((module) => {
+                    const policyTags = module.getPolicyTagsData(report?.policyID ?? '-1');
+                    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
+                    if (isMultiLevelTags) {
+                        if (areAllFieldsEqualForKey || !policy?.areTagsEnabled) {
+                            keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
+                        } else {
+                            processChanges(fieldName, transactions, keys);
+                        }
+                    } else {
+                        const differentValues = getDifferentValues(transactions, keys);
+                        const policyTagsObj = Object.values(Object.values(policyTags).at(0)?.tags ?? {});
+                        const availableTags = policyTagsObj
+                            .filter((tag) => differentValues.includes(tag.name) && tag.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                            .map((e) => e.name);
+                        if (!areAllFieldsEqualForKey && policy?.areTagsEnabled && (availableTags.length > 1 || (availableTags.length === 1 && differentValues.includes('')))) {
+                            change[fieldName] = [...availableTags, ...(differentValues.includes('') ? [''] : [])];
+                        } else if (areAllFieldsEqualForKey) {
+                            keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
+                        }
+                    }
+                });
             } else if (areAllFieldsEqualForKey) {
                 keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
             } else {
