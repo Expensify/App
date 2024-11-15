@@ -29,6 +29,7 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const baseFilterConfig = {
     date: {
@@ -252,12 +253,15 @@ function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _:
         : undefined;
 }
 
-function shouldDisplayFilter(numberOfFilters: number, isFeatureEnabled: boolean, optionalCondition = false): boolean {
-    return (numberOfFilters !== 0 || optionalCondition) && isFeatureEnabled;
+function shouldDisplayFilter(numberOfFilters: number, isFeatureEnabled: boolean, singlePolicyCondition = false): boolean {
+    return (numberOfFilters !== 0 || singlePolicyCondition) && isFeatureEnabled;
 }
 
 function isFeatureEnabledInPolicies(policies: OnyxCollection<Policy>, featureName: PolicyFeatureName) {
-    return Object.values(policies ?? {}).some((policy) => isPolicyFeatureEnabled(policy, featureName));
+    if (isEmptyObject(policies)) {
+        return false;
+    }
+    return Object.values(policies).some((policy) => isPolicyFeatureEnabled(policy, featureName));
 }
 
 function AdvancedSearchFilters() {
