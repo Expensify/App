@@ -277,7 +277,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         NavigationBar.setButtonStyleAsync(theme.navigationBarButtonsStyle);
 
         return () => {
-            NavigationBar.setButtonStyleAsync('light');
+            NavigationBar.setButtonStyleAsync(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
         };
     }, [theme]);
 

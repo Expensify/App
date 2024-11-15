@@ -1,3 +1,4 @@
+import type {NavigationBarButtonStyle} from 'expo-navigation-bar';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {ColorScheme, StatusBarStyle} from '..';
@@ -106,7 +107,7 @@ type ThemeColors = {
     // Therefore, we need to define specific themes for these elements
     // e.g. the StatusBar displays either "light-content" or "dark-content" based on the theme
     statusBarStyle: StatusBarStyle;
-    navigationBarButtonsStyle: 'light' | 'dark';
+    navigationBarButtonsStyle: NavigationBarButtonStyle;
     colorScheme: ColorScheme;
 };
 
