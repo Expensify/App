@@ -6220,6 +6220,13 @@ const CONST = {
             PAID_ADOPTION: 'paid_adoption',
         },
     },
+    DEVICE_CONTACT: {
+        FIRST_NAME: 'FIRST_NAME',
+        LAST_NAME: 'LAST_NAME',
+        PHONE_NUMBERS: 'PHONE_NUMBERS',
+        EMAIL_ADDRESSES: 'EMAIL_ADDRESSES',
+        IMAGE_DATA: 'IMAGE_DATA',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
