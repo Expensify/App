@@ -506,7 +506,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         reportNameValuePairs,
     ]);
 
-    const viewTourTaskReportID = introSelected?.['viewTour'];
+    const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
 
     return (

@@ -104,7 +104,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
-    const viewTourTaskReportID = introSelected?.['viewTour'];
+    const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
 
     const content = useMemo(() => {
