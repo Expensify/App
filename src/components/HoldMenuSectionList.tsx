@@ -14,9 +14,6 @@ type HoldMenuSection = {
     /** The icon supplied with the section */
     icon: React.FC<SvgProps> | ImageSourcePropType;
 
-    /** Translation key for the title */
-    titleTranslationKey: TranslationPaths;
-
     /** Translation key for the description */
     descriptionTranslationKey: TranslationPaths;
 };
@@ -27,18 +24,11 @@ function HoldMenuSectionList() {
 
     const holdMenuSections: HoldMenuSection[] = [
         {
-            icon: Illustrations.Hourglass,
-            titleTranslationKey: 'iou.whatIsHoldTitle',
-            descriptionTranslationKey: 'iou.whatIsHoldExplain',
-        },
-        {
             icon: Illustrations.CommentBubbles,
-            titleTranslationKey: 'iou.holdIsTemporaryTitle',
             descriptionTranslationKey: 'iou.holdIsTemporaryExplain',
         },
         {
             icon: Illustrations.TrashCan,
-            titleTranslationKey: 'iou.deleteHoldTitle',
             descriptionTranslationKey: 'iou.deleteHoldExplain',
         },
     ];
@@ -49,7 +39,7 @@ function HoldMenuSectionList() {
                 <View
                     // eslint-disable-next-line react/no-array-index-key
                     key={i}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.mb2]}
                 >
                     <Icon
                         width={variables.holdMenuIconSize}
@@ -58,8 +48,7 @@ function HoldMenuSectionList() {
                         additionalStyles={[styles.mr3]}
                     />
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
-                        <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey)}</Text>
-                        <Text style={[styles.textNormal]}>{translate(section.descriptionTranslationKey)}</Text>
+                        <Text style={[styles.textBold]}>{translate(section.descriptionTranslationKey)}</Text>
                     </View>
                 </View>
             ))}

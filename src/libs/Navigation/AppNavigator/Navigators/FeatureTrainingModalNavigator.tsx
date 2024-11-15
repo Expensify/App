@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import type {FeatureTrainingNavigatorParamList} from '@libs/Navigation/types';
+import ProcessMoneyRequestHoldPage from '@pages/ProcessMoneyRequestHoldPage';
 import TrackTrainingPage from '@pages/TrackTrainingPage';
 import SCREENS from '@src/SCREENS';
 
@@ -16,6 +17,10 @@ function FeatureTrainingModalNavigator() {
                     <Stack.Screen
                         name={SCREENS.FEATURE_TRAINING_ROOT}
                         component={TrackTrainingPage}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT}
+                        component={ProcessMoneyRequestHoldPage}
                     />
                 </Stack.Navigator>
             </View>

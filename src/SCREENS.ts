@@ -169,7 +169,6 @@ const SCREENS = {
         ROOM_MEMBER_DETAILS: 'RoomMembers_Details',
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
-        PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
         TRANSACTION_DUPLICATE: 'TransactionDuplicate',
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
