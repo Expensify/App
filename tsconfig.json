@@ -16,7 +16,6 @@
             "@desktop/*": ["./desktop/*"],
             "@github/*": ["./.github/*"],
             "@hooks/*": ["./src/hooks/*"],
-            "@modules/*": ["./modules/*"],
             "@libs/*": ["./src/libs/*"],
             "@navigation/*": ["./src/libs/Navigation/*"],
             "@pages/*": ["./src/pages/*"],

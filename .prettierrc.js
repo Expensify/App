@@ -10,7 +10,6 @@ module.exports = {
     /** `importOrder` should be defined in an alphabetical order. */
     importOrder: [
         '@assets/(.*)$',
-        '@modules/(.*)$',
         '@components/(.*)$',
         '@desktop/(.*)$',
         '@github/(.*)$',

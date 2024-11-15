@@ -242,7 +242,6 @@ module.exports = {
                     '@assets': './assets',
                     '@components': './src/components',
                     '@hooks': './src/hooks',
-                    '@modules': './modules',
                     // This is needed up here, if not @libs/actions would take the priority
                     '@userActions': './src/libs/actions',
                     '@libs': './src/libs',
