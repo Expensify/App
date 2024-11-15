@@ -101,7 +101,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     numberOfLines={1}
                     style={[styles.textNormalThemeText]}
                 >
-                    {CurrencyUtils.convertToDisplayString(limit, currency, 0)}
+                    {CurrencyUtils.convertToShortDisplayString(limit, currency)}
                 </Text>
                 {shouldUseNarrowLayout && (
                     <Text
