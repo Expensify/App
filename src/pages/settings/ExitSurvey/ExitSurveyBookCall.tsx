@@ -55,7 +55,7 @@ function ExitSurveyBookCallPage() {
                     large
                     text={translate('exitSurvey.noThanks')}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
+                        Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON.getRoute(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route));
                     }}
                     isDisabled={isOffline}
                 />
