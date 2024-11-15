@@ -94,7 +94,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             return [];
         }
         return Object.values(workspaceCards ?? {}).filter((card) => card.accountID === accountID);
-    }, [accountID, workspaceAccountID, workspaceCards]);
+    }, [accountID, workspaceCards]);
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
