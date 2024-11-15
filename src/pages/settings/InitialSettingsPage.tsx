@@ -245,7 +245,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                         : {
                               action() {
                                   resetExitSurveyForm(() => {
-                                      if (true) {
+                                      if (shouldOpenBookACall) {
                                           Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
                                           return;
                                       }
