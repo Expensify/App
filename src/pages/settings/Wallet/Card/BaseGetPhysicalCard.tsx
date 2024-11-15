@@ -188,7 +188,7 @@ function BaseGetPhysicalCard({
                 hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
                 isVisible={isActionCodeModalVisible}
                 sendValidateCode={() => User.requestValidateCodeAction()}
-                clearError={() => Wallet.clearPhysicalCardError(cardID)}
+                clearError={() => Wallet.clearPhysicalCardError(currentCardID)}
                 validateError={!isEmptyObject(formData?.errors) ? formData?.errors : errorMessage}
                 handleSubmitForm={handleIssuePhysicalCard}
                 title={translate('cardPage.validateCardTitle')}

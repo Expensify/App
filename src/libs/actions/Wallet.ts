@@ -299,6 +299,13 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
                 errors: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: false,
+            },
+        },
     ];
 
     const successData: OnyxUpdate[] = [
@@ -318,6 +325,13 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
             value: {
                 isLoading: false,
                 errors: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: false,
             },
         },
     ];
@@ -354,7 +368,11 @@ function resetWalletAdditionalDetailsDraft() {
  * Clear the error of specific card
  * @param cardID The card id of the card that you want to clear the errors.
  */
-function clearPhysicalCardError(cardID: string) {
+function clearPhysicalCardError(cardID?: string) {
+    if (!cardID) {
+        return;
+    }
+
     FormActions.clearErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
     Onyx.merge(ONYXKEYS.CARD_LIST, {
         [cardID]: {
