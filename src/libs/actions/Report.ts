@@ -99,6 +99,7 @@ import type {
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
+    Onboarding,
     OnboardingPurpose,
     PersonalDetailsList,
     PolicyReportField,
@@ -277,6 +278,17 @@ let quickAction: OnyxEntry<QuickAction> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
     callback: (val) => (quickAction = val),
+});
+
+let onboarding: OnyxEntry<Onboarding>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (val) => {
+        if (Array.isArray(val)) {
+            return;
+        }
+        onboarding = val;
+    },
 });
 
 let introSelected: OnyxEntry<IntroSelected> = {};
@@ -858,8 +870,11 @@ function openReport(
     };
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
+    const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
 
-    if (introSelected && !isInviteOnboardingComplete) {
+    // Prepare guided setup data only when nvp_introSelected is set and onboarding is not completed
+    // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages
+    if (introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete) {
         const {choice, inviteType} = introSelected;
         const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
         const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
