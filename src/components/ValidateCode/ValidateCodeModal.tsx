@@ -8,6 +8,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,10 +30,12 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const signInHere = useCallback(() => Session.signInWithValidateCode(accountID, code), [accountID, code]);
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <FullPageNotFoundView
             shouldShow={!ValidationUtils.isValidValidateCode(code)}
+            shouldShowBackButton={shouldUseNarrowLayout}
             onLinkPress={() => {
                 Navigation.goBack();
             }}
