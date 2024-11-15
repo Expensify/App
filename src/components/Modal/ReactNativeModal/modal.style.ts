@@ -7,7 +7,6 @@ export default StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        // opacity: 0,
         backgroundColor: 'black',
     },
     content: {

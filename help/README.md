@@ -16,14 +16,18 @@ If you are a developer comfortable working on the command line, you can edit the
   * `rbenv install 3.3.4`
 5. Set the your default ruby version using 
   * `rbenv global 3.3.4`
-6. Install Jekyll and bundler gem 
+6. check to ensure that your global ruby version is `3.3.4`
+  * `ruby -v`
+7. Install Jekyll and bundler gem 
   * `cd help`
   * `gem install jekyll bundler`
-7. Create a branch for your changes
-8. Make your changes
-9. Locally build and test your changes:
+8. Install node dependencies with npm
+  * `npm install`
+9. Create a branch for your changes
+10. Make your changes
+11. Locally build and test your changes (they build to the /help/_site/ directory):
   * `bundle exec jekyll build`
-10. Push your changes
+12. Push your changes
 
 ### The easy way: edit on Github
 If you don't want to set up your own local dev environment, feel free to just edit the help materials directly from Github:

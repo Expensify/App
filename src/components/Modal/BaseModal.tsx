@@ -1,7 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import ReactNativeModal from 'react-native-modal';
+// import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -20,6 +20,7 @@ import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
+import ReactNativeModal from './ReactNativeModal/Modal';
 import type BaseModalProps from './types';
 
 function BaseModal(
@@ -246,7 +247,11 @@ function BaseModal(
                     style={modalStyle}
                     deviceHeight={windowHeight}
                     deviceWidth={windowWidth}
+                    /* eslint-disable @typescript-eslint/ban-ts-comment */
+                    // @ts-ignore
                     animationIn={animationIn ?? modalStyleAnimationIn}
+                    /* eslint-disable @typescript-eslint/ban-ts-comment */
+                    // @ts-ignoreanimationOut={animationOut ?? modalStyleAnimationOut}
                     animationOut={animationOut ?? modalStyleAnimationOut}
                     // eslint-disable-next-line react-compiler/react-compiler
                     useNativeDriver={useNativeDriverProp && useNativeDriver}

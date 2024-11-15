@@ -200,8 +200,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     let amountDescription = `${translate('iou.amount')}`;
 
     const hasRoute = TransactionUtils.hasRoute(transactionBackup ?? transaction, isDistanceRequest);
-    const {unit, rate, currency} = DistanceRequestUtils.getRate({transaction, policy});
+    const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
     const distance = TransactionUtils.getDistanceInMeters(transactionBackup ?? transaction, unit);
+    const currency = transactionCurrency ?? CONST.CURRENCY.USD;
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
@@ -307,7 +308,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const distanceRequestFields = (
         <>
-            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
                 <MenuItemWithTopDescription
                     description={translate('common.distance')}
                     title={distanceToDisplay}
@@ -447,7 +448,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 )}
                 {(hasReceipt || !!errors) && (
                     <OfflineWithFeedback
-                        pendingAction={pendingAction}
+                        pendingAction={isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt')}
                         errors={errors}
                         errorRowStyles={[styles.mh4]}
                         onClose={() => {

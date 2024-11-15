@@ -1,5 +1,5 @@
 import type FocusTrap from 'focus-trap-react';
-import type {ViewStyle} from 'react-native';
+import type {GestureResponderEvent, PanResponderGestureState, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
@@ -93,6 +93,9 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** Used to set the element that should receive the initial focus */
     initialFocus?: FocusTrapOptions['initialFocus'];
+
+    /** Whether swipe gestures should propagate to parent components */
+    propagateSwipe?: boolean | ((event?: GestureResponderEvent, gestureState?: PanResponderGestureState) => boolean);
 };
 
 export default BaseModalProps;
