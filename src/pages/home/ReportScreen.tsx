@@ -346,10 +346,11 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         if (!isFocused || !deleteTransactionNavigateBackUrl) {
             return;
         }
-        // Schedule the code to run after the current call stack is cleared,
-        // ensuring all updates are processed before hide the skeleton
-        lodashDefer(() => {
-            Report.clearDeleteTransactionNavigateBackUrl();
+        // Clear the URL after all interactions are processed to ensure all updates are completed before hiding the skeleton
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                Report.clearDeleteTransactionNavigateBackUrl();
+            });
         });
     }, [isFocused, deleteTransactionNavigateBackUrl]);
 
