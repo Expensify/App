@@ -1,4 +1,5 @@
 import type {PropsWithChildren} from 'react';
+import React from 'react';
 import {KeyboardProvider} from 'react-native-keyboard-controller';
 
 function KeyboardProviderWrapper({children}: PropsWithChildren<Record<string, unknown>>) {
