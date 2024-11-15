@@ -36,7 +36,6 @@ function DateOfBirth({onNext, isEditing, onMove, isUserEnteringHisOwnData, owner
             stepFields={[dobInputID]}
             dobInputID={dobInputID}
             dobDefaultValue={dobDefaultValue}
-            shouldShowHelpLinks={false}
         />
     );
 }
