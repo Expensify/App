@@ -341,6 +341,13 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds
     return lastSelectedFeed ?? defaultFeed;
 }
 
+function getDefaultCardName(cardholder?: string) {
+    if (!cardholder) {
+        return '';
+    }
+    return `${cardholder}'s card`;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -367,4 +374,5 @@ export {
     getCorrectStepForSelectedBank,
     getCustomOrFormattedFeedName,
     removeExpensifyCardFromCompanyCards,
+    getDefaultCardName,
 };

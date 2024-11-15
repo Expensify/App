@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,7 +62,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                         <WorkspaceCompanyCardsListRow
                             cardholder={personalDetails?.[item.accountID ?? '-1']}
                             cardNumber={CardUtils.maskCardNumber(cardName)}
-                            name={customCardNames?.[item.cardID] ?? ''}
+                            name={customCardNames?.[item.cardID] ?? CardUtils.getDefaultCardName(personalDetails?.[item.accountID ?? '-1']?.firstName)}
                         />
                     </PressableWithFeedback>
                 </OfflineWithFeedback>

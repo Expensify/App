@@ -13,6 +13,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -61,7 +62,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.CARD,
             data: {
                 email: selectedMember,
-                cardName: `${memberName}'s card`,
+                cardName: CardUtils.getDefaultCardName(memberName),
             },
             isEditing: false,
         });
