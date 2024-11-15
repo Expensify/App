@@ -45,7 +45,7 @@ import BankInfo from './NonUSD/BankInfo/BankInfo';
 import BeneficialOwnerInfo from './NonUSD/BeneficialOwnerInfo/BeneficialOwnerInfo';
 import BusinessInfo from './NonUSD/BusinessInfo/BusinessInfo';
 import Country from './NonUSD/Country/Country';
-import Finish from './NonUSD/Finish/Finish';
+import Finish from './NonUSD/Finish';
 import SignerInfo from './NonUSD/SignerInfo';
 import RequestorStep from './RequestorStep';
 
