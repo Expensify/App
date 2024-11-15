@@ -860,7 +860,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             ReportUtils.navigateBackAfterDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView, setIsDeleteModalVisible, isTransactionDeleted]);
+    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView, isTransactionDeleted]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
@@ -953,7 +953,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 <ConfirmModal
                     title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1})}
                     isVisible={isDeleteModalVisible}
-                    onConfirm={()=>{        
+                    onConfirm={() => {
                         setIsDeleteModalVisible(false);
                         isTransactionDeleted.current = true;
                     }}
