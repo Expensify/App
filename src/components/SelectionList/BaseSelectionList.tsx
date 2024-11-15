@@ -645,9 +645,8 @@ function BaseSelectionList<TItem extends ListItem>(
         ) {
             return;
         }
-        // Remove the focus if the search input is empty or selected options length is changed (and allOptions length remains the same)
+        // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)
         // else focus on the first non disabled item
-
         const newSelectedIndex =
             (isEmpty(prevTextInputValue) && textInputValue === '') ||
             (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length)
