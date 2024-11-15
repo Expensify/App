@@ -1,8 +1,9 @@
 import type {PolicyReportField, Report} from '../onyx';
 import type * as OnyxCommon from '../onyx/OnyxCommon';
 
-// List of keys that are allowed on the Report type. These should be the keys that are sent from the server.
-// you need confirmation from an internal engineer that this has indeed been added to the report object that is returned as
+// List of keys that are allowed on the Report type. These should be the keys that are returned from the server in OpenApp.
+// Before changing this, you need confirmation from an internal engineer that the new key has been added to the report object that is returned from the back-end in OpenApp
+// Any report data that you want to store in Onyx, but isn't returned from the server, should be stored in reportMetaData.
 type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         avatarUrl: unknown;
