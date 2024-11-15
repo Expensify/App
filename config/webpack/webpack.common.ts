@@ -239,8 +239,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             // eslint-disable-next-line @typescript-eslint/naming-convention
             '@hooks': path.resolve(__dirname, '../../src/hooks/'),
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            '@modules': path.resolve(__dirname, '../../modules/'),
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@libs': path.resolve(__dirname, '../../src/libs/'),
             // eslint-disable-next-line @typescript-eslint/naming-convention
             '@navigation': path.resolve(__dirname, '../../src/libs/Navigation/'),

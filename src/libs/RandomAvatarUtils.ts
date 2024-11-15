@@ -81,7 +81,7 @@ const getAvatarForContact = (name?: string | null): AvatarComponent => {
         return DEFAULT_AVATAR;
     }
 
-    // Take up to first 5 characters, or all if name is shorter
+    // Take up to first 8 characters, or all if name is shorter
     const chars = name.slice(0, 8);
 
     // Create a rolling hash from the characters
