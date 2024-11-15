@@ -89,16 +89,18 @@ import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {getNavatticURL} from '@libs/TourUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
-import type {OnboardingAccountingType, OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
+import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
-    Beta,
+    IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
+    Onboarding,
+    OnboardingPurpose,
     PersonalDetailsList,
     PolicyReportField,
     QuickAction,
@@ -116,7 +118,13 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import navigateFromNotification from './navigateFromNotification';
-import {createUpdateCommentMatcher, resolveCommentDeletionConflicts, resolveDuplicationConflictAction, resolveEditCommentWithNewAddCommentRequest} from './RequestConflictUtils';
+import {
+    createUpdateCommentMatcher,
+    resolveCommentDeletionConflicts,
+    resolveDuplicationConflictAction,
+    resolveEditCommentWithNewAddCommentRequest,
+    resolveOpenReportDuplicationConflictAction,
+} from './RequestConflictUtils';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 import * as OnboardingFlow from './Welcome/OnboardingFlow';
@@ -272,18 +280,28 @@ Onyx.connect({
     callback: (val) => (quickAction = val),
 });
 
-let allReportDraftComments: Record<string, string | undefined> = {};
+let onboarding: OnyxEntry<Onboarding>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (val) => {
+        if (Array.isArray(val)) {
+            return;
+        }
+        onboarding = val;
+    },
+});
 
+let introSelected: OnyxEntry<IntroSelected> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (val) => (introSelected = val),
+});
+
+let allReportDraftComments: Record<string, string | undefined> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     waitForCollectionCallback: true,
     callback: (value) => (allReportDraftComments = value),
-});
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
 });
 
 let environmentURL: string;
@@ -850,6 +868,42 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
     };
+
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
+    const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
+
+    // Prepare guided setup data only when nvp_introSelected is set and onboarding is not completed
+    // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages
+    if (introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete) {
+        const {choice, inviteType} = introSelected;
+        const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
+        const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+
+        if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
+            const onboardingMessage = CONST.ONBOARDING_MESSAGES[choice];
+            if (choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT) {
+                const updatedTasks = onboardingMessage.tasks.map((task) => (task.type === 'startChat' ? {...task, autoCompleted: true} : task));
+                onboardingMessage.tasks = updatedTasks;
+            }
+
+            const onboardingData = prepareOnboardingOptimisticData(choice, onboardingMessage);
+
+            optimisticData.push(...onboardingData.optimisticData, {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_INTRO_SELECTED,
+                value: {
+                    isInviteOnboardingComplete: true,
+                },
+            });
+
+            successData.push(...onboardingData.successData);
+
+            failureData.push(...onboardingData.failureData);
+
+            parameters.guidedSetupData = JSON.stringify(onboardingData.guidedSetupData);
+        }
+    }
+
     const isGroupChat = ReportUtils.isGroupChat(newReportObject);
     if (isGroupChat) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
@@ -1000,8 +1054,7 @@ function openReport(
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig, {
-            checkAndFixConflictingRequest: (persistedRequests) =>
-                resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID),
+            checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters),
         });
     }
 }
@@ -3419,19 +3472,15 @@ function getReportPrivateNote(reportID: string | undefined) {
     API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
-function completeOnboarding(
-    engagementChoice: OnboardingPurposeType,
+function prepareOnboardingOptimisticData(
+    engagementChoice: OnboardingPurpose,
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
-    firstName = '',
-    lastName = '',
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
-    paymentSelected?: string,
-    companySize?: OnboardingCompanySizeType,
-    userReportedIntegration?: OnboardingAccountingType,
+    userReportedIntegration?: OnboardingAccounting,
 ) {
     // If the user has the "combinedTrackSubmit" beta enabled we'll show different tasks for track and submit expense.
-    if (Permissions.canUseCombinedTrackSubmit(allBetas)) {
+    if (Permissions.canUseCombinedTrackSubmit()) {
         if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
             // eslint-disable-next-line no-param-reassign
             data = CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
@@ -3842,6 +3891,28 @@ function completeOnboarding(
     }
 
     guidedSetupData.push(...tasksForParameters);
+
+    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID};
+}
+
+function completeOnboarding(
+    engagementChoice: OnboardingPurpose,
+    data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
+    firstName = '',
+    lastName = '',
+    adminsChatReportID?: string,
+    onboardingPolicyID?: string,
+    paymentSelected?: string,
+    companySize?: OnboardingCompanySize,
+    userReportedIntegration?: OnboardingAccounting,
+) {
+    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(
+        engagementChoice,
+        data,
+        adminsChatReportID,
+        onboardingPolicyID,
+        userReportedIntegration,
+    );
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,
