@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useContext, useEffect} from 'react';
 import {NativeModules} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import * as SessionUtils from '@libs/SessionUtils';
@@ -14,24 +13,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Session} from '@src/types/onyx';
 
-type LogOutPreviousUserPageOnyxProps = {
-    /** The data about the current session which will be set once the user is authenticated and we return to this component as an AuthScreen */
-    session: OnyxEntry<Session>;
-
-    /** Is the account loading? */
-    isAccountLoading: boolean;
-};
-
-type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+type LogOutPreviousUserPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 // This page is responsible for handling transitions from OldDot. Specifically, it logs the current user
 // out if the transition is for another user.
 //
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
-function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPreviousUserPageProps) {
+function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const {initialURL} = useContext(InitialURLContext);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account = {}] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isAccountLoading = account?.isLoading;
 
     useEffect(() => {
         const sessionEmail = session?.email;
@@ -92,12 +85,4 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
 
 LogOutPreviousUserPage.displayName = 'LogOutPreviousUserPage';
 
-export default withOnyx<LogOutPreviousUserPageProps, LogOutPreviousUserPageOnyxProps>({
-    isAccountLoading: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (account) => account?.isLoading ?? false,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(LogOutPreviousUserPage);
+export default LogOutPreviousUserPage;
