@@ -1,7 +1,7 @@
 ---
 name: Open an internal issue for a backend fix
 about: Use this template to report a backend issue that an internal Expensify employee needs to fix
-labels: Hot Pick, Daily, Internal, AutoAssignerNewDotQuality
+labels: Daily, Internal, AutoAssignerNewDotQuality
 ---
 
 <!-- Please link the original GH where the problem was reported -->
