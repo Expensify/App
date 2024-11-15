@@ -1,4 +1,4 @@
-import {ContactsNitroModule} from '@modules/ContactsNitroModule/src';
+import {ContactsNitroModule} from 'contacts-nitro-module';
 import {requestContactPermission} from '@pages/iou/request/ContactPermission';
 import type {ContactImportResult, DeviceContact} from './types';
 
