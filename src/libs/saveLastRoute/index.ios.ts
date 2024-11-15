@@ -1,6 +1,10 @@
-import {updateLastRoute} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 
+// Dynamic Import to avoid circular dependency
+const AppActions = () => import('@libs/actions/App');
+
 export default function saveLastRoute() {
-    updateLastRoute(Navigation.getActiveRoute());
+    AppActions().then(({updateLastRoute}) => {
+        updateLastRoute(Navigation.getActiveRoute());
+    });
 }
