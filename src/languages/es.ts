@@ -3465,6 +3465,7 @@ const translations = {
                 giveItNameInstruction: 'Nombra la tarjeta para distingirla de las demás.',
                 updating: 'Actualizando...',
                 noAccountsFound: 'No se han encontrado cuentas',
+                defaultCard: 'Tarjeta predeterminada',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Añade la cuenta en ${connection} y sincroniza la conexión de nuevo.`,
             },
             workflows: {

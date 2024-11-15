@@ -3421,6 +3421,7 @@ const translations = {
                 giveItNameInstruction: 'Give the card a name that sets it apart from the others.',
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
+                defaultCard: 'Default card',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Please add the account in ${connection} and sync the connection again.`,
             },
             workflows: {
