@@ -16,7 +16,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
-import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
@@ -42,7 +41,6 @@ function Composer(
         onClear = () => {},
         onPasteFile = () => {},
         onSelectionChange = () => {},
-        setIsFullComposerAvailable = () => {},
         checkComposerVisibility = () => false,
         selection: selectionProp = {
             start: 0,
@@ -354,10 +352,6 @@ function Composer(
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             onSelectionChange={addCursorPositionToSelectionChange}
-            onContentSizeChange={(e) => {
-                setHasMultipleLines(e.nativeEvent.contentSize.height > variables.componentSizeLarge);
-                updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
-            }}
             disabled={isDisabled}
             onKeyPress={handleKeyPress}
             addAuthTokenToImageURLCallback={addEncryptedAuthTokenToURL}
