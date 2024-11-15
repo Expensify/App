@@ -363,7 +363,7 @@ jobs:
     name: Build and deploy iOS
     needs: prep
     env:
-      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_16.0.0.app/Contents/Developer
     runs-on: macos-13-xlarge
     steps:
       - name: Checkout
@@ -486,7 +486,7 @@ jobs:
     needs: prep
     runs-on: macos-13-xlarge
     env:
-      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_16.0.0.app/Contents/Developer
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
