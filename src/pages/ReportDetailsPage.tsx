@@ -829,31 +829,29 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
     // Where to go back after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
-        setIsDeleteModalVisible(false);
-        isTransactionDeleted.current = true;
-
         let urlToNavigateBack: string | undefined;
 
-        if (caseID === CASES.DEFAULT) {
-            urlToNavigateBack = Task.getNavigationUrlAfterTaskDelete(report);
-            if (urlToNavigateBack) {
-                Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-                Navigation.goBack(urlToNavigateBack as Route);
-            } else {
-                Navigation.dismissModal();
+        if (!isTransactionDeleted.current) {
+            if (caseID === CASES.DEFAULT) {
+                urlToNavigateBack = Task.getNavigationUrlAfterTaskDelete(report);
+                if (urlToNavigateBack) {
+                    Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
+                    Navigation.goBack(urlToNavigateBack as Route);
+                } else {
+                    Navigation.dismissModal();
+                }
+                return;
             }
             return;
         }
 
-        if (!requestParentReportAction) {
-            return;
-        }
-
-        const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
-        if (isTrackExpense) {
-            urlToNavigateBack = IOU.getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
-        } else {
-            urlToNavigateBack = IOU.getNavigationUrlAfterMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+        if (!isEmptyObject(requestParentReportAction)) {
+            const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
+            if (isTrackExpense) {
+                urlToNavigateBack = IOU.getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            } else {
+                urlToNavigateBack = IOU.getNavigationUrlAfterMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            }
         }
 
         if (!urlToNavigateBack) {
@@ -955,13 +953,17 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 <ConfirmModal
                     title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1})}
                     isVisible={isDeleteModalVisible}
-                    onConfirm={navigateToTargetUrl}
+                    onConfirm={()=>{        
+                        setIsDeleteModalVisible(false);
+                        isTransactionDeleted.current = true;
+                    }}
                     onCancel={() => setIsDeleteModalVisible(false)}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1})}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
                     shouldEnableNewFocusManagement
+                    onModalHide={navigateToTargetUrl}
                 />
                 <DelegateNoAccessModal
                     isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}

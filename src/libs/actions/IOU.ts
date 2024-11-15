@@ -5694,7 +5694,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         transactionViolations,
         iouReport,
         reportPreviewAction,
-    } = prepareToCleanUpMoneyRequest(transactionID, reportAction, isSingleTransactionView);
+    } = prepareToCleanUpMoneyRequest(transactionID, reportAction);
 
     const urlToNavigateBack = getNavigationUrlAfterMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
 
