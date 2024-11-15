@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
-import type {OnboardingCompanySizeType, OnboardingPurposeType} from './CONST';
+import type {OnboardingCompanySize} from './CONST';
 import type Platform from './libs/getPlatform/types';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
@@ -988,9 +988,9 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
-    [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: OnboardingPurposeType;
-    [ONYXKEYS.ONBOARDING_COMPANY_SIZE]: OnboardingCompanySizeType;
-    [ONYXKEYS.ONBOARDING_CUSTOM_CHOICES]: OnboardingPurposeType[] | [];
+    [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: OnyxTypes.OnboardingPurpose;
+    [ONYXKEYS.ONBOARDING_COMPANY_SIZE]: OnboardingCompanySize;
+    [ONYXKEYS.ONBOARDING_CUSTOM_CHOICES]: OnyxTypes.OnboardingPurpose[] | [];
     [ONYXKEYS.ONBOARDING_ERROR_MESSAGE]: string;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;

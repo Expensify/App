@@ -815,7 +815,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
         policyID: string;
-        bank: string;
+        bank: CompanyCardFeed;
         cardID: string;
         backTo?: Routes;
     };
@@ -1553,6 +1553,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
             type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
             accountID: string;
             isAuthTokenRequired?: string;
+            fileName?: string;
         };
         [SCREENS.PROFILE_AVATAR]: {
             accountID: string;

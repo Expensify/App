@@ -1,6 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -46,6 +46,7 @@ import type {SectionListDataType} from './SelectionList/types';
 import UserListItem from './SelectionList/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
+import {KeyboardStateContext} from './withKeyboardState';
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
@@ -194,7 +195,7 @@ function MoneyRequestConfirmationList({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
+    const {isKeyboardShown, isWindowHeightReducedByKeyboard} = useContext(KeyboardStateContext);
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
@@ -824,7 +825,7 @@ function MoneyRequestConfirmationList({
     }, [routeError, isTypeSplit, shouldShowReadOnlySplits, debouncedFormError, formError, translate]);
 
     const footerContent = useMemo(() => {
-        if (isReadOnly) {
+        if (isReadOnly || isKeyboardShown || isWindowHeightReducedByKeyboard) {
             return;
         }
 
@@ -876,7 +877,20 @@ function MoneyRequestConfirmationList({
                 {button}
             </>
         );
-    }, [isReadOnly, iouType, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, styles.ph1, styles.mb2, errorMessage]);
+    }, [
+        isReadOnly,
+        iouType,
+        confirm,
+        bankAccountRoute,
+        iouCurrencyCode,
+        policyID,
+        splitOrRequestOptions,
+        styles.ph1,
+        styles.mb2,
+        errorMessage,
+        isKeyboardShown,
+        isWindowHeightReducedByKeyboard,
+    ]);
 
     const listFooterContent = (
         <MoneyRequestConfirmationListFooter

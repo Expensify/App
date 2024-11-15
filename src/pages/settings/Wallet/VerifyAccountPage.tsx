@@ -21,6 +21,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const loginData = loginList?.[contactMethod];
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
     const navigateBackTo = route?.params?.backTo;
@@ -28,8 +29,8 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
 
     const handleSubmitForm = useCallback(
-        (submitCode: string) => {
-            User.validateSecondaryLogin(loginList, contactMethod ?? '', submitCode);
+        (validateCode: string) => {
+            User.validateSecondaryLogin(loginList, contactMethod, validateCode);
         },
         [loginList, contactMethod],
     );
@@ -72,7 +73,8 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('contacts.validateAccount')}
-            description={translate('contacts.featureRequiresValidate')}
+            descriptionPrimary={translate('contacts.featureRequiresValidate')}
+            descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
             onClose={() => setIsValidateCodeActionModalVisible(false)}
             clearError={clearError}
         />
