@@ -58,7 +58,6 @@ const INPUT_IDS = {
         ADDRESS_CITY: 'addressCity',
         ADDRESS_STATE: 'addressState',
         ADDRESS_ZIP_CODE: 'addressZipCode',
-        ACCOUNT_HOLDER_COUNTRY: 'accountHolderCountry',
         COUNTRY: 'country',
         CORPAY: {
             ACCOUNT_HOLDER_COUNTRY: 'accountHolderCountry',
@@ -95,10 +94,6 @@ const INPUT_IDS = {
             COMPANY_DIRECTORS_FULL_NAME: 'companyDirectorsFullName',
             COMPANY_DIRECTORS_JOB_TITLE: 'companyDirectorsJobTitle',
             COMPANY_DIRECTORS_OCCUPATION: 'companyDirectorsOccupation',
-            OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
-            ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE: 'anyIndividualOwn25PercentOrMore',
-            BENEFICIAL_OWNERS: 'beneficialOwners',
-            ENTITY_CHART: 'entityChart',
             SIGNER_FULL_NAME: 'signerFullName',
             SIGNER_DATE_OF_BIRTH: 'signerDateOfBirth',
             SIGNER_JOB_TITLE: 'signerJobTitle',
@@ -200,6 +195,10 @@ type ReimbursementAccountProps = {
 type NonUSDReimbursementAccountAdditionalProps = {
     /** Country of the reimbursement account */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
+
+    /** Name of the account holder */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_NAME]: string;
+
     /** Country of the account holder */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: Country | '';
 
@@ -302,15 +301,6 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Company directors occupation */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_DIRECTORS_OCCUPATION]: string;
 
-    /** Owns more than 25 percent */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
-
-    /** Beneficial owners */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]: string;
-
-    /** Entity chart */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ENTITY_CHART]: FileObject[];
-
     /** Signer full name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_FULL_NAME]: string;
 
@@ -387,7 +377,6 @@ type NonUSDReimbursementAccountAdditionalProps = {
 type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
     Form<
         InputID,
-        // @ts-expect-error TODO: fix it - I have no idea why it is complaining here
         BeneficialOwnersStepBaseProps &
             BankAccountStepProps &
             CompanyStepProps &
