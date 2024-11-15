@@ -2365,7 +2365,14 @@ const translations = {
         },
     },
     finishStep: {
-        connect: 'Conectar cuenta bancaria',
+        connect: 'Connect bank account',
+        letsFinish: "Let's finish in chat!",
+        thanksFor:
+            "Thanks for those details. A dedicated support agent will now review your information. We'll circle back if we need anything else from you, but in the meantime, you can chat with us any time if you have questions.",
+        iHaveA: 'I have a question',
+        enable2FA: 'Enable two-factor authentication (2FA) to prevent fraud',
+        weTake: 'We take your security seriously. Please set up 2FA now to add an extra layer of protection to your account.',
+        secure: 'Secure your account',
     },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un momento',
