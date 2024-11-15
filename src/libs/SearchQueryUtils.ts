@@ -13,10 +13,12 @@ import localeCompare from './LocaleCompare';
 import {validateAmount} from './MoneyRequestUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
-import * as ReportUtils from './ReportUtils';
+// import * as ReportUtils from './ReportUtils';
 import * as searchParser from './SearchParser/searchParser';
 import * as UserUtils from './UserUtils';
 import * as ValidationUtils from './ValidationUtils';
+
+const ReportUtils = () => import('./ReportUtils');
 
 type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
@@ -544,7 +546,12 @@ function getDisplayValue(filterName: string, filter: string, personalDetails: On
         return cardList[filter]?.bank || filter;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]) || filter;
+        let reportName;
+        ReportUtils().then((module) => {
+            reportName = module.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]);
+        });
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return reportName || filter;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const frontendAmount = CurrencyUtils.convertToFrontendAmountAsInteger(Number(filter));
