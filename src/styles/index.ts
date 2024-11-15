@@ -3125,9 +3125,9 @@ const styles = (theme: ThemeColors) =>
 
         radioButtonContainer: {
             backgroundColor: theme.componentBG,
-            borderRadius: 10,
-            height: 20,
-            width: 20,
+            borderRadius: 14,
+            height: 28,
+            width: 28,
             borderColor: theme.border,
             borderWidth: 1,
             justifyContent: 'center',

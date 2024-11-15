@@ -1,9 +1,8 @@
 import React from 'react';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
-type BeneficialOwnerCheckUBOProps = {
+type DirectorCheckProps = {
     /** The title of the question */
     title: string;
 
@@ -14,21 +13,19 @@ type BeneficialOwnerCheckUBOProps = {
     onSelectedValue: (value: boolean) => void;
 };
 
-function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}: BeneficialOwnerCheckUBOProps) {
+function DirectorCheck({title, onSelectedValue, defaultValue}: DirectorCheckProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     return (
         <YesNoStep
             title={title}
-            description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
+            description={translate('signerInfoStep.regulationRequiresUs')}
             defaultValue={defaultValue}
             onSelectedValue={onSelectedValue}
-            submitButtonStyles={[styles.mb0]}
         />
     );
 }
 
-BeneficialOwnerCheckUBO.displayName = 'BeneficialOwnerCheckUBO';
+DirectorCheck.displayName = 'DirectorCheck';
 
-export default BeneficialOwnerCheckUBO;
+export default DirectorCheck;
