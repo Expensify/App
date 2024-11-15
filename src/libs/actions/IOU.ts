@@ -7349,7 +7349,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
 function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>) {
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
 
-    if (isInviteOnboardingComplete || !introSelected?.choice) {
+    if (isInviteOnboardingComplete || !introSelected?.choice || !introSelected?.inviteType) {
         return;
     }
 
