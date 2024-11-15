@@ -506,6 +506,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         reportNameValuePairs,
     ]);
 
+    const viewTourTaskReportID = introSelected?.['viewTour'];
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
+
     return (
         <View style={styles.flexGrow1}>
             <PopoverMenu
@@ -564,6 +567,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                                   onSelected: () => {
                                       Welcome.setSelfTourViewed();
                                       Link.openExternalLink(navatticURL);
+                                      Task.completeTask(viewTourTaskReport);
                                   },
                               },
                           ]

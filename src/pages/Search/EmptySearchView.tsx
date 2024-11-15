@@ -16,12 +16,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getNavatticURL} from '@libs/TourUtils';
 import * as TripsResevationUtils from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
+import * as Task from '@userActions/Task';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -94,9 +97,15 @@ function EmptySearchView({type}: EmptySearchViewProps) {
         );
     }, [styles, translate, ctaErrorMessage]);
 
-    const [onboardingPurpose] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: (introSelected) => introSelected?.choice});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const onboardingPurpose = introSelected?.choice;
     const {environment} = useEnvironment();
     const navatticURL = getNavatticURL(environment, onboardingPurpose);
+    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
+    const viewTourTaskReportID = introSelected?.['viewTour'];
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
 
     const content = useMemo(() => {
         switch (type) {
@@ -123,7 +132,18 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     title: translate('search.searchResults.emptyExpenseResults.title'),
                     subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
                     buttons: [
-                        {buttonText: translate('emptySearchView.takeATour'), buttonAction: () => Link.openExternalLink(navatticURL)},
+                        ...(!hasSeenTour
+                            ? [
+                                  {
+                                      buttonText: translate('emptySearchView.takeATour'),
+                                      buttonAction: () => {
+                                          Link.openExternalLink(navatticURL);
+                                          Welcome.setSelfTourViewed();
+                                          Task.completeTask(viewTourTaskReport);
+                                      },
+                                  },
+                              ]
+                            : []),
                         {
                             buttonText: translate('iou.createExpense'),
                             buttonAction: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID())),
@@ -143,7 +163,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
         }
-    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, ctaErrorMessage, navatticURL]);
+    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, ctaErrorMessage, navatticURL, hasSeenTour, viewTourTaskReport]);
 
     return (
         <EmptyStateComponent
