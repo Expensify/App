@@ -40,7 +40,7 @@ import CompanyStep from './CompanyStep';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import EnableBankAccount from './EnableBankAccount/EnableBankAccount';
-import Agreements from './NonUSD/Agreements/Agreements';
+import Agreements from './NonUSD/Agreements';
 import BankInfo from './NonUSD/BankInfo/BankInfo';
 import BeneficialOwnerInfo from './NonUSD/BeneficialOwnerInfo/BeneficialOwnerInfo';
 import BusinessInfo from './NonUSD/BusinessInfo/BusinessInfo';

@@ -2353,9 +2353,16 @@ const translations = {
         weAreWaiting: 'Estamos esperando que otros verifiquen sus identidades como directores o altos funcionarios de la empresa.',
     },
     agreementsStep: {
-        agreements: 'Acuerdos',
-        pleaseConfirm: 'Por favor confirme los acuerdos a continuación',
-        accept: 'Aceptar y añadir cuenta bancaria',
+        agreements: 'Agreements',
+        pleaseConfirm: 'Please confirm the agreements below',
+        iAmAuthorized: 'I am authorized to use the business bank account for business spend.',
+        iCertify: 'I certify that the information provided is true and accurate.',
+        termsAndConditions: 'terms and conditions.',
+        accept: 'Accept and add bank account',
+        error: {
+            authorized: 'You must be a controlling officer with authorization to operate the business bank account',
+            certify: 'Please certify that the information is true and accurate',
+        },
     },
     finishStep: {
         connect: 'Conectar cuenta bancaria',

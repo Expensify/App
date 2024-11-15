@@ -17,7 +17,7 @@ type AgreementsProps = {
 
 const bodyContent: Array<ComponentType<SubStepProps>> = [Confirmation];
 
-function Agreements({onBackButtonPress, onSubmit}: AgreementsProps) {
+function Index({onBackButtonPress, onSubmit}: AgreementsProps) {
     const {translate} = useLocalize();
 
     const submit = () => {
@@ -41,7 +41,7 @@ function Agreements({onBackButtonPress, onSubmit}: AgreementsProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={Agreements.displayName}
+            wrapperID={Index.displayName}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('agreementsStep.agreements')}
             stepNames={CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES}
@@ -56,6 +56,6 @@ function Agreements({onBackButtonPress, onSubmit}: AgreementsProps) {
     );
 }
 
-Agreements.displayName = 'Agreements';
+Index.displayName = 'Agreements';
 
-export default Agreements;
+export default Index;
