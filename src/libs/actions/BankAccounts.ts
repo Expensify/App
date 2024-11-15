@@ -16,6 +16,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -500,6 +501,10 @@ function getCorpayBankAccountFields(country: string, currency: string) {
     };
 }
 
+function getCorpayOnboardingFields(country: Country) {
+    return API.read(READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS, {countryISO: country});
+}
+
 function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
 }
@@ -730,6 +735,7 @@ export {
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
     getCorpayBankAccountFields,
+    getCorpayOnboardingFields,
 };
 
 export type {BusinessAddress, PersonalAddress};

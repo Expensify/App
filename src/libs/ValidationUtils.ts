@@ -5,6 +5,7 @@ import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 import * as CardUtils from './CardUtils';
@@ -529,6 +530,91 @@ function isValidZipCodeInternational(zipCode: string): boolean {
     return /^[a-z0-9][a-z0-9\- ]{0,10}[a-z0-9]$/.test(zipCode);
 }
 
+/**
+ * Validates the given value if it is correct ABN number
+ * @param registrationNumber - number to validate.
+ */
+function isValidABN(registrationNumber: string): boolean {
+    const cleanedAbn: string = registrationNumber.replaceAll(/[ _]/g, '');
+    if (cleanedAbn.length !== 11) {
+        return false;
+    }
+
+    const weights: number[] = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+    const checksum: number = [...cleanedAbn].reduce((total: number, char: string, index: number) => {
+        let digit = Number(char);
+        if (index === 0) {
+            digit--;
+        } // First digit special rule
+        return total + digit * (weights.at(index) ?? 0); // Using optional chaining for safety
+    }, 0);
+
+    return checksum % 89 === 0;
+}
+
+/**
+ * Validates the given value if it is correct ACN number
+ * @param registrationNumber - number to validate.
+ */
+function isValidACN(registrationNumber: string): boolean {
+    const cleanedAcn: string = registrationNumber.replaceAll(/\s|-/g, '');
+    if (cleanedAcn.length !== 9 || Number.isNaN(Number(cleanedAcn))) {
+        return false;
+    }
+
+    const weights: number[] = [8, 7, 6, 5, 4, 3, 2, 1];
+    const tally: number = weights.reduce((total: number, weight: number, index: number) => {
+        return total + Number(cleanedAcn[index]) * weight;
+    }, 0);
+
+    const checkDigit: number = 10 - (tally % 10);
+    return checkDigit === Number(cleanedAcn[8]) || (checkDigit === 10 && Number(cleanedAcn[8]) === 0);
+}
+
+/**
+ * Validates the given value if it is correct australian registration number.
+ * @param registrationNumber
+ */
+function isValidAURegistrationNumber(registrationNumber: string): boolean {
+    return isValidABN(registrationNumber) || isValidACN(registrationNumber);
+}
+
+/**
+ * Validates the given value if it is correct british registration number.
+ * @param registrationNumber
+ */
+function isValidGBRegistrationNumber(registrationNumber: string): boolean {
+    return /^(?:\d{8}|[A-Z]{2}\d{6})$/.test(registrationNumber);
+}
+
+/**
+ * Validates the given value if it is correct canadian registration number.
+ * @param registrationNumber
+ */
+function isValidCARegistrationNumber(registrationNumber: string): boolean {
+    return /^\d{9}(?:[A-Z]{2}\d{4})?$/.test(registrationNumber);
+}
+
+/**
+ * Validates the given value if it is correct registration number for the given country.
+ * @param registrationNumber
+ * @param country
+ */
+function isValidRegistrationNumber(registrationNumber: string, country: Country | '') {
+    switch (country) {
+        case CONST.COUNTRY.AU:
+            return isValidAURegistrationNumber(registrationNumber);
+        case CONST.COUNTRY.GB:
+            return isValidGBRegistrationNumber(registrationNumber);
+        case CONST.COUNTRY.CA:
+            return isValidCARegistrationNumber(registrationNumber);
+        case CONST.COUNTRY.US:
+            return isValidTaxID(registrationNumber);
+        default:
+            return true;
+    }
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -576,4 +662,5 @@ export {
     isValidEmail,
     isValidPhoneInternational,
     isValidZipCodeInternational,
+    isValidRegistrationNumber,
 };

@@ -21,7 +21,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 type RegistrationNumberProps = SubStepProps;
 
-const {BUSINESS_REGISTRATION_INCORPORATION_NUMBER} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {BUSINESS_REGISTRATION_INCORPORATION_NUMBER, COMPANY_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [BUSINESS_REGISTRATION_INCORPORATION_NUMBER];
 
 function RegistrationNumber({onNext, isEditing}: RegistrationNumberProps) {
@@ -33,11 +33,23 @@ function RegistrationNumber({onNext, isEditing}: RegistrationNumberProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const defaultValue =
         reimbursementAccount?.achData?.additionalData?.corpay?.[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] ?? reimbursementAccountDraft?.[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] ?? '';
+    const businessStepCountryDraftValue = reimbursementAccount?.achData?.additionalData?.corpay?.[COMPANY_COUNTRY] ?? reimbursementAccountDraft?.[COMPANY_COUNTRY] ?? '';
 
-    // TODO Validation for registration number depending on the country will be added in https://github.com/Expensify/App/issues/50905
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        return ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-    }, []);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+            if (
+                values[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] &&
+                !ValidationUtils.isValidRegistrationNumber(values[BUSINESS_REGISTRATION_INCORPORATION_NUMBER], businessStepCountryDraftValue)
+            ) {
+                errors[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] = translate('businessInfoStep.error.registrationNumber');
+            }
+
+            return errors;
+        },
+        [businessStepCountryDraftValue, translate],
+    );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

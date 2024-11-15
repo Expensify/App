@@ -1,10 +1,14 @@
 import type {ComponentType} from 'react';
-import React from 'react';
+import React, {useEffect} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import Address from './substeps/Address';
 import BusinessType from './substeps/BusinessType';
 import Confirmation from './substeps/Confirmation';
@@ -26,6 +30,15 @@ const bodyContent: Array<ComponentType<SubStepProps>> = [Name, Address, ContactI
 
 function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const {translate} = useLocalize();
+
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+
+    const country = reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+
+    useEffect(() => {
+        BankAccounts.getCorpayOnboardingFields(country);
+    }, [country]);
 
     const submit = () => {
         onSubmit();

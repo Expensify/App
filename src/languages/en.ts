@@ -2205,6 +2205,9 @@ const translations = {
         findBusinessCategory: 'Find business category',
         findAnnualPaymentVolume: 'Find annual payment volume',
         findIncorporationState: 'Find incorporation state',
+        error: {
+            registrationNumber: 'Please provide a valid registration number.',
+        },
     },
     beneficialOwnerInfoStep: {
         doYouOwn25percent: 'Do you own 25% or more of',

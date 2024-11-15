@@ -2230,6 +2230,9 @@ const translations = {
         findBusinessCategory: 'Buscar categoría de la empresa',
         findAnnualPaymentVolume: 'Buscar volumen anual de pagos',
         findIncorporationState: 'Buscar estado de constitución',
+        error: {
+            registrationNumber: 'Por favor, proporcione un número de registro válido.',
+        },
     },
     beneficialOwnerInfoStep: {
         doYouOwn25percent: '¿Posees el 25% o más de',
