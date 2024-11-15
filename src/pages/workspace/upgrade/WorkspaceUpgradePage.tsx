@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
+import * as Xero from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -27,8 +28,7 @@ function getFeatureNameAlias(featureName: string) {
         case CONST.REPORT_FIELDS_FEATURE.qbo.classes:
         case CONST.REPORT_FIELDS_FEATURE.qbo.customers:
         case CONST.REPORT_FIELDS_FEATURE.qbo.locations:
-        case CONST.REPORT_FIELDS_FEATURE.xero.costCentres:
-        case CONST.REPORT_FIELDS_FEATURE.xero.region:
+        case CONST.REPORT_FIELDS_FEATURE.xero.mapping:
             return CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias;
         default: {
             return featureName;
@@ -53,6 +53,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const isUpgraded = React.useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
     const perDiemCustomUnit = PolicyUtils.getPerDiemCustomUnit(policy);
+    const categoryId = route.params?.categoryId;
 
     const goBack = useCallback(() => {
         if (!feature) {
@@ -113,12 +114,18 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     case CONST.REPORT_FIELDS_FEATURE.qbo.locations:
                         QuickbooksOnline.updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
                         break;
-                    case CONST.REPORT_FIELDS_FEATURE.xero.costCentres:
-                        // QuickbooksOnline.updateQuickbooksOnlineSyncClasses(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncClasses);
+                    case CONST.REPORT_FIELDS_FEATURE.xero.mapping: {
+                        const {trackingCategories} = policy?.connections?.xero?.data ?? {};
+                        const currentTrackingCategory = trackingCategories?.find((category) => category.id === categoryId);
+                        const {mappings} = policy?.connections?.xero?.config ?? {};
+                        const currentTrackingCategoryValue = currentTrackingCategory ? mappings?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${currentTrackingCategory.id}`] ?? '' : '';
+                        Xero.updateXeroMappings(
+                            policyID,
+                            categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD} : {},
+                            categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: currentTrackingCategoryValue} : {},
+                        );
                         break;
-                    case CONST.REPORT_FIELDS_FEATURE.xero.region:
-                        // QuickbooksOnline.updateQuickbooksOnlineSyncClasses(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncClasses);
-                        break;
+                    }
                     default: {
                         Policy.enablePolicyReportFields(policyID, true, true);
                     }
@@ -135,7 +142,18 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             default:
         }
-    }, [feature, perDiemCustomUnit?.customUnitID, policyID]);
+    }, [
+        categoryId,
+        feature,
+        perDiemCustomUnit?.customUnitID,
+        policy?.connections?.xero?.config,
+        policy?.connections?.xero?.data,
+        policyID,
+        qboConfig?.syncClasses,
+        qboConfig?.syncCustomers,
+        qboConfig?.syncLocations,
+        route.params.featureName,
+    ]);
 
     useEffect(() => {
         const unsubscribeListener = navigation.addListener('blur', () => {

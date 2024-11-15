@@ -6070,8 +6070,7 @@ const CONST = {
             locations: 'report-fields-qbo-locations',
         },
         xero: {
-            costCentres: 'report-fields-xero-costCentres',
-            region: 'report-fields-xero-region',
+            mapping: 'report-fields-mapping',
         },
     },
     get UPGRADE_FEATURE_INTRO_MAPPING() {
