@@ -48,10 +48,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type IOURequestStepScanProps from './types';
 
+const VIDEO_CONSTRAINTS = {facingMode: {exact: 'environment'}};
 function IOURequestStepScan({
     report,
     route: {
@@ -91,7 +91,6 @@ function IOURequestStepScan({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
-    const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const tabIndex = 1;
     const isTabActive = useIsFocused();
 
@@ -117,53 +116,17 @@ function IOURequestStepScan({
      * The last deviceId is of regular len camera.
      */
     const requestCameraPermission = useCallback(() => {
-        if (!isEmptyObject(videoConstraints) || !Browser.isMobile()) {
+        if (!Browser.isMobile()) {
             return;
         }
 
-        const defaultConstraints = {facingMode: {exact: 'environment'}};
         navigator.mediaDevices
             .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
             .then((stream) => {
                 setCameraPermissionState('granted');
                 stream.getTracks().forEach((track) => track.stop());
-                // Only Safari 17+ supports zoom constraint
-                if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
-                    let deviceId;
-                    for (const track of stream.getTracks()) {
-                        const setting = track.getSettings();
-                        if (setting.zoom === 1) {
-                            deviceId = setting.deviceId;
-                            break;
-                        }
-                    }
-                    if (deviceId) {
-                        setVideoConstraints({deviceId});
-                        return;
-                    }
-                }
-                if (!navigator.mediaDevices.enumerateDevices) {
-                    setVideoConstraints(defaultConstraints);
-                    return;
-                }
-                navigator.mediaDevices.enumerateDevices().then((devices) => {
-                    let lastBackDeviceId = '';
-                    for (let i = devices.length - 1; i >= 0; i--) {
-                        const device = devices.at(i);
-                        if (device?.kind === 'videoinput') {
-                            lastBackDeviceId = device.deviceId;
-                            break;
-                        }
-                    }
-                    if (!lastBackDeviceId) {
-                        setVideoConstraints(defaultConstraints);
-                        return;
-                    }
-                    setVideoConstraints({deviceId: lastBackDeviceId});
-                });
             })
             .catch(() => {
-                setVideoConstraints(defaultConstraints);
                 setCameraPermissionState('denied');
             });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -620,7 +583,7 @@ function IOURequestStepScan({
         <>
             <View style={[styles.cameraView]}>
                 {PDFThumbnailView}
-                {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
+                {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || cameraPermissionState === 'granted') && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
@@ -646,14 +609,14 @@ function IOURequestStepScan({
                         />
                     </View>
                 )}
-                {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (
+                {cameraPermissionState === 'granted' && (
                     <NavigationAwareCamera
                         onUserMedia={setupCameraPermissionsAndCapabilities}
                         onUserMediaError={() => setCameraPermissionState('denied')}
                         style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
                         ref={cameraRef}
                         screenshotFormat="image/png"
-                        videoConstraints={videoConstraints}
+                        videoConstraints={VIDEO_CONSTRAINTS}
                         forceScreenshotSourceSize
                         cameraTabIndex={tabIndex}
                         audio={false}
