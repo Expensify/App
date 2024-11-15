@@ -77,7 +77,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     styles.flexRow,
                     styles.gap2,
                     shouldUseNarrowLayout ? styles.flex2 : styles.flex1,
-                    styles.alignItemsCenter,
+                    shouldUseNarrowLayout ? styles.alignItemsStart : styles.alignItemsCenter,
                     shouldUseNarrowLayout ? styles.justifyContentCenter : styles.justifyContentStart,
                 ]}
             >
