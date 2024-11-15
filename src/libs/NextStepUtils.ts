@@ -8,9 +8,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {getNextApproverAccountID} from './actions/IOU';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
+import {getAccountIDsByLogins} from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 
@@ -64,6 +64,23 @@ function parseMessage(messages: Message[] | undefined) {
         .replace(/%tobe/g, 'are');
 
     return `<next-step>${formattedHtml}</next-step>`;
+}
+
+function getNextApproverAccountID(report: OnyxEntry<Report>) {
+    const policy = PolicyUtils.getPolicy(report?.policyID);
+    const approvalChain = ReportUtils.getApprovalChain(policy, report);
+    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, report);
+
+    if (approvalChain.length === 0) {
+        return submitToAccountID;
+    }
+
+    const nextApproverEmail = approvalChain.length === 1 ? approvalChain.at(0) : approvalChain.at(approvalChain.indexOf(currentUserEmail) + 1);
+    if (!nextApproverEmail) {
+        return submitToAccountID;
+    }
+
+    return getAccountIDsByLogins([nextApproverEmail]).at(0);
 }
 
 function getNextApproverDisplayName(report: OnyxEntry<Report>) {
@@ -290,4 +307,4 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     return optimisticNextStep;
 }
 
-export {parseMessage, buildNextStep};
+export {parseMessage, buildNextStep, getNextApproverAccountID};
