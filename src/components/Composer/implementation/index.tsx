@@ -352,6 +352,9 @@ function Composer(
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             onSelectionChange={addCursorPositionToSelectionChange}
+            onContentSizeChange={(e) => {
+                setHasMultipleLines(e.nativeEvent.contentSize.height > variables.componentSizeLarge);
+            }}
             disabled={isDisabled}
             onKeyPress={handleKeyPress}
             addAuthTokenToImageURLCallback={addEncryptedAuthTokenToURL}
