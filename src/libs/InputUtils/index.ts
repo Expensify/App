@@ -12,8 +12,9 @@ const moveSelectionToEnd: MoveSelectiontoEnd = (input) => {
     if (!('setSelectionRange' in input)) {
         return;
     }
-    const length = (input as HTMLInputElement).value.length;
-    input.setSelectionRange(length, length);
+    const inputElement = input as HTMLInputElement;
+    const length = inputElement.value.length;
+    inputElement.setSelectionRange(length, length);
 };
 
 export {scrollToBottom, moveSelectionToEnd};
