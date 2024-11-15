@@ -1,5 +1,6 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
@@ -14,12 +15,15 @@ type ReceiptEmptyStateProps = {
     onPress?: () => void;
 
     disabled?: boolean;
+
+    isThumbnail?: boolean;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = false}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = false, isThumbnail = false}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const theme = useTheme();
 
     return (
         <PressableWithoutFeedback
@@ -28,12 +32,19 @@ function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = fal
             onPress={onPress}
             disabled={disabled}
             disabledStyle={styles.cursorDefault}
-            style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.moneyRequestViewImage, styles.moneyRequestAttachReceipt, hasError && styles.borderColorDanger]}
+            style={[
+                styles.alignItemsCenter,
+                styles.justifyContentCenter,
+                styles.moneyRequestViewImage,
+                isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
+                hasError && styles.borderColorDanger,
+            ]}
         >
             <Icon
-                src={Expensicons.EmptyStateAttachReceipt}
+                fill={theme.border}
+                src={Expensicons.Receipt}
                 width={variables.eReceiptEmptyIconWidth}
-                height={variables.eReceiptIconHeight}
+                height={variables.eReceiptEmptyIconWidth}
             />
         </PressableWithoutFeedback>
     );

@@ -7,6 +7,7 @@ import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
+import ReceiptEmptyState from './ReceiptEmptyState';
 import ThumbnailImage from './ThumbnailImage';
 
 type Style = {height: number; borderRadius: number; margin: number};
@@ -79,6 +80,8 @@ type ReceiptImageProps = (
 
     /** The background color of fallback icon */
     fallbackIconBackground?: string;
+
+    isEmptyReceipt?: boolean;
 };
 
 function ReceiptImage({
@@ -97,8 +100,13 @@ function ReceiptImage({
     shouldUseInitialObjectPosition = false,
     fallbackIconColor,
     fallbackIconBackground,
+    isEmptyReceipt = false,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
+
+    if (isEmptyReceipt) {
+        return <ReceiptEmptyState isThumbnail />;
+    }
 
     if (isPDFThumbnail) {
         return (

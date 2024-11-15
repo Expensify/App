@@ -182,7 +182,7 @@ export default {
     eReceiptThumbnailCenterReceiptBreakpoint: 200,
     eReceiptIconHeight: 100,
     eReceiptIconWidth: 72,
-    eReceiptEmptyIconWidth: 76,
+    eReceiptEmptyIconWidth: 64,
     eReceiptMCCHeightWidth: 40,
     eReceiptIconHeightSmall: 65,
     eReceiptIconWidthSmall: 46,

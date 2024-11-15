@@ -26,6 +26,8 @@ type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
     thumbnail?: string;
 
+    isEmptyReceipt?: boolean;
+
     /** The file type of the receipt */
     fileExtension?: string;
 
@@ -73,6 +75,7 @@ function ReportActionItemImage({
     enablePreviewModal = false,
     transaction,
     isLocalFile = false,
+    isEmptyReceipt = false,
     fileExtension,
     filename,
     isSingleImage = true,
@@ -128,6 +131,7 @@ function ReportActionItemImage({
             isAuthTokenRequired: false,
             source: thumbnail ?? image ?? '',
             shouldUseInitialObjectPosition: isDistanceRequest,
+            isEmptyReceipt,
         };
     }
 

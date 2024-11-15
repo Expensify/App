@@ -4633,6 +4633,11 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
         },
 
+        moneyRequestAttachReceiptThumbnail: {
+            backgroundColor: theme.hoverComponentBG,
+            width: '100%',
+        },
+
         mapViewContainer: {
             ...flex.flex1,
             minHeight: 300,
