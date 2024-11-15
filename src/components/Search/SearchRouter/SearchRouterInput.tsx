@@ -34,6 +34,12 @@ type SearchRouterInputProps = {
     /** Whether the offline message should be shown */
     shouldShowOfflineMessage?: boolean;
 
+    /** Callback to call when the input gets focus */
+    onFocus?: () => void;
+
+    /** Callback to call when the input gets blur */
+    onBlur?: () => void;
+
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
 
@@ -59,6 +65,8 @@ function SearchRouterInput({
     disabled = false,
     shouldShowOfflineMessage = false,
     autoFocus = true,
+    onFocus,
+    onBlur,
     caretHidden = false,
     wrapperStyle,
     wrapperFocusedStyle,
@@ -101,10 +109,12 @@ function SearchRouterInput({
                         onFocus={() => {
                             setIsFocused(true);
                             routerListRef?.current?.updateExternalTextInputFocus(true);
+                            onFocus?.();
                         }}
                         onBlur={() => {
                             setIsFocused(false);
                             routerListRef?.current?.updateExternalTextInputFocus(false);
+                            onBlur?.();
                         }}
                         isLoading={!!isSearchingForReports}
                     />

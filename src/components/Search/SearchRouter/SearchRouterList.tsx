@@ -132,6 +132,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     );
 }
 
+// Todo rename to SearchAutocompleteList once it's used in both Router and SearchPage
 function SearchRouterList(
     {textInputValue, searchQueryItem, additionalSections, onSearchQueryChange, setTextInputValue, onSearchSubmit, onAutocompleteSuggestionClick, closeRouter}: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
@@ -392,6 +393,10 @@ function SearchRouterList(
                 }
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
+                    // Fixme
+                    // even though onSearchQueryChange cleans the autocompleteMap internally,
+                    // the `onAutocompleteSuggestionClick` still carries old autocompleteMap in its closure
+                    // as a result the autocompleteMap will never get cleaned
                     onSearchQueryChange(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(item.searchQuery)} `);
 
                     if (item.autocompleteID && item.text) {
@@ -403,6 +408,7 @@ function SearchRouterList(
                 onSearchSubmit(item.searchQuery);
             }
 
+            // Todo cleanup this onSelectRow, move reportID to Router
             // Handle selection of "Recent chat"
             closeRouter();
             if ('reportID' in item && item?.reportID) {

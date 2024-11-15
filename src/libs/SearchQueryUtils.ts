@@ -533,6 +533,7 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
 /**
  * @private
  * Returns the human-readable "pretty" value for a filter.
+ * Fixme use this for generating map?
  */
 function getDisplayValue(filterName: string, filter: string, personalDetails: OnyxTypes.PersonalDetailsList, cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
