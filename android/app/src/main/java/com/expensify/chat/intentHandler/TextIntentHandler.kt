@@ -24,7 +24,22 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
 
     private fun handleTextIntent(intent: Intent, context: Context) {
         when {
-            intent.type == "text/plain" -> handleTextPlainIntent(intent, context)
+            intent.type == "text/plain" -> {
+                val extras = intent.extras
+                if (extras != null) {
+                    when {
+                        extras.containsKey(Intent.EXTRA_STREAM) -> {
+                            handleTextFileIntent(intent, context)
+                        }
+                        extras.containsKey(Intent.EXTRA_TEXT) -> {
+                            handleTextPlainIntent(intent, context)
+                        }
+                        else -> {
+                            throw UnsupportedOperationException("Unknown text/plain content")
+                        }
+                    }
+                }
+            }
             Regex("text/.*").matches(intent.type ?: "") -> handleTextFileIntent(intent, context)
             else -> throw UnsupportedOperationException("Unsupported MIME type: ${intent.type}")
         }
