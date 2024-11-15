@@ -94,7 +94,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     shouldUseNarrowLayout ? styles.flex3 : styles.flex1,
                     !shouldUseNarrowLayout && styles.gap2,
                     !shouldUseNarrowLayout ? styles.alignItemsCenter : styles.alignItemsEnd,
-                    shouldUseNarrowLayout ? styles.justifyContentCenter : styles.justifyContentEnd,
+                    shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
                 ]}
             >
                 <Text
