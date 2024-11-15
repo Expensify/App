@@ -5,24 +5,25 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
+import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-const PERSONAL_INFO_DOB_KEY = INPUT_IDS.PERSONAL_INFO_STEP.DOB;
-const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY];
+type DateOfBirthProps = SubStepProps & {isSecondSigner: boolean};
 
-function DateOfBirth({onNext, onMove, isEditing}: SubStepProps) {
+const {SIGNER_DATE_OF_BIRTH, SECOND_SIGNER_DATE_OF_BIRTH} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+
+function DateOfBirth({onNext, onMove, isEditing, isSecondSigner}: DateOfBirthProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const inputID = isSecondSigner ? SECOND_SIGNER_DATE_OF_BIRTH : SIGNER_DATE_OF_BIRTH;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-
-    const dobDefaultValue = reimbursementAccount?.achData?.[PERSONAL_INFO_DOB_KEY] ?? reimbursementAccountDraft?.[PERSONAL_INFO_DOB_KEY] ?? '';
+    const defaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[inputID] ?? reimbursementAccountDraft?.[inputID] ?? '';
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: STEP_FIELDS,
+        fieldIds: [inputID],
         onNext,
         shouldSaveDraft: isEditing,
     });
@@ -33,12 +34,12 @@ function DateOfBirth({onNext, onMove, isEditing}: SubStepProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('personalInfoStep.enterYourDateOfBirth')}
+            formTitle={translate('signerInfoStep.whatsYourDOB')}
             onSubmit={handleSubmit}
-            stepFields={STEP_FIELDS}
-            dobInputID={PERSONAL_INFO_DOB_KEY}
-            dobDefaultValue={dobDefaultValue}
-            footerComponent={<HelpLinks containerStyles={[styles.mt5]} />}
+            stepFields={[inputID]}
+            dobInputID={inputID}
+            dobDefaultValue={defaultValue}
+            footerComponent={<WhyLink containerStyles={[styles.mt6]} />}
         />
     );
 }
