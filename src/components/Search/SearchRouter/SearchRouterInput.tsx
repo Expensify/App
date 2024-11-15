@@ -34,9 +34,6 @@ type SearchRouterInputProps = {
     /** Whether the offline message should be shown */
     shouldShowOfflineMessage?: boolean;
 
-    /** Whether the input should be focused */
-    autoFocus?: boolean;
-
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
 

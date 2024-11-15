@@ -12,7 +12,7 @@ const moveSelectionToEnd: MoveSelectiontoEnd = (input) => {
     if (!('setSelectionRange' in input)) {
         return;
     }
-    const length = input.value.length;
+    const length = (input as HTMLInputElement).value.length;
     input.setSelectionRange(length, length);
 };
 
