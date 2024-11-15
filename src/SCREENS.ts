@@ -405,6 +405,8 @@ const SCREENS = {
             NETSUITE_JOURNAL_ENTRY_APPROVAL_LEVEL_SELECT: 'Policy_Accounting_NetSuite_Journal_Entry_Approval_Level_Select',
             NETSUITE_APPROVAL_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Approval_Account_Select',
             NETSUITE_CUSTOM_FORM_ID: 'Policy_Accounting_NetSuite_Custom_Form_ID',
+            NETSUITE_AUTO_SYNC: 'Policy_Accounting_NetSuite_Auto_Sync',
+            NETSUITE_ACCOUNTING_METHOD: 'Policy_Accounting_NetSuite_Accounting_Method',
             SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
             ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
             EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',
@@ -542,6 +544,7 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
+        PER_DIEM: 'Per_Diem',
     },
 
     EDIT_REQUEST: {

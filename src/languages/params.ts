@@ -543,8 +543,16 @@ type FileLimitParams = {
     fileLimit: number;
 };
 
+type LastFourDigitsParams = {
+    lastFourDigits: string;
+};
+
 type CompanyCardBankName = {
     bankName: string;
+};
+
+type CurrencyCodeParams = {
+    currencyCode: string;
 };
 
 export type {
@@ -637,6 +645,7 @@ export type {
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
+    LastFourDigitsParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
@@ -746,4 +755,5 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    CurrencyCodeParams,
 };
