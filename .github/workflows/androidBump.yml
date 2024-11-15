@@ -5,6 +5,9 @@ on:
   schedule:
     # Runs at midnight every day
     - cron: '0 0 * * *'
+  push:
+    branches:
+      - andrew-android-bump-fixes-2
 
 jobs:
   android_bump:
