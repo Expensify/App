@@ -2319,7 +2319,7 @@ const styles = (theme: ThemeColors) =>
             height: 32,
             width: 32,
             padding: 6,
-            margin: 3,
+            marginHorizontal: 3,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.transparent,
             justifyContent: 'center',
