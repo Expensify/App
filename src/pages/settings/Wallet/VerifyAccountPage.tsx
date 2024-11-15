@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
@@ -20,6 +20,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const loginData = loginList?.[contactMethod];
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
     const navigateBackTo = route?.params?.backTo;
 
@@ -36,11 +37,19 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         User.clearContactMethodErrors(contactMethod, 'validateLogin');
     }, [contactMethod]);
 
+    const closeModal = useCallback(() => {
+        // Disable modal visibility so the navigation is animated
+        setIsValidateCodeActionModalVisible(false);
+        Navigation.goBack();
+    }, []);
+
     // Handle navigation once the user is validated
     useEffect(() => {
         if (!isUserValidated) {
             return;
         }
+
+        setIsValidateCodeActionModalVisible(false);
 
         if (navigateBackTo) {
             Navigation.navigate(navigateBackTo);
@@ -55,11 +64,13 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             handleSubmitForm={handleSubmitForm}
             validateError={validateLoginError}
             hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
-            isVisible={!isUserValidated}
+            isVisible={isValidateCodeActionModalVisible}
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
             descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
             clearError={clearError}
+            onClose={closeModal}
+            onModalHide={() => {}}
         />
     );
 }
