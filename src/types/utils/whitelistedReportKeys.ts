@@ -1,5 +1,5 @@
-import type {PolicyReportField, Report} from '../onyx';
-import type * as OnyxCommon from '../onyx/OnyxCommon';
+import type {PolicyReportField, Report} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 // List of keys that are allowed on the Report type. These should be the keys that are returned from the server in OpenApp.
 // Before changing this, you need confirmation from an internal engineer that the new key has been added to the report object that is returned from the back-end in OpenApp
