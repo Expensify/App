@@ -239,7 +239,7 @@ function goUp(fallbackRoute: Route, options?: GoUpOptions) {
 
     // If we need to pop more than one route from rootState, we replace the current route to not lose visited routes from the navigation state
     if (indexOfFallbackRoute === -1 || (isRootNavigatorState(targetState) && distanceToPop > 1)) {
-        const replaceAction = {...minimalAction, type: 'REPLACE'} as NavigationAction;
+        const replaceAction = {...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE} as NavigationAction;
         navigationRef.current.dispatch(replaceAction);
         return;
     }
@@ -456,7 +456,7 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
 // @TODO In places where we use dismissModal with report arg we should do dismiss modal and then navigate to the report.
 // We left it here to limit the number of changed files.
 const dismissModal = (reportID?: string, ref = navigationRef) => {
-    ref.dispatch({type: 'DISMISS_MODAL'});
+    ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
     if (!reportID) {
         return;
     }
