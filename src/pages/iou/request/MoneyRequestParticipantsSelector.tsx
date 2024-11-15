@@ -22,7 +22,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ContactUtils from '@libs/ContactUtils';
+import getContacts from '@libs/ContactUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -173,6 +173,7 @@ function MoneyRequestParticipantsSelector({
             preferPolicyExpenseChat: isPaidGroupPolicy,
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
+        console.log('chatOptions.1', JSON.stringify(newOptions.personalDetails.slice(0, 20), null, 2));
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action]);
 
@@ -250,7 +251,7 @@ function MoneyRequestParticipantsSelector({
         }
         contactImport().then(({contactList, isPermissionBlocked}: ContactImportResult) => {
             setContactPermissionBlocked(isPermissionBlocked);
-            const usersFromContact = ContactUtils.getContacts(contactList);
+            const usersFromContact = getContacts(contactList);
             setContacts(usersFromContact);
         });
     }, [didScreenTransitionEnd]);
@@ -261,10 +262,12 @@ function MoneyRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = useCallback(
-        (option: Participant) => {
+        (option: Participant & OptionsListUtils.Option) => {
+            const participantDetails = lodashPick(option?.participantsList?.at(0), 'firstName', 'lastName', 'displayName', 'phoneNumber', 'avatar');
             const newParticipants: Participant[] = [
                 {
                     ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
+                    ...participantDetails,
                     selected: true,
                     iouType,
                 },
