@@ -125,7 +125,7 @@ function AttachmentCarouselPager(
 
     const carouselItems = items.map((item, index) => (
         <View
-            key={extractItemKey(item, index)}
+            key={extractItemKey(item)}
             style={styles.flex1}
         >
             <CarouselItem
