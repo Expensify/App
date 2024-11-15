@@ -138,8 +138,8 @@ function maskCard(lastFour = ''): string {
  * @param bank - card bank.
  * @returns - The masked card string.
  */
-function maskCardNumber(cardName: string, bank: string): string {
-    if (!cardName || cardName === '' || bank === '') {
+function maskCardNumber(cardName: string, bank: string | undefined): string {
+    if (!cardName || cardName === '' || !bank) {
         return '';
     }
     const hasSpace = /\s/.test(cardName);
