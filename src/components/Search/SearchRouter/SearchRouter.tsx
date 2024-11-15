@@ -10,6 +10,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import type {SearchAutocompleteQueryRange, SearchQueryString} from '@components/Search/types';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
@@ -54,6 +55,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const {inputCallbackRef} = useAutoFocusInput();
     const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<AutocompleteItemData[] | undefined>([]);
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
 
@@ -390,6 +392,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 />
             )}
             <SearchRouterInput
+                ref={inputCallbackRef}
                 value={textInputValue}
                 isFullWidth={shouldUseNarrowLayout}
                 updateSearch={onSearchChange}
