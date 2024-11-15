@@ -6,6 +6,7 @@ import * as Request from '@libs/Request';
 import CONST from '@src/CONST';
 import type Middleware from './types';
 
+// Dynamic Import to avoid circular dependency
 const Authentication = () => import('@libs/Authentication');
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
