@@ -11,11 +11,9 @@ function SubmitTab() {
             onFinish={() => {}}
             onParticipantsAdded={(value) => {
                 const reportID = value.at(0)?.reportID;
-
-                if (!reportID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.SHARE_SUBMIT_DETAILS.getRoute(reportID));
+                const accountID = value.at(0)?.accountID;
+                // Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(`${!reportID ? accountID : reportID}`));
+                Navigation.navigate(ROUTES.SHARE_SUBMIT_DETAILS.getRoute(`${!reportID ? accountID : reportID}`));
             }}
             iouRequestType="manual"
             action="create"

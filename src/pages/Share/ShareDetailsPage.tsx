@@ -33,28 +33,28 @@ function ShareDetailsPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true});
+    const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const currentUserID = Report.getCurrentUserAccountID();
 
-    const newChatReport = Report.getOptimisticChatReport(reportID);
-    const newReport = report ?? newChatReport;
-    const reportDisplay = OptionsListUtils.getReportDisplayOption(newReport);
-    if (!report) {
-        reportDisplay.text = reportDisplay.participantsList?.filter((u) => u.accountID !== Report.getCurrentUserAccountID()).at(0)?.displayName;
-        reportDisplay.alternateText = reportDisplay.participantsList?.at(0)?.login;
-    }
-    if (report?.ownerAccountID === 0) {
-        const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
-            OptionsListUtils.getPersonalDetailsForAccountIDs(
-                Object.keys(report?.participants ?? {})
-                    .filter((u) => parseInt(u, 10) !== Report.getCurrentUserAccountID())
-                    .map((p) => parseInt(p ?? '', 10)),
-                personalDetails,
-            ),
-            false,
-        );
-        reportDisplay.text = displayNamesWithTooltips.filter((u) => u.accountID !== Report.getCurrentUserAccountID()).at(0)?.displayName;
-        reportDisplay.alternateText = displayNamesWithTooltips.filter((u) => u.accountID !== Report.getCurrentUserAccountID()).at(0)?.login;
+    const optimisticReport = Report.getOptimisticChatReport(reportID);
+    const report = onyxReport ?? optimisticReport;
+    const displayReport = OptionsListUtils.getReportDisplayOption(report);
+    if (!onyxReport || onyxReport?.ownerAccountID === 0) {
+        const participants = onyxReport
+            ? ReportUtils.getDisplayNamesWithTooltips(
+                  OptionsListUtils.getPersonalDetailsForAccountIDs(
+                      Object.keys(onyxReport?.participants ?? {})
+                          .map((p) => parseInt(p ?? '', 10))
+                          .filter((u) => u !== currentUserID),
+                      personalDetails,
+                  ),
+                  false,
+              )
+            : displayReport.participantsList;
+
+        displayReport.text = participants?.filter((u) => u.accountID !== currentUserID).at(0)?.displayName;
+        displayReport.alternateText = participants?.filter((u) => u.accountID !== currentUserID).at(0)?.login;
     }
 
     const [tempShareFiles] = useOnyx(`${ONYXKEYS.COLLECTION.TEMP_SHARE_FILES}`);
@@ -77,14 +77,23 @@ function ShareDetailsPage({
             currentAttachment.content,
             currentAttachment.id,
             (file) => {
-                if (!report) {
-                    Report.openReport(newReport?.reportID ?? '', '', [reportDisplay.participantsList?.at(0)?.login ?? ''], newChatReport, undefined, undefined, undefined, undefined);
+                if (!onyxReport && report.reportID) {
+                    Report.openReport(
+                        report.reportID,
+                        '',
+                        displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [],
+                        optimisticReport,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                    );
                 }
-                if (newReport) {
-                    Report.addAttachment(newReport?.reportID, file, message);
+                if (report.reportID) {
+                    Report.addAttachment(report.reportID, file, message);
                 }
 
-                const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(newReport.reportID);
+                const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(report.reportID);
                 Navigation.navigate(routeToNavigate);
             },
             () => {},
@@ -103,13 +112,13 @@ function ShareDetailsPage({
                     title={translate('share.shareToExpensify')}
                     shouldShowBackButton
                 />
-                {!!newReport && (
+                {!!report && (
                     <>
                         <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                             <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                         </View>
                         <UserListItem
-                            item={reportDisplay}
+                            item={displayReport}
                             isFocused={false}
                             showTooltip={false}
                             onSelectRow={() => {}}

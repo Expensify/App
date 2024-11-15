@@ -12,8 +12,6 @@ function ShareTab() {
             onParticipantsAdded={(value) => {
                 const reportID = value.at(0)?.reportID;
                 const accountID = value.at(0)?.accountID;
-                // alert(ROUTES.SHARE_DETAILS.getRoute(`${!reportID ? accountID : reportID}`));
-                // alert(JSON.stringify(value));
                 Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(`${!reportID ? accountID : reportID}`));
             }}
             iouRequestType="manual"
