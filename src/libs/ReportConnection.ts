@@ -1,4 +1,3 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -9,12 +8,12 @@ import * as ReportHelperActions from './actions/Report';
 const UnreadIndicatorUpdaterHelper = () => import('./UnreadIndicatorUpdater');
 
 const reportIDToNameMap: Record<string, string> = {};
-let allReports: OnyxCollection<Report>;
+let allReports: Record<string, Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
-        allReports = value;
+        allReports = Object.fromEntries(Object.entries(value).filter(([, report]) => !!report));
         UnreadIndicatorUpdaterHelper().then((module) => {
             module.triggerUnreadUpdate();
         });
