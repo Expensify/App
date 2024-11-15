@@ -814,7 +814,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
         policyID: string;
-        bank: string;
+        bank: CompanyCardFeed;
         cardID: string;
         backTo?: Routes;
     };
