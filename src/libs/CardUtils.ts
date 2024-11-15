@@ -1,6 +1,6 @@
 import groupBy from 'lodash/groupBy';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import * as Illustrations from '@src/components/Icon/Illustrations';
@@ -25,6 +25,15 @@ Onyx.connect({
         }
 
         allCards = val;
+    },
+});
+
+let allWorkspaceCards: OnyxCollection<WorkspaceCardsList> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allWorkspaceCards = value;
     },
 });
 
@@ -341,6 +350,17 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds
     return lastSelectedFeed ?? defaultFeed;
 }
 
+function getAllCardsForWorkspace(workspaceAccountID: number): CardList {
+    const cards = {};
+    for (const [key, values] of Object.entries(allWorkspaceCards ?? {})) {
+        if (key.includes(workspaceAccountID.toString()) && values) {
+            const {cardList, ...rest} = values;
+            Object.assign(cards, rest);
+        }
+    }
+    return cards;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -367,4 +387,5 @@ export {
     getCorrectStepForSelectedBank,
     getCustomOrFormattedFeedName,
     removeExpensifyCardFromCompanyCards,
+    getAllCardsForWorkspace,
 };

@@ -61,8 +61,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [cards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
-    const [expensifyCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
@@ -85,27 +83,18 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const hasMultipleFeeds = Object.values(CardUtils.getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
     const paymentAccountID = cardSettings?.paymentBankAccountID ?? 0;
 
+    const workspaceCards = CardUtils.getAllCardsForWorkspace(workspaceAccountID);
+
     useEffect(() => {
         CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
 
     const memberCards = useMemo(() => {
-        if (!cards && !expensifyCards) {
+        if (!workspaceCards) {
             return [];
         }
-        // For admin Expensify Cards can also appear in the cards list, so we need to remove duplicates
-        const allCards = [...Object.values(cards ?? {}), ...Object.values(expensifyCards ?? {})];
-        const cardIDs = new Set();
-        const uniqueObjects = allCards.filter((obj) => {
-            if (cardIDs.has(obj.cardID)) {
-                return false;
-            }
-            cardIDs.add(obj.cardID);
-            return true;
-        });
-
-        return Object.values(uniqueObjects ?? {}).filter((card) => card.accountID === accountID && workspaceAccountID.toString() === card.fundID);
-    }, [accountID, workspaceAccountID, cards, expensifyCards]);
+        return Object.values(workspaceCards ?? {}).filter((card) => card.accountID === accountID);
+    }, [accountID, workspaceAccountID, workspaceCards]);
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
