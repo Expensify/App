@@ -70,12 +70,12 @@ jobs:
         with:
           github-token: ${{ github.token }}
           script: |
-            const workflowUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: process.env.PULL_REQUEST_NUMBER,
-              body: `🚧 @${{ github.actor }} has triggered a test build. You can view the [workflow run here](${workflowUrl}).`
+              body: `🚧 @${{ github.actor }} has triggered a test build. You can view the [workflow run here](${workflowURL}).`
             });
 
   buildAndroid:
