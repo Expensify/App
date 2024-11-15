@@ -7346,7 +7346,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
  *
  * @param paymentSelected based on which we choose the onboarding choice and concierge message
  */
-function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>) {
+function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>, adminsChatReportID?: string, onboardingPolicyID?: string) {
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
 
     if (isInviteOnboardingComplete || !introSelected?.choice) {
@@ -7367,7 +7367,15 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         onboardingPurpose = CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
     }
 
-    Report.completeOnboarding(onboardingPurpose, CONST.ONBOARDING_MESSAGES[onboardingPurpose], personalDetails?.firstName ?? '', personalDetails?.lastName ?? '', paymentSelected);
+    Report.completeOnboarding(
+        onboardingPurpose,
+        CONST.ONBOARDING_MESSAGES[onboardingPurpose],
+        personalDetails?.firstName ?? '',
+        personalDetails?.lastName ?? '',
+        adminsChatReportID,
+        onboardingPolicyID,
+        paymentSelected,
+    );
 }
 
 function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true) {
