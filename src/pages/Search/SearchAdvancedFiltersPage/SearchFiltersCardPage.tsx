@@ -33,6 +33,7 @@ function SearchFiltersCardPage() {
             .sort((a, b) => a.bank.localeCompare(b.bank))
             .map((card) => {
                 const icon = getBankIcon({bankName: card.bank as BankName, isCard: true, styles});
+
                 return {
                     lastFourPAN: card.lastFourPAN,
                     isVirtual: card?.nameValuePairs?.isVirtual,
