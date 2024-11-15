@@ -1,3 +1,4 @@
+import type {FileObject} from '@components/AttachmentModal';
 import type {Country} from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type Form from './Form';
@@ -54,6 +55,8 @@ const INPUT_IDS = {
     ADDITIONAL_DATA: {
         COUNTRY: 'country',
         CORPAY: {
+            ACCOUNT_HOLDER_COUNTRY: 'accountHolderCountry',
+            BANK_STATEMENT: 'bankStatement',
             COMPANY_NAME: 'companyName',
             COMPANY_STREET: 'companyStreet',
             COMPANY_CITY: 'companyCity',
@@ -145,6 +148,11 @@ type ReimbursementAccountProps = {
 type NonUSDReimbursementAccountAdditionalProps = {
     /** Country of the reimbursement account */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
+    /** Country of the account holder */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: Country | '';
+
+    /** Bank statement file */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
 
     /** Company name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
