@@ -1,6 +1,6 @@
-import type {TextInput} from 'react-native';
+import {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-type ScrollToBottom = (input: HTMLInputElement | TextInput) => void;
-type MoveSelectiontoEnd = (input: HTMLInputElement | TextInput) => void;
+type ScrollToBottom = (input: BaseTextInputRef) => void;
+type MoveSelectiontoEnd = (input: BaseTextInputRef) => void;
 
 export type {ScrollToBottom, MoveSelectiontoEnd};

@@ -1,5 +1,6 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -144,7 +145,7 @@ type CustomBaseTextInputProps = {
     contentWidth?: number;
 };
 
-type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
+type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef | AnimatedMarkdownTextInputRef;
 
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 

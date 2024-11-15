@@ -759,7 +759,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                             updateRefs('minuteRef', textInputRef);
                             minuteInputRef.current = textInputRef as TextInput | null;
                             if (!showFullFormat) {
-                                inputCallbackRef(textInputRef as TextInput | null);
+                                inputCallbackRef(textInputRef);
                             }
                         }}
                         onSelectionChange={(e) => {
@@ -806,7 +806,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                                     updateRefs('milisecondRef', textInputRef);
                                     milisecondInputRef.current = textInputRef as TextInput | null;
                                     if (showFullFormat) {
-                                        inputCallbackRef(textInputRef as TextInput | null);
+                                        inputCallbackRef(textInputRef);
                                     }
                                 }}
                                 onSelectionChange={(e) => {
