@@ -124,12 +124,12 @@ function hasCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
 }
 
 function getNumericValue(value: number | string, toLocaleDigit: (arg: string) => string): number | string {
-    // Rounding to 4 decimal places
-    const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.')).toPrecision(4);
+    const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.'));
     if (Number.isNaN(numValue)) {
         return NaN;
     }
-    return numValue;
+    // Rounding to 4 decimal places
+    return parseFloat(numValue.toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES));
 }
 
 /**

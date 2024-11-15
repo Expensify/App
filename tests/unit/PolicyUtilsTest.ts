@@ -45,8 +45,8 @@ describe('PolicyUtils', () => {
             });
 
             it('should return non-integer value with 4+ decimals cut to 4', () => {
-                const rate = PolicyUtils.getRateDisplayValue(10.531345, toLocaleDigitMock, true);
-                expect(rate).toEqual('10.5314');
+                const rate = PolicyUtils.getRateDisplayValue(10.53135, toLocaleDigitMock, true);
+                expect(rate).toEqual('10.5313');
             });
         });
     });
