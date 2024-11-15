@@ -7,6 +7,11 @@ set -e
 ROOT_DIR=$(dirname "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)")
 cd "$ROOT_DIR" || exit 1
 
+cd Mobile-Expensify || exit 1
+npm i
+
+cd "$ROOT_DIR" || exit 1
+
 # Apply packages using patch-package
 scripts/applyPatches.sh
 
