@@ -268,7 +268,7 @@ function AdvancedSearchFilters() {
 
     const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
-        selector: (policyCategories) => Object.fromEntries(Object.entries(policyCategories ?? {}).filter(([_, categories]) => !isEmptyObject(categories))),
+        selector: (policyCategories) => Object.fromEntries(Object.entries(policyCategories ?? {}).filter(([, categories]) => !isEmptyObject(categories))),
     });
     const singlePolicyCategories = allPolicyCategories[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
     const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
