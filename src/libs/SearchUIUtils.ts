@@ -282,7 +282,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
             ? Object.entries(data)
                   .filter(([itemKey, value]) => isTransactionEntry(itemKey) && (value as SearchTransaction)?.reportID === report.reportID)
                   .map((item) => item[1])
-            : []
+            : [transaction]
     ) as SearchTransaction[];
 
     const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
