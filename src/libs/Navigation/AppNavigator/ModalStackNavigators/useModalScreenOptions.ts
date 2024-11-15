@@ -25,6 +25,7 @@ function useModalScreenOptions(getScreenOptions?: (styles: ThemeStyles) => Stack
             cardStyle: styles.navigationScreenCardStyle,
             headerShown: false,
             cardStyleInterpolator,
+            animationTypeForReplace: 'pop',
         }),
         [styles, cardStyleInterpolator],
     );
