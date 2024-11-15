@@ -34,14 +34,19 @@ describe('PolicyUtils', () => {
                 expect(rate).toEqual('10.50');
             });
 
+            it('should return non-integer value with 4 decimals as is', () => {
+                const rate = PolicyUtils.getRateDisplayValue(10.5312, toLocaleDigitMock, true);
+                expect(rate).toEqual('10.5312');
+            });
+
             it('should return non-integer value with 3 decimals as is', () => {
                 const rate = PolicyUtils.getRateDisplayValue(10.531, toLocaleDigitMock, true);
                 expect(rate).toEqual('10.531');
             });
 
-            it('should return non-integer value with 3+ decimals cut to 3', () => {
+            it('should return non-integer value with 4+ decimals cut to 4', () => {
                 const rate = PolicyUtils.getRateDisplayValue(10.531345, toLocaleDigitMock, true);
-                expect(rate).toEqual('10.531');
+                expect(rate).toEqual('10.5314');
             });
         });
     });

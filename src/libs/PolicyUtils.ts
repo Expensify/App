@@ -124,11 +124,12 @@ function hasCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
 }
 
 function getNumericValue(value: number | string, toLocaleDigit: (arg: string) => string): number | string {
-    const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.'));
+    // Rounding to 4 decimal places
+    const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.')).toPrecision(4);
     if (Number.isNaN(numValue)) {
         return NaN;
     }
-    return numValue.toFixed(CONST.CUSTOM_UNITS.RATE_DECIMALS);
+    return numValue;
 }
 
 /**
@@ -160,11 +161,10 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     }
 
     if (withDecimals) {
-        const decimalPart = numValue.toString().split('.').at(1);
-        if (decimalPart) {
-            const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
-            return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
-        }
+        const decimalPart = numValue.toString().split('.').at(1) ?? '';
+        // Set the fraction digits to be between 2 and 4 (OD Behavior)
+        const fractionDigits = Math.min(Math.max(decimalPart.length, CONST.MIN_TAX_RATE_DECIMAL_PLACES), CONST.MAX_TAX_RATE_DECIMAL_PLACES);
+        return Number(numValue).toFixed(fractionDigits).toString().replace('.', toLocaleDigit('.'));
     }
 
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
