@@ -1,9 +1,9 @@
 import type {MutableRefObject} from 'react';
 import type {PanResponderGestureState} from 'react-native';
 import {Animated} from 'react-native';
-import type {ModalProps} from 'react-native-modal';
 import {calcDistancePercentage, createAnimationEventForSwipe, getAccDistancePerDirection, getSwipingDirection, isSwipeDirectionAllowed, shouldPropagateSwipe} from './panHandlers';
 import type {AnimationEvent, Direction, GestureResponderEvent} from './types';
+import type ModalProps from './types';
 
 type RemainingModalProps = Omit<
     ModalProps,
@@ -62,7 +62,7 @@ const onStartShouldSetPanResponder = (props: RemainingModalProps, setCurrentSwip
         // eslint-disable-next-line
         const hasScrollableView = e._dispatchInstances ?? e._dispatchInstances.some((instance: any) => /scrollview|flatlist/i.test(instance.type));
 
-        if (hasScrollableView && shouldPropagateSwipe(e, gestureState) && props.scrollTo && props.scrollOffset > 0) {
+        if (hasScrollableView && shouldPropagateSwipe(e, gestureState) && props.scrollTo && props.scrollOffset && props.scrollOffset > 0) {
             return false;
         }
         if (props.onSwipeStart) {
@@ -101,7 +101,7 @@ const onPanResponderMove = (
                 props.onSwipeMove(newOpacityFactor, gestureState);
             }
         } else {
-            if (!props.scrollTo) {
+            if (!props.scrollTo || props.scrollOffsetMax === undefined) {
                 return;
             }
             if (props.scrollHorizontal) {
@@ -132,7 +132,7 @@ const onPanResponderRelease = (
     return (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
         const currentSwipingDirection = currentSwipingDirectionRef.current;
         const accDistance = getAccDistancePerDirection(gestureState, currentSwipingDirection);
-        if (accDistance > props.swipeThreshold && isSwipeDirectionAllowed(gestureState, currentSwipingDirection, props.swipeDirection)) {
+        if (props.swipeThreshold && accDistance > props.swipeThreshold && isSwipeDirectionAllowed(gestureState, currentSwipingDirection, props.swipeDirection)) {
             if (props.onSwipeComplete) {
                 setInSwipeClosingState(true);
                 props.onSwipeComplete(
@@ -155,7 +155,7 @@ const onPanResponderRelease = (
             useNativeDriver: false,
         }).start();
 
-        if (props.scrollTo) {
+        if (props.scrollTo && props.scrollOffset !== undefined && props.scrollOffsetMax !== undefined) {
             if (props.scrollOffset > props.scrollOffsetMax) {
                 props.scrollTo({
                     y: props.scrollOffsetMax,

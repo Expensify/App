@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
-import React, {useEffect} from 'react';
-import ReAnimated, {Easing, ReduceMotion, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import React from 'react';
+import ReAnimated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import {PressableWithFeedback} from '@components/Pressable';
 import styles from './modal.style';
 
@@ -10,28 +10,11 @@ type BackdropProps = {
     backdropColor: string;
     hasBackdrop: boolean;
     customBackdrop?: ReactNode;
-    isVisible: boolean;
-    isTransitioning: boolean;
     backdropOpacity: number;
-    onBackdropPress: () => void;
+    onBackdropPress?: () => void;
 };
 
-function Backdrop({getDeviceWidth, backdropColor, getDeviceHeight, hasBackdrop, customBackdrop, isVisible, isTransitioning, backdropOpacity, onBackdropPress, ...props}: BackdropProps) {
-    const opacityValue = useSharedValue(0);
-
-    useEffect(() => {
-        if (!isTransitioning) {
-            return;
-        }
-        opacityValue.value = withDelay(0, withTiming(isVisible ? backdropOpacity : 0, {duration: 300, easing: Easing.inOut(Easing.ease), reduceMotion: ReduceMotion.Never}));
-    }, [isVisible, isTransitioning, backdropOpacity, opacityValue]);
-
-    const animatedStyle = useAnimatedStyle(() => {
-        return {
-            opacity: opacityValue.value,
-        };
-    });
-
+function Backdrop({getDeviceWidth, backdropColor, getDeviceHeight, hasBackdrop, customBackdrop, backdropOpacity, onBackdropPress, ...props}: BackdropProps) {
     if (!hasBackdrop) {
         return null;
     }
@@ -43,16 +26,22 @@ function Backdrop({getDeviceWidth, backdropColor, getDeviceHeight, hasBackdrop, 
             width: getDeviceWidth(),
             height: getDeviceHeight(),
             backgroundColor: backdropColor,
+            opacity: backdropOpacity,
         },
     ];
 
     const BDComponent = (
         <ReAnimated.View
-            style={[styles.backdrop, backdropComputedStyle, animatedStyle]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            entering={FadeIn.duration(300)}
+            exiting={FadeOut.duration(300)}
         >
-            {hasCustomBackdrop && customBackdrop}
+            <ReAnimated.View
+                style={[styles.backdrop, backdropComputedStyle]}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            >
+                {hasCustomBackdrop && customBackdrop}
+            </ReAnimated.View>
         </ReAnimated.View>
     );
 

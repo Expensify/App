@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {EmitterSubscription, PanResponderInstance} from 'react-native';
+import type {EmitterSubscription, PanResponderInstance, StyleProp, ViewStyle} from 'react-native';
 import {Animated, BackHandler, DeviceEventEmitter, Dimensions, KeyboardAvoidingView, Modal, PanResponder, Platform, View} from 'react-native';
 import Backdrop from './Backdrop';
 import Container from './Container';
@@ -33,16 +33,15 @@ function ReactNativeModal(incomingProps: ModalProps) {
         testID,
         style,
         avoidKeyboard,
-        testName = '',
         ...props
-    } = {
+    }: ModalProps = {
         ...defaultProps,
         ...incomingProps,
     };
+    const [showContent, setShowContent] = useState(isVisible);
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
     const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
-    const [isHeightCalculated, setIsHeightCalculated] = useState(false);
     const [deviceWidth, setDeviceWidth] = useState(Dimensions.get('window').width);
     const [deviceHeight, setDeviceHeight] = useState(Dimensions.get('window').height);
     const [pan, setPan] = useState<Animated.ValueXY>(new Animated.ValueXY());
@@ -103,7 +102,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
     const handleTransition = (type: TransitionType, onFinish: () => void) => {
         const shouldAnimate = isVisible !== isContainerOpen;
 
-        if (shouldAnimate && !isTransitioning && isHeightCalculated) {
+        if (shouldAnimate && !isTransitioning) {
             setIsTransitioning(true);
 
             setTimeout(() => {
@@ -116,12 +115,10 @@ function ReactNativeModal(incomingProps: ModalProps) {
         }
     };
 
-    // TODO: VERIFY THAT OPEN() LOGIC IS WORKING PROPERLY
     const open = () => {
         if (isTransitioning) {
             return;
         }
-        // TODO: Could certainly be improved - no idea for the moment.
         if (isSwipeable) {
             pan.setValue?.({x: 0, y: 0});
         }
@@ -139,7 +136,6 @@ function ReactNativeModal(incomingProps: ModalProps) {
         });
     };
 
-    // TODO: VERIFY THAT CLOSE() LOGIC WORKS PROPERLY
     const close = () => {
         if (isTransitioning) {
             return;
@@ -158,13 +154,12 @@ function ReactNativeModal(incomingProps: ModalProps) {
             if (isVisible) {
                 setIsContainerOpen(true);
             } else {
-                setIsHeightCalculated(false);
-                props.onModalHide();
+                setShowContent(false);
+                props.onModalHide?.();
             }
         });
     };
 
-    // TODO: this was a constructor - verify if it works
     useEffect(() => {
         if (!isSwipeable) {
             return;
@@ -184,56 +179,54 @@ function ReactNativeModal(incomingProps: ModalProps) {
                 didUpdateDimensionsEmitter.current.remove();
             }
             if (isVisibleState) {
-                props.onModalHide();
+                props.onModalHide?.();
             }
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        // TODO: CHECK THIS LOGIC - maybe add handling for prevProps?
         if (isVisible && !isContainerOpen && !isTransitioning) {
             open();
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
             close();
         }
         // TODO: verify if this dependency array is OK
-    }, [isVisible, isContainerOpen, isHeightCalculated]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isVisible, isContainerOpen]);
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const {propagateSwipe: _, ...otherProps} = props;
 
-    const computedStyle = [{margin: getDeviceWidth() * 0.05}, styles.content, style];
+    const computedStyle: Array<StyleProp<ViewStyle>> = [{margin: getDeviceWidth() * 0.05}, styles.content, style];
 
-    // FIXME: RESTORE PAN POSITION & OTHER LOGIC HERE
-    let panPosition = {};
+    let panPosition: StyleProp<ViewStyle> = {};
     if (isSwipeable && panResponder) {
         if (useNativeDriver) {
             panPosition = {
-                transform: pan.getTranslateTransform(),
+                // transform: pan.getTranslateTransform(),
             };
         } else {
-            panPosition = pan.getLayout();
+            // panPosition = pan.getLayout();
         }
     }
 
     const containerView = (
         <Container
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...(isSwipeable && panResponder ? panResponder.panHandlers : {})}
-            panHandlers={panResponder?.panHandlers}
+            animationIn={animationIn}
+            animationOut={animationOut}
+            animationInTiming={animationInTiming}
+            animationOutTiming={animationOutTiming}
             isVisible={isVisibleState}
             style={[panPosition, computedStyle]}
             pointerEvents="box-none"
             useNativeDriver={useNativeDriver}
-            isHeightCalculated={isHeightCalculated}
-            toggleCalculatedHeight={setIsHeightCalculated}
-            isContainerOpen={isContainerOpen}
-            isTransitioning={isTransitioning}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...(isSwipeable && panResponder ? panResponder.panHandlers : {})}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...otherProps}
         >
-            {children}
+            {props.hideModalContentWhileAnimating && !showContent ? <View /> : children}
         </Container>
     );
 
@@ -243,18 +236,20 @@ function ReactNativeModal(incomingProps: ModalProps) {
                 pointerEvents="box-none"
                 style={[styles.backdrop, styles.containerBox]}
             >
-                <Backdrop
-                    getDeviceWidth={getDeviceWidth}
-                    getDeviceHeight={getDeviceHeight}
-                    backdropColor={testName === 'AttachmentPicker' ? 'red' : backdropColor}
-                    customBackdrop={customBackdrop}
-                    hasBackdrop={hasBackdrop}
-                    isVisible={isVisibleState}
-                    isTransitioning={isTransitioning}
-                    backdropOpacity={backdropOpacity}
-                    onBackdropPress={props.onBackdropPress}
-                />
-                {containerView}
+                {isVisible && (
+                    <>
+                        <Backdrop
+                            getDeviceWidth={getDeviceWidth}
+                            getDeviceHeight={getDeviceHeight}
+                            backdropColor={backdropColor}
+                            customBackdrop={customBackdrop}
+                            hasBackdrop={hasBackdrop}
+                            backdropOpacity={backdropOpacity}
+                            onBackdropPress={props.onBackdropPress}
+                        />
+                        {containerView}
+                    </>
+                )}
             </View>
         );
     }
@@ -269,17 +264,17 @@ function ReactNativeModal(incomingProps: ModalProps) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...otherProps}
         >
-            <Backdrop
-                getDeviceWidth={getDeviceWidth}
-                getDeviceHeight={getDeviceHeight}
-                backdropColor={testName === 'AttachmentPicker' ? 'red' : backdropColor}
-                customBackdrop={customBackdrop}
-                hasBackdrop={hasBackdrop}
-                isVisible={isVisibleState}
-                isTransitioning={isTransitioning}
-                backdropOpacity={backdropOpacity}
-                onBackdropPress={props.onBackdropPress}
-            />
+            {isVisible && (
+                <Backdrop
+                    getDeviceWidth={getDeviceWidth}
+                    getDeviceHeight={getDeviceHeight}
+                    backdropColor={backdropColor}
+                    customBackdrop={customBackdrop}
+                    hasBackdrop={hasBackdrop}
+                    backdropOpacity={backdropOpacity}
+                    onBackdropPress={props.onBackdropPress}
+                />
+            )}
 
             {avoidKeyboard ? (
                 <KeyboardAvoidingView
@@ -287,10 +282,10 @@ function ReactNativeModal(incomingProps: ModalProps) {
                     pointerEvents="box-none"
                     style={computedStyle.concat([{margin: 0}])}
                 >
-                    {containerView}
+                    {isVisible && containerView}
                 </KeyboardAvoidingView>
             ) : (
-                containerView
+                isVisible && containerView
             )}
         </Modal>
     );
