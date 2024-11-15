@@ -283,7 +283,10 @@ platform :android do
 
     desc "Update HybridApp rollout percentage on Google Play"
     lane :update_hybrid_rollout do |options|
-        productionVersionCode = google_play_track_version_codes(track: 'production')
+        productionVersionCode = google_play_track_version_codes(
+                                    track: 'production',
+                                    json_key: './android/app/android-fastlane-json-key.json',
+                                )
         upload_to_play_store(
             package_name: "org.me.mobiexpensifyg",
             json_key: './android/app/android-fastlane-json-key.json',
