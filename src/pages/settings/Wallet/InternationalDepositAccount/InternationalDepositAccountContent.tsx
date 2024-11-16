@@ -114,7 +114,7 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
             testID={InternationalDepositAccountContent.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.expensifyCard.addShippingDetails')}
+                title={translate('bankAccount.addBankAccount')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <SubStep

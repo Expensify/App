@@ -61,8 +61,8 @@ function CountrySelection({isEditing, onNext, formValues}: CustomSubStepProps) {
 
     return (
         <>
-            <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('privatePersonalDetails.enterLegalName')}</Text>
+            <View style={styles.ph5}>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.countrySelectionStepHeader')}</Text>
             </View>
             <SelectionList
                 headerMessage={headerMessage}

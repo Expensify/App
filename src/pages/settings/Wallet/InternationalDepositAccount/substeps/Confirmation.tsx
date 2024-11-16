@@ -1,17 +1,29 @@
-import React from 'react';
+import React, {useState} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 
 const STEP_INDEXES = CONST.CORPAY_FIELDS.INDEXES.MAPPING;
 
 function Confirmation({onNext, onMove, isEditing, formValues, fieldsMap}: CustomSubStepProps) {
     const {translate} = useLocalize();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [hasError, setHasError] = useState(false);
 
     const getDataAndGoToNextStep = () => {
-        console.log('getDataAndGoToNextStep', formValues);
-        onNext();
+        setIsSubmitting(true);
+        BankAccounts.createCorpayBankAccount(formValues).then((response) => {
+            setIsSubmitting(false);
+            if (response?.jsonCode) {
+                if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                    onNext();
+                } else {
+                    setHasError(true);
+                }
+            }
+        });
     };
 
     const summaryItems = [
@@ -97,6 +109,8 @@ function Confirmation({onNext, onMove, isEditing, formValues, fieldsMap}: Custom
             pageTitle={translate('personalInfoStep.letsDoubleCheck')}
             summaryItems={summaryItems}
             showOnfidoLinks={false}
+            isLoading={isSubmitting}
+            error={hasError ? translate('common.genericErrorMessage') : ''}
         />
     );
 }

@@ -4,10 +4,14 @@ import CurrencyPicker from '@components/CurrencyPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
 import ValuePicker from '@components/ValuePicker';
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
@@ -19,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fieldsMap}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
 
     const handleSubmit = useInternationalBankAccountFormSubmit({
         fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}),
@@ -72,7 +77,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
             enabledWhenOffline
         >
             <View style={styles.ph5}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('privatePersonalDetails.enterLegalName')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountDetailsStepHeader')}</Text>
                 <View style={[styles.mhn5]}>
                     <CurrencyPicker
                         value={formValues.bankCurrency}
@@ -93,6 +98,22 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                         />
                     </View>
                 ))}
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    <Icon
+                        src={Expensicons.QuestionMark}
+                        width={12}
+                        height={12}
+                        fill={theme.icon}
+                    />
+                    <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
+                        <TextLink
+                            style={[styles.textMicro]}
+                            href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}
+                        >
+                            {translate('addPersonalBankAccount.howDoWeProtectYourData')}
+                        </TextLink>
+                    </View>
+                </View>
             </View>
         </FormProvider>
     );

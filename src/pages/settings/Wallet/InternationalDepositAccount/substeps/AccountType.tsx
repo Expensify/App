@@ -23,9 +23,12 @@ function AccountType({isEditing, onNext, formValues, fieldsMap}: CustomSubStepPr
             onNext();
             return;
         }
+        if (fieldData.isRequired && !currentAccountType) {
+            return;
+        }
         FormActions.setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: currentAccountType});
         onNext();
-    }, [currentAccountType, formValues, isEditing, onNext]);
+    }, [currentAccountType, fieldData.isRequired, formValues, isEditing, onNext]);
 
     const onSelectionChange = useCallback((country: Option) => {
         setCurrentAccountType(country.value);
@@ -47,8 +50,8 @@ function AccountType({isEditing, onNext, formValues, fieldsMap}: CustomSubStepPr
 
     return (
         <>
-            <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('privatePersonalDetails.enterLegalName')}</Text>
+            <View style={styles.ph5}>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountTypeStepHeader')}</Text>
             </View>
             <SelectionList
                 sections={[{data: options}]}

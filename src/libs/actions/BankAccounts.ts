@@ -11,7 +11,7 @@ import type {
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {PersonalBankAccountForm} from '@src/types/form';
+import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
@@ -704,10 +704,10 @@ function validatePlaidSelection(values: FormOnyxValues<AccountFormValues>): Form
     return errorFields;
 }
 
-function fetchCorpayFields(bankCountry: string, bankCurrency?: string) {
+function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdrawal?: boolean, isBusinessBankAccount?: boolean) {
     API.write(
         WRITE_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS,
-        {countryISO: bankCountry, currency: bankCurrency},
+        {countryISO: bankCountry, currency: bankCurrency, isWithdrawal, isBusinessBankAccount},
         {
             optimisticData: [
                 {
@@ -737,6 +737,11 @@ function fetchCorpayFields(bankCountry: string, bankCurrency?: string) {
             ],
         },
     );
+}
+
+function createCorpayBankAccount(data: InternationalBankAccountForm) {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, {isWithdrawal: false, isSavings: true, inputs: JSON.stringify(data)});
 }
 
 export {
@@ -769,6 +774,7 @@ export {
     validatePlaidSelection,
     fetchCorpayFields,
     getCorpayBankAccountFields,
+    createCorpayBankAccount,
 };
 
 export type {BusinessAddress, PersonalAddress};

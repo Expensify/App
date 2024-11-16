@@ -1955,6 +1955,14 @@ const translations = {
             fullName: 'Please enter a valid full name.',
         },
     },
+    addPersonalBankAccount: {
+        countrySelectionStepHeader: "Where's your bank account located?",
+        accountDetailsStepHeader: 'What are your account details?',
+        accountTypeStepHeader: 'What type of account is this?',
+        bankInformationStepHeader: 'What are your bank details?',
+        accountHolderInformationStepHeader: 'What are the account holder details?',
+        howDoWeProtectYourData: 'How do we protect your data?',
+    },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
