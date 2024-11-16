@@ -112,7 +112,7 @@ function getOrderedReportIDs(
             return;
         }
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-        const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
+        const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
         const isHidden = ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const hasErrorsOtherThanFailedReceipt = ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations);
@@ -241,22 +241,11 @@ function getReasonAndReportActionThatHasRedBrickRoad(
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     const {errors, reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
-    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, ReportActionsUtils.getAllReportActions(report.reportID));
 
-    if (oneTransactionThreadReportID) {
-        const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
-
-        if (
-            ReportUtils.shouldDisplayTransactionThreadViolations(
-                oneTransactionThreadReport,
-                transactionViolations,
-                ReportActionsUtils.getAllReportActions(report.reportID)[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
-            )
-        ) {
-            return {
-                reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
-            };
-        }
+    if (ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
+        return {
+            reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
+        };
     }
 
     if (hasErrors) {
