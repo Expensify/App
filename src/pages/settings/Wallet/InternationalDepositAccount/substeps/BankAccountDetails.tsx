@@ -98,7 +98,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                         />
                     </View>
                 ))}
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
                     <Icon
                         src={Expensicons.QuestionMark}
                         width={12}
