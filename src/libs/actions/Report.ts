@@ -3478,6 +3478,7 @@ function prepareOnboardingOptimisticData(
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
     userReportedIntegration?: OnboardingAccounting,
+    wasInvited?: boolean,
 ) {
     // If the user has the "combinedTrackSubmit" beta enabled we'll show different tasks for track and submit expense.
     if (Permissions.canUseCombinedTrackSubmit()) {
@@ -3761,12 +3762,14 @@ function prepareOnboardingOptimisticData(
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: engagementChoice},
         },
-        {
+    );
+    if (!wasInvited) {
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {hasCompletedGuidedSetupFlow: true},
-        },
-    );
+        });
+    }
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
     successData.push({
@@ -3821,12 +3824,15 @@ function prepareOnboardingOptimisticData(
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: null},
         },
-        {
+    );
+
+    if (!wasInvited) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {hasCompletedGuidedSetupFlow: false},
-        },
-    );
+        });
+    }
 
     if (userReportedIntegration) {
         optimisticData.push({
@@ -3910,6 +3916,7 @@ function completeOnboarding(
     paymentSelected?: string,
     companySize?: OnboardingCompanySize,
     userReportedIntegration?: OnboardingAccounting,
+    wasInvited?: boolean,
 ) {
     const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(
         engagementChoice,
@@ -3917,6 +3924,7 @@ function completeOnboarding(
         adminsChatReportID,
         onboardingPolicyID,
         userReportedIntegration,
+        wasInvited,
     );
 
     const parameters: CompleteGuidedSetupParams = {
