@@ -33,7 +33,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
 
     const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
         setIsSubmitting(true);
-        BankAccounts.createCorpayBankAccount(values).then((response) => {
+        BankAccounts.createCorpayBankAccount({...formValues, ...values}).then((response) => {
             setIsSubmitting(false);
             if (response?.jsonCode) {
                 if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
