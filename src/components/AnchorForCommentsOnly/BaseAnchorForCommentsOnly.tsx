@@ -17,7 +17,7 @@ import type {BaseAnchorForCommentsOnlyProps, LinkProps} from './types';
 /*
  * This is a default anchor component for regular links.
  */
-function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', target = '', children = null, style, onPress, isLinkHasImage, ...rest}: BaseAnchorForCommentsOnlyProps) {
+function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', target = '', children = null, style, onPress, linkHasImage, ...rest}: BaseAnchorForCommentsOnlyProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const linkRef = useRef<RNText>(null);
@@ -40,6 +40,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
     }
     const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || shouldUseNarrowLayout ? {} : {...styles.userSelectText, ...styles.cursorPointer};
     const isEmail = Str.isValidEmail(href.replace(/mailto:/i, ''));
+    const linkHref = !linkHasImage ? href : undefined;
 
     return (
         <PressableWithSecondaryInteraction
@@ -62,7 +63,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
             role={CONST.ROLE.LINK}
             accessibilityLabel={href}
         >
-            <Tooltip text={!isLinkHasImage ? href : undefined}>
+            <Tooltip text={linkHref}>
                 <Text
                     ref={linkRef}
                     style={StyleSheet.flatten([style, defaultTextStyle])}
@@ -71,7 +72,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
                         rel,
                         target: isEmail || !linkProps.href ? '_self' : target,
                     }}
-                    href={!isLinkHasImage ? href : undefined}
+                    href={linkHref}
                     suppressHighlighting
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
                     testID="a"

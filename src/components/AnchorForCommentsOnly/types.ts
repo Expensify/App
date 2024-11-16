@@ -20,7 +20,7 @@ type AnchorForCommentsOnlyProps = ChildrenProps & {
     onPress?: () => void;
 
     /** Indicates whether an image is wrapped in an anchor (`<a>`) tag with an `href` link */
-    isLinkHasImage?: boolean;
+    linkHasImage?: boolean;
 };
 
 type BaseAnchorForCommentsOnlyProps = AnchorForCommentsOnlyProps & {
