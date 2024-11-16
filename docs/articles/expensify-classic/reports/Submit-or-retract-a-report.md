@@ -1,8 +1,7 @@
 ---
 title: Submit or retract a report
-description: Submit a report for reimbursement or retract a submitted report to make corrections
+description: How to submit a report for reimbursement or retract a submitted report to make corrections
 ---
-<div id="expensify-classic" markdown="1">
 
 Once your report is ready to send, you can submit your expenses for approval. Depending on your workspace settings, your reports may be automatically submitted for you, or you may have to manually submit them. 
 
@@ -60,8 +59,6 @@ You can retract a submitted report to edit the reported expenses and re-submit t
 4. Tap **Retract** at the top of the report.
 {% include end-option.html %}
 
-**Note:** Workspaces with Instant Submit set as the Scheduled Submit frequency won’t have the option to Retract entire reports, only individual expenses.
-
 {% include end-selector.html %}
 
-</div>
+**Note:** Workspaces with Instant Submit set as the Scheduled Submit frequency won’t have the option to Retract entire reports, only individual expenses.
