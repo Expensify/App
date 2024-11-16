@@ -1,12 +1,13 @@
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getApiRoot} from '@libs/ApiUtils';
 import CONST from '@src/CONST';
 
-function SAMLSignInPage({credentials}: SAMLSignInPageProps) {
+function SAMLSignInPage() {
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     useEffect(() => {
         const body = new FormData();
         body.append('email', credentials?.login ?? '');
@@ -30,7 +31,4 @@ function SAMLSignInPage({credentials}: SAMLSignInPageProps) {
 
 SAMLSignInPage.displayName = 'SAMLSignInPage';
 
-export default withOnyx<SAMLSignInPageProps, SAMLSignInPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-})(SAMLSignInPage);
+export default SAMLSignInPage;
