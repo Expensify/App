@@ -46,9 +46,10 @@ import type {AutocompleteItemData} from './SearchRouterList';
 
 type SearchRouterProps = {
     onRouterClose: () => void;
+    hideInputCaret?: boolean;
 };
 
-function SearchRouter({onRouterClose}: SearchRouterProps) {
+function SearchRouter({onRouterClose, hideInputCaret}: SearchRouterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -396,6 +397,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 onSubmit={() => {
                     onSearchSubmit(textInputValue);
                 }}
+                caretHidden={hideInputCaret}
                 routerListRef={listRef}
                 shouldShowOfflineMessage
                 wrapperStyle={[styles.border, styles.alignItemsCenter]}

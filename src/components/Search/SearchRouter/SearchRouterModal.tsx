@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Modal from '@components/Modal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -7,9 +7,12 @@ import CONST from '@src/CONST';
 import SearchRouter from './SearchRouter';
 import {useSearchRouterContext} from './SearchRouterContext';
 
+const isMobileSafari = Browser.isMobileSafari();
+
 function SearchRouterModal() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
+    const [shouldHideInputCaret, setShouldHideInputCaret] = useState(isMobileSafari);
 
     const modalType = shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT : CONST.MODAL.MODAL_TYPE.POPOVER;
 
@@ -22,10 +25,15 @@ function SearchRouterModal() {
             propagateSwipe
             shouldHandleNavigationBack={Browser.isMobileChrome()}
             onClose={closeSearchRouter}
+            onModalHide={() => setShouldHideInputCaret(isMobileSafari)}
+            onModalShow={() => setShouldHideInputCaret(false)}
         >
             {isSearchRouterDisplayed && (
                 <FocusTrapForModal active={isSearchRouterDisplayed}>
-                    <SearchRouter onRouterClose={closeSearchRouter} />
+                    <SearchRouter
+                        onRouterClose={closeSearchRouter}
+                        hideInputCaret={shouldHideInputCaret}
+                    />
                 </FocusTrapForModal>
             )}
         </Modal>

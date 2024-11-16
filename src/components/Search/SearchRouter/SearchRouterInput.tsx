@@ -37,6 +37,9 @@ type SearchRouterInputProps = {
     /** Whether the input should be focused */
     autoFocus?: boolean;
 
+    /** Whether the input caret should be hidden or not */
+    caretHidden?: boolean;
+
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
 
@@ -62,6 +65,7 @@ function SearchRouterInput({
     disabled = false,
     shouldShowOfflineMessage = false,
     autoFocus = true,
+    caretHidden = false,
     wrapperStyle,
     wrapperFocusedStyle,
     outerWrapperStyle,
@@ -86,6 +90,7 @@ function SearchRouterInput({
                         onChangeText={updateSearch}
                         autoFocus={autoFocus}
                         shouldDelayFocus={shouldDelayFocus}
+                        caretHidden={caretHidden}
                         loadingSpinnerStyle={[styles.mt0, styles.mr2]}
                         role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
