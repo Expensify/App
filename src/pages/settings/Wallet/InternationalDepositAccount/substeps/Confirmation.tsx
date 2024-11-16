@@ -31,9 +31,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     const styles = useThemeStyles();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const getDataAndGoToNextStep = () => {
+    const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
         setIsSubmitting(true);
-        BankAccounts.createCorpayBankAccount(formValues).then((response) => {
+        BankAccounts.createCorpayBankAccount(values).then((response) => {
             setIsSubmitting(false);
             if (response?.jsonCode) {
                 if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
@@ -150,6 +150,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline={false}
                 isSubmitDisabled={isSubmitting}
+                shouldHideFixErrorsAlert
             >
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
