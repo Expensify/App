@@ -6294,14 +6294,14 @@ const CONST = {
     CORPAY_FIELDS: {
         BANK_ACCOUNT_DETAILS_FIELDS: ['accountNumber', 'localAccountNumber', 'routingCode', 'localRoutingCode', 'swiftBicCode'] as string[],
         ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
-        BANK_INFORMATION_FIELDS: ['bankName', 'bankRegion', 'bankCity', 'bankAddressLine1', 'bankAddressLine2', 'bankPostal', 'BeneficiaryBankBranchName'] as string[],
+        BANK_INFORMATION_FIELDS: ['bankName', 'bankAddressLine1', 'bankAddressLine2', 'bankCity', 'bankRegion', 'bankPostal', 'BeneficiaryBankBranchName'] as string[],
         ACCOUNT_HOLDER_FIELDS: [
             'accountHolderName',
-            'accountHolderCountry',
-            'accountHolderRegion',
             'accountHolderAddress1',
             'accountHolderAddress2',
             'accountHolderCity',
+            'accountHolderRegion',
+            'accountHolderCountry',
             'accountHolderPostal',
             'accountHolderPhoneNumber',
             'accountHolderEmail',

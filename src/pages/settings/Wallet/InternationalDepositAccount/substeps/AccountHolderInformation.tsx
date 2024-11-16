@@ -107,30 +107,34 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
         >
             <View style={styles.ph5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountHolderInformationStepHeader')}</Text>
-                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]).map((field, index) => (
-                    <View
-                        style={getStyle(field, index)}
-                        key={field.id}
-                    >
-                        <InputWrapper
-                            InputComponent={getInputComponent(field)}
-                            inputID={field.id}
-                            defaultValue={formValues[field.id]}
-                            label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
-                            items={getItems(field)}
-                            renamedInputKeys={{
-                                street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',
-                                street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress2) ? '' : 'accountHolderAddress2',
-                                city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderCity) ? '' : 'accountHolderCity',
-                                state: '',
-                                zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderPostal) ? '' : 'accountHolderPostal',
-                                country: (isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderCountry) ? '' : 'accountHolderCountry') as Country,
-                                lat: '',
-                                lng: '',
-                            }}
-                        />
-                    </View>
-                ))}
+                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION])
+                    .sort((a, b) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(a.id) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(b.id))
+                    .map((field, index) => (
+                        <View
+                            style={getStyle(field, index)}
+                            key={field.id}
+                        >
+                            <InputWrapper
+                                InputComponent={getInputComponent(field)}
+                                inputID={field.id}
+                                defaultValue={formValues[field.id]}
+                                label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
+                                items={getItems(field)}
+                                renamedInputKeys={{
+                                    street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',
+                                    street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress2) ? '' : 'accountHolderAddress2',
+                                    city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderCity) ? '' : 'accountHolderCity',
+                                    state: '',
+                                    zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderPostal) ? '' : 'accountHolderPostal',
+                                    country: (isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderCountry)
+                                        ? ''
+                                        : 'accountHolderCountry') as Country,
+                                    lat: '',
+                                    lng: '',
+                                }}
+                            />
+                        </View>
+                    ))}
             </View>
         </FormProvider>
     );
