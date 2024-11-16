@@ -34,12 +34,6 @@ type SearchRouterInputProps = {
     /** Whether the offline message should be shown */
     shouldShowOfflineMessage?: boolean;
 
-    /** Whether the input should be focused */
-    autoFocus?: boolean;
-
-    /** Whether the input caret should be hidden or not */
-    caretHidden?: TextInputProps['caretHidden'];
-
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
 
@@ -54,7 +48,7 @@ type SearchRouterInputProps = {
 
     /** Whether the search reports API call is running  */
     isSearchingForReports?: boolean;
-};
+} & Pick<TextInputProps, 'caretHidden' | 'autoFocus'>;
 
 function SearchRouterInput({
     value,
