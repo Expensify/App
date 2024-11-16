@@ -3528,7 +3528,11 @@ function prepareOnboardingOptimisticData(
     }
     const tasksData = data.tasks
         .filter((task) => {
-            if (task.type === 'addAccountingIntegration' && !userReportedIntegration) {
+            if (['setupCategories', 'setupTags'].includes(task.type) && userReportedIntegration) {
+                return false;
+            }
+
+            if (['addAccountingIntegration', 'setupCategoriesAndTags'].includes(task.type) && !userReportedIntegration) {
                 return false;
             }
             return true;
@@ -3544,6 +3548,7 @@ function prepareOnboardingOptimisticData(
                           navatticURL: getNavatticURL(environment, engagementChoice),
                           integrationName,
                           workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID ?? '-1')}`,
+                          workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID ?? '-1')}`,
                       })
                     : task.description;
             const taskTitle =
