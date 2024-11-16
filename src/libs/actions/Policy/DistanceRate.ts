@@ -499,7 +499,10 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
             };
         } else {
             optimisticRates[rateID] = currentRates[rateID];
-            successRates[rateID] = currentRates[rateID];
+            successRates[rateID] = {
+                ...currentRates[rateID],
+                pendingAction: null,
+            };
         }
     }
 
