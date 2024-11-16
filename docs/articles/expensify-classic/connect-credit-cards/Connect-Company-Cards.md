@@ -218,4 +218,58 @@ You'll typically need to wait 1-2 minutes after clicking **I understand, I'll wa
 
 Negative expenses shouldn't include a minus sign. Instead, they should just be wrapped in parentheses. For example, to indicate "-335.98," you'll want to make sure it's formatted as "(335.98)."
 
+**When I connect multiple card programs to the same domain, the previously connected card gets disconnected.**
+
+If you need to connect a separate card program from the same bank (that's accessed via a different set of login credentials), when you try to import it by clicking **Import Card/Bank**, the connection to your previous card will be disconnected. 
+
+To fix this, you must contact your bank and request to combine all of your cards under a single login. This allows you to connect all of your cards from that bank to Expensify using a single login. 
+
+**How can I connect and manage my company’s cards centrally if I’m not a domain admin?**
+
+If you can't access Domains, you must request Domain Admin access from an existing Domain Admin (usually the Workspace Owner).
+ 
+**Are direct bank connections the best option for connecting credit cards to Expensify?**
+
+Yes, if Expensify offers a connection with your bank. However, if you want enhanced stability and additional functionality, a commercial card feed directly from your bank is a good option, or you can get the Expensify Card.
+
+**Is there a fee for utilizing direct card connections?**
+
+No, direct card connections come at no extra cost.
+
+**What is the difference between commercial card feeds and direct bank connections?**
+
+- The direct bank connection is a connection set up with your login credentials for that account. This can be done without the assistance of your bank or Expensify.
+- The Commercial Card feed is set up by your bank requesting that Visa/MasterCard/Amex send a daily transaction feed to Expensify. This option may be more stable and reliable.  
+
+**How do I resolve errors while trying to import my card?**
+
+You'll want to ensure that you're importing your card in the correct location in Expensify and selecting the proper bank connection. For company cards, 
+
+1. Hover over **Settings** and click **Domains**.
+2. Select the desired domain.
+3. Click **Import Card**.
+4. Use the master administrative credentials to import your set of cards.
+
+**Why is my card connection broken after it was working just fine?**
+
+Check for any changes to your bank information. 
+- Have you recently changed your banking password without updating it in Expensify?
+- Has your banking username or card number been updated?
+- Did you edit your security questions for your bank?
+- Additionally, if your security questions have changed or their answers aren't saved in Expensify. In that case, we won't be able to access your account list.
+
+If you've answered "yes" to any of these questions, you'll need to update this information in Expensify and manually re-establish the connection. Expensify cannot automatically update this information for you.
+
+A Domain Admin can fix the connection by completing the following steps:
+1. Hover over **Settings** and click **Domains**.
+2. Select the desired domain.
+3. To the right of the company card, click **Fix**.
+4. Enter the new credentials/updated information.
+
+This should reestablish the connection. If you are still experiencing issues with the card connection, search for company card troubleshooting or contact Expensify Support for help.
+
+**Why do direct bank connections break?**
+
+Banks often make changes to safeguard your confidential information. And when they do, we have to update the connection between Expensify and the bank. We have a team of engineers who work closely with banks to monitor this and update our software accordingly.
+
 {% include faq-end.md %}
