@@ -72,19 +72,19 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
     );
 
     const getStyle = useCallback(
-        (field: CorpayFormField) => {
+        (field: CorpayFormField, index: number) => {
             if ((field.valueSet ?? []).length > 0) {
-                return [styles.mhn5, styles.pt2];
+                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
             }
             if (CONST.CORPAY_FIELDS.SPECIAL_LIST_REGION_KEYS.includes(field.id)) {
-                return [styles.mhn5, styles.pt2];
+                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
             }
             if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
-                return [styles.mt5];
+                return [index === 0 ? styles.pb2 : styles.pv2];
             }
-            return [styles.mt5];
+            return [index === 0 ? styles.pb2 : styles.pv2];
         },
-        [styles.mhn5, styles.mt5, styles.pt2],
+        [styles.mhn5, styles.pb1, styles.pb2, styles.pv1, styles.pv2],
     );
 
     return (
@@ -99,9 +99,9 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
         >
             <View style={styles.ph5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.bankInformationStepHeader')}</Text>
-                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]).map((field) => (
+                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]).map((field, index) => (
                     <View
-                        style={getStyle(field)}
+                        style={getStyle(field, index)}
                         key={field.id}
                     >
                         <InputWrapper

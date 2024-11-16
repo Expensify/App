@@ -86,7 +86,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                 </View>
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}).map((field) => (
                     <View
-                        style={(field.valueSet ?? []).length > 0 ? [styles.mhn5, styles.pt2] : [styles.pt5]}
+                        style={(field.valueSet ?? []).length > 0 ? [styles.mhn5, styles.pv1] : [styles.pv2]}
                         key={field.id}
                     >
                         <InputWrapper
@@ -98,7 +98,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                         />
                     </View>
                 ))}
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4]}>
                     <Icon
                         src={Expensicons.QuestionMark}
                         width={12}

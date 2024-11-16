@@ -77,22 +77,22 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
     );
 
     const getStyle = useCallback(
-        (field: CorpayFormField) => {
+        (field: CorpayFormField, index: number) => {
             if ((field.valueSet ?? []).length > 0) {
-                return [styles.mhn5, styles.pt2];
+                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
             }
             if (CONST.CORPAY_FIELDS.SPECIAL_LIST_REGION_KEYS.includes(field.id)) {
-                return [styles.mhn5, styles.pt2];
+                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
             }
             if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
-                return [styles.mt5];
+                return [index === 0 ? styles.pb2 : styles.pv2];
             }
             if (field.id === 'accountHolderCountry') {
-                return [styles.mhn5, styles.pt2];
+                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
             }
-            return [styles.mt5];
+            return [index === 0 ? styles.pb2 : styles.pv2];
         },
-        [styles.mhn5, styles.mt5, styles.pt2],
+        [styles.mhn5, styles.pb1, styles.pb2, styles.pv1, styles.pv2],
     );
 
     return (
@@ -107,9 +107,9 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
         >
             <View style={styles.ph5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountHolderInformationStepHeader')}</Text>
-                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]).map((field) => (
+                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]).map((field, index) => (
                     <View
-                        style={getStyle(field)}
+                        style={getStyle(field, index)}
                         key={field.id}
                     >
                         <InputWrapper
