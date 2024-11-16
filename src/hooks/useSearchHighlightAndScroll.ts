@@ -3,6 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {ReportActionListItemType, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
 import * as SearchActions from '@libs/actions/Search';
+import {isReportActionEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
@@ -19,27 +20,33 @@ type UseSearchHighlightAndScroll = {
 /**
  * Hook used to trigger a search when a new transaction is added and handle highlighting and scrolling.
  */
-function useSearchHighlightAndScroll({searchResults, transactions, previousTransactions, queryJSON, offset}: UseSearchHighlightAndScroll) {
+function useSearchHighlightAndScroll({searchResults, transactions, previousTransactions, reportActions, previousReportActions, queryJSON, offset}: UseSearchHighlightAndScroll) {
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
     const searchTriggeredRef = useRef(false);
     const previousSearchResults = usePrevious(searchResults?.data);
     const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
-    const highlightedTransactionIDs = useRef<Set<string>>(new Set());
+    const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
-
+    const type = queryJSON.type;
+    const isExpense = type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     // Trigger search when a new transaction is added
     useEffect(() => {
         const previousTransactionsLength = previousTransactions && Object.keys(previousTransactions).length;
         const transactionsLength = transactions && Object.keys(transactions).length;
 
+        const reportActionsLength = reportActions && Object.values(reportActions).reduce((sum, curr) => sum + Object.keys(curr).length, 0);
+        const prevReportActionsLength = previousReportActions && Object.values(previousReportActions).reduce((sum, curr) => sum + Object.keys(curr).length, 0);
         // Return early if search was already triggered or there's no change in transactions length
-        if (searchTriggeredRef.current || previousTransactionsLength === transactionsLength) {
+        if (searchTriggeredRef.current || (isExpense && previousTransactionsLength === transactionsLength) || (isChat && reportActionsLength === prevReportActionsLength)) {
             return;
         }
+        const newTransactionAdded = transactionsLength && typeof previousTransactionsLength === 'number' && transactionsLength > previousTransactionsLength;
 
+        const newReportActionAdded = typeof reportActionsLength === 'number' && typeof prevReportActionsLength === 'number' && reportActionsLength > prevReportActionsLength;
         // Check if a new transaction was added
-        if (transactionsLength && typeof previousTransactionsLength === 'number' && transactionsLength > previousTransactionsLength) {
+        if ((isExpense && newTransactionAdded) || (isChat && newReportActionAdded)) {
             // Set the flag indicating the search is triggered by the hook
             triggeredByHookRef.current = true;
 
@@ -54,7 +61,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         return () => {
             searchTriggeredRef.current = false;
         };
-    }, [transactions, previousTransactions, queryJSON, offset]);
+    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, isExpense]);
 
     // Initialize the set with existing transaction IDs only once
     useEffect(() => {
@@ -63,7 +70,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         }
 
         const existingTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
-        highlightedTransactionIDs.current = new Set(existingTransactionIDs);
+        highlightedIDs.current = new Set(existingTransactionIDs);
         initializedRef.current = true;
     }, [searchResults?.data]);
 
@@ -73,22 +80,41 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             return;
         }
 
-        const previousTransactionIDs = extractTransactionIDsFromSearchResults(previousSearchResults);
-        const currentTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
+        if (isExpense) {
+            const previousTransactionIDs = extractTransactionIDsFromSearchResults(previousSearchResults);
+            const currentTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
 
-        // Find new transaction IDs that are not in the previousTransactionIDs and not already highlighted
-        const newTransactionIDs = currentTransactionIDs.filter((id) => !previousTransactionIDs.includes(id) && !highlightedTransactionIDs.current.has(id));
+            // Find new transaction IDs that are not in the previousTransactionIDs and not already highlighted
+            const newTransactionIDs = currentTransactionIDs.filter((id) => !previousTransactionIDs.includes(id) && !highlightedIDs.current.has(id));
 
-        if (!triggeredByHookRef.current || newTransactionIDs.length === 0) {
-            return;
+            if (!triggeredByHookRef.current || newTransactionIDs.length === 0) {
+                return;
+            }
+
+            const newTransactionID = newTransactionIDs.at(0) ?? '';
+            const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`;
+
+            setNewSearchResultKey(newTransactionKey);
+            highlightedIDs.current.add(newTransactionID);
         }
+        if (isChat) {
+            const previousReportActionIDs = extractReportActionIDsFromSearchResults(previousSearchResults);
+            const currentReportActionIDs = extractReportActionIDsFromSearchResults(searchResults.data);
 
-        const newTransactionID = newTransactionIDs.at(0) ?? '';
-        const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`;
+            // Find new transaction IDs that are not in the previousTransactionIDs and not already highlighted
+            const newReportActionIDs = currentReportActionIDs.filter((id) => !previousReportActionIDs.includes(id) && !highlightedIDs.current.has(id));
 
-        setNewSearchResultKey(newTransactionKey);
-        highlightedTransactionIDs.current.add(newTransactionID);
-    }, [searchResults, previousSearchResults]);
+            if (!triggeredByHookRef.current || newReportActionIDs.length === 0) {
+                return;
+            }
+
+            const newReportActionID = newReportActionIDs.at(0) ?? '';
+            const newReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportActionID}`;
+
+            setNewSearchResultKey(newReportActionKey);
+            highlightedIDs.current.add(newReportActionID);
+        }
+    }, [searchResults?.data, previousSearchResults, isExpense, isChat]);
 
     // Reset newSearchResultKey after it's been used
     useEffect(() => {
@@ -172,6 +198,13 @@ function extractTransactionIDsFromSearchResults(searchResultsData: Partial<Searc
     });
 
     return transactionIDs;
+}
+
+function extractReportActionIDsFromSearchResults(searchResults: Partial<SearchResults['data']>): string[] {
+    return Object.keys(searchResults ?? {})
+        .filter(isReportActionEntry)
+        .map((key) => Object.keys(searchResults[key] ?? {}))
+        .flat();
 }
 
 export default useSearchHighlightAndScroll;

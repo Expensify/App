@@ -521,4 +521,5 @@ export {
     getExpenseTypeTranslationKey,
     getOverflowMenu,
     isCorrectSearchUserName,
+    isReportActionEntry,
 };
