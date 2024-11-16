@@ -22,7 +22,7 @@ After connecting or importing your company cards to Expensify, you can assign ea
 9. (Optional) Select the transaction start date, if desired.
 10. Click **Assign**.
 11. Select the card. You can search the list using the last 4 digits of the card number.
-   - If no transactions have posted on the card, the card number will not appear in the list. Instead, you can assign the card by typing in the full card number in the field. *Note: if you're assigning a card by typing in the full PAN (the full card number), press the ENTER key on your keyboard afterwards. The field may clear itself after pressing ENTER, but click Assign anyway and then verify that the assignment shows up in the cardholder table.*
+   - If no transactions have posted on the card, the card number will not appear in the list. Instead, you can assign the card by typing in the full card number in the field and pressing ENTER on your keyboard. The field may clear itself after you press ENTER.*
 
 # Unassign company cards
 
