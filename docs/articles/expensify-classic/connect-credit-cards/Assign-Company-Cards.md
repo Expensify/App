@@ -20,16 +20,18 @@ If you're assigning cards via CSV upload for the first time,
 ![Under the Company Cards tab on the left, you'll use the dropdown menu to select a card and beneath that, you'll click Assign New Cards]({{site.url}}/assets/images/CompanyCards_Assign.png){:width="100%"}
 {:start="5"}
 
-5. Enter or select the employee's email address. *Note: Employees must have an email address under this domain in order to assign a card to them.*
+5. Enter the employee's email address and/or select it from the dropdown list. *Note: Employees must have an email address under this domain in order to assign a card to them.*
 ![Below the Assign a Card header, enter or select the employee's email address]({{site.url}}/assets/images/CompanyCards_EmailAssign.png){:width="100%"}
 {:start="6"}
 
-6. Enter and/or select the last four digits of the card number.
-   - If no transactions have posted on the card, the card number will not appear in the list. Instead, you can assign the card by typing in the full card number in the field and pressing ENTER on your keyboard. The field may clear itself after you press ENTER.*
-7. (Optional) Select the transaction start date, if desired.
+6. Enter the last four digits of the card number and/or select it from the dropdown list.
+   - If no transactions have been posted on the card, the card number will not appear in the list and you'll need to enter the full card number into the field. Then press ENTER on your keyboard. The field may clear itself after you press ENTER, but you can disregard this and continue to the next step.
+7. (Optional) Set the transaction start date. Any transactions that were posted before this date will not be imported into Expensify. If you do not make a selection, it will default to the earliest available transactions from the card. *Note: Expensify can only import data for the time period released by the bank. Most banks only provide a certain amount of historical data, averaging 30-90 days into the past. It's not possible to override the start date the bank has provided via this tool.*
 8. Click **Assign**.
 
-The transactions will now be imported to the cardholder's account, where they can add receipts, code the expenses, and submit them for review and approval.
+Once assigned, you will see each cardholder associated with their card and the start date listed. The transactions will now be imported to the cardholder's account, where they can add receipts, code the expenses, and submit them for review and approval.
+
+![Expensify domain assigned cards](https://help.expensify.com/assets/images/ExpensifyHelp_AssignedCard.png){:width="100%"}
 
 # Upload new expenses for existing assigned cards
 
