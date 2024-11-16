@@ -32,7 +32,7 @@ function SearchRouterModal() {
                 <FocusTrapForModal active={isSearchRouterDisplayed}>
                     <SearchRouter
                         onRouterClose={closeSearchRouter}
-                        hideInputCaret={shouldHideInputCaret}
+                        shouldHideInputCaret={shouldHideInputCaret}
                     />
                 </FocusTrapForModal>
             )}

@@ -1,6 +1,6 @@
 import type {ReactNode, RefObject} from 'react';
 import React, {useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
@@ -38,7 +38,7 @@ type SearchRouterInputProps = {
     autoFocus?: boolean;
 
     /** Whether the input caret should be hidden or not */
-    caretHidden?: boolean;
+    caretHidden?: TextInputProps['caretHidden'];
 
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
