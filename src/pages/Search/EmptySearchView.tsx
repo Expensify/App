@@ -1,6 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {FeatureListItem} from '@components/FeatureList';
@@ -46,6 +47,15 @@ function EmptySearchView({type}: EmptySearchViewProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [modalVisible, setModalVisible] = useState(false);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const shouldRedirectToExpensifyClassic = useMemo(() => {
+        const groupPolicies = Object.values(allPolicies ?? {}).filter((policy) => ReportUtils.isGroupPolicy(policy?.type ?? ''));
+        if (groupPolicies.length === 0) {
+            return false;
+        }
+        return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+    }, [allPolicies]);
 
     const [ctaErrorMessage, setCtaErrorMessage] = useState('');
 
@@ -126,7 +136,14 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                         {buttonText: translate('emptySearchView.takeATour'), buttonAction: () => Link.openExternalLink(navatticURL)},
                         {
                             buttonText: translate('iou.createExpense'),
-                            buttonAction: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID())),
+                            buttonAction: () =>
+                                interceptAnonymousUser(() => {
+                                    if (shouldRedirectToExpensifyClassic) {
+                                        setModalVisible(true);
+                                        return;
+                                    }
+                                    IOU.startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID());
+                                }),
                             success: true,
                         },
                     ],
@@ -143,21 +160,47 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
         }
-    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, ctaErrorMessage, navatticURL]);
+    }, [
+        type,
+        StyleUtils,
+        theme.travelBG,
+        theme.emptyFolderBG,
+        translate,
+        styles.textAlignLeft,
+        styles.emptyStateFolderWebStyles,
+        subtitleComponent,
+        ctaErrorMessage,
+        navatticURL,
+        shouldRedirectToExpensifyClassic,
+    ]);
 
     return (
-        <EmptyStateComponent
-            SkeletonComponent={SearchRowSkeleton}
-            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-            headerMedia={content.headerMedia}
-            headerStyles={[content.headerStyles, styles.emptyStateCardIllustrationContainer]}
-            title={content.title}
-            titleStyles={content.titleStyles}
-            subtitle={content.subtitle}
-            buttons={content.buttons}
-            headerContentStyles={[styles.h100, styles.w100, content.headerContentStyles]}
-            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-        />
+        <>
+            <EmptyStateComponent
+                SkeletonComponent={SearchRowSkeleton}
+                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                headerMedia={content.headerMedia}
+                headerStyles={[content.headerStyles, styles.emptyStateCardIllustrationContainer]}
+                title={content.title}
+                titleStyles={content.titleStyles}
+                subtitle={content.subtitle}
+                buttons={content.buttons}
+                headerContentStyles={[styles.h100, styles.w100, content.headerContentStyles]}
+                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+            />
+            <ConfirmModal
+                prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
+                isVisible={modalVisible}
+                onConfirm={() => {
+                    setModalVisible(false);
+                    Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                }}
+                onCancel={() => setModalVisible(false)}
+                title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
+                confirmText={translate('exitSurvey.goToExpensifyClassic')}
+                cancelText={translate('common.cancel')}
+            />
+        </>
     );
 }
 
