@@ -182,7 +182,7 @@ function WorkspaceSwitcherPage() {
                         pressableStyle={styles.flexRow}
                         shouldSyncFocus={false}
                     />
-                    <View style={[styles.ph5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mv2]}>
+                    <View style={[styles.ph5, styles.mv2]}>
                         <Text
                             style={styles.label}
                             color={theme.textSupporting}
