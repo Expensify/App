@@ -15,7 +15,7 @@ function InternationalDepositAccount() {
 
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, corpayFieldsMetadata, bankAccountListMetadata, draftValuesMetadata, countryMetadata, isLoadingMetadata);
 
-    if (isLoading || isAccountLoading) {
+    if (isLoading) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -26,6 +26,7 @@ function InternationalDepositAccount() {
             bankAccountList={bankAccountList}
             draftValues={draftValues}
             country={country}
+            isAccountLoading={isAccountLoading ?? false}
         />
     );
 }

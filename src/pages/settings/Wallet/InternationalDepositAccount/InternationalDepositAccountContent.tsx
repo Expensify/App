@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -27,6 +28,7 @@ type InternationalDepositAccountContentProps = {
     bankAccountList: OnyxEntry<BankAccountList>;
     draftValues: OnyxEntry<InternationalBankAccountForm>;
     country: OnyxEntry<string>;
+    isAccountLoading: boolean;
 };
 
 const formSteps = [CountrySelection, BankAccountDetails, AccountType, BankInformation, AccountHolderInformation, Confirmation, Success];
@@ -42,7 +44,7 @@ function getSkippedSteps(skipAccountTypeStep: boolean, skipAccountHolderInformat
     return skippedSteps;
 }
 
-function InternationalDepositAccountContent({privatePersonalDetails, corpayFields, bankAccountList, draftValues, country}: InternationalDepositAccountContentProps) {
+function InternationalDepositAccountContent({privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, isAccountLoading}: InternationalDepositAccountContentProps) {
     const {translate} = useLocalize();
 
     const values = useMemo(
@@ -106,6 +108,10 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         }
         nextScreen();
     }, [resetScreenIndex, isEditing, nextScreen]);
+
+    if (isAccountLoading) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper
