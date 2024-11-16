@@ -37,3 +37,11 @@ To unassign a specific card, click the Actions button to the right of the card a
 To completely remove the card connection, unassign every card from the list and then refresh the page.
 
 *Note: If expenses are Processing and then rejected, they will also be deleted when they're returned to an Open state, as the card they're linked to no longer exists.*
+
+{% include faq-begin.md %}
+
+**My Commercial Card Feed is set up. Why is a specific card not coming up when I try to assign it to an employee?**
+
+Cards will appear in the dropdown when they are activated and have at least one posted transaction. If the card is activated and has been used for a while and you're still not seeing it, reach out to your Account Manager or message concierge@expensify.com for further assistance.
+
+{% include faq-end.md %}
