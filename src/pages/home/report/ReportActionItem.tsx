@@ -52,6 +52,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
+import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
@@ -411,7 +412,7 @@ function ReportActionItem({
     const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? '-1'}), [report?.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        if (ReportActionsUtils.isActionableAddPaymentCard(action) && shouldRenderAddPaymentCard()) {
+        if (ReportActionsUtils.isActionableAddPaymentCard(action) && !doesUserHavePaymentCardAdded() && shouldRenderAddPaymentCard()) {
             return [
                 {
                     text: 'subscription.cardSection.addCardButton',
