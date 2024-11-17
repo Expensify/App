@@ -1,6 +1,8 @@
 function updateURLHashOnScroll() {
     const activeLink = document.querySelector('.toc-sidebar .is-active-link');
-    if (!activeLink) return;
+    if (!activeLink) {
+        return;
+    }
     const hash = activeLink.getAttribute('href');
     if (window.history.pushState) {
         window.history.pushState(null, null, hash);
@@ -53,7 +55,9 @@ window.tocbot.init({
 });
 
 function adjustAnchorOnLoad() {
-    if (!window.location.hash) return;
+    if (!window.location.hash) {
+        return;
+    }
     const element = document.querySelector(window.location.hash);
     if (element) {
         window.scrollTo({
@@ -67,7 +71,7 @@ window.addEventListener('load', adjustAnchorOnLoad);
 
 // Toggle sidebar on hamburger click
 document.getElementById('hamburger').addEventListener('click', function () {
-    let sidebar = document.getElementById('toc-sidebar');
+    const sidebar = document.getElementById('toc-sidebar');
     sidebar.classList.toggle('open');
 });
 
@@ -123,7 +127,9 @@ window.addEventListener('click', function (event) {
 
 // Handle keyboard navigation (arrow keys and enter)
 g_searchResults.addEventListener('keydown', function (event) {
-    if (g_searchModal.style.display !== 'flex' || g_searchResultsArray.length === 0) return;
+    if (g_searchModal.style.display !== 'flex' || g_searchResultsArray.length === 0) {
+        return;
+    }
     if (event.key === 'ArrowDown') {
         event.preventDefault();
         selectNextResult();
@@ -139,13 +145,17 @@ g_searchResults.addEventListener('keydown', function (event) {
 });
 
 function selectNextResult() {
-    if (g_currentSelectionIndex >= g_searchResultsArray.length - 1) return;
+    if (g_currentSelectionIndex >= g_searchResultsArray.length - 1) {
+        return;
+    }
     g_currentSelectionIndex++;
     updateSelectedResult();
 }
 
 function selectPreviousResult() {
-    if (g_currentSelectionIndex <= 0) return;
+    if (g_currentSelectionIndex <= 0) {
+        return;
+    }
     g_currentSelectionIndex--;
     updateSelectedResult();
 }
@@ -179,7 +189,7 @@ g_searchInput.addEventListener('keydown', function (event) {
 
 // Perform search when search button is clicked
 // Assuming search-submit is defined
-document.getElementById('search-submit').addEventListener('click', async function () {
+document.getElementById('search-submit').addEventListener('click', function () {
     const query = g_searchInput.value.trim().toLowerCase();
     g_searchResults.innerHTML = '';
     g_currentSelectionIndex = -1;
@@ -191,27 +201,35 @@ document.getElementById('search-submit').addEventListener('click', async functio
 
     if (g_index === null) {
         // Assuming the fetch works correctly without console.log
-        const response = await fetch('/searchIndex.json');
-        const indexData = await response.json();
-        g_index = new window.FlexSearch.Document({
-            document: {
-                id: 'id',
-                index: ['content'],
-                store: ['title', 'url', 'content'],
-            },
-        });
+        fetch('/searchIndex.json')
+            .then((response) => response.json())
+            .then((indexData) => {
+                g_index = new window.FlexSearch.Document({
+                    document: {
+                        id: 'id',
+                        index: ['content'],
+                        store: ['title', 'url', 'content'],
+                    },
+                });
 
-        for (const [key, data] of Object.entries(indexData)) {
-            g_index.import(key, data);
-        }
+                for (const [key, data] of Object.entries(indexData)) {
+                    g_index.import(key, data);
+                }
+
+                performSearch(query);
+            });
+    } else {
+        performSearch(query);
     }
+});
 
-    const results = await g_index.search({
+function performSearch(query) {
+    const results = g_index.search({
         query,
         field: 'content',
     });
 
-    if (results.length > 0) {
+    if (results && results.length > 0) {
         g_searchResultsArray = [];
         results.forEach((result) => {
             result.result.forEach((docId) => {
@@ -221,10 +239,10 @@ document.getElementById('search-submit').addEventListener('click', async functio
                     const contextBefore = doc.content.substring(Math.max(0, searchTermIndex - 30), searchTermIndex);
                     const contextAfter = doc.content.substring(searchTermIndex + query.length, Math.min(doc.content.length, searchTermIndex + query.length + 30));
                     const searchResultHtml = `
-                      <div class="search-result">
-                        <a href="${doc.url}" class="search-result-title" onclick="scrollToTOC('${doc.url}')">${doc.title}</a>
-                        <div class="search-result-context">...${contextBefore}<strong>${query}</strong>${contextAfter}...</div>
-                      </div>
+                        <div class="search-result">
+                            <a href="${doc.url}" class="search-result-title">${doc.title}</a>
+                            <div class="search-result-context">...${contextBefore}<strong>${query}</strong>${contextAfter}...</div>
+                        </div>
                     `;
                     const resultElement = document.createElement('div');
                     resultElement.innerHTML = searchResultHtml;
@@ -242,18 +260,6 @@ document.getElementById('search-submit').addEventListener('click', async functio
         g_searchResults.focus();
     } else {
         g_searchResults.style.display = 'none';
-    }
-});
-
-// Trigger the TOC link click to use TocBot's smooth scrolling behavior
-function scrollToTOC(url) {
-    const elementId = url.split('#')[1];
-    const tocLink = document.querySelector(`.toc-sidebar a[href="#${elementId}"]`);
-
-    if (tocLink) {
-        tocLink.click();
-        highlightSelectedSection(elementId);
-        closeModalAfterClick();
     }
 }
 
