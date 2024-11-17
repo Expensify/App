@@ -19,7 +19,7 @@
             align-items: center;
             justify-content: space-between;
             background-color: #fff;
-            padding: 15px 20px;
+            padding: 15px 0px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             position: fixed;
             top: 0;
@@ -28,9 +28,12 @@
         }
 
         .logo {
+            display: flex;
+            align-items: center;
             font-size: 24px;
             font-weight: bold;
             color: #0366d6;
+            margin-left: 20px;
         }
 
         .logo a {
@@ -259,13 +262,6 @@
         }
 
         @media (max-width: 768px) {
-            .nav-links a {
-                display: none;
-            }
-
-            .header {
-                justify-content: flex-start;
-            }
 
             .hamburger {
                 display: flex;
@@ -294,12 +290,13 @@
 
     <!-- Header -->
     <header class="header">
-        <div class="hamburger" id="hamburger">
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-        </div>
         <div class="logo">
+            <div class="hamburger" id="hamburger">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+
             <a href="/">Expensify</a>
             /
             <!-- Dropdown for product selection -->

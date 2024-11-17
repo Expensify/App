@@ -1,6 +1,6 @@
 <div id="search-container">
   <!-- Search Input styled as button -->
-  <input type="text" id="search-input-box" placeholder="Search..." />
+  <span id="search-icon" style="cursor: pointer; font-size: 24px;">🔍</span>
 
   <!-- Search Modal -->
   <div id="search-modal" style="display:none;">
@@ -25,17 +25,7 @@
 
 <!-- Modal and Search Styling -->
 <style>
-  /* Style for search input box (replaces button) */
-  #search-input-box {
-    display: flex;
-    gap: 15px;
-    padding: 0px 15px;
-    cursor: pointer;
-    border: 1px solid #eaecef;
-    border-radius: 6px;
-    box-sizing: border-box;
-    font-size: 16px;
-  }
+  /* Removed the styling for the search input box */
 
   /* Modal background */
   #search-modal {
@@ -151,7 +141,7 @@
   let g_index = null;
 
   // Look up some commonly used elements once
-  const g_searchInputBox = document.getElementById('search-input-box');
+  const g_searchIcon = document.getElementById('search-icon');
   const g_searchModal = document.getElementById('search-modal');
   const g_searchResults = document.getElementById('search-results');
   const g_searchInput = document.getElementById('search-input');
@@ -167,8 +157,8 @@
     }
   }
 
-  // Open modal when search input is clicked
-  g_searchInputBox.addEventListener('click', showSearchModal);
+  // Open modal when search icon is clicked
+  g_searchIcon.addEventListener('click', showSearchModal);
 
   // Open modal when Cmd+K is pressed
   document.addEventListener('keydown', function(event) {
@@ -360,4 +350,3 @@
     g_searchModal.style.display = 'none';
   }
 </script>
-
