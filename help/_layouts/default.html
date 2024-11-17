@@ -38,29 +38,41 @@
             color: inherit;
         }
 
-        .nav-links {
-            display: flex;
-            gap: 15px;
-            padding-right: 20px;
+        /* Dropdown styling */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            font-size: 24px; /* Match the logo font size */
+            font-weight: normal;
+            text-decoration: underline;
+            color: #0366d6;
+            cursor: pointer;
         }
 
-        .nav-links a {
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            min-width: 160px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            padding: 12px 16px;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown a {
             text-decoration: none;
             color: #0366d6;
-            font-weight: 500;
-            padding: 0px 15px;
-            border-radius: 6px;
-            transition: background-color 0.3s;
+            padding: 8px 0;
+            display: block;
         }
 
-        .nav-links a:hover {
-            background-color: #f1f8ff;
-        }
-
-        .nav-links a.active {
-            background-color: #eaf5ff;
-            color: #0366d6;
+        .dropdown a.active {
             font-weight: bold;
+            background-color: #eaf5ff;
         }
 
         /* Sidebar navigation for TOC */
@@ -289,16 +301,21 @@
         </div>
         <div class="logo">
             <a href="/">Expensify</a>
+            /
+            <!-- Dropdown for product selection -->
+            <div class="dropdown">
+                <span>{{ page.title | remove_first: 'Expensify ' }}</span>
+                <div class="dropdown-content">
+                    <a href="/expense" class="{% if page.title == 'Expensify Expense' %}active{% endif %}">Expense</a>
+                    <a href="/card" class="{% if page.title == 'Expensify Cards' %}active{% endif %}">Card</a>
+                    <a href="/travel" class="{% if page.title == 'Expensify Travel' %}active{% endif %}">Travel</a>
+                    <a href="/chat" class="{% if page.title == 'Expensify Chat' %}active{% endif %}">Chat</a>
+                    <a href="/invoice" class="{% if page.title == 'Expensify Invoice' %}active{% endif %}">Invoice</a>
+                    <a href="/billpay" class="{% if page.title == 'Expensify Billpay' %}active{% endif %}">Billpay</a>
+                </div>
+            </div>
         </div>
-        <nav class="nav-links">
-            <a href="/expense" class="{% if page.title == 'Expensify Expense' %}active{% endif %}">Expense</a>
-            <a href="/card" class="{% if page.title == 'Expensify Cards' %}active{% endif %}">Card</a>
-            <a href="/travel" class="{% if page.title == 'Expensify Travel' %}active{% endif %}">Travel</a>
-            <a href="/chat" class="{% if page.title == 'Expensify Chat' %}active{% endif %}">Chat</a>
-            <a href="/invoice" class="{% if page.title == 'Expensify Invoice' %}active{% endif %}">Invoice</a>
-            <a href="/billpay" class="{% if page.title == 'Expensify Billpay' %}active{% endif %}">Billpay</a>
-            {% include search.html %}
-        </nav>
+        {% include search.html %}
     </header>
 
     <!-- TOC Sidebar -->
