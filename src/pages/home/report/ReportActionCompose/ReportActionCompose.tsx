@@ -44,6 +44,7 @@ import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import variables from '@styles/variables';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -134,7 +135,6 @@ function ReportActionCompose({
         const initialModalState = getModalState();
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
-    const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
     const [shouldHideEducationalTooltip, setShouldHideEducationalTooltip] = useState(false);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
@@ -276,7 +276,8 @@ function ReportActionCompose({
                 Report.addAttachment(reportID, attachmentFileRef.current, newCommentTrimmed);
                 attachmentFileRef.current = null;
             } else {
-                Performance.markStart(CONST.TIMING.MESSAGE_SENT, {message: newCommentTrimmed});
+                Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
+                Timing.start(CONST.TIMING.SEND_MESSAGE);
                 onSubmit(newCommentTrimmed);
                 removeHighlight();
             }
@@ -457,7 +458,6 @@ function ReportActionCompose({
                                             reportID={reportID}
                                             report={report}
                                             reportParticipantIDs={reportParticipantIDs}
-                                            isFullComposerAvailable={isFullComposerAvailable}
                                             isComposerFullSize={isComposerFullSize}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
                                             disabled={!!disabled}
@@ -497,8 +497,6 @@ function ReportActionCompose({
                                             onCleared={submitForm}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
                                             disabled={!!disabled}
-                                            isFullComposerAvailable={isFullComposerAvailable}
-                                            setIsFullComposerAvailable={setIsFullComposerAvailable}
                                             setIsCommentEmpty={setIsCommentEmpty}
                                             handleSendMessage={handleSendMessage}
                                             shouldShowComposeInput={shouldShowComposeInput}
