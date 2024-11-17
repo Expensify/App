@@ -34,7 +34,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            User.validateSecondaryLogin(loginList, contactMethod, validateCode);
+            User.validateSecondaryLogin(loginList, contactMethod, validateCode, true);
         },
         [loginList, contactMethod],
     );

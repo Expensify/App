@@ -177,7 +177,7 @@ function CodesStep({backTo}: CodesStepProps) {
                     hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                     validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                     sendValidateCode={() => User.requestValidateCodeAction()}
-                    handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode)}
+                    handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode, true)}
                     validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
                     clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                     onModalHide={() => {}}
