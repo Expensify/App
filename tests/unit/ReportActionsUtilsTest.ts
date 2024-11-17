@@ -450,7 +450,7 @@ describe('ReportActionsUtils', () => {
             expect(result).toStrictEqual(input);
         });
 
-        it('should filter whisper action in a archieved report', () => {
+        it('should filter whisper action in a archived report', () => {
             const input: ReportAction[] = [
                 {
                     created: '2022-11-13 22:27:01.825',
@@ -548,7 +548,8 @@ describe('ReportActionsUtils', () => {
             ];
 
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, false);
-            // Expected output should filter out "CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER" & "CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER" action type
+            // Expected output should filter out "CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER" & "CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER"
+            // action type because "canUserPerformWriteAction" is false (report is archived)
             const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2, 4), ...input.slice(5)];
 
             expect(result).toStrictEqual(expectedOutput);
