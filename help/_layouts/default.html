@@ -115,21 +115,21 @@
             padding-left: 0;
         }
 
-        .js-toc > ul > li > a {
+        .js-toc > a {
             font-weight: bold;
             font-size: 18px;
 
         }
 
-        .js-toc > ul > li > ul > li {
+        .js-toc > ul > li {
             margin-top: 25px;
         }
 
-        .js-toc > ul > li > ul > li > a {
+        .js-toc > ul > li > a {
             font-weight: bold;
         }
 
-        .js-toc > ul > li > ul > li > ul > li > ul > li {
+        .js-toc > ul > li > ul > li > ul > li {
             padding-left: 10px;
         }
 
@@ -158,15 +158,12 @@
         main {
             margin-left: 300px;
             padding: 20px;
-            margin-top: 80px;
             flex-grow: 1;
             max-width: 900px;
         }
 
         main h1 {
-            font-size: 36px;
-            font-weight: bold;
-            margin-bottom: 20px;
+            display: none;
         }
 
         main h2 {
@@ -275,8 +272,7 @@
 
             main {
                 margin-left: 0;
-                padding: 40px;
-                margin-top: 20px;
+                padding: 20px;
                 max-width: 100%;
             }
 
@@ -321,6 +317,7 @@
     </nav>
 
     <!-- Main Content -->
+    <h1>{{ page.title }}</h1>
     <main class="js-toc-content">
         {{ content }}
 
