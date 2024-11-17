@@ -247,7 +247,7 @@
         }
 
         @media (max-width: 768px) {
-            .nav-links {
+            .nav-links a {
                 display: none;
             }
 
@@ -273,9 +273,7 @@
             }
 
             footer {
-                margin-left: 0;
-                padding: 40px 20px;
-                max-width: 100%;
+                display: none;
             }
         }
     </style>
@@ -299,12 +297,12 @@
             <a href="/chat" class="{% if page.title == 'Expensify Chat' %}active{% endif %}">Chat</a>
             <a href="/invoice" class="{% if page.title == 'Expensify Invoice' %}active{% endif %}">Invoice</a>
             <a href="/billpay" class="{% if page.title == 'Expensify Billpay' %}active{% endif %}">Billpay</a>
+            {% include search.html %}
         </nav>
-        {% include search.html %}
     </header>
 
     <!-- TOC Sidebar -->
-    <nav class="toc-sidebar open" id="toc-sidebar">
+    <nav class="toc-sidebar" id="toc-sidebar">
         <div class="js-toc"></div>
     </nav>
 
@@ -438,6 +436,7 @@
           },
           onClick: function(e) {
               setTimeout(scrollActiveLinkIntoView, 300);
+              document.getElementById('toc-sidebar').classList.remove('open'); // Close TOC after clicking
           },
           scrollEndCallback: function() {
               updateURLHashOnScroll();
