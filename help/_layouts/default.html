@@ -24,6 +24,7 @@
             position: fixed;
             top: 0;
             width: 100%;
+            z-index: 1000;
         }
 
         .logo {
@@ -47,7 +48,7 @@
             text-decoration: none;
             color: #0366d6;
             font-weight: 500;
-            padding: 10px 15px;
+            padding: 0px 15px;
             border-radius: 6px;
             transition: background-color 0.3s;
         }
@@ -66,7 +67,7 @@
         .toc-sidebar {
             width: 250px;
             position: fixed;
-            top: 80px;
+            top: 60px;
             bottom: 0;
             left: 0;
             background-color: #fff;
@@ -74,6 +75,13 @@
             overflow-y: auto;
             border-right: 1px solid #eaecef;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            transform: translateY(0);
+            transition: transform 0.3s ease-in-out;
+            z-index: 999;
+        }
+
+        .toc-sidebar.open {
+            transform: translateY(0);
         }
 
         .toc-link::before {
@@ -220,12 +228,67 @@
             max-width: 300px; /* Set a max-width for each column */
             padding: 0 20px;  /* Add padding for some space between the columns */
         }
+
+        /* Mobile Styles */
+        .hamburger {
+            display: none;
+            cursor: pointer;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 24px;
+            height: 18px;
+        }
+
+        .bar {
+            height: 3px;
+            width: 100%;
+            background-color: #0366d6;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .header {
+                justify-content: flex-start;
+            }
+
+            .hamburger {
+                display: flex;
+                margin-right: 20px;
+            }
+
+            .toc-sidebar {
+                transform: translateY(-100%);
+                width: 100%;
+            }
+
+            main {
+                margin-left: 0;
+                padding: 40px;
+                margin-top: 20px;
+                max-width: 100%;
+            }
+
+            footer {
+                margin-left: 0;
+                padding: 40px 20px;
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
 
     <!-- Header -->
     <header class="header">
+        <div class="hamburger" id="hamburger">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
         <div class="logo">
             <a href="/">Expensify</a>
         </div>
@@ -237,11 +300,11 @@
             <a href="/invoice" class="{% if page.title == 'Expensify Invoice' %}active{% endif %}">Invoice</a>
             <a href="/billpay" class="{% if page.title == 'Expensify Billpay' %}active{% endif %}">Billpay</a>
         </nav>
+        {% include search.html %}
     </header>
 
     <!-- TOC Sidebar -->
-    <nav class="toc-sidebar">
-        {% include search.html %}
+    <nav class="toc-sidebar open" id="toc-sidebar">
         <div class="js-toc"></div>
     </nav>
 
@@ -357,7 +420,7 @@
           tocSelector: '.js-toc',
           contentSelector: '.js-toc-content',
           headingSelector: 'h1, h2, h3, h4, h5, h6',
-          collapseDepth: 3,
+          collapseDepth: 4,
           orderedList: false,
           scrollSmooth: true,
           scrollToActive: true,
@@ -395,8 +458,13 @@
         }
 
         window.addEventListener('load', adjustAnchorOnLoad);
+
+        // Toggle sidebar on hamburger click
+        document.getElementById('hamburger').addEventListener('click', function() {
+            var sidebar = document.getElementById('toc-sidebar');
+            sidebar.classList.toggle('open');
+        });
     </script>
 
 </body>
 </html>
-
