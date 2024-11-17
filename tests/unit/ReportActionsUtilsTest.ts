@@ -306,7 +306,7 @@ describe('ReportActionsUtils', () => {
             // eslint-disable-next-line rulesdir/prefer-at
             const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2), input[1]];
 
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true, true);
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
             expect(result).toStrictEqual(expectedOutput);
         });
 
@@ -401,7 +401,7 @@ describe('ReportActionsUtils', () => {
             // eslint-disable-next-line rulesdir/prefer-at
             const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2, -1), input[1]];
 
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true, true);
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
             expect(result).toStrictEqual(expectedOutput);
         });
 
@@ -445,7 +445,7 @@ describe('ReportActionsUtils', () => {
                     message: [{html: '', type: 'Action type', text: 'Action text'}],
                 },
             ];
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true, true);
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
             input.pop();
             expect(result).toStrictEqual(input);
         });
