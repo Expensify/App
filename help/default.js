@@ -36,7 +36,7 @@ window.tocbot.init({
     headingObjectCallback(obj, element) {
         const tocTitle = element.getAttribute('data-toc-title');
         if (tocTitle) {
-            const newObj = { ...obj };
+            const newObj = {...obj};
             newObj.textContent = tocTitle;
             return newObj;
         }
