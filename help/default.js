@@ -1,12 +1,11 @@
 function updateURLHashOnScroll() {
     const activeLink = document.querySelector('.toc-sidebar .is-active-link');
-    if (activeLink) {
-        const hash = activeLink.getAttribute('href');
-        if (history.pushState) {
-            history.pushState(null, null, hash);
-        } else {
-            window.location.hash = hash;
-        }
+    if (!activeLink) return;
+    const hash = activeLink.getAttribute('href');
+    if (window.history.pushState) {
+        window.history.pushState(null, null, hash);
+    } else {
+        window.location.hash = hash;
     }
 }
 
@@ -20,7 +19,8 @@ function scrollActiveLinkIntoView() {
     }
 }
 
-tocbot.init({
+// Assuming tocbot is globally defined
+window.tocbot.init({
     tocSelector: '.js-toc',
     contentSelector: '.js-toc-content',
     headingSelector: 'h1, h2, h3, h4, h5, h6',
@@ -33,32 +33,33 @@ tocbot.init({
     scrollSmoothOffset: -80,
     tocScrollingWrapper: document.querySelector('.toc-sidebar'),
     tocScrollOffset: 80,
-    headingObjectCallback: function (obj, element) {
+    headingObjectCallback(obj, element) {
         const tocTitle = element.getAttribute('data-toc-title');
         if (tocTitle) {
-            obj.textContent = tocTitle;
+            const newObj = { ...obj };
+            newObj.textContent = tocTitle;
+            return newObj;
         }
         return obj;
     },
-    onClick: function (e) {
+    onClick() {
         setTimeout(scrollActiveLinkIntoView, 300);
-        document.getElementById('toc-sidebar').classList.remove('open'); // Close TOC after clicking
+        document.getElementById('toc-sidebar').classList.remove('open');
     },
-    scrollEndCallback: function () {
+    scrollEndCallback() {
         updateURLHashOnScroll();
         scrollActiveLinkIntoView();
     },
 });
 
 function adjustAnchorOnLoad() {
-    if (window.location.hash) {
-        const element = document.querySelector(window.location.hash);
-        if (element) {
-            window.scrollTo({
-                top: element.getBoundingClientRect().top + window.pageYOffset - 80,
-                behavior: 'smooth',
-            });
-        }
+    if (!window.location.hash) return;
+    const element = document.querySelector(window.location.hash);
+    if (element) {
+        window.scrollTo({
+            top: element.getBoundingClientRect().top + window.pageYOffset - 80,
+            behavior: 'smooth',
+        });
     }
 }
 
@@ -66,7 +67,7 @@ window.addEventListener('load', adjustAnchorOnLoad);
 
 // Toggle sidebar on hamburger click
 document.getElementById('hamburger').addEventListener('click', function () {
-    var sidebar = document.getElementById('toc-sidebar');
+    let sidebar = document.getElementById('toc-sidebar');
     sidebar.classList.toggle('open');
 });
 
@@ -89,7 +90,7 @@ function showSearchModal() {
     g_searchModal.style.display = 'flex';
     if (g_searchResultsArray.length > 0) {
         g_searchResults.style.display = 'block';
-        g_searchResults.focus(); // Focus on search results if they exist
+        g_searchResults.focus();
     } else {
         g_searchInput.focus();
     }
@@ -115,42 +116,38 @@ document.addEventListener('keydown', function (event) {
 
 // Close modal when clicking outside of modal content
 window.addEventListener('click', function (event) {
-    if (event.target == g_searchModal) {
+    if (event.target === g_searchModal) {
         g_searchModal.style.display = 'none';
     }
 });
 
 // Handle keyboard navigation (arrow keys and enter)
 g_searchResults.addEventListener('keydown', function (event) {
-    // If the modal is being shown and has active search results, capture keydown
-    if (g_searchModal.style.display === 'flex' && g_searchResultsArray.length > 0) {
-        if (event.key === 'ArrowDown') {
-            event.preventDefault();
-            selectNextResult();
-        } else if (event.key === 'ArrowUp') {
-            event.preventDefault();
-            selectPreviousResult();
-        } else if (event.key === 'Enter' && g_currentSelectionIndex >= 0) {
-            event.preventDefault();
-            navigateToSelectedResult();
-        } else if (!['Tab', 'Shift'].includes(event.key)) {
-            g_searchInput.focus(); // Focus back on input if typing occurs
-        }
+    if (g_searchModal.style.display !== 'flex' || g_searchResultsArray.length === 0) return;
+    if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        selectNextResult();
+    } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        selectPreviousResult();
+    } else if (event.key === 'Enter' && g_currentSelectionIndex >= 0) {
+        event.preventDefault();
+        navigateToSelectedResult();
+    } else if (!['Tab', 'Shift'].includes(event.key)) {
+        g_searchInput.focus();
     }
 });
 
 function selectNextResult() {
-    if (g_currentSelectionIndex < g_searchResultsArray.length - 1) {
-        g_currentSelectionIndex++;
-        updateSelectedResult();
-    }
+    if (g_currentSelectionIndex >= g_searchResultsArray.length - 1) return;
+    g_currentSelectionIndex++;
+    updateSelectedResult();
 }
 
 function selectPreviousResult() {
-    if (g_currentSelectionIndex > 0) {
-        g_currentSelectionIndex--;
-        updateSelectedResult();
-    }
+    if (g_currentSelectionIndex <= 0) return;
+    g_currentSelectionIndex--;
+    updateSelectedResult();
 }
 
 function updateSelectedResult() {
@@ -176,15 +173,13 @@ function navigateToSelectedResult() {
 g_searchInput.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
         event.preventDefault();
-        g_searchSubmit.click();
+        document.getElementById('search-submit').click();
     }
 });
 
 // Perform search when search button is clicked
-const g_searchSubmit = document.getElementById('search-submit');
-
-// Handle submitting the search query
-g_searchSubmit.addEventListener('click', async function () {
+// Assuming search-submit is defined
+document.getElementById('search-submit').addEventListener('click', async function () {
     const query = g_searchInput.value.trim().toLowerCase();
     g_searchResults.innerHTML = '';
     g_currentSelectionIndex = -1;
@@ -194,28 +189,23 @@ g_searchSubmit.addEventListener('click', async function () {
         return;
     }
 
-    // Load the JSON search index file, if not already defined
     if (g_index === null) {
-        console.log('Loading search index from:', '/searchIndex.json');
+        // Assuming the fetch works correctly without console.log
         const response = await fetch('/searchIndex.json');
         const indexData = await response.json();
-        g_index = new FlexSearch.Document({
+        g_index = new window.FlexSearch.Document({
             document: {
                 id: 'id',
-                index: ['content'], // Index on the content field
-                store: ['title', 'url', 'content'], // Store title, URL, and content
+                index: ['content'],
+                store: ['title', 'url', 'content'],
             },
         });
 
-        // Import the index
         for (const [key, data] of Object.entries(indexData)) {
-            await g_index.import(key, data);
+            g_index.import(key, data);
         }
-    } else {
-        console.log('Reusing existing search index');
     }
 
-    // Perform search
     const results = await g_index.search({
         query,
         field: 'content',
@@ -241,7 +231,6 @@ g_searchSubmit.addEventListener('click', async function () {
                     g_searchResults.appendChild(resultElement);
                     g_searchResultsArray.push(resultElement);
 
-                    // Automatically select the first result
                     if (g_searchResultsArray.length === 1) {
                         g_currentSelectionIndex = 0;
                         updateSelectedResult();
@@ -250,7 +239,7 @@ g_searchSubmit.addEventListener('click', async function () {
             });
         });
         g_searchResults.style.display = 'block';
-        g_searchResults.focus(); // Focus on search results whenever there are results
+        g_searchResults.focus();
     } else {
         g_searchResults.style.display = 'none';
     }
@@ -262,20 +251,18 @@ function scrollToTOC(url) {
     const tocLink = document.querySelector(`.toc-sidebar a[href="#${elementId}"]`);
 
     if (tocLink) {
-        tocLink.click(); // Simulate a click on the TOC link for smooth scroll
-        highlightSelectedSection(elementId); // Highlight the section in yellow
+        tocLink.click();
+        highlightSelectedSection(elementId);
         closeModalAfterClick();
     }
 }
 
 // Highlight the selected section
 function highlightSelectedSection(sectionId) {
-    // Remove the previous highlight, if any
     if (g_highlightedSection) {
         g_highlightedSection.classList.remove('highlight-section');
     }
 
-    // Highlight the new section
     const sectionElement = document.getElementById(sectionId);
     if (sectionElement) {
         sectionElement.classList.add('highlight-section');
