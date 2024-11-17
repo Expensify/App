@@ -547,11 +547,10 @@ describe('ReportActionsUtils', () => {
                 },
             ];
 
-            // Expected output should have the `CREATED` action at last
-            // eslint-disable-next-line rulesdir/prefer-at
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, false);
+            // Expected output should filter out "CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER" & "CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER" action type
             const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2, 4), ...input.slice(5)];
 
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true, false);
             expect(result).toStrictEqual(expectedOutput);
         });
     });
