@@ -80,7 +80,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                     if (props.childTnode.tagName === 'br') {
                         return <Text key={props.key}>{'\n'}</Text>;
                     }
-                    if (props.childTnode.type === 'text') {
+                    if (props.childTnode.type === 'text' && props.childTnode.tagName !== 'code') {
                         return (
                             <Text
                                 key={props.key}
