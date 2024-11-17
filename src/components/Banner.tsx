@@ -46,6 +46,9 @@ type BannerProps = {
 
     /** Styles to be assigned to the Banner text */
     textStyles?: StyleProp<TextStyle>;
+
+    /** The button to display in the banner */
+    buttonComponent?: React.ReactNode;
 };
 
 function Banner({
@@ -59,6 +62,7 @@ function Banner({
     shouldRenderHTML = false,
     shouldShowIcon = false,
     shouldShowCloseButton = false,
+    buttonComponent,
 }: BannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -106,6 +110,7 @@ function Banner({
                                     </Text>
                                 ))}
                         </View>
+                        {!!buttonComponent && buttonComponent}
                         {shouldShowCloseButton && !!onClose && (
                             <Tooltip text={translate('common.close')}>
                                 <PressableWithFeedback

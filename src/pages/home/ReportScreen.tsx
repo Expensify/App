@@ -9,7 +9,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -32,6 +34,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -156,6 +159,24 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
         navigation.setParams({reportID: lastAccessedReportID});
     }, [activeWorkspaceID, canUseDefaultRooms, navigation, route, finishedLoadingApp]);
+
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const chatWithAMText = useMemo(() => {
+        if (accountManagerReportID) {
+            const accountManagerReport = ReportUtils.getReport(accountManagerReportID);
+            const participants = ReportUtils.getParticipantsAccountIDsForDisplay(accountManagerReport, false, true);
+            const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([participants?.at(0) ?? -1], personalDetails);
+            const participantPersonalDetail = Object.values(participantPersonalDetails).at(0);
+            const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(participantPersonalDetail);
+            const login = participantPersonalDetail?.login;
+            if (displayName && login) {
+                // return `Need something specific? Chat with your account manager, ${displayName} (${login}).`;
+                return translate('common.chatWithAM', {AMDisplayName: `${displayName} (${login})`});
+            }
+            return translate('common.chatWithAM', {});
+        }
+        return '';
+    }, [accountManagerReportID, personalDetails, translate]);
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
@@ -759,12 +780,21 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                         </OfflineWithFeedback>
                         {!!accountManagerReportID && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
                             <Banner
-                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
-                                textStyles={[styles.colorReversed]}
-                                text={translate('reportActionsView.chatWithAccountManager')}
+                                containerStyles={[styles.mh4, styles.mt4, styles.p4, {borderRadius: 8}]}
+                                text={chatWithAMText}
                                 onClose={dismissBanner}
                                 onPress={chatWithAccountManager}
                                 shouldShowCloseButton
+                                icon={Expensicons.Lightbulb}
+                                shouldShowIcon
+                                buttonComponent={
+                                    <Button
+                                        success
+                                        style={{paddingRight: 8}}
+                                        text="Chat now"
+                                        onPress={chatWithAccountManager}
+                                    />
+                                }
                             />
                         )}
                         <DragAndDropProvider isDisabled={!isCurrentReportLoadedFromOnyx || !ReportUtils.canUserPerformWriteAction(report)}>

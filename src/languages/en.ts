@@ -39,6 +39,7 @@ import type {
     ChangeTypeParams,
     CharacterLengthLimitParams,
     CharacterLimitParams,
+    ChatWithAMParams,
     CompanyCardBankName,
     CompanyCardFeedNameParams,
     CompanyNameParams,
@@ -475,6 +476,7 @@ const translations = {
         links: 'Links',
         days: 'days',
         rename: 'Rename',
+        chatWithAM: ({AMDisplayName}: ChatWithAMParams) => `Need something specific? Chat with your account manager ${AMDisplayName ? `, ${AMDisplayName}` : ''}.`,
     },
     location: {
         useCurrent: 'Use current location',
