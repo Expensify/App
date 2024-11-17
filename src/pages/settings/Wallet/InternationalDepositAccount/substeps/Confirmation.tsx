@@ -1,4 +1,5 @@
 import React, {useCallback, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -30,10 +31,16 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
 
     const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
         setIsSubmitting(true);
-        BankAccounts.createCorpayBankAccount({...formValues, ...values}).then((response) => {
+        BankAccounts.createCorpayBankAccount(
+            {...formValues, ...values},
+            corpayFields?.classification ?? '',
+            corpayFields?.destinationCountry ?? '',
+            corpayFields?.preferredMethod ?? '',
+        ).then((response) => {
             setIsSubmitting(false);
             if (response?.jsonCode) {
                 if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {

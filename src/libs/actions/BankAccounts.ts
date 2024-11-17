@@ -739,9 +739,17 @@ function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdra
     );
 }
 
-function createCorpayBankAccount(data: InternationalBankAccountForm) {
+function createCorpayBankAccount(data: InternationalBankAccountForm, classification: string, destinationCountry: string, preferredMethod: string) {
+    const inputData = {
+        ...data,
+        classification,
+        destinationCountry,
+        preferredMethod,
+        setupType: 'manual',
+        fieldsType: 'international',
+    };
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, {isWithdrawal: false, isSavings: true, inputs: JSON.stringify(data)});
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, {isWithdrawal: false, isSavings: true, inputs: JSON.stringify(inputData)});
 }
 
 export {
