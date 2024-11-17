@@ -15,39 +15,39 @@ function scrollActiveLinkIntoView() {
     if (activeLink) {
         activeLink.scrollIntoView({
             behavior: 'smooth',
-            block: 'nearest'
+            block: 'nearest',
         });
     }
 }
 
 tocbot.init({
-  tocSelector: '.js-toc',
-  contentSelector: '.js-toc-content',
-  headingSelector: 'h1, h2, h3, h4, h5, h6',
-  collapseDepth: 4,
-  orderedList: false,
-  scrollSmooth: true,
-  scrollToActive: true,
-  enableUrlHashUpdateOnScroll: false,
-  headingsOffset: 80,
-  scrollSmoothOffset: -80,
-  tocScrollingWrapper: document.querySelector('.toc-sidebar'),
-  tocScrollOffset: 80,
-  headingObjectCallback: function(obj, element) {
-    const tocTitle = element.getAttribute('data-toc-title');
-    if (tocTitle) {
-        obj.textContent = tocTitle;
-    }
-    return obj;
-  },
-  onClick: function(e) {
-      setTimeout(scrollActiveLinkIntoView, 300);
-      document.getElementById('toc-sidebar').classList.remove('open'); // Close TOC after clicking
-  },
-  scrollEndCallback: function() {
-      updateURLHashOnScroll();
-      scrollActiveLinkIntoView();
-  }
+    tocSelector: '.js-toc',
+    contentSelector: '.js-toc-content',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    collapseDepth: 4,
+    orderedList: false,
+    scrollSmooth: true,
+    scrollToActive: true,
+    enableUrlHashUpdateOnScroll: false,
+    headingsOffset: 80,
+    scrollSmoothOffset: -80,
+    tocScrollingWrapper: document.querySelector('.toc-sidebar'),
+    tocScrollOffset: 80,
+    headingObjectCallback: function (obj, element) {
+        const tocTitle = element.getAttribute('data-toc-title');
+        if (tocTitle) {
+            obj.textContent = tocTitle;
+        }
+        return obj;
+    },
+    onClick: function (e) {
+        setTimeout(scrollActiveLinkIntoView, 300);
+        document.getElementById('toc-sidebar').classList.remove('open'); // Close TOC after clicking
+    },
+    scrollEndCallback: function () {
+        updateURLHashOnScroll();
+        scrollActiveLinkIntoView();
+    },
 });
 
 function adjustAnchorOnLoad() {
@@ -56,7 +56,7 @@ function adjustAnchorOnLoad() {
         if (element) {
             window.scrollTo({
                 top: element.getBoundingClientRect().top + window.pageYOffset - 80,
-                behavior: 'smooth'
+                behavior: 'smooth',
             });
         }
     }
@@ -65,7 +65,7 @@ function adjustAnchorOnLoad() {
 window.addEventListener('load', adjustAnchorOnLoad);
 
 // Toggle sidebar on hamburger click
-document.getElementById('hamburger').addEventListener('click', function() {
+document.getElementById('hamburger').addEventListener('click', function () {
     var sidebar = document.getElementById('toc-sidebar');
     sidebar.classList.toggle('open');
 });
@@ -99,7 +99,7 @@ function showSearchModal() {
 g_searchIcon.addEventListener('click', showSearchModal);
 
 // Open modal when Cmd+K is pressed
-document.addEventListener('keydown', function(event) {
+document.addEventListener('keydown', function (event) {
     if (event.metaKey && event.key === 'k') {
         event.preventDefault();
         showSearchModal();
@@ -107,21 +107,21 @@ document.addEventListener('keydown', function(event) {
 });
 
 // Close modal when pressing "Escape"
-document.addEventListener('keydown', function(event) {
+document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape' && g_searchModal.style.display === 'flex') {
         g_searchModal.style.display = 'none';
     }
 });
 
 // Close modal when clicking outside of modal content
-window.addEventListener('click', function(event) {
+window.addEventListener('click', function (event) {
     if (event.target == g_searchModal) {
         g_searchModal.style.display = 'none';
     }
 });
 
 // Handle keyboard navigation (arrow keys and enter)
-g_searchResults.addEventListener('keydown', function(event) {
+g_searchResults.addEventListener('keydown', function (event) {
     // If the modal is being shown and has active search results, capture keydown
     if (g_searchModal.style.display === 'flex' && g_searchResultsArray.length > 0) {
         if (event.key === 'ArrowDown') {
@@ -157,7 +157,7 @@ function updateSelectedResult() {
     g_searchResultsArray.forEach((result, index) => {
         if (index === g_currentSelectionIndex) {
             result.classList.add('highlight');
-            result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            result.scrollIntoView({behavior: 'smooth', block: 'nearest'});
         } else {
             result.classList.remove('highlight');
         }
@@ -173,7 +173,7 @@ function navigateToSelectedResult() {
 }
 
 // Execute search when pressing "Enter" in the input field
-g_searchInput.addEventListener('keydown', function(event) {
+g_searchInput.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
         event.preventDefault();
         g_searchSubmit.click();
@@ -184,7 +184,7 @@ g_searchInput.addEventListener('keydown', function(event) {
 const g_searchSubmit = document.getElementById('search-submit');
 
 // Handle submitting the search query
-g_searchSubmit.addEventListener('click', async function() {
+g_searchSubmit.addEventListener('click', async function () {
     const query = g_searchInput.value.trim().toLowerCase();
     g_searchResults.innerHTML = '';
     g_currentSelectionIndex = -1;
@@ -204,7 +204,7 @@ g_searchSubmit.addEventListener('click', async function() {
                 id: 'id',
                 index: ['content'], // Index on the content field
                 store: ['title', 'url', 'content'], // Store title, URL, and content
-            }
+            },
         });
 
         // Import the index
@@ -218,13 +218,13 @@ g_searchSubmit.addEventListener('click', async function() {
     // Perform search
     const results = await g_index.search({
         query,
-        field: 'content'
+        field: 'content',
     });
 
     if (results.length > 0) {
         g_searchResultsArray = [];
-        results.forEach(result => {
-            result.result.forEach(docId => {
+        results.forEach((result) => {
+            result.result.forEach((docId) => {
                 const doc = g_index.store[docId];
                 if (doc && doc.content) {
                     const searchTermIndex = doc.content.toLowerCase().indexOf(query);
@@ -250,7 +250,7 @@ g_searchSubmit.addEventListener('click', async function() {
             });
         });
         g_searchResults.style.display = 'block';
-        g_searchResults.focus();  // Focus on search results whenever there are results
+        g_searchResults.focus(); // Focus on search results whenever there are results
     } else {
         g_searchResults.style.display = 'none';
     }
