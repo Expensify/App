@@ -11,6 +11,7 @@ You can create as many accounts as needed in order to test your changes directly
 
 1. When testing chat functionality in the app please do this between accounts you or your fellow contributors own - **do not test chatting with Concierge**, as this diverts to our customer support team. Thank you.
 2. A member of our customer onboarding team gets auto-assigned to every new policy created by a non-paying account to help them set up. Please **do not interact with these teams, ask for calls, or support on your issues.** If you do need to test functionality inside the defaultRooms (#admins & #announce) for any issues you’re working on, please let them know that you are a contributor and don’t need assistance. They will proceed to ignore the chat.
+3. Please **do not post in any Expensify owned public room for testing** (e.g #exfy-roadmap, #new-expensify-feedback). These rooms include real customers and investors. You can create your own public rooms, or [use this test public room](https://staging.new.expensify.com/r/2091104345528462) on either staging or production. Thanks!
 
 #### Generating Multiple Test Accounts
 You can generate multiple test accounts by using a `+` postfix, for example if your email is test@test.com, you can create multiple New Expensify accounts connected to the same email address by using test+123@test.com, test+456@test.com, etc.
