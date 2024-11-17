@@ -101,9 +101,9 @@ const selfGuidedTourTask: OnboardingTask = {
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     video: {
-        url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back-v2.mp4`,
+        url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back-v3.mp4`,
         thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-get-paid-back.jpg`,
-        duration: 55,
+        duration: 26,
         width: 1280,
         height: 960,
     },
@@ -186,7 +186,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
     video: {
         url: `${CLOUDFRONT_URL}/videos/guided-setup-track-personal-v2.mp4`,
         thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-track-personal.jpg`,
-        duration: 55,
+        duration: 18,
         width: 1280,
         height: 960,
     },
@@ -4883,7 +4883,7 @@ const CONST = {
             video: {
                 url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
-                duration: 55,
+                duration: 24,
                 width: 1280,
                 height: 960,
             },
@@ -5025,7 +5025,7 @@ const CONST = {
             video: {
                 url: `${CLOUDFRONT_URL}/videos/guided-setup-chat-split-bills-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-chat-split-bills.jpg`,
-                duration: 55,
+                duration: 28,
                 width: 1280,
                 height: 960,
             },
@@ -5087,7 +5087,7 @@ const CONST = {
             video: {
                 url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
-                duration: 55,
+                duration: 24,
                 width: 1280,
                 height: 960,
             },
