@@ -676,7 +676,9 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
         employees: JSON.stringify(logins.map((login) => ({email: login}))),
         ...(optimisticAnnounceChat.announceChatReportID ? {announceChatReportID: optimisticAnnounceChat.announceChatReportID} : {}),
         ...(optimisticAnnounceChat.announceChatReportActionID ? {announceCreatedReportActionID: optimisticAnnounceChat.announceChatReportActionID} : {}),
-        welcomeNote: Parser.replace(welcomeNote),
+        welcomeNote: Parser.replace(welcomeNote, {
+            shouldEscapeText: false,
+        }),
         policyID,
     };
     if (!isEmptyObject(membersChats.reportCreationData)) {
