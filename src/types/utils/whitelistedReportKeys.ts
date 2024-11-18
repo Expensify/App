@@ -12,7 +12,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         hasOutstandingChildRequest: unknown;
         hasOutstandingChildTask: unknown;
         isOwnPolicyExpenseChat: unknown;
-        isPolicyExpenseChat: unknown;
         isPinned: unknown;
         lastMessageText: unknown;
         lastVisibleActionCreated: unknown;
