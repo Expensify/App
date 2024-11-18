@@ -4531,14 +4531,14 @@ const CONST = {
     SF_COORDINATES: [-122.4194, 37.7749],
 
     NAVIGATION: {
-        TYPE: {
-            UP: 'UP',
-        },
         ACTION_TYPE: {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+
+            /** These action types are custom for RootNavigator */
             SWITCH_POLICY_ID: 'SWITCH_POLICY_ID',
+            DISMISS_MODAL: 'DISMISS_MODAL',
         },
     },
     TIME_PERIOD: {

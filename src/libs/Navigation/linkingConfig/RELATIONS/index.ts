@@ -4,8 +4,7 @@ import SIDEBAR_TO_RHP from './SIDEBAR_TO_RHP';
 import SIDEBAR_TO_SPLIT from './SIDEBAR_TO_SPLIT';
 import WORKSPACE_TO_RHP from './WORKSPACE_TO_RHP';
 
-// @TODO: fix types
-function createInverseRelation<T extends string, K extends string>(relations: Record<T, K[]>): Record<K, T> {
+function createInverseRelation<T extends string, K extends string>(relations: Partial<Record<T, K[]>>): Record<K, T> {
     const reversedRelations = {} as Record<K, T>;
 
     Object.entries(relations).forEach(([key, values]) => {

@@ -97,13 +97,13 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     const editMembers = useCallback(() => {
         const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo), CONST.NAVIGATION.ACTION_TYPE.PUSH);
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
     }, [approvalWorkflow.action, policyID]);
 
     const editApprover = useCallback(
         (approverIndex: number) => {
             const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, backTo), CONST.NAVIGATION.ACTION_TYPE.PUSH);
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, backTo));
         },
         [approvalWorkflow.action, policyID],
     );
@@ -114,10 +114,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
             return;
         }
-        Navigation.navigate(
-            ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)),
-            CONST.NAVIGATION.ACTION_TYPE.PUSH,
-        );
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)));
     }, [approverCount, policy, policyID]);
 
     return (

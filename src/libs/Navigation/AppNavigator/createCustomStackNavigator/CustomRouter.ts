@@ -1,35 +1,29 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import {findFocusedRoute, StackActions, StackRouter} from '@react-navigation/native';
+import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import * as Localize from '@libs/Localize';
-import Log from '@libs/Log';
-import getPolicyIDFromState from '@libs/Navigation/getPolicyIDFromState';
 import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
-import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import * as GetStateForActionHandlers from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
-import type {ResponsiveStackNavigatorRouterOptions} from './types';
+import type {CustomRouterAction, CustomRouterActionType, DismissModalActionType, PushActionType, ResponsiveStackNavigatorRouterOptions, SwitchPolicyIdActionType} from './types';
 
-const MODAL_ROUTES_TO_DISMISS: string[] = [
-    NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-    NAVIGATORS.LEFT_MODAL_NAVIGATOR,
-    NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
-    NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
-    NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR,
-    SCREENS.NOT_FOUND,
-    SCREENS.ATTACHMENTS,
-    SCREENS.TRANSACTION_RECEIPT,
-    SCREENS.PROFILE_AVATAR,
-    SCREENS.WORKSPACE_AVATAR,
-    SCREENS.REPORT_AVATAR,
-    SCREENS.CONCIERGE,
-];
+function isSwitchPolicyIdAction(action: CustomRouterAction): action is SwitchPolicyIdActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
+}
+
+function isPushAction(action: CustomRouterAction): action is PushActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH;
+}
+
+function isDismissModalAction(action: CustomRouterAction): action is DismissModalActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
+}
 
 function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
     if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
@@ -47,7 +41,7 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
     return false;
 }
 
-function shouldDismissSideModalNavigator(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
+function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
     if (action.type !== CONST.NAVIGATION.ACTION_TYPE.PUSH) {
         return false;
     }
@@ -59,18 +53,8 @@ function shouldDismissSideModalNavigator(state: StackNavigationState<ParamListBa
     if (isSideModalNavigator(lastRoute?.name) && isSideModalNavigator(action.payload.name)) {
         return true;
     }
-
     return false;
 }
-
-type CustomRootStackActionType =
-    | {
-          type: 'SWITCH_POLICY_ID';
-          payload: {
-              policyID: string;
-          };
-      }
-    | {type: 'DISMISS_MODAL'};
 
 function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
@@ -79,51 +63,23 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     // @TODO: Make sure that everything works fine without compareAndAdaptState function. Probably with getMatchingFullScreenRoute.
     return {
         ...stackRouter,
-        getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType | CustomRootStackActionType, configOptions: RouterConfigOptions) {
-            if (action.type === CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID) {
-                const lastRoute = state.routes.at(-1);
-                if (lastRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
-                    const currentParams = lastRoute.params as RootStackParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-                    const queryJSON = SearchQueryUtils.buildSearchQueryJSON(currentParams.q);
-                    if (!queryJSON) {
-                        return null;
-                    }
-
-                    if (action.payload.policyID) {
-                        queryJSON.policyID = action.payload.policyID;
-                    } else {
-                        delete queryJSON.policyID;
-                    }
-
-                    const newAction = StackActions.push(SCREENS.SEARCH.CENTRAL_PANE, {
-                        ...currentParams,
-                        q: SearchQueryUtils.buildSearchQueryString(queryJSON),
-                    });
-
-                    setActiveWorkspaceID(action.payload.policyID);
-                    return stackRouter.getStateForAction(state, newAction, configOptions);
-                }
-                if (lastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                    const newAction = StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {policyID: action.payload.policyID});
-
-                    setActiveWorkspaceID(action.payload.policyID);
-                    return stackRouter.getStateForAction(state, newAction, configOptions);
-                }
-
-                // We don't have other navigators that should handle switch policy action.
-                return null;
+        getStateForAction(state: StackNavigationState<ParamListBase>, action: CustomRouterAction, configOptions: RouterConfigOptions) {
+            if (isSwitchPolicyIdAction(action)) {
+                return GetStateForActionHandlers.handleSwitchPolicyID(state, action, configOptions, stackRouter, setActiveWorkspaceID);
             }
 
-            if (action.type === 'DISMISS_MODAL') {
-                const lastRoute = state.routes.at(-1);
-                const newAction = StackActions.pop();
+            if (isDismissModalAction(action)) {
+                return GetStateForActionHandlers.handleDismissModalAction(state, action, configOptions, stackRouter);
+            }
 
-                if (!lastRoute?.name || !MODAL_ROUTES_TO_DISMISS.includes(lastRoute?.name)) {
-                    Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
-                    return null;
+            if (isPushAction(action)) {
+                if (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                    return GetStateForActionHandlers.handlePushReportAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
                 }
 
-                return stackRouter.getStateForAction(state, newAction, configOptions);
+                if (action.payload.name === SCREENS.SEARCH.CENTRAL_PANE) {
+                    return GetStateForActionHandlers.handlePushSearchPageAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+                }
             }
 
             // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.
@@ -132,66 +88,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                 return state;
             }
 
-            if (action.type === 'PUSH' && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                const haveParamsPolicyID = action.payload.params && 'policyID' in action.payload.params;
-                let policyID;
-
-                if (haveParamsPolicyID) {
-                    policyID = (action.payload.params as Record<string, string | undefined>)?.policyID;
-                    setActiveWorkspaceID(policyID);
-                } else {
-                    policyID = getPolicyIDFromState(state as State<RootStackParamList>);
-                }
-
-                const modifiedAction = {
-                    ...action,
-                    payload: {
-                        ...action.payload,
-                        params: {
-                            ...action.payload.params,
-                            policyID,
-                        },
-                    },
-                };
-
-                return stackRouter.getStateForAction(state, modifiedAction, configOptions);
-            }
-
-            if (action.type === 'PUSH' && action.payload.name === SCREENS.SEARCH.CENTRAL_PANE) {
-                const currentParams = action.payload.params as RootStackParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-                const queryJSON = SearchQueryUtils.buildSearchQueryJSON(currentParams.q);
-
-                if (!queryJSON) {
-                    return null;
-                }
-
-                if (!queryJSON.policyID) {
-                    const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
-
-                    if (policyID) {
-                        queryJSON.policyID = policyID;
-                    } else {
-                        delete queryJSON.policyID;
-                    }
-                } else {
-                    setActiveWorkspaceID(queryJSON.policyID);
-                }
-
-                const modifiedAction = {
-                    ...action,
-                    payload: {
-                        ...action.payload,
-                        params: {
-                            ...action.payload.params,
-                            q: SearchQueryUtils.buildSearchQueryString(queryJSON),
-                        },
-                    },
-                };
-
-                return stackRouter.getStateForAction(state, modifiedAction, configOptions);
-            }
-
-            if (shouldDismissSideModalNavigator(state, action)) {
+            if (isNavigatingToModalFromModal(state, action)) {
                 const modifiedState = {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0};
                 return stackRouter.getStateForAction(modifiedState, action, configOptions);
             }
@@ -202,4 +99,4 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
 }
 
 export default CustomRouter;
-export type {CustomRootStackActionType};
+export type {CustomRouterActionType};

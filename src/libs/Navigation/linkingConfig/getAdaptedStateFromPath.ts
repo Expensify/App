@@ -70,17 +70,15 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
     }
 
     if (RELATIONS.RHP_TO_SIDEBAR[route.name]) {
-        // @TODO: Figure out better types for this.
         return createSplitNavigator(
             {
-                name: RELATIONS.RHP_TO_SIDEBAR[route.name] as typeof SCREENS.HOME,
+                name: RELATIONS.RHP_TO_SIDEBAR[route.name],
             },
             undefined,
             policyID ? {policyID} : undefined,
         );
     }
 
-    // @TODO We can think about handling it in one condition.
     if (RELATIONS.RHP_TO_WORKSPACE[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RELATIONS.RHP_TO_WORKSPACE[route.name]);
 
@@ -90,7 +88,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
             {
-                name: RELATIONS.RHP_TO_WORKSPACE[route.name] as keyof WorkspaceSplitNavigatorParamList,
+                name: RELATIONS.RHP_TO_WORKSPACE[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
@@ -104,7 +102,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
                 name: SCREENS.SETTINGS.ROOT,
             },
             {
-                name: RELATIONS.RHP_TO_SETTINGS[route.name] as keyof SettingsSplitNavigatorParamList,
+                name: RELATIONS.RHP_TO_SETTINGS[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );

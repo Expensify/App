@@ -22,17 +22,19 @@ function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
             return;
         }
 
-        if (queryFromRouteParam) {
-            const queryJSON = SearchQueryUtils.buildSearchQueryJSON(queryFromRouteParam);
-            if (!queryJSON) {
-                setActiveWorkspaceID(undefined);
-                return;
-            }
-            setActiveWorkspaceID(SearchQueryUtils.getPolicyIDFromSearchQuery(queryJSON));
+        if (!queryFromRouteParam) {
+            setActiveWorkspaceID(undefined);
             return;
         }
 
-        setActiveWorkspaceID(undefined);
+        const queryJSON = SearchQueryUtils.buildSearchQueryJSON(queryFromRouteParam);
+
+        if (!queryJSON) {
+            setActiveWorkspaceID(undefined);
+            return;
+        }
+
+        setActiveWorkspaceID(SearchQueryUtils.getPolicyIDFromSearchQuery(queryJSON));
     }, [policyIDFromRouteParam, queryFromRouteParam, setActiveWorkspaceID]);
 
     const value = useMemo(
