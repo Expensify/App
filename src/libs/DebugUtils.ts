@@ -427,15 +427,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
     if (REPORT_REQUIRED_PROPERTIES.includes(key) && value === 'undefined') {
         throw SyntaxError('debug.missingValue');
     }
-    if (key === 'privateNotes') {
-        return validateObject(
-            value,
-            {
-                note: 'string',
-            },
-            'number',
-        );
-    }
     if (key === 'permissions') {
         return validateArray(value, CONST.REPORT.PERMISSIONS);
     }

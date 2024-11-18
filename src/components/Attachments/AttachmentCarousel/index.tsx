@@ -50,6 +50,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     const pagerRef = useRef<GestureType>(null);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {canEvict: false});
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
@@ -76,7 +77,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
         let newAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: reportMetadata?.privateNotes, accountID});
         } else {
             newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined});
         }
@@ -117,7 +118,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                 onNavigate(attachment);
             }
         }
-    }, [report.privateNotes, reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, type]);
+    }, [reportMetadata?.privateNotes, reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, type]);
 
     // Scroll position is affected when window width is resized, so we readjust it on width changes
     useEffect(() => {

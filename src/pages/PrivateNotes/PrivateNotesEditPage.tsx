@@ -31,7 +31,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PrivateNotesForm';
 import type {Report} from '@src/types/onyx';
-import type {Note} from '@src/types/onyx/Report';
+import type {Note} from '@src/types/onyx/ReportMetadata';
 
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
     StackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> & {
@@ -39,7 +39,7 @@ type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
         report: Report;
     };
 
-function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPageProps) {
+function PrivateNotesEditPage({route, report, accountID, reportMetadata}: PrivateNotesEditPageProps) {
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -47,7 +47,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
 
     // We need to edit the note in markdown format, but display it in HTML format
     const [privateNote, setPrivateNote] = useState(
-        () => ReportActions.getDraftPrivateNote(report.reportID).trim() || Parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '').trim(),
+        () => ReportActions.getDraftPrivateNote(report.reportID).trim() || Parser.htmlToMarkdown(reportMetadata?.privateNotes?.[Number(route.params.accountID)]?.note ?? '').trim(),
     );
 
     /**
@@ -85,7 +85,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
     );
 
     const savePrivateNote = () => {
-        const originalNote = report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '';
+        const originalNote = reportMetadata?.privateNotes?.[Number(route.params.accountID)]?.note ?? '';
         let editedNote = '';
         if (privateNote.trim() !== originalNote.trim()) {
             editedNote = ReportActions.handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote).trim());
@@ -96,7 +96,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
         debouncedSavePrivateNote('');
 
         Keyboard.dismiss();
-        if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note)) {
+        if (!Object.values<Note>({...reportMetadata?.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note)) {
             ReportUtils.navigateToDetailsPage(report, backTo);
         } else {
             Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
@@ -111,7 +111,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
         >
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
-                onBackButtonPress={() => ReportUtils.goBackFromPrivateNotes(report, accountID, backTo)}
+                onBackButtonPress={() => ReportUtils.goBackFromPrivateNotes(report, reportMetadata, accountID, backTo)}
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
@@ -131,7 +131,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                 </Text>
                 <OfflineWithFeedback
                     errors={{
-                        ...(report?.privateNotes?.[Number(route.params.accountID)]?.errors ?? ''),
+                        ...(reportMetadata?.privateNotes?.[Number(route.params.accountID)]?.errors ?? ''),
                     }}
                     onClose={() => ReportActions.clearPrivateNotesError(report.reportID, Number(route.params.accountID))}
                     style={[styles.mb3]}

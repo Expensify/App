@@ -40,6 +40,7 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
     const route = useRoute<RouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.LIST>>();
     const backTo = route.params.backTo;
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID ?? -1}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const getAttachmentValue = useCallback((item: NoteListItem) => ({reportID: item.reportID, accountID: Number(item.accountID), type: CONST.ATTACHMENT_TYPE.NOTE}), []);
@@ -70,9 +71,9 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
      * Returns a list of private notes on the given chat report
      */
     const privateNotes = useMemo(() => {
-        const privateNoteBrickRoadIndicator = (accountID: number) => (report.privateNotes?.[accountID].errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
-        return Object.keys(report.privateNotes ?? {}).map((accountID: string) => {
-            const privateNote = report.privateNotes?.[Number(accountID)];
+        const privateNoteBrickRoadIndicator = (accountID: number) => (reportMetadata?.privateNotes?.[accountID].errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
+        return Object.keys(reportMetadata?.privateNotes ?? {}).map((accountID: string) => {
+            const privateNote = reportMetadata?.privateNotes?.[Number(accountID)];
             return {
                 reportID: report.reportID,
                 accountID,
@@ -83,7 +84,7 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
                 disabled: Number(sessionAccountID) !== Number(accountID),
             };
         });
-    }, [report, personalDetailsList, sessionAccountID, translate, backTo]);
+    }, [report, reportMetadata, personalDetailsList, sessionAccountID, translate, backTo]);
 
     return (
         <ScreenWrapper

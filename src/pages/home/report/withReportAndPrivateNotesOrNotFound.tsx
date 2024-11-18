@@ -31,7 +31,7 @@ export default function (pageTitle: TranslationPaths) {
             const {translate} = useLocalize();
             const {isOffline} = useNetwork();
             const [session] = useOnyx(ONYXKEYS.SESSION);
-            const {route, report} = props;
+            const {route, report, reportMetadata} = props;
             const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
             const accountID = ('accountID' in route.params && route.params.accountID) || '';
             const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
@@ -39,7 +39,7 @@ export default function (pageTitle: TranslationPaths) {
             const isReconnecting = prevIsOffline && !isOffline;
             const isOtherUserNote = !!accountID && Number(session?.accountID) !== Number(accountID);
             const isPrivateNotesFetchFinished = isPrivateNotesFetchTriggered && !report.isLoadingPrivateNotes;
-            const isPrivateNotesUndefined = accountID ? report?.privateNotes?.[Number(accountID)]?.note === undefined : isEmptyObject(report?.privateNotes);
+            const isPrivateNotesUndefined = accountID ? reportMetadata?.privateNotes?.[Number(accountID)]?.note === undefined : isEmptyObject(reportMetadata?.privateNotes);
 
             useEffect(() => {
                 // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.

@@ -1,3 +1,14 @@
+import type * as OnyxCommon from './OnyxCommon';
+
+/** Model of report private note */
+type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Content of the note */
+    note: string;
+
+    /** Collection of errors to show to the user */
+    errors?: OnyxCommon.Errors;
+}>;
+
 /** Model of report metadata */
 type ReportMetadata = {
     /** Are we loading newer report actions? */
@@ -17,6 +28,11 @@ type ReportMetadata = {
 
     /** The time when user last visited the report */
     lastVisitTime?: string;
+
+    /** Collection of participant private notes, indexed by their accountID */
+    privateNotes?: Record<number, Note>;
 };
 
 export default ReportMetadata;
+
+export type {Note};

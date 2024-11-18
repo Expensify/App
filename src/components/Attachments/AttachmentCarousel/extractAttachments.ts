@@ -7,7 +7,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
-import type {Note} from '@src/types/onyx/Report';
+import type {Note} from '@src/types/onyx/ReportMetadata';
 
 /**
  * Constructs the initial component state from report actions

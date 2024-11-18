@@ -80,7 +80,7 @@ const CASES = {
 
 type CaseID = ValueOf<typeof CASES>;
 
-function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
+function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -419,8 +419,8 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
-                action: () => ReportUtils.navigateToPrivateNotes(report, session, backTo),
-                brickRoadIndicator: Report.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                action: () => ReportUtils.navigateToPrivateNotes(report, reportMetadata, session, backTo),
+                brickRoadIndicator: Report.hasErrorInPrivateNotes(reportMetadata) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
         }
 

@@ -14,15 +14,6 @@ type WriteCapability = ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
 /** Defines which users have access to the chat */
 type RoomVisibility = ValueOf<typeof CONST.REPORT.VISIBILITY>;
 
-/** Model of report private note */
-type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Content of the note */
-    note: string;
-
-    /** Collection of errors to show to the user */
-    errors?: OnyxCommon.Errors;
-}>;
-
 /** The pending member of report */
 type PendingChatMember = {
     /** Account ID of the pending member */
@@ -229,9 +220,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is hidden from options list */
         isHidden?: boolean;
 
-        /** Collection of participant private notes, indexed by their accountID */
-        privateNotes?: Record<number, Note>;
-
         /** Whether participants private notes are being currently loaded */
         isLoadingPrivateNotes?: boolean;
 
@@ -271,4 +259,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants};
+export type {NotificationPreference, RoomVisibility, WriteCapability, ReportCollectionDataSet, PendingChatMember, Participant, Participants};

@@ -60,7 +60,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         preexistingReportID: unknown;
         nonReimbursableTotal: unknown;
         isHidden: unknown;
-        privateNotes: unknown;
         isLoadingPrivateNotes: unknown;
         pendingChatMembers: unknown;
         transactionThreadReportID: unknown;

@@ -4218,11 +4218,11 @@ function navigateBackAfterDeleteTransaction(backRoute: Route | undefined, isFrom
 /**
  * Go back to the previous page from the edit private page of a given report
  */
-function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number, backTo?: string) {
+function goBackFromPrivateNotes(report: OnyxEntry<Report>, reportMetadata: OnyxEntry<ReportMetadata>, accountID?: number, backTo?: string) {
     if (isEmpty(report) || !accountID) {
         return;
     }
-    const currentUserPrivateNote = report.privateNotes?.[accountID]?.note ?? '';
+    const currentUserPrivateNote = reportMetadata?.privateNotes?.[accountID]?.note ?? '';
     if (isEmpty(currentUserPrivateNote)) {
         const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
 
@@ -7711,11 +7711,11 @@ function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
 /**
  * Navigates to the appropriate screen based on the presence of a private note for the current user.
  */
-function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Session>, backTo?: string) {
+function navigateToPrivateNotes(report: OnyxEntry<Report>, reportMetadata: OnyxEntry<ReportMetadata>, session: OnyxEntry<Session>, backTo?: string) {
     if (isEmpty(report) || isEmpty(session) || !session.accountID) {
         return;
     }
-    const currentUserPrivateNote = report.privateNotes?.[session.accountID]?.note ?? '';
+    const currentUserPrivateNote = reportMetadata?.privateNotes?.[session.accountID]?.note ?? '';
     if (isEmpty(currentUserPrivateNote)) {
         Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID, backTo));
         return;

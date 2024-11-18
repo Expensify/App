@@ -88,17 +88,18 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const accountID = Number(route.params?.accountID ?? -1);
     const isCurrentUser = session?.accountID === accountID;
+    const reportID = useMemo(
+        () => (isCurrentUser ? ReportUtils.findSelfDMReportID() : ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '-1'),
+        [accountID, isCurrentUser, reports, session],
+    );
     const reportKey = useMemo(() => {
-        const reportID = isCurrentUser
-            ? ReportUtils.findSelfDMReportID()
-            : ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '-1';
-
         if (SessionActions.isAnonymousUser() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-    }, [accountID, isCurrentUser, reports, session]);
+    }, [reportID]);
     const [report] = useOnyx(reportKey);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -286,10 +287,10 @@ function ProfilePage({route}: ProfilePageProps) {
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => ReportUtils.navigateToPrivateNotes(report, session, navigateBackTo)}
+                                onPress={() => ReportUtils.navigateToPrivateNotes(report, reportMetadata, session, navigateBackTo)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
-                                brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(reportMetadata) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                         )}
                         {isConcierge && !!guideCalendarLink && (

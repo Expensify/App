@@ -107,6 +107,7 @@ import type {
     RecentlyUsedReportFields,
     ReportAction,
     ReportActionReactions,
+    ReportMetadata,
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
@@ -3380,7 +3381,7 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 privateNotes: {
                     [accountID]: {
@@ -3396,7 +3397,7 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 privateNotes: {
                     [accountID]: {
@@ -3411,7 +3412,7 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 privateNotes: {
                     [accountID]: {
@@ -3954,14 +3955,14 @@ function openRoomMembersPage(reportID: string) {
  *
  * @returns Returns true if there are errors in any of the private notes on the report
  */
-function hasErrorInPrivateNotes(report: OnyxEntry<Report>): boolean {
-    const privateNotes = report?.privateNotes ?? {};
+function hasErrorInPrivateNotes(reportMetadata: OnyxEntry<ReportMetadata>): boolean {
+    const privateNotes = reportMetadata?.privateNotes ?? {};
     return Object.values(privateNotes).some((privateNote) => !isEmpty(privateNote.errors));
 }
 
 /** Clears all errors associated with a given private note */
 function clearPrivateNotesError(reportID: string, accountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
 }
 
 function getDraftPrivateNote(reportID: string): string {
