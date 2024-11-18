@@ -528,7 +528,14 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
                     [ONYXKEYS.NVP_TRYNEWDOT]: {classicRedirect: {completedHybridAppOnboarding: completedHybridAppOnboarding === 'true'}},
                 }),
             )
-            .then(App.openApp)
+            .then(() => {
+                if (clearOnyxOnStart === 'true') {
+                    // We clear Onyx when this flag is set to true so we have to download all data
+                    App.openApp();
+                } else {
+                    App.reconnectApp();
+                }
+            })
             .catch((error) => {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
             })
