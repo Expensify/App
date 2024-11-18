@@ -114,6 +114,7 @@ import PalmTree from '@assets/images/simple-illustrations/simple-illustration__p
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
 import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__piggybank.svg';
+import Pillow from '@assets/images/simple-illustrations/simple-illustration__pillow.svg';
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
 import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg';
@@ -234,6 +235,7 @@ export {
     ExpensifyCardIllustration,
     SplitBill,
     PiggyBank,
+    Pillow,
     Accounting,
     Car,
     Coins,
