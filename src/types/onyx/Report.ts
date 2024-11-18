@@ -3,7 +3,6 @@ import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type * as OnyxCommon from './OnyxCommon';
-import type PersonalDetails from './PersonalDetails';
 import type {PolicyReportField} from './Policy';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
@@ -194,9 +193,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Account ID of the report owner */
         ownerAccountID?: number;
 
-        /** E-mail of the report owner */
-        ownerEmail?: string;
-
         /** Collection of report participants, indexed by their accountID */
         participants?: Participants;
 
@@ -233,23 +229,11 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is hidden from options list */
         isHidden?: boolean;
 
-        /** Whether the report is a chat room */
-        isChatRoom?: boolean;
-
-        /** Collection of participants personal details */
-        participantsList?: PersonalDetails[];
-
-        /** Text to be displayed in options list, which matches reportName by default */
-        text?: string;
-
         /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;
 
         /** Whether participants private notes are being currently loaded */
         isLoadingPrivateNotes?: boolean;
-
-        /** Whether the report is currently selected in the options list */
-        selected?: boolean;
 
         /** Pending members of the report */
         pendingChatMembers?: PendingChatMember[];
@@ -278,9 +262,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is archived */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived?: string;
-
-        /** Participant account id's */
-        participantAccountIDs?: number[];
     },
     PolicyReportField['fieldID']
 >;
@@ -290,4 +271,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants, InvoiceReceiver};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants};
