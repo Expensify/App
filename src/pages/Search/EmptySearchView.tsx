@@ -19,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {getNavatticURL} from '@libs/TourUtils';
 import * as TripsResevationUtils from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
@@ -52,7 +53,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
     const [modalVisible, setModalVisible] = useState(false);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return ReportUtils.areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
+        return PolicyUtils.areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
     }, [allPolicies]);
 
     const [ctaErrorMessage, setCtaErrorMessage] = useState('');
