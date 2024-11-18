@@ -47,7 +47,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
     const [panResponder, setPanResponder] = useState<PanResponderInstance | null>(null);
     const [inSwipeClosingState, setInSwipeClosingState] = useState(false);
     const isSwipeable = !!props.swipeDirection;
-
+    const shouldHideChildren = props.hideModalContentWhileAnimating && isContainerOpen && isTransitioning;
     const currentSwipingDirectionRef = useRef<Direction | null>(null);
 
     const setCurrentSwipingDirection = (direction: Direction | null) => {
@@ -213,7 +213,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...otherProps}
         >
-            {props.hideModalContentWhileAnimating && isTransitioning ? <View /> : children}
+            {shouldHideChildren ? <View /> : children}
         </Container>
     );
 
