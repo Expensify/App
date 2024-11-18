@@ -21,6 +21,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 type CardInstructionsStepProps = {
     policyID?: string;
 };
+
+function getCardInstructionHeader(isVisaFeedProvider: boolean, isMastedCardFeedProvider: boolean) {
+    if (isVisaFeedProvider) {
+        return 'workspace.companyCards.addNewCard.enableFeed.visa';
+    }
+    if (isMastedCardFeedProvider) {
+        return 'workspace.companyCards.addNewCard.enableFeed.mastercard';
+    }
+
+    return 'workspace.companyCards.addNewCard.enableFeed.heading';
+}
+
 function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -34,6 +46,9 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const isAmexFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
+    const isVisaFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+    const isMastedCardFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD;
+    const translationKey = getCardInstructionHeader(isVisaFeedProvider, isMastedCardFeedProvider);
 
     const buttonTranslation = isStripeFeedProvider ? translate('common.submit') : translate('common.next');
 
@@ -86,7 +101,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
                     {translate('workspace.companyCards.addNewCard.enableFeed.title', {provider: CardUtils.getCardFeedName(feedProvider)})}
                 </Text>
-                <Text style={[styles.ph5, styles.mb3]}>{translate('workspace.companyCards.addNewCard.enableFeed.heading')}</Text>
+                <Text style={[styles.ph5, styles.mb3]}>{translate(translationKey)}</Text>
                 <View style={[styles.ph5]}>
                     <RenderHTML html={Parser.replace(feedProvider ? translate(`workspace.companyCards.addNewCard.enableFeed.${feedProvider}`) : '')} />
                 </View>
