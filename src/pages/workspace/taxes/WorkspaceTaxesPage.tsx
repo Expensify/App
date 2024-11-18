@@ -221,7 +221,7 @@ function WorkspaceTaxesPage({
         if (selectedTaxesIDs.some((taxID) => policy?.taxRates?.taxes[taxID]?.isDisabled)) {
             options.push({
                 icon: Expensicons.Checkmark,
-                text: translate('workspace.taxes.actions.disableTaxRates', {count: disabledRatesCount}),
+                text: translate('workspace.taxes.actions.enableTaxRates', {count: disabledRatesCount}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => toggleTaxes(true),
             });
