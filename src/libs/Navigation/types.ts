@@ -1554,6 +1554,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
             accountID: string;
             isAuthTokenRequired?: string;
             fileName?: string;
+            attachmentLink?: string;
         };
         [SCREENS.PROFILE_AVATAR]: {
             accountID: string;
