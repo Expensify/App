@@ -8,6 +8,7 @@ import type {
     ConnectBankAccountParams,
     DeletePaymentBankAccountParams,
     OpenReimbursementAccountPageParams,
+    SaveCorpayOnboardingCompanyDetailsParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -501,8 +502,12 @@ function getCorpayBankAccountFields(country: string, currency: string) {
     };
 }
 
-function getCorpayOnboardingFields(country: Country) {
+function getCorpayOnboardingFields(country: Country | '') {
     return API.read(READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS, {countryISO: country});
+}
+
+function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingCompanyDetailsParams) {
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS, parameters);
 }
 
 function clearReimbursementAccount() {
@@ -736,6 +741,7 @@ export {
     validatePlaidSelection,
     getCorpayBankAccountFields,
     getCorpayOnboardingFields,
+    saveCorpayOnboardingCompanyDetails,
 };
 
 export type {BusinessAddress, PersonalAddress};

@@ -1,7 +1,7 @@
 import type {Country} from '@src/CONST';
 
 type GetCorpayOnboardingFieldsParams = {
-    countryISO: Country;
+    countryISO: Country | '';
 };
 
 export default GetCorpayOnboardingFieldsParams;
