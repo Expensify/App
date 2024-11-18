@@ -271,5 +271,15 @@ function waitForIdle(): Promise<unknown> {
     return isReadyPromise;
 }
 
-export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process};
+function resetQueue(): void {
+    isSequentialQueueRunning = false;
+    currentRequestPromise = null;
+    isQueuePaused = false;
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
+    resolveIsReadyPromise?.();
+}
+
+export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process, resetQueue};
 export type {RequestError};

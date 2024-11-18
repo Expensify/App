@@ -1,32 +1,29 @@
-import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 // import {reauthenticate} from '@libs/Middleware/Reauthentication';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import pkg from '../../../package.json';
 import * as MainQueue from './MainQueue';
 import * as SequentialQueue from './SequentialQueue';
 
+let processQueueInterval: NodeJS.Timer;
+
 // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
 ActiveClientManager.isReady().then(() => {
     SequentialQueue.flush();
 
     // Start main queue and process once every n ms delay
-    setInterval(MainQueue.process, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-
-    // If a reauthentication request is set make sure it is processed
-    // Onyx.connect({
-    //     key: ONYXKEYS.REAUTHENTICATION_REQUEST,
-    //     callback: (request) => {
-    //         if (!request) {
-    //             return;
-    //         }
-    //         // reauthenticate(request.commandName);
-    //     },
-    // });
+    processQueueInterval = setInterval(MainQueue.process, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
 });
+
+// Clear interval
+function clearProcessQueueInterval() {
+    if (!processQueueInterval) {
+        return;
+    }
+    clearInterval(processQueueInterval as unknown as number);
+}
 
 /**
  * Perform a queued post request
@@ -69,7 +66,4 @@ function post(command: string, data: Record<string, unknown> = {}, type = CONST.
     });
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    post,
-};
+export {post, clearProcessQueueInterval};

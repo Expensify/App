@@ -54,6 +54,10 @@ function retryReauthenticate(commandName?: string): Promise<void> {
     });
 }
 
+function resetReauthentication(): void {
+    isAuthenticating = null;
+}
+
 const Reauthentication: Middleware = (response, request, isFromSequentialQueue) =>
     response
         .then((data) => {
@@ -144,4 +148,4 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
         });
 
 export default Reauthentication;
-export {reauthenticate};
+export {reauthenticate, resetReauthentication};

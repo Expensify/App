@@ -2,6 +2,7 @@ import type {Mock} from 'jest-mock';
 import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
 import * as App from '@libs/actions/App';
+import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -12,6 +13,7 @@ import Log from '@src/libs/Log';
 import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
+import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import NetworkConnection from '@src/libs/NetworkConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as OnyxSession} from '@src/types/onyx';
@@ -35,15 +37,27 @@ const originalXHR = HttpUtils.xhr;
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
+
+    // Reset any pending requests
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     NetworkStore.checkRequiredData();
+    NetworkStore.setIsAuthenticating(false);
+    resetReauthentication();
+    Network.clearProcessQueueInterval();
+    SequentialQueue.resetQueue();
 
-    // Wait for any Log command to finish and Onyx to fully clear
-    return waitForBatchedUpdates()
-        .then(() => PersistedRequests.clear())
-        .then(() => Onyx.clear())
-        .then(waitForBatchedUpdates);
+    return Promise.all([SequentialQueue.waitForIdle(), waitForBatchedUpdates(), PersistedRequests.clear(), Onyx.clear()])
+        .then(() => {
+            return waitForBatchedUpdates();
+        })
+        .then(
+            () =>
+                // Wait for all async operations to complete
+                new Promise((resolve) => {
+                    setTimeout(resolve, 100);
+                }),
+        );
 });
 
 afterEach(() => {
