@@ -7,10 +7,15 @@ set -e
 ROOT_DIR=$(dirname "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)")
 cd "$ROOT_DIR" || exit 1
 
-cd Mobile-Expensify || exit 1
-npm i
+# See if we're in the HybridApp repo
+IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
 
-cd "$ROOT_DIR" || exit 1
+if [[ "$IS_HYBRID_APP_REPO" == "true" ]]; then
+  cd Mobile-Expensify || exit 1
+  npm i
+
+  cd "$ROOT_DIR" || exit 1
+fi
 
 # Apply packages using patch-package
 scripts/applyPatches.sh
