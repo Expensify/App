@@ -1,0 +1,20 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Binding.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Binding.cpp
+index 280ae46..2f29b9b 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Binding.cpp
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Binding.cpp
+@@ -483,8 +483,13 @@ void Binding::schedulerShouldRenderTransactions(
+     return;
+   }
+ 
+-  if (ReactNativeFeatureFlags::
+-          allowRecursiveCommitsWithSynchronousMountOnAndroid()) {
++  // if (ReactNativeFeatureFlags::
++  //         allowRecursiveCommitsWithSynchronousMountOnAndroid()) {
++
++  // Avoid freeze and crash caused by deadlock.
++  // Remove this patch after the feature flag is enabled by default.
++  // See: https://github.com/Expensify/App/issues/52496
++  if (true) {
+     std::vector<MountingTransaction> pendingTransactions;
+ 
+     {
