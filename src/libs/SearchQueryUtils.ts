@@ -13,7 +13,6 @@ import localeCompare from './LocaleCompare';
 import {validateAmount} from './MoneyRequestUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
-// import * as ReportUtils from './ReportUtils';
 import * as searchParser from './SearchParser/searchParser';
 import * as UserUtils from './UserUtils';
 import * as ValidationUtils from './ValidationUtils';
