@@ -29,9 +29,9 @@ Personal Liability: Users are allowed to delete company card expenses.
 
 If you update the settings on an existing company card feed, the changes will apply to expenses imported after the date the setting is saved. The update will not affect previously imported expenses.
 
-## Preferred policy
+## Preferred workspace
 
-Setting a preferred policy for a company card feed will ensure that the imported transactions are added to a report on the policy you set. This setting is useful when members are on multiple policies and need to ensure their company card expenses are reported to a particular policy.
+Setting a preferred workspace for a company card feed will ensure that the imported transactions are added to a report on the workspace you set. This setting is useful when members are on multiple workspaces and need to ensure their company card expenses are reported to a particular workspace.
 
 # How to use Scheduled Submit with company cards
 All expenses must be placed on a report if they need to be approved; with Scheduled Submit, you no longer need to worry about the arduous task of employees creating their expenses, adding them to a report, and submitting them manually. All they need to do is SmartScan their receipts and Concierge will take care of the rest, on a variety of schedules that you can set according to your preferences!
@@ -41,11 +41,11 @@ Concierge won't automatically submit expenses on reports that have Expense Viola
 An employee can add comments in the Expense Comment field or at the bottom of the report to clarify any details.
 
 ## Enable Scheduled Submit
-Scheduled Submit is enabled in the Group Policy by navigating to Settings > Policies > Group > Policy Name > Reports > Scheduled Submit 
+Scheduled Submit is enabled in the Group Workspace by navigating to Settings > Workspaces > Group > Workspace Name > Reports > Scheduled Submit 
 Use the toggle to enable Scheduled Submit 
 Choose your desired frequency 
 
-If Scheduled Submit is disabled on the group policy level (or set to a manual frequency), and you have noticed expense reports are still automatically submitted to the group policy, it's likely Scheduled Submit is enabled on the user’s Individual Policy settings. 
+If Scheduled Submit is disabled on the group workspace level (or set to a manual frequency), and you have noticed expense reports are still automatically submitted to the group workspace, it's likely Scheduled Submit is enabled on the user’s Individual Workspace settings. 
 
 # How to connect company cards to an accounting integration
 
@@ -59,7 +59,7 @@ You're all done. After the account is set, exported expenses will be mapped to t
 ## Pooled GL account 
 
 To export credit card expenses to a pooled GL account:
-Go to Settings > Policies > Group > Policy Name > Connections > Accounting Integrations > Configure
+Go to Settings > Workspaces > Group > Workspace Name > Connections > Accounting Integrations > Configure
 Select Credit Card / Charge Card / Bank Transaction as your Non-reimbursable export option. 
 Please review the Export Settings page for exporting Expense Reports to NetSuite
 Select the Vendor/liability account you want to export all non-reimbursable expenses to.
@@ -86,7 +86,7 @@ It's important to note that eReceipts are not generated for lodging expenses. Mo
 
 {% include faq-begin.md %}
 ## What plan/subscription is required in order to manage corporate cards?
-Group Policy (Collect or Control plan only) 
+Group Workspace (Collect or Control plan only) 
 ## When do my company card transactions import to Expensify?
 Credit card transactions are imported to Expensify once they’re posted to the bank account. This usually takes 1-3 business days between the point of purchase and when the transactions populate in your account.
 
