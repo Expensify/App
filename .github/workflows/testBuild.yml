@@ -60,6 +60,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  postGitHubCommentBuildStarted:
+    runs-on: ubuntu-latest
+    needs: [validateActor, getBranchRef]
+    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+    steps:
+      - name: Add build start comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: process.env.PULL_REQUEST_NUMBER,
+              body: `🚧 @${{ github.actor }} has triggered a test build. You can view the [workflow run here](${workflowURL}).`
+            });
+
   buildAndroid:
     name: Build Android app for testing
     uses: ./.github/workflows/buildAndroid.yml
