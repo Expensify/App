@@ -51,7 +51,12 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type IOURequestStepScanProps from './types';
 
-const VIDEO_CONSTRAINTS = {facingMode: {exact: 'environment'}};
+const VIDEO_CONSTRAINTS = {
+    facingMode: {
+        exact: 'environment',
+    },
+};
+
 function IOURequestStepScan({
     report,
     route: {
@@ -121,7 +126,7 @@ function IOURequestStepScan({
         }
 
         navigator.mediaDevices
-            .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
+            .getUserMedia({video: {...VIDEO_CONSTRAINTS, zoom: {ideal: 1}}})
             .then((stream) => {
                 setCameraPermissionState('granted');
                 stream.getTracks().forEach((track) => track.stop());
