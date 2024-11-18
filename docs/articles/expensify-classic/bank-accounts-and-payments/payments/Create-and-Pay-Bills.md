@@ -11,7 +11,7 @@ You can receive bills in three ways:
 - Manual Upload: For physical bills, create a Bill in Expensify from the Reports page.
 
 # Bill Pay Workflow
-1. When a vendor or supplier sends a bill to Expensify, the document is automatically SmartScanned, and a Bill is created. This Bill is managed by the primary domain contact, who can view it on the Reports page within their default group policy.
+1. When a vendor or supplier sends a bill to Expensify, the document is automatically SmartScanned, and a Bill is created. This Bill is managed by the primary domain contact, who can view it on the Reports page within their default group workspace.
 
 2. Once the Bill is ready for processing, it follows the established approval workflow. As each person approves it, the Bill appears in the next approver’s Inbox. The final approver will pay the Bill using one of the available payment methods.
 
