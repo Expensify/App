@@ -7,7 +7,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
@@ -48,12 +47,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, insets, onSub
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
-    const policy = PolicyUtils.getPolicy(policyID);
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`);
-    const [defaultTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-
-    const transaction = IOUUtils.shouldUseTransactionDraft(action) ? draftTransaction : defaultTransaction;
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [transaction] = useOnyx(
@@ -64,7 +58,6 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, insets, onSub
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         })(),
     );
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
