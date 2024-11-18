@@ -1,11 +1,11 @@
 ---
 layout: product
-title: Expensify
+title: Help
 ---
 ## Introduction
 The Expensify Superapp combines 6 world-class business, finance, and collaboration products into one app. It works identically on desktop and mobile, with colleagues and customers, and for personal use.
 
-### Main uses
+### [Main uses] What does Expensify do?
 Expensify can do a lot. You should check us out whenever you need to:
 * **Track and manage expenses** - Whether reimbursing employee receipts, deducting personal expenses, or splitting a bill, Expensify Expense is for you.
 * **Issue corporate cards** - Skip reimbursement and capture receipts in real-time by issuing the Expensify Card to yourself and employees.
@@ -16,7 +16,7 @@ Expensify can do a lot. You should check us out whenever you need to:
 
 If you send, receive, or spend money – or talk to anyone about anything – Expensify is for you.
 
-### Core users
+### [Core users] Who should use Expensify?
 Expensify offers something for everyone. Common users include:
 * **Individuals** - Millions track personal expenses to maximize deductions, stay within budgets, or see where money goes.
 * **Friends** - Split bills with friends for rent, parties, or drinks.
@@ -27,7 +27,7 @@ Expensify offers something for everyone. Common users include:
 
 If you're online doing anything, Expensify can probably help.
 
-### Key advantages
+### [Key advantages] Why should you use Expensify?
 You've got options, but use Expensify because it is:
 * **Simple enough for individuals** - A simple tool without overwhelming functionality or language.
 * **Powerful enough for enterprises** - It scales up to reveal sophisticated features only when needed. Used by public companies, multinationals, and more.

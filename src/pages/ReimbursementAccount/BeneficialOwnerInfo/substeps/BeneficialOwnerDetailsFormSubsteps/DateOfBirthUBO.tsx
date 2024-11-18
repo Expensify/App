@@ -37,7 +37,6 @@ function DateOfBirthUBO({onNext, onMove, isEditing, beneficialOwnerBeingModified
             stepFields={[dobInputID]}
             dobInputID={dobInputID}
             dobDefaultValue={dobDefaultValue}
-            shouldShowHelpLinks={false}
         />
     );
 }
