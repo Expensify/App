@@ -3571,11 +3571,11 @@ const translations = {
                 deleteMultiple: 'Delete rates',
                 enable: 'Enable rate',
                 disable: 'Disable rate',
-                enableTaxTitle: () => ({
-                    one: 'enable rate',
-                    other: 'enable rates',
+                enableTaxRates: () => ({
+                    one: 'Enable rate',
+                    other: 'Enable rates',
                 }),
-                disableTaxTitle: () => ({
+                disableTaxRates: () => ({
                     one: 'Disable rate',
                     other: 'Disable rates',
                 }),

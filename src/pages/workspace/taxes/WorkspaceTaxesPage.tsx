@@ -211,7 +211,7 @@ function WorkspaceTaxesPage({
         if (selectedTaxesIDs.some((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled)) {
             options.push({
                 icon: Expensicons.Close,
-                text: translate('workspace.taxes.actions.disableTaxTitle', {count: enabledRatesCount}),
+                text: translate('workspace.taxes.actions.disableTaxRates', {count: enabledRatesCount}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => toggleTaxes(false),
             });
@@ -221,7 +221,7 @@ function WorkspaceTaxesPage({
         if (selectedTaxesIDs.some((taxID) => policy?.taxRates?.taxes[taxID]?.isDisabled)) {
             options.push({
                 icon: Expensicons.Checkmark,
-                text: translate('workspace.taxes.actions.enableTaxTitle', {count: disabledRatesCount}),
+                text: translate('workspace.taxes.actions.disableTaxRates', {count: disabledRatesCount}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => toggleTaxes(true),
             });

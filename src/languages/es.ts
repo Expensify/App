@@ -3614,11 +3614,11 @@ const translations = {
                 deleteMultiple: 'Eliminar tasas',
                 enable: 'Activar tasa',
                 disable: 'Desactivar tasa',
-                enableTaxTitle: () => ({
+                disableTaxRates: () => ({
                     one: 'Activar tasa',
                     other: 'Activar tasas',
                 }),
-                disableTaxTitle: () => ({
+                disableTaxRates: () => ({
                     one: 'Desactivar tasa',
                     other: 'Desactivar tasas',
                 }),
