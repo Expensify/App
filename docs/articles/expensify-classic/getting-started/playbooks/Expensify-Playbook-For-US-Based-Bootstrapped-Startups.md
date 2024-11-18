@@ -90,4 +90,4 @@ To view and pay bills:
 When you have bills to pay you can click *View all bills* under the *Manage your bills* box and we’ll keep a neatly organized list of all of the bills you can pay via ACH directly from your Expensify account.
 
 # You’re all set!
-Congrats, you are all set up! If you need any assistance with anything mentioned above, reach out to either your Concierge directly in *[new.expensify.com](https://new.expensify.com/concierge)*, or email concierge@expensify.com. Create a Collect or Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you.
+Congrats, you are all set up! If you need any assistance with anything mentioned above, reach out to either your Concierge directly in *[new.expensify.com](https://new.expensify.com/concierge)*, or email concierge@expensify.com. Create a Collect or Control Workspace, and we’ll automatically assign a dedicated Setup Specialist to you.
