@@ -29,6 +29,7 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import isReportOpenInRHP from './isReportOpenInRHP';
 import linkingConfig from './linkingConfig';
 import createSplitNavigator from './linkingConfig/createSplitNavigator';
+import type {LinkToOptions} from './linkTo';
 import linkTo, {convertReportPath, shouldConvertReportPath} from './linkTo';
 import getMinimalAction from './linkTo/getMinimalAction';
 import navigationRef from './navigationRef';
@@ -143,7 +144,7 @@ function isActiveRoute(routePath: Route): boolean {
  * Main navigation method for redirecting to a route.
  * @param [type] - Type of action to perform. Currently UP is supported.
  */
-function navigate(route: Route = ROUTES.HOME, type?: string) {
+function navigate(route: Route = ROUTES.HOME, options?: LinkToOptions) {
     if (!canNavigate('navigate', {route})) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready
@@ -152,7 +153,7 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
         return;
     }
     // linkTo(navigationRef.current, route, type, isActiveRoute(route));
-    linkTo(navigationRef.current, route, type);
+    linkTo(navigationRef.current, route, options);
 }
 
 const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID'];

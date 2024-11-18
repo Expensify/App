@@ -15,6 +15,22 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getMinimalAction from './getMinimalAction';
 
+// TODO: move to helpers
+// eslint-disable-next-line rulesdir/no-inline-named-export
+export type LinkToOptions = Partial<{
+    // To explicitly set the action type to replace.
+    forceReplace: boolean;
+
+    // If true, the report route will be converted to the opposite form (fullscreen to rhp or rhp to fullscreen) if necessary.
+    // Check shouldConvertReportPath to see when it will be converted.
+    reportPathConversionEnabled: boolean;
+}>;
+
+const defaultLinkToOptions: LinkToOptions = {
+    forceReplace: false,
+    reportPathConversionEnabled: true,
+};
+
 function createActionWithPolicyID(action: StackActionType, policyID: string): StackActionType | undefined {
     if (action.type !== 'PUSH' && action.type !== 'REPLACE') {
         return;
@@ -61,6 +77,7 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     return currentParams.reportID === newParams.reportID;
 }
 
+// TODO: move to helpers
 // Determine if we should convert the report route from fullscreen to rhp version or the other way around.
 // It's necessary to stay in RHP if we are in RHP report or in fullscreen if we are in fullscreen report.
 // eslint-disable-next-line rulesdir/no-inline-named-export
@@ -76,6 +93,7 @@ export function shouldConvertReportPath(currentFocusedRoute: NavigationPartialRo
     return false;
 }
 
+// TODO: move to helpers
 // eslint-disable-next-line rulesdir/no-inline-named-export
 export function convertReportPath(focusedRouteFromPath: NavigationPartialRoute) {
     const params = focusedRouteFromPath.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] | SearchReportParamList[typeof SCREENS.SEARCH.REPORT_RHP];
@@ -86,10 +104,13 @@ export function convertReportPath(focusedRouteFromPath: NavigationPartialRoute) 
     return ROUTES.REPORT_WITH_ID.getRoute(params.reportID, params.reportActionID);
 }
 
-export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string) {
+export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, options?: LinkToOptions) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
+
+    // We know that the options are always defined because we have default options.
+    const {forceReplace, reportPathConversionEnabled} = {...defaultLinkToOptions, ...options} as Required<LinkToOptions>;
 
     const normalizedPath = normalizePath(path);
     const extractedPolicyID = extractPolicyIDFromPath(normalizedPath);
@@ -110,9 +131,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     }
 
     // Check if this is a report route and it should be converted to the other form (fullscreen or rhp).
-    if (shouldConvertReportPath(currentFocusedRoute, focusedRouteFromPath)) {
+    if (reportPathConversionEnabled && shouldConvertReportPath(currentFocusedRoute, focusedRouteFromPath)) {
         // Convert path to the opposite form and call linkTo again.
-        linkTo(navigation, convertReportPath(focusedRouteFromPath), type);
+        linkTo(navigation, convertReportPath(focusedRouteFromPath), options);
         return;
     }
 
@@ -129,7 +150,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         return;
     }
 
-    if (type === CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
+    if (forceReplace) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
     }
 
