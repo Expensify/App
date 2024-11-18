@@ -43,7 +43,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         isOptimisticReport: unknown;
         managerID: unknown;
         lastVisibleActionLastModified: unknown;
-        displayName: unknown;
         lastMessageHtml: unknown;
         lastActorAccountID: unknown;
         lastActionType: unknown;
@@ -52,7 +51,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         total: unknown;
         unheldTotal: unknown;
         currency: unknown;
-        errors: unknown;
         errorFields: unknown;
         isWaitingOnBankAccount: unknown;
         isCancelledIOU: unknown;
