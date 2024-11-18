@@ -1,5 +1,6 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
+import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
@@ -73,6 +74,7 @@ import * as Policy from './Policy/Policy';
 import * as Tag from './Policy/Tag';
 import * as Report from './Report';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
+import * as TransactionEdit from './TransactionEdit';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -623,12 +625,6 @@ function buildOnyxDataForMoneyRequest(
                 pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             },
         },
-        // Remove the temporary transaction used during the creation flow
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-            value: null,
-        },
     );
 
     if (!isEmptyObject(transactionThreadCreatedReportAction)) {
@@ -1002,12 +998,6 @@ function buildOnyxDataForInvoice(
             value: {
                 [transactionThreadCreatedReportAction?.reportActionID ?? '-1']: transactionThreadCreatedReportAction,
             },
-        },
-        // Remove the temporary transaction used during the creation flow
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-            value: null,
         },
     ];
     const successData: OnyxUpdate[] = [];
@@ -1449,12 +1439,6 @@ function buildOnyxDataForTrackExpense(
                 ...transactionThreadReport,
                 pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             },
-        },
-        // Remove the temporary transaction used during the creation flow
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-            value: null,
         },
     );
 
@@ -3679,6 +3663,7 @@ function requestMoney(
         }
     }
 
+    InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
     if (activeReportID) {
         Report.notifyNewAction(activeReportID, payeeAccountID);
@@ -3735,6 +3720,7 @@ function sendInvoice(
     };
 
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
+    InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
     if (isSearchTopmostCentralPane()) {
         Navigation.dismissModal();
@@ -3930,6 +3916,7 @@ function trackExpense(
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }
+    InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
 
     if (action === CONST.IOU.ACTION.SHARE) {
@@ -4116,11 +4103,6 @@ function createSplitsAndOnyxData(
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
             value: splitTransaction,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-            value: null,
         },
     ];
     const successData: OnyxUpdate[] = [
@@ -4500,6 +4482,7 @@ function splitBill({
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
+    InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : existingSplitChatReportID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
@@ -4567,6 +4550,7 @@ function splitBillAndOpenReport({
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
+    InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : splitData.chatReportID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
@@ -5137,6 +5121,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
+    InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : chatReportID);
     Report.notifyNewAction(chatReportID, sessionAccountID);
 }
@@ -5314,6 +5299,7 @@ function createDistanceRequest(
     });
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
+    InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport ? report?.reportID ?? '-1' : parameters.chatReportID;
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
     Report.notifyNewAction(activeReportID, userAccountID);
@@ -7354,16 +7340,27 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
     const personalDetailsListValues = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetailsList));
     const personalDetails = personalDetailsListValues.at(0);
 
-    let onboardingPurpose = introSelected.choice;
-    if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU && paymentSelected === CONST.IOU.PAYMENT_SELECTED.BBA) {
+    let onboardingPurpose = introSelected?.choice;
+    if (introSelected?.inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU && paymentSelected === CONST.IOU.PAYMENT_SELECTED.BBA) {
         onboardingPurpose = CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
     }
 
-    if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE && paymentSelected !== CONST.IOU.PAYMENT_SELECTED.BBA) {
+    if (introSelected?.inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE && paymentSelected !== CONST.IOU.PAYMENT_SELECTED.BBA) {
         onboardingPurpose = CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
     }
 
-    Report.completeOnboarding(onboardingPurpose, CONST.ONBOARDING_MESSAGES[onboardingPurpose], personalDetails?.firstName ?? '', personalDetails?.lastName ?? '', paymentSelected);
+    Report.completeOnboarding(
+        onboardingPurpose,
+        CONST.ONBOARDING_MESSAGES[onboardingPurpose],
+        personalDetails?.firstName ?? '',
+        personalDetails?.lastName ?? '',
+        undefined,
+        undefined,
+        paymentSelected,
+        undefined,
+        undefined,
+        true,
+    );
 }
 
 function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true) {
