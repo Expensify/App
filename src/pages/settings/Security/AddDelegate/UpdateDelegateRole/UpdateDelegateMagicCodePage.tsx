@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -21,6 +22,7 @@ type UpdateDelegateMagicCodePageProps = StackScreenProps<SettingsNavigatorParamL
 function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
 
@@ -44,28 +46,30 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={UpdateDelegateMagicCodePage.displayName}
-            offlineIndicatorStyle={styles.mtAuto}
-        >
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('delegate.makeSureItIsYou')}
-                        onBackButtonPress={onBackButtonPress}
-                    />
-                    <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCodeUpdate', {contactMethod: account?.primaryLogin ?? ''})}</Text>
-                    <ValidateCodeForm
-                        ref={validateCodeFormRef}
-                        delegate={login}
-                        role={role}
-                        wrapperStyle={safeAreaPaddingBottomStyle}
-                    />
-                </>
-            )}
-        </ScreenWrapper>
+        <AccessOrNotFoundWrapper shouldBeBlocked={isActingAsDelegate}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={UpdateDelegateMagicCodePage.displayName}
+                offlineIndicatorStyle={styles.mtAuto}
+            >
+                {({safeAreaPaddingBottomStyle}) => (
+                    <>
+                        <HeaderWithBackButton
+                            title={translate('delegate.makeSureItIsYou')}
+                            onBackButtonPress={onBackButtonPress}
+                        />
+                        <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCodeUpdate', {contactMethod: account?.primaryLogin ?? ''})}</Text>
+                        <ValidateCodeForm
+                            ref={validateCodeFormRef}
+                            delegate={login}
+                            role={role}
+                            wrapperStyle={safeAreaPaddingBottomStyle}
+                        />
+                    </>
+                )}
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
