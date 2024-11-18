@@ -2917,7 +2917,7 @@ const styles = (theme: ThemeColors) =>
 
         expenseMenuItem: {
             borderRadius: 8,
-            paddingLeft: 16,
+            paddingLeft: 8,
             paddingRight: 0,
             paddingVertical: 12,
             marginTop: 16,

@@ -358,7 +358,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         isEmptyObject(policy) ||
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
-
+        
     useEffect(() => {
         if (isEmptyObject(prevPolicy) || PolicyUtils.isPendingDeletePolicy(prevPolicy) || !PolicyUtils.isPendingDeletePolicy(policy)) {
             return;
@@ -463,7 +463,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph4]}>{translate('workspace.common.expense')}</Text>
                     <MenuItem
                         title={getReportName(currentUserPolicyExpenseChat)}
-                        description={translate('common.workspaces')}
+                        description={translate('workspace.common.workspace')}
                         icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
                         onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID ?? '-1'))}
                         shouldShowRightIcon
