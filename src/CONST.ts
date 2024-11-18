@@ -134,7 +134,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
                 '\n' +
                 'Here’s how to set up your bank account:\n' +
                 '\n' +
-                '1. Click your profile picture.\n' +
+                '1. Click the settings tab.\n' +
                 '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                 '3. Connect your bank account.\n' +
                 '\n' +
@@ -172,7 +172,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
                 '\n' +
                 'Here’s how to set up your bank account:\n' +
                 '\n' +
-                '1. Click your profile picture.\n' +
+                '1. Click the settings tab.\n' +
                 '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                 '3. Connect your bank account.\n' +
                 '\n' +
@@ -4897,7 +4897,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to create a workspace:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Click *Workspaces* > *New workspace*.\n' +
                         '\n' +
                         '*Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.*',
@@ -4930,7 +4930,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Categories*.\n' +
@@ -4949,7 +4949,7 @@ const CONST = {
                         '\n' +
                         '*Here’s how to set up tags:*\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to Workspaces.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click More features.\n' +
@@ -4968,7 +4968,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to Workspaces.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *More features*.\n' +
@@ -4987,7 +4987,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to Workspaces.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Members* > *Invite member*.\n' +
@@ -5074,7 +5074,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to set up your bank account:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                         '3. Connect your bank account.\n' +
                         '\n' +
@@ -5108,7 +5108,7 @@ const CONST = {
                     description:
                         "Here's how to review and update your workspace settings:" +
                         '\n' +
-                        '1. Click your profile picture.' +
+                        '1. Click the settings tab.' +
                         '2. Click *Workspaces* > [Your workspace].' +
                         '\n' +
                         "Make any changes there and we'll track them in the #admins room.",
