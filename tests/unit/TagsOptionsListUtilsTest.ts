@@ -92,7 +92,7 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const smallWrongSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
+        const smallWrongSearchResultList: OptionsListUtils.CategorySection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -285,7 +285,7 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const largeWrongSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
+        const largeWrongSearchResultList: OptionsListUtils.CategorySection[] = [
             {
                 title: '',
                 shouldShow: true,
