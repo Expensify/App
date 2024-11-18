@@ -51,6 +51,7 @@ function IOURequestStepConfirmation({
         params: {iouType, reportID, transactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute},
     },
     transaction,
+    isLoadingTransaction,
 }: IOURequestStepConfirmationProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -602,6 +603,10 @@ function IOURequestStepConfirmation({
 
         createTransaction(listOfParticipants);
     };
+
+    if (isLoadingTransaction) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper

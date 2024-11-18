@@ -12,10 +12,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WithFullTransactionOrNotFoundOnyxProps = {
     /** Indicates whether the report data is loading */
     transaction: OnyxEntry<Transaction>;
+
+    /** Indicates whether the transaction data is loading */
+    isLoadingTransaction?: boolean;
 };
 
 type MoneyRequestRouteName =
@@ -54,8 +58,9 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
         const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
         const shouldUseTransactionDraft = IOUUtils.shouldUseTransactionDraft(userAction);
-        const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-        const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+        const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+        const [transactionDraft, transactionDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+        const isLoadingTransaction = isLoadingOnyxValue(transactionResult, transactionDraftResult);
 
         const isFocused = useIsFocused();
 
@@ -70,6 +75,7 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 transaction={shouldUseTransactionDraft ? transactionDraft : transaction}
+                isLoadingTransaction={isLoadingTransaction}
                 ref={ref}
             />
         );
