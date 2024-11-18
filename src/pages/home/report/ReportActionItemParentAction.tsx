@@ -68,7 +68,7 @@ function ReportActionItemParentAction({
     const ancestorReports = useRef<Record<string, OnyxEntry<OnyxTypes.Report>>>({});
     const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
     const {isOffline} = useNetwork();
-    const {canUseNewTravelProvisioning} = usePermissions();
+    const {canUseNewDotSpotnanaTravel} = usePermissions();
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
@@ -107,6 +107,7 @@ function ReportActionItemParentAction({
     return (
         <View style={[styles.pRelative]}>
             <AnimatedEmptyStateBackground />
+            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {allAncestors.map((ancestor) => (
                 <OfflineWithFeedback
                     key={ancestor.reportAction.reportActionID}
@@ -120,7 +121,7 @@ function ReportActionItemParentAction({
                         ancestor={ancestor}
                         isLinkDisabled={!ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID ?? '-1'])}
                     />
-                    {ReportActionsUtils.isTripPreview(ancestor?.reportAction) && canUseNewTravelProvisioning ? (
+                    {ReportActionsUtils.isTripPreview(ancestor?.reportAction) && canUseNewDotSpotnanaTravel ? (
                         <OfflineWithFeedback pendingAction={ancestor.reportAction.pendingAction}>
                             <TripDetailsView
                                 tripRoomReportID={ReportActionsUtils.getOriginalMessage(ancestor.reportAction)?.linkedReportID ?? '-1'}

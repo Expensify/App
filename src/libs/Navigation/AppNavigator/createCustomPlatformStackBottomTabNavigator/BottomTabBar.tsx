@@ -8,11 +8,13 @@ import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchQueryString} from '@components/Search/types';
 import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useCurrentReportID from '@hooks/useCurrentReportID';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import DebugTabView from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/DebugTabView';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
@@ -72,12 +74,23 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const navigation = useNavigation();
     const {activeWorkspaceID} = useActiveWorkspace();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const transactionViolations = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(getChatTabBrickRoad(activeWorkspaceID));
+    const {currentReportID} = useCurrentReportID() ?? {currentReportID: null};
+    const [user] = useOnyx(ONYXKEYS.USER);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(
+        getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations),
+    );
 
     useEffect(() => {
-        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID));
-    }, [activeWorkspaceID, transactionViolations]);
+        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations));
+        // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
+        // That's why reportActions is added as a dependency here
+    }, [activeWorkspaceID, transactionViolations, reports, reportActions, betas, policies, priorityMode, currentReportID]);
 
     useEffect(() => {
         const navigationState = navigation.getState();
@@ -138,51 +151,66 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     }, [activeWorkspaceID, selectedTab]);
 
     return (
-        <View style={styles.bottomTabBarContainer}>
-            <Tooltip text={translate('common.inbox')}>
-                <PressableWithFeedback
-                    onPress={navigateToChats}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.inbox')}
-                    wrapperStyle={styles.flex1}
-                    style={styles.bottomTabBarItem}
-                >
-                    <View>
-                        <Icon
-                            src={Expensicons.Inbox}
-                            fill={selectedTab === SCREENS.HOME ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                        {chatTabBrickRoad && (
-                            <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
-                        )}
-                    </View>
-                </PressableWithFeedback>
-            </Tooltip>
-            <Tooltip text={translate('common.search')}>
-                <PressableWithFeedback
-                    onPress={navigateToSearch}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.search')}
-                    wrapperStyle={styles.flex1}
-                    style={styles.bottomTabBarItem}
-                >
-                    <View>
-                        <Icon
-                            src={Expensicons.MoneySearch}
-                            fill={selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                    </View>
-                </PressableWithFeedback>
-            </Tooltip>
-            <BottomTabAvatar isSelected={selectedTab === SCREENS.SETTINGS.ROOT} />
-            <View style={[styles.flex1, styles.bottomTabBarItem]}>
-                <BottomTabBarFloatingActionButton />
+        <>
+            {!!user?.isDebugModeEnabled && (
+                <DebugTabView
+                    selectedTab={selectedTab}
+                    chatTabBrickRoad={chatTabBrickRoad}
+                    activeWorkspaceID={activeWorkspaceID}
+                    reports={reports}
+                    currentReportID={currentReportID}
+                    betas={betas}
+                    policies={policies}
+                    transactionViolations={transactionViolations}
+                    priorityMode={priorityMode}
+                />
+            )}
+            <View style={styles.bottomTabBarContainer}>
+                <Tooltip text={translate('common.inbox')}>
+                    <PressableWithFeedback
+                        onPress={navigateToChats}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('common.inbox')}
+                        wrapperStyle={styles.flex1}
+                        style={styles.bottomTabBarItem}
+                    >
+                        <View>
+                            <Icon
+                                src={Expensicons.Inbox}
+                                fill={selectedTab === SCREENS.HOME ? theme.iconMenu : theme.icon}
+                                width={variables.iconBottomBar}
+                                height={variables.iconBottomBar}
+                            />
+                            {!!chatTabBrickRoad && (
+                                <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
+                            )}
+                        </View>
+                    </PressableWithFeedback>
+                </Tooltip>
+                <Tooltip text={translate('common.search')}>
+                    <PressableWithFeedback
+                        onPress={navigateToSearch}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('common.search')}
+                        wrapperStyle={styles.flex1}
+                        style={styles.bottomTabBarItem}
+                    >
+                        <View>
+                            <Icon
+                                src={Expensicons.MoneySearch}
+                                fill={selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? theme.iconMenu : theme.icon}
+                                width={variables.iconBottomBar}
+                                height={variables.iconBottomBar}
+                            />
+                        </View>
+                    </PressableWithFeedback>
+                </Tooltip>
+                <BottomTabAvatar isSelected={selectedTab === SCREENS.SETTINGS.ROOT} />
+                <View style={[styles.flex1, styles.bottomTabBarItem]}>
+                    <BottomTabBarFloatingActionButton />
+                </View>
             </View>
-        </View>
+        </>
     );
 }
 

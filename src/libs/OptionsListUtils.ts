@@ -35,7 +35,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -178,6 +178,8 @@ type GetOptionsConfig = {
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
     action?: IOUAction;
+    shouldAcceptName?: boolean;
+    recentAttendees?: Attendee[];
     shouldBoldTitleByDefault?: boolean;
 };
 
@@ -188,6 +190,7 @@ type GetUserToInviteConfig = {
     selectedOptions?: Array<Partial<ReportUtils.OptionData>>;
     reportActions?: ReportActions;
     showChatPreviewLine?: boolean;
+    shouldAcceptName?: boolean;
 };
 
 type MemberForList = {
@@ -219,7 +222,10 @@ type Options = {
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
 
-type FilterOptionsConfig = Pick<GetOptionsConfig, 'sortByReportTypeInSearch' | 'canInviteUser' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'> & {
+type FilterOptionsConfig = Pick<
+    GetOptionsConfig,
+    'sortByReportTypeInSearch' | 'canInviteUser' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow' | 'shouldAcceptName'
+> & {
     preferChatroomsOverThreads?: boolean;
     preferPolicyExpenseChat?: boolean;
     preferRecentExpenseReports?: boolean;
@@ -416,7 +422,7 @@ function getParticipantsOption(participant: ReportUtils.OptionData | Participant
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, LocalePhoneNumber.formatPhoneNumber(login));
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, LocalePhoneNumber.formatPhoneNumber(login) || participant.text);
 
     return {
         keyForList: String(detail?.accountID),
@@ -1295,7 +1301,10 @@ function getTagListSections(
  * Verifies that there is at least one enabled tag
  */
 function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>) {
-    const policyTagValueList = policyTagList.map(({tags}) => Object.values(tags)).flat();
+    const policyTagValueList = policyTagList
+        .filter((tag) => tag && tag.tags)
+        .map(({tags}) => Object.values(tags))
+        .flat();
 
     return hasEnabledOptions(policyTagValueList);
 }
@@ -1624,6 +1633,7 @@ function canCreateOptimisticPersonalDetailOption({
  * We create a new user option if the following conditions are satisfied:
  * - There's no matching recent report and personal detail option
  * - The searchValue is a valid email or phone number
+ * - If prop shouldAcceptName = true, the searchValue can be also a normal string
  * - The searchValue isn't the current personal detail login
  */
 function getUserToInviteOption({
@@ -1633,6 +1643,7 @@ function getUserToInviteOption({
     selectedOptions = [],
     reportActions = {},
     showChatPreviewLine = false,
+    shouldAcceptName = false,
 }: GetUserToInviteConfig): ReportUtils.OptionData | null {
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchValue)));
     const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails);
@@ -1642,7 +1653,7 @@ function getUserToInviteOption({
     const isInOptionToExclude =
         optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
 
-    if (!searchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber) || isInOptionToExclude || excludeUnknownUsers) {
+    if (!searchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude || excludeUnknownUsers) {
         return null;
     }
 
@@ -1659,7 +1670,7 @@ function getUserToInviteOption({
         showChatPreviewLine,
     });
     userToInvite.isOptimisticAccount = true;
-    userToInvite.login = searchValue;
+    userToInvite.login = isValidEmail || isValidPhoneNumber ? searchValue : '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     userToInvite.text = userToInvite.text || searchValue;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1722,6 +1733,7 @@ function getOptions(
         includeInvoiceRooms = false,
         includeDomainEmail = false,
         action,
+        recentAttendees,
         shouldBoldTitleByDefault = true,
     }: GetOptionsConfig,
 ): Options {
@@ -1884,7 +1896,7 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
     }
 
-    const optionsToExclude: Option[] = [];
+    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1897,7 +1909,7 @@ function getOptions(
         optionsToExclude.push({login});
     });
 
-    let recentReportOptions = [];
+    let recentReportOptions: ReportUtils.OptionData[] = [];
     let personalDetailsOptions: ReportUtils.OptionData[] = [];
 
     const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
@@ -1978,6 +1990,9 @@ function getOptions(
                 }
             }
         }
+    } else if (recentAttendees && recentAttendees?.length > 0) {
+        recentAttendees.filter((attendee) => attendee.login ?? attendee.displayName).forEach((a) => optionsToExclude.push({login: a.login ?? a.displayName}));
+        recentReportOptions = recentAttendees as ReportUtils.OptionData[];
     }
 
     const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
@@ -2210,6 +2225,52 @@ function getFilteredOptions(params: FilteredOptionsParamsWithDefaultSearchValue 
     );
 }
 
+function getAttendeeOptions(
+    reports: Array<SearchOption<Report>>,
+    personalDetails: Array<SearchOption<PersonalDetails>>,
+    betas: OnyxEntry<Beta[]>,
+    attendees: Attendee[],
+    recentAttendees: Attendee[],
+    includeOwnedWorkspaceChats = false,
+    includeP2P = true,
+    canInviteUser = true,
+    includeInvoiceRooms = false,
+    action: IOUAction | undefined = undefined,
+    sortByReportTypeInSearch = false,
+) {
+    return getOptions(
+        {reports, personalDetails},
+        {
+            betas,
+            searchInputValue: '',
+            selectedOptions: attendees,
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            includeOwnedWorkspaceChats,
+            includeRecentReports: false,
+            includeP2P,
+            includeCategories: false,
+            categories: {},
+            recentlyUsedCategories: [],
+            includeTags: false,
+            tags: {},
+            recentlyUsedTags: [],
+            canInviteUser,
+            includeSelectedOptions: false,
+            includeTaxRates: false,
+            maxRecentReportsToShow: 0,
+            taxRates: {} as TaxRatesWithDefault,
+            includeSelfDM: false,
+            includePolicyReportFieldOptions: false,
+            policyReportFieldOptions: [],
+            recentlyUsedPolicyReportFieldOptions: [],
+            includeInvoiceRooms,
+            action,
+            sortByReportTypeInSearch,
+            recentAttendees,
+        },
+    );
+}
+
 /**
  * Build the options for the Share Destination for a Task
  */
@@ -2419,31 +2480,6 @@ function getPersonalDetailSearchTerms(item: Partial<ReportUtils.OptionData>) {
 function getCurrentUserSearchTerms(item: ReportUtils.OptionData) {
     return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
 }
-
-type PickUserToInviteParams = {
-    canInviteUser: boolean;
-    recentReports: ReportUtils.OptionData[];
-    personalDetails: ReportUtils.OptionData[];
-    searchValue: string;
-    config?: FilterOptionsConfig;
-    optionsToExclude: Option[];
-};
-
-const pickUserToInvite = ({canInviteUser, recentReports, personalDetails, searchValue, config, optionsToExclude}: PickUserToInviteParams) => {
-    let userToInvite = null;
-    if (canInviteUser) {
-        if (recentReports.length === 0 && personalDetails.length === 0) {
-            userToInvite = getUserToInviteOption({
-                searchValue,
-                selectedOptions: config?.selectedOptions,
-                optionsToExclude,
-            });
-        }
-    }
-
-    return userToInvite;
-};
-
 /**
  * Filters options based on the search input value
  */
@@ -2531,7 +2567,16 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         recentReports = orderOptions(recentReports, searchValue);
     }
 
-    const userToInvite = pickUserToInvite({canInviteUser, recentReports, personalDetails, searchValue, config, optionsToExclude});
+    let userToInvite = null;
+    if (canInviteUser) {
+        if (recentReports.length === 0 && personalDetails.length === 0) {
+            userToInvite = getUserToInviteOption({
+                searchValue,
+                selectedOptions: config?.selectedOptions,
+                optionsToExclude,
+            });
+        }
+    }
 
     if (maxRecentReportsToShow > 0 && recentReports.length > maxRecentReportsToShow) {
         recentReports.splice(maxRecentReportsToShow);
@@ -2601,7 +2646,6 @@ export {
     formatMemberForList,
     formatSectionsFromSearchTerm,
     getShareLogOptions,
-    orderOptions,
     filterOptions,
     createOptionList,
     createOptionFromReport,
@@ -2614,8 +2658,8 @@ export {
     getCurrentUserSearchTerms,
     getEmptyOptions,
     shouldUseBoldText,
+    getAttendeeOptions,
     getAlternateText,
-    pickUserToInvite,
     hasReportErrors,
 };
 
