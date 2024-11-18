@@ -481,7 +481,7 @@ function signUpUser() {
     API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
 }
 
-function signInAfterTransitionFromOldDot(transitionURL: string) {
+function signInAfterTransitionFromOldDot(transitionURL: string, lastUpdateId?: number) {
     const [route, queryParams] = transitionURL.split('?');
 
     const {
@@ -533,7 +533,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
                     // We clear Onyx when this flag is set to true so we have to download all data
                     App.openApp();
                 } else {
-                    App.reconnectApp();
+                    App.reconnectApp(lastUpdateId);
                 }
             })
             .catch((error) => {
