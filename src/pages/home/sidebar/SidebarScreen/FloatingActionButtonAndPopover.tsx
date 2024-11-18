@@ -178,7 +178,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
 
     const {canUseSpotnanaTravel, canUseCombinedTrackSubmit} = usePermissions();
     const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
-    const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport, reportNameValuePairs));
     const {environment} = useEnvironment();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const navatticURL = getNavatticURL(environment, introSelected?.choice);
@@ -191,11 +190,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
      * 2. none of the group policies they are a member of have isPolicyExpenseChatEnabled=true
      */
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        const groupPolicies = Object.values(allPolicies ?? {}).filter((policy) => ReportUtils.isGroupPolicy(policy?.type ?? ''));
-        if (groupPolicies.length === 0) {
-            return false;
-        }
-        return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+        return ReportUtils.areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
     }, [allPolicies]);
 
     const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every(
@@ -203,7 +198,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     );
 
     const quickActionAvatars = useMemo(() => {
-        if (isValidReport) {
+        if (quickActionReport) {
             const avatars = ReportUtils.getIcons(quickActionReport, personalDetails);
             return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== session?.accountID);
         }
@@ -238,7 +233,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     }, [quickAction, translate, quickActionAvatars, quickActionReport]);
 
     const hideQABSubtitle = useMemo(() => {
-        if (!isValidReport) {
+        if (isEmptyObject(quickActionReport)) {
             return true;
         }
         if (quickActionAvatars.length === 0) {
@@ -246,7 +241,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         }
         const displayName = personalDetails?.[quickActionAvatars.at(0)?.id ?? -1]?.firstName ?? '';
         return quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && displayName.length === 0;
-    }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
+    }, [personalDetails, quickActionReport, quickAction?.action, quickActionAvatars]);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -260,6 +255,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     );
 
     const navigateToQuickAction = useCallback(() => {
+        const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport, reportNameValuePairs));
         const quickActionReportID = isValidReport ? quickActionReport?.reportID ?? '-1' : ReportUtils.generateReportID();
 
         switch (quickAction?.action) {
@@ -288,7 +284,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 break;
             default:
         }
-    }, [isValidReport, quickAction?.action, quickAction?.targetAccountID, quickActionReport?.reportID, selectOption]);
+    }, [quickAction, quickActionReport, reportNameValuePairs, selectOption]);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -476,6 +472,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     onSelected: () =>
                         interceptAnonymousUser(() => {
                             selectOption(() => {
+                                const isValidReport = !(isEmptyObject(policyChatForActivePolicy) || ReportUtils.isArchivedRoom(policyChatForActivePolicy, reportNameValuePairs));
                                 const quickActionReportID = isValidReport ? policyChatForActivePolicy?.reportID ?? '-1' : ReportUtils.generateReportID();
                                 IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID ?? '-1', CONST.IOU.REQUEST_TYPE.SCAN, true);
                             }, true);
@@ -502,7 +499,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         quickActionReport,
         navigateToQuickAction,
         selectOption,
-        isValidReport,
+        reportNameValuePairs,
     ]);
 
     return (
