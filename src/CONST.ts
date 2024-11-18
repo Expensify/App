@@ -134,7 +134,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
                 '\n' +
                 'Here’s how to set up your bank account:\n' +
                 '\n' +
-                '1. Click the Settings tab.\n' +
+                '1. Click the settings tab.\n' +
                 '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                 '3. Connect your bank account.\n' +
                 '\n' +
