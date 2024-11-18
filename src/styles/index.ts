@@ -5318,6 +5318,14 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             padding: 16,
         },
+        liDot: {
+            width: 4,
+            height: 4,
+            borderRadius: 4,
+            backgroundColor: theme.text,
+            marginHorizontal: 8,
+            alignSelf: 'center',
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
