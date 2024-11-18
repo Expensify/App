@@ -61,10 +61,11 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         if (!isCachedViewportHeight) {
             return;
         }
-        window.addEventListener('focusin', handleFocusIn.current);
+
+        const handleFocusInValue = handleFocusIn.current;
+        window.addEventListener('focusin', handleFocusInValue);
         return () => {
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-            window.removeEventListener('focusin', handleFocusIn.current);
+            window.removeEventListener('focusin', handleFocusInValue);
         };
     }, [isCachedViewportHeight]);
 
@@ -79,10 +80,11 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         if (!isCachedViewportHeight) {
             return;
         }
-        window.addEventListener('focusout', handleFocusOut.current);
+
+        const handleFocusOutValue = handleFocusOut.current;
+        window.addEventListener('focusout', handleFocusOutValue);
         return () => {
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-            window.removeEventListener('focusout', handleFocusOut.current);
+            window.removeEventListener('focusout', handleFocusOutValue);
         };
     }, [isCachedViewportHeight]);
 
@@ -91,7 +93,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
             return;
         }
         setCachedViewportHeight(windowHeight);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [windowHeight, isCachedViewportHeight]);
 
     useEffect(() => {
