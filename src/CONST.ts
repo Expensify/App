@@ -274,6 +274,7 @@ type OnboardingTask = {
                   workspaceMembersLink: string;
                   integrationName: string;
                   workspaceAccountingLink: string;
+                  workspaceSettingsLink: string;
                   navatticURL: string;
               }>,
           ) => string);
@@ -4935,6 +4936,15 @@ const CONST = {
                         `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
                         '\n' +
                         `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
+                },
+                {
+                    type: 'setupCategoriesAndTags',
+                    autoCompleted: false,
+                    title: 'Set up categories and tags',
+                    description: ({workspaceSettingsLink, workspaceAccountingLink}) =>
+                        '*Set up categories and tags* so your team can code expenses for easy reporting.\n' +
+                        '\n' +
+                        `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceSettingsLink}).`,
                 },
                 {
                     type: 'setupCategories',
