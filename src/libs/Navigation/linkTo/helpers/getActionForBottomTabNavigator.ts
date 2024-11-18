@@ -1,9 +1,9 @@
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
+import type {ActionPayloadParams} from '@libs/Navigation/linkTo/types';
 import type {RootStackParamList, StackNavigationAction} from '@libs/Navigation/types';
 import getTopmostBottomTabRoute from '@navigation/getTopmostBottomTabRoute';
 import CONST from '@src/CONST';
-import type {ActionPayloadParams} from './types';
 
 // Because we need to change the type to push, we also need to set target for this action to the bottom tab navigator.
 function getActionForBottomTabNavigator(

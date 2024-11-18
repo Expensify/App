@@ -1,7 +1,7 @@
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
+import type {ActionPayload} from '@libs/Navigation/linkTo/types';
 import type {State} from '@navigation/types';
-import type {ActionPayload} from './types';
 
 type MinimalAction = {
     action: Writable<NavigationAction>;
@@ -28,6 +28,7 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
         currentState = currentState?.routes[currentState.index ?? -1].state;
         currentTargetKey = currentState?.key;
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const payload = currentAction.payload as ActionPayload;
 
         // Creating new smaller action

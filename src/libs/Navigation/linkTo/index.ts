@@ -3,106 +3,26 @@ import type {NavigationContainerRef, NavigationState, PartialState, StackActionT
 import {findFocusedRoute, StackActions} from '@react-navigation/native';
 import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import normalizePath from '@libs/Navigation/linkingConfig/normalizePath';
-import {shallowCompare} from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import getStateFromPath from '@navigation/getStateFromPath';
 import linkingConfig from '@navigation/linkingConfig';
-import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootStackParamList, SearchReportParamList, StackNavigationAction} from '@navigation/types';
+import type {RootStackParamList, StackNavigationAction} from '@navigation/types';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import getMinimalAction from './getMinimalAction';
-
-// TODO: move to helpers
-// eslint-disable-next-line rulesdir/no-inline-named-export
-export type LinkToOptions = Partial<{
-    // To explicitly set the action type to replace.
-    forceReplace: boolean;
-
-    // If true, the report route will be converted to the opposite form (fullscreen to rhp or rhp to fullscreen) if necessary.
-    // Check shouldConvertReportPath to see when it will be converted.
-    reportPathConversionEnabled: boolean;
-}>;
+import areNamesAndParamsEqual from './helpers/areNamesAndParamsEqual';
+import convertReportPath from './helpers/convertReportPath';
+import createActionWithPolicyID from './helpers/createActionWithPolicyID';
+import getMinimalAction from './helpers/getMinimalAction';
+import isNavigatingToAttachmentScreen from './helpers/isNavigatingToAttachmentScreen';
+import isNavigatingToReportWithSameReportID from './helpers/isNavigatingToReportWithSameReportID';
+import shouldCheckFullScreenRouteMatching from './helpers/shouldCheckFullScreenRouteMatching';
+import shouldConvertReportPath from './helpers/shouldConvertReportPath';
+import type {LinkToOptions} from './types';
 
 const defaultLinkToOptions: LinkToOptions = {
     forceReplace: false,
     reportPathConversionEnabled: true,
 };
-
-function createActionWithPolicyID(action: StackActionType, policyID: string): StackActionType | undefined {
-    if (action.type !== 'PUSH' && action.type !== 'REPLACE') {
-        return;
-    }
-
-    return {
-        ...action,
-        payload: {
-            ...action.payload,
-            params: {
-                ...action.payload.params,
-                policyID,
-            },
-        },
-    };
-}
-
-function areNamesAndParamsEqual(currentState: NavigationState<RootStackParamList>, stateFromPath: PartialState<NavigationState<RootStackParamList>>) {
-    const currentFocusedRoute = findFocusedRoute(currentState);
-    const targetFocusedRoute = findFocusedRoute(stateFromPath);
-
-    const areNamesEqual = currentFocusedRoute?.name === targetFocusedRoute?.name;
-    const areParamsEqual = shallowCompare(currentFocusedRoute?.params as Record<string, unknown> | undefined, targetFocusedRoute?.params as Record<string, unknown> | undefined);
-
-    return areNamesEqual && areParamsEqual;
-}
-
-function shouldCheckFullScreenRouteMatching(action: StackNavigationAction): action is StackNavigationAction & {type: 'PUSH'; payload: {name: typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR}} {
-    return action !== undefined && action.type === 'PUSH' && action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-}
-
-function isNavigatingToAttachmentScreen(focusedRouteName?: string) {
-    return focusedRouteName === SCREENS.ATTACHMENTS;
-}
-
-function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRoute, newRoute: NavigationPartialRoute) {
-    if (currentRoute.name !== SCREENS.REPORT || newRoute.name !== SCREENS.REPORT) {
-        return false;
-    }
-
-    const currentParams = currentRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-    const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-
-    return currentParams.reportID === newParams.reportID;
-}
-
-// TODO: move to helpers
-// Determine if we should convert the report route from fullscreen to rhp version or the other way around.
-// It's necessary to stay in RHP if we are in RHP report or in fullscreen if we are in fullscreen report.
-// eslint-disable-next-line rulesdir/no-inline-named-export
-export function shouldConvertReportPath(currentFocusedRoute: NavigationPartialRoute, focusedRouteFromPath: NavigationPartialRoute) {
-    // @TODO: Navigating from search central pane could be handled with explicit convert: false option. We would need to add it as option to linkTo.
-    if (focusedRouteFromPath.name === SCREENS.REPORT && (currentFocusedRoute.name === SCREENS.SEARCH.REPORT_RHP || currentFocusedRoute.name === SCREENS.SEARCH.CENTRAL_PANE)) {
-        return true;
-    }
-
-    if (focusedRouteFromPath.name === SCREENS.SEARCH.REPORT_RHP && currentFocusedRoute.name === SCREENS.REPORT) {
-        return true;
-    }
-    return false;
-}
-
-// TODO: move to helpers
-// eslint-disable-next-line rulesdir/no-inline-named-export
-export function convertReportPath(focusedRouteFromPath: NavigationPartialRoute) {
-    const params = focusedRouteFromPath.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] | SearchReportParamList[typeof SCREENS.SEARCH.REPORT_RHP];
-    if (focusedRouteFromPath.name === SCREENS.REPORT) {
-        return ROUTES.SEARCH_REPORT.getRoute({reportID: params.reportID, reportActionID: params.reportActionID});
-    }
-
-    return ROUTES.REPORT_WITH_ID.getRoute(params.reportID, params.reportActionID);
-}
 
 export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, options?: LinkToOptions) {
     if (!navigation) {

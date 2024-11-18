@@ -67,7 +67,7 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
-import type {LinkToOptions} from '@libs/Navigation/linkTo';
+import type {LinkToOptions} from '@libs/Navigation/linkTo/types';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import enhanceParameters from '@libs/Network/enhanceParameters';

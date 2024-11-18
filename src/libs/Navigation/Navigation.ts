@@ -29,9 +29,11 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import isReportOpenInRHP from './isReportOpenInRHP';
 import linkingConfig from './linkingConfig';
 import createSplitNavigator from './linkingConfig/createSplitNavigator';
-import type {LinkToOptions} from './linkTo';
-import linkTo, {convertReportPath, shouldConvertReportPath} from './linkTo';
-import getMinimalAction from './linkTo/getMinimalAction';
+import linkTo from './linkTo';
+import convertReportPath from './linkTo/helpers/convertReportPath';
+import getMinimalAction from './linkTo/helpers/getMinimalAction';
+import shouldConvertReportPath from './linkTo/helpers/shouldConvertReportPath';
+import type {LinkToOptions} from './linkTo/types';
 import navigationRef from './navigationRef';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, SplitNavigatorLHNScreen, SplitNavigatorParamListType, State} from './types';
@@ -464,9 +466,10 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
 }
 
 // @TODO In places where we use dismissModal with report arg we should do dismiss modal and then navigate to the report.
+// @TODO There should be a way to not use as string.
 // We left it here to limit the number of changed files.
 const dismissModal = (reportID?: string, ref = navigationRef) => {
-    ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
+    ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL as string});
     if (!reportID) {
         return;
     }
