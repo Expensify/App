@@ -73,7 +73,6 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
         parentReportActionID: report.parentReportActionID,
         type: report.type,
         chatType: report.chatType,
-        isPolicyExpenseChat: report.isPolicyExpenseChat,
     };
 
 function ProfilePage({route}: ProfilePageProps) {

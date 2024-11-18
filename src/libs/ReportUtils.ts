@@ -488,7 +488,7 @@ type OptionData = {
     searchText?: string;
     isIOUReportOwner?: boolean | null;
     shouldShowSubscript?: boolean | null;
-    isPolicyExpenseChat?: boolean | null;
+    isPolicyExpenseChat?: boolean;
     isMoneyRequestReport?: boolean | null;
     isInvoiceReport?: boolean;
     isExpenseRequest?: boolean | null;
@@ -1055,8 +1055,8 @@ function isUserCreatedPolicyRoom(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report is a Policy Expense chat.
  */
-function isPolicyExpenseChat(report: OnyxInputOrEntry<Report> | Participant): boolean {
-    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || (report?.isPolicyExpenseChat ?? false);
+function isPolicyExpenseChat(option: OnyxInputOrEntry<Report> | OptionData | Participant): boolean {
+    return getChatType(option) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT ?? (option && 'isPolicyExpenseChat' in option && option.isPolicyExpenseChat) ?? false;
 }
 
 function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
