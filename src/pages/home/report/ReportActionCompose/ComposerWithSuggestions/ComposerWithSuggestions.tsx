@@ -100,12 +100,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** Whether the input is disabled */
     disabled: boolean;
 
-    /** Whether the full composer is available */
-    isFullComposerAvailable: boolean;
-
-    /** Function to set whether the full composer is available */
-    setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
-
     /** Function to set whether the comment is empty */
     setIsCommentEmpty: (isCommentEmpty: boolean) => void;
 
@@ -214,8 +208,6 @@ function ComposerWithSuggestions(
         displayFileInModal,
         isBlockedFromConcierge,
         disabled,
-        isFullComposerAvailable,
-        setIsFullComposerAvailable,
         setIsCommentEmpty,
         handleSendMessage,
         shouldShowComposeInput,
@@ -757,8 +749,6 @@ function ComposerWithSuggestions(
                     isDisabled={isBlockedFromConcierge || disabled}
                     selection={selection}
                     onSelectionChange={onSelectionChange}
-                    isFullComposerAvailable={isFullComposerAvailable}
-                    setIsFullComposerAvailable={setIsFullComposerAvailable}
                     isComposerFullSize={isComposerFullSize}
                     value={value}
                     testID="composer"
