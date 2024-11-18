@@ -127,7 +127,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                 if (!canEditReportDescription) {
                                     return;
                                 }
-                                const activeRoute = Navigation.getReportRHPActiveRoute();
+                                const activeRoute = Navigation.getActiveRoute();
                                 Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1', activeRoute));
                             }}
                             style={[styles.renderHTML, canEditReportDescription ? styles.cursorPointer : styles.cursorText]}
@@ -155,7 +155,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                     (welcomeMessage?.messageHtml ? (
                         <PressableWithoutFeedback
                             onPress={() => {
-                                const activeRoute = Navigation.getReportRHPActiveRoute();
+                                const activeRoute = Navigation.getActiveRoute();
                                 if (canEditReportDescription) {
                                     Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1', activeRoute));
                                     return;
