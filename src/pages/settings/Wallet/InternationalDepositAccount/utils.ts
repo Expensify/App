@@ -45,19 +45,19 @@ function getSubstepValues(
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
     const firstName = privatePersonalDetails?.legalFirstName ?? '';
     const lastName = privatePersonalDetails?.legalLastName ?? '';
-    const fullName = `${firstName} ${lastName}`.trim();
+    const fullName = `${firstName} ${lastName}`.trim() ? `${firstName} ${lastName}`.trim() : undefined;
     const latestBankAccount = getLatestCreatedBankAccount(bankAccountList);
     return {
         ...internationalBankAccountDraft,
         bankCountry: internationalBankAccountDraft?.bankCountry ?? corpayFields?.bankCountry ?? address?.country ?? latestBankAccount?.bankCountry ?? country ?? '',
         bankCurrency: internationalBankAccountDraft?.bankCurrency ?? corpayFields?.bankCurrency,
         accountHolderName: internationalBankAccountDraft?.accountHolderName ?? fullName,
-        accountHolderAddress1: internationalBankAccountDraft?.accountHolderAddress1 ?? street1 ?? '',
-        accountHolderAddress2: internationalBankAccountDraft?.accountHolderAddress2 ?? street2 ?? '',
-        accountHolderCity: internationalBankAccountDraft?.accountHolderCity ?? address?.city ?? '',
-        accountHolderCountry: internationalBankAccountDraft?.accountHolderCountry ?? address?.country ?? '',
-        accountHolderPostal: internationalBankAccountDraft?.accountHolderPostal ?? address?.zip ?? '',
-        accountHolderPhoneNumber: internationalBankAccountDraft?.accountHolderPhoneNumber ?? privatePersonalDetails?.phoneNumber ?? '',
+        accountHolderAddress1: internationalBankAccountDraft?.accountHolderAddress1 ?? street1,
+        accountHolderAddress2: internationalBankAccountDraft?.accountHolderAddress2 ?? street2,
+        accountHolderCity: internationalBankAccountDraft?.accountHolderCity ?? address?.city,
+        accountHolderCountry: internationalBankAccountDraft?.accountHolderCountry ?? address?.country,
+        accountHolderPostal: internationalBankAccountDraft?.accountHolderPostal ?? address?.zip,
+        accountHolderPhoneNumber: internationalBankAccountDraft?.accountHolderPhoneNumber ?? privatePersonalDetails?.phoneNumber,
     } as unknown as InternationalBankAccountForm;
 }
 
