@@ -78,7 +78,6 @@ document.getElementById('hamburger').addEventListener('click', function () {
 // Keep track of the search results
 let g_searchResultsArray = [];
 let g_currentSelectionIndex = -1;
-let g_highlightedSection = null;
 
 // Declare the index variable globally so it can be reused
 let g_index = null;
