@@ -777,6 +777,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
+    [SCREENS.SETTINGS.EXIT_SURVEY.BOOK_CALL]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
         [EXIT_SURVEY_REASON_FORM_INPUT_IDS.REASON]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
         backTo: Routes;
