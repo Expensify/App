@@ -524,6 +524,7 @@ type OptionData = {
     participantsList?: PersonalDetails[];
     icons?: Icon[];
     iouReportAmount?: number;
+    displayName?: string;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -6453,13 +6454,11 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: O
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
 function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): Errors {
-    const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
     const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
-        reportErrors,
         ...reportErrorFields,
         ...reportActionErrors,
     };
