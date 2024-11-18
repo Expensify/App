@@ -6,7 +6,7 @@ export default function createRandomReport(index: number): Report {
     return {
         reportID: index.toString(),
         chatType: rand(Object.values(CONST.REPORT.CHAT_TYPE)),
-        currency: rand(Object.values(CONST.CURRENCY)),
+        currency: randCurrencyCode(),
         displayName: randWord(),
         ownerAccountID: index,
         isPinned: randBoolean(),

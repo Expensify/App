@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -17,6 +17,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {IntegrationEntityMap} from '@src/types/onyx/Policy';
 
 function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -27,13 +28,25 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const isTagsSelected = qboConfig?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
     const shouldShowLineItemsRestriction = shouldShowLocationsLineItemsRestriction(qboConfig);
 
+    const updateQuickbooksOnlineSyncLocations = useCallback(
+        (settingValue: IntegrationEntityMap) => {
+            if (settingValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD && !PolicyUtils.isControlPolicy(policy)) {
+                Navigation.navigate(
+                    ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.REPORT_FIELDS_FEATURE.qbo.locations, ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID)),
+                );
+                return;
+            }
+            QuickbooksOnline.updateQuickbooksOnlineSyncLocations(policyID, settingValue, qboConfig?.syncLocations);
+        },
+        [policy, policyID, qboConfig?.syncLocations],
+    );
     // If we previously selected tags but now we have the line items restriction, we need to switch to report fields
     useEffect(() => {
         if (!shouldSwitchLocationsToReportFields(qboConfig)) {
             return;
         }
-        QuickbooksOnline.updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
-    }, [qboConfig, policyID]);
+        updateQuickbooksOnlineSyncLocations(CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD);
+    }, [qboConfig, updateQuickbooksOnlineSyncLocations]);
 
     return (
         <ConnectionLayout
@@ -52,15 +65,13 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('workspace.qbo.locations')}
                 isActive={isSwitchOn}
                 onToggle={() =>
-                    QuickbooksOnline.updateQuickbooksOnlineSyncLocations(
-                        policyID,
+                    updateQuickbooksOnlineSyncLocations(
                         // eslint-disable-next-line no-nested-ternary
                         isSwitchOn
                             ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
                             : shouldShowLineItemsRestriction
                             ? CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD
                             : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                        qboConfig?.syncLocations,
                     )
                 }
                 errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}

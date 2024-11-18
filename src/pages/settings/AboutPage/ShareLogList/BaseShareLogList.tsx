@@ -35,8 +35,6 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 userToInvite: null,
                 currentUserOption: null,
                 categoryOptions: [],
-                tagOptions: [],
-                taxRatesOptions: [],
                 headerMessage: '',
             };
         }
