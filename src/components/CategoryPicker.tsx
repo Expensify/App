@@ -38,7 +38,6 @@ function CategoryPicker({selectedCategory, policyID, onSubmit}: CategoryPickerPr
             {
                 name: selectedCategory,
                 isSelected: true,
-                // TODO: i added this enabled property, is true the correct default? before it was just "as" casted...
                 enabled: true,
             },
         ];
