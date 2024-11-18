@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-reanimated/src/component/PerformanceMonitor.tsx b/node_modules/react-native-reanimated/src/component/PerformanceMonitor.tsx
+index 38e3d39..9936670 100644
+--- a/node_modules/react-native-reanimated/src/component/PerformanceMonitor.tsx
++++ b/node_modules/react-native-reanimated/src/component/PerformanceMonitor.tsx
+@@ -46,7 +46,6 @@ function createCircularDoublesBuffer(size: number) {
+ }
+ 
+ const DEFAULT_BUFFER_SIZE = 20;
+-addWhitelistedNativeProps({ text: true });
+ const AnimatedTextInput = createAnimatedComponent(TextInput);
+ 
+ function loopAnimationFrame(fn: (lastTime: number, time: number) => void) {

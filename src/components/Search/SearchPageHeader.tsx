@@ -429,7 +429,6 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                     <ButtonWithDropdownMenu
                         onPress={() => null}
                         shouldAlwaysShowDropdownMenu
-                        pressOnEnter
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
                         options={headerButtonsOptions}

@@ -250,20 +250,12 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
  */
 function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTransactionAction {
     const isTransaction = isTransactionEntry(key);
-    if ((!isTransaction && !isReportEntry(key)) || (isTransaction && !data[key].isFromOneTransactionReport)) {
+    if (!isTransaction && !isReportEntry(key)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
     const transaction = isTransaction ? data[key] : undefined;
     const report = isTransaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key];
-
-    // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcircuit the logic for performance reasons
-    if (!ReportUtils.isMoneyRequestReport(report)) {
-        return CONST.SEARCH.ACTION_TYPES.VIEW;
-    }
-
-    const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
-    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`] ?? undefined;
 
     if (ReportUtils.isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
@@ -271,6 +263,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
 
     if (ReportUtils.isClosedReport(report)) {
         return CONST.SEARCH.ACTION_TYPES.DONE;
+    }
+
+    // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcircuit the logic for performance reasons
+    if (!ReportUtils.isMoneyRequestReport(report) || (isTransaction && !data[key].isFromOneTransactionReport)) {
+        return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
     const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
@@ -285,14 +282,20 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
             ? Object.entries(data)
                   .filter(([itemKey, value]) => isTransactionEntry(itemKey) && (value as SearchTransaction)?.reportID === report.reportID)
                   .map((item) => item[1])
-            : []
+            : [transaction]
     ) as SearchTransaction[];
 
-    if (IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy)) {
+    const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
+    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`] ?? undefined;
+
+    if (
+        IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) &&
+        !ReportUtils.hasOnlyHeldExpenses(report.reportID, allReportTransactions)
+    ) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 
-    if (IOU.canApproveIOU(report, policy)) {
+    if (IOU.canApproveIOU(report, policy) && ReportUtils.isAllowedToApproveExpenseReport(report, undefined, policy)) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 

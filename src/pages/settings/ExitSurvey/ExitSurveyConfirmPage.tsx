@@ -24,6 +24,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ExitSurveyReasonForm} from '@src/types/form/ExitSurveyReasonForm';
 import EXIT_SURVEY_REASON_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
 type ExitSurveyConfirmPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM>;
@@ -32,18 +33,21 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const [exitReason] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null});
+    const shouldShowQuickTips =
+        isEmptyObject(tryNewDot) || tryNewDot?.classicRedirect?.dismissed === true || (!isEmptyObject(tryNewDot) && tryNewDot?.classicRedirect?.dismissed === undefined);
 
     const getBackToParam = useCallback(() => {
         if (isOffline) {
             return ROUTES.SETTINGS;
         }
         if (exitReason) {
-            return ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(exitReason, ROUTES.SETTINGS_EXIT_SURVEY_REASON);
+            return ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(exitReason, ROUTES.SETTINGS_EXIT_SURVEY_REASON.route);
         }
         return ROUTES.SETTINGS;
     }, [exitReason, isOffline]);
-    const {backTo} = route.params;
+    const {backTo} = route.params || {};
     useEffect(() => {
         const newBackTo = getBackToParam();
         if (backTo === newBackTo) {
@@ -57,7 +61,7 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
     return (
         <ScreenWrapper testID={ExitSurveyConfirmPage.displayName}>
             <HeaderWithBackButton
-                title={translate('exitSurvey.header')}
+                title={translate(shouldShowQuickTips ? 'exitSurvey.goToExpensifyClassic' : 'exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.mh5]}>
@@ -69,8 +73,10 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
                             width={variables.mushroomTopHatWidth}
                             height={variables.mushroomTopHatHeight}
                         />
-                        <Text style={[styles.headerAnonymousFooter, styles.mt5, styles.textAlignCenter]}>{translate('exitSurvey.thankYou')}</Text>
-                        <Text style={[styles.mt2, styles.textAlignCenter]}>{translate('exitSurvey.thankYouSubtitle')}</Text>
+                        <Text style={[styles.headerAnonymousFooter, styles.mt5, styles.textAlignCenter]}>
+                            {translate(shouldShowQuickTips ? 'exitSurvey.quickTip' : 'exitSurvey.thankYou')}
+                        </Text>
+                        <Text style={[styles.mt2, styles.textAlignCenter]}>{translate(shouldShowQuickTips ? 'exitSurvey.quickTipSubTitle' : 'exitSurvey.thankYouSubtitle')}</Text>
                     </>
                 )}
             </View>
@@ -78,7 +84,7 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
                 <Button
                     success
                     large
-                    text={translate('exitSurvey.goToExpensifyClassic')}
+                    text={translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}
                     pressOnEnter
                     onPress={() => {
                         ExitSurvey.switchToOldDot();

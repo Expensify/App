@@ -24,8 +24,6 @@ const defaultListOptions = {
     userToInvite: null,
     currentUserOption: null,
     categoryOptions: [],
-    tagOptions: [],
-    taxRatesOptions: [],
     headerMessage: '',
 };
 
