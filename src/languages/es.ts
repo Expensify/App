@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import CONST from '@src/CONST';
 import type en from './en';
 import type {
@@ -39,6 +40,7 @@ import type {
     CharacterLimitParams,
     CompanyCardBankName,
     CompanyCardFeedNameParams,
+    CompanyNameParams,
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
@@ -81,6 +83,7 @@ import type {
     InvalidPropertyParams,
     InvalidValueParams,
     IssueVirtualCardParams,
+    LastFourDigitsParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
     LocalTimeParams,
@@ -453,6 +456,7 @@ const translations = {
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
         enabled: 'Habilitado',
+        disabled: 'Desactivada',
         ignore: 'Ignorar',
         import: 'Importar',
         offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
@@ -701,7 +705,7 @@ const translations = {
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',
-        multipleUsers: 'Varios miembros',
+        multipleMembers: 'Varios miembros',
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Esta sala de chat ha sido eliminada.',
@@ -736,6 +740,10 @@ const translations = {
         listOfChats: 'lista de chats',
         saveTheWorld: 'Salvar el mundo',
         tooltip: '¡Comienza aquí!',
+        redirectToExpensifyClassicModal: {
+            title: 'Próximamente',
+            description: 'Estamos ajustando algunos detalles de New Expensify para adaptarla a tu configuración específica. Mientras tanto, dirígete a Expensify Classic.',
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -1109,7 +1117,7 @@ const translations = {
         helpTextAfterEmail: ' desde varias direcciones de correo electrónico.',
         pleaseVerify: 'Por favor, verifica este método de contacto',
         getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod}`,
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod}. Debería llegar en un par de minutos.`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
             'Este es tu método de contacto predeterminado. Antes de poder eliminarlo, tendrás que elegir otro método de contacto y haz clic en "Establecer como predeterminado".',
@@ -1208,7 +1216,7 @@ const translations = {
             deviceCredentials: 'Credenciales del dispositivo',
             invalidate: 'Invalidar',
             destroy: 'Destruir',
-            maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
+            maskExportOnyxStateData: 'Enmascare los datos frágiles del miembro mientras exporta el estado Onyx',
             exportOnyxState: 'Exportar estado Onyx',
             importOnyxState: 'Importar estado Onyx',
             testCrash: 'Prueba de fallo',
@@ -1450,7 +1458,8 @@ const translations = {
         },
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
         validateCardTitle: 'Asegurémonos de que eres tú',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta`,
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
+            `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta. Debería llegar en un par de minutos.`,
     },
     workflowsPage: {
         workflowTitle: 'Gasto',
@@ -1461,7 +1470,7 @@ const translations = {
         submissionFrequencyDateOfMonth: 'Fecha del mes',
         addApprovalsTitle: 'Aprobaciones',
         addApprovalButton: 'Añadir flujo de aprobación',
-        addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico',
+        addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
         connectBankAccount: 'Conectar cuenta bancaria',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
@@ -1942,6 +1951,7 @@ const translations = {
             website: 'Por favor, introduce un sitio web válido.',
             zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
             phoneNumber: 'Por favor, introduce un teléfono válido.',
+            email: 'Por favor, introduce una dirección de correo electrónico válida.',
             companyName: 'Por favor, introduce un nombre comercial legal válido.',
             addressCity: 'Por favor, introduce una ciudad válida.',
             addressStreet: 'Por favor, introduce una dirección válida que no sea un apartado postal.',
@@ -1964,6 +1974,7 @@ const translations = {
             lastName: 'Por favor, introduce los apellidos.',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor, añade una cuenta bancaria para depósitos o una tarjeta de débito.',
             validationAmounts: 'Los importes de validación que introduciste son incorrectos. Por favor, comprueba tu cuenta bancaria e inténtalo de nuevo.',
+            fullName: 'Please enter a valid full name.',
         },
     },
     addPersonalBankAccountPage: {
@@ -1986,6 +1997,7 @@ const translations = {
             afterLinkText: 'para verlo.',
             formLabel: 'Ver PDF',
         },
+        attachmentNotFound: 'Archivo adjunto no encontrado',
     },
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
@@ -2307,8 +2319,38 @@ const translations = {
         findCountry: 'Encontrar país',
         selectCountry: 'Seleccione su país',
     },
+    bankInfoStep: {
+        whatAreYour: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',
+        letsDoubleCheck: 'Verifiquemos que todo esté bien.',
+        thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo.',
+        accountNumber: 'Número de cuenta',
+        bankStatement: 'Extracto bancario',
+        chooseFile: 'Elegir archivo',
+        uploadYourLatest: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',
+        pleaseUpload: ({lastFourDigits}: LastFourDigitsParams) => `Por favor suba el estado de cuenta mensual más reciente de tu cuenta bancaria comercial que termina en ${lastFourDigits}.`,
+    },
     signerInfoStep: {
         signerInfo: 'Información del firmante',
+        areYouDirector: ({companyName}: CompanyNameParams) => `¿Es usted director o alto funcionario de ${companyName}?`,
+        regulationRequiresUs: 'La regulación requiere que verifiquemos si el firmante tiene la autoridad para realizar esta acción en nombre de la empresa.',
+        whatsYourName: '¿Cuál es tu nombre legal?',
+        fullName: 'Nombre legal completo',
+        whatsYourJobTitle: '¿Cuál es tu puesto de trabajo?',
+        jobTitle: 'Título profesional',
+        whatsYourDOB: '¿Cual es tu fecha de nacimiento?',
+        uploadID: 'Subir documento de identidad y prueba de domicilio',
+        id: 'Identificación (licencia de conducir o pasaporte)',
+        personalAddress: 'Prueba de domicilio personal (por ejemplo, factura de servicios públicos)',
+        letsDoubleCheck: 'Vamos a comprobar que todo está bien.',
+        legalName: 'Nombre legal',
+        proofOf: 'Comprobante de domicilio personal',
+        enterOneEmail: 'Introduce el correo electrónico del director o alto funcionario en',
+        regulationRequiresOneMoreDirector: 'El reglamento exige que haya otro director o funcionario superior como firmante.',
+        hangTight: 'Espera un momento...',
+        enterTwoEmails: 'Introduce los correos electrónicos de dos directores o altos funcionarios en',
+        sendReminder: 'Enviar un recordatorio',
+        chooseFile: 'Seleccionar archivo',
+        weAreWaiting: 'Estamos esperando que otros verifiquen sus identidades como directores o altos funcionarios de la empresa.',
     },
     agreementsStep: {
         agreements: 'Acuerdos',
@@ -2924,6 +2966,18 @@ const translations = {
                         [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_BOTH]: 'Aprobado por supervisor y contabilidad',
                     },
                 },
+                accountingMethods: {
+                    label: 'Cuándo Exportar',
+                    description: 'Elige cuándo exportar los gastos:',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados definitivamente',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
+                    },
+                },
                 exportVendorBillsTo: {
                     label: 'Nivel de aprobación de facturas de proveedores',
                     description:
@@ -3238,7 +3292,6 @@ const translations = {
             confirmationDescription: 'Comenzaremos a importar transacciones inmediatamente.',
             cardholder: 'Titular de la tarjeta',
             card: 'Tarjeta',
-            startTransactionDate: 'Fecha de inicio de transacciones',
             cardName: 'Nombre de la tarjeta',
             brokenConnectionErrorFirstPart: `La conexión de la fuente de tarjetas está rota. Por favor, `,
             brokenConnectionErrorLink: 'inicia sesión en tu banco ',
@@ -3498,7 +3551,7 @@ const translations = {
             },
             rules: {
                 title: 'Reglas',
-                subtitle: 'Configura cuándo se exigen los recibos, marca los gastos elevados y mucho más.',
+                subtitle: 'Solicita recibos, resalta gastos de alto importe y mucho más.',
             },
         },
         reportFields: {
@@ -3896,6 +3949,7 @@ const translations = {
             exportDate: 'Fecha de exportación',
             defaultVendor: 'Proveedor predeterminado',
             autoSync: 'Autosincronización',
+            autoSyncDescription: 'Sincroniza NetSuite y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
             reimbursedReports: 'Sincronizar informes reembolsados',
             cardReconciliation: 'Conciliación de tarjetas',
             reconciliationAccount: 'Cuenta de conciliación',
@@ -3988,7 +4042,7 @@ const translations = {
         },
         inviteMessage: {
             inviteMessageTitle: 'Añadir un mensaje',
-            inviteMessagePrompt: 'Añadir un mensaje para hacer tu invitación destacar',
+            inviteMessagePrompt: '¡Añadir un mensaje para hacer tu invitación destacar!',
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar.',
             genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo.',
@@ -4612,14 +4666,16 @@ const translations = {
                 selectedForRandomAudit: `seleccionado al azar para revisión`,
                 selectedForRandomAuditMarkdown: `[seleccionado al azar](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) para revisión`,
                 share: ({to}: ShareParams) => `miembro invitado ${to}`,
-                unshare: ({to}: UnshareParams) => `usuario eliminado ${to}`,
+                unshare: ({to}: UnshareParams) => `miembro eliminado ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
-                addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role === 'user' ? 'miembro' : 'administrador'}`,
+                addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role === 'miembro' || role === 'user' ? 'miembro' : 'administrador'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
-                    `actualicé el rol ${email} de ${currentRole === 'user' ? 'miembro' : 'administrador'} a ${newRole === 'user' ? 'miembro' : 'administrador'}`,
-                removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role === 'user' ? 'miembro' : 'administrador'} ${email}`,
+                    `actualicé el rol ${email} de ${currentRole === 'miembro' || currentRole === 'user' ? 'miembro' : 'administrador'} a ${
+                        newRole === 'miembro' || newRole === 'user' ? 'miembro' : 'administrador'
+                    }`,
+                removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role === 'miembro' || role === 'user' ? 'miembro' : 'administrador'} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
@@ -5127,7 +5183,7 @@ const translations = {
         chatMessage: 'mensaje de chat',
         lastChatMessagePreview: 'Vista previa del último mensaje del chat',
         workspaceName: 'Nombre del espacio de trabajo',
-        chatUserDisplayNames: 'Nombres de los usuarios del chat',
+        chatUserDisplayNames: 'Nombres de los miembros del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
         prestyledText: 'texto preestilizado',
         viewAttachment: 'Ver archivo adjunto',
@@ -5690,7 +5746,8 @@ const translations = {
         removeCopilotConfirmation: '¿Estás seguro de que quieres eliminar este copiloto?',
         changeAccessLevel: 'Cambiar nivel de acceso',
         makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto.`,
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
+            `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto. Debería llegar en un par de minutos.`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) =>
             `Por favor, introduce el código mágico enviado a ${contactMethod} para actualizar el nivel de acceso de tu copiloto.`,
         notAllowed: 'No tan rápido...',
@@ -5732,7 +5789,7 @@ const translations = {
             hasDraftComment: 'Tiene comentario en borrador',
             hasGBR: 'Tiene GBR',
             hasRBR: 'Tiene RBR',
-            pinnedByUser: 'Fijado por el usuario',
+            pinnedByUser: 'Fijado por el miembro',
             hasIOUViolations: 'Tiene violaciones de IOU',
             hasAddWorkspaceRoomErrors: 'Tiene errores al agregar sala de espacio de trabajo',
             isUnread: 'No leído (modo de enfoque)',
