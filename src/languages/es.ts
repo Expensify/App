@@ -5491,6 +5491,19 @@ const translations = {
         offlineTitle: 'Parece que estás atrapado aquí...',
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
+        quickTip: 'Consejo rápido...',
+        quickTipSubTitle: 'Puedes ir directamente a Expensify Classic visitando expensify.com. Márcalo como favorito para tener un acceso directo fácil.',
+        bookACall: 'Reservar una llamada',
+        noThanks: 'No, gracias',
+        bookACallTitle: '¿Desea hablar con un responsable de producto?',
+        benefits: {
+            [CONST.EXIT_SURVEY.BENEFIT.CHATTING_DIRECTLY]: 'Chat directo sobre gastos e informes',
+            [CONST.EXIT_SURVEY.BENEFIT.EVERYTHING_MOBILE]: 'Posibilidad de hacerlo todo desde el móvil',
+            [CONST.EXIT_SURVEY.BENEFIT.TRAVEL_EXPENSE]: 'Viajes y gastos a la velocidad del chat',
+        },
+        bookACallTextTop: 'Al cambiar a Expensify Classic, se perderá:',
+        bookACallTextBottom: 'Nos encantaría hablar con usted para entender por qué. Puede concertar una llamada con uno de nuestros jefes de producto para hablar de sus necesidades.',
+        takeMeToExpensifyClassic: 'Llévame a Expensify Classic',
     },
     listBoundary: {
         errorMessage: 'Se ha producido un error al cargar más mensajes.',
