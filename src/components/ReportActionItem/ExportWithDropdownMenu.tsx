@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import { StyleProp, ViewStyle } from 'react-native';
 
 type ExportWithDropdownMenuProps = {
     policy: OnyxEntry<Policy>;
@@ -27,6 +28,8 @@ type ExportWithDropdownMenuProps = {
     connectionName: ConnectionName;
 
     dropdownAnchorAlignment?: AnchorAlignment;
+
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 function ExportWithDropdownMenu({
@@ -37,6 +40,7 @@ function ExportWithDropdownMenu({
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
+    wrapperStyle,
 }: ExportWithDropdownMenuProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
@@ -124,7 +128,7 @@ function ExportWithDropdownMenu({
                 onOptionSelected={({value}) => savePreferredExportMethod(value)}
                 options={dropdownOptions}
                 style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                wrapperStyle={styles.flex1}
+                wrapperStyle={[styles.flex1, wrapperStyle]}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             />
             <ConfirmModal
