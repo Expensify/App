@@ -1,7 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-// import ReactNativeModal from 'react-native-modal';
+import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -20,7 +20,7 @@ import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
-import ReactNativeModal from './ReactNativeModal/Modal';
+// import ReactNativeModal from './ReactNativeModal/Modal';
 import type BaseModalProps from './types';
 
 function BaseModal(
