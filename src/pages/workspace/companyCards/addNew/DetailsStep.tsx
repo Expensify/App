@@ -8,7 +8,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
@@ -172,40 +171,35 @@ function DetailsStep({policyID}: DetailsStepProps) {
                 title={translate('workspace.companyCards.addCardFeed')}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <ScrollView
-                style={styles.pt0}
-                contentContainerStyle={styles.flexGrow1}
+            <FormProvider
+                formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
+                submitButtonText={translate('common.submit')}
+                onSubmit={submit}
+                validate={validate}
+                style={[styles.mh5, styles.flexGrow1]}
+                enabledWhenOffline
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>
                     {!!feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
                 </Text>
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
-                    submitButtonText={translate('common.submit')}
-                    onSubmit={submit}
-                    validate={validate}
-                    style={[styles.mh5, styles.flexGrow1]}
-                    enabledWhenOffline
-                >
-                    {renderInputs()}
-                    {!!feedProvider && !isStripeFeedProvider && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <Icon
-                                src={Expensicons.QuestionMark}
-                                width={variables.iconSizeExtraSmall}
-                                height={variables.iconSizeExtraSmall}
-                                fill={theme.icon}
-                            />
-                            <TextLink
-                                style={[styles.label, styles.textLineHeightNormal, styles.ml2]}
-                                href={CONST.COMPANY_CARDS_HELP}
-                            >
-                                {translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.helpLabel`)}
-                            </TextLink>
-                        </View>
-                    )}
-                </FormProvider>
-            </ScrollView>
+                {renderInputs()}
+                {!!feedProvider && !isStripeFeedProvider && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <Icon
+                            src={Expensicons.QuestionMark}
+                            width={variables.iconSizeExtraSmall}
+                            height={variables.iconSizeExtraSmall}
+                            fill={theme.icon}
+                        />
+                        <TextLink
+                            style={[styles.label, styles.textLineHeightNormal, styles.ml2]}
+                            href={CONST.COMPANY_CARDS_HELP}
+                        >
+                            {translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.helpLabel`)}
+                        </TextLink>
+                    </View>
+                )}
+            </FormProvider>
         </ScreenWrapper>
     );
 }
