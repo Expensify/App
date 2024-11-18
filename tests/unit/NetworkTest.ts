@@ -67,24 +67,34 @@ describe('NetworkTests', () => {
             },
         });
 
-        // And given they are signed in
+        // Given a test user login and account ID
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN).then(() => {
             expect(isOffline).toBe(false);
 
-            // Set up mocks for the requests
+            // Mock fetch() so that it throws a TypeError to simulate a bad network connection
+            global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
+
+            const actualXhr = HttpUtils.xhr;
+
             const mockedXhr = jest.fn();
             mockedXhr
                 .mockImplementationOnce(() =>
-                    // Given the first request is made with an expired authToken
                     Promise.resolve({
                         jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                     }),
                 )
 
-                // And the call to re-authenticate fails to fetch
-                .mockImplementationOnce(() => Promise.reject(new Error('Failed to fetch')))
+                // Fail the call to re-authenticate
+                .mockImplementationOnce(actualXhr)
 
-                // And there's another request to Authenticate and it succeeds
+                // The next call should still be using the old authToken
+                .mockImplementationOnce(() =>
+                    Promise.resolve({
+                        jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                    }),
+                )
+
+                // Succeed the call to set a new authToken
                 .mockImplementationOnce(() =>
                     Promise.resolve({
                         jsonCode: CONST.JSON_CODE.SUCCESS,
@@ -92,7 +102,7 @@ describe('NetworkTests', () => {
                     }),
                 )
 
-                // And all remaining requests should succeed
+                // All remaining requests should succeed
                 .mockImplementation(() =>
                     Promise.resolve({
                         jsonCode: CONST.JSON_CODE.SUCCESS,
@@ -101,28 +111,24 @@ describe('NetworkTests', () => {
 
             HttpUtils.xhr = mockedXhr;
 
-            // When the user opens their public profile page
+            // This should first trigger re-authentication and then a Failed to fetch
             PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
-
-            // And the network is back online to process the requests
             return waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
                 .then(() => {
                     expect(isOffline).toBe(false);
 
                     // Advance the network request queue by 1 second so that it can realize it's back online
-                    // And advance past the retry delay
-                    jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS + CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
+                    jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    // Then there will have been 2 calls to Authenticate, one for the failed re-authentication and one retry that succeeds
-                    const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
-                    expect(callsToAuthenticate.length).toBe(2);
-
-                    // And two calls to openPublicProfilePage, one with the expired token and one after re-authentication
+                    // Then we will eventually have 1 call to OpenPublicProfilePage and 1 calls to Authenticate
                     const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
+                    const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+
                     expect(callsToOpenPublicProfilePage.length).toBe(1);
+                    expect(callsToAuthenticate.length).toBe(1);
                 });
         });
     });
