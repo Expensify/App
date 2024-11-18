@@ -223,25 +223,25 @@ describe('CardUtils', () => {
             expect(maskedCardNumber).toBe('4808 01•• •••• 2554');
         });
 
-        it("Should return card number without changes if it's provided in the 'CREDIT CARD...6607' format", () => {
+        it('Should return card number without changes if it has empty space', () => {
             const cardNumber = 'CREDIT CARD...6607';
             const maskedCardNumber = CardUtils.maskCardNumber(cardNumber, CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE);
             expect(maskedCardNumber).toBe(cardNumber);
         });
 
-        it("Should return the Amex direct feed card number divided into 4/6/5 chunks, with 'X' replaced by '•'", () => {
+        it("Should return the Amex direct feed card number divided into 4/6/5 chunks, with 'X' replaced by '•' if it's provided in '211944XXXXX6557' format", () => {
             const cardNumber = '211944XXXXX6557';
             const maskedCardNumber = CardUtils.maskCardNumber(cardNumber, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT);
             expect(maskedCardNumber).toBe('2119 44•••• •6557');
         });
 
-        it("Should return the Amex custom feed card number divided into 4/6/5 chunks, with 'X' replaced by '•'", () => {
+        it("Should return the Amex custom feed card number divided into 4/6/5 chunks, with 'X' replaced by '•' if it's provided in '211944XXXXX6557' format", () => {
             const cardNumber = '211944XXXXX6557';
             const maskedCardNumber = CardUtils.maskCardNumber(cardNumber, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX);
             expect(maskedCardNumber).toBe('2119 44•••• •6557');
         });
 
-        it('Should return empty string if undefined bank was provided', () => {
+        it('Should return empty string if undefined feed was provided', () => {
             const cardNumber = '480801XXXXXX2554';
             const maskedCardNumber = CardUtils.maskCardNumber(cardNumber, undefined);
             expect(maskedCardNumber).toBe('');
