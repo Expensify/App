@@ -114,8 +114,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 currentUserOption: null,
                 headerMessage: '',
                 categoryOptions: [],
-                tagOptions: [],
-                taxRatesOptions: [],
             };
         }
         const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
