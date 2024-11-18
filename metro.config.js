@@ -1,5 +1,6 @@
 const {getDefaultConfig: getExpoDefaultConfig} = require('expo/metro-config');
 const {getDefaultConfig: getReactNativeDefaultConfig} = require('@react-native/metro-config');
+const {wrapWithReanimatedMetroConfig} = require('react-native-reanimated/metro-config');
 
 const {mergeConfig} = require('@react-native/metro-config');
 const defaultAssetExts = require('metro-config/src/defaults/defaults').assetExts;
@@ -26,4 +27,4 @@ const config = {
     },
 };
 
-module.exports = mergeConfig(defaultConfig, expoConfig, config);
+module.exports = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config));
