@@ -87,12 +87,12 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, tagOptions: [], taxRatesOptions: []};
         }
 
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers, true);
 
-        return {...inviteOptions, recentReports: [], currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+        return {...inviteOptions, recentReports: [], currentUserOption: null, tagOptions: [], taxRatesOptions: []};
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
 
     const inviteOptions = useMemo(

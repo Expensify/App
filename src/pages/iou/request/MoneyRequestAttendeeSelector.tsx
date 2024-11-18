@@ -113,7 +113,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 personalDetails: [],
                 currentUserOption: null,
                 headerMessage: '',
-                categoryOptions: [],
                 tagOptions: [],
                 taxRatesOptions: [],
             };

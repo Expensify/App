@@ -23,7 +23,6 @@ const defaultListOptions = {
     personalDetails: [],
     userToInvite: null,
     currentUserOption: null,
-    categoryOptions: [],
     tagOptions: [],
     taxRatesOptions: [],
     headerMessage: '',

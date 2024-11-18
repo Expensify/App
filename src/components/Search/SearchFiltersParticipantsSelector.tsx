@@ -25,7 +25,6 @@ const defaultListOptions = {
     personalDetails: [],
     currentUserOption: null,
     headerMessage: '',
-    categoryOptions: [],
     tagOptions: [],
     taxRatesOptions: [],
 };

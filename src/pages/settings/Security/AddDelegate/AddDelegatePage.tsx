@@ -50,7 +50,6 @@ function useOptions() {
             personalDetails,
             currentUserOption,
             headerMessage,
-            categoryOptions: [],
             tagOptions: [],
             taxRatesOptions: [],
         };

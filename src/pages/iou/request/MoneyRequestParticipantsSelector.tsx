@@ -102,7 +102,6 @@ function MoneyRequestParticipantsSelector({
                 personalDetails: [],
                 currentUserOption: null,
                 headerMessage: '',
-                categoryOptions: [],
                 tagOptions: [],
                 taxRatesOptions: [],
             };
@@ -139,7 +138,6 @@ function MoneyRequestParticipantsSelector({
                 personalDetails: [],
                 currentUserOption: null,
                 headerMessage: '',
-                categoryOptions: [],
                 tagOptions: [],
                 taxRatesOptions: [],
             };
