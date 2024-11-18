@@ -113,7 +113,7 @@ function getTaxRatesSection({
         return policyRatesSections;
     }
 
-    if (numberOfTaxRates < CONST.TAX_RATES_LIST_THRESHOLD) {
+    if (numberOfTaxRates < CONST.STANDARD_LIST_ITEM_LIMIT) {
         policyRatesSections.push({
             // "All" section when items amount less than the threshold
             title: '',
