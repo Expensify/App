@@ -3,6 +3,7 @@ import type {ComponentType} from 'react';
 import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -10,7 +11,6 @@ import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import BeneficialOwnerCheck from './BeneficialOwnerCheck';
 import Address from './BeneficialOwnerDetailsFormSubSteps/Address';
 import Confirmation from './BeneficialOwnerDetailsFormSubSteps/Confirmation';
 import DateOfBirth from './BeneficialOwnerDetailsFormSubSteps/DateOfBirth';
@@ -300,16 +300,18 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
             startStepIndex={3}
         >
             {currentSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER && (
-                <BeneficialOwnerCheck
+                <YesNoStep
                     title={translate('ownershipInfoStep.doYouOwn', {companyName})}
+                    description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={isUserOwner}
                     onSelectedValue={handleNextSubStep}
                 />
             )}
 
             {currentSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER && (
-                <BeneficialOwnerCheck
+                <YesNoStep
                     title={translate('ownershipInfoStep.doesAnyoneOwn', {companyName})}
+                    description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={isAnyoneElseOwner}
                     onSelectedValue={handleNextSubStep}
                 />
@@ -329,8 +331,9 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
             )}
 
             {currentSubStep === SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS && (
-                <BeneficialOwnerCheck
+                <YesNoStep
                     title={translate('ownershipInfoStep.areThereOther', {companyName})}
+                    description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={false}
                     onSelectedValue={handleNextSubStep}
                 />

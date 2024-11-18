@@ -70,6 +70,8 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit, h
             );
         });
 
+    const areThereOwners = owners !== undefined && owners?.length > 0;
+
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
@@ -79,7 +81,7 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit, h
                 >
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
                     <Text style={[styles.p5, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
-                    {owners !== undefined && owners?.length > 0 && (
+                    {areThereOwners && (
                         <View>
                             <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
                             {owners}
@@ -91,7 +93,7 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit, h
                             title={ownershipChartValue.map((file) => file.name).join(', ') || ''}
                             shouldShowRightIcon
                             onPress={handleOwnershipChartEdit}
-                            style={[styles.mt8]}
+                            style={[areThereOwners ? styles.mt8 : styles.mt0]}
                         />
                     )}
                     <View style={styles.mtAuto}>
