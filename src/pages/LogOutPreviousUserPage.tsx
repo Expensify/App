@@ -23,7 +23,7 @@ type LogOutPreviousUserPageProps = StackScreenProps<AuthScreensParamList, typeof
 function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const {initialURL} = useContext(InitialURLContext);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [account = {}] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountLoading = account?.isLoading;
 
     useEffect(() => {
