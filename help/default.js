@@ -105,24 +105,27 @@ g_searchIcon.addEventListener('click', showSearchModal);
 
 // Open modal when Cmd+K is pressed
 document.addEventListener('keydown', function (event) {
-    if (event.metaKey && event.key === 'k') {
-        event.preventDefault();
-        showSearchModal();
+    if (!(event.metaKey && event.key === 'k')) {
+        return;
     }
+    event.preventDefault();
+    showSearchModal();
 });
 
 // Close modal when pressing "Escape"
 document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape' && g_searchModal.style.display === 'flex') {
-        g_searchModal.style.display = 'none';
+    if (!(event.key === 'Escape' && g_searchModal.style.display === 'flex')) {
+        return;
     }
+    g_searchModal.style.display = 'none';
 });
 
 // Close modal when clicking outside of modal content
 window.addEventListener('click', function (event) {
-    if (event.target === g_searchModal) {
-        g_searchModal.style.display = 'none';
+    if (!(event.target === g_searchModal)) {
+        return;
     }
+    g_searchModal.style.display = 'none';
 });
 
 // Handle keyboard navigation (arrow keys and enter)
@@ -181,10 +184,11 @@ function navigateToSelectedResult() {
 
 // Execute search when pressing "Enter" in the input field
 g_searchInput.addEventListener('keydown', function (event) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        document.getElementById('search-submit').click();
+    if (!(event.key === 'Enter')) {
+        return;
     }
+    event.preventDefault();
+    document.getElementById('search-submit').click();
 });
 
 // Perform search when search button is clicked
@@ -261,22 +265,4 @@ function performSearch(query) {
     } else {
         g_searchResults.style.display = 'none';
     }
-}
-
-// Highlight the selected section
-function highlightSelectedSection(sectionId) {
-    if (g_highlightedSection) {
-        g_highlightedSection.classList.remove('highlight-section');
-    }
-
-    const sectionElement = document.getElementById(sectionId);
-    if (sectionElement) {
-        sectionElement.classList.add('highlight-section');
-        g_highlightedSection = sectionElement;
-    }
-}
-
-// Close modal after clicking a search result
-function closeModalAfterClick() {
-    g_searchModal.style.display = 'none';
 }
