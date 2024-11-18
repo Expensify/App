@@ -5,7 +5,6 @@ import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
-import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -285,7 +284,6 @@ function ReportActionsView({
     const hasMoreCached = reportActions.length < combinedReportActions.length;
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
-    const hasCachedActionOnFirstRender = useInitialValue(() => reportActions.length > 0);
     const hasNewestReportAction = reportActions.at(0)?.created === report.lastVisibleActionCreated || reportActions.at(0)?.created === transactionThreadReport?.lastVisibleActionCreated;
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
 
@@ -427,18 +425,16 @@ function ReportActionsView({
         }
 
         didLayout.current = true;
-        // Capture the init measurement only once not per each chat switch as the value gets overwritten
-        if (!ReportActionsView.initMeasured) {
-            Performance.markEnd(CONST.TIMING.OPEN_REPORT);
-            Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
-            ReportActionsView.initMeasured = true;
-        } else {
-            Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
-        }
-        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
+
+        Performance.markEnd(CONST.TIMING.OPEN_REPORT);
+        Timing.end(CONST.TIMING.OPEN_REPORT);
+
+        Performance.markEnd(CONST.TIMING.OPEN_REPORT_THREAD);
         Timing.end(CONST.TIMING.OPEN_REPORT_THREAD);
+
+        Performance.markEnd(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.end(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-    }, [hasCachedActionOnFirstRender]);
+    }, []);
 
     // Check if the first report action in the list is the one we're currently linked to
     const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;
@@ -501,7 +497,6 @@ function ReportActionsView({
 }
 
 ReportActionsView.displayName = 'ReportActionsView';
-ReportActionsView.initMeasured = false;
 
 function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActionsViewProps): boolean {
     if (!lodashIsEqual(oldProps.reportActions, newProps.reportActions)) {

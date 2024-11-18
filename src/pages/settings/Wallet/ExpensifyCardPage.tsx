@@ -307,7 +307,7 @@ function ExpensifyCardPage({
                         isVisible={isValidateCodeActionModalVisible}
                         hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                         title={translate('cardPage.validateCardTitle')}
-                        description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+                        descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
                     />
                 </>
             )}

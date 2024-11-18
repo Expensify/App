@@ -56,12 +56,13 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     } else {
         participants = participantAccountIDs.map((accountID) => OptionsListUtils.getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));
     }
-    const payeePersonalDetails = personalDetails?.[reportAction?.actorAccountID ?? -1];
+    const actorAccountID = reportAction?.actorAccountID ?? -1;
+    const payeePersonalDetails = personalDetails?.[actorAccountID];
     const participantsExcludingPayee = participants.filter((participant) => participant.accountID !== reportAction?.actorAccountID);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const hasSmartScanFailed = TransactionUtils.hasReceipt(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANFAILED;
-    const isEditingSplitBill = session?.accountID === reportAction?.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
+    const isEditingSplitBill = session?.accountID === actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const {

@@ -35,11 +35,11 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
 
-    const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards);
+    const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
     const isLoading = !cardFeeds || !!(cardFeeds.isLoading && !companyCards);
-    const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed ?? ''] ?? null;
-    const isNoFeed = isEmptyObject(companyCards) && isEmptyObject(cardFeeds?.settings?.oAuthAccountDetails) && !selectedCompanyCard;
-    const isPending = !!selectedCompanyCard?.pending;
+    const selectedFeedData = selectedFeed && companyCards[selectedFeed];
+    const isNoFeed = isEmptyObject(companyCards) && !selectedFeedData;
+    const isPending = !!selectedFeedData?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
 
     const fetchCompanyCards = useCallback(() => {
@@ -79,10 +79,10 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     includeSafeAreaPaddingBottom
                     showLoadingAsFirstRender={false}
                 >
-                    {(isFeedAdded || isPending) && (
+                    {(isFeedAdded || isPending) && !!selectedFeed && (
                         <WorkspaceCompanyCardsListHeaderButtons
                             policyID={policyID}
-                            selectedFeed={selectedFeed ?? ''}
+                            selectedFeed={selectedFeed}
                         />
                     )}
                     {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}

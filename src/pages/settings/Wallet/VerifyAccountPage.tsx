@@ -8,7 +8,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as User from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type VerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
@@ -28,8 +27,8 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
 
     const handleSubmitForm = useCallback(
-        (submitCode: string) => {
-            User.validateSecondaryLogin(loginList, contactMethod ?? '', submitCode);
+        (validateCode: string) => {
+            User.validateSecondaryLogin(loginList, contactMethod, validateCode);
         },
         [loginList, contactMethod],
     );
@@ -38,6 +37,13 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         User.clearContactMethodErrors(contactMethod, 'validateLogin');
     }, [contactMethod]);
 
+    const closeModal = useCallback(() => {
+        // Disable modal visibility so the navigation is animated
+        setIsValidateCodeActionModalVisible(false);
+        Navigation.goBack();
+    }, []);
+
+    // Handle navigation once the user is validated
     useEffect(() => {
         if (!isUserValidated) {
             return;
@@ -45,24 +51,12 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
         setIsValidateCodeActionModalVisible(false);
 
-        if (!navigateBackTo) {
-            return;
-        }
-
-        Navigation.navigate(navigateBackTo);
-    }, [isUserValidated, navigateBackTo]);
-
-    useEffect(() => {
-        if (isValidateCodeActionModalVisible) {
-            return;
-        }
-
-        if (!isUserValidated && navigateBackTo) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET);
-        } else if (!navigateBackTo) {
+        if (navigateBackTo) {
+            Navigation.navigate(navigateBackTo);
+        } else {
             Navigation.goBack();
         }
-    }, [isValidateCodeActionModalVisible, isUserValidated, navigateBackTo]);
+    }, [isUserValidated, navigateBackTo]);
 
     return (
         <ValidateCodeActionModal
@@ -72,9 +66,11 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('contacts.validateAccount')}
-            description={translate('contacts.featureRequiresValidate')}
-            onClose={() => setIsValidateCodeActionModalVisible(false)}
+            descriptionPrimary={translate('contacts.featureRequiresValidate')}
+            descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
             clearError={clearError}
+            onClose={closeModal}
+            onModalHide={() => {}}
         />
     );
 }

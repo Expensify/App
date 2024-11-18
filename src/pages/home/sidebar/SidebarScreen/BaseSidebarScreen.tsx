@@ -12,17 +12,8 @@ import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
-import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-/**
- * Function called when a pinned chat is selected.
- */
-const startTimer = () => {
-    Timing.start(CONST.TIMING.SWITCH_REPORT);
-    Performance.markStart(CONST.TIMING.SWITCH_REPORT);
-};
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
@@ -33,7 +24,6 @@ function BaseSidebarScreen() {
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
-        Timing.start(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
 
     const isSwitchingWorkspace = useRef(false);
@@ -78,10 +68,7 @@ function BaseSidebarScreen() {
                         onSwitchWorkspace={() => (isSwitchingWorkspace.current = true)}
                     />
                     <View style={[styles.flex1]}>
-                        <SidebarLinksData
-                            onLinkClick={startTimer}
-                            insets={insets}
-                        />
+                        <SidebarLinksData insets={insets} />
                     </View>
                 </>
             )}
