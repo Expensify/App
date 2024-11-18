@@ -44,21 +44,21 @@ Onyx.connect({
 });
 
 function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
-    // The transactionID is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
+    // The transactionIDList is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
-    const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
+    const transactionIDList = isTransactionListItemType(item) ? [item.transactionID] : undefined;
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
-            return getPayActionCallback(hash, item, goToItem);
+            return getPayActionCallback(hash, item, goToItem, transactionIDList);
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
-            return approveMoneyRequestOnSearch(hash, [item.reportID], transactionID);
+            return approveMoneyRequestOnSearch(hash, [item.reportID], transactionIDList);
         default:
             return goToItem();
     }
 }
 
-function getPayActionCallback(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
+function getPayActionCallback(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void, transactionIDList?: string[]) {
     const lastPolicyPaymentMethod = item.policyID ? (lastPaymentMethod?.[item.policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) : null;
 
     if (!lastPolicyPaymentMethod) {
@@ -66,14 +66,13 @@ function getPayActionCallback(hash: number, item: TransactionListItemType | Repo
     }
 
     const amount = isReportListItemType(item) ? item.total ?? 0 : item.formattedTotal;
-    const transactionID = isTransactionListItemType(item) ? item.transactionID : undefined;
 
     if (lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        return payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID);
+        return payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionIDList);
     }
 
     const hasVBBA = !!allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]?.achAccount?.bankAccountID;
-    return hasVBBA ? payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID) : goToItem();
+    return hasVBBA ? payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionIDList) : goToItem();
 }
 
 function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]} {
