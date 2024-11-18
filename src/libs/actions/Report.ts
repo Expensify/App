@@ -2761,7 +2761,7 @@ function openReportFromDeepLink(url: string) {
                                 return;
                             }
 
-                            Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                            Navigation.navigate(route as Route);
                         };
 
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
