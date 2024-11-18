@@ -21,7 +21,7 @@ import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
-import isSearchTopmostRoute from '@libs/Navigation/isSearchTopmostRoute';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/isSearchTopmostFullScreenRoute';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
@@ -267,7 +267,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
     useEffect(
         () => () => {
-            if (isSearchTopmostRoute()) {
+            if (isSearchTopmostFullScreenRoute()) {
                 return;
             }
             clearSelectedTransactions();
