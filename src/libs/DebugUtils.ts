@@ -467,7 +467,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'parentReportID':
         case 'parentReportActionID':
         case 'lastVisibleActionLastModified':
-        case 'displayName':
         case 'lastMessageHtml':
         case 'currency':
         case 'iouReportID':
@@ -478,7 +477,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
         case 'isOwnPolicyExpenseChat':
-        case 'isPolicyExpenseChat':
         case 'isPinned':
         case 'hasParentAccess':
         case 'isDeletedParentAction':
@@ -525,8 +523,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 },
                 'number',
             );
-        case 'errors':
-            return validateObject<ObjectElement<Report, 'errors'>>(value, {});
         case 'errorFields':
             return validateObject<ObjectElement<Report, 'errorFields', string>>(value, {}, 'string');
         case 'privateNotes':
@@ -581,21 +577,18 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
             return validateObject<ObjectElement<Report, 'pendingFields'>>(value, {
-                errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 description: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 privateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 policyID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                displayName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarFileName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildTask: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isOwnPolicyExpenseChat: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                isPolicyExpenseChat: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isPinned: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastMessageText: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastVisibleActionCreated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
