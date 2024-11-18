@@ -46,7 +46,7 @@ import BeneficialOwnerInfo from './NonUSD/BeneficialOwnerInfo/BeneficialOwnerInf
 import BusinessInfo from './NonUSD/BusinessInfo/BusinessInfo';
 import Country from './NonUSD/Country/Country';
 import Finish from './NonUSD/Finish/Finish';
-import SignerInfo from './NonUSD/SignerInfo/SignerInfo';
+import SignerInfo from './NonUSD/SignerInfo';
 import RequestorStep from './RequestorStep';
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & StackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
