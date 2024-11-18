@@ -522,10 +522,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
-        colorReversed: {
-            color: theme.textReversed,
-        },
-
         colorMutedReversed: {
             color: theme.textMutedReversed,
         },
@@ -536,10 +532,6 @@ const styles = (theme: ThemeColors) =>
 
         bgTransparent: {
             backgroundColor: 'transparent',
-        },
-
-        bgDark: {
-            backgroundColor: theme.inverse,
         },
 
         opacity0: {
