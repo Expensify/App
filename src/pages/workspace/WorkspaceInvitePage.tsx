@@ -24,6 +24,7 @@ import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -233,6 +234,17 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         setSelectedOptions(newSelectedOptions);
     };
 
+    const getDefaultWelcomeNote = useCallback(() => {
+        return (
+            // policy?.description can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            Parser.htmlToMarkdown(policy?.description ?? '') ||
+            translate('workspace.common.welcomeNote', {
+                workspaceName: policy?.name ?? '',
+            })
+        );
+    }, [policy, translate]);
+
     const inviteUser = useCallback(() => {
         const errors: Errors = {};
         if (selectedOptions.length <= 0) {
@@ -257,6 +269,11 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         Member.setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
+
+        if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
+            Policy.setWorkspaceInviteMessageDraft(route.params.policyID, getDefaultWelcomeNote());
+        }
+
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID));
     }, [route.params.policyID, selectedOptions]);
 

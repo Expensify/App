@@ -22,7 +22,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -50,7 +49,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     const {translate} = useLocalize();
 
     const viewportOffsetTop = useViewportOffsetTop();
-    const [welcomeNote, setWelcomeNote] = useState<string>();
+    // const [welcomeNote, setWelcomeNote] = useState<string>();
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
@@ -64,26 +63,11 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         [policy?.name, currentUserPersonalDetails?.displayName],
     );
 
-    const getDefaultWelcomeNote = useCallback(() => {
-        return (
-            // workspaceInviteMessageDraft can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            workspaceInviteMessageDraft ||
-            // policy?.description can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            Parser.htmlToMarkdown(policy?.description ?? '') ||
-            translate('workspace.common.welcomeNote', {
-                workspaceName: policy?.name ?? '',
-            })
-        );
-    }, [workspaceInviteMessageDraft, policy, translate]);
-
     useEffect(() => {
         if (isOnyxLoading) {
             return;
         }
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
-            setWelcomeNote(getDefaultWelcomeNote());
             return;
         }
         if (isEmptyObject(policy)) {
@@ -101,7 +85,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         Keyboard.dismiss();
         const policyMemberAccountIDs = Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-        Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs);
+        Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${workspaceInviteMessageDraft}`, route.params.policyID, policyMemberAccountIDs);
         debouncedSaveDraft(null);
         Navigation.dismissModal();
     };
@@ -191,9 +175,8 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             autoCorrect={false}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            value={welcomeNote}
+                            value={workspaceInviteMessageDraft}
                             onChangeText={(text: string) => {
-                                setWelcomeNote(text);
                                 debouncedSaveDraft(text);
                             }}
                             ref={(element: AnimatedTextInputRef) => {
