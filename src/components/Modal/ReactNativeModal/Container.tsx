@@ -1,13 +1,17 @@
 import React from 'react';
-import Animated, {SlideInDown, SlideOutDown} from 'react-native-reanimated';
+import Animated, {runOnJS, SlideInDown, SlideOutDown} from 'react-native-reanimated';
 import type ModalProps from './types';
 
-function Container({style, ...props}: ModalProps) {
+function Container({style, ...props}: ModalProps & {onOpenCallBack: () => void; onCloseCallBack: () => void}) {
     return (
         <Animated.View
             style={[style, {flex: 1, height: '100%', flexDirection: 'row'}]}
-            entering={SlideInDown.duration(300)}
-            exiting={SlideOutDown.duration(300)}
+            entering={SlideInDown.duration(300).withCallback(() => {
+                runOnJS(props.onOpenCallBack)();
+            })}
+            exiting={SlideOutDown.duration(300).withCallback(() => {
+                runOnJS(props.onCloseCallBack)();
+            })}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >

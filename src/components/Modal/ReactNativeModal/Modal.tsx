@@ -38,7 +38,6 @@ function ReactNativeModal(incomingProps: ModalProps) {
         ...defaultProps,
         ...incomingProps,
     };
-    const [showContent, setShowContent] = useState(isVisible);
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
     const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -99,18 +98,11 @@ function ReactNativeModal(incomingProps: ModalProps) {
         return false;
     };
 
-    const handleTransition = (type: TransitionType, onFinish: () => void) => {
+    const handleTransition = (type: TransitionType) => {
         const shouldAnimate = isVisible !== isContainerOpen;
 
         if (shouldAnimate && !isTransitioning) {
             setIsTransitioning(true);
-
-            setTimeout(() => {
-                setIsContainerOpen(isVisible);
-                setIsTransitioning(false);
-
-                onFinish();
-            }, 300);
             // TODO: type === 'open' ? animationInTiming : animationOutTiming,
         }
     };
@@ -127,13 +119,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
             props.onModalWillShow();
         }
         setIsVisibleState(true);
-        handleTransition('open', () => {
-            if (!isVisible) {
-                setIsContainerOpen(false);
-            } else {
-                onModalShow();
-            }
-        });
+        handleTransition('open');
     };
 
     const close = () => {
@@ -150,14 +136,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
         }
 
         setIsVisibleState(false);
-        handleTransition('close', () => {
-            if (isVisible) {
-                setIsContainerOpen(true);
-            } else {
-                setShowContent(false);
-                props.onModalHide?.();
-            }
-        });
+        handleTransition('close');
     };
 
     useEffect(() => {
@@ -221,12 +200,20 @@ function ReactNativeModal(incomingProps: ModalProps) {
             style={[panPosition, computedStyle]}
             pointerEvents="box-none"
             useNativeDriver={useNativeDriver}
+            onOpenCallBack={() => {
+                setIsContainerOpen(true);
+                setIsTransitioning(false);
+            }}
+            onCloseCallBack={() => {
+                setIsContainerOpen(false);
+                setIsTransitioning(false);
+            }}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(isSwipeable && panResponder ? panResponder.panHandlers : {})}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...otherProps}
         >
-            {props.hideModalContentWhileAnimating && !showContent ? <View /> : children}
+            {props.hideModalContentWhileAnimating ? <View /> : children}
         </Container>
     );
 
