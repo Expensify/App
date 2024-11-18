@@ -747,6 +747,8 @@ function createCorpayBankAccount(data: InternationalBankAccountForm, classificat
         preferredMethod,
         setupType: 'manual',
         fieldsType: 'international',
+        country: data.bankCountry,
+        currency: data.bankCurrency,
     };
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, {isWithdrawal: false, isSavings: true, inputs: JSON.stringify(inputData)});
