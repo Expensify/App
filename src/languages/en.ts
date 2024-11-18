@@ -481,6 +481,10 @@ const translations = {
         allowPermission: 'allow location access in settings',
         tryAgain: 'and try again.',
     },
+    contact: {
+        importContactsTitle: 'Import your contacts',
+        importContactsText: 'Import contacts from your phone so your favorite people are always a tap away.',
+    },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
     },
