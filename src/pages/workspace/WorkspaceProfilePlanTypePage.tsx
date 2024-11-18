@@ -62,6 +62,17 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
             />
         ) : null;
 
+    const handleUpdatePlan = () => {
+        if (policy?.type === currentPlan) {
+            Navigation.goBack();
+            return;
+        }
+
+        if (policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
+        }
+    };
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -104,9 +115,7 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
                         large
                         text={isPlanTypeLocked ? translate('common.buttonConfirm') : translate('common.save')}
                         style={styles.mt6}
-                        onPress={() => {
-                            Navigation.goBack();
-                        }}
+                        onPress={handleUpdatePlan}
                     />
                 </FixedFooter>
             </ScreenWrapper>

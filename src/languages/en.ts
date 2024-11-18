@@ -4174,6 +4174,19 @@ const translations = {
                 moreDetails: 'for more details.',
                 gotIt: 'Got it, thanks',
             },
+            commonFeatures: {
+                title: 'Upgrade Workspace to Control',
+                note: 'Get access to all our most advanced functionality, including:',
+                benefits: {
+                    note: 'The Control plan starts at $9 per active member per month.',
+                    learnMore: 'learn more',
+                    pricing: 'about our plans and pricing.',
+                    benefit1: 'Advanced accounting connections (NetSuite, Sage Intacct and more)',
+                    benefit2: 'Expense rules',
+                    benefit3: 'Multiple approval workflows',
+                    benefit4: 'Enhanced security controls',
+                },
+            },
         },
         restrictedAction: {
             restricted: 'Restricted',

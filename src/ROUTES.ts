@@ -953,9 +953,9 @@ const ROUTES = {
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}` as const,
     },
     WORKSPACE_UPGRADE: {
-        route: 'settings/workspaces/:policyID/upgrade/:featureName',
-        getRoute: (policyID: string, featureName: string, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const, backTo),
+        route: 'settings/workspaces/:policyID/upgrade/:featureName?',
+        getRoute: (policyID: string, featureName?: string, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const, backTo),
     },
     WORKSPACE_DOWNGRADE: {
         route: 'settings/workspaces/:policyID/downgrade/',

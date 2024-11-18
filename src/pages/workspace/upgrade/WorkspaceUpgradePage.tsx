@@ -30,13 +30,14 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const [policy] = useOnyx(`policy_${policyID}`);
     const {isOffline} = useNetwork();
 
-    const canPerformUpgrade = !!feature && !!policy && PolicyUtils.isPolicyAdmin(policy);
+    const canPerformUpgrade = !!policy && PolicyUtils.isPolicyAdmin(policy);
     const isUpgraded = React.useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
     const perDiemCustomUnit = PolicyUtils.getPerDiemCustomUnit(policy);
 
     const goBack = useCallback(() => {
         if (!feature) {
+            Navigation.dismissModal();
             return;
         }
         switch (feature.id) {
