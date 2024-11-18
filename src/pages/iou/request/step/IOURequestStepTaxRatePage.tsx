@@ -33,7 +33,7 @@ function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transact
 
 function IOURequestStepTaxRatePage({
     route: {
-        params: {action, backTo, iouType},
+        params: {action, backTo, iouType, transactionID},
     },
     transaction,
     report,
@@ -43,7 +43,7 @@ function IOURequestStepTaxRatePage({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID ?? '-1'}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID ?? '-1'}`);
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction?.transactionID ?? '-1'}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID ?? '-1'}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
