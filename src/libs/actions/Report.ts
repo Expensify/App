@@ -3440,7 +3440,7 @@ function getReportPrivateNote(reportID: string | undefined) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingPrivateNotes: true,
             },
@@ -3450,7 +3450,7 @@ function getReportPrivateNote(reportID: string | undefined) {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingPrivateNotes: false,
             },
@@ -3460,7 +3460,7 @@ function getReportPrivateNote(reportID: string | undefined) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingPrivateNotes: false,
             },

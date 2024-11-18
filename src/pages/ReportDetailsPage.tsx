@@ -80,7 +80,7 @@ const CASES = {
 
 type CaseID = ValueOf<typeof CASES>;
 
-function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
+function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -183,7 +183,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         // 1. HeaderView
         return CASES.DEFAULT;
     }, [isInvoiceReport, isMoneyRequestReport, isSingleTransactionView]);
-    const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
+    const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
 
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case

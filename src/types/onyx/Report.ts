@@ -232,9 +232,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;
 
-        /** Whether participants private notes are being currently loaded */
-        isLoadingPrivateNotes?: boolean;
-
         /** Pending members of the report */
         pendingChatMembers?: PendingChatMember[];
 
