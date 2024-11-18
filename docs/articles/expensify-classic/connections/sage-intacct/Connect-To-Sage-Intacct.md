@@ -58,7 +58,7 @@ Setup the user using these configurations:
 
 Once you've created the user, you'll need to set the correct permissions. To set those, go to the **subscription** link for this user in the user list, **click on the checkbox** next to the Application/Module and then click on the **Permissions** link to modify those. 
 
-![Insert alt text for accessibility here]({{site.url}}/assets/images/SageConnectSubscriptionSettings.png){:width="100%"}
+![Image showing the Application/Module checkbox to click]({{site.url}}/assets/images/SageConnectSubscriptionSettings.png){:width="100%"}
 
 These are the permissions required for a user to export reimbursable expenses as Expense Reports:
 - **Administration (All)**
