@@ -37,7 +37,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID ?? '',
             isWorkspaceAvatar: true,
         };
-    }, [report, policy]);
+    }, [report, policy, reportMetadata]);
 
     return (
         <AttachmentModal
