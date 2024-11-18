@@ -6,6 +6,7 @@ import HeaderGap from '@components/HeaderGap';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -19,6 +20,8 @@ function UpdateRequiredView() {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isProduction} = useEnvironment();
+
     return (
         <View style={[styles.appBG, styles.h100, StyleUtils.getSafeAreaPadding(insets)]}>
             <HeaderGap />
@@ -47,7 +50,7 @@ function UpdateRequiredView() {
                 <Button
                     success
                     large
-                    onPress={() => AppUpdate.updateApp()}
+                    onPress={() => AppUpdate.updateApp(isProduction)}
                     text={translate('common.update')}
                     style={styles.updateRequiredViewTextContainer}
                 />
