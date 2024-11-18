@@ -7,9 +7,9 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import * as Localize from './Localize';
-import type {CategorySectionBase, OptionTree} from './OptionsListUtils';
+import type {OptionTree, SectionBase} from './OptionsListUtils';
 
-type CategoryTreeSection = CategorySectionBase & {
+type CategoryTreeSection = SectionBase & {
     data: OptionTree[];
     indexOffset?: number;
 };
@@ -279,4 +279,4 @@ function sortCategories(categories: Record<string, Category>): Category[] {
 
 export {getCategoryListSections, getCategoryOptionTree, sortCategories};
 
-export type {Category, CategorySectionBase, CategoryTreeSection, Hierarchy};
+export type {Category, SectionBase as CategorySectionBase, CategoryTreeSection, Hierarchy};

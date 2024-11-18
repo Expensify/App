@@ -10,7 +10,7 @@ import SelectionList from '@components/SelectionList';
 import CardListItem from '@components/SelectionList/CardListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {CategorySection} from '@libs/OptionsListUtils';
+import type {Section} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
@@ -27,7 +27,7 @@ function SearchFiltersCardPage() {
     const [newCards, setNewCards] = useState(currentCards ?? []);
 
     const sections = useMemo(() => {
-        const newSections: CategorySection[] = [];
+        const newSections: Section[] = [];
         const cards = Object.values(cardList ?? {})
             .sort((a, b) => a.bank.localeCompare(b.bank))
             .map((card) => {

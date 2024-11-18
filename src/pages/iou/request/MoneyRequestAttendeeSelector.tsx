@@ -130,7 +130,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
      * Returns the sections needed for the OptionsSelector
      */
     const [sections, header] = useMemo(() => {
-        const newSections: OptionsListUtils.CategorySection[] = [];
+        const newSections: OptionsListUtils.Section[] = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }

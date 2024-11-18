@@ -679,7 +679,7 @@ describe('OptionsListUtils', () => {
             taxCode: 'CODE1',
         } as Transaction;
 
-        const resultList: OptionsListUtils.CategorySection[] = [
+        const resultList: OptionsListUtils.Section[] = [
             {
                 data: [
                     {
@@ -718,7 +718,7 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        const searchResultList: OptionsListUtils.CategorySection[] = [
+        const searchResultList: OptionsListUtils.Section[] = [
             {
                 data: [
                     {
@@ -737,7 +737,7 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        const wrongSearchResultList: OptionsListUtils.CategorySection[] = [
+        const wrongSearchResultList: OptionsListUtils.Section[] = [
             {
                 data: [],
                 shouldShow: true,

@@ -166,24 +166,24 @@ type MemberForList = {
     reportID: string;
 };
 
-type CategorySectionBase = {
+type SectionBase = {
     title: string | undefined;
     shouldShow: boolean;
 };
 
-type CategorySection = CategorySectionBase & {
+type Section = SectionBase & {
     data: Option[];
 };
 
 type SectionForSearchTerm = {
-    section: CategorySection;
+    section: Section;
 };
 type Options = {
     recentReports: ReportUtils.OptionData[];
     personalDetails: ReportUtils.OptionData[];
     userToInvite: ReportUtils.OptionData | null;
     currentUserOption: ReportUtils.OptionData | null | undefined;
-    taxRatesOptions: CategorySection[];
+    taxRatesOptions: Section[];
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
@@ -2067,4 +2067,4 @@ export {
     hasReportErrors,
 };
 
-export type {CategorySection, CategorySectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Tax, TaxRatesOption, Option, OptionTree};
+export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Tax, TaxRatesOption, Option, OptionTree};

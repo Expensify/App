@@ -139,7 +139,7 @@ function NewChatPage() {
         useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
-        const sectionsList: OptionsListUtils.CategorySection[] = [];
+        const sectionsList: OptionsListUtils.Section[] = [];
         let firstKey = '';
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails);
