@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -11,7 +12,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDelegateRolePendingAction, requestValidationCode, updateDelegateRoleOptimistically} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {DelegateRole} from '@src/types/onyx/Account';
@@ -22,6 +25,8 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
     const login = route.params.login;
     const [currentRole, setCurrentRole] = useState(route.params.currentRole);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
@@ -39,46 +44,48 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     }, [login]);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={UpdateDelegateRolePage.displayName}
-        >
-            <HeaderWithBackButton
-                title={translate('delegate.accessLevel')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <SelectionList
-                isAlternateTextMultilineSupported
-                alternateTextNumberOfLines={4}
-                initiallyFocusedOptionKey={currentRole}
-                shouldUpdateFocusedIndex
-                headerContent={
-                    <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
-                        <>
-                            {translate('delegate.accessLevelDescription')}{' '}
-                            <TextLink
-                                style={[styles.link]}
-                                href={CONST.COPILOT_HELP_URL}
-                            >
-                                {translate('common.learnMore')}
-                            </TextLink>
-                        </>
-                    </Text>
-                }
-                onSelectRow={(option) => {
-                    if (option.isSelected) {
-                        Navigation.dismissModal();
-                        return;
+        <AccessOrNotFoundWrapper shouldBeBlocked={isActingAsDelegate}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={UpdateDelegateRolePage.displayName}
+            >
+                <HeaderWithBackButton
+                    title={translate('delegate.accessLevel')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <SelectionList
+                    isAlternateTextMultilineSupported
+                    alternateTextNumberOfLines={4}
+                    initiallyFocusedOptionKey={currentRole}
+                    shouldUpdateFocusedIndex
+                    headerContent={
+                        <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
+                            <>
+                                {translate('delegate.accessLevelDescription')}{' '}
+                                <TextLink
+                                    style={[styles.link]}
+                                    href={CONST.COPILOT_HELP_URL}
+                                >
+                                    {translate('common.learnMore')}
+                                </TextLink>
+                            </>
+                        </Text>
                     }
+                    onSelectRow={(option) => {
+                        if (option.isSelected) {
+                            Navigation.dismissModal();
+                            return;
+                        }
 
-                    requestValidationCode();
-                    setCurrentRole(option.value);
-                    Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.getRoute(login, option.value));
-                }}
-                sections={[{data: roleOptions}]}
-                ListItem={RadioListItem}
-            />
-        </ScreenWrapper>
+                        requestValidationCode();
+                        setCurrentRole(option.value);
+                        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.getRoute(login, option.value));
+                    }}
+                    sections={[{data: roleOptions}]}
+                    ListItem={RadioListItem}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
