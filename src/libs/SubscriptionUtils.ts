@@ -270,6 +270,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
             // 2. Policy owner with amount owed, overdue (past grace period)
             if (hasGracePeriodOverdue()) {
                 return {
+                    isError: true,
                     status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
                 };
             }
