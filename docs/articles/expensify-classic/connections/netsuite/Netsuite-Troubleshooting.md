@@ -97,8 +97,8 @@ This can happen if the employee’s subsidiary in NetSuite doesn’t match what�
     - Ensure the email on the employee record in NetSuite matches the email address of the report submitter in Expensify.
     - In NetSuite, make sure the employee's hire date is in the past and/or the termination date is in the future.
 4. **Currency Match for Journal Entries:**
-    - If exporting as Journal Entries, ensure the currency for the NetSuite employee record, NetSuite subsidiary, and Expensify policy all match.
-    - In NetSuite, go to the **Human Resources** tab > **Expense Report Currencies**, and add the subsidiary/policy currency if necessary.
+    - If exporting as Journal Entries, ensure the currency for the NetSuite employee record, NetSuite subsidiary, and Expensify workspace all match.
+    - In NetSuite, go to the **Human Resources** tab > **Expense Report Currencies**, and add the subsidiary/workspace currency if necessary.
 
 
 # ExpensiError NS0024: Invalid Customer or Project Tag
