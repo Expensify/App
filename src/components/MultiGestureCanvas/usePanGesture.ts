@@ -1,8 +1,9 @@
 /* eslint-disable no-param-reassign */
+import {useCallback} from 'react';
 import {Dimensions} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useDerivedValue, useSharedValue, useWorkletCallback, withDecay, withSpring} from 'react-native-reanimated';
+import {runOnJS, useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
 import * as Browser from '@libs/Browser';
 import {SPRING_CONFIG} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
@@ -66,7 +67,9 @@ const usePanGesture = ({
     // Calculates bounds of the scaled content
     // Can we pan left/right/up/down
     // Can be used to limit gesture or implementing tension effect
-    const getBounds = useWorkletCallback(() => {
+    const getBounds = useCallback(() => {
+        'worklet';
+
         let horizontalBoundary = 0;
         let verticalBoundary = 0;
 
@@ -87,32 +90,34 @@ const usePanGesture = ({
         };
 
         // If the horizontal/vertical offset is the same after clamping to the min/max boundaries, the content is within the boundaries
-        const isInHoriztontalBoundary = clampedOffset.x === offsetX.value;
+        const isInHorizontalBoundary = clampedOffset.x === offsetX.value;
         const isInVerticalBoundary = clampedOffset.y === offsetY.value;
 
         return {
             horizontalBoundaries,
             verticalBoundaries,
             clampedOffset,
-            isInHoriztontalBoundary,
+            isInHorizontalBoundary,
             isInVerticalBoundary,
         };
-    }, [canvasSize.width, canvasSize.height]);
+    }, [canvasSize.width, canvasSize.height, zoomedContentWidth, zoomedContentHeight, offsetX, offsetY]);
 
     // We want to smoothly decay/end the gesture by phasing out the pan animation
     // In case the content is outside of the boundaries of the canvas,
     // we need to move the content back into the boundaries
-    const finishPanGesture = useWorkletCallback(() => {
+    const finishPanGesture = useCallback(() => {
+        'worklet';
+
         // If the content is centered within the canvas, we don't need to run any animations
         if (offsetX.value === 0 && offsetY.value === 0 && panTranslateX.value === 0 && panTranslateY.value === 0) {
             return;
         }
 
-        const {clampedOffset, isInHoriztontalBoundary, isInVerticalBoundary, horizontalBoundaries, verticalBoundaries} = getBounds();
+        const {clampedOffset, isInHorizontalBoundary, isInVerticalBoundary, horizontalBoundaries, verticalBoundaries} = getBounds();
 
         // If the content is within the horizontal/vertical boundaries of the canvas, we can smoothly phase out the animation
         // If not, we need to snap back to the boundaries
-        if (isInHoriztontalBoundary) {
+        if (isInHorizontalBoundary) {
             // If the (absolute) velocity is 0, we don't need to run an animation
             if (Math.abs(panVelocityX.value) !== 0) {
                 // Phase out the pan animation
@@ -161,7 +166,7 @@ const usePanGesture = ({
         // Reset velocity variables after we finished the pan gesture
         panVelocityX.value = 0;
         panVelocityY.value = 0;
-    });
+    }, [offsetX, offsetY, panTranslateX, panTranslateY, panVelocityX, panVelocityY, zoomScale, isSwipingDownToClose, getBounds, onSwipeDown]);
 
     const panGesture = Gesture.Pan()
         .manualActivation(true)
@@ -183,6 +188,7 @@ const usePanGesture = ({
                 if (Math.abs(velocityY) > velocityX && velocityY > 20) {
                     state.activate();
 
+                    // eslint-disable-next-line react-compiler/react-compiler
                     isSwipingDownToClose.value = true;
                     previousTouch.value = null;
 
