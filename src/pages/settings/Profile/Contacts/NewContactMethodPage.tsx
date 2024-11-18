@@ -70,7 +70,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         }
 
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(pendingContactAction?.contactMethod ?? ''));
-    }, [pendingContactAction?.actionVerified]);
+    }, [pendingContactAction?.actionVerified, pendingContactAction?.contactMethod]);
 
     const validate = React.useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
