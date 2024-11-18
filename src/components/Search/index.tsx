@@ -368,11 +368,14 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
         if (SearchUIUtils.isReportActionListItemType(item)) {
             const reportActionID = item.reportActionID;
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
+
+            // We always want to open it in RHP
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}), {reportPathConversionEnabled: false});
             return;
         }
 
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+        // We always want to open it in RHP
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}), {reportPathConversionEnabled: false});
     };
 
     const fetchMoreResults = () => {
