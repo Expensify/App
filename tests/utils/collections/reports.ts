@@ -1,4 +1,4 @@
-import {rand, randBoolean, randWord} from '@ngneat/falso';
+import {rand, randBoolean, randCurrencyCode, randWord} from '@ngneat/falso';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 
@@ -7,7 +7,6 @@ export default function createRandomReport(index: number): Report {
         reportID: index.toString(),
         chatType: rand(Object.values(CONST.REPORT.CHAT_TYPE)),
         currency: randCurrencyCode(),
-        displayName: randWord(),
         ownerAccountID: index,
         isPinned: randBoolean(),
         isOptimisticReport: randBoolean(),
