@@ -99,6 +99,7 @@ import type {
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
+    Onboarding,
     OnboardingPurpose,
     PersonalDetailsList,
     PolicyReportField,
@@ -277,6 +278,17 @@ let quickAction: OnyxEntry<QuickAction> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
     callback: (val) => (quickAction = val),
+});
+
+let onboarding: OnyxEntry<Onboarding>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (val) => {
+        if (Array.isArray(val)) {
+            return;
+        }
+        onboarding = val;
+    },
 });
 
 let introSelected: OnyxEntry<IntroSelected> = {};
@@ -871,8 +883,11 @@ function openReport(
     };
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
+    const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
 
-    if (introSelected && !isInviteOnboardingComplete) {
+    // Prepare guided setup data only when nvp_introSelected is set and onboarding is not completed
+    // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages
+    if (introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete) {
         const {choice, inviteType} = introSelected;
         const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
         const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
@@ -3469,6 +3484,7 @@ function prepareOnboardingOptimisticData(
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
     userReportedIntegration?: OnboardingAccounting,
+    wasInvited?: boolean,
 ) {
     // If the user has the "combinedTrackSubmit" beta enabled we'll show different tasks for track and submit expense.
     if (Permissions.canUseCombinedTrackSubmit()) {
@@ -3519,7 +3535,11 @@ function prepareOnboardingOptimisticData(
     }
     const tasksData = data.tasks
         .filter((task) => {
-            if (task.type === 'addAccountingIntegration' && !userReportedIntegration) {
+            if (['setupCategories', 'setupTags'].includes(task.type) && userReportedIntegration) {
+                return false;
+            }
+
+            if (['addAccountingIntegration', 'setupCategoriesAndTags'].includes(task.type) && !userReportedIntegration) {
                 return false;
             }
             return true;
@@ -3535,6 +3555,7 @@ function prepareOnboardingOptimisticData(
                           navatticURL: getNavatticURL(environment, engagementChoice),
                           integrationName,
                           workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID ?? '-1')}`,
+                          workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID ?? '-1')}`,
                       })
                     : task.description;
             const taskTitle =
@@ -3747,12 +3768,14 @@ function prepareOnboardingOptimisticData(
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: engagementChoice},
         },
-        {
+    );
+    if (!wasInvited) {
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {hasCompletedGuidedSetupFlow: true},
-        },
-    );
+        });
+    }
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
     successData.push({
@@ -3807,12 +3830,15 @@ function prepareOnboardingOptimisticData(
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: null},
         },
-        {
+    );
+
+    if (!wasInvited) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {hasCompletedGuidedSetupFlow: false},
-        },
-    );
+        });
+    }
 
     if (userReportedIntegration) {
         optimisticData.push({
@@ -3896,6 +3922,7 @@ function completeOnboarding(
     paymentSelected?: string,
     companySize?: OnboardingCompanySize,
     userReportedIntegration?: OnboardingAccounting,
+    wasInvited?: boolean,
 ) {
     const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(
         engagementChoice,
@@ -3903,6 +3930,7 @@ function completeOnboarding(
         adminsChatReportID,
         onboardingPolicyID,
         userReportedIntegration,
+        wasInvited,
     );
 
     const parameters: CompleteGuidedSetupParams = {
