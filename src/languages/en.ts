@@ -2330,6 +2330,7 @@ const translations = {
     agreementsStep: {
         agreements: 'Agreements',
         pleaseConfirm: 'Please confirm the agreements below',
+        regulationRequiresUs: 'Regulation requires us to verify the identity of any individual who owns more than 25% of the business.',
         iAmAuthorized: 'I am authorized to use the business bank account for business spend.',
         iCertify: 'I certify that the information provided is true and accurate.',
         termsAndConditions: 'terms and conditions.',

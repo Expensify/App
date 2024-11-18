@@ -83,6 +83,7 @@ function Confirmation({onNext}: SubStepProps) {
             enabledWhenOffline={false}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('agreementsStep.pleaseConfirm')}</Text>
+            <Text style={[styles.pv3, styles.textSupporting]}>{translate('agreementsStep.regulationRequiresUs')}</Text>
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 accessibilityLabel={translate('agreementsStep.iAmAuthorized')}
