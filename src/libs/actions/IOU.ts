@@ -3389,6 +3389,8 @@ function categorizeTrackedExpense(
     billable?: boolean,
     receipt?: Receipt,
     createdWorkspaceParams?: CreateWorkspaceParams,
+    waypoints?: string,
+    customUnitRateID?: string,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
 
@@ -3435,6 +3437,8 @@ function categorizeTrackedExpense(
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
+        waypoints,
+        customUnitRateID,
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -3470,6 +3474,8 @@ function shareTrackedExpense(
     billable?: boolean,
     receipt?: Receipt,
     createdWorkspaceParams?: CreateWorkspaceParams,
+    waypoints?: string,
+    customUnitRateID?: string,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
 
@@ -3516,6 +3522,8 @@ function shareTrackedExpense(
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
+        waypoints,
+        customUnitRateID,
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -3819,6 +3827,8 @@ function trackExpense(
         value: recentServerValidatedWaypoints,
     });
 
+    const waypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
+
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
@@ -3849,6 +3859,8 @@ function trackExpense(
                 billable,
                 trackedReceipt,
                 createdWorkspaceParams,
+                waypoints,
+                customUnitRateID,
             );
             break;
         }
@@ -3880,6 +3892,8 @@ function trackExpense(
                 billable,
                 trackedReceipt,
                 createdWorkspaceParams,
+                waypoints,
+                customUnitRateID,
             );
             break;
         }
@@ -3908,7 +3922,7 @@ function trackExpense(
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 createdReportActionIDForThread: createdReportActionIDForThread ?? '-1',
-                waypoints: validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined,
+                waypoints,
                 customUnitRateID,
             };
             if (actionableWhisperReportActionIDParam) {
