@@ -41,6 +41,7 @@ import type MobileSelectionMode from './MobileSelectionMode';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
+import type Onboarding from './Onboarding';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
@@ -237,6 +238,7 @@ export type {
     SaveSearch,
     RecentSearchItem,
     ImportedSpreadsheet,
+    Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
 };
