@@ -1,5 +1,5 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -210,20 +210,24 @@ function MagicCodeInput(
      * Tap gesture configuration, updates the indexes of the
      * currently focused input.
      */
-    const tapGesture = Gesture.Tap()
-        .runOnJS(true)
-        // eslint-disable-next-line react-compiler/react-compiler
-        .onBegin((event) => {
-            const index = Math.floor(event.x / (inputWidth.current / maxLength));
-            shouldFocusLast.current = false;
-            // TapGestureHandler works differently on mobile web and native app
-            // On web gesture handler doesn't block interactions with textInput below so there is no need to run `focus()` manually
-            if (!Browser.isMobileChrome() && !Browser.isMobileSafari()) {
-                inputRefs.current?.focus();
-            }
-            setInputAndIndex(index);
-            lastFocusedIndex.current = index;
-        });
+    const tapGesture = useMemo(
+        () =>
+            Gesture.Tap()
+                .runOnJS(true)
+                // eslint-disable-next-line react-compiler/react-compiler
+                .onBegin((event) => {
+                    const index = Math.floor(event.x / (inputWidth.current / maxLength));
+                    shouldFocusLast.current = false;
+                    // TapGestureHandler works differently on mobile web and native app
+                    // On web gesture handler doesn't block interactions with textInput below so there is no need to run `focus()` manually
+                    if (!Browser.isMobileChrome() && !Browser.isMobileSafari()) {
+                        inputRefs.current?.focus();
+                    }
+                    setInputAndIndex(index);
+                    lastFocusedIndex.current = index;
+                }),
+        [maxLength],
+    );
 
     /**
      * Updates the magic inputs with the contents written in the
