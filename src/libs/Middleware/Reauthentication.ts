@@ -7,15 +7,13 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import type {RequestError} from '@libs/Network/SequentialQueue';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Request from '@libs/Request';
-import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
+import * as RequestThrottle from '@src/libs/RequestThrottle';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Middleware from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
 let isAuthenticating: Promise<void> | null = null;
-
-const reauthThrottle = new RequestThrottle();
 
 function reauthenticate(commandName?: string): Promise<void> {
     if (isAuthenticating) {
@@ -46,8 +44,7 @@ function reauthenticate(commandName?: string): Promise<void> {
 
 function retryReauthenticate(commandName?: string): Promise<void> {
     return Authentication.reauthenticate(commandName).catch((error: RequestError) => {
-        return reauthThrottle
-            .sleep(error, 'Authenticate')
+        return RequestThrottle.sleep(error, 'Authenticate')
             .then(() => retryReauthenticate(commandName))
             .catch(() => {
                 NetworkStore.setIsAuthenticating(false);
