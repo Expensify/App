@@ -79,7 +79,6 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
         );
     }
 
-    // @TODO We can think about handling it in one condition.
     if (RELATIONS.RHP_TO_WORKSPACE[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RELATIONS.RHP_TO_WORKSPACE[route.name]);
 
