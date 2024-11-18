@@ -11,14 +11,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import * as GetStateForActionHandlers from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
-import type {
-    CustomRouterActionType,
-    CustomRouterAction,
-    DismissModalActionType,
-    PushActionType,
-    SwitchPolicyIdActionType,
-    ResponsiveStackNavigatorRouterOptions,
-} from './types';
+import type {CustomRouterAction, CustomRouterActionType, DismissModalActionType, PushActionType, ResponsiveStackNavigatorRouterOptions, SwitchPolicyIdActionType} from './types';
 
 function isSwitchPolicyIdAction(action: CustomRouterAction): action is SwitchPolicyIdActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
