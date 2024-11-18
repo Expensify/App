@@ -1,5 +1,4 @@
 import * as ActiveClientManager from '@libs/ActiveClientManager';
-// import {reauthenticate} from '@libs/Middleware/Reauthentication';
 import CONST from '@src/CONST';
 import type {Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
