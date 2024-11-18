@@ -139,7 +139,7 @@ function maskCard(lastFour = ''): string {
  * @returns - The masked card string.
  */
 function maskCardNumber(cardName: string, feed: string | undefined): string {
-    if (!cardName || cardName === '' || !feed) {
+    if (!cardName || cardName === '') {
         return '';
     }
     const hasSpace = /\s/.test(cardName);

@@ -241,10 +241,10 @@ describe('CardUtils', () => {
             expect(maskedCardNumber).toBe('2119 44•••• •6557');
         });
 
-        it('Should return empty string if undefined feed was provided', () => {
+        it('Should return masked card number even if undefined feed was provided', () => {
             const cardNumber = '480801XXXXXX2554';
             const maskedCardNumber = CardUtils.maskCardNumber(cardNumber, undefined);
-            expect(maskedCardNumber).toBe('');
+            expect(maskedCardNumber).toBe('4808 01•• •••• 2554');
         });
 
         it('Should return empty string if invalid card name was provided', () => {
