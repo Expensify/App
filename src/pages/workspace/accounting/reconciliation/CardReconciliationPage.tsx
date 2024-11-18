@@ -106,12 +106,13 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             {translate('common.conjunctionFor')} {CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}
                         </Text>
                     )}
-                    {!!paymentBankAccountID && isContinuousReconciliationOn && (
+                    {!!paymentBankAccountID && !!isContinuousReconciliationOn && (
                         <MenuItemWithTopDescription
                             style={styles.mt5}
                             title={bankAccountTitle}
                             description={translate('workspace.accounting.reconciliationAccount')}
                             shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection))}
                         />
                     )}
                 </ScrollView>

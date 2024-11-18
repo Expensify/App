@@ -9,8 +9,8 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import searchCountryOptions from '@libs/searchCountryOptions';
-import type {CountryData} from '@libs/searchCountryOptions';
+import searchOptions from '@libs/searchOptions';
+import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
 import type {Route} from '@src/ROUTES';
@@ -50,11 +50,11 @@ function StateSelectionPage() {
         [translate, currentState],
     );
 
-    const searchResults = searchCountryOptions(searchValue, countryStates);
+    const searchResults = searchOptions(searchValue, countryStates);
     const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountryState = useCallback(
-        (option: CountryData) => {
+        (option: Option) => {
             const backTo = params?.backTo ?? '';
 
             // Determine navigation action based on "backTo" presence and route stack length.

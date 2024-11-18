@@ -5,7 +5,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -22,7 +21,6 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
     const policyOwner = policy?.owner ?? '';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const errorFields = qbdConfig?.errorFields;
-    const {canUseNewDotQBD} = usePermissions();
 
     const shouldShowVendorMenuItems = useMemo(
         () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
@@ -33,7 +31,9 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
         {
             description: translate('workspace.accounting.preferredExporter'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID)),
-            title: qbdConfig?.export?.exporter ?? policyOwner,
+            // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            title: qbdConfig?.export?.exporter || policyOwner,
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER],
         },
         {
@@ -77,14 +77,13 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
             displayName={QuickbooksDesktopExportPage.displayName}
             headerTitle="workspace.accounting.export"
             title="workspace.qbd.exportDescription"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] remove it once the QBD beta is done
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack()}
         >
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback

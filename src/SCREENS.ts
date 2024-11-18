@@ -84,6 +84,7 @@ const SCREENS = {
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
             LEGAL_NAME: 'Settings_LegalName',
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
+            PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
             ADDRESS_COUNTRY: 'Settings_Address_Country',
             ADDRESS_STATE: 'Settings_Address_State',
@@ -219,6 +220,7 @@ const SCREENS = {
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         RECEIPT: 'Money_Request_Receipt',
         STATE_SELECTOR: 'Money_Request_State_Selector',
+        STEP_ATTENDEES: 'Money_Request_Attendee',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -331,6 +333,9 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_ADVANCED: 'Policy_Accounting_Quickbooks_Online_Advanced',
             QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
             QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
+            QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Classes_Displayed_As',
+            QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Customers_Displayed_As',
+            QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Locations_Displayed_As',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Account_Select',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Select',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense',
@@ -400,6 +405,8 @@ const SCREENS = {
             NETSUITE_JOURNAL_ENTRY_APPROVAL_LEVEL_SELECT: 'Policy_Accounting_NetSuite_Journal_Entry_Approval_Level_Select',
             NETSUITE_APPROVAL_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Approval_Account_Select',
             NETSUITE_CUSTOM_FORM_ID: 'Policy_Accounting_NetSuite_Custom_Form_ID',
+            NETSUITE_AUTO_SYNC: 'Policy_Accounting_NetSuite_Auto_Sync',
+            NETSUITE_ACCOUNTING_METHOD: 'Policy_Accounting_NetSuite_Accounting_Method',
             SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
             ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
             EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',
@@ -527,6 +534,7 @@ const SCREENS = {
         DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: 'Distance_Rate_Tax_Reclaimable_On_Edit',
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
         UPGRADE: 'Workspace_Upgrade',
+        DOWNGRADE: 'Workspace_Downgrade',
         RULES: 'Policy_Rules',
         RULES_CUSTOM_NAME: 'Rules_Custom_Name',
         RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',
@@ -536,6 +544,7 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
+        PER_DIEM: 'Per_Diem',
     },
 
     EDIT_REQUEST: {
