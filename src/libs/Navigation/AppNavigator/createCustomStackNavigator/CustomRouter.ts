@@ -41,7 +41,7 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
     return false;
 }
 
-function shouldDismissSideModalNavigator(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
+function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
     if (action.type !== CONST.NAVIGATION.ACTION_TYPE.PUSH) {
         return false;
     }
@@ -88,7 +88,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                 return state;
             }
 
-            if (shouldDismissSideModalNavigator(state, action)) {
+            if (isNavigatingToModalFromModal(state, action)) {
                 const modifiedState = {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0};
                 return stackRouter.getStateForAction(modifiedState, action, configOptions);
             }
