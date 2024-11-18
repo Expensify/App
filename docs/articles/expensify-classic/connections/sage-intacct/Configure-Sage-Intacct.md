@@ -1,4 +1,4 @@
-**---
+---
 title: Configure Sage Intacct
 description: Configure Sage Intacct's export, coding, and advanced settings.
 ---
@@ -151,4 +151,3 @@ If a report has been exported to Intacct and marked as paid in Intacct, we'll au
 If a report has not been exported to Intacct, it will not be exported to Intacct automatically.
 
 {% include faq-end.md %}
-**
