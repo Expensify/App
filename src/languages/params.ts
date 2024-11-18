@@ -559,6 +559,9 @@ type WorkspaceLockedPlanTypeParams = {
     subscriptionUsersCount: number;
     annualSubscriptionEndDate: string;
 };
+type CompanyNameParams = {
+    companyName: string;
+};
 
 export type {
     AuthenticationErrorParams,
@@ -762,4 +765,5 @@ export type {
     ImportedTypesParams,
     CurrencyCodeParams,
     WorkspaceLockedPlanTypeParams,
+    CompanyNameParams,
 };

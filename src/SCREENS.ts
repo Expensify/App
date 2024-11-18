@@ -116,6 +116,7 @@ const SCREENS = {
         },
 
         EXIT_SURVEY: {
+            BOOK_CALL: 'Settings_ExitSurvey_Book_Call',
             REASON: 'Settings_ExitSurvey_Reason',
             RESPONSE: 'Settings_ExitSurvey_Response',
             CONFIRM: 'Settings_ExitSurvey_Confirm',
