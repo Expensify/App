@@ -5,6 +5,7 @@ import {Dimensions, View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
@@ -20,6 +21,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,6 +52,8 @@ function SecuritySettingsPage() {
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const {delegatorEmail} = useDelegateUserDetails();
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
     const [shouldShowRemoveDelegateModal, setShouldShowRemoveDelegateModal] = useState(false);
@@ -202,6 +206,28 @@ function SecuritySettingsPage() {
         [delegators, styles, translate, personalDetails],
     );
 
+    const onUpdateDelegateRoleButtonPress = useCallback(() => {
+        if (isActingAsDelegate) {
+            setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
+        setShouldShowDelegatePopoverMenu(false);
+        setSelectedDelegate(undefined);
+    }, [isActingAsDelegate, selectedDelegate]);
+
+    const onRemoveDelegateButtonPress = useCallback(() => {
+        if (isActingAsDelegate && selectedDelegate?.email !== account?.delegatedAccess?.delegate) {
+            setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
+
+        Modal.close(() => {
+            setShouldShowDelegatePopoverMenu(false);
+            setShouldShowRemoveDelegateModal(true);
+        });
+    }, [account?.delegatedAccess?.delegate, isActingAsDelegate, selectedDelegate?.email]);
+
     return (
         <ScreenWrapper
             testID={SecuritySettingsPage.displayName}
@@ -291,22 +317,13 @@ function SecuritySettingsPage() {
                                     <MenuItem
                                         title={translate('delegate.changeAccessLevel')}
                                         icon={Expensicons.Pencil}
-                                        onPress={() => {
-                                            Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
-                                            setShouldShowDelegatePopoverMenu(false);
-                                            setSelectedDelegate(undefined);
-                                        }}
+                                        onPress={onUpdateDelegateRoleButtonPress}
                                         wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                                     />
                                     <MenuItem
                                         title={translate('delegate.removeCopilot')}
                                         icon={Expensicons.Trashcan}
-                                        onPress={() =>
-                                            Modal.close(() => {
-                                                setShouldShowDelegatePopoverMenu(false);
-                                                setShouldShowRemoveDelegateModal(true);
-                                            })
-                                        }
+                                        onPress={onRemoveDelegateButtonPress}
                                         wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                                     />
                                 </View>
@@ -330,6 +347,11 @@ function SecuritySettingsPage() {
                                 shouldShowCancelButton
                             />
                         </View>
+                        <DelegateNoAccessModal
+                            isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                            onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+                            delegatorEmail={delegatorEmail ?? ''}
+                        />
                     </ScrollView>
                 </>
             )}
