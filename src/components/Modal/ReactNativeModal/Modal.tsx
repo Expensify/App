@@ -13,6 +13,8 @@ import {defaultProps} from './utils';
 type TransitionType = 'open' | 'close';
 
 function ReactNativeModal(incomingProps: ModalProps) {
+    const mergedProps = {...defaultProps, ...incomingProps};
+
     const {
         animationIn,
         animationOut,
@@ -34,10 +36,8 @@ function ReactNativeModal(incomingProps: ModalProps) {
         style,
         avoidKeyboard,
         ...props
-    }: ModalProps = {
-        ...defaultProps,
-        ...incomingProps,
-    };
+    } = mergedProps;
+
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
     const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -213,7 +213,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...otherProps}
         >
-            {props.hideModalContentWhileAnimating ? <View /> : children}
+            {props.hideModalContentWhileAnimating && isTransitioning ? <View /> : children}
         </Container>
     );
 
