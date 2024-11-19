@@ -52,7 +52,7 @@ function getEnvironmentURL(): Promise<string> {
  * Given the environment get the corresponding oldDot URL
  */
 function getOldDotURLFromEnvironment(environment: Environment): string {
-    return `${OLDDOT_ENVIRONMENT_URLS[environment]}/`;
+    return OLDDOT_ENVIRONMENT_URLS[environment];
 }
 
 /**
