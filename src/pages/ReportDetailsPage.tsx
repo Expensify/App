@@ -375,7 +375,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             });
         }
 
-        if (isTrackExpenseReport) {
+        if (isTrackExpenseReport && !isDeletedParentAction) {
             const actionReportID = ReportUtils.getOriginalReportID(report.reportID, parentReportAction) ?? '0';
             const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID ?? '0');
             const actionableWhisperReportActionID = whisperAction?.reportActionID ?? '0';
