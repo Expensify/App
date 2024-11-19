@@ -10,6 +10,7 @@ import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import * as NativeCommands from '../../../../tests/e2e/nativeCommands/NativeCommandsAction';
 
 const test = (config: NativeConfig) => {
     // check for login (if already logged in the action will simply resolve)
@@ -43,13 +44,14 @@ const test = (config: NativeConfig) => {
                     metric: entry.duration,
                     unit: 'ms',
                 });
-                setTimeout(() => {
-                    tap('button_2');
-                }, 2000);
+            })
+            .then(() => E2EClient.sendNativeCommand(NativeCommands.makeClearCommand()))
+            .then(() => {
+                tap('button_2');
                 setTimeout(() => {
                     Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT);
                     tap('next-button');
-                }, 4000);
+                }, 1000);
             })
             .then(() => waitForEvent(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT))
             .then((entry) => {
