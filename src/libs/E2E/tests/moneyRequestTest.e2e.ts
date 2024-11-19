@@ -3,7 +3,7 @@ import type {NativeConfig} from 'react-native-config';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
-import {tap, waitForElement, waitForEvent} from '@libs/E2E/interactions';
+import {tap, waitForElement, waitForEvent, waitForTextInputValue} from '@libs/E2E/interactions';
 import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
@@ -48,10 +48,11 @@ const test = (config: NativeConfig) => {
             .then(() => E2EClient.sendNativeCommand(NativeCommands.makeClearCommand()))
             .then(() => {
                 tap('button_2');
-                setTimeout(() => {
-                    Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT);
-                    tap('next-button');
-                }, 1000);
+            })
+            .then(() => waitForTextInputValue('2', 'moneyRequestAmountInput'))
+            .then(() => {
+                Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT);
+                tap('next-button');
             })
             .then(() => waitForEvent(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT))
             .then((entry) => {

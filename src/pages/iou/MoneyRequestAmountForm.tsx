@@ -282,6 +282,7 @@ function MoneyRequestAmountForm(
                     moneyRequestAmountInputRef={moneyRequestAmountInput}
                     inputStyle={[styles.iouAmountTextInput]}
                     containerStyle={[styles.iouAmountTextInputContainer]}
+                    testID="moneyRequestAmountInput"
                 />
                 {!!formError && (
                     <FormHelpMessage

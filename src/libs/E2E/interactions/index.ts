@@ -15,6 +15,19 @@ const waitForElement = (testID: string) => {
     });
 };
 
+const waitForTextInputValue = (text: string, _testID: string): Promise<void> => {
+    return new Promise((resolve) => {
+        const subscription = DeviceEventEmitter.addListener('onChangeText', ({testID, value}) => {
+            if (_testID !== testID || value !== text) {
+                return;
+            }
+
+            subscription.remove();
+            resolve(undefined);
+        });
+    });
+};
+
 const waitForEvent = (eventName: string): Promise<PerformanceEntry> => {
     return new Promise((resolve) => {
         Performance.subscribeToMeasurements((entry) => {
@@ -31,4 +44,4 @@ const tap = (testID: string) => {
     E2EGenericPressableWrapper.getPressableProps(testID)?.onPress?.();
 };
 
-export {waitForElement, tap, waitForEvent};
+export {waitForElement, tap, waitForEvent, waitForTextInputValue};
