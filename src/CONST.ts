@@ -4821,7 +4821,6 @@ const CONST = {
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
-    ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
     COMBINED_TRACK_SUBMIT_ONBOARDING_CHOICES: {...combinedTrackSubmitOnboardingChoices},
@@ -6089,6 +6088,16 @@ const CONST = {
         ANIMATION: 'animation',
         ILLUSTRATION: 'illustration',
         VIDEO: 'video',
+    },
+    REPORT_FIELDS_FEATURE: {
+        qbo: {
+            classes: 'report-fields-qbo-classes',
+            customers: 'report-fields-qbo-customers',
+            locations: 'report-fields-qbo-locations',
+        },
+        xero: {
+            mapping: 'report-fields-mapping',
+        },
     },
     get UPGRADE_FEATURE_INTRO_MAPPING() {
         return {

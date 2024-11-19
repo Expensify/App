@@ -46,6 +46,7 @@ function CodesStep({backTo}: CodesStepProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [user] = useOnyx(ONYXKEYS.USER);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
     const isUserValidated = user?.validated;
     const contactMethod = account?.primaryLogin ?? '';
@@ -53,7 +54,7 @@ function CodesStep({backTo}: CodesStepProps) {
 
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
-    const hasMagicCodeBeenSent = !!loginData?.validateCodeSent;
+    const hasMagicCodeBeenSent = !!validateCodeAction?.validateCodeSent;
 
     const {setStep} = useTwoFactorAuthContext();
 
@@ -176,7 +177,7 @@ function CodesStep({backTo}: CodesStepProps) {
                     hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                     validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                     sendValidateCode={() => User.requestValidateCodeAction()}
-                    handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode)}
+                    handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode, true)}
                     validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
                     clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                     onModalHide={() => {}}

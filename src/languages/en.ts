@@ -795,6 +795,7 @@ const translations = {
         locationAccessMessage: 'Location access helps us keep your timezone and currency accurate wherever you go.',
         locationErrorTitle: 'Allow location access',
         locationErrorMessage: 'Location access helps us keep your timezone and currency accurate wherever you go.',
+        allowLocationFromSetting: `Location access helps us keep your timezone and currency accurate wherever you go. Please allow location access from your device's permission settings.`,
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
@@ -3616,10 +3617,16 @@ const translations = {
             actions: {
                 delete: 'Delete rate',
                 deleteMultiple: 'Delete rates',
-                disable: 'Disable rate',
-                disableMultiple: 'Disable rates',
                 enable: 'Enable rate',
-                enableMultiple: 'Enable rates',
+                disable: 'Disable rate',
+                enableTaxRates: () => ({
+                    one: 'Enable rate',
+                    other: 'Enable rates',
+                }),
+                disableTaxRates: () => ({
+                    one: 'Disable rate',
+                    other: 'Disable rates',
+                }),
             },
             importedFromAccountingSoftware: 'The taxes below are imported from your',
             taxCode: 'Tax code',

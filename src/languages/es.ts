@@ -789,6 +789,7 @@ const translations = {
         locationAccessMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
         locationErrorTitle: 'Permitir acceso a la ubicación',
         locationErrorMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
+        allowLocationFromSetting: `El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que estés. Por favor, permite el acceso a la ubicación en la configuración de permisos de tu dispositivo.`,
         cameraErrorMessage: 'Se ha producido un error al hacer una foto. Por favor, inténtalo de nuevo.',
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
@@ -3661,10 +3662,16 @@ const translations = {
             actions: {
                 delete: 'Eliminar tasa',
                 deleteMultiple: 'Eliminar tasas',
-                disable: 'Desactivar tasa',
-                disableMultiple: 'Desactivar tasas',
                 enable: 'Activar tasa',
-                enableMultiple: 'Activar tasas',
+                disable: 'Desactivar tasa',
+                enableTaxRates: () => ({
+                    one: 'Activar tasa',
+                    other: 'Activar tasas',
+                }),
+                disableTaxRates: () => ({
+                    one: 'Desactivar tasa',
+                    other: 'Desactivar tasas',
+                }),
             },
             importedFromAccountingSoftware: 'Impuestos importadas desde',
             taxCode: 'Código de impuesto',
