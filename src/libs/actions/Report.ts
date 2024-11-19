@@ -3498,14 +3498,6 @@ function prepareOnboardingOptimisticData(
     const adminsChatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = isEngagementChoiceManageTeam ? adminsChatReport : ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
-    // Introductory message
-    const introductionComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ONBOARDING_INTRODUCTION, undefined, actorAccountID);
-    const introductionCommentAction: OptimisticAddCommentReportAction = introductionComment.reportAction;
-    const introductionMessage: AddCommentOrAttachementParams = {
-        reportID: targetChatReportID,
-        reportActionID: introductionCommentAction.reportActionID,
-        reportComment: introductionComment.commentText,
-    };
 
     // Text message
     const textComment = ReportUtils.buildOptimisticAddCommentReportAction(data.message, undefined, actorAccountID, 1);
@@ -3764,18 +3756,7 @@ function prepareOnboardingOptimisticData(
             value: {choice: engagementChoice},
         },
     );
-    // "Manage team" engagement choice should not add the introduction message
-    // Backend returns a different introduction message in #admins room for "Manage team" engagement choice
-    // If we add the introduction message, it will be duplicated in the #admins room
-    if (!isEngagementChoiceManageTeam) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [introductionCommentAction.reportActionID]: introductionCommentAction as ReportAction,
-            },
-        });
-    }
+
     if (!wasInvited) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3793,19 +3774,6 @@ function prepareOnboardingOptimisticData(
             [textCommentAction.reportActionID]: {pendingAction: null},
         },
     });
-
-    // "Manage team" engagement choice should not add the introduction message
-    // Backend returns a different introduction message in #admins room for "Manage team" engagement choice
-    // If we add the introduction message, it will be duplicated in the #admins room
-    if (!isEngagementChoiceManageTeam) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [introductionCommentAction.reportActionID]: {pendingAction: null},
-            },
-        });
-    }
 
     let failureReport: Partial<Report> = {
         lastMessageTranslationKey: '',
@@ -3849,21 +3817,6 @@ function prepareOnboardingOptimisticData(
         },
     );
 
-    // "Manage team" engagement choice should not add the introduction message
-    // Backend returns a different introduction message in #admins room for "Manage team" engagement choice
-    // If we add the introduction message, it will be duplicated in the #admins room
-    if (!isEngagementChoiceManageTeam) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [introductionCommentAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
-            },
-        });
-    }
-
     if (!wasInvited) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3904,12 +3857,7 @@ function prepareOnboardingOptimisticData(
         });
     }
 
-    const guidedSetupData: GuidedSetupData = isEngagementChoiceManageTeam
-        ? []
-        : [
-              {type: 'message', ...introductionMessage},
-              {type: 'message', ...textMessage},
-          ];
+    const guidedSetupData: GuidedSetupData = [{type: 'message', ...textMessage}];
     if (!isEngagementChoiceManageTeam) {
         if ('video' in data && data.video && videoCommentAction && videoMessage) {
             optimisticData.push({
