@@ -1138,17 +1138,6 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     Report.notifyNewAction(report.reportID, currentUserAccountID);
 
-    // if (shouldDeleteTaskReport) {
-    //     Navigation.goBack();
-    //     if (parentReport?.reportID) {
-    //         return ROUTES.REPORT_WITH_ID.getRoute(parentReport.reportID);
-    //     }
-    //     const mostRecentReportID = Report.getMostRecentReportID(report);
-    //     if (mostRecentReportID) {
-    //         return ROUTES.REPORT_WITH_ID.getRoute(mostRecentReportID);
-    //     }
-    // }
-
     const urlToNavigateBack = getNavigationUrlAfterTaskDelete(report);
     if (urlToNavigateBack) {
         Navigation.goBack();
