@@ -164,7 +164,14 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
                             {buttonText: translate('emptySearchView.takeATour'), buttonAction: () => Link.openExternalLink(navatticURL)},
                             {
                                 buttonText: translate('workspace.invoices.sendInvoice'),
-                                buttonAction: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, ReportUtils.generateReportID())),
+                                buttonAction: () =>
+                                    interceptAnonymousUser(() => {
+                                        if (shouldRedirectToExpensifyClassic) {
+                                            setModalVisible(true);
+                                            return;
+                                        }
+                                        IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, ReportUtils.generateReportID());
+                                    }),
                                 success: true,
                             },
                         ],
