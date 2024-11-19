@@ -16,7 +16,6 @@ function ReportAvatar({route}: ReportAvatarProps) {
     const reportIDFromRoute = route.params?.reportID ?? '-1';
     const policyIDFromRoute = route.params?.policyID ?? '-1';
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyIDFromRoute}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
 
@@ -25,7 +24,6 @@ function ReportAvatar({route}: ReportAvatarProps) {
             return {
                 source: report?.avatarUrl ? UserUtils.getFullSizeAvatar(report.avatarUrl, 0) : ReportUtils.getDefaultGroupAvatar(report?.reportID ?? ''),
                 headerTitle: ReportUtils.getReportName(report),
-                originalFileName: reportMetadata?.avatarFileName ?? '',
                 isWorkspaceAvatar: false,
             };
         }
@@ -37,7 +35,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID ?? '',
             isWorkspaceAvatar: true,
         };
-    }, [report, policy, reportMetadata]);
+    }, [report, policy]);
 
     return (
         <AttachmentModal

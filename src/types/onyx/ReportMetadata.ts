@@ -17,9 +17,6 @@ type ReportMetadata = {
 
     /** The time when user last visited the report */
     lastVisitTime?: string;
-
-    /** The filename of the avatar */
-    avatarFileName?: string;
 };
 
 export default ReportMetadata;
