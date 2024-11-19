@@ -8226,7 +8226,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
                     selected: true,
                     accountID: 0,
                     isPolicyExpenseChat: true,
-                    reportID: getPolicyExpenseChat(currentUserAccountID ?? -1, activePolicyID ?? '-1')?.reportID ?? '-1',
+                    reportID: policyExpenseReportID,
                     policyID: activePolicyID ?? '-1',
                     searchText: activePolicy?.name,
                 },
@@ -8234,11 +8234,24 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
             return;
         }
-        if (filteredPolicies.length === 0) {
+        if (filteredPolicies.length === 0 || filteredPolicies.length > 1) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_UPGRADE.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
             return;
         }
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName));
+
+        const policyID = filteredPolicies.at(0)?.id;
+        const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID ?? -1, policyID ?? '-1')?.reportID ?? '-1';
+        IOU.setMoneyRequestParticipants(transactionID, [
+            {
+                selected: true,
+                accountID: 0,
+                isPolicyExpenseChat: true,
+                reportID: policyExpenseReportID,
+                policyID: policyID ?? '-1',
+                searchText: activePolicy?.name,
+            },
+        ]);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
         return;
     }
 
