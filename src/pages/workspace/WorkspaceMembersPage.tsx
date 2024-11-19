@@ -415,7 +415,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             return;
         }
         const invitedEmails = Object.values(invitedEmailsToAccountIDsDraft).map(String);
-        selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails, 1500);
+        selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails);
         Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
     }, [invitedEmailsToAccountIDsDraft, route.params.policyID, isFocused, accountIDs, prevAccountIDs]);
 

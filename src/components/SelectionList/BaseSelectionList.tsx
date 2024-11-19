@@ -487,7 +487,8 @@ function BaseSelectionList<TItem extends ListItem>(
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
-        const isItemFocused = (!isDisabled || item.isSelected) && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
+        const isItemFocused = (!isDisabled || item.isSelected) && focusedIndex === normalizedIndex;
+        const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
@@ -495,7 +496,10 @@ function BaseSelectionList<TItem extends ListItem>(
             <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
-                    item={item}
+                    item={{
+                        shouldAnimateInHighlight: isItemHighlighted,
+                        ...item,
+                    }}
                     index={index}
                     isFocused={isItemFocused}
                     isDisabled={isDisabled}
@@ -683,23 +687,29 @@ function BaseSelectionList<TItem extends ListItem>(
      * @param timeout - The timeout in milliseconds before removing the highlight.
      */
     const scrollAndHighlightItem = useCallback(
-        (items: string[], timeout: number) => {
+        (items: string[]) => {
             const newItemsToHighlight = new Set<string>();
             items.forEach((item) => {
                 newItemsToHighlight.add(item);
             });
             const index = flattenedSections.allOptions.findIndex((option) => newItemsToHighlight.has(option.keyForList ?? ''));
-            updateAndScrollToFocusedIndex(index);
+            scrollToIndex(index);
             setItemsToHighlight(newItemsToHighlight);
 
             if (itemFocusTimeoutRef.current) {
                 clearTimeout(itemFocusTimeoutRef.current);
             }
 
+            const duration =
+                CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
+                CONST.ANIMATED_HIGHLIGHT_ENTRY_DURATION +
+                CONST.ANIMATED_HIGHLIGHT_START_DELAY +
+                CONST.ANIMATED_HIGHLIGHT_START_DURATION +
+                CONST.ANIMATED_HIGHLIGHT_END_DELAY +
+                CONST.ANIMATED_HIGHLIGHT_END_DURATION;
             itemFocusTimeoutRef.current = setTimeout(() => {
-                setFocusedIndex(-1);
                 setItemsToHighlight(null);
-            }, timeout);
+            }, duration);
         },
         [flattenedSections.allOptions, setFocusedIndex, updateAndScrollToFocusedIndex],
     );
