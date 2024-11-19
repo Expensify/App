@@ -1,7 +1,7 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef, FormValue} from '@components/Form/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -37,7 +37,7 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
     /** Fields list of the form */
     stepFields: Array<FormOnyxKeys<TFormID>>;
 
-    /* The IDs of the input fields */
+    /** The IDs of the input fields */
     inputFieldsIDs: AddressValues;
 
     /** The default values for the form */
@@ -45,6 +45,24 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
 
     /** Should show help links */
     shouldShowHelpLinks?: boolean;
+
+    /** Indicates if country selector should be displayed */
+    shouldDisplayCountrySelector?: boolean;
+
+    /** Indicates if state selector should be displayed */
+    shouldDisplayStateSelector?: boolean;
+
+    /** Label for the state selector */
+    stateSelectorLabel?: string;
+
+    /** The title of the state selector modal */
+    stateSelectorModalHeaderTitle?: string;
+
+    /** The title of the state selector search input */
+    stateSelectorSearchInputTitle?: string;
+
+    /** Callback to be called when the country is changed */
+    onCountryChange?: (country: unknown) => void;
 };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -58,9 +76,22 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     defaultValues,
     shouldShowHelpLinks,
     isEditing,
+    shouldDisplayCountrySelector = false,
+    shouldDisplayStateSelector = true,
+    stateSelectorLabel,
+    stateSelectorModalHeaderTitle,
+    stateSelectorSearchInputTitle,
+    onCountryChange,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const formRef = useRef<FormRef | null>(null);
+
+    useEffect(() => {
+        // When stepFields change (e.g. country changes) we need to reset state errors manually
+        formRef.current?.resetFormFieldError(inputFieldsIDs.state);
+    }, [inputFieldsIDs.state, stepFields]);
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
@@ -73,14 +104,14 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             }
 
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
-            if (zipCode && !ValidationUtils.isValidZipCode(zipCode as string)) {
+            if (zipCode && (shouldDisplayCountrySelector ? !ValidationUtils.isValidZipCodeInternational(zipCode as string) : !ValidationUtils.isValidZipCode(zipCode as string))) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
             }
 
             return errors;
         },
-        [inputFieldsIDs.street, inputFieldsIDs.zipCode, stepFields, translate],
+        [inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, stepFields, translate],
     );
 
     return (
@@ -90,6 +121,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             validate={customValidate ?? validate}
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
+            ref={formRef}
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{formTitle}</Text>
@@ -99,6 +131,12 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     streetTranslationKey="common.streetAddress"
                     defaultValues={defaultValues}
                     shouldSaveDraft={!isEditing}
+                    shouldDisplayStateSelector={shouldDisplayStateSelector}
+                    shouldDisplayCountrySelector={shouldDisplayCountrySelector}
+                    stateSelectorLabel={stateSelectorLabel}
+                    stateSelectorModalHeaderTitle={stateSelectorModalHeaderTitle}
+                    stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
+                    onCountryChange={onCountryChange}
                 />
                 {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
             </View>
