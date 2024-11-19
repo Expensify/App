@@ -2,6 +2,7 @@ import type {ComponentType} from 'react';
 import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -9,7 +10,6 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import DirectorCheck from './DirectorCheck';
 import EnterEmail from './EnterEmail';
 import HangTight from './HangTight';
 import Confirmation from './substeps/Confirmation';
@@ -119,8 +119,9 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             startStepIndex={4}
         >
             {currentSubStep === SUBSTEP.IS_DIRECTOR && (
-                <DirectorCheck
+                <YesNoStep
                     title={translate('signerInfoStep.areYouDirector', {companyName})}
+                    description={translate('signerInfoStep.regulationRequiresUs')}
                     defaultValue={isUserDirector}
                     onSelectedValue={handleNextSubStep}
                 />
