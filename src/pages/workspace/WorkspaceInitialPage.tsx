@@ -27,7 +27,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy/Policy';
@@ -94,7 +94,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const hasSyncError = PolicyUtils.hasSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
