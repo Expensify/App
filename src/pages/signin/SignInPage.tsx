@@ -295,7 +295,6 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
-            shouldUseCachedViewportHeight
             style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageThemeWrapper.displayName}
         >

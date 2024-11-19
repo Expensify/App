@@ -11,7 +11,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         hasOutstandingChildRequest: unknown;
         hasOutstandingChildTask: unknown;
         isOwnPolicyExpenseChat: unknown;
-        isPolicyExpenseChat: unknown;
         isPinned: unknown;
         lastMessageText: unknown;
         lastVisibleActionCreated: unknown;
@@ -42,7 +41,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         isOptimisticReport: unknown;
         managerID: unknown;
         lastVisibleActionLastModified: unknown;
-        displayName: unknown;
         lastMessageHtml: unknown;
         lastActorAccountID: unknown;
         lastActionType: unknown;
@@ -51,7 +49,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         total: unknown;
         unheldTotal: unknown;
         currency: unknown;
-        errors: unknown;
         errorFields: unknown;
         isWaitingOnBankAccount: unknown;
         isCancelledIOU: unknown;
