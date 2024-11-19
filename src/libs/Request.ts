@@ -7,6 +7,8 @@ import * as NetworkStore from './Network/NetworkStore';
 
 let middlewares: Middleware[] = [];
 
+let addCommentRequestCount = 0;
+
 function makeXHR(request: Request): Promise<Response | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
     return NetworkStore.hasReadRequiredDataFromStorage().then((): Promise<Response | void> => {
@@ -18,7 +20,19 @@ function makeXHR(request: Request): Promise<Response | void> {
             });
         }
 
-        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
+        if (request.command === 'AddComment') {
+            addCommentRequestCount++;
+        }
+
+        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure).then((response) => {
+            // Make every other add comment request return a not authenticated response
+            if (addCommentRequestCount % 2 === 0) {
+                return response;
+            }
+            console.log('Ndebug making AddComment return not authenticated');
+            response.jsonCode = CONST.JSON_CODE.NOT_AUTHENTICATED;
+            return response;
+        });
     });
 }
 
