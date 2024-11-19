@@ -711,7 +711,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 setItemsToHighlight(null);
             }, duration);
         },
-        [flattenedSections.allOptions, setFocusedIndex, scrollToIndex],
+        [flattenedSections.allOptions, scrollToIndex],
     );
 
     /**
