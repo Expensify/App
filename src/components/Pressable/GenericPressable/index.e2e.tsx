@@ -6,20 +6,20 @@ import type PressableProps from './types';
 
 const pressableRegistry = new Map<string, PressableProps>();
 
-function getPressableProps(nativeID: string): PressableProps | undefined {
-    return pressableRegistry.get(nativeID);
+function getPressableProps(testId: string): PressableProps | undefined {
+    return pressableRegistry.get(testId);
 }
 
 function E2EGenericPressableWrapper(props: PressableProps, ref: PressableRef) {
     useEffect(() => {
-        const nativeId = props.nativeID;
-        if (!nativeId) {
+        const testId = props.testID;
+        if (!testId) {
             return;
         }
-        console.debug(`[E2E] E2EGenericPressableWrapper: Registering pressable with nativeID: ${nativeId}`);
-        pressableRegistry.set(nativeId, props);
+        console.debug(`[E2E] E2EGenericPressableWrapper: Registering pressable with testID: ${testId}`);
+        pressableRegistry.set(testId, props);
 
-        DeviceEventEmitter.emit('onBecameVisible', nativeId);
+        DeviceEventEmitter.emit('onBecameVisible', testId);
     }, [props]);
 
     return (

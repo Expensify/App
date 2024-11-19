@@ -97,7 +97,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                                     e.preventDefault();
                                 }}
                                 isLongPressDisabled={isLongPressDisabled}
-                                nativeID={`button_${column}`}
+                                testID={`button_${column}`}
                             />
                         );
                     })}

@@ -82,7 +82,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             shouldDisplayRBR={!shouldShowCheckBox}
-            nativeID={item.text}
+            testID={item.text}
         >
             {(hovered?: boolean) => (
                 <>
