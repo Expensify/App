@@ -55,9 +55,12 @@ function CodesStep({backTo}: CodesStepProps) {
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const hasMagicCodeBeenSent = !!loginData?.validateCodeSent;
 
+    const [isValidateModalVisible, setIsValidateModalVisible] = useState(!isUserValidated);
+
     const {setStep} = useTwoFactorAuthContext();
 
     useEffect(() => {
+        setIsValidateModalVisible(!isUserValidated);
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
             return;
@@ -172,7 +175,7 @@ function CodesStep({backTo}: CodesStepProps) {
                     title={translate('contacts.validateAccount')}
                     descriptionPrimary={translate('contacts.featureRequiresValidate')}
                     descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
-                    isVisible={!isUserValidated}
+                    isVisible={isValidateModalVisible}
                     hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                     validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                     sendValidateCode={() => User.requestValidateCodeAction()}
@@ -180,7 +183,10 @@ function CodesStep({backTo}: CodesStepProps) {
                     validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
                     clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                     onModalHide={() => {}}
-                    onClose={() => TwoFactorAuthActions.quitAndNavigateBack(backTo)}
+                    onClose={() => {
+                        setIsValidateModalVisible(false);
+                        TwoFactorAuthActions.quitAndNavigateBack(backTo);
+                    }}
                 />
             </ScrollView>
         </StepWrapper>
