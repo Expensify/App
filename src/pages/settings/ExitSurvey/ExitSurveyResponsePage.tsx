@@ -48,7 +48,7 @@ function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps
     const {isOffline} = useNetwork({
         onReconnect: () => {
             navigation.setParams({
-                backTo: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                backTo: ROUTES.SETTINGS_EXIT_SURVEY_REASON.route,
             });
         },
     });

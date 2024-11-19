@@ -64,8 +64,6 @@ function TaskShareDestinationSelectorModal() {
                 userToInvite: null,
                 currentUserOption: null,
                 categoryOptions: [],
-                tagOptions: [],
-                taxRatesOptions: [],
                 header: '',
             };
         }
@@ -78,8 +76,6 @@ function TaskShareDestinationSelectorModal() {
             userToInvite: null,
             currentUserOption: null,
             categoryOptions: [],
-            tagOptions: [],
-            taxRatesOptions: [],
             header,
         };
     }, [areOptionsInitialized, optionList.personalDetails, optionList.reports]);

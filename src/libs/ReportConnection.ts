@@ -28,7 +28,7 @@ Onyx.connect({
             if (!report) {
                 return;
             }
-            reportIDToNameMap[report.reportID] = report.reportName ?? report.displayName ?? report.reportID;
+            reportIDToNameMap[report.reportID] = report.reportName ?? report.reportID;
             ReportHelperActions.handleReportChanged(report);
         });
     },
