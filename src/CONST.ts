@@ -1645,6 +1645,7 @@ const CONST = {
     EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',
+        ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
         ADMIN: 'admin@expensify.com',
         BILLS: 'bills@expensify.com',
         CHRONOS: 'chronos@expensify.com',
@@ -2107,6 +2108,7 @@ const CONST = {
 
     ACCOUNT_ID: {
         ACCOUNTING: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? 9645353),
+        ACCOUNTS_PAYABLE: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTS_PAYABLE ?? 10903701),
         ADMIN: Number(Config?.EXPENSIFY_ACCOUNT_ID_ADMIN ?? -1),
         BILLS: Number(Config?.EXPENSIFY_ACCOUNT_ID_BILLS ?? 1371),
         CHRONOS: Number(Config?.EXPENSIFY_ACCOUNT_ID_CHRONOS ?? 10027416),
@@ -3051,6 +3053,7 @@ const CONST = {
     get EXPENSIFY_EMAILS() {
         return [
             this.EMAIL.ACCOUNTING,
+            this.EMAIL.ACCOUNTS_PAYABLE,
             this.EMAIL.ADMIN,
             this.EMAIL.BILLS,
             this.EMAIL.CHRONOS,
@@ -3071,6 +3074,7 @@ const CONST = {
     get EXPENSIFY_ACCOUNT_IDS() {
         return [
             this.ACCOUNT_ID.ACCOUNTING,
+            this.ACCOUNT_ID.ACCOUNTS_PAYABLE,
             this.ACCOUNT_ID.ADMIN,
             this.ACCOUNT_ID.BILLS,
             this.ACCOUNT_ID.CHRONOS,
