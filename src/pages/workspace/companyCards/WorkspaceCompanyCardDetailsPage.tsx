@@ -95,7 +95,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             <View style={[styles.walletCard, styles.mb3]}>
                                 <ImageSVG
                                     contentFit="contain"
-                                    src={CardUtils.getCardFeedIcon(cardBank as CompanyCardFeed)}
+                                    src={CardUtils.getCardFeedIcon(cardBank as CompanyCardFeed, true)}
                                     pointerEvents="none"
                                     height={variables.cardPreviewHeight}
                                     width={variables.cardPreviewWidth}

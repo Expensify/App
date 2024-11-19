@@ -209,19 +209,19 @@ function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: st
     return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? cardName;
 }
 
-function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK): IconAsset {
+function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, large?: boolean): IconAsset {
     const feedIcons = {
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: Illustrations.VisaCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: Illustrations.AmexCardCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: Illustrations.MasterCardCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: Illustrations.AmexCardCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: Illustrations.BankOfAmericaCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: Illustrations.CapitalOneCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: Illustrations.ChaseCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: Illustrations.CitibankCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: Illustrations.WellsFargoCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: Illustrations.BrexCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: Illustrations.StripeCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: large ? Illustrations.VisaCompanyCardDetailLarge : Illustrations.VisaCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: large ? Illustrations.AmexCardCompanyCardDetailLarge : Illustrations.AmexCardCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: large ? Illustrations.MasterCardCompanyCardDetailLarge : Illustrations.MasterCardCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: large ? Illustrations.AmexCardCompanyCardDetailLarge : Illustrations.AmexCardCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: large ? Illustrations.BankOfAmericaCompanyCardDetailLarge : Illustrations.BankOfAmericaCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: large ? Illustrations.CapitalOneCompanyCardDetailLarge : Illustrations.CapitalOneCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: large ? Illustrations.ChaseCompanyCardDetailLarge : Illustrations.ChaseCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: large ? Illustrations.CitibankCompanyCardDetailLarge : Illustrations.CitibankCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: large ? Illustrations.WellsFargoCompanyCardDetailLarge : Illustrations.WellsFargoCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: large ? Illustrations.BrexCompanyCardDetailLarge : Illustrations.BrexCompanyCardDetail,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: large ? Illustrations.StripeCompanyCardDetailLarge : Illustrations.StripeCompanyCardDetail,
         [CONST.EXPENSIFY_CARD.BANK]: ExpensifyCardImage,
     };
 
