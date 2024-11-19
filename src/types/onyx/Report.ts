@@ -229,9 +229,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Pending members of the report */
         pendingChatMembers?: PendingChatMember[];
 
-        /** The ID of the single transaction thread report associated with this report, if one exists */
-        transactionThreadReportID?: string;
-
         /** Collection of policy report fields, indexed by their fieldID */
         fieldList?: Record<string, PolicyReportField>;
 
