@@ -1174,6 +1174,13 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: Routes;
     };
+    [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+    };
 };
 
 type NewTaskNavigatorParamList = {

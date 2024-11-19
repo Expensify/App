@@ -1,5 +1,6 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
+import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,9 +10,10 @@ import ROUTES from '@src/ROUTES';
 type Props = {
     policyName: string;
     onConfirmUpgrade: () => void;
+    isCategorizing?: boolean;
 };
 
-function UpgradeConfirmation({policyName, onConfirmUpgrade}: Props) {
+function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -19,16 +21,20 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade}: Props) {
         <ConfirmationPage
             heading={translate('workspace.upgrade.completed.headline')}
             description={
-                <>
-                    {translate('workspace.upgrade.completed.successMessage', {policyName})}{' '}
-                    <TextLink
-                        style={styles.link}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
-                    >
-                        {translate('workspace.upgrade.completed.viewSubscription')}
-                    </TextLink>{' '}
-                    {translate('workspace.upgrade.completed.moreDetails')}
-                </>
+                isCategorizing ? (
+                    <Text>{translate('workspace.upgrade.completed.categorizeMessage')}</Text>
+                ) : (
+                    <>
+                        {translate('workspace.upgrade.completed.successMessage', {policyName})}{' '}
+                        <TextLink
+                            style={styles.link}
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
+                        >
+                            {translate('workspace.upgrade.completed.viewSubscription')}
+                        </TextLink>{' '}
+                        {translate('workspace.upgrade.completed.moreDetails')}
+                    </>
+                )
             }
             shouldShowButton
             onButtonPress={onConfirmUpgrade}

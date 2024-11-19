@@ -4201,6 +4201,11 @@ const translations = {
                 description: `Si quieres añadir más niveles de aprobación, o simplemente asegurarte de que los gastos más importantes reciben otro vistazo, no hay problema. Las aprobaciones avanzadas ayudan a realizar las comprobaciones adecuadas a cada nivel para mantener los gastos de tu equipo bajo control.`,
                 onlyAvailableOnPlan: 'Las aprobaciones avanzadas sólo están disponibles en el plan Controlar, con precios desde ',
             },
+            categories: {
+                title: 'Categories',
+                description: `Categories help you better organize expenses to keep track of where you're spending your money. Use our suggested categories list or create your own.`,
+                onlyAvailableOnPlan: 'Categories are available on the Collect plan, starting at ',
+            },
             glCodes: {
                 title: 'Códigos de libro mayor',
                 description: `Añada códigos de libro mayor a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
@@ -4238,12 +4243,14 @@ const translations = {
                 aboutOurPlans: 'sobre nuestros planes y precios.',
             },
             pricing: {
+                collect: '$5 ',
                 amount: '$9 ',
                 perActiveMember: 'por miembro activo al mes.',
             },
             upgradeToUnlock: 'Desbloquear esta función',
             completed: {
                 headline: 'Has mejorado tu espacio de trabajo.',
+                categorizeMessage: `You've successfully upgraded to a workspace on the Collect plan. Now you can categorize your expenses!`,
                 successMessage: ({policyName}: ReportPolicyNameParams) => `Has actualizado con éxito ${policyName} al plan Controlar.`,
                 viewSubscription: 'Ver su suscripción',
                 moreDetails: 'para obtener más información.',

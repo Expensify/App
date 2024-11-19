@@ -199,6 +199,7 @@ const SCREENS = {
         HOLD: 'Money_Request_Hold_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         START: 'Money_Request_Start',
+        STEP_UPGRADE: 'Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
         STEP_CATEGORY: 'Money_Request_Step_Category',
         STEP_CURRENCY: 'Money_Request_Step_Currency',

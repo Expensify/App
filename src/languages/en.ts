@@ -4153,6 +4153,11 @@ const translations = {
                 description: `If you want to add more layers of approval to the mix – or just make sure the largest expenses get another set of eyes – we’ve got you covered. Advanced approvals help you put the right checks in place at every level so you keep your team’s spend under control.`,
                 onlyAvailableOnPlan: 'Advanced approvals are only available on the Control plan, which starts at ',
             },
+            categories: {
+                title: 'Categories',
+                description: `Categories help you better organize expenses to keep track of where you're spending your money. Use our suggested categories list or create your own.`,
+                onlyAvailableOnPlan: 'Categories are available on the Collect plan, starting at ',
+            },
             glCodes: {
                 title: 'GL codes',
                 description: `Add GL codes to your categories and tags for easy export of expenses to your accounting and payroll systems.`,
@@ -4185,6 +4190,7 @@ const translations = {
                 onlyAvailableOnPlan: 'Per diem are only available on the Control plan, starting at ',
             },
             pricing: {
+                collect: '$5 ',
                 amount: '$9 ',
                 perActiveMember: 'per active member per month.',
             },
@@ -4197,6 +4203,7 @@ const translations = {
             completed: {
                 headline: `You've upgraded your workspace!`,
                 successMessage: ({policyName}: ReportPolicyNameParams) => `You've successfully upgraded ${policyName} to the Control plan!`,
+                categorizeMessage: `You've successfully upgraded to a workspace on the Collect plan. Now you can categorize your expenses!`,
                 viewSubscription: 'View your subscription',
                 moreDetails: 'for more details.',
                 gotIt: 'Got it, thanks',
