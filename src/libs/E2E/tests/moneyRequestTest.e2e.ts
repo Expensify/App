@@ -3,14 +3,13 @@ import type {NativeConfig} from 'react-native-config';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
+import {tap, waitForElement, waitForEvent} from '@libs/E2E/interactions';
 import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
-import getPromiseWithResolve from '@libs/E2E/utils/getPromiseWithResolve';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {tap, waitFor} from '../interactions';
 
 const test = (config: NativeConfig) => {
     // check for login (if already logged in the action will simply resolve)
@@ -26,37 +25,18 @@ const test = (config: NativeConfig) => {
             );
         }
 
-        const [appearSubmitExpenseScreenPromise, appearSubmitExpenseScreenResolve] = getPromiseWithResolve();
-        const [appearContactsScreenPromise, appearContactsScreenResolve] = getPromiseWithResolve();
-        const [approveScreenPromise, approveScreenResolve] = getPromiseWithResolve();
-
-        Promise.all([appearSubmitExpenseScreenPromise, appearContactsScreenPromise, approveScreenPromise])
-            .then(() => {
-                console.debug('[E2E] Test completed successfully, exiting…');
-                E2EClient.submitTestDone();
-            })
-            .catch((err) => {
-                console.debug('[E2E] Error while submitting test results:', err);
-            });
-
         console.debug('[E2E] Logged in, getting money request metrics and submitting them…');
 
-        waitFor('+66 65 490 0617').then(() => {
-            Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE);
-            tap('+66 65 490 0617');
-        });
-
-        Performance.subscribeToMeasurements((entry) => {
-            if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
+        waitForEvent(CONST.TIMING.SIDEBAR_LOADED)
+            .then(() => {
                 console.debug(`[E2E] Sidebar loaded, navigating to submit expense…`);
                 Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE);
                 Navigation.navigate(
                     ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID()),
                 );
-            }
-
-            if (entry.name === CONST.TIMING.OPEN_SUBMIT_EXPENSE) {
-                appearSubmitExpenseScreenResolve();
+            })
+            .then(() => waitForEvent(CONST.TIMING.OPEN_SUBMIT_EXPENSE))
+            .then((entry) => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: `${name} - Open Manual Tracking`,
@@ -65,34 +45,42 @@ const test = (config: NativeConfig) => {
                 });
                 setTimeout(() => {
                     tap('button_2');
-                }, 1000);
+                }, 2000);
                 setTimeout(() => {
                     Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT);
                     tap('next-button');
                 }, 4000);
-            }
-
-            if (entry.name === CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT) {
+            })
+            .then(() => waitForEvent(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT))
+            .then((entry) => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: `${name} - Open Contacts`,
                     metric: entry.duration,
                     unit: 'ms',
                 });
-                appearContactsScreenResolve();
-                console.log(111);
-            }
-
-            if (entry.name === CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE) {
+            })
+            .then(() => waitForElement('+66 65 490 0617'))
+            .then(() => {
+                Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE);
+                tap('+66 65 490 0617');
+            })
+            .then(() => waitForEvent(CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE))
+            .then((entry) => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: `${name} - Open Submit`,
                     metric: entry.duration,
                     unit: 'ms',
                 });
-                approveScreenResolve();
-            }
-        });
+            })
+            .then(() => {
+                console.debug('[E2E] Test completed successfully, exiting…');
+                E2EClient.submitTestDone();
+            })
+            .catch((err) => {
+                console.debug('[E2E] Error while submitting test results:', err);
+            });
     });
 };
 
