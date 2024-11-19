@@ -441,7 +441,7 @@ function IOURequestStepDistance({
 
     const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
-        if ((duplicateWaypointsError || atLeastTwoDifferentWaypointsError || (hasRouteError && !isOffline) || isLoadingRoute || (!isEditing && isLoading))) {
+        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || (hasRouteError && !isOffline) || isLoadingRoute || (!isEditing && isLoading)) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
@@ -487,6 +487,7 @@ function IOURequestStepDistance({
         transaction?.routes,
         report?.reportID,
         policy,
+        isOffline,
     ]);
 
     const renderItem = useCallback(
