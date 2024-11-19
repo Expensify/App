@@ -55,7 +55,7 @@ describe('actions/Report', () => {
         const promise = Onyx.clear().then(jest.useRealTimers);
         if (getIsUsingFakeTimers()) {
             // flushing pending timers
-            // Onyx.clear() promise is resolved in batch which happends after the current microtasks cycle
+            // Onyx.clear() promise is resolved in batch which happens after the current microtasks cycle
             setImmediate(jest.runOnlyPendingTimers);
         }
 
