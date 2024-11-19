@@ -65,13 +65,13 @@ function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<stri
 /**
  * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
  */
-function openExternalLink(url: string, shouldSkipCustomSafariLogic = false) {
-    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic);
+function openExternalLink(url: string, shouldSkipCustomSafariLogic = false, shouldOpenInSameTab = false) {
+    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic, shouldOpenInSameTab);
 }
 
-function openOldDotLink(url: string) {
+function openOldDotLink(url: string, shouldOpenInSameTab = false) {
     if (isNetworkOffline) {
-        buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL));
+        buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL, undefined, shouldOpenInSameTab));
         return;
     }
 
@@ -82,6 +82,8 @@ function openOldDotLink(url: string) {
             .then((response) => (response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url)))
             .catch(() => buildOldDotURL(url)),
         (oldDotURL) => oldDotURL,
+        undefined,
+        shouldOpenInSameTab,
     );
 }
 
