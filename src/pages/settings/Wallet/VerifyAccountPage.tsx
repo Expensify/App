@@ -11,6 +11,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as User from '@userActions/User';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
@@ -53,8 +54,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         if (!navigateBackTo) {
             return;
         }
-        Navigation.goBack();
-        Navigation.navigate(navigateBackTo);
+        Navigation.navigate(navigateBackTo, CONST.NAVIGATION.TYPE.UP);
     }, [isUserValidated, navigateBackTo]);
 
     useEffect(() => {
