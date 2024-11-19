@@ -36,7 +36,6 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [activeWorkspaceID]);
 
-    const isLoading = isLoadingApp;
     const currentReportIDRef = useRef(currentReportID);
     // eslint-disable-next-line react-compiler/react-compiler
     currentReportIDRef.current = currentReportID;
@@ -55,7 +54,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
                 priorityMode={priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}
                 // Data props:
                 isActiveReport={isActiveReport}
-                isLoading={isLoading ?? false}
+                isLoading={isLoadingApp ?? false}
                 activeWorkspaceID={activeWorkspaceID}
                 optionListItems={orderedReportIDs}
             />
