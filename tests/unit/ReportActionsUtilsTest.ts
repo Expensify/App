@@ -451,24 +451,11 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should filter actionable whisper actions e.g. "join", "create room" when room is archived', () => {
+            // Given several different action types, including actionable whispers for creating, inviting and joining rooms, as well as non-actionable whispers
+            // - ADD_COMMENT
+            // - ACTIONABLE_REPORT_MENTION_WHISPER
+            // - ACTIONABLE_MENTION_WHISPER
             const input: ReportAction[] = [
-                {
-                    created: '2024-11-19 07:59:27.352',
-                    reportActionID: '2143762315092102133',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                    message: [
-                        {
-                            type: 'TEXT',
-                            style: 'strong',
-                            text: 'You',
-                        },
-                        {
-                            type: 'TEXT',
-                            style: 'normal',
-                            text: ' created this report',
-                        },
-                    ],
-                },
                 {
                     created: '2024-11-19 08:04:13.728',
                     reportActionID: '1607371725956675966',
@@ -540,35 +527,20 @@ describe('ReportActionsUtils', () => {
                         },
                     ],
                 },
-                {
-                    created: '2024-11-19 08:13:30.653',
-                    reportActionID: '2700998753002050048',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
-                    originalMessage: {
-                        lastModified: '2024-11-19 08:13:30.653',
-                        policyName: "As's Workspace 65",
-                        reason: 'policyDeleted',
-                    },
-                    message: [
-                        {
-                            type: 'TEXT',
-                            style: 'strong',
-                            text: 'You',
-                        },
-                        {
-                            type: 'TEXT',
-                            style: 'normal',
-                            text: ' closed this report',
-                        },
-                    ],
-                },
             ];
 
+            // When the report actions are sorted for display with the second parameter (canUserPerformWriteAction) set to false (to simulate a report that has been archived)
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, false);
-            // Expected output should filter out actionable whisper actions type e.g. "join", "create room"
-            // because "canUserPerformWriteAction" is false (report is archived)
+            // Then the output should correctly filter out the actionable whisper types for "join", "inivite" and "create room"
+            // because the report is archived and making those actions not only doesn't make sense from a UX standpoint,
+            // but leads to server errors since those actions aren't possible.
             // eslint-disable-next-line rulesdir/prefer-at
-            const expectedOutput: ReportAction[] = [...input.slice(1, 3), input[0]];
+            const expectedOutput: ReportAction[] = input.filter(
+                (action) =>
+                    action.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER &&
+                    action.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST &&
+                    action.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+            );
 
             expect(result).toStrictEqual(expectedOutput);
         });
