@@ -450,72 +450,59 @@ describe('ReportActionsUtils', () => {
             expect(result).toStrictEqual(input);
         });
 
-        it('should filter whisper action in a archived report', () => {
+        it('should filter actionable whisper actions e.g. "join", "create room" when room is archived', () => {
             const input: ReportAction[] = [
                 {
-                    created: '2022-11-13 22:27:01.825',
-                    reportActionID: '8401445780099176',
+                    created: '2024-11-19 07:59:27.352',
+                    reportActionID: '2143762315092102133',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: [
+                        {
+                            type: 'TEXT',
+                            style: 'strong',
+                            text: 'You',
+                        },
+                        {
+                            type: 'TEXT',
+                            style: 'normal',
+                            text: ' created this report',
+                        },
+                    ],
+                },
+                {
+                    created: '2024-11-19 08:04:13.728',
+                    reportActionID: '1607371725956675966',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
-                        html: 'Hello world',
+                        html: '<mention-user accountID="18414674"/>',
                         whisperedTo: [],
+                        lastModified: '2024-11-19 08:04:13.728',
+                        mentionedAccountIDs: [18301266],
                     },
                     message: [
                         {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
+                            html: '<mention-user accountID="18414674"/>',
+                            text: '@as',
+                            type: 'COMMENT',
+                            whisperedTo: [],
                         },
                     ],
                 },
                 {
-                    created: '2022-11-12 22:27:01.825',
-                    reportActionID: '6401435781022176',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                    created: '2024-11-19 08:00:14.352',
+                    reportActionID: '4655978522337302598',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
-                        html: 'Hello world',
+                        html: '#join',
                         whisperedTo: [],
+                        lastModified: '2024-11-19 08:00:14.352',
                     },
                     message: [
                         {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    created: '2022-11-11 22:27:01.825',
-                    reportActionID: '2962390724708756',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                    originalMessage: {
-                        amount: 0,
-                        currency: 'USD',
-                        type: 'split', // change to const
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    created: '2022-11-10 22:27:01.825',
-                    reportActionID: '1609646094152486',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
-                    originalMessage: {
-                        html: 'Hello world',
-                        lastModified: '2022-11-10 22:27:01.825',
-                        oldName: 'old name',
-                        newName: 'new name',
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
+                            html: '#join',
+                            text: '#join',
+                            type: 'COMMENT',
+                            whisperedTo: [],
                         },
                     ],
                 },
@@ -523,34 +510,65 @@ describe('ReportActionsUtils', () => {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '8049485084562457',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
-                    originalMessage: {},
-                    message: [{html: 'updated the Approval Mode from "Submit and Approve" to "Submit and Close"', type: 'Action type', text: 'Action text'}],
+                    originalMessage: {
+                        lastModified: '2024-11-19 08:00:14.353',
+                        mentionedAccountIDs: [],
+                        whisperedTo: [18301266],
+                    },
+                    message: {
+                        html: "Heads up, <mention-report>#join</mention-report> doesn't exist yet. Do you want to create it?",
+                        text: "Heads up, #join doesn't exist yet. Do you want to create it?",
+                        type: 'COMMENT',
+                        whisperedTo: [18301266],
+                    },
+                },
+
+                {
+                    created: '2022-11-12 22:27:01.825',
+                    reportActionID: '6401435781022176',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                    originalMessage: {
+                        inviteeAccountIDs: [18414674],
+                        lastModified: '2024-11-19 08:04:25.813',
+                        whisperedTo: [18301266],
+                    },
+                    message: [
+                        {
+                            html: "Heads up, <mention-user accountID=18414674></mention-user> isn't a member of this room.",
+                            text: "Heads up,  isn't a member of this room.",
+                            type: 'COMMENT',
+                        },
+                    ],
                 },
                 {
-                    created: '2022-11-08 22:27:06.825',
-                    reportActionID: '1661970171066216',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                    created: '2024-11-19 08:13:30.653',
+                    reportActionID: '2700998753002050048',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
                     originalMessage: {
-                        paymentType: 'ACH',
+                        lastModified: '2024-11-19 08:13:30.653',
+                        policyName: "As's Workspace 65",
+                        reason: 'policyDeleted',
                     },
-                    message: [{html: 'Waiting for the bank account', type: 'Action type', text: 'Action text'}],
-                },
-                {
-                    created: '2022-11-06 22:27:08.825',
-                    reportActionID: '1661970171066220',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [{html: 'I have changed the task', type: 'Action type', text: 'Action text'}],
+                    message: [
+                        {
+                            type: 'TEXT',
+                            style: 'strong',
+                            text: 'You',
+                        },
+                        {
+                            type: 'TEXT',
+                            style: 'normal',
+                            text: ' closed this report',
+                        },
+                    ],
                 },
             ];
 
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, false);
-            // Expected output should filter out "CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER" & "CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER"
-            // action type because "canUserPerformWriteAction" is false (report is archived)
-            const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2, 4), ...input.slice(5)];
+            // Expected output should filter out actionable whisper actions type e.g. "join", "create room"
+            // because "canUserPerformWriteAction" is false (report is archived)
+            // eslint-disable-next-line rulesdir/prefer-at
+            const expectedOutput: ReportAction[] = [...input.slice(1, 3), input[0]];
 
             expect(result).toStrictEqual(expectedOutput);
         });
