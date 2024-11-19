@@ -17,7 +17,7 @@ import SessionExpiredPage from './ErrorPage/SessionExpiredPage';
 type LogInWithShortLivedAuthTokenPageProps = StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenPageProps) {
-    const {email = '', shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
+    const {shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     useEffect(() => {
@@ -37,7 +37,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
         if (token && !account?.isLoading) {
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
-            Session.signInWithShortLivedAuthToken(email, token);
+            Session.signInWithShortLivedAuthToken(token);
             return;
         }
 

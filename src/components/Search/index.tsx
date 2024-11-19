@@ -1,9 +1,8 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
@@ -97,7 +96,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const isFocused = useIsFocused();
-    const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
+    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
     const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading, lastSearchType, setLastSearchType} =
         useSearchContext();
     const {selectionMode} = useMobileSelectionMode(false);
@@ -113,7 +112,11 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         if (!currentSearchResults?.search?.type) {
             return;
         }
+
         setLastSearchType(currentSearchResults.search.type);
+        if (currentSearchResults.data) {
+            setLastNonEmptySearchResults(currentSearchResults);
+        }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
@@ -173,15 +176,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         },
     });
 
-    // save last non-empty search results to avoid ugly flash of loading screen when hash changes and onyx returns empty data
-    // eslint-disable-next-line react-compiler/react-compiler
-    if (currentSearchResults?.data && currentSearchResults !== lastSearchResultsRef.current) {
-        // eslint-disable-next-line react-compiler/react-compiler
-        lastSearchResultsRef.current = currentSearchResults;
-    }
-
-    // eslint-disable-next-line react-compiler/react-compiler
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
 
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
