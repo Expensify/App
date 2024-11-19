@@ -102,8 +102,7 @@ function BaseGetPhysicalCard({
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
     const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
     const cardToBeIssued = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
-    const cardID = cardToBeIssued?.cardID.toString() ?? '-1';
-    const [currentCardID, setCurrentCardID] = useState<string | undefined>(cardID);
+    const [currentCardID, setCurrentCardID] = useState<string | undefined>(cardToBeIssued?.cardID.toString() ?? '-1');
     const errorMessage = ErrorUtils.getLatestErrorMessageField(cardToBeIssued);
 
     useEffect(() => {
@@ -140,8 +139,7 @@ function BaseGetPhysicalCard({
     useEffect(() => {
         // Current step of the get physical card flow should be the confirmation page; and
         // Card has NOT_ACTIVATED state when successfully being issued so cardToBeIssued should be undefined
-        // -1 is not a valid cardID, we don't need to clean up the form value in that case.
-        if (!isConfirmation || !!cardToBeIssued || !currentCardID || currentCardID === '-1') {
+        if (!isConfirmation || !!cardToBeIssued || !currentCardID) {
             return;
         }
 
@@ -149,7 +147,7 @@ function BaseGetPhysicalCard({
         // so that no stale data is left on Onyx
         FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
         Wallet.clearPhysicalCardError(currentCardID);
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(currentCardID.toString()));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(currentCardID));
         setCurrentCardID(undefined);
     }, [currentCardID, isConfirmation, cardToBeIssued]);
 
@@ -179,7 +177,12 @@ function BaseGetPhysicalCard({
         >
             <HeaderWithBackButton
                 title={title}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID))}
+                onBackButtonPress={() => {
+                    if (currentCardID) {
+                        Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(currentCardID));
+                    }
+                    Navigation.goBack();
+                }}
             />
             <Text style={[styles.textHeadline, styles.mh5, styles.mb5]}>{headline}</Text>
             {renderContent({onSubmit, submitButtonText, children, onValidate})}
