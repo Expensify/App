@@ -102,7 +102,7 @@ function BaseGetPhysicalCard({
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
     const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
     const cardToBeIssued = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
-    const [currentCardID, setCurrentCardID] = useState<string | undefined>(cardToBeIssued?.cardID.toString() ?? '-1');
+    const [currentCardID, setCurrentCardID] = useState<string | undefined>(cardToBeIssued?.cardID.toString());
     const errorMessage = ErrorUtils.getLatestErrorMessageField(cardToBeIssued);
 
     useEffect(() => {
