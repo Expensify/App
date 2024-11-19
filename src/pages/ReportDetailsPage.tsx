@@ -561,6 +561,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         iouTransactionID,
         parentReportAction,
         moneyRequestReport?.reportID,
+        isDeletedParentAction,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
