@@ -3858,6 +3858,7 @@ function prepareOnboardingOptimisticData(
     }
 
     const guidedSetupData: GuidedSetupData = [{type: 'message', ...textMessage}];
+
     if ('video' in data && data.video && videoCommentAction && videoMessage) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
