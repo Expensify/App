@@ -1255,7 +1255,6 @@ export {
     canModifyTask,
     canActionTask,
     setNewOptimisticAssignee,
-    getParentReport,
     getNavigationUrlAfterTaskDelete,
 };
 
