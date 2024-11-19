@@ -247,6 +247,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         featureName?: string;
         backTo?: Routes;
+        categoryId?: string;
     };
     [SCREENS.WORKSPACE.DOWNGRADE]: {
         policyID: string;
@@ -1554,6 +1555,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
             accountID: string;
             isAuthTokenRequired?: string;
             fileName?: string;
+            attachmentLink?: string;
         };
         [SCREENS.PROFILE_AVATAR]: {
             accountID: string;

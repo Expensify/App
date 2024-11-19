@@ -3663,10 +3663,16 @@ const translations = {
             actions: {
                 delete: 'Eliminar tasa',
                 deleteMultiple: 'Eliminar tasas',
-                disable: 'Desactivar tasa',
-                disableMultiple: 'Desactivar tasas',
                 enable: 'Activar tasa',
-                enableMultiple: 'Activar tasas',
+                disable: 'Desactivar tasa',
+                enableTaxRates: () => ({
+                    one: 'Activar tasa',
+                    other: 'Activar tasas',
+                }),
+                disableTaxRates: () => ({
+                    one: 'Desactivar tasa',
+                    other: 'Desactivar tasas',
+                }),
             },
             importedFromAccountingSoftware: 'Impuestos importadas desde',
             taxCode: 'Código de impuesto',
