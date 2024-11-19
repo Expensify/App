@@ -4,11 +4,11 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import PushRowWithModal from '@components/PushRowWithModal';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,9 +45,8 @@ function Confirmation({onNext}: SubStepProps) {
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID));
     };
 
-    const handleSelectingCountry = (country: string) => {
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: country});
-        setSelectedCountry(country);
+    const handleSelectingCountry = (country: unknown) => {
+        setSelectedCountry(typeof country === 'string' ? country : '');
     };
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -56,12 +55,16 @@ function Confirmation({onNext}: SubStepProps) {
 
     useEffect(() => {
         if (currency === CONST.CURRENCY.EUR) {
+            if (countryDefaultValue !== '') {
+                FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: countryDefaultValue});
+                setSelectedCountry(countryDefaultValue);
+            }
             return;
         }
 
         FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: currencyMappedToCountry});
         setSelectedCountry(currencyMappedToCountry);
-    }, [currency, currencyMappedToCountry]);
+    }, [countryDefaultValue, currency, currencyMappedToCountry]);
 
     return (
         <SafeAreaConsumer>
@@ -77,16 +80,13 @@ function Confirmation({onNext}: SubStepProps) {
                         interactive={false}
                     />
                     <Text style={[styles.ph5, styles.mb3, styles.mutedTextLabel]}>
-                        {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}
-                        <PressableWithoutFeedback
-                            accessibilityRole="button"
-                            accessibilityLabel={translate('common.settings')}
-                            accessible
+                        {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
+                        <TextLink
+                            style={[styles.label]}
                             onPress={handleSettingsPress}
-                            style={styles.ml1}
                         >
-                            <Text style={[styles.label, styles.textBlue]}>{translate('common.settings').toLowerCase()}</Text>
-                        </PressableWithoutFeedback>
+                            {translate('common.settings').toLowerCase()}
+                        </TextLink>
                         .
                     </Text>
                     <FormProvider
@@ -101,14 +101,14 @@ function Confirmation({onNext}: SubStepProps) {
                         <InputWrapper
                             InputComponent={PushRowWithModal}
                             optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_COUNTRIES : CONST.ALL_COUNTRIES}
-                            selectedOption={selectedCountry}
-                            onOptionChange={handleSelectingCountry}
+                            onValueChange={handleSelectingCountry}
                             description={translate('common.country')}
                             modalHeaderTitle={translate('countryStep.selectCountry')}
                             searchInputTitle={translate('countryStep.findCountry')}
                             shouldAllowChange={shouldAllowChange}
                             value={selectedCountry}
                             inputID={COUNTRY}
+                            shouldSaveDraft
                         />
                     </FormProvider>
                 </ScrollView>

@@ -16,6 +16,7 @@ import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
+import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
 type MockedReportActionItemSingleProps = {
     /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
@@ -255,7 +256,7 @@ function getFakeAdvancedReportAction(actionName: ReportActionName = 'IOU', actor
 
 function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             {/*
              * Only required to make unit tests work, since we
              * explicitly pass the currentReportID in LHNTestUtils
@@ -267,7 +268,6 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
              *  */}
             <ReportIDsContextProvider currentReportIDForTests={currentReportID}>
                 <SidebarLinksData
-                    onLinkClick={() => {}}
                     insets={{
                         top: 0,
                         left: 0,
@@ -293,6 +293,7 @@ function getDefaultRenderedSidebarLinks(currentReportID = '') {
         // and there are a lot of render warnings. It needs to be done like this because normally in
         // our app (App.js) is when the react application is wrapped in the context providers
         render(<MockedSidebarLinks currentReportID={currentReportID} />);
+        return waitForBatchedUpdatesWithAct();
     } catch (error) {
         console.error(error);
     }

@@ -16,14 +16,6 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-/**
- * Function called when a pinned chat is selected.
- */
-const startTimer = () => {
-    Timing.start(CONST.TIMING.SWITCH_REPORT);
-    Performance.markStart(CONST.TIMING.SWITCH_REPORT);
-};
-
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
@@ -63,10 +55,7 @@ function BaseSidebarScreen() {
                         shouldDisplaySearch={shouldDisplaySearch}
                     />
                     <View style={[styles.flex1]}>
-                        <SidebarLinksData
-                            onLinkClick={startTimer}
-                            insets={insets}
-                        />
+                        <SidebarLinksData insets={insets} />
                     </View>
                 </>
             )}

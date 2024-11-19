@@ -539,8 +539,24 @@ type ImportedTypesParams = {
     importedTypes: string[];
 };
 
+type FileLimitParams = {
+    fileLimit: number;
+};
+
+type LastFourDigitsParams = {
+    lastFourDigits: string;
+};
+
 type CompanyCardBankName = {
     bankName: string;
+};
+
+type CurrencyCodeParams = {
+    currencyCode: string;
+};
+
+type CompanyNameParams = {
+    companyName: string;
 };
 
 export type {
@@ -557,6 +573,7 @@ export type {
     DefaultAmountParams,
     AutoPayApprovedReportsLimitErrorParams,
     FeatureNameParams,
+    FileLimitParams,
     SpreadSheetColumnParams,
     SpreadFieldNameParams,
     AssignedCardParams,
@@ -632,6 +649,7 @@ export type {
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
+    LastFourDigitsParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
@@ -741,4 +759,6 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    CurrencyCodeParams,
+    CompanyNameParams,
 };

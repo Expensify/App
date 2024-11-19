@@ -11,6 +11,17 @@ import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
 import OtherCompanyCardDetail from '@assets/images/companyCards/card=-generic.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
+import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
+import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
+import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-brex-large.svg';
+import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/card-capital_one-large.svg';
+import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
+import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
+import OtherCompanyCardDetailLarge from '@assets/images/companyCards/large/card-generic-large.svg';
+import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
+import StripeCompanyCardDetailLarge from '@assets/images/companyCards/large/card-stripe-large.svg';
+import VisaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-visa-large.svg';
+import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/card-wellsfargo-large.svg';
 import MasterCardCompanyCards from '@assets/images/companyCards/mastercard.svg';
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
@@ -54,6 +65,7 @@ import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_l
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
+import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -100,7 +112,9 @@ import MoneyWings from '@assets/images/simple-illustrations/simple-illustration_
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
+import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
 import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__piggybank.svg';
+import Pillow from '@assets/images/simple-illustrations/simple-illustration__pillow.svg';
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
 import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg';
@@ -200,6 +214,7 @@ export {
     TrashCan,
     TeleScope,
     Profile,
+    Puzzle,
     PalmTree,
     LockClosed,
     Gears,
@@ -220,6 +235,7 @@ export {
     ExpensifyCardIllustration,
     SplitBill,
     PiggyBank,
+    Pillow,
     Accounting,
     Car,
     Coins,
@@ -262,4 +278,16 @@ export {
     OtherCompanyCardDetail,
     StripeCompanyCardDetail,
     WellsFargoCompanyCardDetail,
+    PerDiem,
+    AmexCardCompanyCardDetailLarge,
+    BankOfAmericaCompanyCardDetailLarge,
+    BrexCompanyCardDetailLarge,
+    CapitalOneCompanyCardDetailLarge,
+    ChaseCompanyCardDetailLarge,
+    CitibankCompanyCardDetailLarge,
+    OtherCompanyCardDetailLarge,
+    MasterCardCompanyCardDetailLarge,
+    StripeCompanyCardDetailLarge,
+    VisaCompanyCardDetailLarge,
+    WellsFargoCompanyCardDetailLarge,
 };

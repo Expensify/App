@@ -12,42 +12,75 @@ type CardFeedProvider =
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
 
-/** Card feed data */
-type CardFeedData = {
+/** Custom card feed data */
+type CustomCardFeedData = {
     /** Whether any actions are pending */
-    pending: boolean;
+    pending?: boolean;
 
     /** Determines if Automated Statement Reconciliation (ASR) is enabled for the cards */
-    asrEnabled: boolean;
+    asrEnabled?: boolean;
 
     /** Specifies if the expenses on this card should be force reimbursable */
-    forceReimbursable: string;
+    forceReimbursable?: string;
 
     /** Defines the type of liability for the card */
-    liabilityType: string;
+    liabilityType?: string;
 
     /** Preferred policy */
-    preferredPolicy: string;
+    preferredPolicy?: string;
 
     /** Specifies the format for the report title related to this card */
-    reportTitleFormat: string;
+    reportTitleFormat?: string;
 
     /** Indicates the day when the statement period for this card ends */
-    statementPeriodEndDay: string;
+    statementPeriodEndDay?: string;
 
     /** Broken connection errors */
     errors?: OnyxCommon.Errors;
 };
+
+/** Direct card feed data */
+type DirectCardFeedData = {
+    /** List of accounts */
+    accountList: string[];
+
+    /** Credentials info */
+    credentials: string;
+
+    /** Expiration number */
+    expiration: number;
+
+    /** Defines the type of liability for the card */
+    liabilityType?: string;
+
+    /** Whether any actions are pending */
+    pending?: boolean;
+
+    /** Broken connection errors */
+    errors?: OnyxCommon.Errors;
+};
+
+/** Card feed data */
+type CardFeedData = CustomCardFeedData | DirectCardFeedData;
+
+/** Both custom and direct company feeds */
+type CompanyFeeds = Partial<Record<CompanyCardFeed, CardFeedData>>;
+
+/** Custom feed names */
+type CompanyCardNicknames = Partial<Record<CompanyCardFeed, string>>;
 
 /** Card feeds model */
 type CardFeeds = {
     /** Feed settings */
     settings: {
         /** User-friendly feed nicknames */
-        companyCardNicknames: Record<string, string>;
+        companyCardNicknames?: CompanyCardNicknames;
 
         /** Company cards feeds */
-        companyCards: Record<string, CardFeedData>;
+        companyCards?: Partial<Record<CompanyCardFeed, CustomCardFeedData>>;
+
+        /** Account details */
+        oAuthAccountDetails?: Partial<Record<CompanyCardFeed, DirectCardFeedData>>;
     };
 
     /** Whether we are loading the data via the API */
@@ -91,4 +124,15 @@ type AddNewCompanyCardFeed = {
 };
 
 export default CardFeeds;
-export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData, CompanyCardFeed, CardFeedProvider};
+export type {
+    AddNewCardFeedStep,
+    AddNewCompanyCardFeed,
+    AddNewCardFeedData,
+    CardFeedData,
+    CustomCardFeedData,
+    CompanyCardFeed,
+    DirectCardFeedData,
+    CardFeedProvider,
+    CompanyFeeds,
+    CompanyCardNicknames,
+};
