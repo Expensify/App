@@ -4,12 +4,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import AccountUtils from '@libs/AccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
 import callOrReturn from '@src/types/utils/callOrReturn';
-import type {FullPageNotFoundViewProps} from './BlockingViews/FullPageNotFoundView';
+import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
 
 const DENIED_ACCESS_VARIANTS = {
     [CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]: (account: OnyxEntry<Account>) => isDelegate(account),
@@ -20,13 +19,8 @@ type AccessDeniedVariants = keyof typeof DENIED_ACCESS_VARIANTS;
 
 type DelegateNoAccessWrapperProps = {
     accessDeniedVariants?: AccessDeniedVariants[];
-    FullPageNotFoundViewProps?: FullPageNotFoundViewProps;
-    shouldShowFullScreenFallback?: boolean;
+    shouldForceFullScreen?: boolean;
     children: (() => React.ReactNode) | React.ReactNode;
-};
-
-type PageNotFoundFallbackProps = {
-    shouldShowFullScreenFallback?: boolean;
 };
 
 function isDelegate(account: OnyxEntry<Account>) {
@@ -39,31 +33,31 @@ function isSubmitter(account: OnyxEntry<Account>) {
     return isDelegateOnlySubmitter;
 }
 
-function PageNotFoundFallback({shouldShowFullScreenFallback}: PageNotFoundFallbackProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    return (
-        <NotFoundPage
-            shouldForceFullScreen={shouldShowFullScreenFallback}
-            onBackButtonPress={() => {
-                if (shouldShowFullScreenFallback) {
-                    Navigation.dismissModal();
-                    return;
-                }
-                Navigation.goBack();
-            }}
-            shouldShowBackButton={!shouldShowFullScreenFallback ? shouldUseNarrowLayout : undefined}
-        />
-    );
-}
-
-function DelegateNoAccessWrapper({accessDeniedVariants = [], shouldShowFullScreenFallback, ...props}: DelegateNoAccessWrapperProps) {
+function DelegateNoAccessWrapper({accessDeniedVariants = [], shouldForceFullScreen, ...props}: DelegateNoAccessWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isPageAccessDenied = accessDeniedVariants.reduce((acc, variant) => {
         const accessDeniedFunction = DENIED_ACCESS_VARIANTS[variant];
         return acc || accessDeniedFunction(account);
     }, false);
+
     if (isPageAccessDenied) {
-        return <PageNotFoundFallback shouldShowFullScreenFallback={shouldShowFullScreenFallback} />;
+        const {shouldUseNarrowLayout} = useResponsiveLayout();
+        return (
+            <FullPageNotFoundView
+                shouldShow
+                shouldForceFullScreen={shouldForceFullScreen}
+                onBackButtonPress={() => {
+                    if (shouldUseNarrowLayout) {
+                        Navigation.dismissModal();
+                        return;
+                    }
+                    Navigation.goBack();
+                }}
+                titleKey="delegate.notAllowed"
+                subtitleKey="delegate.noAccessMessage"
+                shouldShowLink={false}
+            />
+        );
     }
     return callOrReturn(props.children);
 }
