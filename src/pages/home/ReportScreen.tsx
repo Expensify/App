@@ -9,7 +9,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyReportHeader from '@components/MoneyReportHeader';
@@ -116,6 +115,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {initialValue: ''});
+    // If accountManagerReportID is an empty string, using ?? can crash the app.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${accountManagerReportID || '-1'}`);
     const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {initialValue: false});
@@ -171,10 +171,8 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(participantPersonalDetail);
             const login = participantPersonalDetail?.login;
             if (displayName && login) {
-                // return `Need something specific? Chat with your account manager, ${displayName} (${login}).`;
                 return translate('common.chatWithAM', {AMDisplayName: `${displayName} (${login})`});
             }
-            return translate('common.chatWithAM', {});
         }
         return '';
     }, [accountManagerReportID, accountManagerReport, personalDetails, translate]);
@@ -781,21 +779,14 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                         </OfflineWithFeedback>
                         {!!accountManagerReportID && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
                             <Banner
-                                containerStyles={[styles.mh4, styles.mt4, styles.p4, {borderRadius: 8}]}
+                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
                                 text={chatWithAMText}
                                 onClose={dismissBanner}
-                                onPress={chatWithAccountManager}
+                                onButtonPress={chatWithAccountManager}
                                 shouldShowCloseButton
                                 icon={Expensicons.Lightbulb}
                                 shouldShowIcon
-                                buttonComponent={
-                                    <Button
-                                        success
-                                        style={{paddingRight: 8}}
-                                        text={translate('common.chatNow')}
-                                        onPress={chatWithAccountManager}
-                                    />
-                                }
+                                shouldShowButton
                             />
                         )}
                         <DragAndDropProvider isDisabled={!isCurrentReportLoadedFromOnyx || !ReportUtils.canUserPerformWriteAction(report)}>

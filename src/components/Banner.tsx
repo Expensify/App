@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import Button from './Button';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -47,8 +48,11 @@ type BannerProps = {
     /** Styles to be assigned to the Banner text */
     textStyles?: StyleProp<TextStyle>;
 
-    /** The button to display in the banner */
-    buttonComponent?: React.ReactNode;
+    /** Whether to display button in the banner */
+    shouldShowButton?: boolean;
+
+    /** Callback called when pressing the button */
+    onButtonPress?: () => void;
 };
 
 function Banner({
@@ -57,12 +61,13 @@ function Banner({
     icon = Expensicons.Exclamation,
     onClose,
     onPress,
+    onButtonPress,
     containerStyles,
     textStyles,
     shouldRenderHTML = false,
     shouldShowIcon = false,
     shouldShowCloseButton = false,
-    buttonComponent,
+    shouldShowButton = false,
 }: BannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -72,7 +77,7 @@ function Banner({
     return (
         <Hoverable>
             {(isHovered) => {
-                const isClickable = onClose ?? onPress;
+                const isClickable = onClose && onPress;
                 const shouldHighlight = isClickable && isHovered;
                 return (
                     <View
@@ -110,7 +115,14 @@ function Banner({
                                     </Text>
                                 ))}
                         </View>
-                        {!!buttonComponent && buttonComponent}
+                        {shouldShowButton && (
+                            <Button
+                                success
+                                style={[styles.pr3]}
+                                text={translate('common.chatNow')}
+                                onPress={onButtonPress}
+                            />
+                        )}
                         {shouldShowCloseButton && !!onClose && (
                             <Tooltip text={translate('common.close')}>
                                 <PressableWithFeedback

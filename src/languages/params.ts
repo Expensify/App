@@ -560,7 +560,7 @@ type CompanyNameParams = {
 };
 
 type ChatWithAMParams = {
-    AMDisplayName?: string;
+    AMDisplayName: string;
 };
 
 export type {
