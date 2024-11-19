@@ -83,6 +83,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
 
@@ -106,6 +107,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
     const freeTrialText = SubscriptionUtils.getFreeTrialText(policies);
+    const shouldOpenBookACall = tryNewDot?.classicRedirect?.dismissed === false;
 
     useEffect(() => {
         Wallet.openInitialSettingsPage();
@@ -251,7 +253,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                       setIsNoDelegateAccessMenuVisible(true);
                                       return;
                                   }
-                                  resetExitSurveyForm(() => Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON));
+                                  resetExitSurveyForm(() => {
+                                      if (shouldOpenBookACall) {
+                                          Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
+                                          return;
+                                      }
+                                      Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
+                                  });
                               },
                           }),
                 },
@@ -279,7 +287,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, signOut, setInitialURL, isActingAsDelegate]);
+    }, [styles.pt4, signOut, setInitialURL, shouldOpenBookACall, isActingAsDelegate]);
 
     /**
      * Retuns JSX.Element with menu items
