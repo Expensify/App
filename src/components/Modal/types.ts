@@ -1,6 +1,6 @@
 import type FocusTrap from 'focus-trap-react';
 import type {GestureResponderEvent, PanResponderGestureState, ViewStyle} from 'react-native';
-import type {ModalProps} from 'react-native-modal';
+import type {Direction, ModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
@@ -96,6 +96,12 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** Whether swipe gestures should propagate to parent components */
     propagateSwipe?: boolean | ((event?: GestureResponderEvent, gestureState?: PanResponderGestureState) => boolean);
+
+    /** After swipe more than threshold modal will close */
+    swipeThreshold?: number;
+
+    /** In which direction modal will swipe */
+    swipeDirection?: Direction;
 };
 
 export default BaseModalProps;

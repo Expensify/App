@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {EmitterSubscription, PanResponderInstance, StyleProp, ViewStyle} from 'react-native';
 import {Animated, BackHandler, DeviceEventEmitter, Dimensions, KeyboardAvoidingView, Modal, PanResponder, Platform, View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
 import Backdrop from './Backdrop';
 import Container from './Container';
 import styles from './modal.style';
@@ -46,7 +47,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
     const [pan, setPan] = useState<Animated.ValueXY>(new Animated.ValueXY());
     const [panResponder, setPanResponder] = useState<PanResponderInstance | null>(null);
     const [inSwipeClosingState, setInSwipeClosingState] = useState(false);
-    const isSwipeable = !!props.swipeDirection;
+    const isSwappable = !!props.swipeDirection;
     const shouldHideChildren = props.hideModalContentWhileAnimating && isContainerOpen && isTransitioning;
     const currentSwipingDirectionRef = useRef<Direction | null>(null);
 
@@ -64,14 +65,28 @@ function ReactNativeModal(incomingProps: ModalProps) {
 
     const getDeviceHeight = () => props.deviceHeight ?? deviceHeight;
     const getDeviceWidth = () => props.deviceWidth ?? deviceWidth;
+    const Yoffset = useSharedValue<number>(0);
+    const Xoffset = useSharedValue<number>(0);
 
     const buildPanResponder = useCallback(() => {
         setPanResponder(
             PanResponder.create({
                 onMoveShouldSetPanResponder: onMoveShouldSetPanResponder(props, setAnimEvt, setCurrentSwipingDirection, pan),
                 onStartShouldSetPanResponder: (a, b) => onStartShouldSetPanResponder(props, setCurrentSwipingDirection)(a as EnhancedGestureEvent, b),
-                onPanResponderMove: onPanResponderMove(props, currentSwipingDirectionRef, setCurrentSwipingDirection, setAnimEvt, animEvt, pan, deviceHeight, deviceWidth),
-                onPanResponderRelease: onPanResponderRelease(props, currentSwipingDirectionRef, setInSwipeClosingState, pan),
+                onPanResponderMove: onPanResponderMove(
+                    props,
+                    currentSwipingDirectionRef,
+                    setCurrentSwipingDirection,
+                    setAnimEvt,
+                    animEvt,
+                    pan,
+                    deviceHeight,
+                    deviceWidth,
+                    Xoffset,
+                    Yoffset,
+                    props.swipeDirection,
+                ),
+                onPanResponderRelease: onPanResponderRelease(props, currentSwipingDirectionRef, setInSwipeClosingState, pan, Xoffset, Yoffset),
             }),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -111,9 +126,6 @@ function ReactNativeModal(incomingProps: ModalProps) {
         if (isTransitioning) {
             return;
         }
-        if (isSwipeable) {
-            pan.setValue?.({x: 0, y: 0});
-        }
 
         if (props.onModalWillShow) {
             props.onModalWillShow();
@@ -140,13 +152,13 @@ function ReactNativeModal(incomingProps: ModalProps) {
     };
 
     useEffect(() => {
-        if (!isSwipeable) {
+        if (!isSwappable) {
             return;
         }
 
         setPan(new Animated.ValueXY());
         buildPanResponder();
-    }, [isSwipeable, buildPanResponder]);
+    }, [isSwappable, buildPanResponder]);
 
     useEffect(() => {
         didUpdateDimensionsEmitter.current = DeviceEventEmitter.addListener('didUpdateDimensions', handleDimensionsUpdate);
@@ -180,13 +192,13 @@ function ReactNativeModal(incomingProps: ModalProps) {
     const computedStyle: Array<StyleProp<ViewStyle>> = [{margin: getDeviceWidth() * 0.05}, styles.content, style];
 
     let panPosition: StyleProp<ViewStyle> = {};
-    if (isSwipeable && panResponder) {
+    if (isSwappable && panResponder) {
         if (useNativeDriver) {
             panPosition = {
-                // transform: pan.getTranslateTransform(),
+                transform: [{translateX: Xoffset.value}, {translateY: Yoffset.value}],
             };
         } else {
-            // panPosition = pan.getLayout();
+            panPosition = pan.getLayout();
         }
     }
 
@@ -197,7 +209,8 @@ function ReactNativeModal(incomingProps: ModalProps) {
             animationInTiming={animationInTiming}
             animationOutTiming={animationOutTiming}
             isVisible={isVisibleState}
-            style={[panPosition, computedStyle]}
+            style={[computedStyle]}
+            panPosition={isSwappable ? {translateX: Xoffset, translateY: Yoffset} : undefined}
             pointerEvents="box-none"
             useNativeDriver={useNativeDriver}
             onOpenCallBack={() => {
@@ -209,7 +222,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
                 setIsTransitioning(false);
             }}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...(isSwipeable && panResponder ? panResponder.panHandlers : {})}
+            {...(isSwappable && panResponder ? panResponder.panHandlers : {})}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...otherProps}
         >

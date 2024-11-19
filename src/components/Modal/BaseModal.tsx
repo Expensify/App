@@ -1,7 +1,6 @@
 import {PortalHost} from '@gorhom/portal';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -20,7 +19,7 @@ import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
-// import ReactNativeModal from './ReactNativeModal/Modal';
+import ReactNativeModal from './ReactNativeModal/Modal';
 import type BaseModalProps from './types';
 
 function BaseModal(
@@ -54,6 +53,8 @@ function BaseModal(
         restoreFocusType,
         shouldUseModalPaddingStyle = true,
         initialFocus = false,
+        swipeThreshold,
+        swipeDirection,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -78,7 +79,6 @@ function BaseModal(
         }
         ComposerFocusManager.resetReadyToFocus(uniqueModalId);
     }, [shouldEnableNewFocusManagement, uniqueModalId]);
-
     /**
      * Hides modal
      * @param callHideCallback - Should we call the onModalHide callback
@@ -155,7 +155,6 @@ function BaseModal(
     const {
         modalStyle,
         modalContainerStyle,
-        swipeDirection,
         animationIn: modalStyleAnimationIn,
         animationOut: modalStyleAnimationOut,
         shouldAddTopSafeAreaMargin,
@@ -238,6 +237,7 @@ function BaseModal(
                     onDismiss={handleDismissModal}
                     onSwipeComplete={() => onClose?.()}
                     swipeDirection={swipeDirection}
+                    swipeThreshold={swipeThreshold}
                     isVisible={isVisible}
                     backdropColor={theme.overlay}
                     backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}

@@ -1,8 +1,20 @@
 import React from 'react';
-import Animated, {runOnJS, SlideInDown, SlideOutDown} from 'react-native-reanimated';
+import type {SharedValue} from 'react-native-reanimated';
+import Animated, {runOnJS, SlideInDown, SlideOutDown, useAnimatedStyle} from 'react-native-reanimated';
 import type ModalProps from './types';
 
-function Container({style, ...props}: ModalProps & {onOpenCallBack: () => void; onCloseCallBack: () => void}) {
+function Container({
+    style,
+    ...props
+}: ModalProps & {onOpenCallBack: () => void; onCloseCallBack: () => void; panPosition?: {translateX: SharedValue<number>; translateY: SharedValue<number>}}) {
+    const animatedStyles = useAnimatedStyle(() => {
+        if (!props.panPosition) {
+            return {};
+        }
+        return {
+            transform: [{translateX: props.panPosition.translateX.value}, {translateY: props.panPosition.translateY.value}],
+        };
+    });
     return (
         <Animated.View
             style={[style, {flex: 1, height: '100%', flexDirection: 'row'}]}
@@ -15,7 +27,7 @@ function Container({style, ...props}: ModalProps & {onOpenCallBack: () => void; 
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
-            <Animated.View style={{width: '100%', flex: 1, alignSelf: 'flex-end'}}>{props.children}</Animated.View>
+            <Animated.View style={[{width: '100%', flex: 1, alignSelf: 'flex-end'}, animatedStyles]}>{props.children}</Animated.View>
         </Animated.View>
     );
 }

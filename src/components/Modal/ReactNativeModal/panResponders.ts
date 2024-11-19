@@ -1,9 +1,22 @@
 import type {MutableRefObject} from 'react';
-import type {PanResponderGestureState} from 'react-native';
-import {Animated} from 'react-native';
+import type {Animated, PanResponderGestureState} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
+import {withSpring} from 'react-native-reanimated';
 import {calcDistancePercentage, createAnimationEventForSwipe, getAccDistancePerDirection, getSwipingDirection, isSwipeDirectionAllowed, shouldPropagateSwipe} from './panHandlers';
 import type {AnimationEvent, Direction, GestureResponderEvent} from './types';
 import type ModalProps from './types';
+
+function handleSwipe(swipeDirection: Direction, dx: number, dy: number, Xoffset: SharedValue<number>, Yoffset: SharedValue<number>) {
+    if (swipeDirection === 'right' && dx > 0) {
+        Xoffset.value = dx;
+    } else if (swipeDirection === 'left' && dx < 0) {
+        Xoffset.value = dx;
+    } else if (swipeDirection === 'up' && dy < 0) {
+        Yoffset.value = dy;
+    } else if (swipeDirection === 'down' && dy > 0) {
+        Yoffset.value = dy;
+    }
+}
 
 type RemainingModalProps = Omit<
     ModalProps,
@@ -41,6 +54,9 @@ const onMoveShouldSetPanResponder = (
     pan: Animated.ValueXY,
 ) => {
     return (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
+        console.log('______________-');
+        console.log(pan.getTranslateTransform());
+        console.log('______________-');
         if (!shouldPropagateSwipe(evt, gestureState, props.propagateSwipe)) {
             const shouldSetPanResponder = Math.abs(gestureState.dx) >= props.panResponderThreshold || Math.abs(gestureState.dy) >= props.panResponderThreshold;
             if (shouldSetPanResponder && props.onSwipeStart) {
@@ -82,8 +98,15 @@ const onPanResponderMove = (
     pan: Animated.ValueXY,
     deviceHeight: number,
     deviceWidth: number,
+    xOffset: SharedValue<number>,
+    yOffset: SharedValue<number>,
+    swipeDirection: Direction,
 ) => {
     return (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
+        console.log('______________-');
+        console.log(swipeDirection);
+        console.log('______________-');
+        handleSwipe(swipeDirection, gestureState.dx, gestureState.dy, xOffset, yOffset);
         const currentSwipingDirection = currentSwipingDirectionRef.current;
         if (!currentSwipingDirection) {
             if (gestureState.dx === 0 && gestureState.dy === 0) {
@@ -128,6 +151,8 @@ const onPanResponderRelease = (
     currentSwipingDirectionRef: MutableRefObject<Direction | null>,
     setInSwipeClosingState: (val: boolean) => void,
     pan: Animated.ValueXY,
+    xOffset: SharedValue<number>,
+    yOffset: SharedValue<number>,
 ) => {
     return (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
         const currentSwipingDirection = currentSwipingDirectionRef.current;
@@ -141,6 +166,10 @@ const onPanResponderRelease = (
                     },
                     gestureState,
                 );
+                // eslint-disable-next-line no-param-reassign
+                xOffset.value = 0;
+                // eslint-disable-next-line no-param-reassign
+                yOffset.value = 0;
                 return;
             }
         }
@@ -149,11 +178,10 @@ const onPanResponderRelease = (
             props.onSwipeCancel(gestureState);
         }
 
-        Animated.spring(pan, {
-            toValue: {x: 0, y: 0},
-            bounciness: 0,
-            useNativeDriver: false,
-        }).start();
+        // eslint-disable-next-line no-param-reassign
+        xOffset.value = withSpring(0);
+        // eslint-disable-next-line no-param-reassign
+        yOffset.value = withSpring(0);
 
         if (props.scrollTo && props.scrollOffset !== undefined && props.scrollOffsetMax !== undefined) {
             if (props.scrollOffset > props.scrollOffsetMax) {
