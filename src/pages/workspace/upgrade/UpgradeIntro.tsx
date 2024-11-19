@@ -103,6 +103,8 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
 function CommonCorporateFeatures({buttonDisabled, loading, onUpgrade}: {buttonDisabled?: boolean; loading?: boolean; onUpgrade: () => void}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isExtraSmallScreenWidth} = useResponsiveLayout();
+
     const benefits = [
         translate('workspace.upgrade.commonFeatures.benefits.benefit1'),
         translate('workspace.upgrade.commonFeatures.benefits.benefit2'),
@@ -111,16 +113,26 @@ function CommonCorporateFeatures({buttonDisabled, loading, onUpgrade}: {buttonDi
     ];
 
     return (
-        <Section
-            icon={Illustrations.ShieldYellow}
-            cardLayout={CARD_LAYOUT.ICON_ON_LEFT}
-        >
-            <Text style={[styles.textHeadline, styles.mb4]}>{translate('workspace.upgrade.commonFeatures.title')}</Text>
-            <BulletList
-                items={benefits}
-                header={translate('workspace.upgrade.commonFeatures.note')}
-            />
-            <View style={[styles.mb5, styles.mt4]}>
+        <View style={[styles.m5, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
+            <View style={[styles.mb3]}>
+                <Icon
+                    src={Illustrations.ShieldYellow}
+                    width={48}
+                    height={48}
+                />
+            </View>
+            <View style={styles.mb5}>
+                <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.upgrade.commonFeatures.title')}</Text>
+                <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate('workspace.upgrade.commonFeatures.note')}</Text>
+                {benefits.map((benefit) => (
+                    <View
+                        key={benefit}
+                        style={[styles.pl2, styles.flexRow]}
+                    >
+                        <Text style={[styles.textNormal, styles.textSupporting]}>• </Text>
+                        <Text style={[styles.textNormal, styles.textSupporting]}>{benefit}</Text>
+                    </View>
+                ))}
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mt4]}>
                     {translate('workspace.upgrade.commonFeatures.benefits.note')}{' '}
                     <TextLink
@@ -140,7 +152,7 @@ function CommonCorporateFeatures({buttonDisabled, loading, onUpgrade}: {buttonDi
                 isDisabled={buttonDisabled}
                 large
             />
-        </Section>
+        </View>
     );
 }
 
