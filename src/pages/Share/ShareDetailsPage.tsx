@@ -129,7 +129,7 @@ function ShareDetailsPage({
                     </>
                 )}
 
-                <View style={[styles.ph5, styles.flexGrow1, styles.flexColumn, {flexGrow: 25}]}>
+                <View style={[styles.ph5, styles.flex1, styles.flexColumn]}>
                     <View style={[styles.pv5]}>
                         <ScrollView>
                             <TextInput
@@ -143,18 +143,37 @@ function ShareDetailsPage({
                         </ScrollView>
                     </View>
                     {!isTextShared && (
+                        // <ScrollView style={{flexGrow: 1}}>
                         <>
                             <View style={[styles.pt6, styles.pb2]}>
                                 <Text style={[styles.textLabelSupporting]}>{translate('common.attachment')}</Text>
                             </View>
-                            <View style={{flex: 25, width: '100%', alignSelf: 'center', flexDirection: 'column', marginTop: 10, backgroundColor: 'yellow'}}>
-                                <AttachmentPreview source={currentAttachment?.content} />
-                            </View>
+                            {/* <View
+                                style={{
+                                    flex: 0.7,
+                                    aspectRatio: 1.7,
+                                    // maxWidth: '90%',
+                                    alignSelf: 'center',
+                                    overflow: 'hidden',
+                                    // justifyContent: 'center',
+                                    objectFit: 'fill',
+                                    flexDirection: 'column',
+                                    marginTop: 10,
+                                    backgroundColor: 'yellow',
+                                    margin: 50,
+                                }}
+                            > */}
+                            <AttachmentPreview
+                                source={currentAttachment?.content}
+                                aspectRatio={currentAttachment?.aspectRatio}
+                            />
+                            {/* </View> */}
                         </>
+                        // </ScrollView>
                     )}
                 </View>
 
-                <View style={[styles.flexGrow1, styles.flexColumn, styles.justifyContentEnd, styles.mb10]}>
+                <View style={[styles.flexGrow1, styles.flexColumn, styles.justifyContentEnd, styles.mh4, styles.mv3]}>
                     <Button
                         success
                         large
