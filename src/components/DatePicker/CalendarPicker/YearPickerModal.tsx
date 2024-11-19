@@ -6,6 +6,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import type CalendarPickerListItem from './types';
 
@@ -53,6 +54,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            shouldHandleNavigationBack={Browser.isMobileChrome()}
         >
             <ScreenWrapper
                 style={[styles.pb0]}
