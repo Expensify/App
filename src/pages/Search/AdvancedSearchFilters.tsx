@@ -29,7 +29,6 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const baseFilterConfig = {
     date: {
@@ -279,7 +278,13 @@ function AdvancedSearchFilters() {
 
     const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
-        selector: (policyCategories) => Object.fromEntries(Object.entries(policyCategories ?? {}).filter(([, categories]) => !isEmptyObject(categories))),
+        selector: (policyCategories) =>
+            Object.fromEntries(
+                Object.entries(policyCategories ?? {}).filter(([, categories]) => {
+                    const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                    return availableCategories.length > 0;
+                }),
+            ),
     });
     const singlePolicyCategories = allPolicyCategories[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
     const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
