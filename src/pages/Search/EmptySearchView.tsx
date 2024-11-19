@@ -18,8 +18,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getNavatticURL} from '@libs/TourUtils';
 import * as TripsResevationUtils from '@libs/TripReservationUtils';
@@ -191,7 +191,10 @@ function EmptySearchView({type}: EmptySearchViewProps) {
         ctaErrorMessage,
         navatticURL,
         shouldRedirectToExpensifyClassic,
-    , hasSeenTour, viewTourTaskReport]);
+        ,
+        hasSeenTour,
+        viewTourTaskReport,
+    ]);
 
     return (
         <>
