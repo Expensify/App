@@ -100,8 +100,6 @@ function ReportActionsView({
     const didLoadNewerChats = useRef(false);
     const {isOffline} = useNetwork();
 
-    const isFirstLinkedActionRender = useRef(true);
-
     const network = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentListHeight = useRef(0);
@@ -133,7 +131,6 @@ function ReportActionsView({
             // Keep the old list ID since we're not in the Comment Linking flow
             return listOldID;
         }
-        isFirstLinkedActionRender.current = true;
         const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
         // eslint-disable-next-line react-compiler/react-compiler
         listOldID = newID;

@@ -702,13 +702,6 @@ function ReportActionsList({
         loadOlderChats(false);
     }, [loadOlderChats]);
 
-    const indexOfLinkedAction = useMemo(() => {
-        if (!linkedReportActionID) {
-            return -1;
-        }
-        return sortedVisibleReportActions.findIndex((obj) => String(obj.reportActionID) === linkedReportActionID);
-    }, [sortedVisibleReportActions, linkedReportActionID]);
-
     // When performing comment linking, initially 25 items are added to the list. Subsequent fetches add 15 items from the cache or 50 items from the server.
     // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
     const canScrollToNewerComments = !isLoadingInitialReportActions && !hasNewestReportAction && sortedReportActions.length > 25 && !isLastPendingActionIsDelete;
@@ -743,7 +736,7 @@ function ReportActionsList({
                     extraData={extraData}
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollIndex={indexOfLinkedAction}
+                    initialScrollKey={route?.params?.reportActionID}
                 />
             </View>
         </>

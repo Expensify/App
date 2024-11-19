@@ -5,40 +5,67 @@ import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
 import getInitialPaginationSize from './getInitialPaginationSize';
 
-type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'> & {
+// Adapted from https://github.com/facebook/react-native/blob/29a0d7c3b201318a873db0d1b62923f4ce720049/packages/virtualized-lists/Lists/VirtualizeUtils.js#L237
+function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: number): string {
+    if (item != null) {
+        if (typeof item === 'object' && 'key' in item) {
+            return item.key;
+        }
+        if (typeof item === 'object' && 'id' in item) {
+            return item.id;
+        }
+    }
+    return String(index);
+}
+
+type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem' | 'initialScrollIndex'> & {
     shouldEnableAutoScrollToTopThreshold?: boolean;
     data: T[];
     renderItem: ListRenderItem<T>;
+    initialScrollKey?: string | null;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
 function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
-    const {shouldEnableAutoScrollToTopThreshold, initialScrollIndex, data, onStartReached, renderItem, ...rest} = props;
-
+    const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
     // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
-    // What we do is start rendering the list from `initialScrollIndex` and then whenever we reach the start we render more
-    // previous items, until everything is rendered.
-    const [currentDataIndex, setCurrentDataIndex] = useState(initialScrollIndex ?? 0);
+    // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
+    // previous items, until everything is rendered. We also progressively render new data that is added at the start of the
+    // list to make sure `maintainVisibleContentPosition` works as expected.
+    const [currentDataId, setCurrentDataId] = useState(() => {
+        if (initialScrollKey) {
+            return initialScrollKey;
+        }
+        const initialItem = data.at(0);
+        return initialItem ? keyExtractor(initialItem, 0) : null;
+    });
+    const [isInitialData, setIsInitialData] = useState(true);
+    const currentDataIndex = useMemo(() => data.findIndex((item, index) => keyExtractor(item, index) === currentDataId), [currentDataId, data, keyExtractor]);
     const displayedData = useMemo(() => {
+        if (currentDataIndex === -1) {
+            return [];
+        }
         if (currentDataIndex > 0) {
-            return data.slice(currentDataIndex);
+            return data.slice(Math.max(0, currentDataIndex - (isInitialData ? 0 : getInitialPaginationSize)));
         }
         return data;
-    }, [data, currentDataIndex]);
+    }, [currentDataIndex, data, isInitialData]);
+
     const isLoadingData = data.length > displayedData.length;
     const wasLoadingData = usePrevious(isLoadingData);
     const dataIndexDifference = data.length - displayedData.length;
 
     const handleStartReached = useCallback(
         (info: {distanceFromStart: number}) => {
-            if (isLoadingData) {
-                setCurrentDataIndex((prevIndex) => prevIndex - getInitialPaginationSize);
-            } else {
+            if (!isLoadingData) {
                 onStartReached?.(info);
             }
+            setIsInitialData(false);
+            const firstDisplayedItem = displayedData.at(0);
+            setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, currentDataIndex) : '');
         },
-        [onStartReached, isLoadingData],
+        [isLoadingData, keyExtractor, displayedData, currentDataIndex, onStartReached],
     );
 
     const handleRenderItem = useCallback(
@@ -72,6 +99,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
             data={displayedData}
             onStartReached={handleStartReached}
             renderItem={handleRenderItem}
+            keyExtractor={keyExtractor}
         />
     );
 }
