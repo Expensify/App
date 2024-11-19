@@ -791,7 +791,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                     <Button
                                         success
                                         style={{paddingRight: 8}}
-                                        text="Chat now"
+                                        text={translate('common.chatNow')}
                                         onPress={chatWithAccountManager}
                                     />
                                 }
