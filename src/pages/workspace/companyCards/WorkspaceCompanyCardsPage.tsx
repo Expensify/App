@@ -5,6 +5,7 @@ import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
@@ -36,7 +37,6 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
 
     const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
-    const isLoading = !cardFeeds || !!(cardFeeds.isLoading && !companyCards);
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
     const isNoFeed = isEmptyObject(companyCards) && !selectedFeedData;
     const isPending = !!selectedFeedData?.pending;
@@ -46,10 +46,13 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
         CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
 
+    const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
+    const isLoading = !isOffline && (!cardFeeds || cardFeeds.isLoading);
+
     useFocusEffect(fetchCompanyCards);
 
     useEffect(() => {
-        if (isLoading || !selectedFeed || isPending) {
+        if (!!isLoading || !selectedFeed || isPending) {
             return;
         }
 
@@ -61,7 +64,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
-            {isLoading && (
+            {!!isLoading && (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={styles.flex1}
