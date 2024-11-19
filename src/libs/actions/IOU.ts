@@ -3389,6 +3389,8 @@ function categorizeTrackedExpense(
     billable?: boolean,
     receipt?: Receipt,
     createdWorkspaceParams?: CreateWorkspaceParams,
+    waypoints?: string,
+    customUnitRateID?: string,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
 
@@ -3435,6 +3437,8 @@ function categorizeTrackedExpense(
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
+        waypoints,
+        customUnitRateID,
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -3470,6 +3474,8 @@ function shareTrackedExpense(
     billable?: boolean,
     receipt?: Receipt,
     createdWorkspaceParams?: CreateWorkspaceParams,
+    waypoints?: string,
+    customUnitRateID?: string,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
 
@@ -3516,6 +3522,8 @@ function shareTrackedExpense(
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
+        waypoints,
+        customUnitRateID,
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -3819,6 +3827,8 @@ function trackExpense(
         value: recentServerValidatedWaypoints,
     });
 
+    const waypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
+
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
@@ -3849,6 +3859,8 @@ function trackExpense(
                 billable,
                 trackedReceipt,
                 createdWorkspaceParams,
+                waypoints,
+                customUnitRateID,
             );
             break;
         }
@@ -3880,6 +3892,8 @@ function trackExpense(
                 billable,
                 trackedReceipt,
                 createdWorkspaceParams,
+                waypoints,
+                customUnitRateID,
             );
             break;
         }
@@ -3908,7 +3922,7 @@ function trackExpense(
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 createdReportActionIDForThread: createdReportActionIDForThread ?? '-1',
-                waypoints: validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined,
+                waypoints,
                 customUnitRateID,
             };
             if (actionableWhisperReportActionIDParam) {
@@ -3921,6 +3935,10 @@ function trackExpense(
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
 
     if (action === CONST.IOU.ACTION.SHARE) {
+        if (isSearchTopmostCentralPane() && activeReportID) {
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(activeReportID));
+        }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT)));
     }
 
@@ -7346,7 +7364,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
  *
  * @param paymentSelected based on which we choose the onboarding choice and concierge message
  */
-function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>) {
+function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>, adminsChatReportID?: string, onboardingPolicyID?: string) {
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
 
     if (isInviteOnboardingComplete || !introSelected?.choice || !introSelected?.inviteType) {
@@ -7372,15 +7390,14 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         CONST.ONBOARDING_MESSAGES[onboardingPurpose],
         personalDetails?.firstName ?? '',
         personalDetails?.lastName ?? '',
-        undefined,
-        undefined,
+        adminsChatReportID,
+        onboardingPolicyID,
         paymentSelected,
         undefined,
         undefined,
         true,
     );
 }
-
 function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true) {
     if (chatReport.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
