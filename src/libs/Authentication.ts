@@ -52,6 +52,7 @@ function Authenticate(parameters: Parameters): Promise<Response> {
             return response;
         }
         hasFailedToFetch = true;
+        console.log('Ndebug failing to fetch in Authenticate');
         throw new HttpsError({
             message: CONST.ERROR.FAILED_TO_FETCH,
         });
