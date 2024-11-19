@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import * as OptionsListUtils from '@src/libs/OptionsListUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type PersonalDetailsList = Record<string, PersonalDetails & ReportUtils.OptionData>;
@@ -635,125 +635,6 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
         expect(results.personalDetails.at(2)?.text).toBe('Captain America');
         expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
-    });
-
-    it('getFilteredOptions() for taxRate', () => {
-        const search = 'rate';
-        const emptySearch = '';
-        const wrongSearch = 'bla bla';
-
-        const taxRatesWithDefault: TaxRatesWithDefault = {
-            name: 'Tax',
-            defaultExternalID: 'CODE1',
-            defaultValue: '0%',
-            foreignTaxDefault: 'CODE1',
-            taxes: {
-                CODE2: {
-                    name: 'Tax rate 2',
-                    value: '3%',
-                    code: 'CODE2',
-                    modifiedName: 'Tax rate 2 (3%)',
-                    pendingAction: 'delete',
-                },
-                CODE3: {
-                    name: 'Tax option 3',
-                    value: '5%',
-                    code: 'CODE3',
-                    modifiedName: 'Tax option 3 (5%)',
-                    pendingAction: undefined,
-                },
-                CODE1: {
-                    name: 'Tax exempt 1',
-                    value: '0%',
-                    code: 'CODE1',
-                    modifiedName: 'Tax exempt 1 (0%) • Default',
-                    pendingAction: undefined,
-                },
-            },
-        };
-        const policy = {
-            taxRates: taxRatesWithDefault,
-        } as Policy;
-
-        const transaction = {
-            taxCode: 'CODE1',
-        } as Transaction;
-
-        const resultList: OptionsListUtils.Section[] = [
-            {
-                data: [
-                    {
-                        code: 'CODE1',
-                        isDisabled: false,
-                        isSelected: undefined,
-                        keyForList: 'Tax exempt 1 (0%) • Default',
-                        searchText: 'Tax exempt 1 (0%) • Default',
-                        text: 'Tax exempt 1 (0%) • Default',
-                        tooltipText: 'Tax exempt 1 (0%) • Default',
-                        pendingAction: undefined,
-                    },
-                    {
-                        code: 'CODE3',
-                        isDisabled: false,
-                        isSelected: undefined,
-                        keyForList: 'Tax option 3 (5%)',
-                        searchText: 'Tax option 3 (5%)',
-                        text: 'Tax option 3 (5%)',
-                        tooltipText: 'Tax option 3 (5%)',
-                        pendingAction: undefined,
-                    },
-                    {
-                        code: 'CODE2',
-                        isDisabled: true,
-                        isSelected: undefined,
-                        keyForList: 'Tax rate 2 (3%)',
-                        searchText: 'Tax rate 2 (3%)',
-                        text: 'Tax rate 2 (3%)',
-                        tooltipText: 'Tax rate 2 (3%)',
-                        pendingAction: 'delete',
-                    },
-                ],
-                shouldShow: false,
-                title: '',
-            },
-        ];
-
-        const searchResultList: OptionsListUtils.Section[] = [
-            {
-                data: [
-                    {
-                        code: 'CODE2',
-                        isDisabled: true,
-                        isSelected: undefined,
-                        keyForList: 'Tax rate 2 (3%)',
-                        searchText: 'Tax rate 2 (3%)',
-                        text: 'Tax rate 2 (3%)',
-                        tooltipText: 'Tax rate 2 (3%)',
-                        pendingAction: 'delete',
-                    },
-                ],
-                shouldShow: true,
-                title: '',
-            },
-        ];
-
-        const wrongSearchResultList: OptionsListUtils.Section[] = [
-            {
-                data: [],
-                shouldShow: true,
-                title: '',
-            },
-        ];
-
-        const result = OptionsListUtils.getTaxRatesSection(policy, [], emptySearch, transaction);
-
-        expect(result).toStrictEqual(resultList);
-
-        const searchResult = OptionsListUtils.getTaxRatesSection(policy, [], search, transaction);
-        expect(searchResult).toStrictEqual(searchResultList);
-
-        const wrongSearchResult = OptionsListUtils.getTaxRatesSection(policy, [], wrongSearch, transaction);
-        expect(wrongSearchResult).toStrictEqual(wrongSearchResultList);
     });
 
     it('formatMemberForList()', () => {

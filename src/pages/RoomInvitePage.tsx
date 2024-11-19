@@ -72,7 +72,7 @@ function RoomInvitePage({
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, tagOptions: [], taxRatesOptions: []};
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers);
@@ -95,8 +95,6 @@ function RoomInvitePage({
             selectedOptions: newSelectedOptions,
             recentReports: [],
             currentUserOption: null,
-            tagOptions: [],
-            taxRatesOptions: [],
         };
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, selectedOptions]);
 

@@ -62,8 +62,6 @@ function useOptions() {
             personalDetails,
             currentUserOption,
             headerMessage,
-            tagOptions: [],
-            taxRatesOptions: [],
         };
     }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
 

@@ -30,6 +30,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const internalNewExpensifyPath = Link.getInternalNewExpensifyPath(attrHref);
     const internalExpensifyPath = Link.getInternalExpensifyPath(attrHref);
     const isVideo = attrHref && Str.isVideo(attrHref);
+    const linkHasImage = tnode.tagName === 'a' && tnode.children.some((child) => child.tagName === 'img');
 
     const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
     const textDecorationLineStyle = isDeleted ? styles.underlineLineThrough : {};
@@ -73,6 +74,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={internalNewExpensifyPath || internalExpensifyPath ? () => Link.openLink(attrHref, environmentURL, isAttachment) : undefined}
+            linkHasImage={linkHasImage}
         >
             <TNodeChildrenRenderer
                 tnode={tnode}

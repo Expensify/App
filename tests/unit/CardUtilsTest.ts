@@ -215,4 +215,41 @@ describe('CardUtils', () => {
             expect(feedName).toBe(undefined);
         });
     });
+
+    describe('maskCardNumber', () => {
+        it("Should return the card number divided into chunks of 4, with 'X' replaced by '•' if it's provided in the '480801XXXXXX2554' format", () => {
+            const cardNumber = '480801XXXXXX2554';
+            const maskedCardNumber = CardUtils.maskCardNumber(cardNumber, CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD);
+            expect(maskedCardNumber).toBe('4808 01•• •••• 2554');
+        });
+
+        it('Should return card number without changes if it has empty space', () => {
+            const cardNumber = 'CREDIT CARD...6607';
+            const maskedCardNumber = CardUtils.maskCardNumber(cardNumber, CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE);
+            expect(maskedCardNumber).toBe(cardNumber);
+        });
+
+        it("Should return the Amex direct feed card number divided into 4/6/5 chunks, with 'X' replaced by '•' if it's provided in '211944XXXXX6557' format", () => {
+            const cardNumber = '211944XXXXX6557';
+            const maskedCardNumber = CardUtils.maskCardNumber(cardNumber, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT);
+            expect(maskedCardNumber).toBe('2119 44•••• •6557');
+        });
+
+        it("Should return the Amex custom feed card number divided into 4/6/5 chunks, with 'X' replaced by '•' if it's provided in '211944XXXXX6557' format", () => {
+            const cardNumber = '211944XXXXX6557';
+            const maskedCardNumber = CardUtils.maskCardNumber(cardNumber, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX);
+            expect(maskedCardNumber).toBe('2119 44•••• •6557');
+        });
+
+        it('Should return masked card number even if undefined feed was provided', () => {
+            const cardNumber = '480801XXXXXX2554';
+            const maskedCardNumber = CardUtils.maskCardNumber(cardNumber, undefined);
+            expect(maskedCardNumber).toBe('4808 01•• •••• 2554');
+        });
+
+        it('Should return empty string if invalid card name was provided', () => {
+            const maskedCardNumber = CardUtils.maskCardNumber('', CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD);
+            expect(maskedCardNumber).toBe('');
+        });
+    });
 });

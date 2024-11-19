@@ -72,7 +72,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const {options, areOptionsInitialized} = useOptionsList();
     const searchOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, tagOptions: [], taxRatesOptions: []};
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
         return OptionsListUtils.getSearchOptions(options, '', betas ?? []);
     }, [areOptionsInitialized, betas, options]);

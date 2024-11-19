@@ -789,6 +789,7 @@ const translations = {
         locationAccessMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
         locationErrorTitle: 'Permitir acceso a la ubicación',
         locationErrorMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
+        allowLocationFromSetting: `El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que estés. Por favor, permite el acceso a la ubicación en la configuración de permisos de tu dispositivo.`,
         cameraErrorMessage: 'Se ha producido un error al hacer una foto. Por favor, inténtalo de nuevo.',
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
@@ -3661,10 +3662,16 @@ const translations = {
             actions: {
                 delete: 'Eliminar tasa',
                 deleteMultiple: 'Eliminar tasas',
-                disable: 'Desactivar tasa',
-                disableMultiple: 'Desactivar tasas',
                 enable: 'Activar tasa',
-                enableMultiple: 'Activar tasas',
+                disable: 'Desactivar tasa',
+                enableTaxRates: () => ({
+                    one: 'Activar tasa',
+                    other: 'Activar tasas',
+                }),
+                disableTaxRates: () => ({
+                    one: 'Desactivar tasa',
+                    other: 'Desactivar tasas',
+                }),
             },
             importedFromAccountingSoftware: 'Impuestos importadas desde',
             taxCode: 'Código de impuesto',
@@ -5491,6 +5498,19 @@ const translations = {
         offlineTitle: 'Parece que estás atrapado aquí...',
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
+        quickTip: 'Consejo rápido...',
+        quickTipSubTitle: 'Puedes ir directamente a Expensify Classic visitando expensify.com. Márcalo como favorito para tener un acceso directo fácil.',
+        bookACall: 'Reservar una llamada',
+        noThanks: 'No, gracias',
+        bookACallTitle: '¿Desea hablar con un responsable de producto?',
+        benefits: {
+            [CONST.EXIT_SURVEY.BENEFIT.CHATTING_DIRECTLY]: 'Chat directo sobre gastos e informes',
+            [CONST.EXIT_SURVEY.BENEFIT.EVERYTHING_MOBILE]: 'Posibilidad de hacerlo todo desde el móvil',
+            [CONST.EXIT_SURVEY.BENEFIT.TRAVEL_EXPENSE]: 'Viajes y gastos a la velocidad del chat',
+        },
+        bookACallTextTop: 'Al cambiar a Expensify Classic, se perderá:',
+        bookACallTextBottom: 'Nos encantaría hablar con usted para entender por qué. Puede concertar una llamada con uno de nuestros jefes de producto para hablar de sus necesidades.',
+        takeMeToExpensifyClassic: 'Llévame a Expensify Classic',
     },
     listBoundary: {
         errorMessage: 'Se ha producido un error al cargar más mensajes.',

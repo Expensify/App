@@ -25,8 +25,6 @@ const defaultListOptions = {
     personalDetails: [],
     currentUserOption: null,
     headerMessage: '',
-    tagOptions: [],
-    taxRatesOptions: [],
 };
 
 function getSelectedOptionData(option: Option): OptionData {
