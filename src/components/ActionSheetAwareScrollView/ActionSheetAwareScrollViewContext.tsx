@@ -20,21 +20,24 @@ type Context = {
     resetStateMachine: () => void;
 };
 
+const currentActionSheetStateValue = {
+    previous: {
+        state: 'idle',
+        payload: null,
+    },
+    current: {
+        state: 'idle',
+        payload: null,
+    },
+};
 const defaultValue: Context = {
     currentActionSheetState: {
-        value: {
-            previous: {
-                state: 'idle',
-                payload: null,
-            },
-            current: {
-                state: 'idle',
-                payload: null,
-            },
-        },
+        value: currentActionSheetStateValue,
         addListener: noop,
         removeListener: noop,
         modify: noop,
+        get: () => currentActionSheetStateValue,
+        set: noop,
     },
     transitionActionSheetState: noop,
     transitionActionSheetStateWorklet: noop,
