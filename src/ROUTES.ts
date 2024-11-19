@@ -1642,6 +1642,14 @@ const ROUTES = {
         getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
             `settings/workspaces/${policyID}/connections/netsuite/advanced/custom-form-id/${expenseType}` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync/accounting-method',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const,
+    },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/prerequisites` as const,
