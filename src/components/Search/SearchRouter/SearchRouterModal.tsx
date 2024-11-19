@@ -12,6 +12,7 @@ const isMobileSafari = Browser.isMobileSafari();
 function SearchRouterModal() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
+
     // On mWeb Safari, the input caret stuck for a moment while the modal is animating. So, we hide the caret until the animation is done.
     const [shouldHideInputCaret, setShouldHideInputCaret] = useState(isMobileSafari);
 
