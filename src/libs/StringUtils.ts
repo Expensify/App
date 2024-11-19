@@ -1,5 +1,6 @@
 import deburr from 'lodash/deburr';
 import CONST from '@src/CONST';
+import * as Browser from './Browser';
 
 /**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
@@ -37,6 +38,8 @@ function removeInvisibleCharacters(value: string): string {
     // - \u2060: word joiner
     result = result.replace(/[\u200B\u2060]/g, '');
 
+    const invisibleCharacterRegex = Browser.isSafari() ? /([\uD800-\uDBFF][\uDC00-\uDFFF])|[\p{Cc}\p{Co}\p{Cn}]/gu : /[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu;
+
     // The control unicode (Cc) regex removes all newlines,
     // so we first split the string by newline and rejoin it afterward to retain the original line breaks.
     result = result
@@ -44,7 +47,7 @@ function removeInvisibleCharacters(value: string): string {
         .map((part) =>
             // Remove all characters from the 'Other' (C) category except for format characters (Cf)
             // because some of them are used for emojis
-            part.replace(/[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu, ''),
+            part.replace(invisibleCharacterRegex, ''),
         )
         .join('\n');
 
