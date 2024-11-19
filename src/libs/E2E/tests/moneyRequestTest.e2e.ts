@@ -1,6 +1,5 @@
 import Config from 'react-native-config';
 import type {NativeConfig} from 'react-native-config';
-import * as E2EGenericPressableWrapper from '@components/Pressable/GenericPressable/index.e2e';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
@@ -11,7 +10,6 @@ import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import * as NativeCommands from '../../../../tests/e2e/nativeCommands/NativeCommandsAction';
 import {tap, waitFor} from '../interactions';
 
 const test = (config: NativeConfig) => {
@@ -72,12 +70,6 @@ const test = (config: NativeConfig) => {
                     Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT);
                     tap('next-button');
                 }, 4000);
-                /* E2EClient.sendNativeCommand(NativeCommands.makeTypeTextCommand('3'))
-                    .then(() => E2EClient.sendNativeCommand(NativeCommands.makeEnterCommand()))
-                    .then(() => {
-                        const nextButton = E2EGenericPressableWrapper.getPressableProps('next-button');
-                        nextButton?.onPress?.();
-                    }); */
             }
 
             if (entry.name === CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT) {
