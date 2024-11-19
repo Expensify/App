@@ -95,7 +95,6 @@ const processContact = (contact: ContactEntry, config: ProcessContactsConfig): O
         email: contact.email,
         phone: contact.phone,
         avatar: contact.avatar,
-        // }) as unknown as ReportUtils.OptionData;
     });
 };
 
@@ -126,4 +125,4 @@ const getContacts = (deviceContacts: DeviceContact[] | []): Array<OptionsListUti
         .filter((contact): contact is OptionsListUtils.SearchOption<PersonalDetails> => contact !== null);
 };
 
-export {processContact, getContacts};
+export default getContacts;
