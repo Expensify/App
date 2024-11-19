@@ -3753,7 +3753,6 @@ function prepareOnboardingOptimisticData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [introductionCommentAction.reportActionID]: introductionCommentAction as ReportAction,
                 [textCommentAction.reportActionID]: textCommentAction as ReportAction,
             },
         },
