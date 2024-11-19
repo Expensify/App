@@ -476,7 +476,7 @@ const translations = {
         links: 'Links',
         days: 'days',
         rename: 'Rename',
-        chatWithAM: ({AMDisplayName}: ChatWithAMParams) => `Need something specific? Chat with your account manager${AMDisplayName ? `, ${AMDisplayName}` : ''}.`,
+        chatWithAM: ({AMDisplayName}: ChatWithAMParams) => `Need something specific? Chat with your account manager, ${AMDisplayName}.`,
         chatNow: 'Chat now',
     },
     location: {
