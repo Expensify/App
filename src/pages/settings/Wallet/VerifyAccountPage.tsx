@@ -44,6 +44,13 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         User.clearContactMethodErrors(contactMethod, 'validateLogin');
     }, [contactMethod]);
 
+    const closeModal = useCallback(() => {
+        // Disable modal visibility so the navigation is animated
+        setIsValidateCodeActionModalVisible(false);
+        Navigation.goBack();
+    }, []);
+
+    // Handle navigation once the user is validated
     useEffect(() => {
         if (!isUserValidated) {
             return;
@@ -51,23 +58,12 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
         setIsValidateCodeActionModalVisible(false);
 
-        if (!navigateBackTo) {
-            return;
-        }
-        Navigation.navigate(navigateBackTo, CONST.NAVIGATION.TYPE.UP);
-    }, [isUserValidated, navigateBackTo]);
-
-    useEffect(() => {
-        if (isValidateCodeActionModalVisible) {
-            return;
-        }
-
-        if (!isUserValidated) {
+        if (navigateBackTo) {
+            Navigation.navigate(navigateBackTo, CONST.NAVIGATION.TYPE.UP);
+        } else {
             Navigation.goBack();
-        } else if (navigateBackTo) {
-            Navigation.navigate(navigateBackTo);
         }
-    }, [isValidateCodeActionModalVisible, isUserValidated, navigateBackTo]);
+    }, [isUserValidated, navigateBackTo]);
 
     // Once user is validated or the modal is dismissed, we don't want to show empty content.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -96,8 +92,9 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
             descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
-            onClose={() => setIsValidateCodeActionModalVisible(false)}
             clearError={clearError}
+            onClose={closeModal}
+            onModalHide={() => {}}
         />
     );
 }

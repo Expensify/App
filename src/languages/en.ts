@@ -3616,10 +3616,16 @@ const translations = {
             actions: {
                 delete: 'Delete rate',
                 deleteMultiple: 'Delete rates',
-                disable: 'Disable rate',
-                disableMultiple: 'Disable rates',
                 enable: 'Enable rate',
-                enableMultiple: 'Enable rates',
+                disable: 'Disable rate',
+                enableTaxRates: () => ({
+                    one: 'Enable rate',
+                    other: 'Enable rates',
+                }),
+                disableTaxRates: () => ({
+                    one: 'Disable rate',
+                    other: 'Disable rates',
+                }),
             },
             importedFromAccountingSoftware: 'The taxes below are imported from your',
             taxCode: 'Tax code',
@@ -4976,6 +4982,19 @@ const translations = {
         offlineTitle: "Looks like you're stuck here...",
         offline:
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
+        quickTip: 'Quick tip...',
+        quickTipSubTitle: 'You can go straight to Expensify Classic by visiting expensify.com. Bookmark it for an easy shortcut!',
+        bookACall: 'Book a call',
+        noThanks: 'No thanks',
+        bookACallTitle: 'Would you like to speak to a product manager?',
+        benefits: {
+            [CONST.EXIT_SURVEY.BENEFIT.CHATTING_DIRECTLY]: 'Chatting directly on expenses and reports',
+            [CONST.EXIT_SURVEY.BENEFIT.EVERYTHING_MOBILE]: 'Ability to do everything on mobile',
+            [CONST.EXIT_SURVEY.BENEFIT.TRAVEL_EXPENSE]: 'Travel and expense at the speed of chat',
+        },
+        bookACallTextTop: 'By switching to Expensify Classic, you will miss out on:',
+        bookACallTextBottom: 'We’d be excited to get on a call with you to understand why. You can book a call with one of our senior product managers to discuss your needs.',
+        takeMeToExpensifyClassic: 'Take me to Expensify Classic',
     },
     listBoundary: {
         errorMessage: 'An error occurred while loading more messages.',
