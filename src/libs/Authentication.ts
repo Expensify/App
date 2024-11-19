@@ -11,7 +11,8 @@ import * as Network from './Network';
 import * as NetworkStore from './Network/NetworkStore';
 import requireParameters from './requireParameters';
 
-let hasFailedToFetch = false;
+let authenticateCalls = 0;
+const CALLS_TO_FAIL = 1;
 
 type Parameters = {
     useExpensifyLogin?: boolean;
@@ -29,6 +30,7 @@ function Authenticate(parameters: Parameters): Promise<Response> {
 
     requireParameters(['partnerName', 'partnerPassword', 'partnerUserID', 'partnerUserSecret'], parameters, commandName);
 
+    authenticateCalls++;
     return Network.post(commandName, {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check
         // for credentials for the expensify partnerID to let users Authenticate with their expensify user
@@ -48,11 +50,10 @@ function Authenticate(parameters: Parameters): Promise<Response> {
         // Add email param so the first Authenticate request is logged on the server w/ this email
         email: parameters.email,
     }).then((response) => {
-        if (hasFailedToFetch) {
+        if (authenticateCalls > CALLS_TO_FAIL) {
             return response;
         }
-        hasFailedToFetch = true;
-        console.log('Ndebug failing to fetch in Authenticate');
+        console.log('Ndebug failing to fetch in Authenticate. Call number: ', authenticateCalls);
         throw new HttpsError({
             message: CONST.ERROR.FAILED_TO_FETCH,
         });
