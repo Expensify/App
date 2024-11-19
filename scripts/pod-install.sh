@@ -53,8 +53,9 @@ fi
 
 if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     echo -e "${BLUE}Executing npm run pod-install for HybridApp...${NC}"
+    # Navigate to the OldDot repository, and run bundle install and pod install
     cd Mobile-Expensify/ios
-    # Navigate to the OldDot repository, and run pod install
+    bundle install
     bundle exec pod install
     exit 0
 fi
