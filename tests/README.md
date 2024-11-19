@@ -68,8 +68,9 @@ In order to give future engineers the best context for a unit test, follow this 
   - "When" - Describes what action is being done and the thing that is being tested
   - "Then" - Describes what is expected to happen
 
-2. DO explain **WHY** the test is doing what it is doing in every comment.
-3. DO NOT explain **WHAT** the code is doing in comments. This information should be self-evident.
+2. DO begin each comment section with the literal words "Given", "When", and "Then", just like the examples below.
+3. DO explain **WHY** the test is doing what it is doing in every comment.
+4. DO NOT explain **WHAT** the code is doing in comments. This information should be self-evident.
 
 The format looks like this:
 
