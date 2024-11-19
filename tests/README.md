@@ -59,7 +59,7 @@ expect(onyxData).toBe(expectedOnyxData);
 
 ## Documenting Tests
 
-Comments are just as criticle in tests as the tests themselves. They provide context behind why the test was written and what the expected behavior is supposed to be which will benefit the future generations of engineers looking at them. Think about it. When was the last time you saw a unit test and wondered why it was written that way and then you didn't want to touch it because you didn't know if changing the behavior of the test was appropriate or not? It was probably pretty recent :D
+Comments are just as critical in tests as the tests themselves. They provide context behind why the test was written and what the expected behavior is supposed to be which will benefit the future generations of engineers looking at them. Think about it. When was the last time you saw a unit test and wondered why it was written that way and then you didn't want to touch it because you didn't know if changing the behavior of the test was appropriate or not? It was probably pretty recent :D
 
 In order to give future engineers the best context for a unit test, follow this guide:
 
