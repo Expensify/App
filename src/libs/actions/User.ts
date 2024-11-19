@@ -728,7 +728,8 @@ function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: 
             value: {isLoading: false},
         },
     ];
-    // Sometimes we will also need to reset the validateCodeSent of ONYXKEYS.VALIDATE_ACTION_CODE in order to receive the magic next time we open the ValidateCodeActionModal.
+
+    // Sometimes we will also need to reset the validateCodeSent of ONYXKEYS.VALIDATE_ACTION_CODE in order to receive the magic code next time we open the ValidateCodeActionModal.
     if (shouldResetActionCode) {
         const optimisticResetActionCode = {
             onyxMethod: Onyx.METHOD.MERGE,
