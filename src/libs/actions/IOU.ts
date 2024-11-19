@@ -6741,7 +6741,11 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>) {
+function canApproveIOU(
+    iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
+    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
+    violations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
+) {
     // Only expense reports can be approved
     const isPaidGroupPolicy = policy && PolicyUtils.isPaidGroupPolicy(policy);
     if (!isPaidGroupPolicy) {
@@ -6760,7 +6764,7 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, 
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(iouReport?.reportID);
     const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);
-    const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allTransactionViolations);
+    const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', violations);
     let isTransactionBeingScanned = false;
     const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID);
     for (const transaction of reportTransactions) {
@@ -6780,6 +6784,7 @@ function canIOUBePaid(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
+    violations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     transactions?: OnyxTypes.Transaction[],
     onlyShowPayElsewhere = false,
 ) {
@@ -6824,10 +6829,10 @@ function canIOUBePaid(
 
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : ReportUtils.canBeAutoReimbursed(iouReport, policy);
-    const shouldBeApproved = canApproveIOU(iouReport, policy);
-    const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allTransactionViolations);
-    const isPayAtEndExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, transactions);
+    const shouldBeApproved = canApproveIOU(iouReport, policy, violations);
+    const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', violations);
 
+    const isPayAtEndExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, transactions);
     return (
         isPayer &&
         !isOpenExpenseReport &&
