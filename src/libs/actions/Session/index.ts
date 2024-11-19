@@ -481,7 +481,7 @@ function signUpUser() {
     API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
 }
 
-function signInAfterTransitionFromOldDot(transitionURL: string, lastUpdateId?: number) {
+function signInAfterTransitionFromOldDot(transitionURL: string) {
     const [route, queryParams] = transitionURL.split('?');
 
     const {
@@ -528,14 +528,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string, lastUpdateId?: n
                     [ONYXKEYS.NVP_TRYNEWDOT]: {classicRedirect: {completedHybridAppOnboarding: completedHybridAppOnboarding === 'true'}},
                 }),
             )
-            .then(() => {
-                if (clearOnyxOnStart === 'true') {
-                    // We clear Onyx when this flag is set to true so we have to download all data
-                    App.openApp();
-                } else {
-                    App.reconnectApp(lastUpdateId);
-                }
-            })
+            .then(App.openApp)
             .catch((error) => {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
             })
