@@ -115,7 +115,8 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false});
-    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {initialValue: ''});
+    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID);
+    const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${accountManagerReportID ?? '-1'}`);
     const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {initialValue: false});
     const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {initialValue: defaultReportMetadata});
@@ -163,7 +164,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const chatWithAMText = useMemo(() => {
         if (accountManagerReportID) {
-            const accountManagerReport = ReportUtils.getReport(accountManagerReportID);
             const participants = ReportUtils.getParticipantsAccountIDsForDisplay(accountManagerReport, false, true);
             const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([participants?.at(0) ?? -1], personalDetails);
             const participantPersonalDetail = Object.values(participantPersonalDetails).at(0);
@@ -176,7 +176,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return translate('common.chatWithAM', {});
         }
         return '';
-    }, [accountManagerReportID, personalDetails, translate]);
+    }, [accountManagerReportID, accountManagerReport, personalDetails, translate]);
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
