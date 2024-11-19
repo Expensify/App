@@ -27,7 +27,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar, getIcons, getReportName, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName, isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy/Policy';
@@ -104,17 +104,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
-
-    const currentUserPolicyExpenseChat = useMemo(() => {
-        return Object.values(reports ?? {}).find((report) => {
-            // If the report has been deleted, then skip it
-            if (!report) {
-                return false;
-            }
-
-            return report.policyID === policy?.id && isPolicyExpenseChat(report) && report.ownerAccountID === currentUserPersonalDetails.accountID;
-        });
-    }, [reports, policy?.id, currentUserPersonalDetails.accountID]);
+    const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(currentUserPersonalDetails.accountID, policy?.id ?? '-1')?.reportID ?? '-1';
+    const [currentUserPolicyExpenseChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentUserPolicyExpenseChatReportID}`);
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const policyFeatureStates = useMemo(
@@ -358,7 +349,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         isEmptyObject(policy) ||
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
-        
+
     useEffect(() => {
         if (isEmptyObject(prevPolicy) || PolicyUtils.isPendingDeletePolicy(prevPolicy) || !PolicyUtils.isPendingDeletePolicy(policy)) {
             return;
@@ -402,6 +393,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             includeSafeAreaPaddingBottom={false}
+            offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
