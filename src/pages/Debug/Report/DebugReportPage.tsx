@@ -141,10 +141,10 @@ function DebugReportPage({
                                     formType={CONST.DEBUG.FORMS.REPORT}
                                     data={report}
                                     onSave={(data) => {
-                                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
+                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                                     }}
                                     onDelete={() => {
-                                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
                                         navigateToConciergeChatAndDeleteReport(reportID, true, true);
                                     }}
                                     validate={DebugUtils.validateReportDraftProperty}

@@ -114,7 +114,7 @@ function DebugReportActionCreatePage({
                             isDisabled={!draftReportAction || !!error}
                             onPress={() => {
                                 const parsedReportAction = JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction;
-                                Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[parsedReportAction.reportActionID]: parsedReportAction});
+                                Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[parsedReportAction.reportActionID]: parsedReportAction});
                                 Navigation.navigate(ROUTES.DEBUG_REPORT_TAB_ACTIONS.getRoute(reportID));
                             }}
                         />

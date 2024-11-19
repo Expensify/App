@@ -61,10 +61,10 @@ function DebugTransactionPage({
                                     formType={CONST.DEBUG.FORMS.TRANSACTION}
                                     data={transaction}
                                     onSave={(data) => {
-                                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, data);
+                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, data);
                                     }}
                                     onDelete={() => {
-                                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
+                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
                                     }}
                                     validate={DebugUtils.validateTransactionDraftProperty}
                                 >

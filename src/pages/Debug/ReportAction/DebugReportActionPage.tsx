@@ -61,10 +61,10 @@ function DebugReportActionPage({
                                     formType={CONST.DEBUG.FORMS.REPORT_ACTION}
                                     data={reportAction}
                                     onSave={(data) => {
-                                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
+                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
                                     }}
                                     onDelete={() => {
-                                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
+                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
                                         Navigation.goBack();
                                     }}
                                     validate={DebugUtils.validateReportActionDraftProperty}
