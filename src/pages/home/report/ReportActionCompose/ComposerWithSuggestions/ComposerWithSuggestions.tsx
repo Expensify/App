@@ -503,12 +503,12 @@ function ComposerWithSuggestions(
 
     const onSelectionChange = useCallback(
         (e: CustomSelectionChangeEvent) => {
+            setSelection(e.nativeEvent.selection);
+
             if (!textInputRef.current?.isFocused()) {
                 return;
             }
             suggestionsRef.current?.onSelectionChange?.(e);
-
-            setSelection(e.nativeEvent.selection);
         },
         [suggestionsRef],
     );
