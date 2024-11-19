@@ -18,6 +18,7 @@ function BaseTextInputE2E(props: BaseTextInputProps, ref: ForwardedRef<BaseTextI
     return (
         <BaseTextInput
             ref={ref}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );
