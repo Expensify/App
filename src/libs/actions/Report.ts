@@ -3858,36 +3858,34 @@ function prepareOnboardingOptimisticData(
     }
 
     const guidedSetupData: GuidedSetupData = [{type: 'message', ...textMessage}];
-    if (!isEngagementChoiceManageTeam) {
-        if ('video' in data && data.video && videoCommentAction && videoMessage) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-                value: {
-                    [videoCommentAction.reportActionID]: videoCommentAction as ReportAction,
-                },
-            });
+    if ('video' in data && data.video && videoCommentAction && videoMessage) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [videoCommentAction.reportActionID]: videoCommentAction as ReportAction,
+            },
+        });
 
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-                value: {
-                    [videoCommentAction.reportActionID]: {pendingAction: null},
-                },
-            });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [videoCommentAction.reportActionID]: {pendingAction: null},
+            },
+        });
 
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-                value: {
-                    [videoCommentAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                    } as ReportAction,
-                },
-            });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [videoCommentAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+                } as ReportAction,
+            },
+        });
 
-            guidedSetupData.push({type: 'video', ...data.video, ...videoMessage});
-        }
+        guidedSetupData.push({type: 'video', ...data.video, ...videoMessage});
     }
 
     guidedSetupData.push(...tasksForParameters);
