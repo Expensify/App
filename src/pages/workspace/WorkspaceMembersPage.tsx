@@ -367,9 +367,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 accountID,
                 isSelected,
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
-                isDisabled:
-                    !!details.isOptimisticPersonalDetail ||
-                    (isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors))),
+                isDisabled: !!details.isOptimisticPersonalDetail || !shouldPreventDisableCheckboxIfDisabled,
                 shouldPreventDisableCheckboxIfDisabled,
                 cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
