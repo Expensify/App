@@ -33,11 +33,13 @@ function SearchFiltersCardPage() {
             .sort((a, b) => a.bank.localeCompare(b.bank))
             .map((card) => {
                 const icon = getBankIcon({bankName: card.bank as BankName, isCard: true, styles});
+                const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
+                const text = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
 
                 return {
                     lastFourPAN: card.lastFourPAN,
                     isVirtual: card?.nameValuePairs?.isVirtual,
-                    text: card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : card?.nameValuePairs?.cardTitle ?? card?.cardName,
+                    text,
                     keyForList: card.cardID.toString(),
                     isSelected: newCards.includes(card.cardID.toString()),
                     bankIcon: icon,
