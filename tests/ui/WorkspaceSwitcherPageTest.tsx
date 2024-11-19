@@ -21,7 +21,7 @@ type WorkspaceListItem = {
     isPolicyAdmin?: boolean;
 } & ListItem;
 
-function BaseSelectionListWrapper({onSelectPolicy}: {onSelectPolicy: (option?: ListItem) => void}) {
+function BaseSelectionListWrapper({onSelectPolicy, shouldCheckFocusedState = true}: {onSelectPolicy: (option?: ListItem) => void; shouldCheckFocusedState?: boolean}) {
     const [activeWorkspaceID, setActiveWorkspaceID] = useState<undefined | string>(undefined);
     const isFocused = useIsFocused();
     const sections: Array<SectionListDataType<WorkspaceListItem>> = [
@@ -40,7 +40,11 @@ function BaseSelectionListWrapper({onSelectPolicy}: {onSelectPolicy: (option?: L
 
     const selectPolicy = useCallback(
         (option?: ListItem) => {
-            if (!option || !isFocused) {
+            if (!option) {
+                return;
+            }
+
+            if (shouldCheckFocusedState && !isFocused) {
                 return;
             }
 
@@ -51,7 +55,7 @@ function BaseSelectionListWrapper({onSelectPolicy}: {onSelectPolicy: (option?: L
             setActiveWorkspaceID(policyID);
             onSelectPolicy(option);
         },
-        [setActiveWorkspaceID, activeWorkspaceID, isFocused, onSelectPolicy],
+        [setActiveWorkspaceID, activeWorkspaceID, isFocused, onSelectPolicy, shouldCheckFocusedState],
     );
 
     return (
@@ -74,6 +78,53 @@ describe('[SelectionList]', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         (useIsFocused as jest.Mock).mockReturnValue(true); // Reset default focus state if needed
+    });
+
+    test('should ignore second press if screen loses focus after first press', async () => {
+        const mockSelectPolicy = jest.fn();
+        (useIsFocused as jest.Mock).mockReturnValueOnce(true); // Screen is focused
+        const {rerender} = render(<BaseSelectionListWrapper onSelectPolicy={mockSelectPolicy} />);
+
+        const workspaceItem = await screen.findByText('Item 0');
+        const workspaceItem2 = await screen.findByText('Item 1');
+
+        // Simulate two quick presses
+        fireEvent.press(workspaceItem);
+        (useIsFocused as jest.Mock).mockReturnValueOnce(false); // Navigation starts and `isFocused` state becomes false
+        // Manually trigger re-render to apply the updated `useIsFocused` value
+        rerender(<BaseSelectionListWrapper onSelectPolicy={mockSelectPolicy} />);
+        fireEvent.press(workspaceItem2);
+
+        // Verify `selectPolicy` is only called once
+        expect(mockSelectPolicy).toHaveBeenCalledTimes(1);
+    });
+
+    test('should not ignore second press if we are not checking for "isFocused" state', async () => {
+        const mockSelectPolicy = jest.fn();
+        (useIsFocused as jest.Mock).mockReturnValueOnce(true); // Screen is focused
+        const {rerender} = render(
+            <BaseSelectionListWrapper
+                onSelectPolicy={mockSelectPolicy}
+                shouldCheckFocusedState={false}
+            />,
+        );
+
+        const workspaceItem = await screen.findByText('Item 0');
+        const workspaceItem2 = await screen.findByText('Item 1');
+
+        // Simulate two quick presses
+        fireEvent.press(workspaceItem);
+        (useIsFocused as jest.Mock).mockReturnValueOnce(false); // Navigation starts and `isFocused` state becomes false
+        // Manually trigger re-render to apply the updated `useIsFocused` value
+        rerender(
+            <BaseSelectionListWrapper
+                onSelectPolicy={mockSelectPolicy}
+                shouldCheckFocusedState={false}
+            />,
+        );
+        fireEvent.press(workspaceItem2);
+        // Verify `selectPolicy` is only called once
+        expect(mockSelectPolicy).toHaveBeenCalledTimes(2);
     });
 
     test('should invoke selectPolicy when workspace is selected and screen is focused', async () => {
@@ -103,24 +154,5 @@ describe('[SelectionList]', () => {
 
         // Verify `selectPolicy` is not called
         expect(mockSelectPolicy).not.toHaveBeenCalled();
-    });
-
-    test('should ignore second press if screen loses focus after first press', async () => {
-        const mockSelectPolicy = jest.fn();
-        (useIsFocused as jest.Mock).mockReturnValueOnce(true); // Screen is focused
-        const {rerender} = render(<BaseSelectionListWrapper onSelectPolicy={mockSelectPolicy} />);
-
-        const workspaceItem = await screen.findByText('Item 0');
-        const workspaceItem2 = await screen.findByText('Item 1');
-
-        // Simulate two quick presses
-        fireEvent.press(workspaceItem);
-        (useIsFocused as jest.Mock).mockReturnValueOnce(false); // Navigation starts and `isFocused` state becomes false
-        // Manually trigger re-render to apply the updated `useIsFocused` value
-        rerender(<BaseSelectionListWrapper onSelectPolicy={mockSelectPolicy} />);
-        fireEvent.press(workspaceItem2);
-
-        // Verify `selectPolicy` is only called once
-        expect(mockSelectPolicy).toHaveBeenCalledTimes(1);
     });
 });
