@@ -29,6 +29,13 @@ const addCSS = (css: string, styleId: string) => {
     }
 };
 
+const removeCSS = (styleId: string) => {
+    const existingStyle = document.getElementById(styleId);
+    if (existingStyle) {
+        existingStyle.remove();
+    }
+};
+
 /**
  * Customizes the background and text colors for autofill inputs in Chrome
  * Chrome on iOS does not support the autofill pseudo class because it is a non-standard webkit feature.
@@ -61,6 +68,7 @@ const getAutofilledInputStyle = (inputTextColor: string, cssSelector = '') => `
 
 export default {
     addCSS,
+    removeCSS,
     getAutofilledInputStyle,
     getActiveElement,
     requestAnimationFrame: window.requestAnimationFrame.bind(window),
