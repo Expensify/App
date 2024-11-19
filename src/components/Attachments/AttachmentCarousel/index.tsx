@@ -51,7 +51,7 @@ function DeviceAwareGestureDetector({canUseTouchScreen, gesture, children}: Devi
     return canUseTouchScreen ? <GestureDetector gesture={gesture}>{children}</GestureDetector> : children;
 }
 
-function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -59,7 +59,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     const styles = useThemeStyles();
     const {isFullScreenRef} = useFullScreenContext();
     const scrollRef = useAnimatedRef<Animated.FlatList<ListRenderItemInfo<Attachment>>>();
-    const nope = useSharedValue(false);
+    const isPagerScrolling = useSharedValue(false);
     const pagerRef = useRef<GestureType>(null);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
@@ -74,7 +74,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [activeSource, setActiveSource] = useState<AttachmentSource | null>(source);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
-    const {handleTap, handleScaleChange, scale} = useCarouselContextEvents(setShouldShowArrows);
+    const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
     useEffect(() => {
         if (!canUseTouchScreen) {
@@ -83,7 +83,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         setShouldShowArrows(true);
     }, [canUseTouchScreen, page, setShouldShowArrows]);
 
-    const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
+    const compareImage = useCallback((attachment: Attachment) => attachment.source === source && attachment.attachmentLink === attachmentLink, [attachmentLink, source]);
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
@@ -193,8 +193,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     );
 
     const extractItemKey = useCallback(
-        (item: Attachment, index: number) =>
-            typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}` : `reportActionID-${item.reportActionID}` ?? `index-${index}`,
+        (item: Attachment) => (typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}|${item.attachmentLink}` : `reportActionID-${item.reportActionID}`),
         [],
     );
 
@@ -213,13 +212,13 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             pagerItems: [{source, index: 0, isActive: true}],
             activePage: 0,
             pagerRef,
-            isPagerScrolling: nope,
-            isScrollEnabled: nope,
+            isPagerScrolling,
+            isScrollEnabled,
             onTap: handleTap,
             onScaleChanged: handleScaleChange,
             onSwipeDown: onClose,
         }),
-        [source, nope, handleTap, handleScaleChange, onClose],
+        [source, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange, onClose],
     );
 
     /** Defines how a single attachment should be rendered */
@@ -242,14 +241,18 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             Gesture.Pan()
                 .enabled(canUseTouchScreen)
                 .onUpdate(({translationX}) => {
-                    if (scale.current !== 1) {
+                    if (!isScrollEnabled.value) {
                         return;
+                    }
+
+                    if (translationX !== 0) {
+                        isPagerScrolling.value = true;
                     }
 
                     scrollTo(scrollRef, page * cellWidth - translationX, 0, false);
                 })
                 .onEnd(({translationX, velocityX}) => {
-                    if (scale.current !== 1) {
+                    if (!isScrollEnabled.value) {
                         return;
                     }
 
@@ -266,11 +269,12 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                         newIndex = Math.min(attachments.length - 1, Math.max(0, page + delta));
                     }
 
+                    isPagerScrolling.value = false;
                     scrollTo(scrollRef, newIndex * cellWidth, 0, true);
                 })
                 // eslint-disable-next-line react-compiler/react-compiler
                 .withRef(pagerRef as MutableRefObject<GestureType | undefined>),
-        [attachments.length, canUseTouchScreen, cellWidth, page, scale, scrollRef],
+        [attachments.length, canUseTouchScreen, cellWidth, page, isScrollEnabled, scrollRef, isPagerScrolling],
     );
 
     return (
