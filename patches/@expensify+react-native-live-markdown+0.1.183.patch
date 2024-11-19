@@ -1,0 +1,56 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/MarkdownCommitHook.cpp b/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/MarkdownCommitHook.cpp
+index bbaef30..8edb416 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/MarkdownCommitHook.cpp
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/MarkdownCommitHook.cpp
+@@ -107,26 +107,31 @@ RootShadowNode::Unshared MarkdownCommitHook::shadowTreeWillCommit(
+     rootNode = rootNode->cloneTree(
+         nodes.textInput->getFamily(),
+         [this, &stateData, &textInputState, &nodes](ShadowNode const &node) {
+-          auto newStateData =
+-              std::make_shared<AndroidTextInputState>(stateData);
+-          // force measurement of a map buffer
+-          newStateData->cachedAttributedStringId = 0;
+-
+-          // setting -1 as the event counter makes sure that the update will be ignored by the java
+-          // part of the code, which is what we want as we don't change the attributed string here
+-          if (previousEventCount_.contains(nodes.textInput->getTag()) &&
+-              previousEventCount_[nodes.textInput->getTag()] == stateData.mostRecentEventCount) {
+-              newStateData->mostRecentEventCount = -1;
+-          } else {
+-              previousEventCount_[nodes.textInput->getTag()] = stateData.mostRecentEventCount;
+-          }
+-
+-          // clone the text input with the new state
+-          auto newNode = node.clone({
+-              .state =
+-                  std::make_shared<const ConcreteState<AndroidTextInputState>>(
+-                      newStateData, textInputState),
+-          });
++            std::shared_ptr<ShadowNode> newNode = nullptr;
++
++            if (stateData.cachedAttributedStringId != 0) {
++                auto newStateData =
++                        std::make_shared<AndroidTextInputState>(stateData);
++
++                // force measurement of a map buffer
++                newStateData->cachedAttributedStringId = 0;
++
++                // setting -1 as the event counter makes sure that the update will be ignored by the java
++                // part of the code, which is what we want as we don't change the attributed string here
++                if (previousEventCount_.contains(nodes.textInput->getTag()) &&
++                    previousEventCount_[nodes.textInput->getTag()] == stateData.mostRecentEventCount) {
++                    newStateData->mostRecentEventCount = -1;
++                } else {
++                    previousEventCount_[nodes.textInput->getTag()] = stateData.mostRecentEventCount;
++                }
++
++                auto newState = std::make_shared<const ConcreteState<AndroidTextInputState>>(
++                        newStateData, textInputState);
++
++                newNode = node.clone({ .state = newState });
++            } else {
++                newNode = node.clone({});
++            }
+ 
+           const auto currentDecoratorProps =
+               nodes.decorator->getProps()->rawProps["markdownStyle"];
