@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
 import type {CardFeedData} from '@src/types/onyx/CardFeeds';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -31,10 +31,12 @@ import type {
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
+import {getCategoryApproverRule} from './CategoryUtils';
 import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAllReportTransactions, getCategory, getTag} from './TransactionUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -526,11 +528,36 @@ function getDefaultApprover(policy: OnyxEntry<Policy>): string {
 }
 
 /**
- * Returns the accountID to whom the given employeeAccountID submits reports to in the given Policy.
+ * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: number): number {
+function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
+    const employeeAccountID = expenseReport?.ownerAccountID ?? -1;
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
     const defaultApprover = getDefaultApprover(policy);
+
+    let categoryAppover;
+    let tagApprover;
+    const allTransactions = getAllReportTransactions(expenseReport?.reportID).sort((transA, transB) => (transA.created < transB.created ? -1 : 1));
+
+    // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
+    // Category approvers are prioritized, then tag approvers.
+    for (let i = 0; i < allTransactions.length; i++) {
+        const transaction = allTransactions.at(i);
+        const tag = getTag(transaction);
+        const category = getCategory(transaction);
+        categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
+        if (categoryAppover) {
+            return getAccountIDsByLogins([categoryAppover]).at(0) ?? -1;
+        }
+
+        if (!tagApprover && getTagApproverRule(policy?.id ?? '-1', tag)?.approver) {
+            tagApprover = getTagApproverRule(policy?.id ?? '-1', tag)?.approver;
+        }
+    }
+
+    if (tagApprover) {
+        return getAccountIDsByLogins([tagApprover]).at(0) ?? -1;
+    }
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
     if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
@@ -545,8 +572,8 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover]).at(0) ?? -1;
 }
 
-function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number): string {
-    const submitToAccountID = getSubmitToAccountID(policy, employeeAccountID);
+function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
     return getLoginsByAccountIDs([submitToAccountID]).at(0) ?? '';
 }
 
@@ -617,6 +644,11 @@ function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): boolean {
     return getActiveAdminWorkspaces(policies, currentUserLogin).some((policy) => canSendInvoiceFromWorkspace(policy.id));
+}
+
+function hasWorkspaceWithInvoices(currentUserLogin: string | undefined): boolean {
+    const activePolicies = getActivePolicies(allPolicies);
+    return activePolicies.some((policy) => shouldShowPolicy(policy, NetworkStore.isOffline(), currentUserLogin) && policy.areInvoicesEnabled);
 }
 
 function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
@@ -1076,6 +1108,14 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
 }
 
+function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
+    const groupPolicies = Object.values(policies ?? {}).filter((policy) => isPaidGroupPolicy(policy));
+    if (groupPolicies.length === 0) {
+        return false;
+    }
+    return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1134,6 +1174,7 @@ export {
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSendInvoice,
+    hasWorkspaceWithInvoices,
     hasDependentTags,
     getXeroTenants,
     findCurrentXeroOrganization,
@@ -1195,6 +1236,7 @@ export {
     getAllPoliciesLength,
     getActivePolicy,
     isPolicyAccessible,
+    areAllGroupPoliciesExpenseChatDisabled,
 };
 
 export type {MemberEmailsToAccountIDs};
