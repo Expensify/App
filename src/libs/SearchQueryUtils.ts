@@ -545,7 +545,6 @@ function getDisplayValue(filterName: string, filter: string, personalDetails: On
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         const reportName = ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]);
-        console.log('reportName', reportName);
         return reportName || filter;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
