@@ -4,7 +4,7 @@ description: Pay workspace expenses or expenses submitted by friends and family
 ---
 <div id="new-expensify" markdown="1">
 
-# Pay expense submitted to a workspace
+# Pay expenses submitted to a workspace
 
 To pay expenses within Expensify, you’ll need to set up your [business bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account). 
 The submitter must also connect a [personal bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Personal-Bank-Account) to receive the payment. 
