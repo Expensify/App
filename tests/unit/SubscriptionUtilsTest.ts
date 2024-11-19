@@ -353,6 +353,7 @@ describe('SubscriptionUtils', () => {
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
+                isError: true,
             });
         });
 
