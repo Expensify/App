@@ -24,7 +24,6 @@ import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, 
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
-import * as FormActions from './FormActions';
 import * as ReimbursementAccount from './ReimbursementAccount';
 
 export {
@@ -63,6 +62,12 @@ function clearPlaid(): Promise<void | void[]> {
     return Onyx.set(ONYXKEYS.PLAID_DATA, CONST.PLAID.DEFAULT_DATA);
 }
 
+function clearInternationalBankAccount() {
+    clearPlaid();
+    Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
+    return Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, null);
+}
+
 function openPlaidView() {
     clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
 }
@@ -75,9 +80,7 @@ function setPlaidEvent(eventName: string | null) {
  * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
  */
 function openPersonalBankAccountSetupView(exitReportID?: string, isUserValidated = true) {
-    clearPlaid().then(() => {
-        Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
-        FormActions.clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+    clearInternationalBankAccount().then(() => {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
         }
