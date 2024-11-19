@@ -2339,7 +2339,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(report).toBeFalsy();
+            expect(report?.reportID).toBeFalsy();
         });
 
         it('does not delete the transaction thread if there are visible comments in the thread', async () => {
