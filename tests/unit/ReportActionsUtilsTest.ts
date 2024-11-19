@@ -531,9 +531,8 @@ describe('ReportActionsUtils', () => {
 
             // When the report actions are sorted for display with the second parameter (canUserPerformWriteAction) set to false (to simulate a report that has been archived)
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, false);
-            // Then the output should correctly filter out the actionable whisper types for "join", "inivite" and "create room"
-            // because the report is archived and making those actions not only doesn't make sense from a UX standpoint,
-            // but leads to server errors since those actions aren't possible.
+            // The output should correctly filter out the actionable whisper types for "join," "invite," and "create room" because the report is archived.
+            // Taking these actions not only doesn't make sense from a UX standpoint,  but also leads to server errors since such actions are not possible.
             // eslint-disable-next-line rulesdir/prefer-at
             const expectedOutput: ReportAction[] = input.filter(
                 (action) =>
