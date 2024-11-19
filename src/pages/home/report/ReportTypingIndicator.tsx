@@ -48,7 +48,7 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
             style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset]}
             numberOfLines={1}
         >
-            {translate('reportTypingIndicator.multipleUsers')}
+            {translate('reportTypingIndicator.multipleMembers')}
             {` ${translate('reportTypingIndicator.areTyping')}`}
         </Text>
     );

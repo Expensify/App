@@ -10,7 +10,6 @@ import {useOnyx} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import LoadingBar from '@components/LoadingBar';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -30,11 +29,9 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import Timing from '@libs/actions/Timing';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
-import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -130,7 +127,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [workspaceTooltip] = useOnyx(ONYXKEYS.NVP_WORKSPACE_TOOLTIP);
     const wasLoadingApp = usePrevious(isLoadingApp);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
     const finishedLoadingApp = wasLoadingApp && !isLoadingApp;
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
     const prevIsDeletedParentAction = usePrevious(isDeletedParentAction);
@@ -181,7 +177,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 writeCapability: reportOnyx.writeCapability,
                 type: reportOnyx.type,
                 errorFields: reportOnyx.errorFields,
-                isPolicyExpenseChat: reportOnyx.isPolicyExpenseChat,
                 parentReportID: reportOnyx.parentReportID,
                 parentReportActionID: reportOnyx.parentReportActionID,
                 chatType: reportOnyx.chatType,
@@ -232,11 +227,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
     const wasReportAccessibleRef = useRef(false);
-    // eslint-disable-next-line react-compiler/react-compiler
-    if (firstRenderRef.current) {
-        Timing.start(CONST.TIMING.CHAT_RENDER);
-        Performance.markStart(CONST.TIMING.CHAT_RENDER);
-    }
+
     const [isComposerFocus, setIsComposerFocus] = useState(false);
     const shouldAdjustScrollView = useMemo(() => isComposerFocus && !modal?.willAlertModalBecomeVisible, [isComposerFocus, modal]);
     const viewportOffsetTop = useViewportOffsetTop(shouldAdjustScrollView);
@@ -489,9 +480,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     useAppFocusEvent(clearNotifications);
 
     useEffect(() => {
-        Timing.end(CONST.TIMING.CHAT_RENDER);
-        Performance.markEnd(CONST.TIMING.CHAT_RENDER);
-
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             ComposerActions.setShouldShowComposeInput(true);
         });
@@ -758,7 +746,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                             needsOffscreenAlphaCompositing
                         >
                             {headerView}
-                            {shouldUseNarrowLayout && !!isLoadingReportData && <LoadingBar shouldShow={!!isLoadingReportData} />}
                             {!!report && ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
