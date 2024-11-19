@@ -1,6 +1,6 @@
 import type {ReactNode, RefObject} from 'react';
 import React, {useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
@@ -34,9 +34,6 @@ type SearchRouterInputProps = {
     /** Whether the offline message should be shown */
     shouldShowOfflineMessage?: boolean;
 
-    /** Whether the input should be focused */
-    autoFocus?: boolean;
-
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
 
@@ -51,7 +48,7 @@ type SearchRouterInputProps = {
 
     /** Whether the search reports API call is running  */
     isSearchingForReports?: boolean;
-};
+} & Pick<TextInputProps, 'caretHidden' | 'autoFocus'>;
 
 function SearchRouterInput({
     value,
@@ -62,6 +59,7 @@ function SearchRouterInput({
     disabled = false,
     shouldShowOfflineMessage = false,
     autoFocus = true,
+    caretHidden = false,
     wrapperStyle,
     wrapperFocusedStyle,
     outerWrapperStyle,
@@ -86,6 +84,7 @@ function SearchRouterInput({
                         onChangeText={updateSearch}
                         autoFocus={autoFocus}
                         shouldDelayFocus={shouldDelayFocus}
+                        caretHidden={caretHidden}
                         loadingSpinnerStyle={[styles.mt0, styles.mr2]}
                         role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
