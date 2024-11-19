@@ -3492,11 +3492,11 @@ function prepareOnboardingOptimisticData(
             data = CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.SUBMIT];
         }
     }
-
+    const isEngagementChoiceManageTeam = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
     const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
-    const actorAccountID = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? CONST.ACCOUNT_ID.QA_GUIDE : CONST.ACCOUNT_ID.CONCIERGE;
+    const actorAccountID = isEngagementChoiceManageTeam ? CONST.ACCOUNT_ID.QA_GUIDE : CONST.ACCOUNT_ID.CONCIERGE;
     const adminsChatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
-    const targetChatReport = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? adminsChatReport : ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
+    const targetChatReport = isEngagementChoiceManageTeam ? adminsChatReport : ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
     // Introductory message
     const introductionComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ONBOARDING_INTRODUCTION, undefined, actorAccountID);
@@ -3755,7 +3755,6 @@ function prepareOnboardingOptimisticData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [introductionCommentAction.reportActionID]: introductionCommentAction as ReportAction,
                 [textCommentAction.reportActionID]: textCommentAction as ReportAction,
             },
         },
@@ -3765,6 +3764,18 @@ function prepareOnboardingOptimisticData(
             value: {choice: engagementChoice},
         },
     );
+    // "Manage team" engagement choice should not add the introduction message
+    // Backend returns a different introduction message in #admins room for "Manage team" engagement choice
+    // If we add the introduction message, it will be duplicated in the #admins room
+    if (!isEngagementChoiceManageTeam) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [introductionCommentAction.reportActionID]: introductionCommentAction as ReportAction,
+            },
+        });
+    }
     if (!wasInvited) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3774,14 +3785,27 @@ function prepareOnboardingOptimisticData(
     }
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
+
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
         value: {
-            [introductionCommentAction.reportActionID]: {pendingAction: null},
             [textCommentAction.reportActionID]: {pendingAction: null},
         },
     });
+
+    // "Manage team" engagement choice should not add the introduction message
+    // Backend returns a different introduction message in #admins room for "Manage team" engagement choice
+    // If we add the introduction message, it will be duplicated in the #admins room
+    if (!isEngagementChoiceManageTeam) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [introductionCommentAction.reportActionID]: {pendingAction: null},
+            },
+        });
+    }
 
     let failureReport: Partial<Report> = {
         lastMessageTranslationKey: '',
@@ -3813,9 +3837,6 @@ function prepareOnboardingOptimisticData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [introductionCommentAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
                 [textCommentAction.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
                 } as ReportAction,
@@ -3827,6 +3848,21 @@ function prepareOnboardingOptimisticData(
             value: {choice: null},
         },
     );
+
+    // "Manage team" engagement choice should not add the introduction message
+    // Backend returns a different introduction message in #admins room for "Manage team" engagement choice
+    // If we add the introduction message, it will be duplicated in the #admins room
+    if (!isEngagementChoiceManageTeam) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [introductionCommentAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+                } as ReportAction,
+            },
+        });
+    }
 
     if (!wasInvited) {
         failureData.push({
@@ -3868,39 +3904,42 @@ function prepareOnboardingOptimisticData(
         });
     }
 
-    const guidedSetupData: GuidedSetupData = [
-        {type: 'message', ...introductionMessage},
-        {type: 'message', ...textMessage},
-    ];
+    const guidedSetupData: GuidedSetupData = isEngagementChoiceManageTeam
+        ? []
+        : [
+              {type: 'message', ...introductionMessage},
+              {type: 'message', ...textMessage},
+          ];
+    if (!isEngagementChoiceManageTeam) {
+        if ('video' in data && data.video && videoCommentAction && videoMessage) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [videoCommentAction.reportActionID]: videoCommentAction as ReportAction,
+                },
+            });
 
-    if ('video' in data && data.video && videoCommentAction && videoMessage) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [videoCommentAction.reportActionID]: videoCommentAction as ReportAction,
-            },
-        });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [videoCommentAction.reportActionID]: {pendingAction: null},
+                },
+            });
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [videoCommentAction.reportActionID]: {pendingAction: null},
-            },
-        });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [videoCommentAction.reportActionID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+                    } as ReportAction,
+                },
+            });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [videoCommentAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
-            },
-        });
-
-        guidedSetupData.push({type: 'video', ...data.video, ...videoMessage});
+            guidedSetupData.push({type: 'video', ...data.video, ...videoMessage});
+        }
     }
 
     guidedSetupData.push(...tasksForParameters);
