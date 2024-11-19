@@ -1,10 +1,12 @@
+import type {PermissionStatus} from 'react-native-permissions';
+
 type StringHolder = {
     value: string;
 };
 
 type ContactImportResult = {
     contactList: DeviceContact[] | [];
-    isPermissionBlocked: boolean;
+    permissionStatus: PermissionStatus;
 };
 
 type PermissionResponse = 'granted' | 'denied' | 'blocked';

@@ -1,14 +1,16 @@
 import {ContactsNitroModule} from 'contacts-nitro-module';
+import {RESULTS} from 'react-native-permissions';
+import type {PermissionStatus} from 'react-native-permissions';
 import {requestContactPermission} from '@pages/iou/request/ContactPermission';
 import CONST from '@src/CONST';
 import type {ContactImportResult, DeviceContact} from './types';
 
 function contactImport(): Promise<ContactImportResult> {
-    let isPermissionGranted = false;
+    let permissionStatus: PermissionStatus = RESULTS.UNAVAILABLE;
     return requestContactPermission()
         .then((response) => {
-            if (response === 'granted') {
-                isPermissionGranted = true;
+            permissionStatus = response;
+            if (response === RESULTS.GRANTED) {
                 return ContactsNitroModule.getAll([
                     CONST.DEVICE_CONTACT.FIRST_NAME,
                     CONST.DEVICE_CONTACT.LAST_NAME,
@@ -17,12 +19,11 @@ function contactImport(): Promise<ContactImportResult> {
                     CONST.DEVICE_CONTACT.IMAGE_DATA,
                 ]);
             }
-            isPermissionGranted = false;
             return [] as DeviceContact[];
         })
         .then((deviceContacts) => ({
             contactList: Array.isArray(deviceContacts) ? deviceContacts : [],
-            isPermissionBlocked: !isPermissionGranted,
+            permissionStatus,
         }));
 }
 
