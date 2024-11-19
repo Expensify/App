@@ -3867,7 +3867,6 @@ function prepareOnboardingOptimisticData(
     }
 
     const guidedSetupData: GuidedSetupData = [
-        {type: 'message', ...introductionMessage},
         {type: 'message', ...textMessage},
     ];
 
