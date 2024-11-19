@@ -38,7 +38,7 @@ function ValidateCodeActionModal({
 
     const hide = useCallback(() => {
         clearError();
-        onClose();
+        onClose?.();
     }, [onClose, clearError]);
 
     useEffect(() => {
