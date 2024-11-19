@@ -3498,7 +3498,6 @@ function prepareOnboardingOptimisticData(
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
-    // Introductory message
     const introductionCommentAction: OptimisticAddCommentReportAction = introductionComment.reportAction;
     const introductionMessage: AddCommentOrAttachementParams = {
         reportID: targetChatReportID,
