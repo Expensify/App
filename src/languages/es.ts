@@ -2496,7 +2496,7 @@ const translations = {
                         return 'Miembro';
                 }
             },
-            expense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
+            submitExpense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
         },
         perDiem: {
             subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
