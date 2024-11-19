@@ -13,29 +13,40 @@
     <header class="header">
         <div class="logo">
             <div class="hamburger" id="hamburger">
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8.55592 2C7.72204 2 7.04605 2.67157 7.04605 3.5C7.04605 4.32843 7.72204 5 8.55592 5H17.6151C18.449 5 19.125 4.32843 19.125 3.5C19.125 2.67157 18.449 2 17.6151 2H8.55592Z"/>
+                    <path d="M8.55592 8.5C7.72204 8.5 7.04605 9.17157 7.04605 10C7.04605 10.8284 7.72204 11.5 8.55592 11.5H17.6151C18.449 11.5 19.125 10.8284 19.125 10C19.125 9.17157 18.449 8.5 17.6151 8.5H8.55592Z"/>
+                    <path d="M7.04605 16.5C7.04605 15.6716 7.72204 15 8.55592 15H17.6151C18.449 15 19.125 15.6716 19.125 16.5C19.125 17.3284 18.449 18 17.6151 18H8.55592C7.72204 18 7.04605 17.3284 7.04605 16.5Z"/>
+                    <path d="M2.51645 19C3.90624 19 5.03289 17.8807 5.03289 16.5C5.03289 15.1193 3.90624 14 2.51645 14C1.12665 14 0 15.1193 0 16.5C0 17.8807 1.12665 19 2.51645 19Z"/>
+                    <path d="M2.51645 12.5C3.90624 12.5 5.03289 11.3807 5.03289 10C5.03289 8.61929 3.90624 7.5 2.51645 7.5C1.12665 7.5 0 8.61929 0 10C0 11.3807 1.12665 12.5 2.51645 12.5Z"/>
+                    <path d="M2.51645 6C3.90624 6 5.03289 4.88071 5.03289 3.5C5.03289 2.11929 3.90624 1 2.51645 1C1.12665 1 0 2.11929 0 3.5C0 4.88071 1.12665 6 2.51645 6Z"/>
+                </svg>                                      
             </div>
 
-            <a href="/">Expensify</a>
-            /
-            <!-- Dropdown for product selection -->
-            <div class="dropdown">
-                <span>{{ page.title | remove_first: 'Expensify ' }}</span>
-                <div class="dropdown-content">
-                    <a href="/expense" class="{% if page.title == 'Expensify Expense' %}active{% endif %}">Expense</a>
-                    <a href="/card" class="{% if page.title == 'Expensify Cards' %}active{% endif %}">Card</a>
-                    <a href="/travel" class="{% if page.title == 'Expensify Travel' %}active{% endif %}">Travel</a>
-                    <a href="/chat" class="{% if page.title == 'Expensify Chat' %}active{% endif %}">Chat</a>
-                    <a href="/invoice" class="{% if page.title == 'Expensify Invoice' %}active{% endif %}">Invoice</a>
-                    <a href="/billpay" class="{% if page.title == 'Expensify Billpay' %}active{% endif %}">Billpay</a>
+            <div id="lockup">
+                <a href="/"><svg id="wordmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78 19" xml:space="preserve" width="118.75" height="27.9125" hovered="false" pressed="false"><path d="M0 14h8.7v-2.6H3.2V9.1h4.4V6.5H3.2V4.2h5.5V1.7H0zM19.4 4.4h-3.8l-1.2 2.3L13 4.4H9.1L12.3 9l-3.4 5h3.8l1.5-2.6 1.5 2.6h3.9l-3.4-5zM25.4 4.1c-1.1 0-2 .4-2.6 1.2v-1h-2.9V18H23v-4.7c.6.6 1.4 1 2.4 1 2.5 0 4.3-2 4.3-5 0-3.2-1.6-5.2-4.3-5.2zm-.6 7.6c-1.2 0-1.9-.9-1.9-2.5s.7-2.5 1.9-2.5 1.9.9 1.9 2.5c-.1 1.6-.8 2.5-1.9 2.5zM35.2 11.8c-1 0-1.7-.5-1.8-1.9H40v-.4c0-3-1.7-5.3-4.9-5.3-2.3 0-4.9 1.2-4.9 5 0 3.1 2 5 5.1 5 1.8 0 4.1-.7 4.8-3.5h-3.2c-.2.5-.6 1.1-1.7 1.1zm-.1-5.4c.9 0 1.5.5 1.6 1.6h-3.3c.3-1.2.9-1.6 1.7-1.6zM46.1 4.1c-1.1 0-2 .5-2.6 1.4V4.4h-2.9V14h3.1V8.6c0-1.3.7-1.9 1.5-1.9.9 0 1.5.4 1.5 1.8v5.4h3.1V8.4c-.1-3.1-1.3-4.3-3.7-4.3zM61.1 0c-1 0-1.6.7-1.6 1.6 0 .9.7 1.6 1.6 1.6 1 0 1.7-.7 1.7-1.6-.1-.9-.7-1.6-1.7-1.6zM59.6 4.4h3.1V14h-3.1zM55.5 8l-.8-.2c-.8-.2-1.1-.5-1.1-.9 0-.5.4-.9 1.2-.9.9 0 1.4.3 1.4 1.2h2.7c-.1-2-1.2-3.2-4.2-3.2-2.6 0-4.1 1-4.1 3.1 0 1.7 1.1 2.5 3.7 3l.7.2c.8.2 1.1.6 1.1.9 0 .5-.5.8-1.3.8-1.1 0-1.6-.4-1.7-1.3h-3c.2 2.3 1.8 3.5 4.6 3.5s4.5-1 4.5-3.2c0-1.6-1.1-2.4-3.7-3zM74.8 4.4l-1.7 5.9-1.7-5.9h-4v-.3c0-.8.6-1.6 1.5-1.6h.4V0h-.6c-2.7 0-4.5 1.9-4.5 4.3v.1H63v2.8h1.2V14h3.1V7.2h1.8l2.3 6.5-.4 1c-.3.7-.6 1-1.3 1-.3 0-.7 0-1.1-.1l-.2 2.5c.5.1 1 .2 1.8.2 1.9 0 2.8-.8 3.8-3.3l4-10.6h-3.2z"></path></svg></a>
+                <span class="slash">/</span>
+                <!-- Dropdown for product selection -->
+                <div class="dropdown">
+                    <span>{{ page.title | remove_first: 'Expensify ' }}</span>
+                    <div class="dropdown-content">
+                        <a href="/expense" class="{% if page.title == 'Expensify Expense' %}active{% endif %}">Expense</a>
+                        <a href="/card" class="{% if page.title == 'Expensify Cards' %}active{% endif %}">Card</a>
+                        <a href="/travel" class="{% if page.title == 'Expensify Travel' %}active{% endif %}">Travel</a>
+                        <a href="/chat" class="{% if page.title == 'Expensify Chat' %}active{% endif %}">Chat</a>
+                        <a href="/invoice" class="{% if page.title == 'Expensify Invoice' %}active{% endif %}">Invoice</a>
+                        <a href="/billpay" class="{% if page.title == 'Expensify Billpay' %}active{% endif %}">Billpay</a>
+                    </div>
                 </div>
             </div>
         </div>
         <div id="search-container">
             <!-- Search Input styled as button -->
-            <span id="search-icon" style="cursor: pointer; font-size: 24px;">🔍</span>
+            <span id="search-icon" style="cursor: pointer;">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M8 1C11.866 1 15 4.13401 15 8C15 9.39008 14.5948 10.6855 13.8961 11.7747L19.0608 16.9393C19.6466 17.5251 19.6466 18.4749 19.0608 19.0607C18.475 19.6464 17.5252 19.6464 16.9395 19.0607L11.7748 13.896C10.6856 14.5948 9.39014 15 8 15C4.13401 15 1 11.866 1 8C1 4.13401 4.13401 1 8 1ZM8 4C10.2091 4 12 5.79086 12 8C12 10.2091 10.2091 12 8 12C5.79086 12 4 10.2091 4 8C4 5.79086 5.79086 4 8 4Z" fill="#8B9C8F"/>
+                </svg>                    
+            </span>
 
             <!-- Search Modal -->
             <div id="search-modal" style="display:none;">
