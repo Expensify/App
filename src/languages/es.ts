@@ -3777,6 +3777,10 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            talkYourOnboardingSpecialist: 'Talk to your onboarding specialist',
+            talkYourAccountManager: 'Talk to your account manager',
+            talkToConcierge: 'Talk to concierge',
+            needAnotherAccounting: 'Need another accounting package? ',
             connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:

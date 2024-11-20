@@ -463,17 +463,16 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [chatTextLink, chatReportID] = useMemo(() => {
         // If they have an onboarding specialist assigned display the following and link to the #admins room with the setup specialist.
         if (account?.adminsRoomReportID) {
-            return ['Talk to your onboarding specialist', account?.adminsRoomReportID];
+            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), account?.adminsRoomReportID];
         }
 
         // If not, if they have an account manager assigned display the following and link to the DM with their account manager.
         if (account?.accountManagerAccountID) {
-            return ['Talk to your account manager', account?.accountManagerReportID];
+            return [translate('workspace.accounting.talkYourAccountManager'), account?.accountManagerReportID];
         }
-
         // Else, display the following and link to their Concierge DM.
-        return ['Talk to concierge', getConciergeReportID()];
-    }, [account]);
+        return [translate('workspace.accounting.talkToConcierge'), getConciergeReportID()];
+    }, [account, translate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -571,8 +570,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     additionalStyles={styles.mr3}
                                 />
                                 <View style={[isSmallScreenWidth || isMediumScreenWidth ? styles.flexColumn : styles.flexRow]}>
-                                    <Text>Need another accounting package?</Text>
-                                    <TextLink href={ROUTES.REPORT_WITH_ID.getRoute(chatReportID ?? '')}>{chatTextLink}</TextLink>
+                                    <Text>{translate('workspace.accounting.needAnotherAccounting')}</Text>
+                                    <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID ?? ''))}>{chatTextLink}</TextLink>
                                 </View>
                             </View>
                         </Section>
