@@ -72,7 +72,7 @@ function CodesStep({backTo}: CodesStepProps) {
     }, [isUserValidated]);
 
     useEffect(() => {
-        const unsubscribe = navigation.addListener('blur', () => {
+        const unsubscribe = navigation.addListener('beforeRemove', () => {
             setIsValidateModalVisible(false)
         });
         return unsubscribe;
