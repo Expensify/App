@@ -23,7 +23,7 @@ function SearchRouterModal() {
             shouldHandleNavigationBack={Browser.isMobileChrome()}
             onClose={closeSearchRouter}
             swipeDirection="right"
-            swipeThreshold={300}
+            swipeThreshold={100}
         >
             {isSearchRouterDisplayed && (
                 <FocusTrapForModal active={isSearchRouterDisplayed}>
