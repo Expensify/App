@@ -73,7 +73,7 @@ function CodesStep({backTo}: CodesStepProps) {
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', () => {
-            setIsValidateModalVisible(false)
+            setIsValidateModalVisible(false);
         });
         return unsubscribe;
     }, []);
