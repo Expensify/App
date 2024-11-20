@@ -21,7 +21,9 @@
             "@pages/*": ["./src/pages/*"],
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
-            "@userActions/*": ["./src/libs/actions/*"]
+            "@userActions/*": ["./src/libs/actions/*"],
+            "contacts-nitro-module": ["./modules/ContactsNitroModule"],
+            "contacts-nitro-module/*": ["./modules/ContactsNitroModule/*"]
         }
     },
     "include": [
