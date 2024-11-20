@@ -76,7 +76,7 @@ function CodesStep({backTo}: CodesStepProps) {
             setIsValidateModalVisible(false);
         });
         return unsubscribe;
-    }, []);
+    }, [navigation]);
 
     return (
         <StepWrapper
