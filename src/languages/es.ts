@@ -1861,7 +1861,7 @@ const translations = {
         enterPassword: 'Escribe una contraseña',
         setPassword: 'Configura tu contraseña',
         newPasswordPrompt: 'La contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
-        passwordFormTitle: '¡Bienvenido de vuelta al New Expensify! Por favor, elige una contraseña.',
+        passwordFormTitle: '¡Bienvenido de vuelta a New Expensify! Por favor, elige una contraseña.',
         passwordNotSet: 'No se pudo cambiar tu clave. Te hemos enviado un nuevo enlace para que intentes cambiar la clave nuevamente.',
         setPasswordLinkInvalid: 'El enlace para configurar tu contraseña ha expirado. Te hemos enviado un nuevo enlace a tu correo.',
         validateAccount: 'Verificar cuenta',
