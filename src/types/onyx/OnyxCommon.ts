@@ -24,7 +24,8 @@ type OnyxValueWithOfflineFeedback<TOnyx, TKey extends string = never> = keyof TO
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
 /** Mapping of form fields with error translation keys and variables */
-type Errors = Record<string, string | null>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Errors = Record<string, any>;
 
 /**
  * Types of avatars

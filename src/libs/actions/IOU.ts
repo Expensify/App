@@ -164,6 +164,84 @@ type GPSPoint = {
     long: number;
 };
 
+type StartSplitBilActionParams = {
+    participants: Participant[];
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    comment: string;
+    receipt: Receipt;
+    existingSplitChatReportID?: string;
+    billable?: boolean;
+    category: string | undefined;
+    tag: string | undefined;
+    currency: string;
+    taxCode: string;
+    taxAmount: number;
+};
+
+type TrackExpense = {
+    report: OnyxTypes.Report;
+    amount: number;
+    currency: string;
+    created: string;
+    merchant: string;
+    payeeEmail: string | undefined;
+    payeeAccountID: number;
+    participant: Participant;
+    comment: string;
+    receipt?: Receipt;
+    category?: string;
+    tag?: string;
+    taxCode?: string;
+    taxAmount?: number;
+    billable?: boolean;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    gpsPoints?: GPSPoint;
+    validWaypoints?: WaypointCollection;
+    action?: IOUAction;
+    actionableWhisperReportActionID?: string;
+    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
+    linkedTrackedExpenseReportID?: string;
+    customUnitRateID?: string;
+};
+
+type RequestMoney = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    amount: number;
+    attendees?: Attendee[];
+    currency: string;
+    created: string;
+    merchant: string;
+    payeeEmail?: string;
+    payeeAccountID: number;
+    participant: Participant;
+    comment: string;
+    receipt?: Receipt;
+    category?: string;
+    tag?: string;
+    taxCode?: string;
+    taxAmount?: number;
+    billable?: boolean;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    gpsPoints?: GPSPoint;
+    action?: IOUAction;
+    actionableWhisperReportActionID?: string;
+    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
+    linkedTrackedExpenseReportID?: string;
+    reimbursible?: boolean;
+    isRetry?: boolean;
+};
+
+type ReplaceReceipt = {
+    transactionID: string;
+    file?: File;
+    source: string;
+};
+
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -476,7 +554,14 @@ function setMoneyRequestDistanceRate(transactionID: string, rateID: string, poli
 }
 
 /** Helper function to get the receipt error for expenses, or the generic error if there's no receipt */
-function getReceiptError(receipt: OnyxEntry<Receipt>, filename?: string, isScanRequest = true, errorKey?: number, action?: string, retryParams?: any): Errors | ErrorFields {
+function getReceiptError(
+    receipt: OnyxEntry<Receipt>,
+    filename?: string,
+    isScanRequest = true,
+    errorKey?: number,
+    action?: string,
+    retryParams?: StartSplitBilActionParams | TrackExpense | RequestMoney | ReplaceReceipt,
+): Errors | ErrorFields {
     return isEmptyObject(receipt) || !isScanRequest
         ? ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage', errorKey)
         : ErrorUtils.getMicroSecondOnyxErrorObject(
@@ -547,7 +632,7 @@ function buildOnyxDataForMoneyRequest(
     isOneOnOneSplit = false,
     existingTransactionThreadReportID?: string,
     optimisticRecentlyUsedCurrencies?: string[],
-    retryParams?: any,
+    retryParams?: StartSplitBilActionParams | TrackExpense | RequestMoney | ReplaceReceipt,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const outstandingChildRequest = ReportUtils.getOutstandingChildRequest(iouReport);
@@ -1329,7 +1414,7 @@ function buildOnyxDataForTrackExpense(
     policyCategories?: OnyxInputValue<OnyxTypes.PolicyCategories>,
     existingTransactionThreadReportID?: string,
     actionableTrackExpenseWhisper?: OnyxInputValue<OnyxTypes.ReportAction>,
-    retryParams?: any,
+    retryParams?: StartSplitBilActionParams | TrackExpense | RequestMoney | ReplaceReceipt,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
@@ -1396,7 +1481,7 @@ function buildOnyxDataForTrackExpense(
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-                value: {[actionableTrackExpenseWhisper.reportActionID]: {} as ReportAction},
+                value: {[actionableTrackExpenseWhisper.reportActionID]: null},
             });
         }
     }
@@ -2050,7 +2135,7 @@ function getMoneyRequestInformation(
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
     attendees?: Attendee[],
     existingTransaction: OnyxEntry<OnyxTypes.Transaction> | undefined = undefined,
-    retryParams?: any,
+    retryParams?: StartSplitBilActionParams | TrackExpense | RequestMoney | ReplaceReceipt,
 ): MoneyRequestInformation {
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
@@ -2222,7 +2307,6 @@ function getMoneyRequestInformation(
         undefined,
         optimisticPolicyRecentluUsedCurrencies,
         retryParams,
-        'requestMoney',
     );
 
     return {
@@ -2271,7 +2355,7 @@ function getTrackExpenseInformation(
     moneyRequestReportID = '',
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
     existingTransactionID?: string,
-    retryParams?: any,
+    retryParams?: StartSplitBilActionParams | TrackExpense | RequestMoney | ReplaceReceipt,
 ): TrackExpenseInformation | null {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -3574,34 +3658,34 @@ function shareTrackedExpense(
 /**
  * Submit expense to another user
  */
-function requestMoney(
-    report: OnyxEntry<OnyxTypes.Report>,
-    amount: number,
-    attendees: Attendee[] | undefined,
-    currency: string,
-    created: string,
-    merchant: string,
-    payeeEmail: string | undefined,
-    payeeAccountID: number,
-    participant: Participant,
-    comment: string,
-    receipt: Receipt | undefined,
-    category?: string,
-    tag?: string,
+function requestMoney({
+    report,
+    amount,
+    attendees,
+    currency,
+    created,
+    merchant,
+    payeeEmail,
+    payeeAccountID,
+    participant,
+    comment,
+    receipt,
+    category,
+    tag,
     taxCode = '',
     taxAmount = 0,
-    billable?: boolean,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    gpsPoints?: GPSPoint,
-    action?: IOUAction,
-    actionableWhisperReportActionID?: string,
-    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
-    linkedTrackedExpenseReportID?: string,
-    reimbursible?: boolean,
-    isRetry?: boolean,
-) {
+    billable,
+    policy,
+    policyTagList,
+    policyCategories,
+    gpsPoints,
+    action,
+    actionableWhisperReportActionID,
+    linkedTrackedExpenseReportAction,
+    linkedTrackedExpenseReportID,
+    reimbursible,
+    isRetry,
+}: RequestMoney) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReportOrDraftReport(report?.chatReportID) : report;
@@ -3619,6 +3703,7 @@ function requestMoney(
         payeeAccountID,
         participant,
         comment,
+        receipt: undefined,
         category,
         tag,
         taxCode,
@@ -3744,10 +3829,7 @@ function requestMoney(
         }
     }
 
-    console.log(isRetry, 'isRetry');
-
     if (!isRetry) {
-        console.log('navigate');
         Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
     }
 
@@ -3767,17 +3849,6 @@ function sendInvoice(
     companyName?: string,
     companyWebsite?: string,
 ) {
-    const retryParams = {
-        currentUserAccountID,
-        transaction,
-        invoiceChatReport,
-        policy,
-        policyTagList,
-        policyCategories,
-        companyName,
-        companyWebsite,
-    };
-
     const {
         senderWorkspaceID,
         receiver,
@@ -3791,7 +3862,7 @@ function sendInvoice(
         createdReportActionIDForThread,
         reportActionID,
         onyxData,
-    } = getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories, companyName, companyWebsite, retryParams);
+    } = getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories, companyName, companyWebsite);
 
     const parameters: SendInvoiceParams = {
         createdIOUReportActionID,
@@ -3830,33 +3901,33 @@ function sendInvoice(
 /**
  * Track an expense
  */
-function trackExpense(
-    report: OnyxTypes.Report,
-    amount: number,
-    currency: string,
-    created: string,
-    merchant: string,
-    payeeEmail: string | undefined,
-    payeeAccountID: number,
-    participant: Participant,
-    comment: string,
-    receipt?: Receipt,
-    category?: string,
-    tag?: string,
+function trackExpense({
+    report,
+    amount,
+    currency,
+    created,
+    merchant,
+    payeeEmail,
+    payeeAccountID,
+    participant,
+    comment,
+    receipt,
+    category,
+    tag,
     taxCode = '',
     taxAmount = 0,
-    billable?: boolean,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    gpsPoints?: GPSPoint,
-    validWaypoints?: WaypointCollection,
-    action?: IOUAction,
-    actionableWhisperReportActionID?: string,
-    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
-    linkedTrackedExpenseReportID?: string,
-    customUnitRateID?: string,
-) {
+    billable,
+    policy,
+    policyTagList,
+    policyCategories,
+    gpsPoints,
+    validWaypoints,
+    action,
+    actionableWhisperReportActionID,
+    linkedTrackedExpenseReportAction,
+    linkedTrackedExpenseReportID,
+    customUnitRateID,
+}: TrackExpense) {
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReportOrDraftReport(report.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
@@ -3875,6 +3946,7 @@ function trackExpense(
         payeeAccountID,
         participant,
         comment,
+        receipt: undefined,
         category,
         tag,
         taxCode,
@@ -3891,8 +3963,6 @@ function trackExpense(
         linkedTrackedExpenseReportID,
         customUnitRateID,
     };
-
-    console.log(retryParams, 'retryParams');
 
     const {
         createdWorkspaceParams,
@@ -4683,21 +4753,6 @@ function splitBillAndOpenReport({
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
-type StartSplitBilActionParams = {
-    participants: Participant[];
-    currentUserLogin: string;
-    currentUserAccountID: number;
-    comment: string;
-    receipt: Receipt;
-    existingSplitChatReportID?: string;
-    billable?: boolean;
-    category: string | undefined;
-    tag: string | undefined;
-    currency: string;
-    taxCode: string;
-    taxAmount: number;
-};
-
 /** Used exclusively for starting a split expense request that contains a receipt, the split request will be completed once the receipt is scanned
  *  or user enters details manually.
  *
@@ -4853,7 +4908,20 @@ function startSplitBill({
         },
     ];
 
-    const retryParams = {participants, currentUserLogin, currentUserAccountID, comment, existingSplitChatReportID, billable, category, tag, currency, taxCode, taxAmount};
+    const retryParams = {
+        participants,
+        currentUserLogin,
+        currentUserAccountID,
+        comment,
+        receipt: receiptObject,
+        existingSplitChatReportID,
+        billable,
+        category,
+        tag,
+        currency,
+        taxCode,
+        taxAmount,
+    };
 
     if (existingSplitChatReport) {
         failureData.push({
@@ -7902,13 +7970,19 @@ function detachReceipt(transactionID: string) {
     API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
 
-function replaceReceipt(transactionID: string, file: File, source: string) {
+function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
+    if (!file) {
+        return;
+    }
+
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
         source,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
     };
+
+    const retryParams = {transactionID, file: undefined, source};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -7944,7 +8018,7 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
             value: {
                 receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
                 filename: transaction?.filename,
-                errors: getReceiptError(receiptOptimistic, file.name, undefined, undefined, 'replaceReceipt', {transactionID}),
+                errors: getReceiptError(receiptOptimistic, file.name, undefined, undefined, 'replaceReceipt', retryParams),
                 pendingFields: {
                     receipt: null,
                 },
@@ -8742,4 +8816,4 @@ export {
     resolveDuplicates,
     getIOUReportActionToApproveOrPay,
 };
-export type {GPSPoint as GpsPoint, IOURequestType};
+export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, TrackExpense, RequestMoney, ReplaceReceipt};

@@ -236,6 +236,15 @@ function ReportActionItem({
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
 
+    const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
+    const dismissError = useCallback(() => {
+        const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
+        if (transactionID) {
+            Transaction.clearError(transactionID);
+        }
+        ReportActions.clearAllRelatedReportActionErrors(reportID, action);
+    }, [reportID, action]);
+
     useEffect(
         () => () => {
             // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,
@@ -940,15 +949,6 @@ function ReportActionItem({
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
 
-    const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
-    const dismissError = useCallback(() => {
-        const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
-        if (transactionID) {
-            Transaction.clearError(transactionID);
-        }
-        ReportActions.clearAllRelatedReportActionErrors(reportID, action);
-    }, [reportID, action]);
-
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
@@ -1004,6 +1004,9 @@ function ReportActionItem({
                                     } else {
                                         dismissError();
                                     }
+                                }}
+                                dismissError={() => {
+                                    dismissError();
                                 }}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={

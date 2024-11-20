@@ -452,7 +452,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         }
         Transaction.clearError(transaction?.transactionID ?? linkedTransactionID);
         ReportActions.clearAllRelatedReportActionErrors(report?.reportID ?? '-1', parentReportAction);
-    }, [transaction, chatReport, parentReportAction, linkedTransactionID]);
+    }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
 
     return (
         <View style={styles.pRelative}>

@@ -309,33 +309,33 @@ function IOURequestStepDistance({
                 const participant = participants.at(0);
                 if (iouType === CONST.IOU.TYPE.TRACK && participant) {
                     playSound(SOUNDS.DONE);
-                    IOU.trackExpense(
+                    IOU.trackExpense({
                         report,
-                        0,
-                        transaction?.currency ?? 'USD',
-                        transaction?.created ?? '',
-                        translate('iou.fieldPending'),
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
+                        amount: 0,
+                        currency: transaction?.currency ?? 'USD',
+                        created: transaction?.created ?? '',
+                        merchant: translate('iou.fieldPending'),
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
                         participant,
-                        '',
-                        {},
-                        '',
-                        '',
-                        '',
-                        0,
-                        false,
+                        comment: '',
+                        receipt: {},
+                        category: '',
+                        tag: '',
+                        taxCode: '',
+                        taxAmount: 0,
+                        billable: false,
                         policy,
-                        undefined,
-                        undefined,
-                        undefined,
-                        TransactionUtils.getValidWaypoints(waypoints, true),
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
+                        policyTagList: undefined,
+                        policyCategories: undefined,
+                        gpsPoints: undefined,
+                        validWaypoints: TransactionUtils.getValidWaypoints(waypoints, true),
+                        action: undefined,
+                        actionableWhisperReportActionID: undefined,
+                        linkedTrackedExpenseReportAction: undefined,
+                        linkedTrackedExpenseReportID: undefined,
                         customUnitRateID,
-                    );
+                    });
                     return;
                 }
 
