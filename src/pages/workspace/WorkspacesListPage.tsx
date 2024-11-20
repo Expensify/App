@@ -156,7 +156,13 @@ function WorkspacesListPage() {
             // Menu options to navigate to the chat report of #admins and #announce room.
             // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
             // In such cases, let us use the available chat report ids from the policy.
-            const threeDotsMenuItems: PopoverMenuItem[] = [];
+            const threeDotsMenuItems: PopoverMenuItem[] = [
+                {
+                    icon: Expensicons.Workspace,
+                    text: translate('workspace.common.goToWorkspace'),
+                    onSelected: item.action,
+                },
+            ];
 
             if (isOwner) {
                 threeDotsMenuItems.push({
@@ -366,7 +372,6 @@ function WorkspacesListPage() {
     const getHeaderButton = () => (
         <Button
             accessibilityLabel={translate('workspace.new.newWorkspace')}
-            success
             text={translate('workspace.new.newWorkspace')}
             onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
             icon={Expensicons.Plus}
