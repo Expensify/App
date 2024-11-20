@@ -115,7 +115,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                                                 break;
                                             }
 
-                                            case 'requestMoney': {
+                                            case 'moneyRequest': {
                                                 dismissError();
                                                 const requestMoneyParams = {...message.retryParams} as IOU.RequestMoney;
                                                 requestMoneyParams.receipt = reconstructedFile;
