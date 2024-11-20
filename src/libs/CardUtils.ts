@@ -135,15 +135,26 @@ function maskCard(lastFour = ''): string {
  * Converts given 'X' to '•' for the entire card string.
  *
  * @param cardName - card name with XXXX in the middle.
+ * @param feed - card feed.
  * @returns - The masked card string.
  */
-function maskCardNumber(cardName: string): string {
+function maskCardNumber(cardName: string, feed: string | undefined): string {
     if (!cardName || cardName === '') {
         return '';
     }
     const hasSpace = /\s/.test(cardName);
     const maskedString = cardName.replace(/X/g, '•');
-    return hasSpace ? cardName : maskedString.replace(/(.{4})/g, '$1 ').trim();
+    const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
+
+    if (hasSpace) {
+        return cardName;
+    }
+
+    if (isAmexBank && maskedString.length === 15) {
+        return maskedString.replace(/(.{4})(.{6})(.{5})/, '$1 $2 $3');
+    }
+
+    return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
 /**

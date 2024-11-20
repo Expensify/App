@@ -70,7 +70,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         setShouldShowArrows(true);
     }, [canUseTouchScreen, page, setShouldShowArrows]);
 
-    const compareImage = useCallback((attachment: Attachment) => attachment.source === source && attachment.attachmentLink === attachmentLink, [attachmentLink, source]);
+    const compareImage = useCallback((attachment: Attachment) => attachment.source === source && (!attachmentLink || attachment.attachmentLink === attachmentLink), [attachmentLink, source]);
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;

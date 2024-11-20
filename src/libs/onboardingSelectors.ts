@@ -15,6 +15,10 @@ function hasCompletedGuidedSetupFlowSelector(onboarding: OnyxValue<typeof ONYXKE
         return true;
     }
 
+    if (!isEmptyObject(onboarding) && onboarding?.hasCompletedGuidedSetupFlow === undefined) {
+        return true;
+    }
+
     return onboarding?.hasCompletedGuidedSetupFlow;
 }
 
