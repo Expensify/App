@@ -477,20 +477,68 @@ if (ref.current && 'getBoundingClientRect' in ref.current) {
 
 ### Default value for inexistent IDs
 
- Use `'-1'` or `-1` when there is a possibility that the ID property of an Onyx value could be `null` or `undefined`.
+Use `CONST.DEFAULT_NUMBER_ID` when there is a possibility that the number ID property of an Onyx value could be `null` or `undefined`. **Do not default string IDs to any value!**
+
+> Why? The default number ID (currently set to `0`, which matches the backend’s default) is a falsy value. This makes it compatible with conditions that check if an ID is set, such as `if (!ownerAccountID) {`. Since it’s stored as a constant, it can easily be changed across the codebase if needed.
+>
+> However, defaulting string IDs to `'0'` breaks such conditions because `'0'` is a truthy value in JavaScript. Defaulting to `''` avoids this issue, but it can cause crashes or bugs if the ID is passed to Onyx. This is because `''` could accidentally subscribe to an entire Onyx collection instead of a single record.
+>
+> To address both problems, string IDs **should not have a default value**. This approach allows conditions like `if (!policyID) {` to work correctly, as `undefined` is a falsy value. At the same time, it prevents Onyx bugs: if `policyID` is used to subscribe to a specific Onyx record, a `policy_undefined` key will be used, and Onyx won’t return any records.
+>
+> In case you are confused or find a situation where you can't apply the rules mentioned above, please raise your question in the [`#expensify-open-source`](https://expensify.slack.com/archives/C01GTK53T8Q) Slack channel.
 
 ``` ts
 // BAD
-const foo = report?.reportID ?? '';
-const bar = report?.reportID ?? '0';
-
-report ? report.reportID : '0';
-report ? report.reportID : '';
+const accountID = report?.ownerAccountID ?? -1;
+const policyID = report?.policyID ?? '-1';
+const managerID = report ? report.managerID : 0;
 
 // GOOD
-const foo = report?.reportID ?? '-1';
+const accountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+const policyID = report?.policyID;
+const managerID = report ? report.managerID : CONST.DEFAULT_NUMBER_ID;
+```
 
-report ? report.reportID : '-1';
+Here are some common cases you may face when fixing your code to remove the old/bad default values.
+
+#### **Case 1**: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+
+```diff
+-Report.getNewerActions(newestActionCurrentReport?.reportID ?? '-1', newestActionCurrentReport?.reportActionID ?? '-1');
++Report.getNewerActions(newestActionCurrentReport?.reportID, newestActionCurrentReport?.reportActionID);
+```
+
+> error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'. Type 'undefined' is not assignable to type 'string'.
+
+We need to change `Report.getNewerActions()` arguments to allow `undefined`. By doing that we could add a condition that return early if one of the parameters are falsy, preventing the code (which is expecting defined IDs) from executing.
+
+```diff
+-function getNewerActions(reportID: string, reportActionID: string) {
++function getNewerActions(reportID: string | undefined, reportActionID: string | undefined) {
++    if (!reportID || !reportActionID) {
++        return;
++    }
+```
+
+#### **Case 2**: Type 'undefined' cannot be used as an index type.
+
+```diff
+function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+        canEvict: false,
+    });
+-   const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
++   const parentReportAction = parentReportActions?.[report?.parentReportActionID];
+```
+
+> error TS2538: Type 'undefined' cannot be used as an index type.
+
+This error is inside a component, so we can't simply use early return conditions here. Instead, we can check if `report?.parentReportActionID` is defined, if it is we can safely use it to find the record inside `parentReportActions`. If it's not defined, we just return `undefined`.
+
+```diff
+function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
+-    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
++    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
 ```
 
 ### Extract complex types
