@@ -126,10 +126,14 @@ function getOrderedReportIDs(
             return;
         }
         const isSystemChat = ReportUtils.isSystemChat(report);
-        const isExpenseReportWithoutParentAccess = ReportUtils.isExpenseReportWithoutParentAccess(report);
         const shouldOverrideHidden =
+            hasValidDraftComment(report.reportID) ||
+            hasErrorsOtherThanFailedReceipt ||
+            isFocused ||
+            isSystemChat ||
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned || isExpenseReportWithoutParentAccess;
+            report.isPinned ||
+            ReportUtils.requiresAttentionFromCurrentUser(report, parentReportAction);
         if (isHidden && !shouldOverrideHidden) {
             return;
         }
