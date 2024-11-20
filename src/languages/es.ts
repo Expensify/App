@@ -2448,6 +2448,7 @@ const translations = {
         hotel: 'Hotel',
         car: 'Auto',
         viewTrip: 'Ver viaje',
+        tripSupport: 'Soporte de Viaje',
         viewTripDetails: 'Ver detalles del viaje',
         trip: 'Viaje',
         trips: 'Viajes',
