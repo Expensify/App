@@ -7,18 +7,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type * as ReportUtils from '@libs/ReportUtils';
+import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
+import * as TagOptionListUtils from '@libs/TagsOptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-
-type SelectedTagOption = {
-    name: string;
-    enabled: boolean;
-    isSelected?: boolean;
-    accountID: number | undefined;
-    pendingAction?: PendingAction;
-};
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -52,7 +45,7 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = PolicyUtils.getTagList(policyTags, tagListIndex);
     const policyTagsCount = PolicyUtils.getCountOfEnabledTagsOfList(policyTagList.tags);
-    const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
+    const isTagsCountBelowThreshold = policyTagsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const shouldShowTextInput = !isTagsCountBelowThreshold;
 
@@ -81,15 +74,12 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
 
     const sections = useMemo(
         () =>
-            OptionsListUtils.getFilteredOptions({
+            TagOptionListUtils.getTagListSections({
                 searchValue,
                 selectedOptions,
-                includeP2P: false,
-                includeTags: true,
                 tags: enabledTags,
                 recentlyUsedTags: policyRecentlyUsedTagsList,
-                canInviteUser: false,
-            }).tagOptions,
+            }),
         [searchValue, enabledTags, selectedOptions, policyRecentlyUsedTagsList],
     );
 

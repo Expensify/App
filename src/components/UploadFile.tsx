@@ -69,7 +69,9 @@ function UploadFile({
     const theme = useTheme();
 
     const handleFileUpload = (files: FileObject[]) => {
-        const totalSize = files.reduce((sum, file) => sum + (file.size ?? 0), 0);
+        const resultedFiles = [...uploadedFiles, ...files];
+
+        const totalSize = resultedFiles.reduce((sum, file) => sum + (file.size ?? 0), 0);
 
         if (totalFilesSizeLimit) {
             if (totalSize > totalFilesSizeLimit) {
@@ -78,7 +80,7 @@ function UploadFile({
             }
         }
 
-        if (fileLimit && files.length > 0 && files.length > fileLimit) {
+        if (fileLimit && resultedFiles.length > 0 && resultedFiles.length > fileLimit) {
             setError(translate('attachmentPicker.tooManyFiles', {fileLimit}));
             return;
         }
@@ -98,6 +100,7 @@ function UploadFile({
 
         onInputChange(newFilesToUpload);
         onUpload(newFilesToUpload);
+        setError('');
     };
 
     return (
@@ -123,7 +126,7 @@ function UploadFile({
             {uploadedFiles.map((file) => (
                 <View
                     style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3]}
-                    key={file.uri}
+                    key={file.name}
                 >
                     <Icon
                         src={Expensicons.Paperclip}
@@ -131,13 +134,13 @@ function UploadFile({
                         medium
                     />
                     <Text
-                        style={[styles.ml2, styles.mr2, styles.textBold, styles.breakWord, styles.w100]}
+                        style={[styles.ml2, styles.mr2, styles.textBold, styles.breakWord, styles.w100, styles.flexShrink1]}
                         numberOfLines={2}
                     >
                         {file.name}
                     </Text>
                     <PressableWithFeedback
-                        onPress={() => onRemove(file?.uri ?? '')}
+                        onPress={() => onRemove(file?.name ?? '')}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.remove')}
                     >
@@ -151,7 +154,7 @@ function UploadFile({
             ))}
             {errorText !== '' && (
                 <DotIndicatorMessage
-                    textStyles={[styles.formError]}
+                    style={[styles.formError, styles.mt3]}
                     type="error"
                     messages={{errorText}}
                 />
