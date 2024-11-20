@@ -169,7 +169,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                     hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                     title={translate('delegate.makeSureItIsYou')}
                     sendValidateCode={() => User.requestValidateCodeAction()}
-                    description={translate('contacts.enterMagicCode', {contactMethod})}
+                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}
                 />
             </ScreenWrapper>
         </DelegateNoAccessWrapper>

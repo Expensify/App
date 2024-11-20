@@ -2,6 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -9,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -52,17 +53,19 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton
-                        title={translate('delegate.makeSureItIsYou')}
-                        onBackButtonPress={onBackButtonPress}
-                    />
-                    <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCodeUpdate', {contactMethod: account?.primaryLogin ?? ''})}</Text>
-                    <ValidateCodeForm
-                        ref={validateCodeFormRef}
-                        delegate={login}
-                        role={role}
-                        wrapperStyle={safeAreaPaddingBottomStyle}
-                    />
+                    <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                        <HeaderWithBackButton
+                            title={translate('delegate.makeSureItIsYou')}
+                            onBackButtonPress={onBackButtonPress}
+                        />
+                        <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCodeUpdate', {contactMethod: account?.primaryLogin ?? ''})}</Text>
+                        <ValidateCodeForm
+                            ref={validateCodeFormRef}
+                            delegate={login}
+                            role={role}
+                            wrapperStyle={safeAreaPaddingBottomStyle}
+                        />
+                    </DelegateNoAccessWrapper>
                 </>
             )}
         </ScreenWrapper>

@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -44,30 +45,37 @@ function EnablePaymentsPage() {
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
-                <HeaderWithBackButton
-                    title={translate('personalInfoStep.personalInfo')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET, true)}
-                />
-                <FailedKYC />
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                    <HeaderWithBackButton
+                        title={translate('personalInfoStep.personalInfo')}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET, true)}
+                    />
+                    <FailedKYC />
+                </DelegateNoAccessWrapper>
             </ScreenWrapper>
         );
     }
 
     const currentStep = isEmptyObject(bankAccountList) ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT : userWallet?.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
-
-    switch (currentStep) {
-        case CONST.WALLET.STEP.ADD_BANK_ACCOUNT:
-            return <AddBankAccount />;
-        case CONST.WALLET.STEP.ADDITIONAL_DETAILS:
-        case CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA:
-            return <PersonalInfo />;
-        case CONST.WALLET.STEP.ONFIDO:
-            return <VerifyIdentity />;
-        case CONST.WALLET.STEP.TERMS:
-            return <FeesAndTerms />;
-        default:
-            return null;
-    }
+    return (
+        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+            {() => {
+                switch (currentStep) {
+                    case CONST.WALLET.STEP.ADD_BANK_ACCOUNT:
+                        return <AddBankAccount />;
+                    case CONST.WALLET.STEP.ADDITIONAL_DETAILS:
+                    case CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA:
+                        return <PersonalInfo />;
+                    case CONST.WALLET.STEP.ONFIDO:
+                        return <VerifyIdentity />;
+                    case CONST.WALLET.STEP.TERMS:
+                        return <FeesAndTerms />;
+                    default:
+                        return null;
+                }
+            }}
+        </DelegateNoAccessWrapper>
+    );
 }
 
 EnablePaymentsPage.displayName = 'EnablePaymentsPage';

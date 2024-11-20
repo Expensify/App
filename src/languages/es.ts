@@ -5770,6 +5770,7 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) =>
             `Por favor, introduce el código mágico enviado a ${contactMethod} para actualizar el nivel de acceso de tu copiloto.`,
         notAllowed: 'No tan rápido...',
+        noAccessMessage: 'Como copiloto, no tienes acceso a esta página. ¡Lo sentimos!',
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `No tienes permiso para realizar esta acción para ${accountOwnerEmail}`,
         notAllowedMessageHyperLinked: ' copiloto',
     },
