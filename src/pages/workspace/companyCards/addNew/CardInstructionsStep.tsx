@@ -17,16 +17,17 @@ import * as Card from '@userActions/Card';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
 
 type CardInstructionsStepProps = {
     policyID?: string;
 };
 
-function getCardInstructionHeader(isVisaFeedProvider: boolean, isMastedCardFeedProvider: boolean) {
-    if (isVisaFeedProvider) {
+function getCardInstructionHeader(feedProvider: CardFeedProvider) {
+    if (feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.VISA) {
         return 'workspace.companyCards.addNewCard.enableFeed.visa';
     }
-    if (isMastedCardFeedProvider) {
+    if (feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD) {
         return 'workspace.companyCards.addNewCard.enableFeed.mastercard';
     }
 
@@ -46,9 +47,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const isAmexFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
-    const isVisaFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
-    const isMastedCardFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD;
-    const translationKey = getCardInstructionHeader(isVisaFeedProvider, isMastedCardFeedProvider);
+    const translationKey = getCardInstructionHeader(feedProvider);
 
     const buttonTranslation = isStripeFeedProvider ? translate('common.submit') : translate('common.next');
 
