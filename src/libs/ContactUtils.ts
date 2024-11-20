@@ -1,19 +1,8 @@
-import type {DeviceContact, StringHolder} from '@pages/iou/request/ContactImport/types';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
+import type {DeviceContact, StringHolder} from './ContactImport/types';
 import * as OptionsListUtils from './OptionsListUtils';
 import {getAvatarForContact} from './RandomAvatarUtils';
-import type * as UserUtils from './UserUtils';
-
-type ContactEntry = {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    phone?: string;
-    avatar?: UserUtils.AvatarSource;
-};
-
-type ProcessContactsConfig = Pick<OptionsListUtils.GetUserToInviteConfig, 'selectedOptions' | 'optionsToExclude'>;
 
 function sortEmailObjects(emails?: StringHolder[]): string[] {
     const length = emails?.length ?? 0;
@@ -85,19 +74,6 @@ function sortEmailObjects(emails?: StringHolder[]): string[] {
     return result.filter((email): email is string => email !== undefined);
 }
 
-const processContact = (contact: ContactEntry, config: ProcessContactsConfig): OptionsListUtils.SearchOption<PersonalDetails> | null => {
-    return OptionsListUtils.getUserToInviteContactOption({
-        ...config,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        searchValue: contact.email || contact.phone || contact.firstName || '',
-        firstName: contact.firstName,
-        lastName: contact.lastName,
-        email: contact.email,
-        phone: contact.phone,
-        avatar: contact.avatar,
-    });
-};
-
 const getContacts = (deviceContacts: DeviceContact[] | []): Array<OptionsListUtils.SearchOption<PersonalDetails>> => {
     return deviceContacts
         .map((contact) => {
@@ -108,19 +84,16 @@ const getContacts = (deviceContacts: DeviceContact[] | []): Array<OptionsListUti
             const firstName = contact?.firstName ?? '';
             const lastName = contact?.lastName ?? '';
 
-            return processContact(
-                {
-                    firstName,
-                    lastName,
-                    email,
-                    phone: phoneNumber,
-                    avatar: avatarSource,
-                },
-                {
-                    selectedOptions: [],
-                    optionsToExclude: [],
-                },
-            );
+            return OptionsListUtils.getUserToInviteContactOption({
+                selectedOptions: [],
+                optionsToExclude: [],
+                searchValue: email || phoneNumber || firstName || '',
+                firstName,
+                lastName,
+                email,
+                phone: phoneNumber,
+                avatar: avatarSource,
+            });
         })
         .filter((contact): contact is OptionsListUtils.SearchOption<PersonalDetails> => contact !== null);
 };
