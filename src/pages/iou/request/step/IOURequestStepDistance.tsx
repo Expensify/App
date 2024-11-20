@@ -319,6 +319,7 @@ function IOURequestStepDistance({
                         payeeAccountID: currentUserPersonalDetails.accountID,
                         participant,
                         comment: '',
+                        isDraftPolicy: false,
                         receipt: {},
                         category: '',
                         tag: '',

@@ -1,6 +1,7 @@
 import React, {forwardRef, useCallback} from 'react';
 import type {ForwardedRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
@@ -13,16 +14,18 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import * as Report from '@userActions/Report';
+import * as ReportUserActions from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type Report from '@src/types/onyx/Report';
 import {getSubstitutionMapKey} from './getQueryWithSubstitutions';
 
 type SearchQueryItemData = {
@@ -69,12 +72,28 @@ type SearchRouterListProps = {
 };
 
 const setPerformanceTimersEnd = () => {
-    Timing.end(CONST.TIMING.SEARCH_ROUTER_RENDER);
-    Performance.markEnd(CONST.TIMING.SEARCH_ROUTER_RENDER);
+    Timing.end(CONST.TIMING.OPEN_SEARCH);
+    Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
 };
 
-function getContextualSearchQuery(reportName: string) {
-    return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${CONST.SEARCH.DATA_TYPES.CHAT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(reportName)}`;
+function getContextualSearchQuery(item: SearchQueryItem) {
+    const baseQuery = `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${item.roomType}`;
+    let additionalQuery = '';
+
+    switch (item.roomType) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            additionalQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${item.policyID}`;
+            if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
+                additionalQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+            }
+            break;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+        default:
+            additionalQuery = ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+            break;
+    }
+    return baseQuery + additionalQuery;
 }
 
 function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
@@ -154,16 +173,33 @@ function SearchRouterList(
 
     if (reportForContextualSearch && !textInputValue) {
         const reportQueryValue = reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? reportForContextualSearch.reportID;
+        let roomType: ValueOf<typeof CONST.SEARCH.DATA_TYPES> = CONST.SEARCH.DATA_TYPES.CHAT;
+        let autocompleteID = reportForContextualSearch.reportID;
+        if (reportForContextualSearch.isInvoiceRoom) {
+            roomType = CONST.SEARCH.DATA_TYPES.INVOICE;
+            const report = reportForContextualSearch as SearchOption<Report>;
+            if (report.item && report.item?.invoiceReceiver && report.item.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+                autocompleteID = report.item.invoiceReceiver.accountID.toString();
+            } else {
+                autocompleteID = '';
+            }
+        }
+        if (reportForContextualSearch.isPolicyExpenseChat) {
+            roomType = CONST.SEARCH.DATA_TYPES.EXPENSE;
+            autocompleteID = reportForContextualSearch.policyID ?? '';
+        }
         sections.push({
             data: [
                 {
                     text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
                     singleIcon: Expensicons.MagnifyingGlass,
                     searchQuery: reportQueryValue,
-                    autocompleteID: reportForContextualSearch.reportID,
+                    autocompleteID,
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
                     searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
+                    roomType,
+                    policyID: reportForContextualSearch.policyID,
                 },
             ],
         });
@@ -209,10 +245,14 @@ function SearchRouterList(
                     return;
                 }
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
-                    const searchQuery = getContextualSearchQuery(item.searchQuery);
+                    const searchQuery = getContextualSearchQuery(item);
                     updateSearchValue(`${searchQuery} `);
 
-                    if (item.autocompleteID) {
+                    if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
+                        const autocompleteKey = `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${item.searchQuery}`;
+                        onAutocompleteSuggestionClick(autocompleteKey, item.autocompleteID);
+                    }
+                    if (item.roomType === CONST.SEARCH.DATA_TYPES.CHAT && item.autocompleteID) {
                         const autocompleteKey = `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery}`;
                         onAutocompleteSuggestionClick(autocompleteKey, item.autocompleteID);
                     }
@@ -236,7 +276,7 @@ function SearchRouterList(
             if ('reportID' in item && item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
-                Report.navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                ReportUserActions.navigateToAndOpenReport(item.login ? [item.login] : [], false);
             }
         },
         [closeRouter, textInputValue, onSearchSubmit, updateSearchValue, onAutocompleteSuggestionClick],

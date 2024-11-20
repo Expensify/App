@@ -13,7 +13,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 
-function WorkspacesSectionHeader() {
+type WorkspacesSectionHeaderProps = {
+    /** Should show the create workspace icon */
+    shouldShowCreateWorkspaceIcon: boolean;
+};
+
+function WorkspacesSectionHeader({shouldShowCreateWorkspaceIcon}: WorkspacesSectionHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -28,26 +33,28 @@ function WorkspacesSectionHeader() {
                     {translate('common.workspaces')}
                 </Text>
             </View>
-            <Tooltip text={translate('workspace.new.newWorkspace')}>
-                <PressableWithFeedback
-                    accessibilityLabel={translate('workspace.new.newWorkspace')}
-                    role={CONST.ROLE.BUTTON}
-                    onPress={() => {
-                        const activeRoute = Navigation.getActiveRouteWithoutParams();
-                        interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt('', '', false, false, activeRoute));
-                    }}
-                >
-                    {({hovered}) => (
-                        <Icon
-                            src={Expensicons.Plus}
-                            width={12}
-                            height={12}
-                            additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2, hovered && styles.buttonHoveredBG]}
-                            fill={theme.icon}
-                        />
-                    )}
-                </PressableWithFeedback>
-            </Tooltip>
+            {shouldShowCreateWorkspaceIcon && (
+                <Tooltip text={translate('workspace.new.newWorkspace')}>
+                    <PressableWithFeedback
+                        accessibilityLabel={translate('workspace.new.newWorkspace')}
+                        role={CONST.ROLE.BUTTON}
+                        onPress={() => {
+                            const activeRoute = Navigation.getActiveRouteWithoutParams();
+                            interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt('', '', false, false, activeRoute));
+                        }}
+                    >
+                        {({hovered}) => (
+                            <Icon
+                                src={Expensicons.Plus}
+                                width={12}
+                                height={12}
+                                additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2, hovered && styles.buttonHoveredBG]}
+                                fill={theme.icon}
+                            />
+                        )}
+                    </PressableWithFeedback>
+                </Tooltip>
+            )}
         </View>
     );
 }

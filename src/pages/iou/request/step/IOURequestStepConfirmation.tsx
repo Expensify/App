@@ -63,6 +63,7 @@ function IOURequestStepConfirmation({
 
     const report = reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
+    const isDraftPolicy = policy === policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
     const styles = useThemeStyles();
@@ -287,6 +288,7 @@ function IOURequestStepConfirmation({
                 payeeAccountID: currentUserPersonalDetails.accountID,
                 participant,
                 comment: trimmedComment,
+                isDraftPolicy,
                 receipt: receiptObj,
                 category: transaction.category,
                 tag: transaction.tag,
@@ -317,6 +319,7 @@ function IOURequestStepConfirmation({
             policyCategories,
             action,
             customUnitRateID,
+            isDraftPolicy,
         ],
     );
 

@@ -48,4 +48,24 @@ function getAllReportsLength() {
     return Object.keys(allReports ?? {}).length;
 }
 
-export {getAllReports, getAllReportsNameMap, getAllReportsLength};
+function getReport(reportID: string) {
+    if (!reportID || !allReports) {
+        return;
+    }
+    return allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+}
+
+function updateReportData(reportID: string, reportData?: Partial<Report>) {
+    const report = getReport(reportID);
+
+    if (!allReports || !report || !report.reportID) {
+        return;
+    }
+
+    allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
+        ...report,
+        ...reportData,
+    };
+}
+
+export {getAllReports, getAllReportsNameMap, getAllReportsLength, updateReportData, getReport};

@@ -29,11 +29,9 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import Timing from '@libs/actions/Timing';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
-import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -230,11 +228,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
     const wasReportAccessibleRef = useRef(false);
-    // eslint-disable-next-line react-compiler/react-compiler
-    if (firstRenderRef.current) {
-        Timing.start(CONST.TIMING.CHAT_RENDER);
-        Performance.markStart(CONST.TIMING.CHAT_RENDER);
-    }
+
     const [isComposerFocus, setIsComposerFocus] = useState(false);
     const shouldAdjustScrollView = useMemo(() => isComposerFocus && !modal?.willAlertModalBecomeVisible, [isComposerFocus, modal]);
     const viewportOffsetTop = useViewportOffsetTop(shouldAdjustScrollView);
@@ -487,9 +481,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     useAppFocusEvent(clearNotifications);
 
     useEffect(() => {
-        Timing.end(CONST.TIMING.CHAT_RENDER);
-        Performance.markEnd(CONST.TIMING.CHAT_RENDER);
-
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             ComposerActions.setShouldShowComposeInput(true);
         });

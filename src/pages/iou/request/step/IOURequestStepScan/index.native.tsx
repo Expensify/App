@@ -251,6 +251,7 @@ function IOURequestStepScan({
                     payeeAccountID: currentUserPersonalDetails.accountID,
                     participant,
                     comment: '',
+                    isDraftPolicy: false,
                     receipt,
                 });
             } else {
@@ -335,6 +336,7 @@ function IOURequestStepScan({
                                     payeeAccountID: currentUserPersonalDetails.accountID,
                                     participant,
                                     comment: '',
+                                    isDraftPolicy: false,
                                     receipt,
                                     category: '',
                                     tag: '',

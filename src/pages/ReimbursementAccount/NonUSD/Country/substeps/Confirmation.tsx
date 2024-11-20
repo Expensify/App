@@ -45,9 +45,8 @@ function Confirmation({onNext}: SubStepProps) {
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID));
     };
 
-    const handleSelectingCountry = (country: string) => {
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: country});
-        setSelectedCountry(country);
+    const handleSelectingCountry = (country: unknown) => {
+        setSelectedCountry(typeof country === 'string' ? country : '');
     };
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -56,12 +55,16 @@ function Confirmation({onNext}: SubStepProps) {
 
     useEffect(() => {
         if (currency === CONST.CURRENCY.EUR) {
+            if (countryDefaultValue !== '') {
+                FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: countryDefaultValue});
+                setSelectedCountry(countryDefaultValue);
+            }
             return;
         }
 
         FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: currencyMappedToCountry});
         setSelectedCountry(currencyMappedToCountry);
-    }, [currency, currencyMappedToCountry]);
+    }, [countryDefaultValue, currency, currencyMappedToCountry]);
 
     return (
         <SafeAreaConsumer>
@@ -101,14 +104,14 @@ function Confirmation({onNext}: SubStepProps) {
                         <InputWrapper
                             InputComponent={PushRowWithModal}
                             optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_COUNTRIES : CONST.ALL_COUNTRIES}
-                            selectedOption={selectedCountry}
-                            onOptionChange={handleSelectingCountry}
+                            onValueChange={handleSelectingCountry}
                             description={translate('common.country')}
                             modalHeaderTitle={translate('countryStep.selectCountry')}
                             searchInputTitle={translate('countryStep.findCountry')}
                             shouldAllowChange={shouldAllowChange}
                             value={selectedCountry}
                             inputID={COUNTRY}
+                            shouldSaveDraft
                         />
                     </FormProvider>
                 </ScrollView>

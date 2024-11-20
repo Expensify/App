@@ -100,6 +100,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
                         limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
                         name={item.nameValuePairs?.cardTitle ?? ''}
                         currency={policyCurrency}
+                        isVirtual={!!item.nameValuePairs?.isVirtual}
                     />
                 </PressableWithFeedback>
             </OfflineWithFeedback>
