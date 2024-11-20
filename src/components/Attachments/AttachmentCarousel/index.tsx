@@ -38,7 +38,7 @@ const viewabilityConfig = {
 
 const MIN_FLING_VELOCITY = 500;
 
-function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -70,7 +70,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         setShouldShowArrows(true);
     }, [canUseTouchScreen, page, setShouldShowArrows]);
 
-    const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
+    const compareImage = useCallback((attachment: Attachment) => attachment.source === source && attachment.attachmentLink === attachmentLink, [attachmentLink, source]);
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
@@ -180,8 +180,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     );
 
     const extractItemKey = useCallback(
-        (item: Attachment, index: number) =>
-            typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}` : `reportActionID-${item.reportActionID}` ?? `index-${index}`,
+        (item: Attachment) => (typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}|${item.attachmentLink}` : `reportActionID-${item.reportActionID}`),
         [],
     );
 

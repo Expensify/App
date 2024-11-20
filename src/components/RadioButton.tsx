@@ -41,8 +41,8 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
                 <Icon
                     src={Expensicons.Checkmark}
                     fill={theme.checkBox}
-                    height={14}
-                    width={14}
+                    height={20}
+                    width={20}
                 />
             )}
         </PressableWithFeedback>

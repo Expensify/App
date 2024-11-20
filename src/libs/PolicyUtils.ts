@@ -1115,6 +1115,14 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
 }
 
+function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
+    const groupPolicies = Object.values(policies ?? {}).filter((policy) => isPaidGroupPolicy(policy));
+    if (groupPolicies.length === 0) {
+        return false;
+    }
+    return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1236,6 +1244,7 @@ export {
     getAllPoliciesLength,
     getActivePolicy,
     isPolicyAccessible,
+    areAllGroupPoliciesExpenseChatDisabled,
 };
 
 export type {MemberEmailsToAccountIDs};
