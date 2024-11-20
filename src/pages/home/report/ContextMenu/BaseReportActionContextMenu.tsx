@@ -169,8 +169,8 @@ function BaseReportActionContextMenu({
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
+    const [childReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.reportID ?? '-1'}`);
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID ?? '-1'}`);
-    const parentReport = ReportUtils.getReport(childReport?.parentReportID ?? '-1');
 
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(childReport);
@@ -178,7 +178,7 @@ function BaseReportActionContextMenu({
     const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
 
     const areHoldRequirementsMet =
-        !isInvoiceReport && isMoneyRequestOrReport && !ReportUtils.isArchivedRoom(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
+        !isInvoiceReport && isMoneyRequestOrReport && !ReportUtils.isArchivedRoom(transactionThreadReportID ? childReportNameValuePairs : parentReportNameValuePairs);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     let filteredContextMenuActions = ContextMenuActions.filter(

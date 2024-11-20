@@ -28,7 +28,7 @@ function VisibilityPage({report}: VisibilityProps) {
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || -1}`);
     const shouldGoBackToDetailsPage = useRef(false);
 
-    const shouldDisableVisibility = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
+    const shouldDisableVisibility = ReportUtils.isArchivedRoom(reportNameValuePairs);
     const {translate} = useLocalize();
 
     const visibilityOptions = useMemo(
