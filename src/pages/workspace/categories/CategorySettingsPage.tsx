@@ -102,8 +102,8 @@ function CategorySettingsPage({
         if (!policy) {
             return '';
         }
-        return CategoryUtils.formatRequireReceiptsOverText(translate, policy, policyCategory?.maxExpenseAmountNoReceipt);
-    }, [policy, policyCategory?.maxExpenseAmountNoReceipt, translate]);
+        return CategoryUtils.formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
+    }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
 
     if (!policyCategory) {
         return <NotFoundPage />;
@@ -308,7 +308,7 @@ function CategorySettingsPage({
                                             shouldShowRightIcon
                                         />
                                     </OfflineWithFeedback>
-                                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmountNoReceipt}>
+                                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoReceipt}>
                                         <MenuItemWithTopDescription
                                             title={requireReceiptsOverText}
                                             description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}

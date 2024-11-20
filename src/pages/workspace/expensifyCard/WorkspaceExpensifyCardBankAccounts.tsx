@@ -152,7 +152,10 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                             text={translate('workspace.expensifyCard.gotIt')}
                             style={[styles.m5]}
                             pressOnEnter
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID))}
+                            onPress={() => {
+                                Navigation.dismissModal();
+                                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
+                            }}
                         />
                     </>
                 );
