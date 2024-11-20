@@ -2996,6 +2996,8 @@ const CONST = {
         PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
         SHORT_MENTION: new RegExp(
+            // We are ensuring that the short mention is not inside a code block. So we check that the short mention
+            // is either not preceded by an open code block or not followed by a backtick on the same line.
             `(?<!^[^\`\n]*(?:\`+[^\`\n]+\`+[^\`\n]+)*\`+[^\`\n]*)@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*|@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\n]*\`)`,
             'gim',
         ),
