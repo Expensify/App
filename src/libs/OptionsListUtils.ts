@@ -26,10 +26,6 @@ import type {
     Report,
     ReportAction,
     ReportActions,
-    TaxRate,
-    TaxRates,
-    TaxRatesWithDefault,
-    Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -52,7 +48,6 @@ import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
-import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
 type SearchOption<T> = ReportUtils.OptionData & {
@@ -98,23 +93,6 @@ type CategorySection = CategorySectionBase & {
     data: Option[];
 };
 
-type TaxRatesOption = {
-    text?: string;
-    code?: string;
-    searchText?: string;
-    tooltipText?: string;
-    isDisabled?: boolean;
-    keyForList?: string;
-    isSelected?: boolean;
-    pendingAction?: OnyxCommon.PendingAction;
-};
-
-type TaxSection = {
-    title: string | undefined;
-    shouldShow: boolean;
-    data: TaxRatesOption[];
-};
-
 type CategoryTreeSection = CategorySectionBase & {
     data: OptionTree[];
     indexOffset?: number;
@@ -125,12 +103,6 @@ type Category = {
     enabled: boolean;
     isSelected?: boolean;
     pendingAction?: OnyxCommon.PendingAction;
-};
-
-type Tax = {
-    modifiedName: string;
-    isSelected?: boolean;
-    isDisabled?: boolean;
 };
 
 type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
@@ -160,10 +132,6 @@ type GetOptionsConfig = {
     recentlyUsedCategories?: string[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
-    includeTaxRates?: boolean;
-    taxRates?: TaxRatesWithDefault;
-    policy?: OnyxEntry<Policy>;
-    transaction?: OnyxEntry<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
@@ -205,7 +173,6 @@ type Options = {
     userToInvite: ReportUtils.OptionData | null;
     currentUserOption: ReportUtils.OptionData | null | undefined;
     categoryOptions: CategoryTreeSection[];
-    taxRatesOptions: CategorySection[];
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
@@ -1153,111 +1120,6 @@ function getCategoryListSections(
 }
 
 /**
- * Sorts tax rates alphabetically by name.
- */
-function sortTaxRates(taxRates: TaxRates): TaxRate[] {
-    const sortedtaxRates = lodashSortBy(taxRates, (taxRate) => taxRate.name);
-    return sortedtaxRates;
-}
-
-/**
- * Builds the options for taxRates
- */
-function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[] {
-    return taxRates.map(({code, modifiedName, isDisabled, isSelected, pendingAction}) => ({
-        code,
-        text: modifiedName,
-        keyForList: modifiedName,
-        searchText: modifiedName,
-        tooltipText: modifiedName,
-        isDisabled: !!isDisabled || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        isSelected,
-        pendingAction,
-    }));
-}
-
-/**
- * Builds the section list for tax rates
- */
-function getTaxRatesSection(policy: OnyxEntry<Policy> | undefined, selectedOptions: Tax[], searchInputValue: string, transaction?: OnyxEntry<Transaction>): TaxSection[] {
-    const policyRatesSections = [];
-
-    const taxes = TransactionUtils.transformedTaxRates(policy, transaction);
-
-    const sortedTaxRates = sortTaxRates(taxes);
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.modifiedName);
-    const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
-    const enabledTaxRatesNames = enabledTaxRates.map((tax) => tax.modifiedName);
-    const enabledTaxRatesWithoutSelectedOptions = enabledTaxRates.filter((tax) => tax.modifiedName && !selectedOptionNames.includes(tax.modifiedName));
-    const selectedTaxRateWithDisabledState: Tax[] = [];
-    const numberOfTaxRates = enabledTaxRates.length;
-
-    selectedOptions.forEach((tax) => {
-        if (enabledTaxRatesNames.includes(tax.modifiedName)) {
-            selectedTaxRateWithDisabledState.push({...tax, isDisabled: false, isSelected: true});
-            return;
-        }
-        selectedTaxRateWithDisabledState.push({...tax, isDisabled: true, isSelected: true});
-    });
-
-    // If all tax are disabled but there's a previously selected tag, show only the selected tag
-    if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
-        policyRatesSections.push({
-            // "Selected" sectiong
-            title: '',
-            shouldShow: false,
-            data: getTaxRatesOptions(selectedTaxRateWithDisabledState),
-        });
-
-        return policyRatesSections;
-    }
-
-    if (searchInputValue) {
-        const enabledSearchTaxRates = enabledTaxRatesWithoutSelectedOptions.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchInputValue.toLowerCase()));
-        const selectedSearchTags = selectedTaxRateWithDisabledState.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchInputValue.toLowerCase()));
-        const taxesForSearch = [...selectedSearchTags, ...enabledSearchTaxRates];
-
-        policyRatesSections.push({
-            // "Search" section
-            title: '',
-            shouldShow: true,
-            data: getTaxRatesOptions(taxesForSearch),
-        });
-
-        return policyRatesSections;
-    }
-
-    if (numberOfTaxRates < CONST.STANDARD_LIST_ITEM_LIMIT) {
-        policyRatesSections.push({
-            // "All" section when items amount less than the threshold
-            title: '',
-            shouldShow: false,
-            data: getTaxRatesOptions([...selectedTaxRateWithDisabledState, ...enabledTaxRatesWithoutSelectedOptions]),
-        });
-
-        return policyRatesSections;
-    }
-
-    if (selectedOptions.length > 0) {
-        policyRatesSections.push({
-            // "Selected" section
-            title: '',
-            shouldShow: true,
-            data: getTaxRatesOptions(selectedTaxRateWithDisabledState),
-        });
-    }
-
-    policyRatesSections.push({
-        // "All" section when number of items are more than the threshold
-        title: '',
-        shouldShow: true,
-        data: getTaxRatesOptions(enabledTaxRatesWithoutSelectedOptions),
-    });
-
-    return policyRatesSections;
-}
-
-/**
  * Checks if a report option is selected based on matching accountID or reportID.
  *
  * @param reportOption - The report option to be checked.
@@ -1488,9 +1350,6 @@ function getOptions(
         canInviteUser = true,
         includeSelectedOptions = false,
         transactionViolations = {},
-        includeTaxRates,
-        policy,
-        transaction,
         includeSelfDM = false,
         includeInvoiceRooms = false,
         includeDomainEmail = false,
@@ -1508,20 +1367,6 @@ function getOptions(
             userToInvite: null,
             currentUserOption: null,
             categoryOptions,
-            taxRatesOptions: [],
-        };
-    }
-
-    if (includeTaxRates) {
-        const taxRatesOptions = getTaxRatesSection(policy, selectedOptions as Tax[], searchInputValue, transaction);
-
-        return {
-            recentReports: [],
-            personalDetails: [],
-            userToInvite: null,
-            currentUserOption: null,
-            categoryOptions: [],
-            taxRatesOptions,
         };
     }
 
@@ -1781,7 +1626,6 @@ function getOptions(
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
         categoryOptions: [],
-        taxRatesOptions: [],
     };
 }
 
@@ -1869,8 +1713,6 @@ type FilteredOptionsParams = {
     recentlyUsedCategories?: string[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
-    includeTaxRates?: boolean;
-    taxRates?: TaxRatesWithDefault;
     maxRecentReportsToShow?: number;
     includeSelfDM?: boolean;
     includeInvoiceRooms?: boolean;
@@ -1904,9 +1746,7 @@ function getFilteredOptions(params: FilteredOptionsParamsWithDefaultSearchValue 
         recentlyUsedCategories = [],
         canInviteUser = true,
         includeSelectedOptions = false,
-        includeTaxRates = false,
         maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        taxRates = {} as TaxRatesWithDefault,
         includeSelfDM = false,
         includeInvoiceRooms = false,
         action,
@@ -1928,8 +1768,6 @@ function getFilteredOptions(params: FilteredOptionsParamsWithDefaultSearchValue 
             recentlyUsedCategories,
             canInviteUser,
             includeSelectedOptions,
-            includeTaxRates,
-            taxRates,
             includeSelfDM,
             includeInvoiceRooms,
             action,
@@ -1966,9 +1804,7 @@ function getAttendeeOptions(
             recentlyUsedCategories: [],
             canInviteUser,
             includeSelectedOptions: false,
-            includeTaxRates: false,
             maxRecentReportsToShow: 0,
-            taxRates: {} as TaxRatesWithDefault,
             includeSelfDM: false,
             includeInvoiceRooms,
             action,
@@ -2264,7 +2100,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             userToInvite: null,
             currentUserOption,
             categoryOptions: [],
-            taxRatesOptions: [],
         };
     }, options);
 
@@ -2301,7 +2136,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         userToInvite,
         currentUserOption: matchResults.currentUserOption,
         categoryOptions: [],
-        taxRatesOptions: [],
     };
 }
 
@@ -2316,7 +2150,6 @@ function getEmptyOptions(): Options {
         userToInvite: null,
         currentUserOption: null,
         categoryOptions: [],
-        taxRatesOptions: [],
     };
 }
 
@@ -2359,7 +2192,6 @@ export {
     createOptionList,
     createOptionFromReport,
     getReportOption,
-    getTaxRatesSection,
     getFirstKeyForList,
     canCreateOptimisticPersonalDetailOption,
     getUserToInviteOption,
@@ -2372,4 +2204,4 @@ export {
     hasReportErrors,
 };
 
-export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
+export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Option, OptionTree};
