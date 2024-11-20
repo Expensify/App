@@ -16,7 +16,6 @@ const TaskManager = {
             throw new Error('Task executor must be a function');
         }
 
-        console.log('native task manager', NativeReactNativeBackgroundTask);
         return NativeReactNativeBackgroundTask.defineTask(taskName, taskExecutor);
     },
 };
