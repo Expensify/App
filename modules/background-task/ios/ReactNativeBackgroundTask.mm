@@ -1,18 +1,38 @@
 #import "ReactNativeBackgroundTask.h"
 
-@implementation ReactNativeBackgroundTask
+@implementation ReactNativeBackgroundTask {
+    NSMutableDictionary *_taskExecutors;
+}
+
 RCT_EXPORT_MODULE()
 
-// Example method
-// See // https://reactnative.dev/docs/native-modules-ios
-RCT_EXPORT_METHOD(multiply:(double)a
-                  b:(double)b
+- (instancetype)init {
+    if (self = [super init]) {
+        _taskExecutors = [NSMutableDictionary new];
+    }
+    return self;
+}
+
+RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
+                  taskExecutor:(RCTResponseSenderBlock)taskExecutor
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 {
-    NSNumber *result = @(a * b);
+    if (taskName == nil) {
+        NSLog(@"[ReactNativeBackgroundTask] Failed to define task: taskName is nil");
+        reject(@"ERR_INVALID_TASK_NAME", @"Task name must be provided", nil);
+        return;
+    }
+    
+    if (taskExecutor == nil) {
+        NSLog(@"[ReactNativeBackgroundTask] Failed to define task: taskExecutor is nil");
+        reject(@"ERR_INVALID_TASK_EXECUTOR", @"Task executor must be provided", nil);
+        return;
+    }
 
-    resolve(result);
+    NSLog(@"[ReactNativeBackgroundTask] Defining task: %@", taskName);
+    _taskExecutors[taskName] = taskExecutor;
+    resolve(nil);
 }
 
 // Don't compile this code when we build for the old architecture.
