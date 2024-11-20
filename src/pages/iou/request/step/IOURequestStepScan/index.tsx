@@ -646,17 +646,15 @@ function IOURequestStepScan({
                                 .
                             </Text>
                         ) : (
-                            <>
-                                <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
-                                <Button
-                                    success
-                                    text={translate('common.continue')}
-                                    accessibilityLabel={translate('common.continue')}
-                                    style={[styles.p9, styles.pt5]}
-                                    onPress={capturePhoto}
-                                />
-                            </>
+                            <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                         )}
+                        <Button
+                            success
+                            text={translate('common.continue')}
+                            accessibilityLabel={translate('common.continue')}
+                            style={[styles.p9, styles.pt5]}
+                            onPress={capturePhoto}
+                        />
                     </View>
                 )}
                 {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (
