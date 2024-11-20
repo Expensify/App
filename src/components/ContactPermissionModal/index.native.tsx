@@ -1,15 +1,14 @@
 import React, {useEffect, useState} from 'react';
-import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getContactPermission, requestContactPermission} from '@pages/iou/request/ContactPermission';
+import {getContactPermission} from '@pages/iou/request/ContactPermission';
 import type {ContactPermissionModalProps} from './types';
 
 function ContactPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: ContactPermissionModalProps) {
-    const [showModal, setShowModal] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -25,47 +24,32 @@ function ContactPermissionModal({startPermissionFlow, resetPermissionFlow, onDen
             if (status === RESULTS.BLOCKED) {
                 return;
             }
-            setShowModal(true);
+            setIsModalVisible(true);
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
     }, [startPermissionFlow]);
 
-    const goToSettingsPermission = () => {
-        Linking.openSettings();
-        setShowModal(false);
+    const handleGrantPermission = () => {
+        setIsModalVisible(false);
+        onGrant();
     };
 
-    const grantLocationPermission = () => {
-        requestContactPermission().then((status) => {
-            if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
-                onGrant();
-            } else if (status === RESULTS.BLOCKED) {
-                return;
-            } else {
-                onDeny(status);
-                goToSettingsPermission();
-                resetPermissionFlow();
-            }
-            setShowModal(false);
-        });
-    };
-
-    const skipLocationPermission = () => {
+    const handleDenyPermission = () => {
         onDeny(RESULTS.DENIED);
-        setShowModal(false);
+        setIsModalVisible(false);
     };
 
-    const closeModal = () => {
-        setShowModal(false);
+    const handleCloseModal = () => {
+        setIsModalVisible(false);
         resetPermissionFlow();
     };
 
     return (
         <ConfirmModal
-            isVisible={showModal}
-            onConfirm={grantLocationPermission}
-            onCancel={skipLocationPermission}
-            onBackdropPress={closeModal}
+            isVisible={isModalVisible}
+            onConfirm={handleGrantPermission}
+            onCancel={handleDenyPermission}
+            onBackdropPress={handleCloseModal}
             confirmText={translate('common.continue')}
             cancelText={translate('common.notNow')}
             prompt={translate('contact.importContactsText')}
