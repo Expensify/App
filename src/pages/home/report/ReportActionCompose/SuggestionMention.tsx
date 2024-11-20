@@ -74,10 +74,7 @@ function compareUserInList(first: PersonalDetails & {weight: number}, second: Pe
         return first.weight - second.weight;
     }
 
-    const firstDisplayName = getDisplayName(first);
-    const secondDisplayName = getDisplayName(second);
-
-    const displayNameLoginOrder = localeCompare(firstDisplayName, secondDisplayName);
+    const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
     if (displayNameLoginOrder !== 0) {
         return displayNameLoginOrder;
     }
