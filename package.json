@@ -188,7 +188,8 @@
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
-    "react-window": "^1.8.9"
+    "react-window": "^1.8.9",
+    "@expensify/react-native-background-task": "file:./modules/background-task"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
