@@ -31,6 +31,7 @@ function TermsAndConditionsLabel() {
     return (
         <Text>
             {translate('common.iAcceptThe')}
+            {/* TODO: Add link to terms and conditions */}
             <TextLink href="">{`${translate('agreementsStep.termsAndConditions')}`}</TextLink>
         </Text>
     );
