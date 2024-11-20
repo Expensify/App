@@ -478,8 +478,9 @@ const translations = {
     contact: {
         importContacts: 'Importar contactos',
         importContactsTitle: 'Importa tus contactos',
-        importContactsText: 'Importa contactos desde tu teléfono para que tus personas favoritas estén siempre a un toque de distancia.',
+        importContactsText: 'Importa contactos desde tu teléfono para que tus personas favoritas siempre estén a un toque de distancia.',
         importContactsExplanation: 'para que tus personas favoritas estén siempre a un toque de distancia.',
+        importContactsNativeText: '¡Solo un paso más! Danos luz verde para importar tus contactos.',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
@@ -1047,8 +1048,6 @@ const translations = {
         attendees: 'Asistentes',
         paymentComplete: 'Pago completo',
         justTrackIt: 'Solo guardarlo (no enviarlo)',
-        contactPermissionSQuestion: '¿No encuentras a quien buscas? ¿Quieres importar los contactos de tu agenda telefónica?',
-        goToSettings: 'Ir a configuración',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
