@@ -48,11 +48,11 @@ function Finish() {
                 >
                     <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
                     <Button
-                        iconStyles={[styles.customMarginButtonWithMenuItem]}
                         text={translate('finishStep.iHaveA')}
                         onPress={handleNavigateToConciergeChat}
                         icon={Expensicons.ChatBubble}
                         success
+                        large
                         innerStyles={[styles.h13]}
                     />
                 </Section>
