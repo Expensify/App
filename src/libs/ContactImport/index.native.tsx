@@ -1,7 +1,7 @@
 import {ContactsNitroModule} from 'contacts-nitro-module';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
-import {requestContactPermission} from '@pages/iou/request/ContactPermission';
+import {requestContactPermission} from '@libs/ContactPermission';
 import CONST from '@src/CONST';
 import type {ContactImportResult} from './types';
 

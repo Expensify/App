@@ -26,6 +26,9 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
+import contactImport from '@libs/ContactImport';
+import type {ContactImportResult} from '@libs/ContactImport/types';
+import {getContactPermission} from '@libs/ContactPermission';
 import getContacts from '@libs/ContactUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -42,9 +45,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import contactImport from './ContactImport';
-import type {ContactImportResult} from './ContactImport/types';
-import {getContactPermission} from './ContactPermission';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */

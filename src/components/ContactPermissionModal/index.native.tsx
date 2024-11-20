@@ -4,7 +4,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getContactPermission} from '@pages/iou/request/ContactPermission';
+import {getContactPermission} from '@libs/ContactPermission';
 import type {ContactPermissionModalProps} from './types';
 
 function ContactPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: ContactPermissionModalProps) {
