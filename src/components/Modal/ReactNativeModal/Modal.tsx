@@ -113,12 +113,11 @@ function ReactNativeModal(incomingProps: ModalProps) {
         return false;
     };
 
-    const handleTransition = (type: TransitionType) => {
+    const handleTransition = () => {
         const shouldAnimate = isVisible !== isContainerOpen;
 
         if (shouldAnimate && !isTransitioning) {
             setIsTransitioning(true);
-            // TODO: type === 'open' ? animationInTiming : animationOutTiming,
         }
     };
 
@@ -131,7 +130,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
             props.onModalWillShow();
         }
         setIsVisibleState(true);
-        handleTransition('open');
+        handleTransition();
     };
 
     const close = () => {
@@ -148,7 +147,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
         }
 
         setIsVisibleState(false);
-        handleTransition('close');
+        handleTransition();
     };
 
     useEffect(() => {
@@ -190,17 +189,6 @@ function ReactNativeModal(incomingProps: ModalProps) {
     const {propagateSwipe: _, ...otherProps} = props;
 
     const computedStyle: Array<StyleProp<ViewStyle>> = [{margin: getDeviceWidth() * 0.05}, styles.content, style];
-
-    let panPosition: StyleProp<ViewStyle> = {};
-    if (isSwappable && panResponder) {
-        if (useNativeDriver) {
-            panPosition = {
-                transform: [{translateX: Xoffset.value}, {translateY: Yoffset.value}],
-            };
-        } else {
-            panPosition = pan.getLayout();
-        }
-    }
 
     const containerView = (
         <Container

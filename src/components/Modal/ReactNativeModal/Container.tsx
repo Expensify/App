@@ -1,12 +1,9 @@
 import React from 'react';
-import type {SharedValue} from 'react-native-reanimated';
 import Animated, {runOnJS, SlideInDown, SlideOutDown, useAnimatedStyle} from 'react-native-reanimated';
 import type ModalProps from './types';
+import type {ContainerProps} from './types';
 
-function Container({
-    style,
-    ...props
-}: ModalProps & {onOpenCallBack: () => void; onCloseCallBack: () => void; panPosition?: {translateX: SharedValue<number>; translateY: SharedValue<number>}}) {
+function Container({style, ...props}: ModalProps & ContainerProps) {
     const animatedStyles = useAnimatedStyle(() => {
         if (!props.panPosition) {
             return {};
