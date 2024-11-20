@@ -1,7 +1,6 @@
 import {DeviceEventEmitter} from 'react-native';
-import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
-import Timing from '@libs/actions/Timing';
+import type {NativeConfig} from 'react-native-config';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
@@ -32,9 +31,9 @@ const test = (config: NativeConfig) => {
         }
 
         const [appearMessagePromise, appearMessageResolve] = getPromiseWithResolve();
-        const [switchReportPromise, switchReportResolve] = getPromiseWithResolve();
+        const [openReportPromise, openReportResolve] = getPromiseWithResolve();
 
-        Promise.all([appearMessagePromise, switchReportPromise])
+        Promise.all([appearMessagePromise, openReportPromise])
             .then(() => {
                 console.debug('[E2E] Test completed successfully, exiting…');
                 E2EClient.submitTestDone();
@@ -57,21 +56,15 @@ const test = (config: NativeConfig) => {
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
                 console.debug('[E2E] Sidebar loaded, navigating to a report…');
+                Performance.markStart(CONST.TIMING.OPEN_REPORT);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                 return;
             }
 
-            if (entry.name === CONST.TIMING.REPORT_INITIAL_RENDER) {
-                console.debug('[E2E] Navigating to linked report action…');
-                Timing.start(CONST.TIMING.SWITCH_REPORT);
-                Performance.markStart(CONST.TIMING.SWITCH_REPORT);
-
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(linkedReportID, linkedReportActionID));
-                return;
-            }
-
-            if (entry.name === CONST.TIMING.SWITCH_REPORT) {
+            if (entry.name === CONST.TIMING.OPEN_REPORT) {
                 console.debug('[E2E] Linking: 1');
+                console.debug('[E2E] Navigating to the linked report action…');
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(linkedReportID, linkedReportActionID));
 
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
@@ -80,7 +73,7 @@ const test = (config: NativeConfig) => {
                     unit: 'ms',
                 });
 
-                switchReportResolve();
+                openReportResolve();
             }
         });
     });

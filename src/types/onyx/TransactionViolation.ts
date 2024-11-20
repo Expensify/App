@@ -92,6 +92,9 @@ type TransactionViolation = {
 
     /** Additional violation information to provide the user */
     data?: TransactionViolationData;
+
+    /** Indicates if this violation should be shown in review */
+    showInReview?: boolean;
 };
 
 /** Collection of transaction violations */
