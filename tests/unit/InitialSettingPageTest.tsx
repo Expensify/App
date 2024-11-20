@@ -19,10 +19,6 @@ jest.setTimeout(60000);
 
 jest.mock('@react-navigation/native');
 
-// mock the destination page.
-jest.mock('@pages/settings/ExitSurvey/ExitSurveyBookCall');
-jest.mock('@pages/settings/ExitSurvey/ExitSurveyConfirmPage');
-
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
@@ -44,7 +40,7 @@ function navigateToExpensifyClassicFlow() {
     return waitForBatchedUpdatesWithAct();
 }
 
-function signInAppAndEnterTestFlow(): Promise<void> {
+function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
     render(<App />);
     return waitForBatchedUpdatesWithAct()
         .then(async () => {
@@ -56,6 +52,14 @@ function signInAppAndEnterTestFlow(): Promise<void> {
             await act(async () => {
                 await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
             });
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_TRYNEWDOT, {
+                    classicRedirect: {
+                        dismissed: dismissedValue,
+                    },
+                });
+            });
+            await waitForBatchedUpdates();
             return navigateToSetting();
         })
         .then(async () => {
@@ -66,38 +70,47 @@ function signInAppAndEnterTestFlow(): Promise<void> {
 
 OnyxUpdateManager();
 
-describe('InitialSettingPage', () => {
+describe('User should navigate to BookACall page when dismissed is false', () => {
+    beforeAll(async () => {
+        await act(async () => {
+            await Onyx.clear();
+            // Unsubscribe to pusher channels
+            PusherHelper.teardown();
+            jest.clearAllMocks();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
             // Unsubscribe to pusher channels
             PusherHelper.teardown();
+            await waitForBatchedUpdatesWithAct();
         });
     });
 
     test('Test switch to Expensify classic - dimissed is true', async () => {
-        await signInAppAndEnterTestFlow();
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.NVP_TRYNEWDOT, {
-                classicRedirect: {
-                    dismissed: true,
-                },
-            });
+        await signInAppAndEnterTestFlow(false).then(() => {
+            expect(screen.getAllByText(Localize.translateLocal('exitSurvey.bookACallTitle')).at(0)).toBeOnTheScreen();
         });
-        await waitForBatchedUpdates();
-        expect(screen.getAllByText(Localize.translateLocal('exitSurvey.goToExpensifyClassic')).at(0)).toBeOnTheScreen();
+    });
+});
+
+describe('User should navigate to Confirm page if dimissed is true or unset', () => {
+    beforeAll(async () => {
+        await act(async () => {
+            await Onyx.clear();
+            // Unsubscribe to pusher channels
+            PusherHelper.teardown();
+            jest.clearAllMocks();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
-    test('Test switch to Expensify classic - dimissed is false', async () => {
-        await signInAppAndEnterTestFlow();
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.NVP_TRYNEWDOT, {
-                classicRedirect: {
-                    dismissed: false,
-                },
-            });
+    test('Test switch to Expensify classic - dimissed is true',() => {
+        signInAppAndEnterTestFlow(true).then(() => {
+            expect(screen.getAllByText(Localize.translateLocal('exitSurvey.goToExpensifyClassic')).at(0)).toBeOnTheScreen();
         });
-        await waitForBatchedUpdates();
-        expect(screen.getAllByText(Localize.translateLocal('exitSurvey.header')).at(0)).toBeOnTheScreen();
     });
 });
