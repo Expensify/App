@@ -1,4 +1,5 @@
 import {ContactsNitroModule} from 'contacts-nitro-module';
+import type {Contact} from 'contacts-nitro-module';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
 import {requestContactPermission} from '@libs/ContactPermission';
@@ -21,7 +22,7 @@ function contactImport(): Promise<ContactImportResult> {
             }
             return [];
         })
-        .then((deviceContacts) => ({
+        .then((deviceContacts: Contact[]) => ({
             contactList: Array.isArray(deviceContacts) ? deviceContacts : [],
             permissionStatus,
         }));
