@@ -643,6 +643,7 @@ function IOURequestStepScan({
                                 <TextLink href="https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense">
                                     {translate('receipt.deniedCameraAccessInstructions')}
                                 </TextLink>
+                                .
                             </Text>
                         ) : (
                             <>
