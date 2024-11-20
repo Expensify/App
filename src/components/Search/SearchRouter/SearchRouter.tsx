@@ -361,7 +361,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             if (!queryJSON) {
                 return;
             }
-
+            queryJSON.policyID = activeWorkspaceID;
             onRouterClose();
 
             const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(queryJSON, SearchQueryUtils.getUpdatedAmountValue);
@@ -370,7 +370,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
             setTextInputValue('');
         },
-        [autocompleteSubstitutions, onRouterClose, setTextInputValue],
+        [autocompleteSubstitutions, onRouterClose, setTextInputValue, activeWorkspaceID],
     );
 
     const onAutocompleteSuggestionClick = (autocompleteKey: string, autocompleteID: string) => {
