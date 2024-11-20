@@ -3489,15 +3489,6 @@ function prepareOnboardingOptimisticData(
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
-    // Introductory message
-    const introductionComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ONBOARDING_INTRODUCTION, undefined, actorAccountID);
-    const introductionCommentAction: OptimisticAddCommentReportAction = introductionComment.reportAction;
-    const introductionMessage: AddCommentOrAttachementParams = {
-        reportID: targetChatReportID,
-        reportActionID: introductionCommentAction.reportActionID,
-        reportComment: introductionComment.commentText,
-    };
-
     // Text message
     const textComment = ReportUtils.buildOptimisticAddCommentReportAction(data.message, undefined, actorAccountID, 1);
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
@@ -3744,7 +3735,6 @@ function prepareOnboardingOptimisticData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [introductionCommentAction.reportActionID]: introductionCommentAction as ReportAction,
                 [textCommentAction.reportActionID]: textCommentAction as ReportAction,
             },
         },
@@ -3767,7 +3757,6 @@ function prepareOnboardingOptimisticData(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
         value: {
-            [introductionCommentAction.reportActionID]: {pendingAction: null},
             [textCommentAction.reportActionID]: {pendingAction: null},
         },
     });
@@ -3802,9 +3791,6 @@ function prepareOnboardingOptimisticData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [introductionCommentAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
                 [textCommentAction.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
                 } as ReportAction,
@@ -3857,10 +3843,7 @@ function prepareOnboardingOptimisticData(
         });
     }
 
-    const guidedSetupData: GuidedSetupData = [
-        {type: 'message', ...introductionMessage},
-        {type: 'message', ...textMessage},
-    ];
+    const guidedSetupData: GuidedSetupData = [{type: 'message', ...textMessage}];
 
     if ('video' in data && data.video && videoCommentAction && videoMessage) {
         optimisticData.push({
