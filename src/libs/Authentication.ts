@@ -13,7 +13,7 @@ import requireParameters from './requireParameters';
 import Onyx from 'react-native-onyx';
 
 let authenticateCalls = 0;
-const CALLS_TO_FAIL = 20;
+const CALLS_TO_FAIL = 10;
 
 type Parameters = {
     useExpensifyLogin?: boolean;

@@ -5,10 +5,17 @@ import HttpUtils from './HttpUtils';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkStore from './Network/NetworkStore';
+import Onyx from 'react-native-onyx';
 
 let middlewares: Middleware[] = [];
 
 let addCommentRequestCount = 0;
+
+let failedAuthenticate;
+Onyx.connect({
+    key: 'failedAuthenticate',
+    callback: (val) => (failedAuthenticate = val),
+});
 
 function makeXHR(request: Request): Promise<Response | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
@@ -26,11 +33,15 @@ function makeXHR(request: Request): Promise<Response | void> {
         }
 
         return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure).then((response) => {
-            // Make every other add comment request return a not authenticated response
-            if (addCommentRequestCount % 2 === 0) {
+            // Early return if we're not forcing a not authenticated response
+            // Force it in these scenarios:
+            // If it's not an Authenticate request itself. Making that fail is done separately
+            // Every other add comment request for easy testing
+            // If we have already failed to re-authenticate, keep failing for realism
+            if (request.command === 'Authenticate' || (addCommentRequestCount % 2 === 0 && !failedAuthenticate)) {
                 return response;
             }
-            console.log('Ndebug making AddComment return not authenticated');
+            console.log('Ndebug forcing return not authenticated');
             response.jsonCode = CONST.JSON_CODE.NOT_AUTHENTICATED;
             return response;
         });
