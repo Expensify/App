@@ -10,6 +10,7 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, () => {
 });
 
 function registerBackgroundFetch() {
+    console.log('probably not needed');
     // return BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
     //     minimumInterval: 60 * 15, // 15 minutes
     //     stopOnTerminate: false,
