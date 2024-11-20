@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
+import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
