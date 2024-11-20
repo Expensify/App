@@ -50,11 +50,13 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
-            return getPayActionCallback(hash, item, goToItem);
+            getPayActionCallback(hash, item, goToItem);
+            return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
-            return approveMoneyRequestOnSearch(hash, [item.reportID], transactionID);
+            approveMoneyRequestOnSearch(hash, [item.reportID], transactionID);
+            return;
         default:
-            return goToItem();
+            goToItem();
     }
 }
 
@@ -62,18 +64,25 @@ function getPayActionCallback(hash: number, item: TransactionListItemType | Repo
     const lastPolicyPaymentMethod = item.policyID ? (lastPaymentMethod?.[item.policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) : null;
 
     if (!lastPolicyPaymentMethod) {
-        return goToItem();
+        goToItem();
+        return;
     }
 
     const amount = isReportListItemType(item) ? item.total ?? 0 : item.formattedTotal;
     const transactionID = isTransactionListItemType(item) ? item.transactionID : undefined;
 
     if (lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        return payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID);
+        payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID);
+        return;
     }
 
     const hasVBBA = !!allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]?.achAccount?.bankAccountID;
-    return hasVBBA ? payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID) : goToItem();
+    if (hasVBBA) {
+        payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID);
+        return;
+    }
+
+    goToItem();
 }
 
 function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]} {
