@@ -7,6 +7,7 @@ import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
@@ -28,6 +29,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {getConciergeReportID} from '@libs/actions/Report';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {
     areSettingsInErrorFields,
@@ -74,7 +76,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
-
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const route = useRoute();
     const params = route.params as RouteParams | undefined;
     const newConnectionName = params?.newConnectionName;
@@ -456,6 +460,21 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         popoverAnchorRefs,
     ]);
 
+    const [chatTextLink, chatReportID] = useMemo(() => {
+        // If they have an onboarding specialist assigned display the following and link to the #admins room with the setup specialist.
+        if (account?.adminsRoomReportID) {
+            return ['Talk to your onboarding specialist', account?.adminsRoomReportID];
+        }
+
+        // If not, if they have an account manager assigned display the following and link to the DM with their account manager.
+        if (account?.accountManagerAccountID) {
+            return ['Talk to your account manager', account?.accountManagerReportID];
+        }
+
+        // Else, display the following and link to their Concierge DM.
+        return ['Talk to concierge', getConciergeReportID()];
+    }, [account]);
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -543,6 +562,19 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     />
                                 </CollapsibleSection>
                             )}
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                                <Icon
+                                    src={Expensicons.QuestionMark}
+                                    width={20}
+                                    height={20}
+                                    fill={theme.icon}
+                                    additionalStyles={styles.mr3}
+                                />
+                                <View style={[isSmallScreenWidth || isMediumScreenWidth ? styles.flexColumn : styles.flexRow]}>
+                                    <Text>Need another accounting package?</Text>
+                                    <TextLink href={ROUTES.REPORT_WITH_ID.getRoute(chatReportID ?? '')}>{chatTextLink}</TextLink>
+                                </View>
+                            </View>
                         </Section>
                     </View>
                 </ScrollView>

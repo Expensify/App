@@ -92,6 +92,15 @@ type Account = {
     /** The primaryLogin associated with the account */
     primaryLogin?: string;
 
+    /** The primaryLogin associated with the account */
+    adminsRoomReportID?: string;
+
+    /** The primaryLogin associated with the account */
+    accountManagerAccountID?: string;
+
+    /** The primaryLogin associated with the account */
+    accountManagerReportID?: string;
+
     /** The message to be displayed when code requested */
     message?: string;
 
