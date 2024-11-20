@@ -771,8 +771,7 @@ function ReportActionItem({
                                     index={index}
                                     ref={textInputRef}
                                     shouldDisableEmojiPicker={
-                                        (ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) ||
-                                        ReportUtils.isArchivedRoom(report, reportNameValuePairs)
+                                        (ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) || ReportUtils.isArchivedRoom(reportNameValuePairs)
                                     }
                                     isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
                                 />
