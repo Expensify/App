@@ -9,7 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardNicknames, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
@@ -135,15 +135,26 @@ function maskCard(lastFour = ''): string {
  * Converts given 'X' to '•' for the entire card string.
  *
  * @param cardName - card name with XXXX in the middle.
+ * @param feed - card feed.
  * @returns - The masked card string.
  */
-function maskCardNumber(cardName: string): string {
+function maskCardNumber(cardName: string, feed: string | undefined): string {
     if (!cardName || cardName === '') {
         return '';
     }
     const hasSpace = /\s/.test(cardName);
     const maskedString = cardName.replace(/X/g, '•');
-    return hasSpace ? cardName : maskedString.replace(/(.{4})/g, '$1 ').trim();
+    const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
+
+    if (hasSpace) {
+        return cardName;
+    }
+
+    if (isAmexBank && maskedString.length === 15) {
+        return maskedString.replace(/(.{4})(.{6})(.{5})/, '$1 $2 $3');
+    }
+
+    return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
 /**
@@ -243,10 +254,20 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
     return Illustrations.AmexCompanyCards;
 }
 
-function removeExpensifyCardFromCompanyCards(companyCards?: Record<string, CardFeedData>) {
-    if (!companyCards) {
+function isCustomFeed(feed: CompanyCardFeed): boolean {
+    return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => value === feed);
+}
+
+function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
+    return {...cardFeeds?.settings?.companyCards, ...cardFeeds?.settings?.oAuthAccountDetails};
+}
+
+function removeExpensifyCardFromCompanyCards(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
+    if (!cardFeeds) {
         return {};
     }
+
+    const companyCards = getCompanyFeeds(cardFeeds);
     return Object.fromEntries(Object.entries(companyCards).filter(([key]) => key !== CONST.EXPENSIFY_CARD.BANK));
 }
 
@@ -283,6 +304,16 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
     return iconMap[bank];
 };
 
+function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknames?: CompanyCardNicknames): string | undefined {
+    if (!feed) {
+        return;
+    }
+
+    const customFeedName = companyCardNicknames?.[feed];
+    const formattedFeedName = Localize.translateLocal('workspace.companyCards.feedName', {feedName: getCardFeedName(feed)});
+    return customFeedName ?? formattedFeedName;
+}
+
 // We will simplify the logic below once we have #50450 #50451 implemented
 const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) => {
     const banksWithFeedType = [
@@ -316,8 +347,8 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
     return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
 };
 
-function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed {
-    const defaultFeed = Object.keys(removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards)).at(0) as CompanyCardFeed;
+function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed | undefined {
+    const defaultFeed = Object.keys(removeExpensifyCardFromCompanyCards(cardFeeds)).at(0) as CompanyCardFeed | undefined;
     return lastSelectedFeed ?? defaultFeed;
 }
 
@@ -340,8 +371,11 @@ export {
     getCompanyCardNumber,
     getCardFeedIcon,
     getCardFeedName,
+    getCompanyFeeds,
+    isCustomFeed,
     getBankCardDetailsImage,
     getSelectedFeed,
     getCorrectStepForSelectedBank,
+    getCustomOrFormattedFeedName,
     removeExpensifyCardFromCompanyCards,
 };
