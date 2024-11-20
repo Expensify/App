@@ -41,7 +41,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const styles = useThemeStyles();
     const policyID = route.params.policyID;
 
-    const featureNameAlias = getFeatureNameAlias(route.params.featureName);
+    const featureNameAlias = route.params.featureName && getFeatureNameAlias(route.params.featureName);
 
     const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((f) => f.alias === featureNameAlias);
     const {translate} = useLocalize();
