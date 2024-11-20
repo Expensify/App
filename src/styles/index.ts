@@ -2319,7 +2319,7 @@ const styles = (theme: ThemeColors) =>
             height: 32,
             width: 32,
             padding: 6,
-            margin: 3,
+            marginHorizontal: 3,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.transparent,
             justifyContent: 'center',
@@ -3125,9 +3125,9 @@ const styles = (theme: ThemeColors) =>
 
         radioButtonContainer: {
             backgroundColor: theme.componentBG,
-            borderRadius: 10,
-            height: 20,
-            width: 20,
+            borderRadius: 14,
+            height: 28,
+            width: 28,
             borderColor: theme.border,
             borderWidth: 1,
             justifyContent: 'center',
@@ -4336,8 +4336,8 @@ const styles = (theme: ThemeColors) =>
                 marginLeft: 8,
                 ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
                 color: isSelected ? theme.text : theme.textSupporting,
-                lineHeight: variables.lineHeightNormal,
-                fontSize: variables.fontSizeNormal,
+                lineHeight: variables.lineHeightLarge,
+                fontSize: variables.fontSizeLabel,
             } satisfies TextStyle),
 
         tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
@@ -5307,25 +5307,19 @@ const styles = (theme: ThemeColors) =>
             left: 12,
         },
 
-        progressBarWrapper: {
-            height: 2,
-            width: '100%',
-            backgroundColor: theme.border,
-            borderRadius: 5,
-            overflow: 'hidden',
-        },
-
-        progressBar: {
-            height: '100%',
-            backgroundColor: theme.success,
-            width: '100%',
-        },
-
         qbdSetupLinkBox: {
             backgroundColor: theme.hoverComponentBG,
             borderRadius: variables.componentBorderRadiusMedium,
             borderColor: theme.border,
             padding: 16,
+        },
+        liDot: {
+            width: 4,
+            height: 4,
+            borderRadius: 4,
+            backgroundColor: theme.text,
+            marginHorizontal: 8,
+            alignSelf: 'center',
         },
     } satisfies Styles);
 

@@ -27,7 +27,7 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber}: WorkspaceC
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.br3, styles.p4]}>
             <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                 <Avatar
-                    source={getDefaultAvatarURL(cardholder?.accountID)}
+                    source={cardholder?.avatar ?? getDefaultAvatarURL(cardholder?.accountID)}
                     avatarID={cardholder?.accountID}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}

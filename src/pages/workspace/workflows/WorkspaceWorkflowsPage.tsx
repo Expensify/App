@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
@@ -92,7 +92,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     useFocusEffect(
         useCallback(() => {
-            fetchData();
+            InteractionManager.runAfterInteractions(() => {
+                fetchData();
+            });
         }, [fetchData]),
     );
 

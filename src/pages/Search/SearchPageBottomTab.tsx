@@ -128,6 +128,7 @@ function SearchPageBottomTab() {
             )}
             {shouldUseNarrowLayout && (
                 <Search
+                    isSearchScreenFocused={isActiveCentralPaneRoute}
                     queryJSON={queryJSON}
                     onSearchListScroll={scrollHandler}
                     contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}

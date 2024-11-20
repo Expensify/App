@@ -43,7 +43,6 @@ import * as PriorityMode from '@userActions/PriorityMode';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import toggleTestToolsModal from '@userActions/TestTool';
-import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -242,33 +241,16 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const modal = useRef<OnyxTypes.Modal>({});
     const [didPusherInit, setDidPusherInit] = useState(false);
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
-
-    let initialReportID: string | undefined;
-    const isInitialRender = useRef(true);
-
-    // eslint-disable-next-line react-compiler/react-compiler
-    if (isInitialRender.current) {
-        Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
-
+    const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
-        if (currentURL) {
-            initialReportID = new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
+        const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
+        if (reportIdFromPath) {
+            return reportIdFromPath;
         }
 
-        if (!initialReportID) {
-            const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
-            initialReportID = initialReport?.reportID ?? '';
-        }
-
-        // eslint-disable-next-line react-compiler/react-compiler
-        isInitialRender.current = false;
-    }
-
-    const isOnboardingCompletedRef = useRef(isOnboardingCompleted);
-
-    useEffect(() => {
-        isOnboardingCompletedRef.current = isOnboardingCompleted;
-    }, [isOnboardingCompleted]);
+        const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
+        return initialReport?.reportID ?? '';
+    });
 
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
@@ -312,8 +294,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
         }
         Download.clearDownloads();
-
-        Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
@@ -368,9 +348,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             searchShortcutConfig.shortcutKey,
             () => {
                 Session.checkIfActionIsAllowed(() => {
-                    if (!isOnboardingCompletedRef.current) {
-                        return;
-                    }
                     toggleSearchRouter();
                 })();
             },

@@ -465,6 +465,8 @@ function ReportActionItemMessageEdit(
         }
     }, [isFocused, hideSuggestionMenu]);
 
+    const closeButtonStyles = [styles.composerSizeButton, {marginVertical: styles.composerSizeButton.marginHorizontal}];
+
     return (
         <>
             <View
@@ -484,7 +486,7 @@ function ReportActionItemMessageEdit(
                         <Tooltip text={translate('common.cancel')}>
                             <PressableWithFeedback
                                 onPress={deleteDraft}
-                                style={styles.composerSizeButton}
+                                style={closeButtonStyles}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                                 // disable dimming

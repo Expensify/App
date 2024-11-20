@@ -20,6 +20,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isConnectionInProgress} from '@libs/actions/connections';
+import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
@@ -62,7 +63,8 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD
         | typeof SCREENS.WORKSPACE.COMPANY_CARDS
         | typeof SCREENS.WORKSPACE.REPORT_FIELDS
-        | typeof SCREENS.WORKSPACE.RULES;
+        | typeof SCREENS.WORKSPACE.RULES
+        | typeof SCREENS.WORKSPACE.PER_DIEM;
     badgeText?: string;
 };
 
@@ -86,6 +88,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`);
     const hasSyncError = PolicyUtils.hasSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
@@ -110,6 +114,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled,
         }),
         [policy],
     ) as PolicyFeatureStates;
@@ -211,16 +216,28 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             icon: Expensicons.ExpensifyCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
+            brickRoadIndicator: !isEmptyObject(cardsList?.cardList?.errorFields ?? {}) || !isEmptyObject(cardSettings?.errors ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]) {
+        const hasPolicyFeedsError = PolicyUtils.hasPolicyFeedsError(CardUtils.getCompanyFeeds(cardFeeds));
+
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.companyCards',
             icon: Expensicons.CreditCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.COMPANY_CARDS,
-            brickRoadIndicator: PolicyUtils.hasPolicyFeedsError(cardFeeds?.settings?.companyCards ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: hasPolicyFeedsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.perDiem',
+            icon: Expensicons.CalendarSolid,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.PER_DIEM,
         });
     }
 

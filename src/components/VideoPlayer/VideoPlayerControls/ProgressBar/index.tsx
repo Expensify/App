@@ -44,21 +44,22 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
     };
 
     const pan = Gesture.Pan()
+        .runOnJS(true)
         .onBegin((event) => {
-            runOnJS(setIsSliderPressed)(true);
-            runOnJS(checkVideoPlaying)(onCheckVideoPlaying);
-            runOnJS(pauseVideo)();
-            runOnJS(progressBarInteraction)(event);
+            setIsSliderPressed(true);
+            checkVideoPlaying(onCheckVideoPlaying);
+            pauseVideo();
+            progressBarInteraction(event);
         })
         .onChange((event) => {
-            runOnJS(progressBarInteraction)(event);
+            progressBarInteraction(event);
         })
         .onFinalize(() => {
-            runOnJS(setIsSliderPressed)(false);
-            if (!wasVideoPlayingOnCheck.get()) {
+            setIsSliderPressed(false);
+            if (!wasVideoPlayingOnCheck.value) {
                 return;
             }
-            runOnJS(playVideo)();
+            playVideo();
         });
 
     useEffect(() => {

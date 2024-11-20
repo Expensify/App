@@ -86,8 +86,7 @@ function AttachmentCarouselPager(
     );
 
     const extractItemKey = useCallback(
-        (item: Attachment, index: number) =>
-            typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}` : `reportActionID-${item.reportActionID}` ?? `index-${index}`,
+        (item: Attachment) => (typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}|${item.attachmentLink}` : `reportActionID-${item.reportActionID}`),
         [],
     );
 
@@ -125,7 +124,7 @@ function AttachmentCarouselPager(
 
     const carouselItems = items.map((item, index) => (
         <View
-            key={extractItemKey(item, index)}
+            key={extractItemKey(item)}
             style={styles.flex1}
         >
             <CarouselItem
