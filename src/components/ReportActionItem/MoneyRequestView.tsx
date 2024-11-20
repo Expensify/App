@@ -1,3 +1,4 @@
+import mapValues from 'lodash/mapValues';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -22,6 +23,7 @@ import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {isReceiptError} from '@libs/ErrorUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -474,10 +476,11 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 return;
                             }
 
-                            const hasReceiptError = Object.values(errors).some((errorObj) => (errorObj as {error: string}).error === 'receiptError');
+                            const errorEntries = Object.entries(errors ?? {});
+                            const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
+                            const hasReceiptError = Object.values(errorMessages).some((error) => isReceiptError(error));
 
                             if (hasReceiptError) {
-                                console.log('There is a receipt error.');
                                 setShowConfirmDismissReceiptError(true);
                             } else {
                                 dismissReceiptError();

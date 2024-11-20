@@ -84,7 +84,7 @@ function handleDownload(url: string, fileName?: string, successMessage?: string)
                 );
             })
             .then(() => {
-                if (attachmentPath) {
+                if (attachmentPath && !isLocalFile) {
                     RNFetchBlob.fs.unlink(attachmentPath);
                 }
                 FileUtils.showSuccessAlert(successMessage);
