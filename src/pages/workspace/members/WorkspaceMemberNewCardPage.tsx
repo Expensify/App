@@ -36,6 +36,7 @@ type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & Sta
 
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
+    const policy = PolicyUtils.getPolicy(policyID);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
@@ -94,25 +95,26 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         ),
     }));
 
-    const feeds = workspaceAccountID
-        ? [
-              ...companyCardFeeds,
-              {
-                  value: CONST.EXPENSIFY_CARD.NAME,
-                  text: translate('workspace.common.expensifyCard'),
-                  keyForList: CONST.EXPENSIFY_CARD.NAME,
-                  isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
-                  leftElement: (
-                      <Icon
-                          src={ExpensifyCardImage}
-                          width={variables.cardIconWidth}
-                          height={variables.cardIconHeight}
-                          additionalStyles={[styles.cardIcon, styles.mr3]}
-                      />
-                  ),
-              },
-          ]
-        : companyCardFeeds;
+    const feeds =
+        workspaceAccountID && policy?.areExpensifyCardsEnabled
+            ? [
+                  ...companyCardFeeds,
+                  {
+                      value: CONST.EXPENSIFY_CARD.NAME,
+                      text: translate('workspace.common.expensifyCard'),
+                      keyForList: CONST.EXPENSIFY_CARD.NAME,
+                      isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
+                      leftElement: (
+                          <Icon
+                              src={ExpensifyCardImage}
+                              width={variables.cardIconWidth}
+                              height={variables.cardIconHeight}
+                              additionalStyles={[styles.cardIcon, styles.mr3]}
+                          />
+                      ),
+                  },
+              ]
+            : companyCardFeeds;
 
     const goBack = () => Navigation.goBack();
 

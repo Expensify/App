@@ -16,6 +16,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as FormActions from '@libs/actions/FormActions';
 import * as ReportActions from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -70,6 +71,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', () => {
             Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
+            FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
         });
 
         return unsubscribe;
@@ -87,12 +89,12 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: []};
         }
 
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers, true);
 
-        return {...inviteOptions, recentReports: [], currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+        return {...inviteOptions, recentReports: [], currentUserOption: null, categoryOptions: []};
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
 
     const inviteOptions = useMemo(
