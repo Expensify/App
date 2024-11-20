@@ -1602,9 +1602,9 @@ function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Returns true if reportAction is the first chat preview of a Thread
+ * Is this a parent report action, in other words does it have a child report? Every thread report has a parent report action.
  */
-function isThreadFirstChat(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+function isParentReportAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return !!reportAction?.childReportID;
 }
 
@@ -1853,7 +1853,7 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
             return false;
         }
 
-        const linkedReport = isThreadFirstChat(reportAction) ? getReportOrDraftReport(report?.parentReportID) : report;
+        const linkedReport = isParentReportAction(reportAction) ? getReportOrDraftReport(report?.parentReportID) : report;
         if (isActionOwner) {
             if (!isEmptyObject(linkedReport) && (isMoneyRequestReport(linkedReport) || isInvoiceReport(linkedReport))) {
                 return canDeleteTransaction(linkedReport);
@@ -7279,7 +7279,7 @@ function getOriginalReportID(reportID: string, reportAction: OnyxInputOrEntry<Re
     const currentReportAction = reportActions?.[reportAction?.reportActionID ?? '-1'] ?? null;
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions ?? ([] as ReportAction[]));
     if (Object.keys(currentReportAction ?? {}).length === 0) {
-        return isThreadFirstChat(reportAction) ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportID : transactionThreadReportID ?? reportID;
+        return isParentReportAction(reportAction) ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportID : transactionThreadReportID ?? reportID;
     }
     return reportID;
 }
@@ -7749,7 +7749,7 @@ function hasOnlyHeldExpenses(iouReportID: string): boolean {
  */
 function shouldDisplayThreadReplies(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     const hasReplies = (reportAction?.childVisibleActionCount ?? 0) > 0;
-    return hasReplies && !!reportAction?.childCommenterCount && !isThreadFirstChat(reportAction);
+    return hasReplies && !!reportAction?.childCommenterCount && !isParentReportAction(reportAction);
 }
 
 /**
@@ -7822,7 +7822,7 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, repor
         (isDeletedAction && !reportAction?.childVisibleActionCount) ||
         (isArchivedReport && !reportAction?.childVisibleActionCount) ||
         (isWhisperAction && !isReportPreviewAction && !isIOUAction) ||
-        isThreadFirstChat(reportAction)
+        isParentReportAction(reportAction)
     );
 }
 
@@ -8678,7 +8678,7 @@ export {
     isSystemChat,
     isTaskReport,
     isThread,
-    isThreadFirstChat,
+    isParentReportAction,
     isTrackExpenseReport,
     isUnread,
     isUnreadWithMention,
