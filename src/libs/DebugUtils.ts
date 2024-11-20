@@ -57,7 +57,6 @@ const REPORT_BOOLEAN_PROPERTIES: Array<keyof Report> = [
     'hasOutstandingChildRequest',
     'hasOutstandingChildTask',
     'isOwnPolicyExpenseChat',
-    'isPolicyExpenseChat',
     'isPinned',
     'hasParentAccess',
     'isDeletedParentAction',
@@ -65,9 +64,7 @@ const REPORT_BOOLEAN_PROPERTIES: Array<keyof Report> = [
     'isWaitingOnBankAccount',
     'isCancelledIOU',
     'isHidden',
-    'isChatRoom',
     'isLoadingPrivateNotes',
-    'selected',
 ] satisfies Array<keyof Report>;
 
 const REPORT_DATE_PROPERTIES: Array<keyof Report> = ['lastVisibleActionCreated', 'lastReadTime', 'lastMentionedTime', 'lastVisibleActionLastModified'] satisfies Array<keyof Report>;
@@ -495,9 +492,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
     }
     if (key === 'pendingFields') {
         return validateObject(value, {});
-    }
-    if (key === 'participantAccountIDs') {
-        return validateArray(value, 'number');
     }
 
     validateString(value);

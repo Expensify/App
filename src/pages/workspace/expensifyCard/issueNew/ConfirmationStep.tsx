@@ -150,7 +150,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     }}
                     isVisible={isValidateCodeActionModalVisible}
                     title={translate('cardPage.validateCardTitle')}
-                    description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+                    descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
                 />
             )}
         </InteractiveStepWrapper>

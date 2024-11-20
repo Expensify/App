@@ -14,6 +14,7 @@ type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
     searchQuery?: string;
     autocompleteID?: string;
+    roomType?: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
     searchItemType?: ValueOf<typeof CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE>;
 };
 
