@@ -10,9 +10,10 @@ import Log from './Log';
 import * as Network from './Network';
 import * as NetworkStore from './Network/NetworkStore';
 import requireParameters from './requireParameters';
+import Onyx from 'react-native-onyx';
 
 let authenticateCalls = 0;
-const CALLS_TO_FAIL = 1;
+const CALLS_TO_FAIL = 20;
 
 type Parameters = {
     useExpensifyLogin?: boolean;
@@ -51,9 +52,12 @@ function Authenticate(parameters: Parameters): Promise<Response> {
         email: parameters.email,
     }).then((response) => {
         if (authenticateCalls > CALLS_TO_FAIL) {
+            console.log('Ndebug Authenticate success after failing calls: ', CALLS_TO_FAIL);
+            Onyx.set('failedAuthenticate', false);
             return response;
         }
         console.log('Ndebug failing to fetch in Authenticate. Call number: ', authenticateCalls);
+        Onyx.set('failedAuthenticate', true);
         throw new HttpsError({
             message: CONST.ERROR.FAILED_TO_FETCH,
         });
